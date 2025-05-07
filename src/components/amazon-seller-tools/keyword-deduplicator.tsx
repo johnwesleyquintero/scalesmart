@@ -226,10 +226,7 @@ export default function KeywordDeduplicator() {
 
         setProducts(processedData);
         setError(undefined);
-        toast('', '', {
-          title: 'Success',
-          description: 'CSV file processed successfully',
-        });
+        toast({ title: 'Success', description: 'CSV file processed successfully' });
       logger.info('CSV processing completed successfully', {
         processedCount: processedData.length,
         skippedCount: result.data.length - processedData.length,
@@ -249,10 +246,7 @@ export default function KeywordDeduplicator() {
         });
 
         setError(errorMessage);
-        toast('Processing Error', errorMessage, {
-          title: 'Processing Error',
-          description: errorMessage,
-        });
+        toast({ title: 'Processing Error', description: errorMessage });
       } finally {
         setIsLoading(false);
         // Reset file input value after processing
@@ -304,10 +298,7 @@ export default function KeywordDeduplicator() {
         setProducts((prevProducts) => [...prevProducts, result]);
         setManualKeywords('');
         setManualProduct('');
-        toast('Keywords Processed', `Deduplicated keywords for "${productName}". ${result.duplicatesRemoved} duplicates removed.`, {
-          title: 'Keywords Processed',
-          description: `Deduplicated keywords for "${productName}". ${result.duplicatesRemoved} duplicates removed.`
-        });
+        toast({ title: 'Keywords Processed', description: `Deduplicated keywords for "${productName}". ${result.duplicatesRemoved} duplicates removed.` });
       } else {
         // This case should ideally be caught by processKeywordData's internal logging/return undefined
         // but we add a fallback error here.
@@ -317,10 +308,7 @@ export default function KeywordDeduplicator() {
       const errorMessage =
         err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(errorMessage);
-      toast('', '', {
-         title: 'Error',
-         description: 'Failed to process CSV file',
-       });
+      toast({ title: 'Error', description: 'Failed to process CSV file' });
 
       // Ensure error element has validation role for test assertions
       const errorElement = document.querySelector('[role="validation-error"]');
@@ -351,10 +339,7 @@ export default function KeywordDeduplicator() {
     if (products.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast('Export Error', msg, {
-        title: 'Export Error',
-        description: msg,
-      });
+      toast({ title: 'Export Error', description: msg });
       return;
     }
     setError(undefined);
@@ -377,17 +362,14 @@ export default function KeywordDeduplicator() {
       link.click();
       link.remove(); // Use remove
       URL.revokeObjectURL(url);
-      toast('', '', { title: 'Export Successful', description: 'Cleaned keywords exported to CSV.' });
+      toast({ title: 'Export Successful', description: 'Cleaned keywords exported to CSV.' });
     } catch (err) {
       const message =
         err instanceof Error
           ? err.message
            : 'An unknown error occurred during export.';
        setError(`Failed to export data: ${message}`);
-       toast('', '', {
-         title: 'Export Failed',
-         description: message,
-       });
+       toast({ title: 'Export Failed', description: message });
        logError({
         message: 'CSV export failed',
         component: 'KeywordDeduplicator/handleExport',
@@ -407,7 +389,7 @@ export default function KeywordDeduplicator() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    toast('', '', { title: 'Data Cleared', description: 'All keyword data has been removed.' });
+    toast({ title: 'Data Cleared', description: 'All keyword data has been removed.' });
   }, [toast]);
 
   // --- Render ---
