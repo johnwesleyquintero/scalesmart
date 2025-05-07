@@ -136,5 +136,8 @@ class RedisCache {
 
 export const cache = new RedisCache();
 function getRedisConfig(): { url: string; token: string } {
-  throw new Error('Function not implemented.');
+  return {
+    url: process.env.REDIS_URL || 'redis://localhost:6379',
+    token: process.env.REDIS_TOKEN || ''
+  };
 }

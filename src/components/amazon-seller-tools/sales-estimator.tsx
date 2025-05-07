@@ -216,7 +216,6 @@ export default function SalesEstimator() {
       toast({
         title: 'Error',
         description: errorMessage,
-        variant: 'destructive',
       });
       logger.error('CSV parsing error', {
         error,
@@ -272,7 +271,6 @@ export default function SalesEstimator() {
       toast({
         title: 'Error',
         description: errorMessage,
-        variant: 'destructive',
       });
       logger.error('Manual estimate error', {
         error,
@@ -320,7 +318,6 @@ export default function SalesEstimator() {
       toast({
         title: 'Error',
         description: 'Failed to export sales estimates',
-        variant: 'destructive',
       });
     }
   };

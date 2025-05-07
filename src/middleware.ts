@@ -5,7 +5,7 @@ import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { Buffer } from 'node:buffer';
-import * as process from 'process';
+
 import { v4 as uuidv4 } from 'uuid';
 
 // Function to generate security headers with a nonce for enhanced security
@@ -137,7 +137,7 @@ export async function middleware(request: NextRequest) {
     });
 
     // Return an error response with security headers
-    const errorResponse: NextResponse = NextResponse.error();
+    const errorResponse = new NextResponse(null, { status: 500 });
     applySecurityHeaders(errorResponse);
     return errorResponse;
   }

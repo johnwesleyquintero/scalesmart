@@ -69,7 +69,6 @@ export default function ManualFbaForm({
         toast({
           title: 'Validation Error',
           description: 'Please correct the errors in the form.',
-          variant: 'destructive',
         });
         return;
       }
@@ -92,7 +91,6 @@ export default function ManualFbaForm({
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
-        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);

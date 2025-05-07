@@ -137,7 +137,6 @@ export const logError = ({
     toast({
       title: 'Error',
       description: message,
-      variant: 'destructive',
     });
   } catch (e) {
     console.error('Error calling toast:', e);

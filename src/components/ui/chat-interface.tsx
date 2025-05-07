@@ -198,7 +198,6 @@ const ChatInterface: React.FC = () => {
     toast({
       title: 'Retry Failed',
       description: `Message could not be sent after ${RETRY_LIMIT} attempts.`,
-      variant: 'destructive',
     });
   };
 
@@ -319,7 +318,6 @@ const ChatInterface: React.FC = () => {
       toast({
         title: 'Message Failed',
         description: `Attempt ${currentRetryCount + 1} failed. Retrying... (${error instanceof Error ? error.message : 'Unknown error'})`,
-        variant: 'destructive',
       });
     }
   };

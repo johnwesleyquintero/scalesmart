@@ -284,7 +284,6 @@ export default function FbaCalculator({
             toast({
               title: 'CSV Processed',
               description: `${processedMessage}.${skippedMessage}`,
-              variant: 'default',
             });
             onCalculateAction(validResults);
           } catch (err) {
@@ -296,8 +295,7 @@ export default function FbaCalculator({
             setResults([]);
             toast({
               title: 'Processing Failed',
-              description: message,
-              variant: 'destructive',
+              description: message
             });
           } finally {
             setIsLoading(false);
@@ -311,7 +309,7 @@ export default function FbaCalculator({
           setError(`Error reading CSV file: ${err.message}`);
           setIsLoading(false);
           setResults([]);
-          toast('Upload Failed', `Error reading CSV file: ${err.message}`);
+          toast({title: 'Upload Failed', description: `Error reading CSV file: ${err.message}`});
 
           if (event.target) {
             event.target.value = '';
@@ -326,7 +324,7 @@ export default function FbaCalculator({
     if (results.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast('Export Error', msg);
+      toast({title: 'Export Error', description: msg});
       return;
     }
     setError(null);
@@ -355,14 +353,14 @@ export default function FbaCalculator({
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url); // Clean up blob URL
-      toast('Export Successful', 'FBA calculation results exported to CSV.');
+      toast({title: 'Export Successful', description: 'FBA calculation results exported to CSV.'});
     } catch (err) {
       const message =
         err instanceof Error
           ? err.message
           : 'An unknown error occurred during export.';
       setError(`Failed to export data: ${message}`);
-      toast('Export Failed', message);
+      toast({title: 'Export Failed', description: message});
     }
   }, [results, toast]);
 
@@ -373,7 +371,7 @@ export default function FbaCalculator({
     if (fileInputRef.current) {
       fileInputRef.current.value = ''; // Reset file input
     }
-    toast('Data Cleared', 'All calculation results have been removed.');
+    toast({title: 'Data Cleared', description: 'All calculation results have been removed.'});
   }, [toast]);
 
   // --- Render ---
@@ -465,18 +463,18 @@ export default function FbaCalculator({
                 try {
                   const metrics = await calculateFbaMetrics(values);
                   setResults([{ ...values, ...metrics }]);
-                  toast(
-                    'Calculation Complete',
-                    `Calculated metrics for ${values.product}`,
-                  );
+                  toast({
+                    title: 'Calculation Complete',
+                    description: `Calculated metrics for ${values.product}`
+                  });
                   onCalculateAction([{ ...values, ...metrics }]);
                 } catch (error) {
-                  toast(
-                    'Calculation Failed',
-                    error instanceof Error
+                  toast({
+                    title: 'Calculation Failed',
+                    description: error instanceof Error
                       ? error.message
-                      : 'Failed to calculate metrics',
-                  );
+                      : 'Failed to calculate metrics'
+                  });
                 }
               }}
               onReset={() => {

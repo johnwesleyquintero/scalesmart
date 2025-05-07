@@ -2,7 +2,7 @@
 
 // Initialize mock service worker in the browser environment
 if (typeof window !== 'undefined') {
-  const { worker } = require('./mocks/browser');
+  const { worker } = require('../../mocks/browser');
   worker.start();
 }
 
