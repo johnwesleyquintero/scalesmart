@@ -36,7 +36,7 @@ export interface FbaCalculationInput {
   fees: number;
 }
 
-interface FbaCalculationResult extends FbaCalculationInput {
+export interface FbaCalculationResult extends FbaCalculationInput {
   profit: number;
   roi: number; // Return on Investment (%)
   margin: number; // Profit Margin (%)
@@ -276,27 +276,14 @@ export default function FbaCalculator({
               skippedRowCount > 0
                 ? ` Skipped ${skippedRowCount} invalid rows`
                 : '';
-            setError(
-              skippedRowCount > 0
-                ? `${processedMessage}.${skippedMessage}`
-                : null,
-            );
-            toast({
-              title: 'CSV Processed',
-              description: `${processedMessage}.${skippedMessage}`,
-            });
+            setError(skippedRowCount > 0 ? `${processedMessage}${skippedMessage}` : null);
+            toast({ title: 'CSV Processed', description: `${processedMessage}${skippedMessage}` });
             onCalculateAction(validResults);
           } catch (err) {
-            const message =
-              err instanceof Error
-                ? err.message
-                : 'An unknown error occurred during processing.';
+            const message = err instanceof Error ? err.message : 'An unknown error occurred during processing.';
             setError(message);
             setResults([]);
-            toast({
-              title: 'Processing Failed',
-              description: message
-            });
+            toast({ title: 'Processing Failed', description: message, variant: 'destructive' });
           } finally {
             setIsLoading(false);
 
@@ -309,7 +296,7 @@ export default function FbaCalculator({
           setError(`Error reading CSV file: ${err.message}`);
           setIsLoading(false);
           setResults([]);
-          toast('', '', {title: 'Upload Failed', description: `Error reading CSV file: ${err.message}`});
+          toast({ title: 'Upload Failed', description: `Error reading CSV file: ${err.message}`, variant: 'destructive' });
 
           if (event.target) {
             event.target.value = '';
@@ -324,7 +311,7 @@ export default function FbaCalculator({
     if (results.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast('', '', {title: 'Export Error', description: msg});
+      toast({ title: 'Export Error', description: msg, variant: 'destructive' });
       return;
     }
     setError(null);
@@ -353,14 +340,14 @@ export default function FbaCalculator({
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url); // Clean up blob URL
-      toast({title: 'Export Successful', description: 'FBA calculation results exported to CSV.'});
+      toast({ title: 'Export Successful', description: 'FBA calculation results exported to CSV.', variant: 'default' });
     } catch (err) {
       const message =
         err instanceof Error
           ? err.message
           : 'An unknown error occurred during export.';
       setError(`Failed to export data: ${message}`);
-      toast({title: 'Export Failed', description: message});
+      toast({ title: 'Export Failed', description: message, variant: 'destructive' });
     }
   }, [results, toast]);
 
@@ -371,7 +358,7 @@ export default function FbaCalculator({
     if (fileInputRef.current) {
       fileInputRef.current.value = ''; // Reset file input
     }
-    toast({title: 'Data Cleared', description: 'All calculation results have been removed.'});
+    toast({ title: 'Data Cleared', description: 'All calculation results have been removed.', variant: 'default' });
   }, [toast]);
 
   // --- Render ---
@@ -453,7 +440,7 @@ export default function FbaCalculator({
             <h3 className="text-lg font-medium mb-4 text-center sm:text-left">
               Manual Calculation
             </h3>
-            :start_line:478 -------
+
             <ManualFbaForm
               initialValues={manualInput}
               onSubmit={async (values, errors) => {
@@ -463,18 +450,10 @@ export default function FbaCalculator({
                 try {
                   const metrics = await calculateFbaMetrics(values);
                   setResults([{ ...values, ...metrics }]);
-                  toast({
-                    title: 'Calculation Complete',
-                    description: `Calculated metrics for ${values.product}`
-                  });
+                  toast({ title: 'Calculation Complete', description: `Calculated metrics for ${values.product}`, variant: 'default' });
                   onCalculateAction([{ ...values, ...metrics }]);
                 } catch (error) {
-                  toast({
-                    title: 'Calculation Failed',
-                    description: error instanceof Error
-                      ? error.message
-                      : 'Failed to calculate metrics'
-                  });
+                  toast({ title: 'Calculation Failed', description: error instanceof Error ? error.message : 'Failed to calculate metrics', variant: 'destructive' });
                 }
               }}
               onReset={() => {

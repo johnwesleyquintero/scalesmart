@@ -1,48 +1,43 @@
 'use client';
 
 import React from 'react';
-import type { JSXElementConstructor, ComponentProps, ElementType, PropsWithoutRef, RefAttributes, JSX } from 'react';
+import type { JSX } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-interface SidebarComponentProps {
+interface SidebarComponentProps extends React.HTMLAttributes<HTMLElement> {
   className?: string;
-  [x: string]: unknown;
 }
 
-type SidebarComponentType = keyof JSX.IntrinsicElements | JSXElementConstructor<HTMLElement>;
+
+
+type SidebarComponentType = keyof JSX.IntrinsicElements | React.ComponentType<any>;
 
 const createSidebarComponent = <T extends SidebarComponentType>(
   name: string,
   Component: T,
   defaultClassName: string,
-): React.ForwardRefExoticComponent<
-  PropsWithoutRef<ComponentProps<T> & SidebarComponentProps> &
-    RefAttributes<HTMLElement>
-> => {
-  type Props<U extends ElementType = T> = ComponentProps<U> & SidebarComponentProps;
-  const ForwardRefComponent = React.forwardRef<
-    HTMLElement,
-    Omit<Props<typeof Component>, 'className'> & { className?: string }
-  >((props, ref) => {
-    const { className, ...rest } = props;
-    return (
-      <Component
-        ref={ref}
-        className={cn(defaultClassName, className)}
-        {...(rest as Omit<Props, 'className'>)}
-      />
-    );
-  });
+) => {
+  const ForwardRefComponent = React.forwardRef<any, React.ComponentPropsWithRef<T> & SidebarComponentProps>(
+    (props, ref) => {
+      const { className, ...rest } = props;
+      const combinedClassName = cn(defaultClassName, className);
+
+      return (
+        <Component
+          ref={ref}
+          className={combinedClassName}
+          {...rest as any}
+        />
+      );
+    }
+  );
 
   ForwardRefComponent.displayName = name;
-  return ForwardRefComponent as React.ForwardRefExoticComponent<
-    React.PropsWithoutRef<React.ComponentProps<T> & SidebarComponentProps> &
-      React.RefAttributes<HTMLElement>
-  >;
+  return ForwardRefComponent;
 };
 
 const SidebarTrigger = createSidebarComponent(

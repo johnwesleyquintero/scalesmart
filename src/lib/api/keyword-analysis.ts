@@ -1,18 +1,13 @@
 import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
 import { logger } from './logger';
 import { monitoring } from './monitoring';
 
 const API_ENDPOINT = process.env.KEYWORD_ANALYZER_API_ENDPOINT;
-const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL;
-const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+// const UPSTASH_REDIS_REST_URL = process.env.UPSTASH_REDIS_REST_URL;
+// const UPSTASH_REDIS_REST_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 // Create a new ratelimiter to prevent abuse of the API. Allows 5 requests per minute.
 const ratelimit = new Ratelimit({
-  redis: new Redis({
-    url: UPSTASH_REDIS_REST_URL || '',
-    token: UPSTASH_REDIS_REST_TOKEN || '',
-  }),
   limiter: Ratelimit.slidingWindow(5, '1 m'),
   analytics: true,
   /**

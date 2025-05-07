@@ -73,7 +73,7 @@ class ApiClient {
         data: data,
       });
 
-      return data;
+      return data as { estimatedMonthlySales: number; confidence: number; range: { min: number; max: number; } } | undefined;
     } catch (error: unknown) {
       handleApiError(error, { url: endpoint, method: options.method });
       throw error;
@@ -140,9 +140,9 @@ class ApiClient {
     const cacheKey = `sales-estimate:${JSON.stringify(params)}`;
     const ttl = 3600; // 1 hour
 
-    const cachedData = await useCacheStore.getState().getItem(cacheKey);
+    const cachedData = (await useCacheStore.getState().getItem(cacheKey)) as { estimatedMonthlySales: number; confidence: number; range: { min: number; max: number; } } | undefined;
 
-    if (cachedData) {
+    if (cachedData && typeof cachedData === 'object' && 'estimatedMonthlySales' in cachedData && 'confidence' in cachedData && 'range' in cachedData) {
       logger.info(`Sales estimate from cache - ${cacheKey}`);
       return cachedData;
     }
@@ -159,7 +159,7 @@ class ApiClient {
 
       await useCacheStore.getState().setItem(cacheKey, data);
       logger.info(`Sales estimate stored in cache - ${cacheKey} - ttl: ${ttl}`);
-      return data;
+      return data as { estimatedMonthlySales: number; confidence: number; range: { min: number; max: number; } } | undefined;
     } catch (error: unknown) {
       logger.error(`Sales estimate API error - ${(error as Error).message}`, {
         url: '/sales/estimate',
