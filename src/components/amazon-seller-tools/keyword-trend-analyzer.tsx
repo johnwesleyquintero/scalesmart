@@ -131,10 +131,10 @@ export default function KeywordTrendAnalyzer() {
             setKeywords(foundKeywords);
             setError(undefined);
 
-            toast(
-              'Analysis Complete',
-              `Successfully analyzed trends for ${foundKeywords.length} keywords over ${processedData.length} dates.`,
-            );
+            toast({
+              title: 'Analysis Complete',
+              description: `Successfully analyzed trends for ${foundKeywords.length} keywords over ${processedData.length} dates.`
+            });
 
             logger.info('Trend analysis completed successfully', {
               fileName: file.name,
@@ -153,7 +153,7 @@ export default function KeywordTrendAnalyzer() {
             setError(message);
             setChartData([]);
             setKeywords([]);
-            toast('Processing Failed', message);
+            toast({ title: 'Processing Failed', description: message });
           } finally {
             setIsLoading(false);
             // Reset file input
@@ -167,7 +167,7 @@ export default function KeywordTrendAnalyzer() {
           setIsLoading(false);
           setChartData([]);
           setKeywords([]);
-          toast('Upload Failed', `Error reading CSV file: ${err.message}`);
+          toast({ title: 'Upload Failed', description: `Error reading CSV file: ${err.message}` });
           // Reset file input on read error too
           if (event.target) {
             event.target.value = '';
@@ -182,7 +182,7 @@ export default function KeywordTrendAnalyzer() {
     if (chartData.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast('Export Error', msg);
+      toast({ title: 'Export Error', description: msg });
       return;
     }
     setError(undefined);
@@ -199,12 +199,12 @@ export default function KeywordTrendAnalyzer() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast('Export Successful', 'Keyword trend analysis exported to CSV.');
+      toast({ title: 'Export Successful', description: 'Keyword trend analysis exported to CSV.' });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(`Failed to export data: ${message}`);
-      toast('Export Failed', message);
+      toast({ title: 'Export Failed', description: message });
     }
   }, [chartData, toast]);
 
@@ -215,7 +215,7 @@ export default function KeywordTrendAnalyzer() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    toast('Data Cleared', 'All trend analysis results have been removed.');
+    toast({ title: 'Data Cleared', description: 'All trend analysis results have been removed.' });
   }, [toast]);
 
   // --- Render ---

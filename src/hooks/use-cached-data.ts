@@ -2,7 +2,6 @@
 
 import { analytics } from '@/lib/analytics';
 import { logger } from '@/lib/logger';
-import { useCacheStore } from '@/stores/cache-store';
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 
@@ -21,7 +20,23 @@ export function useCachedData<T>({
   staleTime = 300000, // 5 minutes default
   onError,
 }: UseCachedDataOptions<T>) {
-  const { get: getFromCache, set: setInCache } = useCacheStore();
+  // Cache utility functions
+  const getFromCache = async <T>(key: string): Promise<T | null> => {
+    const item = localStorage.getItem(key);
+    if (!item) return null;
+
+    const { value, expires } = JSON.parse(item);
+    if (expires && Date.now() > expires) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    return value;
+  };
+
+  const setInCache = (key: string, value: unknown, ttl: number): void => {
+    const expires = Date.now() + ttl;
+    localStorage.setItem(key, JSON.stringify({ value, expires }));
+  };
 
   // Wrap fetchAction with cache logic
   const fetchWithCache = async (): Promise<T> => {

@@ -1,4 +1,3 @@
-import { useCacheStore } from '@/stores/cache-store';
 import ClientProviders from './client-providers';
 
 export default async function CacheProvider({
@@ -6,9 +5,8 @@ export default async function CacheProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const cachedData = await useCacheStore.getState().getItem('someKey'); // Replace 'someKey' with an actual key
-  const serializedData = JSON.parse(JSON.stringify(cachedData));
+  // Cache functionality will be implemented when needed
   return (
-    <ClientProviders cachedData={serializedData}>{children}</ClientProviders>
+    <ClientProviders>{children}</ClientProviders>
   );
 }

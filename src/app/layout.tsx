@@ -17,7 +17,6 @@ import ClientProviders from '@/components/client-providers';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { ContentSkeleton } from '@/components/ui/loading-skeleton';
 import { cn } from '@/lib/utils';
-import type { Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import { Suspense } from 'react';
 import './globals.css';
@@ -28,18 +27,6 @@ const inter = Inter({
   variable: '--font-inter',
   preload: true,
 });
-
-export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
-  ],
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
-  colorScheme: 'light dark',
-};
 
 export default function RootLayout({
   children,

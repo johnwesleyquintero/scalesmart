@@ -13,19 +13,22 @@ interface SidebarComponentProps {
   [x: string]: unknown;
 }
 
-const createSidebarComponent = <T extends React.ElementType>(
+const createSidebarComponent = <T extends React.ElementType = React.ElementType>(
   name: string,
   Component: T,
   defaultClassName: string,
-) => {
-  type Props = React.ComponentProps<T> & SidebarComponentProps;
+): React.ForwardRefExoticComponent<
+  React.PropsWithoutRef<React.ComponentProps<T> & SidebarComponentProps> &
+    React.RefAttributes<HTMLElement>
+> => {
+  type Props<U extends React.ElementType = T> = React.ComponentProps<U> & SidebarComponentProps;
   const ForwardRefComponent = React.forwardRef<
-    React.ElementRef<T>,
-    Omit<Props, 'className'> & { className?: string }
-  >((props, ref) => {
+    React.ElementRef<typeof Component>,
+    Omit<Props<typeof Component>, 'className'> & { className?: string }
+  ><T,>((props, ref) => {
     const { className, ...rest } = props;
     return (
-      <Component
+      <T
         ref={ref}
         className={cn(defaultClassName, className)}
         {...(rest as Omit<Props, 'className'>)}

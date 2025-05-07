@@ -465,7 +465,7 @@ export default function DescriptionEditor() {
           component: 'DescriptionEditor',
         });
         setError('Failed to load prohibited keywords list.');
-        toast('Keyword Fetch Failed', 'Could not load prohibited keywords.');
+        toast({ title: 'Keyword Fetch Failed', description: 'Could not load prohibited keywords.' });
       } finally {
         setIsLoading(false);
       }
@@ -504,13 +504,13 @@ export default function DescriptionEditor() {
               },
             );
             setError(`CSV Parsing failed: ${results.errors[0].message}`);
-            toast('CSV Parsing Error', results.errors[0].message);
+            toast({ title: 'CSV Parsing Error', description: results.errors[0].message });
             return;
           }
 
           if (!results.meta.fields || results.meta.fields.length === 0) {
             setError('No headers found in CSV file.');
-            toast('No Headers Found', 'The CSV file must have headers.');
+            toast({ title: 'No Headers Found', description: 'The CSV file must have headers.' });
             return;
           }
 
@@ -527,18 +527,18 @@ export default function DescriptionEditor() {
 
           if (newProducts.length === 0) {
             setError('No valid product data found in CSV.');
-            toast(
-              'No Valid Data',
-              'Could not find any valid product data in the CSV file.',
-            );
-            return;
-          }
+            toast({
+              title: 'No Valid Data',
+              description: 'Could not find any valid product data in the CSV file.',
+         });
+         return;
+       }
 
           setProducts(newProducts);
-          toast(
-            'CSV Processed',
-            `Successfully processed ${newProducts.length} products.`,
-          );
+          toast({
+            title: 'CSV Processed',
+            description: `Successfully processed ${newProducts.length} products.`
+          });
         },
         error: (err: unknown) => {
           setIsLoading(false);
@@ -547,7 +547,7 @@ export default function DescriptionEditor() {
             error: err,
             component: 'DescriptionEditor',
           });
-          toast('CSV Parsing Error', errorMessage);
+          toast({ title: 'CSV Parsing Error', description: errorMessage });
         },
       });
     },
@@ -583,7 +583,7 @@ export default function DescriptionEditor() {
         };
 
         setProducts((prevProducts) => [...prevProducts, newProduct]);
-        toast('Product Added', `Successfully added ${validatedData.product}`);
+        toast({ title: 'Product Added', description: `Successfully added ${validatedData.product}` });
         logger.info(`Added new product manually: ${validatedData.product}`, {
           product: validatedData.product,
           component: 'DescriptionEditor',
@@ -594,7 +594,7 @@ export default function DescriptionEditor() {
           error: err,
           component: 'DescriptionEditor',
         });
-        toast('Product Add Failed', errorMessage);
+        toast({ title: 'Product Add Failed', description: errorMessage });
       } finally {
         setIsLoading(false);
       }
@@ -626,7 +626,7 @@ export default function DescriptionEditor() {
     (productToSave: ProductDescription) => {
       // Basic validation - check for empty description
       if (!productToSave.description) {
-        toast('Save Error', 'Description cannot be empty.');
+        toast({ title: 'Save Error', description: 'Description cannot be empty.' });
         return;
       }
 
@@ -636,7 +636,7 @@ export default function DescriptionEditor() {
           p.product === productToSave.product ? productToSave : p,
         ),
       );
-      toast('Product Saved', `Saved changes to ${productToSave.product}`);
+      toast({ title: 'Product Saved', description: `Saved changes to ${productToSave.product}` });
       logger.info(`Saved product description for ${productToSave.product}`, {
         product: productToSave.product,
         component: 'DescriptionEditor',
@@ -677,7 +677,7 @@ export default function DescriptionEditor() {
     if (fileInputRef.current) {
       fileInputRef.current.value = ''; // Clear the file input
     }
-    toast('Data Cleared', 'All product data has been cleared.');
+    toast({ title: 'Data Cleared', description: 'All product data has been cleared.' });
   }, [toast]);
 
   return (

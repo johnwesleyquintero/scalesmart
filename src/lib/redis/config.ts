@@ -55,6 +55,14 @@ try {
   redis = new UpstashRedis(getRedisConfig());
 } catch (error) {
   console.error('Failed to initialize Redis client:', error);
+  // Fallback to in-memory solution if Redis connection fails
+  redis = {
+    ping: async () => false,
+    get: async () => null,
+    set: async () => 'OK',
+    del: async () => 0,
+    expire: async () => 0
+  } as unknown as Redis;
 }
 
 // Configures rate limiting using Upstash Ratelimit.
