@@ -5,13 +5,13 @@ import { z } from 'zod';
 import { BlogPost } from './types';
 
 const matterDataSchema = z.object({
-  title: z.string(),
+  title: z.string().optional().default('Untitled Post'),
   description: z.string().optional().default(''),
-  date: z.union([z.string(), z.date()]),
+  date: z.union([z.string(), z.date()]).optional().default(new Date().toISOString()),
   image: z.string().optional(),
-  tags: z.array(z.string()).optional(),
-  readingTime: z.string().optional(),
-  author: z.string().optional(),
+  tags: z.array(z.string()).optional().default([]),
+  readingTime: z.string().optional().default('5 min read'),
+  author: z.string().optional().default('Wesley Quintero'),
 });
 
 // Removing unused type definition

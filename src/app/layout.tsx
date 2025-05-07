@@ -1,9 +1,16 @@
 'use client';
 
 // Initialize mock service worker in the browser environment
-if (typeof window !== 'undefined') {
-  const { worker } = require('../../mocks/browser');
-  worker.start();
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  console.warn(
+    'Mock service worker is not initialized due to missing module: ../../mocks/browser',
+  );
+  // try {
+  //   const { worker } = await import('../../mocks/browser');
+  //   worker.start();
+  // } catch (error) {
+  //   console.error('Failed to initialize mock service worker:', error);
+  // }
 }
 
 import ClientProviders from '@/components/client-providers';
