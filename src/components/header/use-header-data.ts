@@ -7,10 +7,10 @@ interface UseHeaderDataResult {
   debouncedQuery: string;
   isSearchOpen: boolean;
   setIsSearchOpen: (isSearchOpen: boolean) => void;
-  searchHistory: string[];
-  setSearchHistory: (searchHistory: string[]) => void;
   isMenuOpen: boolean;
   setIsMenuOpen: (isMenuOpen: boolean) => void;
+  searchHistory: string[];
+  setSearchHistory: (searchHistory: string[]) => void;
 }
 
 export const useHeaderData = (): UseHeaderDataResult => {
@@ -18,8 +18,8 @@ export const useHeaderData = (): UseHeaderDataResult => {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
   useEffect(() => {
     // Debounces the search query
@@ -70,9 +70,9 @@ export const useHeaderData = (): UseHeaderDataResult => {
     debouncedQuery,
     isSearchOpen,
     setIsSearchOpen,
-    searchHistory,
-    setSearchHistory,
     isMenuOpen,
     setIsMenuOpen,
+    searchHistory,
+    setSearchHistory,
   };
 };

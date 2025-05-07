@@ -1,7 +1,5 @@
-'use client';
-
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import SearchInput from './header/SearchInput';
 import { useQuery } from '@tanstack/react-query';
 import { FileText, Loader2, Menu, Moon, Sun, X } from 'lucide-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
@@ -20,11 +18,11 @@ export default function Header() {
     debouncedQuery,
     isSearchOpen,
     setIsSearchOpen,
-    searchHistory,
-    setSearchHistory,
     isMenuOpen,
     setIsMenuOpen,
-  } = useHeaderData(); // Custom hook for managing header state (search, menu)
+    searchHistory,
+    setSearchHistory,
+  } = useHeaderData();
   const { isDownloading, handleExportClick } = useExport();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -47,16 +45,6 @@ export default function Header() {
     enabled: !!debouncedQuery,
   });
 
-  const handleSearch = (searchQuery: string) => {
-    setQuery(searchQuery);
-    if (searchQuery && !searchHistory.includes(searchQuery)) {
-      const newSearchHistory = [searchQuery, ...searchHistory];
-      if (newSearchHistory.length > 5) {
-        newSearchHistory.pop();
-      }
-      setSearchHistory(newSearchHistory);
-    }
-  };
 
   const toggleMenu = () => {
     // Function to toggle the mobile menu
@@ -140,108 +128,16 @@ export default function Header() {
             </nav>
 
             <div className="flex items-center gap-2">
-              <div className="relative hidden md:block search-container">
-                {' '}
-                {/* Search input container */}
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  value={query}
-                  onChange={(e) => {
-                    handleSearch(e.target.value);
-                  }}
-                  onFocus={() => {
-                    setIsSearchOpen(true);
-                  }}
-                  className="h-9 w-48 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                />
-                <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                  <span className="text-xs">⌘</span>K
-                </kbd>
-                {(query || isSearchOpen) && (
-                  <div className="absolute top-full mt-2 w-full rounded-md border bg-popover p-2 shadow-md max-h-[300px] overflow-y-auto">
-                    {!query && searchHistory.length > 0 && (
-                      <div className="mb-4">
-                        <div className="mb-2 text-sm font-medium text-muted-foreground">
-                          Recent Searches
-                        </div>
-                        {searchHistory.map((item) => (
-                          <button
-                            key={item}
-                            className="block w-full text-left px-2 py-1 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground"
-                            onClick={() => {
-                              handleSearch(item);
-                            }}
-                          >
-                            {item}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    {isLoading && (
-                      <div className="flex items-center justify-center py-2 text-muted-foreground">
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        <span>Searching...</span>
-                      </div>
-                    )}
-                    {!isLoading && data && (
-                      <div className="space-y-4">
-                        {data.blog && data.blog.length > 0 && (
-                          <div>
-                            <div className="mb-2 text-sm font-medium text-muted-foreground">
-                              Blog Posts
-                            </div>
-                            {data.blog.map(
-                              (item: { slug: string; title: string }) => (
-                                <Link
-                                  key={item.slug}
-                                  href={`/blog/${item.slug}`}
-                                  className={cn(
-                                    'block px-2 py-1 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground',
-                                  )}
-                                  onClick={() => {
-                                    setQuery('');
-                                    setIsSearchOpen(false);
-                                  }}
-                                >
-                                  {item.title}
-                                </Link>
-                              ),
-                            )}
-                          </div>
-                        )}
-                        {data.tools && data.tools.length > 0 && (
-                          <div>
-                            <div className="mb-2 text-sm font-medium text-muted-foreground">
-                              Tools
-                            </div>
-                            {data.tools.map((item: { id: string }) => (
-                              <Link
-                                key={item.id}
-                                href={`#${item.id}`}
-                                className={cn(
-                                  'block px-2 py-1 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground',
-                                )}
-                                onClick={() => {
-                                  setQuery('');
-                                  setIsSearchOpen(false);
-                                }}
-                              >
-                                {item.id}
-                              </Link>
-                            ))}
-                          </div>
-                        )}
-                        {!data.blog?.length && !data.tools?.length && (
-                          <div className="text-sm text-muted-foreground text-center py-2">
-                            No results found
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+              <SearchInput
+                query={query}
+                setQuery={setQuery}
+                isSearchOpen={isSearchOpen}
+                setIsSearchOpen={setIsSearchOpen}
+                isLoading={isLoading}
+                data={data}
+                searchHistory={searchHistory}
+                setSearchHistory={setSearchHistory}
+              />
 
               {mounted && ( // Only render after component is mounted
                 <>
