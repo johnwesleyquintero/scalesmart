@@ -9,7 +9,7 @@
   "liveServer.settings.port": 5501, // Keep for Live Server
 
   // --- Formatting (Project Specific) ---
-  "editor.formatOnSave": true, // Ensure format on save is enabled for this project
+  "editor.formatOnSave": false, // Disabled format on save as requested
   "editor.defaultFormatter": "esbenp.prettier-vscode", // Explicitly set Prettier for this project
 
   // --- Code Actions on Save (Crucial!) ---

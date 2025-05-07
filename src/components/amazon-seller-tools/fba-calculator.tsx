@@ -309,7 +309,7 @@ export default function FbaCalculator({
           setError(`Error reading CSV file: ${err.message}`);
           setIsLoading(false);
           setResults([]);
-          toast({title: 'Upload Failed', description: `Error reading CSV file: ${err.message}`});
+          toast('', '', {title: 'Upload Failed', description: `Error reading CSV file: ${err.message}`});
 
           if (event.target) {
             event.target.value = '';
@@ -324,7 +324,7 @@ export default function FbaCalculator({
     if (results.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast({title: 'Export Error', description: msg});
+      toast('', '', {title: 'Export Error', description: msg});
       return;
     }
     setError(null);

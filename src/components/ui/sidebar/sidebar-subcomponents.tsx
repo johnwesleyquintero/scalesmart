@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import type { JSXElementConstructor, ComponentProps, ElementType, PropsWithoutRef, RefAttributes, JSX } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,27 +9,28 @@ import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
 interface SidebarComponentProps {
-  // Props for sidebar components
   className?: string;
   [x: string]: unknown;
 }
 
-const createSidebarComponent = <T extends React.ElementType = React.ElementType>(
+type SidebarComponentType = keyof JSX.IntrinsicElements | JSXElementConstructor<HTMLElement>;
+
+const createSidebarComponent = <T extends SidebarComponentType>(
   name: string,
   Component: T,
   defaultClassName: string,
 ): React.ForwardRefExoticComponent<
-  React.PropsWithoutRef<React.ComponentProps<T> & SidebarComponentProps> &
-    React.RefAttributes<HTMLElement>
+  PropsWithoutRef<ComponentProps<T> & SidebarComponentProps> &
+    RefAttributes<HTMLElement>
 > => {
-  type Props<U extends React.ElementType = T> = React.ComponentProps<U> & SidebarComponentProps;
+  type Props<U extends ElementType = T> = ComponentProps<U> & SidebarComponentProps;
   const ForwardRefComponent = React.forwardRef<
-    React.ElementRef<typeof Component>,
+    HTMLElement,
     Omit<Props<typeof Component>, 'className'> & { className?: string }
-  ><T,>((props, ref) => {
+  >((props, ref) => {
     const { className, ...rest } = props;
     return (
-      <T
+      <Component
         ref={ref}
         className={cn(defaultClassName, className)}
         {...(rest as Omit<Props, 'className'>)}

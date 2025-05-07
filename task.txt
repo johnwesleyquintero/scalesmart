@@ -10,10 +10,284 @@ Specifically:
 6.  Implement comprehensive error handling to gracefully manage potential issues.
 7.  Prefer Lodash for Utility Functions and avoid unnecessary dependencies
 
-
 Also, ensure the following file structure guidelines are met:
 
-1.  Limit each file to a maximum of 100 lines of code.
+1.  Refactor/Limit each file to a maximum of 100 lines of code.
 2.  Extract large functions into separate, dedicated modules to promote reusability and readability.
 3.  Design and implement reusable components where applicable.
 4.  Maintain a clear and consistent import/export structure across all files.
+
+
+
+
+[{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/amazon-seller-tools/description-editor.tsx",
+	"owner": "typescript",
+	"code": "2554",
+	"severity": 8,
+	"message": "Expected 3 arguments, but got 1.",
+	"source": "ts",
+	"startLineNumber": 530,
+	"startColumn": 13,
+	"endLineNumber": 530,
+	"endColumn": 18,
+	"relatedInformation": [
+		{
+			"startLineNumber": 6,
+			"startColumn": 25,
+			"endLineNumber": 6,
+			"endColumn": 35,
+			"message": "An argument for 'p1' was not provided.",
+			"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/hooks/use-toast.ts"
+		}
+	],
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/amazon-seller-tools/description-editor.tsx",
+	"owner": "typescript",
+	"code": "2554",
+	"severity": 8,
+	"message": "Expected 3 arguments, but got 1.",
+	"source": "ts",
+	"startLineNumber": 538,
+	"startColumn": 11,
+	"endLineNumber": 538,
+	"endColumn": 16,
+	"relatedInformation": [
+		{
+			"startLineNumber": 6,
+			"startColumn": 25,
+			"endLineNumber": 6,
+			"endColumn": 35,
+			"message": "An argument for 'p1' was not provided.",
+			"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/hooks/use-toast.ts"
+		}
+	],
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/amazon-seller-tools/fba-calculator.tsx",
+	"owner": "typescript",
+	"code": "2554",
+	"severity": 8,
+	"message": "Expected 3 arguments, but got 1.",
+	"source": "ts",
+	"startLineNumber": 284,
+	"startColumn": 13,
+	"endLineNumber": 284,
+	"endColumn": 18,
+	"relatedInformation": [
+		{
+			"startLineNumber": 6,
+			"startColumn": 25,
+			"endLineNumber": 6,
+			"endColumn": 35,
+			"message": "An argument for 'p1' was not provided.",
+			"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/hooks/use-toast.ts"
+		}
+	],
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/amazon-seller-tools/fba-calculator.tsx",
+	"owner": "typescript",
+	"code": "2554",
+	"severity": 8,
+	"message": "Expected 3 arguments, but got 1.",
+	"source": "ts",
+	"startLineNumber": 296,
+	"startColumn": 13,
+	"endLineNumber": 296,
+	"endColumn": 18,
+	"relatedInformation": [
+		{
+			"startLineNumber": 6,
+			"startColumn": 25,
+			"endLineNumber": 6,
+			"endColumn": 35,
+			"message": "An argument for 'p1' was not provided.",
+			"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/hooks/use-toast.ts"
+		}
+	],
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/amazon-seller-tools/fba-calculator.tsx",
+	"owner": "typescript",
+	"code": "2554",
+	"severity": 8,
+	"message": "Expected 3 arguments, but got 1.",
+	"source": "ts",
+	"startLineNumber": 356,
+	"startColumn": 7,
+	"endLineNumber": 356,
+	"endColumn": 12,
+	"relatedInformation": [
+		{
+			"startLineNumber": 6,
+			"startColumn": 25,
+			"endLineNumber": 6,
+			"endColumn": 35,
+			"message": "An argument for 'p1' was not provided.",
+			"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/hooks/use-toast.ts"
+		}
+	],
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/amazon-seller-tools/fba-calculator.tsx",
+	"owner": "typescript",
+	"code": "2554",
+	"severity": 8,
+	"message": "Expected 3 arguments, but got 1.",
+	"source": "ts",
+	"startLineNumber": 363,
+	"startColumn": 7,
+	"endLineNumber": 363,
+	"endColumn": 12,
+	"relatedInformation": [
+		{
+			"startLineNumber": 6,
+			"startColumn": 25,
+			"endLineNumber": 6,
+			"endColumn": 35,
+			"message": "An argument for 'p1' was not provided.",
+			"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/hooks/use-toast.ts"
+		}
+	],
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/amazon-seller-tools/fba-calculator.tsx",
+	"owner": "typescript",
+	"code": "2554",
+	"severity": 8,
+	"message": "Expected 3 arguments, but got 1.",
+	"source": "ts",
+	"startLineNumber": 374,
+	"startColumn": 5,
+	"endLineNumber": 374,
+	"endColumn": 10,
+	"relatedInformation": [
+		{
+			"startLineNumber": 6,
+			"startColumn": 25,
+			"endLineNumber": 6,
+			"endColumn": 35,
+			"message": "An argument for 'p1' was not provided.",
+			"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/hooks/use-toast.ts"
+		}
+	],
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/amazon-seller-tools/fba-calculator.tsx",
+	"owner": "typescript",
+	"code": "2554",
+	"severity": 8,
+	"message": "Expected 3 arguments, but got 1.",
+	"source": "ts",
+	"startLineNumber": 466,
+	"startColumn": 19,
+	"endLineNumber": 466,
+	"endColumn": 24,
+	"relatedInformation": [
+		{
+			"startLineNumber": 6,
+			"startColumn": 25,
+			"endLineNumber": 6,
+			"endColumn": 35,
+			"message": "An argument for 'p1' was not provided.",
+			"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/hooks/use-toast.ts"
+		}
+	],
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/amazon-seller-tools/fba-calculator.tsx",
+	"owner": "typescript",
+	"code": "2554",
+	"severity": 8,
+	"message": "Expected 3 arguments, but got 1.",
+	"source": "ts",
+	"startLineNumber": 472,
+	"startColumn": 19,
+	"endLineNumber": 472,
+	"endColumn": 24,
+	"relatedInformation": [
+		{
+			"startLineNumber": 6,
+			"startColumn": 25,
+			"endLineNumber": 6,
+			"endColumn": 35,
+			"message": "An argument for 'p1' was not provided.",
+			"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/hooks/use-toast.ts"
+		}
+	],
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/ui/sidebar/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "2322",
+	"severity": 8,
+	"message": "Type '{ ref: ForwardedRef<HTMLElement>; className: string; } & Omit<Props<T>, \"className\">' is not assignable to type 'IntrinsicAttributes & LibraryManagedAttributes<T, never>'.\n  Type '{ ref: ForwardedRef<HTMLElement>; className: string; } & Omit<Props<T>, \"className\">' is not assignable to type 'LibraryManagedAttributes<T, never>'.",
+	"source": "ts",
+	"startLineNumber": 33,
+	"startColumn": 8,
+	"endLineNumber": 33,
+	"endColumn": 17,
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/ui/sidebar/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "2590",
+	"severity": 8,
+	"message": "Expression produces a union type that is too complex to represent.",
+	"source": "ts",
+	"startLineNumber": 34,
+	"startColumn": 9,
+	"endLineNumber": 36,
+	"endColumn": 48,
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/ui/sidebar/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "2345",
+	"severity": 8,
+	"message": "Argument of type 'string | (Omit<Props<T>, \"className\"> & { className?: string | undefined; })[string] | undefined' is not assignable to parameter of type 'ClassValue'.\n  Type 'ComponentProps<T>[string]' is not assignable to type 'ClassValue'.\n    Type 'ComponentProps<T>[string]' is not assignable to type 'ClassArray'.",
+	"source": "ts",
+	"startLineNumber": 35,
+	"startColumn": 41,
+	"endLineNumber": 35,
+	"endColumn": 50,
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/ui/sidebar/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "2345",
+	"severity": 8,
+	"message": "Argument of type 'ForwardRefExoticComponent<ButtonProps & RefAttributes<HTMLButtonElement>>' is not assignable to parameter of type 'SidebarComponentType'.\n  Type 'ForwardRefExoticComponent<ButtonProps & RefAttributes<HTMLButtonElement>>' is not assignable to type '(props: HTMLElement) => ReactNode | Promise<ReactNode>'.\n    Types of parameters 'props' and 'props' are incompatible.\n      Type 'HTMLElement' is not assignable to type 'ButtonProps & RefAttributes<HTMLButtonElement>'.\n        Type 'HTMLElement' is not assignable to type 'ButtonProps'.\n          Types of property 'contentEditable' are incompatible.\n            Type 'string' is not assignable to type 'Booleanish | \"inherit\" | \"plaintext-only\" | undefined'.",
+	"source": "ts",
+	"startLineNumber": 51,
+	"startColumn": 3,
+	"endLineNumber": 51,
+	"endColumn": 9,
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/ui/sidebar/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "2345",
+	"severity": 8,
+	"message": "Argument of type 'ForwardRefExoticComponent<InputProps & RefAttributes<HTMLInputElement>>' is not assignable to parameter of type 'SidebarComponentType'.\n  Type 'ForwardRefExoticComponent<InputProps & RefAttributes<HTMLInputElement>>' is not assignable to type '(props: HTMLElement) => ReactNode | Promise<ReactNode>'.\n    Types of parameters 'props' and 'props' are incompatible.\n      Type 'HTMLElement' is not assignable to type 'InputProps & RefAttributes<HTMLInputElement>'.\n        Type 'HTMLElement' is not assignable to type 'InputProps'.\n          Types of property 'contentEditable' are incompatible.\n            Type 'string' is not assignable to type 'Booleanish | \"inherit\" | \"plaintext-only\" | undefined'.",
+	"source": "ts",
+	"startLineNumber": 72,
+	"startColumn": 3,
+	"endLineNumber": 72,
+	"endColumn": 8,
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/ui/sidebar/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "2345",
+	"severity": 8,
+	"message": "Argument of type 'ForwardRefExoticComponent<Omit<SeparatorProps & RefAttributes<HTMLDivElement>, \"ref\"> & RefAttributes<HTMLDivElement>>' is not assignable to parameter of type 'SidebarComponentType'.\n  Type 'ForwardRefExoticComponent<Omit<SeparatorProps & RefAttributes<HTMLDivElement>, \"ref\"> & RefAttributes<HTMLDivElement>>' is not assignable to type '(props: HTMLElement) => ReactNode | Promise<ReactNode>'.\n    Types of parameters 'props' and 'props' are incompatible.\n      Type 'HTMLElement' is not assignable to type 'Omit<SeparatorProps & RefAttributes<HTMLDivElement>, \"ref\"> & RefAttributes<HTMLDivElement>'.\n        Type 'HTMLElement' is not assignable to type 'Omit<SeparatorProps & RefAttributes<HTMLDivElement>, \"ref\">'.\n          The types of 'style.appearance' are incompatible between these types.\n            Type 'string' is not assignable to type 'Appearance | undefined'.",
+	"source": "ts",
+	"startLineNumber": 93,
+	"startColumn": 3,
+	"endLineNumber": 93,
+	"endColumn": 12,
+	"extensionID": "vscode.typescript-language-features"
+}]
