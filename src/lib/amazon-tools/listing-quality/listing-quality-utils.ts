@@ -1,9 +1,26 @@
-import {
-  CSVRow,
-  KeywordAnalysisResult,
-  ListingData,
-} from '@/lib/amazon-tools/types';
+import { CsvRow } from '@/lib/amazon-tools/types';
+
+export interface KeywordAnalysisResult {
+  keyword: string;
+  isProhibited: boolean;
+}
 import Papa from 'papaparse';
+
+export interface ListingData {
+  product: string;
+  title: string;
+  description: string;
+  bulletPoints: string[];
+  images: number;
+  keywords: string[];
+  keywordAnalysis?: KeywordAnalysisResult[];
+  score: number;
+  issues: string[];
+  suggestions: string[];
+  brand?: string;
+  rating?: number;
+  reviewCount?: number;
+}
 
 // Constants
 const REQUIRED_COLUMNS = [
@@ -279,7 +296,7 @@ export const calculateScoreAndIssues = (
   };
 };
 
-export const validateCSVData = (results: Papa.ParseResult<CSVRow>) => {
+export const validateCSVData = (results: Papa.ParseResult<CsvRow>) => {
   if (results.errors.length > 0) {
     throw new Error(
       `CSV parsing errors: ${results.errors.map((e) => e.message).join(', ')}`,

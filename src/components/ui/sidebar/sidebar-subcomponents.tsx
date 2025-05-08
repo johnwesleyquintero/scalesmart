@@ -1,40 +1,40 @@
 'use client';
 
 import React from 'react';
-import type { JSX } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 
-interface SidebarComponentProps extends React.HTMLAttributes<HTMLElement> {
-  className?: string;
-}
+// interface SidebarComponentProps extends React.HTMLAttributes<HTMLElement> {
+//   className?: string;
+// }
 
 
 
-type SidebarComponentType = keyof JSX.IntrinsicElements | React.ComponentType<any>;
+// type SidebarComponentType = React.ElementType;
 
-const createSidebarComponent = <T extends SidebarComponentType>(
+const createSidebarComponent = <T extends React.ElementType, P extends object = {}>( // Added P for props
   name: string,
   Component: T,
   defaultClassName: string,
 ) => {
-  const ForwardRefComponent = React.forwardRef<any, React.ComponentPropsWithRef<T> & SidebarComponentProps>(
-    (props, ref) => {
-      const { className, ...rest } = props;
-      const combinedClassName = cn(defaultClassName, className);
+  const ForwardRefComponent = React.forwardRef<
+    T,
+    React.ComponentProps<T> & P & { className?: string }
+  >((props, ref) => {
+    const { className, ...rest } = props;
+    const combinedClassName = cn(defaultClassName, className);
 
-      return (
-        <Component
-          ref={ref}
-          className={combinedClassName}
-          {...rest as any}
-        />
-      );
-    }
-  );
+    return (
+      <Component
+        ref={ref}
+        className={combinedClassName}
+        {...rest}
+      />
+    );
+  });
 
   ForwardRefComponent.displayName = name;
   return ForwardRefComponent;
