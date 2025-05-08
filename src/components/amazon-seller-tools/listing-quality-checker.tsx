@@ -507,7 +507,7 @@ export default function ListingQualityChecker() {
           const content = e.target?.result as string;
           const processedData = await parseAndProcessCsv(content);
           setListings(processedData);
-          toast('', '', {
+          toast({
             title: 'Success',
             description: 'CSV file processed successfully'
           });
@@ -517,7 +517,7 @@ export default function ListingQualityChecker() {
               ? parseError.message
               : 'An error occurred during CSV processing',
           );
-          toast('', '', {
+          toast({
             title: 'Error',
             description: 'Failed to process CSV file',
           });
@@ -528,7 +528,7 @@ export default function ListingQualityChecker() {
       reader.onerror = () => {
         setError('Failed to read the file.');
         setIsLoading(false);
-        toast('', '', {
+        toast({
           title: 'File Reading Error',
           description: 'Could not read the selected file.',
         });
@@ -586,13 +586,13 @@ export default function ListingQualityChecker() {
         suggestions: [],
       };
       setListings([listingData]);
-      toast('', '', {
+      toast({
         title: 'ASIN Data Fetched',
         description: `Successfully fetched data for ASIN ${asin}.`,
       });
     } catch {
       setError(`Failed to fetch data for ASIN ${asin}.`);
-      toast('', '', {
+      toast({
         title: 'ASIN Fetch Failed',
         description: `Could not retrieve data for ASIN ${asin}.`,
       });
@@ -609,7 +609,7 @@ export default function ListingQualityChecker() {
 
   const handleExport = useCallback(() => {
     if (listings.length === 0) {
-      toast('', '', { title: 'No Data to Export', description: 'Please upload and process a CSV file first.' });
+      toast({ title: 'No Data to Export', description: 'Please upload and process a CSV file first.' });
       return;
     }
 
@@ -634,9 +634,9 @@ export default function ListingQualityChecker() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast('', '', {
-  title: 'CSV Exported',
-  description: 'The listing analysis has been exported to a CSV file.',
+    toast({
+title: 'CSV Exported',
+description: 'The listing analysis has been exported to a CSV file.',
 });
   }, [listings, toast]);
 

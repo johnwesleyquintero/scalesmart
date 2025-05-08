@@ -1,18 +1,49 @@
-Please ensure the codebase adheres to the Airbnb JavaScript Style Guide.
-
-Specifically:
-
-1.  Run `npm run check` and `npm run test` to ensure all checks pass. Address any errors or warnings.
-2.  Enforce consistent formatting and indentation throughout the codebase.
-3.  Employ descriptive naming conventions for all variables and functions, reflecting their purpose.
-4.  Design the code with modularity and organization in mind.
-5.  Document any intricate logic with clear and concise comments.
-6.  Implement comprehensive error handling to gracefully manage potential issues.
-7.  Prefer Lodash for Utility Functions and avoid unnecessary dependencies
-
-Also, ensure the following file structure guidelines are met:
-
-1.  Refactor/Limit each file to a maximum of 100 lines of code.
-2.  Extract large functions into separate, dedicated modules to promote reusability and readability.
-3.  Design and implement reusable components where applicable.
-4.  Maintain a clear and consistent import/export structure across all files.
+[{
+	"resource": "/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "1005",
+	"severity": 8,
+	"message": "',' expected.",
+	"source": "ts",
+	"startLineNumber": 43,
+	"startColumn": 4,
+	"endLineNumber": 43,
+	"endColumn": 5,
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "1128",
+	"severity": 8,
+	"message": "Declaration or statement expected.",
+	"source": "ts",
+	"startLineNumber": 47,
+	"startColumn": 1,
+	"endLineNumber": 47,
+	"endColumn": 2,
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/ui/sidebar/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "2345",
+	"severity": 8,
+	"message": "Argument of type '(props: React.ComponentProps<T> & { className?: string; }, ref: React.ForwardedRef<T>) => JSX.Element' is not assignable to parameter of type 'ForwardRefRenderFunction<T, PropsWithoutRef<ComponentProps<T> & { className?: string | undefined; }>>'.\n  Types of parameters 'props' and 'props' are incompatible.\n    Type 'PropsWithoutRef<ComponentProps<T> & { className?: string | undefined; }>' is not assignable to type 'ComponentProps<T> & { className?: string | undefined; }'.\n      Type 'Omit<any, \"ref\">' is not assignable to type 'ComponentProps<T> & { className?: string | undefined; }'.\n        Type 'Omit<any, \"ref\">' is not assignable to type 'ComponentProps<T>'.",
+	"source": "ts",
+	"startLineNumber": 23,
+	"startColumn": 101,
+	"endLineNumber": 23,
+	"endColumn": 192,
+	"extensionID": "vscode.typescript-language-features"
+},{
+	"resource": "/c:/Users/johnw/OneDrive/Desktop/portfolio/src/components/ui/sidebar/sidebar-subcomponents.tsx",
+	"owner": "typescript",
+	"code": "2322",
+	"severity": 8,
+	"message": "Type '{ ref: ForwardedRef<T>; className: string; } & Omit<ComponentProps<T> & { className?: string | undefined; }, \"className\">' is not assignable to type 'IntrinsicAttributes & LibraryManagedAttributes<T, any>'.\n  Type '{ ref: ForwardedRef<T>; className: string; } & Omit<ComponentProps<T> & { className?: string | undefined; }, \"className\">' is not assignable to type 'LibraryManagedAttributes<T, any>'.",
+	"source": "ts",
+	"startLineNumber": 29,
+	"startColumn": 8,
+	"endLineNumber": 29,
+	"endColumn": 17,
+	"extensionID": "vscode.typescript-language-features"
+}]

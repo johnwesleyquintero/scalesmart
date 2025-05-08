@@ -9,7 +9,7 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production next build",
     "dev": "next dev",
-    "format": "prettier --write . --log-level warn",
+    "format": "",
     "lint": "eslint --config eslint.config.mjs",
     "lint:fix": "eslint --fix --config eslint.config.mjs .",
     "prepare": "husky",
