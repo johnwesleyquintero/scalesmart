@@ -73,7 +73,7 @@ class ApiClient {
         data: data,
       });
 
-      return data as { estimatedMonthlySales: number; confidence: number; range: { min: number; max: number; } } | undefined;
+      return data;
     } catch (error: unknown) {
       handleApiError(error, { url: endpoint, method: options.method });
       throw error;
@@ -159,7 +159,7 @@ class ApiClient {
 
       await useCacheStore.getState().setItem(cacheKey, data);
       logger.info(`Sales estimate stored in cache - ${cacheKey} - ttl: ${ttl}`);
-      return data as { estimatedMonthlySales: number; confidence: number; range: { min: number; max: number; } } | undefined;
+      return data;
     } catch (error: unknown) {
       logger.error(`Sales estimate API error - ${(error as Error).message}`, {
         url: '/sales/estimate',
