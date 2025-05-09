@@ -1,19 +1,10 @@
-import { authOptions } from '@/app/api/auth/[...nextauth]/options';
-import { getServerSession } from 'next-auth';
-
 export async function getLinkedInExperience() {
-  const session = await getServerSession(authOptions);
-  if (!session?.accessToken) {
-    throw new Error('Not authenticated');
-  }
-
   try {
-    await new Promise((resolve) => setTimeout(resolve, 100)); // Simulate API call
     // Temporary mock data while LinkedIn API integration is being tested
     return [
       {
         title: 'Founder/Developer',
-        company: 'Nebula-Singularity: SellSmart',
+        company: 'ScaleSmart',
         period: 'Jan 2025 - Present',
         description: 'All-in-One Amazon Seller Platform',
         achievements: [
@@ -54,6 +45,6 @@ export async function getLinkedInExperience() {
     ];
   } catch (error) {
     console.error('Failed to fetch LinkedIn experience:', error);
-    throw error;
+    return [];
   }
 }

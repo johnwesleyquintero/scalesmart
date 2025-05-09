@@ -1,4 +1,4 @@
-import { ObjectId } from 'mongodb';
+import { createClient } from '@supabase/supabase-js';
 
 export interface KeywordTrend {
   _id?: ObjectId;

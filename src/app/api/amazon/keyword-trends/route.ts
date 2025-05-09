@@ -1,5 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
-import { type KeywordTrend, type KeywordTrendData } from '@/lib/models/keyword-trends';
+import {
+  type KeywordTrend,
+  type KeywordTrendData,
+} from '@/lib/models/keyword-trends';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -47,7 +50,7 @@ export async function POST(request: Request) {
     const { error: insertError } = await supabase
       .from(KEYWORD_TREND_TABLE)
       .insert(trends);
-    
+
     if (insertError) throw insertError;
 
     // Retrieve and format the data
@@ -63,7 +66,7 @@ export async function POST(request: Request) {
           .from(KEYWORD_TREND_TABLE)
           .select('*')
           .eq('date', date);
-        
+
         if (queryError) throw queryError;
 
         keywords.forEach((keyword) => {

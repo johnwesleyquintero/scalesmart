@@ -5,7 +5,7 @@
 ```mermaid
 flowchart TD
     Client[Next.js Frontend] -->|API Requests| Server[Next.js Server]
-    Server -->|Database Queries| MongoDB[(MongoDB)]
+    Server -->|Database Queries| Supabase[(Supabase)]
     Server -->|Caching| Redis[(Redis)]
     Client -->|Static Assets| CDN[Vercel CDN]
 ```
@@ -32,7 +32,9 @@ flowchart TD
 
 ### Data Layer
 
-- Supabase: Primary data store with Postgres
+- Supabase: Primary data store with PostgreSQL
+  - Replaces previous MongoDB implementation
+  - Provides realtime capabilities and row-level security
 - Redis: Session storage and caching
 - Zod: Data validation schema
 
