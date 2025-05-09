@@ -27,7 +27,7 @@ function processCSVData(data: string[]): KeywordTrend[] {
       keyword,
       date,
       volume,
-      createdAt: new Date(),
+      created_at: new Date().toISOString(),
     });
   });
 
