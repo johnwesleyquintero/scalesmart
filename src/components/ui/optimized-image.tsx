@@ -1,14 +1,11 @@
 'use client';
 
-import Image from 'next/image';
+import Image, { ImageProps } from 'next/image';
 import { useEffect, useState } from 'react';
 
 interface OptimizedImageProps
-  extends Omit<
-    React.ComponentProps<typeof Image>,
-    'onLoadingComplete' | 'blurDataURL'
-  > {
-  fallbackSrc?: string;
+  extends Omit<ImageProps, 'onLoadingComplete' | 'blurDataURL'> {
+  readonly fallbackSrc?: string;
 }
 
 export function OptimizedImage({
@@ -22,34 +19,24 @@ export function OptimizedImage({
   ...props
 }: OptimizedImageProps) {
   const [error, setError] = useState(false);
-  const [loaded, setLoaded] = useState(false);
 
-  // Reset error state if src changes
   useEffect(() => {
-    setError(false);
-    setLoaded(false);
+    if (typeof window !== 'undefined') {
+      setError(!src);
+    }
   }, [src]);
 
   return (
-    <div className="relative overflow-hidden">
-      <Image
-        src={error ? fallbackSrc : src}
-        alt={alt}
-        priority={priority}
-        loading={loading}
-        sizes={sizes}
-        className={`
-          transition-opacity duration-300
-          ${loaded ? 'opacity-100' : 'opacity-0'}
-          ${className || ''}
-        `}
-        onError={() => setError(true)}
-        onLoad={() => setLoaded(true)}
-        {...props}
-      />
-      {!loaded && !error && (
-        <div className="absolute inset-0 bg-muted animate-pulse" />
-      )}
-    </div>
+    <Image
+      src={error ? fallbackSrc : src}
+      alt={alt}
+      priority={priority}
+      loading={loading}
+      sizes={sizes}
+      className={className}
+      placeholder="blur"
+      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMSAxIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjFmMWYxIi8+PC9zdmc+"
+      {...props}
+    />
   );
 }

@@ -1,6 +1,5 @@
 declare module '@upstash/ratelimit' {
   interface Redis {
-    ping(): unknown;
     hincrby: (key: string, field: string, value: number) => Promise<number>;
     expire: (key: string, seconds: number) => Promise<number>;
     eval: <T>(script: string, keys: string[], args: string[]) => Promise<T>;
@@ -39,9 +38,5 @@ declare module '@upstash/ratelimit' {
 }
 
 declare module '@upstash/redis' {
-  export interface Redis extends RedisCommands {
-    [x: string]: any;
-    pipeline(): unknown;
-    expire(key: string, arg1: number): unknown;
-  }
+  export interface Redis extends RedisCommands {}
 }

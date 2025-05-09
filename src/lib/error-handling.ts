@@ -1,4 +1,4 @@
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import * as Sentry from '@sentry/react';
 
 type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
@@ -36,34 +36,9 @@ interface ErrorLogEntry {
   severity: ErrorSeverity;
   stack?: string;
   context?: Record<string, unknown>;
-  filename?: string;
 }
 
 const errorLog: ErrorLogEntry[] = [];
-
-import { logger } from './logger';
-
-interface LoggerStrategy {
-  log(entry: ErrorLogEntry): void;
-}
-
-class MemoryLogger implements LoggerStrategy {
-  private logEntries: ErrorLogEntry[] = [];
-
-  log(entry: ErrorLogEntry): void {
-    this.logEntries.push(entry);
-  }
-
-  getLogs(): ErrorLogEntry[] {
-    return [...this.logEntries];
-  }
-
-  clear(): void {
-    this.logEntries = [];
-  }
-}
-// Declare FileLogger as a class with the LoggerStrategy interface
-let FileLogger: unknown = null;
 
 export const logError = ({
   message,
@@ -71,23 +46,13 @@ export const logError = ({
   severity = 'medium',
   error,
   context = {},
-  filename,
 }: {
   message: string;
   component: string;
   severity?: ErrorSeverity;
   error?: Error;
   context?: Record<string, unknown>;
-  filename?: string;
 }) => {
-  logger.debug('logError: Logging error', {
-    message,
-    component,
-    severity,
-    error,
-    context,
-  });
-
   const entry: ErrorLogEntry = {
     message,
     component,
@@ -95,36 +60,9 @@ export const logError = ({
     severity,
     stack: error?.stack,
     context,
-    filename,
   };
 
-  // Use configured logger strategy (default to memory)
-  let loggerStrategy: LoggerStrategy;
-
-  if (process.env.LOGGER_STRATEGY === 'file' && typeof window === 'undefined') {
-    if (!FileLogger) {
-      FileLogger = class implements LoggerStrategy {
-        private logFilePath: string;
-
-        constructor(logFilePath: string) {
-          this.logFilePath = logFilePath;
-        }
-
-        log(entry: ErrorLogEntry): void {
-          const fs = require('fs');
-          const logString = JSON.stringify(entry) + '\n';
-          fs.appendFileSync(this.logFilePath, logString, { encoding: 'utf8' });
-        }
-      };
-    }
-    loggerStrategy = new (FileLogger as new (
-      logFilePath: string,
-    ) => LoggerStrategy)(process.env.LOG_FILE_PATH || './error.log');
-  } else {
-    loggerStrategy = new MemoryLogger();
-  }
-
-  loggerStrategy.log(entry);
+  errorLog.push(entry);
 
   // Log to console in development
   if (process.env.NODE_ENV === 'development') {
@@ -132,15 +70,11 @@ export const logError = ({
   }
 
   // Show user-friendly toast notification
-  try {
-    const { toast } = useToast(); // Use the hook to get the toast function
-    toast({
-      title: 'Error',
-      description: message,
-    });
-  } catch (e) {
-    console.error('Error calling toast:', e);
-  }
+  toast({
+    title: 'Error',
+    description: message,
+    variant: 'destructive',
+  });
 
   // In production, could send to error tracking service
   if (process.env.NODE_ENV === 'production') {
@@ -154,7 +88,6 @@ export const logError = ({
     });
     // e.g., Sentry, LogRocket, etc.
   }
-  logger.debug('logError: Error logged successfully');
 };
 
 export const getErrorLog = () => errorLog;

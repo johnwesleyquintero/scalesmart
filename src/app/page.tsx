@@ -1,42 +1,45 @@
-import ClientChatWrapper from '@/components/client-chat-wrapper';
-import ClientDashboardWrapper from '@/components/ClientDashboardWrapper';
 import Footer from '@/components/footer';
 import Header from '@/components/header';
-import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { ContentSkeleton } from '@/components/ui/loading-skeleton';
-import { QueryErrorBoundary } from '@/components/ui/query-error-boundary';
 import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
 
-// Dynamic imports for code splitting and lazy loading
-// Prioritize above-the-fold content
-const HeroSection = dynamic(() => import('@/components/hero-section'), {
-  loading: () => <ContentSkeleton />,
+// Only disable SSR for components that truly need client-side features
+const ErrorBoundary = dynamic(() => import('@/components/ui/error-boundary'), {
+  loading: () => <div className="min-h-[400px]" />,
 });
 
-// Lazy load below-the-fold content
+const ClientChatInterface = dynamic(
+  () => import('@/components/ui/client-chat-interface'),
+);
+
+// Enable SSR for static content sections
+const HeroSection = dynamic(() => import('@/components/hero-section'), {
+  ssr: true,
+});
+
+const UnifiedDashboard = dynamic(
+  () => import('@/components/amazon-seller-tools/unified-dashboard'),
+  { ssr: true },
+);
 
 const ProjectsSection = dynamic(() => import('@/components/projects-section'), {
-  loading: () => <ContentSkeleton />,
+  ssr: true,
 });
 
 const AboutSection = dynamic(() => import('@/components/about-section'), {
-  loading: () => <ContentSkeleton />,
+  ssr: true,
 });
 
 const CertificationsSection = dynamic(
   () => import('@/components/certifications-section'),
-  {
-    loading: () => <ContentSkeleton />,
-  },
+  { ssr: true },
 );
 
 const BlogSection = dynamic(() => import('@/components/blog-section'), {
-  loading: () => <ContentSkeleton />,
+  ssr: true,
 });
 
 const ContactSection = dynamic(() => import('@/components/contact-section'), {
-  loading: () => <ContentSkeleton />,
+  ssr: true,
 });
 
 export default function Home() {
@@ -46,40 +49,15 @@ export default function Home() {
       <div className="relative">
         <Header />
         <ErrorBoundary>
-          <Suspense fallback={<ContentSkeleton />}>
-            <HeroSection />
-          </Suspense>
-
-          <ClientDashboardWrapper />
-
-          <QueryErrorBoundary>
-            <Suspense fallback={<ContentSkeleton />}>
-              <ProjectsSection />
-            </Suspense>
-          </QueryErrorBoundary>
-
-          <QueryErrorBoundary>
-            <Suspense fallback={<ContentSkeleton />}>
-              <AboutSection />
-            </Suspense>
-          </QueryErrorBoundary>
-
-          <Suspense fallback={<ContentSkeleton />}>
-            <CertificationsSection />
-          </Suspense>
-
-          <QueryErrorBoundary>
-            <Suspense fallback={<ContentSkeleton />}>
-              <BlogSection />
-            </Suspense>
-          </QueryErrorBoundary>
-
-          <Suspense fallback={<ContentSkeleton />}>
-            <ContactSection />
-          </Suspense>
-
+          <HeroSection />
+          <UnifiedDashboard />
+          <ProjectsSection />
+          <AboutSection />
+          <CertificationsSection />
+          <BlogSection />
+          <ContactSection />
           {/* Add the client-side chat interface */}
-          <ClientChatWrapper />
+          <ClientChatInterface />
         </ErrorBoundary>
         <Footer />
       </div>

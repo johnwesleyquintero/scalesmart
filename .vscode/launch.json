@@ -1,89 +1,46 @@
 {
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Next.js: Full",
+      "name": "Launch Chrome",
       "request": "launch",
-      "type": "node",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
-      "skipFiles": ["<node_internals>/**"],
-      "outFiles": ["${workspaceFolder}/.next/**/*.js"]
-    },
-    {
-      "name": "Next.js: Client",
       "type": "chrome",
-      "request": "launch",
-      "url": "http://localhost:3000",
+      "url": "http://localhost:8080",
       "webRoot": "${workspaceFolder}"
     },
+
     {
-      "name": "Next.js: Server",
-      "type": "node",
+      "command": "npm start",
+      "name": "Run npm start",
       "request": "launch",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--inspect"],
-      "skipFiles": ["<node_internals>/**"]
+      "type": "node-terminal"
     },
     {
-      "name": "Debug: Next.js Server-side",
-      "type": "node",
-      "request": "launch",
-      "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--inspect"],
-      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
-      "restart": true,
-      "serverReadyAction": {
-        "pattern": "- Local:.+?http://localhost:(\\d+)",
-        "uriFormat": "http://localhost:%s",
-        "action": "debugWithChrome",
-        "killOnServerStop": true
-      }
-    },
-    {
-      "name": "Debug: Next.js Client-side",
+      "name": "Next.js: Chrome Debug",
       "type": "chrome",
       "request": "launch",
       "url": "http://localhost:3000",
       "webRoot": "${workspaceFolder}",
-      "sourceMaps": true,
-      "sourceMapPathOverrides": {
-        "webpack://_N_E/*": "${webRoot}/*"
-      },
-      "userDataDir": false
-    },
-    {
-      "name": "Attach: Node Process",
-      "type": "node",
-      "request": "attach",
-      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
       "sourceMaps": true
     },
     {
-      "name": "Attach: Chrome",
-      "type": "chrome",
-      "request": "attach",
-      "urlFilter": "http://localhost:3000/*",
-      "webRoot": "${workspaceFolder}",
-      "sourceMaps": true,
-      "sourceMapPathOverrides": {
-        "webpack://_N_E/*": "${webRoot}/*"
-      }
+      "name": "Next.js: Node.js Server",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--inspect"],
+      "port": 9229,
+      "skipFiles": ["<node_internals>/**"]
     },
     {
-      "name": "Run Production Build (npm start)",
+      "name": "Next.js: Full Stack",
+      "type": "compound",
       "request": "launch",
-      "type": "node"
-    }
-  ],
-  "compounds": [
-    {
-      "name": "Debug: Next.js Full Stack",
-      "configurations": [
-        "Debug: Next.js Server-side",
-        "Debug: Next.js Client-side"
-      ],
-      "preLaunchTask": "Run Dev Server"
+      "configurations": ["Next.js: Node.js Server", "Next.js: Chrome Debug"],
+      "preLaunchTask": "npm: dev"
     }
   ]
 }

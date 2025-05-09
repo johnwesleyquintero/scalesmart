@@ -2,10 +2,16 @@
 
 import { Badge, Card, CardContent } from '@/components/ui';
 import type { Experience, Skill } from '@/lib/types';
-import { Loader2, Sparkles } from 'lucide-react';
-import ExperienceSection from './ExperienceSection';
-import SkillsSection from './SkillsSection';
-import { useAboutData } from './about-section/use-about-data';
+import {
+  Brain,
+  Code,
+  Database,
+  LineChart,
+  Loader2,
+  Sparkles,
+  Workflow,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 // Define the constant for the repeated string
 const SKILLS_B2B_MANAGEMENT = 'Skills: B2B, Management';
@@ -133,10 +139,60 @@ const education = [
 ];
 
 export default function AboutSection() {
-  const { skills, experience, isLoading, error } = useAboutData(
-    fallbackSkills,
-    fallbackExperience,
-  );
+  const [skills, setSkills] = useState<Skill[]>(fallbackSkills);
+  const [experience, setExperience] =
+    useState<Experience[]>(fallbackExperience);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    async function fetchContent() {
+      try {
+        console.log('Fetching /api/content with GET method');
+        const res = await fetch('/api/content', { method: 'GET' });
+        console.log('Response status:', res.status);
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        const data = await res.json();
+
+        // Only update state if we got valid data
+        if (data.skills && data.skills.length > 0) {
+          setSkills(data.skills);
+        }
+
+        if (data.experience && data.experience.length > 0) {
+          setExperience(data.experience);
+        }
+      } catch (error) {
+        console.error('Error fetching content:', error);
+        setError('Failed to load content. Using fallback data.');
+        // Fallback data is already set in state
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchContent();
+  }, []);
+
+  // Function to get the appropriate icon component
+  const getIconComponent = (iconName: string) => {
+    switch (iconName) {
+      case 'LineChart':
+        return <LineChart className="h-5 w-5 text-primary" />;
+      case 'Code':
+        return <Code className="h-5 w-5 text-primary" />;
+      case 'Brain':
+        return <Brain className="h-5 w-5 text-primary" />;
+      case 'Database':
+        return <Database className="h-5 w-5 text-primary" />;
+      case 'Workflow':
+        return <Workflow className="h-5 w-5 text-primary" />;
+      default:
+        return <Sparkles className="h-5 w-5 text-primary" />;
+    }
+  };
 
   return (
     <section id="about" className="container relative mx-auto px-4 py-32">
@@ -177,10 +233,43 @@ export default function AboutSection() {
             {!error && (
               <div className="grid gap-12 md:grid-cols-2">
                 <div className="space-y-8">
-                  <SkillsSection
-                    skills={skills}
-                    getIconComponent={() => null}
-                  />
+                  <Card className="overflow-hidden">
+                    <CardContent className="p-6">
+                      <h3 className="mb-4 text-xl font-semibold">
+                        Technical Expertise
+                      </h3>
+                      <div className="space-y-6">
+                        {skills.map((skill) => (
+                          <div key={skill.name} className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                {getIconComponent(skill.icon)}
+                                <span className="font-medium">
+                                  {skill.name}
+                                </span>
+                              </div>
+                              <span className="text-sm text-muted-foreground">
+                                {skill.level}%
+                              </span>
+                            </div>
+                            <div
+                              role="progressbar"
+                              aria-valuenow={skill.level}
+                              aria-valuemin={0}
+                              aria-valuemax={100}
+                              className="h-2 w-full rounded-full bg-gray-200"
+                            >
+                              <div
+                                className="h-full rounded-full bg-blue-500"
+                                style={{ width: `${skill.level}%` }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   <Card>
                     <CardContent className="p-6">
                       <h3 className="mb-4 text-xl font-semibold">Education</h3>
@@ -208,7 +297,42 @@ export default function AboutSection() {
                   </Card>
                 </div>
 
-                <ExperienceSection experience={experience} />
+                <div>
+                  <Card>
+                    <CardContent className="p-6">
+                      <h3 className="mb-6 text-xl font-semibold">
+                        Professional Journey
+                      </h3>
+                      <div className="space-y-8">
+                        {experience.map((exp, index) => (
+                          <div
+                            key={index}
+                            className="relative border-l-2 border-primary/20 pl-4"
+                          >
+                            <div className="absolute -left-[9px] top-[6px] h-4 w-4 rounded-full border-2 border-primary bg-background"></div>
+                            <div>
+                              <h4 className="font-semibold">{exp.title}</h4>
+                              <p className="text-sm font-medium text-primary">
+                                {exp.company}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {exp.period}
+                              </p>
+                              <p className="mt-2 text-sm text-muted-foreground">
+                                {exp.description}
+                              </p>
+                              <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-muted-foreground">
+                                {exp.achievements.map((achievement, i) => (
+                                  <li key={i}>{achievement}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
               </div>
             )}
           </>

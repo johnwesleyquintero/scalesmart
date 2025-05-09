@@ -4,8 +4,6 @@ import { logger } from './logger';
 // Define supported data types and their generators
 type DataType = 'string' | 'number' | 'date' | 'boolean' | 'enum' | 'asin'; // Added 'asin' for potential specific generation
 
-// Removed unused DataGeneratorOptions type
-
 interface DataTypeConfig {
   type: DataType;
   options?: {
@@ -30,15 +28,13 @@ interface ColumnConfig {
 interface SampleDataConfig {
   columns: ColumnConfig[];
   rowCount?: number;
-  customGenerators?: Record<string, (config: DataTypeConfig) => unknown>;
+  customGenerators?: Record<string, (config: DataTypeConfig) => any>;
 }
 
 // Data generation functions
 const dataGenerators = {
-  string: () => {
-    const prefix = '';
-    const suffix = '';
-    const length = 8;
+  string: (config: DataTypeConfig['options'] = {}) => {
+    const { prefix = '', suffix = '', length = 8 } = config; // Default length 8
     // Security: Acceptable for sample data generation
     const chars =
       'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -60,7 +56,8 @@ const dataGenerators = {
     return Number(num.toFixed(decimals));
   },
 
-  date: () => {
+  date: (config: DataTypeConfig['options'] = {}) => {
+    const { format = 'ISO' } = config;
     // Security: Appropriate for non-cryptographic use
     const randomBuffer = new Uint32Array(1);
     window.crypto.getRandomValues(randomBuffer); // Browser-specific crypto
@@ -70,6 +67,8 @@ const dataGenerators = {
     const date = new Date(Date.now() - randomPastTime);
     // Return YYYY-MM-DD format for better CSV compatibility usually
     return date.toISOString().split('T')[0];
+    // Or use format option if needed:
+    // return format === 'ISO' ? date.toISOString().split('T')[0] : date.toLocaleDateString();
   },
 
   boolean: () =>
@@ -103,12 +102,12 @@ const dataGenerators = {
  */
 const generateSampleData = (
   config: SampleDataConfig,
-): Record<string, unknown>[] => {
+): Record<string, any>[] => {
   const { columns, rowCount = 5, customGenerators = {} } = config;
 
   try {
     return Array.from({ length: rowCount }, () => {
-      const row: Record<string, unknown> = {};
+      const row: Record<string, any> = {};
 
       columns.forEach(({ name, dataType, required = true }) => {
         // 20% chance to skip non-required fields
@@ -130,10 +129,7 @@ const generateSampleData = (
           // Or throw error if preferred:
           // throw new Error(`Unsupported data type: ${dataType.type}`);
         } else {
-          row[name] = generator({
-            ...dataType.options,
-            type: dataType.type,
-          } as DataTypeConfig);
+          row[name] = generator(dataType.options as any);
         }
       });
 

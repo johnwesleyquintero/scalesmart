@@ -9,17 +9,3 @@ export class InventoryOptimizationError extends Error {
     this.name = 'InventoryOptimizationError';
   }
 }
-
-export class MissingDataError extends InventoryOptimizationError {
-  constructor(message: string, details?: unknown) {
-    super(message, 'missing_data', details);
-    this.name = 'MissingDataError';
-  }
-}
-
-export class InvalidDataError extends InventoryOptimizationError {
-  constructor(message: string, details?: unknown) {
-    super(message, 'invalid_data', details);
-    this.name = 'InvalidDataError';
-  }
-}

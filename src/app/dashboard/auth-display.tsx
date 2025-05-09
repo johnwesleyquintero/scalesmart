@@ -52,6 +52,13 @@ export function AuthDisplay() {
             height={20}
             className="h-5 w-5"
           />
+          <Image
+            src="/images/linkedin.svg"
+            alt="LinkedIn Logo"
+            width={20}
+            height={20}
+            className="h-5 w-5"
+          />
         </div>
       </div>
     </div>

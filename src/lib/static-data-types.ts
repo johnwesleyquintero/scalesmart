@@ -70,7 +70,7 @@ export interface BlogPost {
   // Removed duplicate relatedPosts property
   readingTime?: string;
   author?: string;
-  relatedPosts: RelatedPost[] | []; // Change from RelatedPost[] to allow empty array
+  relatedPosts: RelatedPost[];
 }
 
 export interface Project {

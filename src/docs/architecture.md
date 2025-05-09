@@ -30,18 +30,9 @@ flowchart TD
   - Request validation
   - Security headers
 
-### Amazon Tools
-
-- A suite of tools for Amazon sellers, including:
-  - Keyword analysis
-  - Competitor analysis
-  - FBA fee calculation
-- Utilizes a dedicated API client for interacting with external APIs.
-- Implements data validation using Zod schemas.
-
 ### Data Layer
 
-- MongoDB: Primary data store
+- Supabase: Primary data store with Postgres
 - Redis: Session storage and caching
 - Zod: Data validation schema
 
@@ -49,7 +40,7 @@ flowchart TD
 
 - Vercel platform configuration
 - Environment variables:
-  - `MONGODB_URI`: Database connection
+  - `NEXT_PUBLIC_SUPABASE_URL`: Supabase connection
   - `REDIS_URL`: Cache connection
   - `NEXTAUTH_SECRET`: Auth encryption
 

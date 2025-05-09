@@ -1,139 +1,100 @@
-import { env } from './config';
-import { logger } from './logger';
-
-export interface AnalyticsEvent {
-  name: string;
-  properties?: Record<string, unknown>;
-  timestamp?: number;
-}
-
-interface NetworkInformation {
-  effectiveType: string;
-  downlink: number;
-}
+import type { AppEvent } from '@/types';
 
 declare global {
-  interface Navigator {
-    connection?: NetworkInformation;
+  interface Window {
+    gtag: (...args: any[]) => void;
+    dataLayer: any[];
+    trackEvent: (event: AppEvent) => void;
   }
 }
 
-class Analytics {
-  private queue: AnalyticsEvent[] = [];
-  private flushInterval: number = 5000; // 5 seconds
-  private maxQueueSize: number = 20;
-  private isProcessing: boolean = false;
-
-  constructor() {
-    if (typeof window !== 'undefined') {
-      // Set up periodic flush
-      setInterval(() => this.flush(), this.flushInterval);
-
-      // Flush before page unload
-      window.addEventListener('beforeunload', () => this.flush());
-
-      // Track page visibility changes
-      document.addEventListener('visibilitychange', () => {
-        this.track('visibility_change', {
-          state: document.visibilityState,
-          timestamp: performance.now(),
-        });
-      });
-    }
-  }
-
-  public track(eventName: string, properties?: Record<string, unknown>) {
-    const event: AnalyticsEvent = {
-      name: eventName,
-      properties,
-      timestamp: Date.now(),
-    };
-
-    this.queue.push(event);
-    logger.debug('Analytics event queued:', event);
-
-    if (this.queue.length >= this.maxQueueSize) {
-      this.flush();
-    }
-  }
-
-  public async flush(): Promise<void> {
-    if (this.isProcessing || this.queue.length === 0) {
-      return;
-    }
-
-    this.isProcessing = true;
-    const events = [...this.queue];
-    this.queue = [];
-
-    try {
-      if (env.NEXT_PUBLIC_ANALYTICS_ENDPOINT) {
-        const response = await fetch(env.NEXT_PUBLIC_ANALYTICS_ENDPOINT, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ events }),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Analytics request failed: ${response.statusText}`);
-        }
-
-        logger.debug('Analytics events sent successfully:', {
-          count: events.length,
-        });
-      }
-    } catch (error) {
-      logger.error('Failed to send analytics events:', error);
-      // Put events back in queue
-      this.queue = [...events, ...this.queue].slice(0, this.maxQueueSize);
-    } finally {
-      this.isProcessing = false;
-    }
-  }
-
-  // Utility methods for common events
-  public trackPageView(path: string) {
-    this.track('page_view', {
-      path,
-      referrer: document.referrer,
-      userAgent: navigator.userAgent,
+export function trackEvent(event: AppEvent) {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', event.action, {
+      event_category: event.category,
+      event_label: event.label,
+      value: event.value,
     });
   }
 
-  public trackError(error: Error, context?: Record<string, unknown>) {
-    this.track('error', {
-      message: error.message,
-      stack: error.stack,
-      ...context,
-    });
+  // Sync with Redis for real-time dashboard updates
+  if (process.env.KV_URL) {
+    fetch(`${process.env.KV_REST_API_URL}/analytics/event`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
+      },
+      body: JSON.stringify({
+        timestamp: Date.now(),
+        ...event,
+      }),
+    }).catch(console.error);
   }
+}
 
-  public trackPerformance(metric: string, value: number) {
-    this.track('performance', {
-      metric,
-      value,
-      connection: navigator.connection
-        ? {
-            effectiveType: navigator.connection.effectiveType,
-            downlink: navigator.connection.downlink,
-          }
-        : undefined,
+export function initAnalytics() {
+  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GA_ID) {
+    window.dataLayer = window.dataLayer || [];
+    function gtag(...args: any[]) {
+      window.dataLayer.push(args);
+    }
+    gtag('js', new Date());
+
+    gtag('config', process.env.NEXT_PUBLIC_GA_ID, {
+      page_path: window.location.pathname,
+      transport_type: 'beacon',
+      anonymize_ip: true,
     });
-  }
 
-  public trackInteraction(
-    element: string,
-    action: 'click' | 'hover' | 'focus' | 'blur',
-    properties?: Record<string, unknown>,
-  ) {
-    this.track('interaction', {
-      element,
-      action,
-      ...properties,
+    // Track custom events
+    window.trackEvent = trackEvent;
+  }
+}
+
+export function trackPageView(url: string): void {
+  if (typeof window !== 'undefined' && window.gtag) {
+    window.gtag('event', 'page_view', {
+      page_path: url,
     });
   }
 }
 
-export const analytics = new Analytics();
+// Custom event types
+type TrackEventParams = {
+  category: 'contact' | 'download' | 'tool-usage' | 'error';
+  action: string;
+  label?: string;
+  value?: number;
+};
+
+export const Analytics = {
+  contactSubmitted: () =>
+    trackEvent({
+      category: 'contact',
+      action: 'submit',
+      label: 'Contact Form',
+    }),
+  resumeDownload: () =>
+    trackEvent({
+      category: 'download',
+      action: 'resume_download',
+      label: 'PDF Resume',
+    }),
+  toolUsage: (toolName: string) =>
+    trackEvent({
+      category: 'tool-usage',
+      action: 'execute',
+      label: toolName,
+    }),
+  mongoOperation: (
+    operation: 'create' | 'read' | 'update' | 'delete',
+    collection: string,
+  ) =>
+    trackEvent({
+      category: 'tool-usage',
+      action: `mongo_${operation}`,
+      label: collection,
+      value: 1,
+    }),
+};

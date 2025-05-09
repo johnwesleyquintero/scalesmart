@@ -36,19 +36,4 @@ To use these keyword lists in your application:
 2. Access the `keywords` array property
 3. Check if user input contains any prohibited keywords
 
-Example Usage:
-
-```typescript
-import generalKeywords from './general/general.json';
-
-function checkProhibitedKeywords(userInput: string): boolean {
-  const keywords = generalKeywords.keywords;
-  return keywords.some((keyword) => userInput.toLowerCase().includes(keyword));
-}
-
-const userInput = 'This is a fake product';
-const isProhibited = checkProhibitedKeywords(userInput);
-console.log(isProhibited); // Output: true
-```
-
 Last updated: March 2024

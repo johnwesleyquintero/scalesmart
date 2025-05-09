@@ -1,15 +1,9 @@
-import { rateLimiter } from '@/lib/rate-limiter';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import { AmazonAlgorithms } from '../../../../lib/calculations/amazon-algorithms';
 
-export async function POST(request: Request) {
-  // Apply rate limiting
-  const rateLimitResult = await rateLimiter.limit();
-  if (!rateLimitResult.success) {
-    return new NextResponse('Rate limit exceeded', { status: 429 });
-  }
+import { z } from 'zod';
 
+export async function POST(request: Request) {
   try {
     const schema = z.object({
       basePrice: z.number(),

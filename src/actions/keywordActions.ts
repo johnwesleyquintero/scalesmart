@@ -1,26 +1,17 @@
 'use server';
-
-import {
-  ProhibitedKeyword,
-  ProhibitedKeywordCollection,
-} from '@/lib/models/prohibited-keywords';
-import { connectToDatabase } from '@/lib/mongodb';
+import { supabase } from '@/lib/supabase';
+import { ProhibitedKeyword } from '@/lib/models/prohibited-keywords';
 
 export async function getAllProhibitedKeywords(): Promise<string[]> {
-  if (typeof window === 'undefined') {
-    try {
-      const { db } = await connectToDatabase();
-      const keywords = await db
-        .collection<ProhibitedKeyword>(ProhibitedKeywordCollection)
-        .find({}, { projection: { keyword: 1, _id: 0 } })
-        .toArray();
-      return keywords.map((k: { keyword: string }) => k.keyword);
-    } catch (error: unknown) {
-      console.error('Server Action Failed - getAllProhibitedKeywords:', error);
-      return [];
-    }
-  } else {
-    console.error('MongoDB functions are only available server-side.');
+  try {
+    const { data: keywords, error } = await supabase
+      .from('prohibited_keywords')
+      .select('keyword');
+    
+    if (error) throw error;
+    return keywords.map((k: { keyword: string }) => k.keyword);
+  } catch (error: unknown) {
+    console.error('Server Action Failed - getAllProhibitedKeywords:', error);
     return [];
   }
 }
@@ -28,68 +19,63 @@ export async function getAllProhibitedKeywords(): Promise<string[]> {
 export async function addProhibitedKeyword(
   keyword: string,
 ): Promise<{ success: boolean; message: string }> {
-  if (typeof window === 'undefined') {
-    if (
-      !keyword ||
-      typeof keyword !== 'string' ||
-      keyword.trim().length === 0 ||
-      keyword.trim().length > 50
-    ) {
-      return { success: false, message: 'Invalid keyword provided.' };
+  if (
+    !keyword ||
+    typeof keyword !== 'string' ||
+    keyword.trim().length === 0 ||
+    keyword.trim().length > 50
+  ) {
+    return { success: false, message: 'Invalid keyword provided.' };
+  }
+  try {
+    const lowerCaseKeyword = keyword.trim().toLowerCase();
+    const { data: exists, error: queryError } = await supabase
+      .from('prohibited_keywords')
+      .select('*')
+      .eq('keyword', lowerCaseKeyword)
+      .single();
+    
+    if (queryError && !queryError.message.includes('No rows found')) {
+      throw queryError;
     }
-    try {
-      const { db } = await connectToDatabase();
-      const collection = db.collection<ProhibitedKeyword>(
-        ProhibitedKeywordCollection,
-      );
-      const lowerCaseKeyword = keyword.trim().toLowerCase();
-      const exists = await collection.findOne({
-        keyword: lowerCaseKeyword,
-      });
 
-      if (!exists) {
-        const newKeyword: Omit<ProhibitedKeyword, '_id'> = {
-          keyword: keyword.trim().toLowerCase(),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        };
-        try {
-          await collection.insertOne(newKeyword);
-          console.log(
-            `Server Action: Added prohibited keyword: ${keyword.trim()}`,
-          );
-          return {
-            success: true,
-            message: `Keyword "${keyword.trim()}" added.`,
-          };
-        } catch (error: unknown) {
-          console.error('Server Action Failed - insertOne:', error);
-          return {
-            success: false,
-            message: 'Failed to add keyword due to a database error.',
-          };
-        }
-      } else {
+    if (!exists) {
+      const newKeyword: Omit<ProhibitedKeyword, '_id'> = {
+        keyword: keyword.trim().toLowerCase(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      try {
+        const { error: insertError } = await supabase
+      .from('prohibited_keywords')
+      .insert(newKeyword);
+    
+    if (insertError) throw insertError;
         console.log(
-          `Server Action: Prohibited keyword already exists: ${keyword.trim()}`,
+          `Server Action: Added prohibited keyword: ${keyword.trim()}`,
         );
+        return { success: true, message: `Keyword "${keyword.trim()}" added.` };
+      } catch (error: unknown) {
+        console.error('Server Action Failed - insertOne:', error);
         return {
           success: false,
-          message: `Keyword "${keyword.trim()}" already exists.`,
+          message: 'Failed to add keyword due to a database error.',
         };
       }
-    } catch (error: unknown) {
-      console.error('Server Action Failed - addProhibitedKeyword:', error);
+    } else {
+      console.log(
+        `Server Action: Prohibited keyword already exists: ${keyword.trim()}`,
+      );
       return {
         success: false,
-        message: 'Failed to add keyword due to a server error.',
+        message: `Keyword "${keyword.trim()}" already exists.`,
       };
     }
-  } else {
-    console.error('MongoDB functions are only available server-side.');
+  } catch (error: unknown) {
+    console.error('Server Action Failed - addProhibitedKeyword:', error);
     return {
       success: false,
-      message: 'MongoDB functions are only available server-side.',
+      message: 'Failed to add keyword due to a server error.',
     };
   }
 }

@@ -1,4 +1,4 @@
-import { BlogImage } from '@/components/blog/blog-image';
+import BlogImage from '@/components/blog/blog-image';
 import { MDXComponents as mdxComponents } from '@/components/blog/mdx-components';
 import { Badge } from '@/components/ui/badge';
 import { getAllPosts, getPostBySlug } from '@/lib/mdx';
@@ -18,8 +18,7 @@ export async function generateMetadata({
 }: Readonly<Props>): Promise<Metadata> {
   try {
     // Await the params to ensure they are fully resolved
-    const resolvedParams = await params;
-    const { slug } = resolvedParams;
+    const { slug } = params;
     const post = await getPostBySlug(slug);
 
     const DEFAULT_IMAGE_URL = '/default-fallback.svg'; // Define the constant here
@@ -107,9 +106,8 @@ export async function generateStaticParams() {
 }
 
 export default async function BlogPostPage({ params }: Readonly<Props>) {
-  // Properly await params before accessing slug
-  const { slug } = await params;
-  const post = await getPostBySlug(slug);
+  // Await the params to ensure they are fully resolved
+  const post = await getPostBySlug(params.slug);
 
   if (!post) {
     notFound();

@@ -1,172 +1,36 @@
 {
-  // Define the folders included in the workspace. "." means the root folder where this .code-workspace file resides.
   "folders": [
     {
       "path": ".",
     },
   ],
-
-  // Workspace-specific settings override user settings.
   "settings": {
-    //--------------------------------------------------------------------------
-    // Editor Core Settings
-    //--------------------------------------------------------------------------
-    "editor.formatOnSave": true, // Automatically format files when saving. Crucial for consistency.
-    "editor.defaultFormatter": "esbenp.prettier-vscode", // Use Prettier as the default formatter for supported languages.
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
     "editor.codeActionsOnSave": {
-      // Run ESLint auto-fixable issues on save. "explicit" means it runs when explicitly saved, not auto-saved.
       "source.fixAll.eslint": "explicit",
-      // Organize imports automatically on save (removes unused, sorts). "explicit" is safer than "always".
       "source.organizeImports": "explicit",
-      // Consider adding other fixers if needed, e.g., "source.fixAll.stylelint": "explicit" if using Stylelint.
     },
-    "editor.rulers": [80, 120], // Visual guides at 80 and 120 characters. Helps maintain readable line lengths.
-    "editor.renderWhitespace": "boundary", // Show whitespace characters only between words, helps spot trailing spaces. Use "all" if you prefer seeing all spaces/tabs.
-    "editor.minimap.enabled": true, // Show the minimap (code overview on the side). Set to false if you don't like it.
-    "editor.suggestSelection": "first", // Always select the first suggestion in the IntelliSense list.
-    "editor.acceptSuggestionOnEnter": "on", // Pressing Enter accepts the highlighted suggestion.
-
-    //--------------------------------------------------------------------------
-    // File Settings
-    //--------------------------------------------------------------------------
-    "files.eol": "\n", // Enforce Unix-style line endings (LF) for consistency across OS.
-    "files.insertFinalNewline": true, // Ensure files end with a newline character.
-    "files.trimTrailingWhitespace": true, // Automatically remove trailing whitespace on save.
-    "files.exclude": {
-      // Hide these files/folders from the explorer view. Improves focus.
-      "**/.git": true,
-      "**/.svn": true,
-      "**/.hg": true,
-      "**/CVS": true,
-      "**/.DS_Store": true,
-      "**/Thumbs.db": true,
-      "**/node_modules/": true, // Hide node_modules by default
-      "**/.cache": true,
-      "**/.next": true, // Example: Next.js build output
-      "**/dist": true, // Example: Common build output folder
-      "**/build": true, // Example: Common build output folder
-      "**/.output": true, // Example: Nuxt 3 build output
-      "**/.svelte-kit": true, // Example: SvelteKit build output
-    },
-    "files.watcherExclude": {
-      // Exclude these directories from file watching. Improves performance, especially on large projects.
-      "**/.git/objects/**": true,
-      "**/.git/subtree-cache/**": true,
-      "**/node_modules/*/**": true, // More specific pattern for node_modules
-      "**/.hg/store/**": true,
-      "**/.cache/**": true,
-      "**/.next/**": true,
-      "**/dist/**": true,
-      "**/build/**": true,
-      "**/.output/**": true,
-      "**/.svelte-kit/**": true,
-    },
-
-    //--------------------------------------------------------------------------
-    // Search Settings
-    //--------------------------------------------------------------------------
-    "search.exclude": {
-      // Exclude these files/folders from search results. Often overlaps with files.exclude but important for performance.
-      "**/node_modules": true,
-      "**/bower_components": true,
-      "**/*.code-search": true,
-      "**/yarn.lock": true,
-      "**/package-lock.json": true,
-      "**/.cache": true,
-      "**/.next": true,
-      "**/dist": true,
-      "**/build": true,
-      "**/.output": true,
-      "**/.svelte-kit": true,
-    },
-    "search.useGlobalIgnoreFiles": true, // Respect rules in global .gitignore/.ignore files.
-    "search.useParentIgnoreFiles": true, // Respect rules in .gitignore/.ignore files in parent directories.
-
-    //--------------------------------------------------------------------------
-    // TypeScript / JavaScript Settings
-    //--------------------------------------------------------------------------
-    "typescript.tsdk": "node_modules/typescript/lib", // Use the project's version of TypeScript. Essential for consistency.
-    "typescript.enablePromptUseWorkspaceTsdk": true, // Prompt if VS Code isn't using the workspace version.
-    "typescript.preferences.importModuleSpecifier": "non-relative", // Prefer non-relative paths (e.g., "'components/Button")' (see below for file content) if tsconfig paths are set up. Requires "baseUrl" in tsconfig.json.
-    "javascript.preferences.importModuleSpecifier": "non-relative", // Same for JavaScript, requires "baseUrl" in jsconfig.json if using JS.
-    // Consider "shortest" or "relative" if you don't use path aliases extensively.
-
-    //--------------------------------------------------------------------------
-    // ESLint Settings
-    //--------------------------------------------------------------------------
+    "editor.rulers": [80],
+    "files.eol": "\n",
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "typescript.preferences.importModuleSpecifier": "non-relative",
+    "javascript.preferences.importModuleSpecifier": "non-relative",
     "eslint.validate": [
-      // Languages ESLint should actively validate.
       "javascript",
       "javascriptreact",
       "typescript",
       "typescriptreact",
-      "html", // Add other file types if your ESLint config handles them (e.g., html, vue, markdown)
-      "markdown",
     ],
-
-    "eslint.workingDirectories": [
-      // If you have a monorepo structure with multiple package.json/eslint configs, list the directories here.
-      // Example: { "pattern": "./packages/*/" }
-      // For a single project structure, you can often omit this or use:
-      { "mode": "auto" }, // Let ESLint extension try to auto-detect
-    ],
-    "eslint.format.enable": false, // Disable ESLint's formatter if you are using Prettier for formatting (recommended to avoid conflicts). Let ESLint handle linting/fixing rules, Prettier handle formatting.
-
-    //--------------------------------------------------------------------------
-    // Prettier Settings (Consistent with your original settings)
-    //--------------------------------------------------------------------------
-    "prettier.semi": true, // Add semicolons at the end of statements.
-    "prettier.singleQuote": true, // Use single quotes instead of double quotes.
-    "prettier.trailingComma": "all", // Add trailing commas wherever possible (ES5+).
-    "prettier.printWidth": 80, // Wrap lines that exceed 80 characters.
-    "prettier.tabWidth": 2, // Use 2 spaces for indentation.
-    "prettier.bracketSpacing": true, // Print spaces between brackets in object literals.
-    "prettier.arrowParens": "always", // Always include parentheses around arrow function parameters.
-    "prettier.endOfLine": "lf", // Use LF line endings (consistent with files.eol).
-
-    //--------------------------------------------------------------------------
-    // Language Specific Settings (Overrides)
-    //--------------------------------------------------------------------------
-    "[json]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode", // Ensure Prettier formats JSON.
-      "editor.tabSize": 2, // Common standard for JSON.
-    },
-    "[jsonc]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode", // Ensure Prettier formats JSON with Comments.
-      "editor.tabSize": 2,
-    },
-    "[markdown]": {
-      "editor.defaultFormatter": "esbenp.prettier-vscode", // Use Prettier for Markdown formatting.
-      "editor.tabSize": 2, // Often preferred for lists in Markdown.
-      "files.trimTrailingWhitespace": false, // Trailing whitespace can be significant in Markdown (e.g., hard line breaks).
-    },
-    "[yaml]": {
-      // If you use YAML files, consider adding the "redhat.vscode-yaml" extension
-      // "editor.defaultFormatter": "redhat.vscode-yaml",
-      "editor.tabSize": 2,
-      "editor.autoIndent": "advanced",
-    },
-    // Add overrides for other languages as needed (e.g., python, html, css)
-
-    //--------------------------------------------------------------------------
-    // Git Settings (Optional but Recommended)
-    //--------------------------------------------------------------------------
-    "git.autofetch": true, // Automatically fetch from remotes periodically.
-    "git.confirmSync": true, // Ask for confirmation before syncing (pushing/pulling). Set to false if you prefer faster sync without prompts.
-    "git.enableSmartCommit": true,
-    "cline.enableCheckpoints": false, // Stage changes automatically when committing from the source control view if there are no staged changes.
-
-    //--------------------------------------------------------------------------
-    // Terminal Settings (Optional)
-    //--------------------------------------------------------------------------
-    // "terminal.integrated.defaultProfile.windows": "Git Bash", // Example: Set default terminal on Windows
-    // "terminal.integrated.fontSize": 14,
-
-    //--------------------------------------------------------------------------
-    // Extension Specific Settings (Examples - Add if you use these extensions)
-    //--------------------------------------------------------------------------
-    // "docker.languageserver.formatter.ignoreDisables": false, // Example for Docker extension
-    // "errorLens.enabled": true, // Example for Error Lens extension (highly recommended)
-    // "errorLens.gutterIconsEnabled": true,
+    "eslint.packageManager": "npm run",
+    "prettier.semi": true,
+    "prettier.singleQuote": true,
+    "prettier.trailingComma": "all",
+    "prettier.printWidth": 80,
+    "prettier.tabWidth": 2,
+    "prettier.bracketSpacing": true,
+    "prettier.arrowParens": "always",
+    "prettier.endOfLine": "lf",
   },
 }

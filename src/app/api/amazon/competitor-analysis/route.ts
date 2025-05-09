@@ -1,31 +1,6 @@
-import {
-  InventoryOptimizationError,
-  MissingDataError,
-} from '@/lib/amazon-tools/errors/errors';
+import { InventoryOptimizationError } from '@/lib/amazon-tools/errors/errors';
 import { loadStaticData } from '@/lib/load-static-data';
-import { rateLimiter } from '@/lib/rate-limiter';
 import { z } from 'zod';
-
-function createErrorResponse(
-  message: string,
-  code: string | undefined,
-  details: unknown,
-  status: number,
-) {
-  return new Response(
-    JSON.stringify({
-      message: message,
-      code: code,
-      details: details,
-    }),
-    {
-      status: status,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  );
-}
 // Define stricter types for CSV data
 interface CompetitorData {
   [key: string]: string | number;
@@ -66,12 +41,6 @@ function processCSVData(data: string[]): CompetitorData[] {
 }
 
 export async function POST(request: Request) {
-  // Apply rate limiting
-  const rateLimitResult = await rateLimiter.limit();
-  if (!rateLimitResult.success) {
-    return new Response('Rate limit exceeded', { status: 429 });
-  }
-
   const schema = z.object({
     asin: z.string().optional(),
     metrics: z.array(z.string()).optional(),
@@ -93,7 +62,7 @@ export async function POST(request: Request) {
     const metricsData: MetricsData = {};
 
     if (!sellerData || !competitorData) {
-      throw new MissingDataError(
+      throw new Error(
         'Please provide both seller and competitor CSV data files for analysis',
       );
     }
@@ -107,7 +76,7 @@ export async function POST(request: Request) {
         metricsData[metric] = allData.map((row) => row[metric] as number);
       });
     } else {
-      throw new MissingDataError(
+      throw new Error(
         'Please provide either CSV data files or an ASIN for analysis',
       );
     }
@@ -122,13 +91,31 @@ export async function POST(request: Request) {
     });
   } catch (err) {
     if (err instanceof InventoryOptimizationError) {
-      return createErrorResponse(err.message, err.errorCode, err.details, 500);
+      return new Response(
+        JSON.stringify({
+          message: err.message,
+          code: err.errorCode,
+          details: err.details,
+        }),
+        {
+          status: 500,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      );
     }
-    return createErrorResponse(
-      err instanceof Error ? err.message : 'An unexpected error occurred',
-      undefined,
-      undefined,
-      500,
+    return new Response(
+      JSON.stringify({
+        message:
+          err instanceof Error ? err.message : 'An unexpected error occurred',
+      }),
+      {
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      },
     );
   }
 }

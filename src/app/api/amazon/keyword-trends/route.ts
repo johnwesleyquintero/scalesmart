@@ -1,10 +1,12 @@
-import {
-  KeywordTrendCollection,
-  type KeywordTrend,
-  type KeywordTrendData,
-} from '@/lib/models/keyword-trends';
-import { connectToDatabase } from '@/lib/mongodb';
-import { rateLimiter } from '@/lib/rate-limiter';
+import { createClient } from '@supabase/supabase-js';
+import { type KeywordTrend, type KeywordTrendData } from '@/lib/models/keyword-trends';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+);
+
+const KEYWORD_TREND_TABLE = 'keyword_trends';
 import { NextResponse } from 'next/server';
 
 function processCSVData(data: string[]): KeywordTrend[] {
@@ -30,12 +32,6 @@ function processCSVData(data: string[]): KeywordTrend[] {
 }
 
 export async function POST(request: Request) {
-  // Apply rate limiting
-  const rateLimitResult = await rateLimiter.limit();
-  if (!rateLimitResult.success) {
-    return new NextResponse('Rate limit exceeded', { status: 429 });
-  }
-
   try {
     const { csvData } = (await request.json()) as { csvData: string[] };
     let trendData: KeywordTrendData[] = [];
@@ -46,12 +42,13 @@ export async function POST(request: Request) {
       );
     }
 
-    const { db } = await connectToDatabase();
-    const collection = db.collection(KeywordTrendCollection);
-
     // Process and store the data
     const trends = processCSVData(csvData);
-    await collection.insertMany(trends);
+    const { error: insertError } = await supabase
+      .from(KEYWORD_TREND_TABLE)
+      .insert(trends);
+    
+    if (insertError) throw insertError;
 
     // Retrieve and format the data
     const dates = [...new Set(trends.map((t) => t.date))].sort((a, b) =>
@@ -62,10 +59,17 @@ export async function POST(request: Request) {
     trendData = await Promise.all(
       dates.map(async (date) => {
         const dataPoint: KeywordTrendData = { name: date };
-        const dateEntries = await collection.find({ date }).toArray();
+        const { data: dateEntries, error: queryError } = await supabase
+          .from(KEYWORD_TREND_TABLE)
+          .select('*')
+          .eq('date', date);
+        
+        if (queryError) throw queryError;
 
         keywords.forEach((keyword) => {
-          const entry = dateEntries.find((e) => e.keyword === keyword);
+          const entry = dateEntries.find((e: any) => e.keyword === keyword) as
+            | KeywordTrend
+            | undefined;
           dataPoint[keyword] = entry ? entry.volume : 0;
         });
         return dataPoint;

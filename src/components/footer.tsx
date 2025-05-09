@@ -1,5 +1,5 @@
 import Logo from '@/components/Logo';
-import { Github, Linkedin, Mail, Triangle, Twitter } from 'lucide-react';
+import { Github, Linkedin, Mail, Twitter } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Footer() {
@@ -56,22 +56,12 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="https://sellsmart-hub.vercel.app/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  Platform
-                </Link>
-              </li>
-              <li>
-                <Link
                   href="https://amzsync.vercel.app/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary"
                 >
-                  SellSmart Pro
+                  Platform
                 </Link>
               </li>
             </ul>
@@ -112,15 +102,6 @@ export default function Footer() {
                 className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
               >
                 <Mail className="h-5 w-5" />
-              </Link>
-              <Link
-                href="https://sellsmart-pro.vercel.app/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="SellSmart Pro"
-                className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 group hover:rotate-6"
-              >
-                <Triangle className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300" />
               </Link>
             </div>
           </div>

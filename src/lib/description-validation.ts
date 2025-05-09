@@ -22,37 +22,23 @@ export const productDescriptionSchema = z.object({
 });
 
 // Debounce function for performance optimization
+export const debounce = <T extends (...args: any[]) => any>(
+  func: T,
+  wait: number,
+): ((...args: Parameters<T>) => ReturnType<T>) => {
+  let timeout: NodeJS.Timeout;
+
+  return (...args: Parameters<T>) => {
+    clearTimeout(timeout);
+    return new Promise((resolve) => {
+      timeout = setTimeout(() => {
+        resolve(func(...args));
+      }, wait);
+    }) as ReturnType<T>;
+  };
+};
 
 // Validate and sanitize product description
-export interface ValidationResult {
-  success: boolean;
-  data?: z.infer<typeof productDescriptionSchema>;
-  error?: z.ZodError;
-}
-
-export function validateProductDescription(
-  description: string,
-): ValidationResult {
-  try {
-    const result = productDescriptionSchema.parse({
-      description: description,
-    });
-    const prohibitedKeywords = [
-      'counterfeit',
-      'fake',
-      'replica',
-      'knockoff',
-      'unauthorized',
-      'unauthorized seller',
-    ];
-    const containsProhibitedKeyword = prohibitedKeywords.some((keyword) =>
-      description.toLowerCase().includes(keyword.toLowerCase()),
-    );
-    if (containsProhibitedKeyword) {
-      console.log('Description contains prohibited keyword(s)!');
-    }
-    return { success: true, data: result };
-  } catch (error) {
-    return { success: false, error: error as z.ZodError };
-  }
-}
+export const validateProductDescription = (data: unknown) => {
+  return productDescriptionSchema.parse(data);
+};

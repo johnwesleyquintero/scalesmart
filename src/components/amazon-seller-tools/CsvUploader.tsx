@@ -128,17 +128,19 @@ const parseAndValidateCsv = <T extends Record<string, unknown>>(
         const validRows: T[] = [];
         const errors: string[] = [];
 
-        results.data.forEach((value: unknown, index: number) => {
-          const row = value as Record<string, unknown>;
-          const { validRow, error } = processRow(row, index, validateRowFn);
-          if (validRow) {
-            validRows.push(validRow);
-          }
-          // Collect errors even if some rows are valid
-          if (error) {
-            errors.push(error);
-          }
-        });
+        results.data.forEach(
+          (value: unknown, index: number, array: unknown[]) => {
+            const row = value as Record<string, unknown>;
+            const { validRow, error } = processRow(row, index, validateRowFn);
+            if (validRow) {
+              validRows.push(validRow);
+            }
+            // Collect errors even if some rows are valid
+            if (error) {
+              errors.push(error);
+            }
+          },
+        );
 
         resolve({ validRows, errors });
       },
@@ -152,45 +154,24 @@ const parseAndValidateCsv = <T extends Record<string, unknown>>(
 // --- Component ---
 
 interface CsvUploaderProps<T extends Record<string, unknown>> {
-  onUploadSuccessAction: (data: T[]) => void;
-  onUploadError?: (error: string | undefined) => void;
+  onUploadSuccess: (data: T[]) => void;
+  onUploadError?: (error: string | undefined) => void; // Allow undefined to clear error
   allowedFileTypes?: string[];
-  maxFileSize?: number;
-  validateRowAction?: (row: Record<string, unknown>) => T | null;
+  maxFileSize?: number; // in bytes
+  validateRow?: (row: Record<string, unknown>) => T | null;
   requiredColumns?: string[];
+  // Added props for controlling state from parent if needed (optional)
   isLoading?: boolean;
   hasData?: boolean;
-  onClear?: () => void;
+  onClear?: () => void; // Callback for when clear is clicked
 }
-
-interface RowType {
-  id: string;
-  impressions: string;
-  clicks: string;
-}
-
-const defaultValidateRow = (row: Record<string, unknown>): RowType | null => {
-  if (
-    typeof row.id === 'string' &&
-    typeof row.impressions === 'string' &&
-    typeof row.clicks === 'string' &&
-    !isNaN(Number(row.impressions)) &&
-    !isNaN(Number(row.clicks))
-  ) {
-    const { id, impressions, clicks } = row;
-    return { id, impressions, clicks };
-  }
-  return null;
-};
 
 export const CsvUploader = <T extends Record<string, unknown>>({
-  onUploadSuccessAction,
+  onUploadSuccess,
   onUploadError,
   allowedFileTypes = ['.csv'],
   maxFileSize = 5 * 1024 * 1024, // 5MB default
-  validateRowAction = defaultValidateRow as (
-    row: Record<string, unknown>,
-  ) => T | null,
+  validateRow,
   requiredColumns = ['id', 'impressions', 'clicks'],
   isLoading: externalIsLoading, // Use props if provided
   hasData: externalHasData,
@@ -215,24 +196,23 @@ export const CsvUploader = <T extends Record<string, unknown>>({
       return await parseAndValidateCsv<T>(
         csvContent,
         requiredColumns,
-        validateRowAction,
+        validateRow,
       );
     },
-    [requiredColumns, validateRowAction],
+    [requiredColumns, validateRow],
   );
 
   const handleUploadResults = useCallback(
     (validRows: T[], errors: string[]) => {
-      console.log('handleUploadResults called');
       if (validRows.length === 0) {
         throw new Error('No valid data found in CSV file');
       }
-      onUploadSuccessAction(validRows);
+      onUploadSuccess(validRows);
       if (errors.length > 0) {
         console.warn('CSV validation warnings:', errors);
       }
     },
-    [onUploadSuccessAction],
+    [onUploadSuccess],
   );
 
   const handleProcessingError = useCallback(
@@ -253,7 +233,6 @@ export const CsvUploader = <T extends Record<string, unknown>>({
 
   const processFile = useCallback(
     async (file: File) => {
-      console.log('processFile called');
       try {
         onUploadError?.(undefined);
         handleFileValidation(file);
@@ -278,11 +257,8 @@ export const CsvUploader = <T extends Record<string, unknown>>({
   );
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
-      console.log('onDrop called');
-      console.log('acceptedFiles', acceptedFiles);
       if (acceptedFiles.length > 0) {
         processFile(acceptedFiles[0]);
-        console.log('processFile called from onDrop');
       } else {
         // Handle rejected files (e.g., wrong type, too large) - react-dropzone might provide details
         onUploadError?.('File rejected. Check type or size.');
@@ -339,7 +315,6 @@ export const CsvUploader = <T extends Record<string, unknown>>({
           {...getInputProps()}
           ref={fileInputRef}
           disabled={externalIsLoading ?? false}
-          data-testid="file-input"
         />
         <DragDropArea isDragActive={isDragActive}>
           {(externalIsLoading ?? false) ? (
@@ -358,7 +333,7 @@ export const CsvUploader = <T extends Record<string, unknown>>({
                   : 'Click or drag CSV file to upload'}
               </span>
               <p className="text-xs text-muted-foreground mt-1">
-                Drag 'n' drop, or click to select file
+                Drag &apos;n&apos; drop, or click to select file
               </p>
             </>
           )}

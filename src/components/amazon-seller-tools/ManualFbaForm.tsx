@@ -7,17 +7,14 @@ import {
   type FbaFormData,
 } from '@/lib/amazon-tools/fba-form-schema';
 import { logger } from '@/lib/logger';
-import { AlertCircle } from 'lucide-react';
 import React from 'react';
 import type { FbaCalculationInput } from './fba-calculator';
 
 interface ManualFbaFormProps {
   initialValues: FbaCalculationInput;
-  onSubmit: (values: FbaCalculationInput, errors?: ValidationError[]) => void;
+  onSubmit: (values: FbaCalculationInput) => void;
   onReset: () => void;
 }
-
-import { ValidationError } from '@/lib/amazon-tools/fba-form-schema';
 
 export default function ManualFbaForm({
   initialValues,
@@ -28,15 +25,13 @@ export default function ManualFbaForm({
   const [values, setValues] =
     React.useState<FbaCalculationInput>(initialValues);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [errors, setErrors] = React.useState<ValidationError[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setValues((prev: FbaCalculationInput) => {
       const newValues = {
         ...prev,
-        [name]:
-          name === 'product' ? value : isNaN(Number(value)) ? 0 : Number(value),
+        [name]: name === 'product' ? value : Number(value) || 0,
       };
       return newValues;
     });
@@ -45,30 +40,24 @@ export default function ManualFbaForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setErrors([]); // Clear previous errors
 
     try {
       // Validate form data using Zod schema
-      const newErrors = validateFbaForm({
-        product: values.product.trim(),
-        cost: values.cost,
-        price: values.price,
-        fees: values.fees,
-      } as FbaFormData);
+      const validationErrors = validateFbaForm(values as FbaFormData);
 
-      if (newErrors.length > 0) {
+      if (validationErrors.length > 0) {
         // Log validation errors
         logger.warn('FBA form validation failed', {
           component: 'ManualFbaForm',
-          errors: newErrors,
+          errors: validationErrors,
           formData: values,
         });
 
-        // Set errors state to display inline validation messages
-        setErrors(newErrors);
+        // Show first error to user
         toast({
           title: 'Validation Error',
-          description: 'Please correct the errors in the form.',
+          description: validationErrors[0].message,
+          variant: 'destructive',
         });
         return;
       }
@@ -91,6 +80,7 @@ export default function ManualFbaForm({
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
@@ -103,31 +93,7 @@ export default function ManualFbaForm({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-4"
-      data-testid="manual-fba-form"
-      aria-label="FBA Calculator Form"
-    >
-      {errors.length > 0 && (
-        <div
-          role="alert"
-          aria-live="assertive"
-          className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg flex items-start gap-3"
-        >
-          <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0" />
-          <div className="space-y-1 flex-grow">
-            {errors.map((error) => (
-              <p
-                key={error.field}
-                className="text-sm text-red-600 dark:text-red-400"
-              >
-                {error.message}
-              </p>
-            ))}
-          </div>
-        </div>
-      )}
+    <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="product">Product Name*</Label>
         <Input
@@ -138,16 +104,6 @@ export default function ManualFbaForm({
           placeholder="Enter product name"
           required
         />
-        {errors.find((e) => e.field === 'product') && (
-          <div role="alert" aria-live="polite" className="mt-1">
-            <p
-              className="text-sm text-destructive"
-              data-testid="product-name-error"
-            >
-              {errors.find((e) => e.field === 'product')?.message}
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="space-y-2">
@@ -163,13 +119,6 @@ export default function ManualFbaForm({
           step="0.01"
           required
         />
-        {errors.find((e) => e.field === 'cost') && (
-          <div role="alert" aria-live="polite" className="mt-1">
-            <p className="text-sm text-destructive" data-testid="cost-error">
-              {errors.find((e) => e.field === 'cost')?.message}
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="space-y-2">
@@ -185,13 +134,6 @@ export default function ManualFbaForm({
           step="0.01"
           required
         />
-        {errors.find((e) => e.field === 'price') && (
-          <div role="alert" aria-live="polite" className="mt-1">
-            <p className="text-sm text-destructive" data-testid="price-error">
-              {errors.find((e) => e.field === 'price')?.message}
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="space-y-2">
@@ -207,13 +149,6 @@ export default function ManualFbaForm({
           step="0.01"
           required
         />
-        {errors.find((e) => e.field === 'fees') && (
-          <div role="alert" aria-live="polite" className="mt-1">
-            <p className="text-sm text-destructive" data-testid="fees-error">
-              {errors.find((e) => e.field === 'fees')?.message}
-            </p>
-          </div>
-        )}
       </div>
 
       <div className="flex gap-2 pt-4">

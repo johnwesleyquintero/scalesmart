@@ -1,5 +1,4 @@
-import { logger } from './api/logger';
-import { validateKeywords } from './input-validation';
+import { ProhibitedKeywords } from './prohibited-keywords';
 
 export interface KeywordAnalysis {
   keyword: string;
@@ -17,48 +16,15 @@ interface KeywordMetrics {
   hasSpecialChars: boolean;
 }
 
-interface ListingData {
-  title: string;
-  description: string;
-  bulletPoints?: string[];
-}
-
 export const KeywordIntelligence = {
-  async analyze(listingData: ListingData): Promise<KeywordAnalysis[]> {
-    logger.info('Analyzing listing data', { listingData });
-    let analysisResults: KeywordAnalysis[] = [];
-
-    try {
-      // Extract keywords from listing data
-      const keywords = this.extractKeywords(listingData);
-
-      const errors = validateKeywords(keywords);
-      if (errors.length > 0) {
-        throw new Error(errors.join(', '));
-      }
-
-      // Analyze each keyword
-      analysisResults = await Promise.all(
-        keywords.map((keyword) => this.analyzeKeyword(keyword, [])), // TODO: Fetch prohibited keywords
-      );
-
-      return analysisResults;
-    } catch (error: unknown) {
-      logger.error('Keyword analysis failed:', error);
-      throw new Error('Failed to analyze keywords');
-    } finally {
-      // monitorApiResponseTime(
-      //   'KeywordIntelligence.analyze',
-      //   Date.now() - Date.now(),
-      // ); // TODO: Fix timestamp
-    }
-  },
-
-  extractKeywords(listingData: ListingData): string[] {
-    // Extract keywords from title, description, and bullet points
-    const { title, description, bulletPoints } = listingData;
-    const keywords = [title, description, ...(bulletPoints || [])].join(' ');
-    return keywords.split(/\s+/);
+  async analyze(keywords: string[]): Promise<KeywordAnalysis[]> {
+    console.log('analyze called');
+    const prohibitedKeywords = await ProhibitedKeywords.getAll();
+    return Promise.all(
+      keywords.map(async (keyword) =>
+        this.analyzeKeyword(keyword, prohibitedKeywords),
+      ),
+    );
   },
 
   async analyzeKeyword(

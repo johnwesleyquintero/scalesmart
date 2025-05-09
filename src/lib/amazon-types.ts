@@ -151,15 +151,11 @@ export interface CompetitorDataRow extends ProcessedRow {
 export interface AmazonProduct {
   asin: string;
   title: string;
-  description: string;
-  category: string;
   price: number;
-  rating: number;
-  reviewCount: number;
-  bsr: number;
-  cost?: number;
-  fbaFees?: number;
-  referralFee?: number;
+  cost: number;
+  fbaFees: number;
+  referralFee: number;
+  category: string;
   dimensions?: ProductDimensions;
 }
 
@@ -181,13 +177,11 @@ export interface SalesData {
   organicSales?: number;
 }
 
-export interface ProcessedKeywordData {
+export interface KeywordData {
   keyword: string;
   searchVolume: number;
-  competition: number;
-  trend: number[];
-  difficulty?: number;
-  relevancy?: number;
+  difficulty: number;
+  relevancy: number;
   currentRank?: number;
 }
 
@@ -202,3 +196,11 @@ export interface CompetitorData {
 }
 
 export type ReportTimeframe = 'last7' | 'last30' | 'last90' | 'custom';
+export interface ProcessedKeywordData {
+  keyword: string;
+  searchVolume: number;
+  competition: number;
+  recommendedBid: number;
+  trend: string;
+  cpc: number;
+}

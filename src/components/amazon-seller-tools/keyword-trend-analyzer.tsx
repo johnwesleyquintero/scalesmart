@@ -22,7 +22,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { z } from 'zod';
 
 // Local/UI Imports (Consistent with other tools)
 import { Button } from '@/components/ui/button';
@@ -130,27 +129,32 @@ export default function KeywordTrendAnalyzer() {
             setChartData(processedData);
             setKeywords(foundKeywords);
             setError(undefined);
-            toast({ title: 'Analysis Complete', description: `Successfully analyzed trends for ${foundKeywords.length} keywords over ${processedData.length} dates.` });
+
+            toast({
+              title: 'Analysis Complete',
+              description: `Successfully analyzed trends for ${foundKeywords.length} keywords over ${processedData.length} dates.`,
+              variant: 'default',
+            });
+
             logger.info('Trend analysis completed successfully', {
               fileName: file.name,
               keywordCount: foundKeywords.length,
               datePoints: processedData.length,
             });
-          } catch (err: unknown) {
-            let message = 'An unknown error occurred during processing.';
-            if (err instanceof Error) {
-              message = err.message;
-            } else if (err instanceof z.ZodError) {
-              message = `Data validation failed: ${err.errors
-                .map((e: z.ZodIssue) => e.message)
-                .join(', ')}`;
-            }
+          } catch (err) {
+            const message =
+              err instanceof Error
+                ? err.message
+                : 'An unknown error occurred during processing.';
             setError(message);
             setChartData([]);
             setKeywords([]);
-            toast({ title: 'Processing Failed', description: message, variant: 'destructive' });
-          }
-          finally {
+            toast({
+              title: 'Processing Failed',
+              description: message,
+              variant: 'destructive',
+            });
+          } finally {
             setIsLoading(false);
             // Reset file input
             if (event.target) {
@@ -163,7 +167,11 @@ export default function KeywordTrendAnalyzer() {
           setIsLoading(false);
           setChartData([]);
           setKeywords([]);
-          toast({ title: 'Upload Failed', description: `Error reading CSV file: ${err.message}`, variant: 'destructive' });
+          toast({
+            title: 'Upload Failed',
+            description: `Error reading CSV file: ${err.message}`,
+            variant: 'destructive',
+          });
           // Reset file input on read error too
           if (event.target) {
             event.target.value = '';
@@ -178,7 +186,11 @@ export default function KeywordTrendAnalyzer() {
     if (chartData.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast({ title: 'Export Error', description: msg, variant: 'destructive' });
+      toast({
+        title: 'Export Error',
+        description: msg,
+        variant: 'destructive',
+      });
       return;
     }
     setError(undefined);
@@ -195,12 +207,20 @@ export default function KeywordTrendAnalyzer() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-      toast({ title: 'Export Successful', description: 'Keyword trend analysis exported to CSV.', variant: 'default' });
+      toast({
+        title: 'Export Successful',
+        description: 'Keyword trend analysis exported to CSV.',
+        variant: 'default',
+      });
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(`Failed to export data: ${message}`);
-      toast({ title: 'Export Failed', description: message, variant: 'destructive' });
+      toast({
+        title: 'Export Failed',
+        description: message,
+        variant: 'destructive',
+      });
     }
   }, [chartData, toast]);
 
@@ -211,7 +231,11 @@ export default function KeywordTrendAnalyzer() {
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
-    toast({ title: 'Data Cleared', description: 'All trend analysis results have been removed.', variant: 'default' });
+    toast({
+      title: 'Data Cleared',
+      description: 'All trend analysis results have been removed.',
+      variant: 'default',
+    });
   }, [toast]);
 
   // --- Render ---

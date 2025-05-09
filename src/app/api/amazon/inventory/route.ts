@@ -1,16 +1,9 @@
-import { rateLimiter } from '@/lib/rate-limiter';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { InventoryData } from '../../../../lib/amazon-types';
 import { AmazonAlgorithms } from '../../../../lib/calculations/amazon-algorithms';
 
 export async function POST(request: Request) {
-  // Apply rate limiting
-  const rateLimitResult = await rateLimiter.limit();
-  if (!rateLimitResult.success) {
-    return new NextResponse('Rate limit exceeded', { status: 429 });
-  }
-
   try {
     const requestBody = await request.json();
 

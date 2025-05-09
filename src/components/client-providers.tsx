@@ -1,19 +1,24 @@
 'use client';
 
+import { ThemeProvider } from '@/components/ui/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
-import * as React from 'react';
+import { useState, type ReactNode } from 'react';
 
-interface ClientProvidersProps {
-  children: React.ReactNode;
-}
-
-export default function ClientProviders({ children }: ClientProvidersProps) {
-  const [queryClient] = React.useState(() => new QueryClient());
+export default function ClientProviders({
+  children,
+}: {
+  readonly children: ReactNode;
+}) {
+  const [queryClient] = useState(() => new QueryClient());
 
   return (
-    <SessionProvider>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </SessionProvider>
+    <QueryClientProvider client={queryClient}>
+      <SessionProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+      </SessionProvider>
+    </QueryClientProvider>
   );
 }

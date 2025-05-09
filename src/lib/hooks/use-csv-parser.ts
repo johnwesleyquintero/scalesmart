@@ -21,12 +21,9 @@ interface UseCsvParserResult<T> {
 
 // Helper function to process the parsed results
 function processParsedData<T>(
-  result: ParseResult<Record<string, unknown>>,
+  result: ParseResult<Record<string, unknown>>, // Explicitly type the row data
   options: CsvParserOptions<T>,
 ): CsvParserResult<T> {
-  console.log('processParsedData: Starting processing');
-  console.log('processParsedData: result.data.length', result.data.length);
-
   // Validate required headers
   const actualHeaders = result.meta.fields || [];
   const missingHeaders = options.requiredHeaders.filter(
@@ -41,23 +38,24 @@ function processParsedData<T>(
   const validRows: T[] = [];
   const skippedRows: Array<{ index: number; reason: string }> = [];
 
-  // Use for loop instead of forEach to avoid potential recursion
-  for (let i = 0; i < result.data.length; i++) {
-    const row = result.data[i];
+  // Explicitly type row as Record<string, unknown> which is correct for header: true
+  result.data.forEach((row: Record<string, unknown>, index: number) => {
     try {
+      // Ensure row is actually an object before validation, skip if not (e.g., empty lines parsed weirdly)
       if (typeof row === 'object' && row !== null) {
-        const validatedRow = options.validateRow(row, i);
+        const validatedRow = options.validateRow(row, index);
         validRows.push(validatedRow);
       } else {
-        skippedRows.push({ index: i, reason: 'Row is not a valid object' });
+        // Optionally skip or log rows that aren't objects if needed
+        // skippedRows.push({ index, reason: 'Row is not a valid object' });
       }
     } catch (err) {
       skippedRows.push({
-        index: i,
+        index,
         reason: err instanceof Error ? err.message : String(err),
       });
     }
-  }
+  });
 
   if (validRows.length === 0 && result.data.length > 0) {
     throw new Error(
@@ -65,7 +63,6 @@ function processParsedData<T>(
     );
   }
 
-  console.log('processParsedData: Finishing processing');
   return {
     data: validRows,
     skippedRows,
@@ -82,8 +79,6 @@ export function useCsvParser<T>(
 
   const parseFile = useCallback(
     (file: File) => {
-      console.log('parseFile: Starting parsing of file', file.name);
-      let isLoadingSettled = false;
       return new Promise<CsvParserResult<T>>((resolve, reject) => {
         setIsLoading(true);
         setError(null);
@@ -95,49 +90,30 @@ export function useCsvParser<T>(
           setError(error.message);
           onError?.(error);
           reject(error);
-          if (!isLoadingSettled) {
-            setIsLoading(false); // Ensure isLoading is set to false on rejection
-            isLoadingSettled = true;
-          }
+          setIsLoading(false); // Ensure isLoading is set to false on rejection
           return;
         }
 
         setIsLoading(true);
         setError(null);
 
-        console.log('parseFile: Before Papa.parse');
         Papa.parse<Record<string, unknown>>(file, {
           header: true,
-          //dynamicTyping: true, // Enable automatic type conversion
+          dynamicTyping: true, // Enable automatic type conversion
           skipEmptyLines: 'greedy',
           transform: (value) => {
             if (typeof value === 'string') {
               value = value.trim();
               // Convert percentage values to numbers
               if (value.endsWith('%')) {
-                return parseFloat(value.slice(0, -1)) / 100;
+                return parseFloat(value) / 100;
               }
             }
             return value;
           },
           transformHeader: (header) => header.trim(),
-          error: (err: Error) => {
-            const errorMessage = `Error parsing CSV file: ${err.message}`;
-            setError(errorMessage);
-            onError?.(new Error(errorMessage));
-            if (!isLoadingSettled) {
-              setIsLoading(false);
-              isLoadingSettled = true;
-            }
-            reject(new Error(errorMessage));
-            return;
-          },
           complete: (result) => {
-            console.log('parseFile: Papa.parse complete callback');
-            if (!isLoadingSettled) {
-              setIsLoading(false);
-              isLoadingSettled = true;
-            }
+            setIsLoading(false);
             try {
               if (result.errors.length > 0) {
                 throw new Error(
@@ -155,8 +131,14 @@ export function useCsvParser<T>(
               reject(new Error(errorMessage));
             }
           },
+          error: (err: Error) => {
+            setIsLoading(false);
+            const errorMessage = `Error parsing CSV file: ${err.message}`;
+            setError(errorMessage);
+            onError?.(new Error(errorMessage));
+            reject(new Error(errorMessage));
+          },
         });
-        console.log('parseFile: After Papa.parse');
       });
     },
     [options, onError, onComplete],

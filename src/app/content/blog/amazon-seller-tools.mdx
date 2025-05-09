@@ -1,6 +1,6 @@
 ---
 title: 'Amazon Seller Tools Suite: Current Status & Roadmap'
-date: '2025-04-26' # Updated date to match project tracker
+date: '2025-04-21' # Updated date
 description: 'An up-to-date guide on the status, features, and known issues of our React-based tools for Amazon sellers.'
 category: ['Amazon SEO', 'Amazon PPC', 'Amazon FBA', 'Software Development'] # Added category
 tags: [
@@ -16,7 +16,9 @@ tags: [
 image: '/images/blog/amazon-seller-tools.svg'
 ---
 
-![Project Badge](https://img.shields.io/badge/Status-Active%20Development-blue) ![Last Update](https://img.shields.io/badge/Docs%20Updated-2025--04--26-informational)
+# 🛠 Amazon Seller Tools Suite (Updated: June 2024)
+
+![Project Badge](https://img.shields.io/badge/Status-Active%20Development-blue) ![Last Update](https://img.shields.io/badge/Docs%20Updated-2025--04--21-informational)
 
 ## 🌟 Introduction
 
@@ -24,24 +26,20 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 
 **Please Note:** This suite is under active development. While many tools are functional, some have known issues or limitations, and others are still being built. This document reflects the current status as of the date above. Refer to the `PRIORITY.txt` list for our current development focus.
 
-## Related Posts
-
-For the latest development updates and technical details, see our [Project Tracker](https://wescode.vercel.app/blog/project-tracker).
-
 ### Tool Status Overview
 
 ```
 | Tool                     | Status                     | Version     | Notes                              |
 | :----------------------- | :------------------------- | :---------- | :--------------------------------- |
-| FBA Calculator           | ✅ Active                  | 2.0.0       | Fixed TypeScript import errors and failing unit tests |
-| Keyword Analyzer         | ✅ Active                  | 2.0.0       | Added comprehensive error handling patterns |
+| FBA Calculator           | ✅ Active                  | 2.0.0       |                                    |
+| Keyword Analyzer         | ✅ Active                  | 2.0.0       |                                    |
 | Listing Quality Checker  | ✅ Active                  | 1.5.0       | AI features under review           |
-| PPC Campaign Auditor     | ⚠️ Beta / Stability Review | 0.9.0       | Currently addressing failing unit tests (See project tracker for details). API integration in progress - currently uses mock data.
+| PPC Campaign Auditor     | ⚠️ Beta / Stability Review | 0.9.0       | Stabilization in progress (See PROJECT_TRACKER.md for details) |
 | Description Editor       | ✅ Active                  | 1.5.0       | AI features under review. Implemented Server Actions to resolve "mongodb is not defined" error |
 | Keyword Deduplicator     | ✅ Active                  | 1.5.0       | AI features under review           |
-| ACoS Calculator          | ✅ Active                  | 2.1.0       | Fixed CSV parsing and real-time metric issues |
-| Sales Estimator          | ✅ Active                  | 1.0.0       | Optimized performance bottlenecks  |
-| Competitor Analyzer      | ✅ Active                  | 1.0.0       | Created unique index on prohibited-keywords collection |
+| ACoS Calculator          | ✅ Active                  | 2.0.0       | Updated version                    |
+| Sales Estimator          | ✅ Active                  | 1.0.0       |                                    |
+| Competitor Analyzer      | ✅ Active                  | 1.0.0       |                                    |
 | Keyword Trend Analyzer   | ✅ Active                  | 1.0.0       |                                    |
 | Profit Margin Calculator | ✅ Active                  | 1.0.0       |                                    |
 | Product Score Calc.      | ✅ Active                  | 1.0.0       | Manual input only                  |
@@ -58,14 +56,11 @@ For the latest development updates and technical details, see our [Project Track
 **Status**: ✅ Active
 **Version**: 2.0.0
 
-🔍 **Description**: Advanced profitability calculator for FBA products with real-time ROI analysis and market trend integration. **Example:** Use this tool to determine the profitability of selling a product on Amazon FBA by inputting product costs, selling price, and FBA fees. You can also analyze how changes in market trends might affect your profitability.
-
-**Architecture Diagram:** [Placeholder for FBA Calculator Architecture Diagram]
+🔍 **Description**: Advanced profitability calculator for FBA products with real-time ROI analysis and market trend integration.
 
 ### CSV Data Mapper
 
 **Status**: ✅ Active
-**Architecture Diagram:** [Placeholder for CSV Data Mapper Architecture Diagram]
 **Version**: 1.0.0
 
 🔍 **Description**: A reusable React component for mapping CSV headers to target metrics with validation.
@@ -107,8 +102,6 @@ For the latest development updates and technical details, see our [Project Track
 - Added comprehensive validation logic
 - Improved error handling and user feedback
 - Optimized performance with React memo
-- Fixed CSV parsing edge cases
-- Resolved real-time metric discrepancies
   **Features**:
 
 - CSV upload (Papa Parse)
@@ -120,15 +113,14 @@ For the latest development updates and technical details, see our [Project Track
 - Market trends
 - shadcn/ui components
 
-**Current Notes**: Generally stable. All tools now pass type checking and linting after recent fixes.
+**Current Notes**: Generally stable.
 
 ### 2. Keyword Analyzer
 
 **Status**: ✅ Active
 **Version**: 2.0.0
-**Architecture Diagram:** [Placeholder for Keyword Analyzer Architecture Diagram]
 
-🔍 **Description**: A tool for analyzing and managing keywords. **Example:** Use this tool to identify high-volume, low-competition keywords for your Amazon product listings to improve organic search rankings and drive more traffic to your products.
+🔍 **Description**: A tool for analyzing and managing keywords.
 **Features**:
 
 - Filtering
@@ -137,15 +129,14 @@ For the latest development updates and technical details, see our [Project Track
 
 **Limitations**: This tool currently uses mock data for keyword analysis. A real API integration is needed for accurate results.
 
-**Current Notes**: Generally stable. All tools now pass type checking and linting after recent fixes.
+**Current Notes**: Generally stable.
 
 ### 3. Listing Quality Checker
 
 **Status**: ✅ Active
-**Architecture Diagram:** [Placeholder for Listing Quality Checker Architecture Diagram]
 **Version**: 1.5.0
 
-🔍 **Description**: AI-powered listing analysis and optimization tool. **Example:** Use this tool to analyze your Amazon product listing and receive recommendations on how to improve your title, description, and images to increase sales and conversion rates.
+🔍 **Description**: AI-powered listing analysis and optimization tool.
 **Features**:
 
 - AI title/description/bullet optimization
@@ -166,29 +157,22 @@ For the latest development updates and technical details, see our [Project Track
 - Quality scoring
 - Mobile check
 
-**Recent Updates (2025-04-26)**:
-
-- Fixed TypeScript import errors across all tools
-- Resolved failing unit tests in FBA Calculator
-- Added comprehensive error handling patterns
-- Optimized performance bottlenecks
-- Created unique index on prohibited-keywords collection
+**Recent Updates (2025-04-22)**:
 
 - Added CSV validation with error boundaries
 - Implemented toast notifications for user feedback
 - Added file input ref management
 - Created mock API endpoint structure
   **Pending Tasks**:
-- Real API integration (High Priority - See project-tracker.mdx)
+- Real API integration (High Priority - See PROJECT_TRACKER.md)
 - Performance optimization for large files
 
 ### 4. PPC Campaign Auditor
 
 **Status**: ⚠️ Beta / Stability Review
-**Architecture Diagram:** [Placeholder for PPC Campaign Auditor Architecture Diagram]
 **Version**: 0.9.0
 
-🔍 **Description**: A comprehensive tool for analyzing PPC campaign performance and providing optimization recommendations. **Example:** Use this tool to analyze your Amazon PPC campaigns and identify areas where you can improve performance, such as reducing ACoS, increasing click-through rate, and improving conversion rates.
+🔍 **Description**: A comprehensive tool for analyzing PPC campaign performance and providing optimization recommendations.
 **Features**:
 
 - CSV import/validation
@@ -201,9 +185,7 @@ For the latest development updates and technical details, see our [Project Track
 
 **Limitations**:
 
-- Currently uses mock data (API integration in progress - see project tracker)
-- Unit tests failing
-- Performance optimizations needed for large datasets
+- Requires real API integration to fetch campaign data (currently uses mock data)
 - Performance may vary with large datasets
 
 **Recent Updates**:
@@ -214,63 +196,42 @@ For the latest development updates and technical details, see our [Project Track
 
 **Roadmap**:
 
-- Complete API integrations for all tools (High Priority)
-- Finalize PPC Campaign Auditor stabilization
-- Implement additional visualization options
-- Add comprehensive test coverage for new features
-
 - Real API integration (High Priority)
 - Performance optimization for large datasets
 - Additional visualization options
 
 ### 5. Description Editor
 
-**Architecture Diagram:** [Placeholder for Description Editor Architecture Diagram]
-
 **Status**: ✅ Active
 **Version**: 1.5.0
 
-🔍 **Description**: AI-enhanced rich text editor for Amazon product descriptions. **Example:** Use this tool to create compelling and optimized product descriptions that attract more customers and improve your search rankings on Amazon.
+🔍 **Description**: AI-enhanced rich text editor for Amazon product descriptions.
 **Features**: HTML formatting, keyword integration, char counter, AI SEO optimization, live preview, CSV export, automated score calculation, mobile preview.
-**Recent Updates (2025-04-26)**:
-
-- Fixed TypeScript import errors across all tools
-- Resolved failing unit tests in FBA Calculator
-- Added comprehensive error handling patterns
-- Optimized performance bottlenecks
-- Created unique index on prohibited-keywords collection
+**Recent Updates (2025-04-22)**:
 
 - Added CSV validation with error boundaries
 - Implemented toast notifications for user feedback
 - Added file input ref management
 - Created mock API endpoint structure
   **Pending Tasks**:
-- Real API integration (High Priority - See project-tracker.mdx)
-- Performance optimization for large files
-  **Architecture Diagram:** [Placeholder for Keyword Deduplicator Architecture Diagram]
+- Real API integration (High Priority - See PROJECT_TRACKER.md)
+- Performance optimization for large files Implemented Server Actions to resolve "mongodb is not defined" error.
 
 ### 6. Keyword Deduplicator
 
 **Status**: ✅ Active
 **Version**: 1.5.0
 
-🔍 **Description**: Smart keyword management with AI-powered suggestions. **Example:** Use this tool to identify and remove duplicate keywords from your Amazon advertising campaigns, and get AI-powered suggestions for related keywords to improve your campaign reach.
+🔍 **Description**: Smart keyword management with AI-powered suggestions.
 **Features**: Bulk processing, AI duplicate detection, smart suggestions, export options, real-time metrics, benchmarking, trend analysis.
-**Recent Updates (2025-04-26)**:
-
-- Fixed TypeScript import errors across all tools
-- Resolved failing unit tests in FBA Calculator
-- Added comprehensive error handling patterns
-- Optimized performance bottlenecks
-- Created unique index on prohibited-keywords collection
+**Recent Updates (2025-04-22)**:
 
 - Added CSV validation with error boundaries
 - Implemented toast notifications for user feedback
 - Added file input ref management
 - Created mock API endpoint structure
   **Pending Tasks**:
-- Real API integration (High Priority - See project-tracker.mdx)
-  **Architecture Diagram:** [Placeholder for ACoS Calculator Architecture Diagram]
+- Real API integration (High Priority - See PROJECT_TRACKER.md)
 - Performance optimization for large files
 
 ### 7. ACoS Calculator
@@ -278,7 +239,7 @@ For the latest development updates and technical details, see our [Project Track
 **Status**: ✅ Active
 **Version**: 2.0.0
 
-🔍 **Description**: Comprehensive advertising analysis with predictive metrics and historical trend analysis. **Example:** Use this tool to analyze your Amazon advertising campaigns, track your ACoS over time, and identify trends that can help you optimize your campaigns for maximum profitability.
+🔍 **Description**: Comprehensive advertising analysis with predictive metrics and historical trend analysis.
 **Features**:
 
 - Robust CSV parsing with error handling
@@ -294,40 +255,65 @@ For the latest development updates and technical details, see our [Project Track
 **Recent Improvements**:
 
 - Fixed CSV parsing issues with malformed data
-  **Architecture Diagram:** [Placeholder for Sales Estimator Architecture Diagram]
 - Added comprehensive error handling
 - Improved metric calculation accuracy
 - Enhanced data visualization
 - Added manual entry option for single campaigns
 
-**Architecture Diagram:** [Placeholder for Competitor Analyzer Architecture Diagram]
-
 ### 8. Sales Estimator
 
 **Status**: ✅ Active
 **Version**: 1.0.0
-**Architecture Diagram:** [Placeholder for Keyword Trend Analyzer Architecture Diagram]
-**Current Notes**: This tool currently uses mock data for sales estimation. Real API integration is a high priority task (see project-tracker.mdx). **Example:** Use this tool to estimate the potential sales volume for a product on Amazon based on factors such as product category, price, and competition.
+**Current Notes**: This tool currently uses mock data for sales estimation. A real API integration is in progress as a high priority task (see PROJECT_TRACKER.md).
 
 ### 9. Competitor Analyzer
 
 **Status**: ✅ Active
-**Architecture Diagram:** [Placeholder for Profit Margin Calculator Architecture Diagram]
 **Version**: 1.0.0
-**Current Notes**: Generally stable. All tools now pass type checking and linting after recent fixes.
+**Current Notes**: Generally stable.
 
 ### 10. Keyword Trend Analyzer
 
 **Status**: ✅ Active
 **Version**: 1.0.0
-**Current Notes**: Generally stable. All tools now pass type checking and linting after recent fixes.
-**Architecture Diagram:** [Placeholder for Product Score Calculator Architecture Diagram]
+**Current Notes**: Generally stable.
 
 ### 11. Profit Margin Calculator
 
 **Status**: ✅ Active
 **Version**: 1.0.0
-**Current Notes**: Generally stable. All tools now pass type checking and linting after recent fixes.
+**Current Notes**: Generally stable.
+
+---
+
+### 9. Competitor Analyzer
+
+**Status**: ✅ Active
+**Version**: 1.0.0
+
+🔍 **Description**: Analyzes competitor data to identify opportunities and improve product positioning.
+
+**Current Notes**: Generally stable.
+
+### 10. Keyword Trend Analyzer
+
+**Status**: ✅ Active
+**Version**: 1.0.0
+
+🔍 **Description**: Analyzes keyword trends to identify popular and emerging keywords.
+
+**Current Notes**: Generally stable.
+
+### 11. Profit Margin Calculator
+
+**Status**: ✅ Active
+**Version**: 1.0.0
+
+🔍 **Description**: Calculates profit margins to determine profitability and optimize pricing strategies.
+
+**Current Notes**: Generally stable.
+
+---
 
 ## ✅ Active Tools
 
@@ -335,14 +321,13 @@ For the latest development updates and technical details, see our [Project Track
 
 **Status**: ✅ Active
 **Version**: 1.0.0
-🔍 **Description**: Calculates a quality score for your Amazon product listing based on various optimization factors. **Example:** Use this tool to get a score for your product listing and identify areas where you can improve your listing to increase sales.
+🔍 **Description**: Calculates a quality score for your Amazon product listing based on various optimization factors.
 **Features**:
 
 - Product Title
 - Bullet Points (up to 5)
 - Product Description (HTML allowed)
 - Number of Images
-  **Architecture Diagram:** [Placeholder for Optimal Price Calculator Architecture Diagram]
 - Average Rating
 - Number of Reviews
 - Has A+ Content
@@ -357,7 +342,7 @@ For the latest development updates and technical details, see our [Project Track
 
 **Status**: ✅ Active
 **Version**: 1.0.0
-🔍 **Description**: Calculates the optimal price for a product based on cost, current price, competitor prices, and other factors. **Example:** Use this tool to determine the best price for your product to maximize profit while remaining competitive in the market.
+🔍 **Description**: Calculates the optimal price for a product based on cost, current price, competitor prices, and other factors.
 **Features**:
 
 - Product Cost
@@ -385,9 +370,23 @@ For the latest development updates and technical details, see our [Project Track
 - Competitor prices are parsed as a comma-separated string, which could be prone to errors if the input is not formatted correctly.
 - The product score is scaled to be between 0 and 1.
 
+### 14. Keyword Trend Analyzer
+
+**Status**: ✅ Active
+**Version**: 1.0.0
+**Current Notes**: Generally stable.
+
+### 15. Profit Margin Calculator
+
+**Status**: ✅ Active
+**Version**: 1.0.0
+**Current Notes**: Generally stable.
+
+---
+
 ## 📈 Roadmap & Future Updates
 
-Our team has completed several high-priority tasks including error reporting implementation, CSV parsing fixes, and state management optimizations. We're currently focused on API integrations and PPC Campaign Auditor stabilization (see project-tracker.mdx for details). The `check-quality.cjs` script now features parallel execution and improved config validation.
+Our team has completed several high-priority tasks including error reporting implementation, CSV parsing fixes, and state management optimizations. We're currently focused on API integrations and PPC Campaign Auditor stabilization (see PROJECT_TRACKER.md for details). The `check-quality.cjs` script now features parallel execution and improved config validation.
 
 The API key management system has been updated to include input validation, prevent race conditions, and implement rate limiting.
 

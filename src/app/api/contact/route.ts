@@ -1,4 +1,3 @@
-import { rateLimiter } from '@/lib/rate-limiter';
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 
@@ -9,12 +8,6 @@ interface EmailPayload {
 }
 
 export async function POST(request: Request) {
-  // Apply rate limiting
-  const rateLimitResult = await rateLimiter.limit();
-  if (!rateLimitResult.success) {
-    return NextResponse.json({ error: 'Rate limit exceeded' }, { status: 429 });
-  }
-
   const body: EmailPayload = await request.json();
 
   // Validate input

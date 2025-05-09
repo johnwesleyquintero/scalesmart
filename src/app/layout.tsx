@@ -1,25 +1,9 @@
-'use client';
-
-// Initialize mock service worker in the browser environment
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-  console.warn(
-    'Mock service worker is not initialized due to missing module: ../../mocks/browser',
-  );
-  // try {
-  //   const { worker } = await import('../../mocks/browser');
-  //   worker.start();
-  // } catch (error) {
-  //   console.error('Failed to initialize mock service worker:', error);
-  // }
-}
-
 import ClientProviders from '@/components/client-providers';
-import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { ContentSkeleton } from '@/components/ui/loading-skeleton';
 import { cn } from '@/lib/utils';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
-import { Suspense } from 'react';
 import './globals.css';
+import { metadata as metadataConfig } from './metadata';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,29 +12,54 @@ const inter = Inter({
   preload: true,
 });
 
+export const metadata: Metadata = metadataConfig;
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: 'white' },
+    { media: '(prefers-color-scheme: dark)', color: 'black' },
+  ],
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="manifest" href="/manifest.webmanifest" />
-        <link rel="apple-touch-icon" href="/favicon.svg" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="mobile-web-app-capable" content="yes" />
-      </head>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className={cn(
+        inter.variable,
+        'scroll-smooth',
+        'motion-safe:scroll-smooth',
+        '[color-scheme:dark_light]',
+      )}
+    >
       <body
-        className={cn('min-h-screen font-sans antialiased', inter.variable)}
+        suppressHydrationWarning
+        className={cn(
+          'min-h-screen',
+          'font-sans',
+          'antialiased',
+          'bg-background',
+          'text-foreground',
+          'flex',
+          'flex-col',
+          'selection:bg-primary/10',
+          'selection:text-primary',
+        )}
       >
-        <script></script>
-        <ErrorBoundary>
-          <ClientProviders>
-            <Suspense fallback={<ContentSkeleton />}>{children}</Suspense>
-          </ClientProviders>
-        </ErrorBoundary>
+        <ClientProviders>
+          <main id="main" className="flex-1">
+            {children}
+          </main>
+        </ClientProviders>
       </body>
     </html>
   );

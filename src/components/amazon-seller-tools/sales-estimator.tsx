@@ -151,7 +151,7 @@ export default function SalesEstimator() {
     setError(null);
 
     try {
-      const result = await new Promise<Papa.ParseResult<unknown>>(
+      const result = await new Promise<Papa.ParseResult<any>>(
         (resolve, reject) => {
           Papa.parse(file, {
             header: true,
@@ -168,26 +168,13 @@ export default function SalesEstimator() {
       }
 
       const processedData = result.data
-        .filter((row: unknown) => {
-          const typedRow = row as {
-            product?: string;
-            category?: string;
-            price?: number | string;
-          };
-          return typedRow.product && typedRow.category && typedRow.price;
-        })
-        .map((row: unknown) => {
-          const rowData = row as {
-            product: string;
-            category: string;
-            price: number | string;
-            competition?: CompetitionLevel;
-          };
+        .filter((row: any) => row.product && row.category && row.price)
+        .map((row: any) => {
           const validatedData = productSchema.parse({
-            product: rowData.product,
-            category: rowData.category,
-            price: Number(rowData.price),
-            competition: rowData.competition || 'Medium',
+            product: row.product,
+            category: row.category,
+            price: Number(row.price),
+            competition: row.competition || 'Medium',
           });
 
           const { estimatedSales, estimatedRevenue, confidence } =
@@ -216,6 +203,7 @@ export default function SalesEstimator() {
       toast({
         title: 'Error',
         description: errorMessage,
+        variant: 'destructive',
       });
       logger.error('CSV parsing error', {
         error,
@@ -271,6 +259,7 @@ export default function SalesEstimator() {
       toast({
         title: 'Error',
         description: errorMessage,
+        variant: 'destructive',
       });
       logger.error('Manual estimate error', {
         error,
@@ -318,6 +307,7 @@ export default function SalesEstimator() {
       toast({
         title: 'Error',
         description: 'Failed to export sales estimates',
+        variant: 'destructive',
       });
     }
   };

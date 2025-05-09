@@ -181,7 +181,7 @@ function analyzeCampaignPerformance(
   const recommendations: string[] = [];
   const { acos, ctr, conversionRate, clicks, type, spend } = campaign;
 
-  if (typeof acos === 'number' && !isFinite(acos)) {
+  if (!isFinite(acos)) {
     const noSalesResult = handleNoSalesCase(spend);
     issues.push(...noSalesResult.issues);
     recommendations.push(...noSalesResult.recommendations);
@@ -234,10 +234,10 @@ function analyzeCampaignPerformance(
  * Validates a single raw row from the CSV.
  * Returns a validated row object or null if validation fails.
  */
-function validateRow(row: unknown): {
-  data: ValidatedRow | null;
-  error: string | null;
-} {
+function validateRow(
+  row: unknown,
+  rowIndex: number,
+): { data: ValidatedRow | null; error: string | null } {
   const item = row as RawCampaignData;
 
   // Basic structure check
@@ -328,8 +328,8 @@ function processRawCampaignData(rawData: unknown[]): {
   }
 
   rawData.forEach((row, index) => {
-    const rowIndex = index; // Use 0-based index
-    const validationResult = validateRow(row);
+    const rowIndex = index + 1; // User-friendly row number (1-based)
+    const validationResult = validateRow(row, rowIndex);
 
     if (validationResult.error || !validationResult.data) {
       errors.push({

@@ -18,39 +18,6 @@ import type React from 'react';
 import { useState } from 'react';
 import CsvUploader from './CsvUploader';
 
-interface ProductData {
-  product: string;
-  cost: number;
-  fees: number;
-  sessions?: number;
-  reviewRating?: number;
-  reviewCount?: number;
-  priceCompetitiveness?: number;
-  inventoryHealth?: number;
-  weight?: number;
-  volume?: number;
-  competitorPrices?: number[];
-  reviews?: number | null;
-  salesRank?: number;
-  price?: number;
-  profit?: number;
-  margin?: number;
-  roi?: number;
-}
-
-interface CsvRow {
-  id: string;
-  impressions: number;
-  clicks: number;
-  [key: string]: string | number;
-}
-
-interface CalculatedResult extends ProductData {
-  profit: number;
-  margin: number;
-  roi: number;
-}
-
 interface ManualProduct {
   product: string;
   cost: number;
@@ -59,6 +26,40 @@ interface ManualProduct {
 }
 
 export default function ProfitMarginCalculator() {
+  // Define interfaces outside the component for better reusability
+  interface ProductData {
+    product: string;
+    cost: number;
+    fees: number;
+    sessions?: number;
+    reviewRating?: number;
+    reviewCount?: number;
+    priceCompetitiveness?: number;
+    inventoryHealth?: number;
+    weight?: number;
+    volume?: number;
+    competitorPrices?: number[];
+    reviews?: number | null;
+    salesRank?: number;
+    price?: number;
+    profit?: number;
+    margin?: number;
+    roi?: number;
+  }
+
+  interface CsvRow {
+    id: string;
+    impressions: number;
+    clicks: number;
+    [key: string]: string | number; // Allow additional fields from CSV
+  }
+
+  interface CalculatedResult extends ProductData {
+    profit: number;
+    margin: number;
+    roi: number;
+  }
+
   // Removed duplicate function export
   // Existing implementation kept at line 37
 
@@ -252,7 +253,7 @@ export default function ProfitMarginCalculator() {
 
         <div className="mb-8">
           <CsvUploader
-            onUploadSuccessAction={handleFileUpload}
+            onUploadSuccess={handleFileUpload}
             isLoading={isLoading}
             onClear={() => {
               setCsvData([]);

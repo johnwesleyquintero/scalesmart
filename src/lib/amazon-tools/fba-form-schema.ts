@@ -7,8 +7,8 @@ export const fbaFormSchema = z.object({
     .min(3, 'Product name must be at least 3 characters')
     .max(100, 'Product name must not exceed 100 characters')
     .regex(
-      /^[\w\s\-.]+$/,
-      'Product name can only contain letters, numbers, spaces, hyphens, and periods',
+      /^[\w\s-]+$/,
+      'Product name can only contain letters, numbers, spaces, and hyphens',
     ),
   cost: z
     .number()
@@ -45,12 +45,6 @@ export const validateFbaForm = (data: FbaFormData): ValidationError[] => {
         message: issue.message,
       }));
     }
-    console.error('Unexpected error during FBA form validation:', error);
-    return [
-      {
-        field: 'product',
-        message: 'An unexpected error occurred during validation',
-      },
-    ];
+    return [{ field: 'product', message: 'Validation failed' }];
   }
 };

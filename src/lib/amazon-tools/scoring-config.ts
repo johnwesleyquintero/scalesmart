@@ -5,7 +5,7 @@ export interface ScoringRule {
     score: number;
     message?: string;
   }>;
-  customScoring?: <T>(value: T) => number;
+  customScoring?: (value: any) => number;
 }
 
 export interface ScoringConfig {
@@ -36,14 +36,11 @@ export const defaultScoringConfig: ScoringConfig = {
   bulletPoints: {
     weight: 0.2,
     thresholds: [],
-    customScoring: <T extends unknown>(bullets: T): number => {
-      if (!bullets || !Array.isArray(bullets)) return 0;
+    customScoring: (bullets: string[]) => {
+      if (!bullets?.length) return 0;
       const count = bullets.length;
       const avgLength =
-        bullets.reduce(
-          (sum: number, bullet: string) => sum + bullet.length,
-          0,
-        ) / count;
+        bullets.reduce((sum, bullet) => sum + bullet.length, 0) / count;
 
       let score = 0;
       score += Math.min(count, 5) * 1.5;
@@ -80,11 +77,8 @@ export const defaultScoringConfig: ScoringConfig = {
   reviews: {
     weight: 0.15,
     thresholds: [],
-    customScoring: <T extends unknown>(value: T): number => {
-      if (!value || typeof value !== 'object') return 0;
-      const { rating, count } = value as { rating?: number; count?: number };
+    customScoring: ({ rating, count }: { rating: number; count: number }) => {
       if (!rating || !count) return 0;
-
       let score = (rating / 5) * 5;
 
       if (count >= 1000) score += 5;

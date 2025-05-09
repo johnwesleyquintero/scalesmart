@@ -4,14 +4,7 @@ import { Button } from '@/components/ui/button';
 import { downloadSampleCsv } from '@/lib/generate-sample-csv';
 import { Download } from 'lucide-react';
 
-type SampleDataType =
-  | 'fba'
-  | 'keyword'
-  | 'ppc'
-  | 'keyword-dedup'
-  | 'acos'
-  | 'campaign-performance'
-  | 'description';
+type SampleDataType = 'fba' | 'keyword' | 'ppc' | 'keyword-dedup' | 'acos';
 
 interface SampleCsvButtonProps {
   dataType: SampleDataType;

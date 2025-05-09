@@ -23,50 +23,41 @@
         "name": "next"
       }
     ],
+    // Removed the extra '],' from the original line 23
     "paths": {
       "@/*": ["./*"],
       "@/lib/*": ["./lib/*"],
       "@/components/*": ["./components/*"],
       "@/app/components/*": ["./app/components/*"],
-      "@/hooks/*": ["./hooks/*"],
-      "@/stores/*": ["./stores/*"],
-      "@/__tests__/*": ["./__tests__/*"],
-      "@/lib/dataProcessing": ["./lib/dataProcessing/index"],
-      "@/lib/helpers": ["./lib/helpers/index"]
+      "@/hooks/*": ["./app/hooks/*"] // Ensure this line exists
     }
-  }, // Comma needed as 'types' follows
-  "types": [
-    "jest",
-    "@testing-library/jest-dom",
-    "node",
-    "find-cache-dir",
-    "mime"
-  ],
+    // Note: The 'paths' object is the last item within 'compilerOptions', so it does NOT need a trailing comma after its closing brace '}'.
+  }, // This closing brace '}' ends the 'compilerOptions' object. It needs a comma because 'types' follows it.
+  "types": ["jest", "@testing-library/jest-dom", "node"],
   "include": [
-    "src/types/**/*", // This handles types inside src/types
+    "src/types/**/*",
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
     "**/*.js",
     ".next/types/**/*.ts",
     "src/__tests__/setup.ts",
-    "src/**/*", // This also covers src/types, but the specific entry is clearer
-    "src/__tests__/**/*"
+    "src/**/*",
+    "types/**/*.d.ts"
   ],
-  "typeRoots": ["./src/types", "./node_modules/@types"], // Comma needed as 'exclude' follows
-  // Added comma on the line above
+  "typeRoots": ["./src/types", "./node_modules/@types"], // Added comma here because 'exclude' follows.
   "exclude": [
     ".next",
-    ".wescore",
-    "jest.config.js, jest.config.ts",
+    "jest.config.js",
     "__mocks__/svg.js",
     "coverage/lcov-report/*",
     "dist/lib/models.js",
     "dist/lib/mongodb.js",
     "dist/scripts/*",
-    "jest.setup.ts",
+    "eslint.config.js",
+    "jest.setup.js",
     "next.config.js",
-    "tailwind.config.js",
-    "eslint.config.mjs"
+    "tailwind.config.js"
   ]
+  // Note: 'exclude' is the last item in the main object, so it does NOT need a trailing comma.
 }

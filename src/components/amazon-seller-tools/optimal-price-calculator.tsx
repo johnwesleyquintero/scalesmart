@@ -2,7 +2,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -28,14 +27,14 @@ import { ZodError } from 'zod'; // Import Zod for error handling type
 // competitorPrices will be stored as a string in state, parsed later
 interface OptimalPriceFormState
   extends Omit<OptimalPriceInputs, 'competitorPrices'> {
-  competitorPrices: number[];
+  competitorPrices: string; // Store as comma-separated string
 }
 
 // Initial state matching the form structure
 const initialFormState: OptimalPriceFormState = {
   cost: 0,
   currentPrice: 0,
-  competitorPrices: [], // Initialize as empty array
+  competitorPrices: '', // Initialize as empty string
   reviewRating: 4.5,
   reviewCount: 42,
   priceCompetitiveness: 0.92,
@@ -61,75 +60,6 @@ const calculateMargin = (profit: number, optimalPrice: number): number => {
   return 0; // If profit is also 0 or negative
 };
 
-interface CompetitorPricesTableProps {
-  competitorPrices: number[];
-  setCompetitorPrices: (prices: number[]) => void;
-}
-
-const CompetitorPricesTable: React.FC<CompetitorPricesTableProps> = ({
-  competitorPrices,
-  setCompetitorPrices,
-}) => {
-  const columns = [
-    {
-      accessorKey: 'price',
-      header: 'Competitor Price',
-      cell: ({
-        row,
-      }: {
-        row: { index: number; original: { price: number } };
-      }) => (
-        <Input
-          type="number"
-          value={row.original.price}
-          onChange={(e) => {
-            const newPrice = parseFloat((e.target as HTMLInputElement).value);
-            setCompetitorPrices(
-              competitorPrices.map((price, i) =>
-                i === row.index ? newPrice : price,
-              ),
-            );
-          }}
-        />
-      ),
-    },
-    {
-      id: 'actions',
-      header: 'Actions',
-      cell: ({
-        row,
-      }: {
-        row: { index: number; original: { price: number } };
-      }) => (
-        <Button
-          onClick={() => {
-            setCompetitorPrices(
-              competitorPrices.filter((_, i) => i !== row.index),
-            );
-          }}
-        >
-          Remove
-        </Button>
-      ),
-    },
-  ];
-
-  return (
-    <div className="w-full">
-      <DataTable
-        columns={columns}
-        data={competitorPrices.map((price) => ({ price }))}
-      />
-      <Button
-        onClick={() => {
-          setCompetitorPrices([...competitorPrices, 0]);
-        }}
-      >
-        Add Competitor Price
-      </Button>
-    </div>
-  );
-};
 export default function OptimalPriceCalculator() {
   const { toast } = useToast();
   const [inputs, setInputs] = useState<OptimalPriceFormState>(initialFormState);
@@ -148,6 +78,18 @@ export default function OptimalPriceCalculator() {
 
   const [error, setError] = useState<string | undefined>(undefined);
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type } = e.target;
+    setInputs((prev) => ({
+      ...prev,
+      // Keep competitorPrices as string, parse others to number if applicable
+      [name]:
+        type === 'number' && name !== 'competitorPrices'
+          ? parseFloat(value) || 0 // Default to 0 if parsing fails
+          : value,
+    }));
+  };
+
   const handleCategoryChange = (value: string) => {
     setInputs((prev) => ({
       ...prev,
@@ -162,7 +104,10 @@ export default function OptimalPriceCalculator() {
 
     try {
       // 1. Prepare data for validation (parse competitorPrices string)
-      const competitorPricesArray = inputs.competitorPrices;
+      const competitorPricesArray = inputs.competitorPrices
+        .split(',')
+        .map((s) => parseFloat(s.trim()))
+        .filter((n) => !isNaN(n) && n > 0); // Filter out invalid numbers
 
       const dataToValidate: OptimalPriceInputs = {
         ...inputs,
@@ -178,17 +123,14 @@ export default function OptimalPriceCalculator() {
       // Key updates in validation handling
       if (!validationResult.success) {
         // FIX 1 & 2: Check if error exists and handle ZodError vs string error
-        function isZodError(error: unknown): error is ZodError {
+        function isZodError(error: any): error is ZodError {
           return error instanceof ZodError;
         }
 
         if (validationResult.error) {
           if (isZodError(validationResult.error)) {
             const errorMessages = validationResult.error.issues
-              .map(
-                (issue: { message: string }) =>
-                  `Validation error: ${issue.message}`,
-              )
+              .map((issue: any) => `Validation error: ${issue.message}`) // Removed unnecessary object wrapping
               .join('\n');
             setError(errorMessages);
           } else if (typeof validationResult.error === 'string') {
@@ -285,6 +227,7 @@ export default function OptimalPriceCalculator() {
                 step="0.01"
                 min="0"
                 value={inputs.cost}
+                onChange={handleInputChange}
                 required
                 placeholder="e.g., 5.50"
               />
@@ -300,19 +243,25 @@ export default function OptimalPriceCalculator() {
                 step="0.01"
                 min="0"
                 value={inputs.currentPrice}
+                onChange={handleInputChange}
                 required
                 placeholder="e.g., 19.99"
               />
             </div>
 
-            {/* Competitor Prices Table */}
+            {/* Competitor Prices Input */}
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="competitorPrices">Competitor Prices</Label>
-              <CompetitorPricesTable
-                competitorPrices={inputs.competitorPrices}
-                setCompetitorPrices={(prices) =>
-                  setInputs((prev) => ({ ...prev, competitorPrices: prices }))
-                }
+              <Label htmlFor="competitorPrices">
+                Competitor Prices (comma-separated)
+              </Label>
+              <Input
+                id="competitorPrices"
+                name="competitorPrices"
+                // Value is now the string from state
+                value={inputs.competitorPrices}
+                onChange={handleInputChange}
+                placeholder="e.g., 19.99, 24.95, 22.50"
+                required
               />
             </div>
 
@@ -327,6 +276,7 @@ export default function OptimalPriceCalculator() {
                 min="0"
                 max="5"
                 value={inputs.reviewRating}
+                onChange={handleInputChange}
                 required
                 placeholder="e.g., 4.7"
               />
@@ -342,6 +292,7 @@ export default function OptimalPriceCalculator() {
                 step="1"
                 min="0"
                 value={inputs.reviewCount}
+                onChange={handleInputChange}
                 required
                 placeholder="e.g., 150"
               />
@@ -379,6 +330,7 @@ export default function OptimalPriceCalculator() {
                 step="1"
                 min="1"
                 value={inputs.salesRank}
+                onChange={handleInputChange}
                 required
                 placeholder="e.g., 5000"
               />

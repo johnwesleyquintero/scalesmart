@@ -1,37 +1,23 @@
 import path from 'path';
 
 /** @type {import('next').NextConfig} */
-import { createRequire } from 'module';
-const require = createRequire(import.meta.url);
-
 const nextConfig = {
-  reactStrictMode: true,
   eslint: {
-    ignoreDuringBuilds: process.env.NODE_ENV !== 'production',
+    ignoreDuringBuilds: true,
   },
   // Core settings
-  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined,
-  // Resolve SWC/Babel conflict
-  experimental: {
-    forceSwcTransforms: false,
-    optimizeCss: false,
-    optimizeServerReact: false,
-    serverActions: {
-      allowedOrigins: ['localhost:3000', 'wesleyquintero.vercel.app'],
-      bodySizeLimit: '4mb',
-    },
-  },
-  // Enable importAttributes syntax
-  compiler: {
-    styledComponents: true,
-  },
+  // output: 'standalone', // Keep if needed for Docker/standalone deployment
 
   // Build-time checks
+  // --- ESLint block removed ---
+  // Recommendation: Run 'npm run lint' separately in your workflow/CI pipeline.
+
   typescript: {
+    // CRITICAL: Keep this false to ensure type safety in builds.
     ignoreBuildErrors: false,
   },
 
-  // Enhanced Image Optimization
+  // Image Optimization (Looks good, keep as is unless specific needs arise)
   images: {
     remotePatterns: [
       {
@@ -50,48 +36,52 @@ const nextConfig = {
         port: '3000',
         pathname: '/**',
       },
+      // Remove the empty hostname pattern below as it's invalid
+      /* DELETE THIS ENTRY - CAUSING BUILD FAILURE
+      {
+        protocol: 'http',
+        hostname: '', // Empty string is invalid
+        pathname: '/public/**',
+      },
+      */
     ],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 3600,
-    dangerouslyAllowSVG: true,
-    contentDispositionType: 'inline',
+    minimumCacheTTL: 60,
+    dangerouslyAllowSVG: true, // Use with caution: Ensure SVGs are trusted/sanitized.
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
-    unoptimized: process.env.NODE_ENV === 'development',
-    disableStaticImages: false,
-    domains: [],
+    contentDispositionType: 'inline',
   },
 
-  // Modern Experimental Features
-  serverExternalPackages: ['mongoose', '@next-auth/mongodb-adapter'],
+  // Experimental features & optimizations
+  experimental: {
+    // Enable optimizations for improved build performance
+    webpackBuildWorker: true,
+    parallelServerBuildTraces: true,
+    parallelServerCompiles: true,
+    // Enable server actions for form submissions
+    serverActions: {
+      allowedOrigins: ['localhost:3000'],
+    },
+  },
   // Compiler options
   compiler: {
     // Remove console logs in production builds
     removeConsole: process.env.NODE_ENV === 'production',
-    // Enable SWC for next/font
-    styledComponents: true,
   },
   // Webpack customization
   webpack: (config, { webpack: webpackInstance, isServer, dev }) => {
-    // Disable minification completely to avoid WebpackError constructor issues
-    config.optimization.minimize = false;
+    // Enable minification in production for better performance
+    if (!dev) {
+      config.optimization.minimize = true;
+    }
     // Define environment variables (build-time/server-side)
     // Use NEXT_PUBLIC_ prefix for variables needed in the browser
     // Removed redundant DefinePlugin configuration
 
     // Alias for @/ imports (assuming source code is primarily in 'src')
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@': path.resolve(process.cwd(), 'src'),
-      path: require.resolve('path-browserify'),
-    };
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      path: false,
-      dns: false,
-      net: false,
-    };
+    config.resolve.alias['@'] = path.resolve(process.cwd(), 'src');
 
     // Rule for handling SVGs as React components using @svgr/webpack
     // Ensure you have @svgr/webpack installed (`npm install --save-dev @svgr/webpack`)
@@ -102,8 +92,7 @@ const nextConfig = {
         {
           loader: '@svgr/webpack',
           options: {
-            svgo: false,
-            titleProp: true,
+            // svgo: false, // Optionally disable SVGO optimization if causing issues
           },
         },
       ],
@@ -119,28 +108,32 @@ const nextConfig = {
       }),
     );
 
-    config.externals = isServer
-      ? [
-          ...(config.externals || []),
-          /^node:/,
-          /^mongodb/,
-          {
+    config.externals = [
+      ...(config.externals || []),
+      isServer
+        ? {
             '@next-auth/mongodb-adapter': 'commonjs @next-auth/mongodb-adapter',
-            fs: 'commonjs fs',
-            tls: 'commonjs tls',
-            child_process: 'commonjs child_process',
-            path: 'commonjs path',
-            util: 'commonjs util',
-            stream: 'commonjs stream',
-            crypto: 'commonjs crypto',
-            os: 'commonjs os',
-            http: 'commonjs http',
-            https: 'commonjs https',
-            zlib: 'commonjs zlib',
-            process: 'commonjs process',
-          },
-        ]
-      : config.externals;
+            'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
+            'aws4': 'commonjs aws4',
+            'snappy': 'commonjs snappy',
+            'kerberos': 'commonjs kerberos',
+            'dns': 'commonjs dns',
+            'fs': 'commonjs fs',
+            'net': 'commonjs net',
+            'tls': 'commonjs tls',
+            'child_process': 'commonjs child_process',
+            'path': 'commonjs path',
+            'util': 'commonjs util',
+            'stream': 'commonjs stream',
+            'crypto': 'commonjs crypto',
+            'os': 'commonjs os',
+            'http': 'commonjs http',
+            'https': 'commonjs https',
+            'zlib': 'commonjs zlib',
+            'process': 'commonjs process'
+          }
+        : [],
+    ].flat();
 
     return config;
   },

@@ -18,12 +18,9 @@ export const positiveNumberSchema = z
 export const numberSchema = z.number();
 
 // CSV content validation
-import { logger } from './logger';
-
 export const validateCsvContent = (
   content: unknown[],
 ): { validRows: Record<string, unknown>[]; errors: string[] } => {
-  logger.debug('validateCsvContent: Input content:', { content });
   const errors: string[] = [];
   const validRows = content.filter((row, index) => {
     if (!row || typeof row !== 'object') {
@@ -32,8 +29,6 @@ export const validateCsvContent = (
     }
     return true;
   }) as Record<string, unknown>[];
-  logger.debug('validateCsvContent: Valid rows:', { validRows });
-  logger.debug('validateCsvContent: Errors:', { errors });
   return { validRows, errors };
 };
 
@@ -44,34 +39,3 @@ export const asinSchema = z
 export const productNameSchema = z
   .string()
   .min(3, 'Product name must be at least 3 characters');
-
-// Keyword validation
-export const validateKeywords = (keywords: string[]): string[] => {
-  const errors: string[] = [];
-  if (!keywords || keywords.length === 0) {
-    errors.push('Keywords cannot be empty');
-  }
-
-  if (!keywords.every((keyword) => typeof keyword === 'string')) {
-    errors.push('Each keyword must be a string');
-  }
-  return errors;
-};
-
-// Schema for ACOS calculator manual input form
-export const acosCalculatorSchema = z.object({
-  campaign: z
-    .string()
-    .min(1, 'Campaign name is required')
-    .max(100, 'Campaign name must be less than 100 characters'),
-  adSpend: z
-    .number()
-    .min(0, 'Ad spend must be non-negative')
-    .max(1000000, 'Ad spend exceeds maximum limit'),
-  sales: z
-    .number()
-    .min(0, 'Sales must be non-negative')
-    .max(1000000, 'Sales exceeds maximum limit'),
-});
-
-export type AcosCalculatorInput = z.infer<typeof acosCalculatorSchema>;

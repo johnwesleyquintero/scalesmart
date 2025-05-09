@@ -1,88 +1,39 @@
 import skills from '@/data/portfolio-data/skills.json';
-import { apiError, apiResponse, validateApiRoute } from '@/lib/api-validation';
 import { getGitHubProjects } from '@/lib/github';
 import { getLinkedInExperience } from '@/lib/linkedin';
-import { logger } from '@/lib/logger';
-import { monitor } from '@/lib/monitoring';
-import { rateLimiter } from '@/lib/rate-limiter';
-import { apiKeyAuth } from '@/middleware/api-key-auth';
-import { getServerSession } from 'next-auth/next';
-import { NextRequest } from 'next/server';
-import { z } from 'zod';
-import { authOptions } from '../auth/[...nextauth]/options';
+import { NextResponse } from 'next/server';
 
-export const runtime = 'edge';
+export async function GET() {
+  try {
+    // Fetch data from GitHub and LinkedIn APIs
+    const [projects, experience] = await Promise.all([
+      getGitHubProjects().catch((error) => {
+        console.error('Error fetching GitHub projects:', error);
+        return [];
+      }),
+      getLinkedInExperience()
+        .then((experience) => experience)
+        .catch((error) => {
+          console.error('Error fetching LinkedIn experience:', error);
+          return [];
+        }),
+    ]);
 
-// Validation schema for query parameters
-const contentQuerySchema = z.object({
-  include: z
-    .array(z.enum(['skills', 'projects', 'experience']))
-    .optional()
-    .default(['skills', 'projects', 'experience']),
-  limit: z.coerce.number().min(1).max(50).optional().default(10),
-});
-
-export async function GET(request: NextRequest) {
-  const authResult = await apiKeyAuth(request);
-  if (authResult) {
-    return authResult;
+    return NextResponse.json({
+      skills: skills.skills || [],
+      projects: projects || [],
+      experience: experience || [],
+    });
+  } catch (error) {
+    console.error('Error fetching content:', error);
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch content',
+        skills: skills.skills || [],
+        projects: [],
+        experience: [],
+      },
+      { status: 500 },
+    );
   }
-  return validateApiRoute(
-    request,
-    contentQuerySchema,
-    async (validatedData) => {
-      try {
-        // Apply rate limiting
-        await getServerSession(authOptions);
-        const isAllowed = await rateLimiter.limit();
-
-        if (!isAllowed) {
-          return apiError('Too many requests', 429);
-        }
-
-        const startTime = performance.now();
-        const include = validatedData.include ?? [
-          'skills',
-          'projects',
-          'experience',
-        ];
-
-        // Fetch only requested data
-        const results = await Promise.all([
-          include.includes('projects')
-            ? getGitHubProjects().then(
-                (projects) => projects?.slice(0, validatedData.limit) ?? [],
-              )
-            : Promise.resolve([]),
-          include.includes('experience')
-            ? getLinkedInExperience()
-            : Promise.resolve([]),
-        ]);
-
-        const [projects, experience] = results;
-
-        // Monitor performance
-        const endTime = performance.now();
-        monitor.trackNavigation('/api/content');
-        logger.info('Content API performance:', {
-          duration: endTime - startTime,
-          include,
-          limit: validatedData.limit,
-          projectsCount: projects.length,
-          experienceCount: experience.length,
-        });
-
-        return apiResponse({
-          ...(include.includes('skills') && { skills: skills.skills || [] }),
-          ...(include.includes('projects') && { projects }),
-          ...(include.includes('experience') && { experience }),
-        });
-      } catch (error) {
-        logger.error('Error in content API:', { error });
-        return apiError(
-          error instanceof Error ? error : 'Internal server error',
-        );
-      }
-    },
-  );
 }

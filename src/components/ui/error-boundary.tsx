@@ -1,77 +1,72 @@
 'use client';
-
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { logger } from '@/lib/logger';
-import { AlertCircle, RefreshCcw } from 'lucide-react';
 import React from 'react';
 
-interface Props {
+import { Button } from '@/components/ui/button';
+import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { useEffect, useState } from 'react';
+
+interface ErrorBoundaryProps {
   children: React.ReactNode;
-  fallback?: React.ReactNode;
 }
 
-interface State {
-  hasError: boolean;
-  error?: Error;
-  errorInfo?: React.ErrorInfo;
-}
+export default function ErrorBoundary({
+  children,
+}: Readonly<ErrorBoundaryProps>) {
+  const [hasError, setHasError] = useState(false);
+  const [error, setError] = useState<Error | undefined>(undefined);
 
-export class ErrorBoundary extends React.Component<Props, State> {
-  public state: State = {
-    hasError: false,
-  };
+  useEffect(() => {
+    if (typeof window === 'undefined') return; // Ensure we're client-side
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
-  }
+    const errorHandler = (error: ErrorEvent) => {
+      setHasError(true);
+      setError(error.error);
+      console.error('Error caught by error boundary:', error);
+    };
 
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    logger.error('React Error Boundary caught an error:', {
-      error,
-      errorInfo: errorInfo.componentStack,
-      url: window.location.href,
-      userAgent: navigator.userAgent,
-    });
-  }
+    window.addEventListener('error', errorHandler);
+    return () => window.removeEventListener('error', errorHandler);
+  }, []);
 
-  private handleRetry = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
-  };
-
-  render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
-      return (
-        <Alert variant="destructive" className="m-4">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Something went wrong</AlertTitle>
-          <AlertDescription className="mt-2 flex flex-col gap-4">
-            <p>
-              An error occurred while rendering this component. Our team has
-              been notified and is working to fix the issue.
+  if (hasError) {
+    return (
+      <div className="flex min-h-[400px] flex-col items-center justify-center rounded-lg border border-red-200 bg-red-50 p-8 text-center dark:border-red-800/30 dark:bg-red-900/20">
+        <AlertTriangle className="mb-4 h-12 w-12 text-red-500 dark:text-red-400" />
+        <h2 className="mb-2 text-xl font-bold text-red-800 dark:text-red-400">
+          Something went wrong
+        </h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Please refer to the{' '}
+          <a href="/docs/error-guide.md" className="underline">
+            error guide
+          </a>{' '}
+          for further details.
+        </p>
+        <p className="mb-6 max-w-md text-red-700 dark:text-red-300">
+          We apologize for the inconvenience. An unexpected error has occurred.
+        </p>
+        <Button
+          onClick={() => {
+            setHasError(false);
+            setError(undefined);
+            window.location.reload();
+          }}
+          className="flex items-center gap-2"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Reload Page
+        </Button>
+        {error && process.env.NODE_ENV === 'development' && (
+          <div className="mt-6 max-w-md overflow-auto rounded border border-red-300 bg-white p-4 text-left text-sm text-red-800 dark:border-red-800/50 dark:bg-red-950/50 dark:text-red-300">
+            <p className="font-mono font-bold">
+              {error.name}: {error.message}
             </p>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
-              <pre className="mt-2 w-full overflow-x-auto rounded bg-slate-950 p-4 text-sm text-white">
-                {this.state.error.toString()}
-              </pre>
-            )}
-            <Button
-              variant="outline"
-              className="mt-4 w-fit"
-              onClick={this.handleRetry}
-            >
-              <RefreshCcw className="mr-2 h-4 w-4" />
-              Try Again
-            </Button>
-          </AlertDescription>
-        </Alert>
-      );
-    }
-
-    return this.props.children;
+            <pre className="mt-2 text-xs">{error.stack}</pre>
+          </div>
+        )}
+      </div>
+    );
   }
+
+  return <>{children}</>;
 }
