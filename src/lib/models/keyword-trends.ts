@@ -1,16 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 
 export interface KeywordTrend {
-  _id?: ObjectId;
+  id?: string;
   keyword: string;
   date: string;
   volume: number;
-  createdAt: Date;
+  created_at: string;
 }
 
 export interface KeywordTrendData {
   name: string;
   [keyword: string]: number | string;
 }
-
-export const KeywordTrendCollection = 'keyword-trends';

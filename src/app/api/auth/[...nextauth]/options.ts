@@ -3,7 +3,7 @@ import { SupabaseAdapter } from '@next-auth/supabase-adapter';
 import { type NextAuthOptions, type Session } from 'next-auth';
 import { type JWT } from 'next-auth/jwt';
 import GithubProvider from 'next-auth/providers/github';
-import LinkedInProvider from 'next-auth/providers/linkedin';
+
 
 export const authOptions: NextAuthOptions = {
   adapter: SupabaseAdapter({
@@ -15,13 +15,7 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GITHUB_ID as string,
       clientSecret: process.env.GITHUB_SECRET as string,
     }),
-    LinkedInProvider({
-      clientId: process.env.LINKEDIN_CLIENT_ID || 'your_linkedin_client_id',
-      clientSecret: process.env.LINKEDIN_CLIENT_SECRET as string,
-      authorization: {
-        params: { scope: 'openid profile email' },
-      },
-    }),
+    
   ],
   session: {
     strategy: 'jwt',
