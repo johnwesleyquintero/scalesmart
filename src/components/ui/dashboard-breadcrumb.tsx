@@ -13,7 +13,7 @@ import { usePathname } from 'next/navigation';
 
 export function DashboardBreadcrumb() {
   const pathname = usePathname();
-  if (!pathname) return null;
+  if (!pathname) return undefined;
   const pathSegments = pathname.split('/').filter((segment) => segment !== '');
 
   return (

@@ -58,6 +58,34 @@ import { logger } from '@/lib/logger';
  * @param decimals Number of decimal places (default 2)
  * @returns Formatted string representation
  */
+const formatNumber = (value: number, decimals: number = 2): string => {
+  try {
+    if (!isFinite(value)) {
+      logger.warn('Non-finite value encountered in formatNumber', { value });
+      if (value > 0) return '∞';
+      if (value < 0) return '-∞';
+      return '0';
+    }
+
+    if (decimals < 0) {
+      logger.warn('Invalid decimals value in formatNumber', { decimals });
+      decimals = 2; // Reset to default
+    }
+
+    const absValue = Math.abs(value);
+    if (absValue >= 1e9) return `${(value / 1e9).toFixed(decimals)}B`;
+    if (absValue >= 1e6) return `${(value / 1e6).toFixed(decimals)}M`;
+    if (absValue >= 1e3) return `${(value / 1e3).toFixed(decimals)}K`;
+    return value.toFixed(decimals);
+  } catch (error) {
+    logger.error('Error in formatNumber', {
+      value,
+      decimals,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+    return '0';
+  }
+};
 
 /**
  * Calculates FBA metrics with improved error handling and validation
@@ -565,19 +593,14 @@ export default function FbaCalculator() {
                 </TableHeader>
                 <TableBody>
                   {results.map((item, index) => {
-                    const negativeProfitColor = 'text-red-500';
-                    const positiveProfitColor = 'text-green-500';
-                    const infinitySymbol = '∞';
                     const profitColor =
-                      item.profit < 0
-                        ? negativeProfitColor
-                        : positiveProfitColor;
-                    const roiDisplay = Number.isFinite(item.roi)
+                      item.profit < 0 ? 'text-red-500' : 'text-green-500';
+                    const roiDisplay = isFinite(item.roi)
                       ? `${item.roi.toFixed(2)}%`
-                      : infinitySymbol;
-                    const marginDisplay = Number.isFinite(item.margin)
+                      : '∞';
+                    const marginDisplay = isFinite(item.margin)
                       ? `${item.margin.toFixed(2)}%`
-                      : infinitySymbol;
+                      : '∞';
 
                     return (
                       <TableRow
@@ -602,12 +625,12 @@ export default function FbaCalculator() {
                           {item.profit.toFixed(2)}
                         </TableCell>
                         <TableCell
-                          className={`px-4 py-3 text-right ${item.roi < 0 ? negativeProfitColor : positiveProfitColor}`}
+                          className={`px-4 py-3 text-right ${item.roi < 0 ? 'text-red-500' : 'text-green-500'}`}
                         >
                           {roiDisplay}
                         </TableCell>
                         <TableCell
-                          className={`px-4 py-3 text-right ${item.margin < 0 ? negativeProfitColor : positiveProfitColor}`}
+                          className={`px-4 py-3 text-right ${item.margin < 0 ? 'text-red-500' : 'text-green-500'}`}
                         >
                           {marginDisplay}
                         </TableCell>
@@ -641,3 +664,8 @@ export default function FbaCalculator() {
     </div>
   );
 }
+const getMarginColorClass = (margin: number): string => {
+  if (margin > 0) return 'text-green-600 dark:text-green-400';
+  if (margin < 0) return 'text-red-600 dark:text-red-400';
+  return 'text-yellow-600 dark:text-yellow-400';
+};

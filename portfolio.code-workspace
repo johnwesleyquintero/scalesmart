@@ -11,9 +11,7 @@
       "source.fixAll.eslint": "explicit",
       "source.organizeImports": "explicit",
     },
-    "editor.rulers": [
-      80
-    ],
+    "editor.rulers": [80],
     "files.eol": "\n",
     "typescript.tsdk": "node_modules/typescript/lib",
     "typescript.enablePromptUseWorkspaceTsdk": true,
@@ -34,6 +32,5 @@
     "prettier.bracketSpacing": true,
     "prettier.arrowParens": "always",
     "prettier.endOfLine": "lf",
-    "cline.modelSettings.o3Mini.reasoningEffort": "high",
   },
 }

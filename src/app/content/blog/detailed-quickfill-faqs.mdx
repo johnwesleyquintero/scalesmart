@@ -65,7 +65,7 @@ Highly motivated **Amazon Growth Specialist** with 5+ years of experience drivin
 - **Automation:** Automating reporting, listing updates, inventory sync, PPC adjustments
 - **Backend Development:** Python, Node.js
 - **Frontend Development:** React, Next.js (for custom dashboards/tools)
-- **Database Management:** PostgreSQL (via Supabase)
+- **Database Management:** MongoDB, PostgreSQL
 - **Cloud & Serverless:** AWS Lambda, AWS Services (relevant to SP-API)
 - **Infrastructure:** Redis (Caching, Rate Limiting), API Integration Architecture
 - **Development Tools:** Git, Docker (if applicable), VS Code, Postman
@@ -169,7 +169,7 @@ Highly motivated **Amazon Growth Specialist** with 5+ years of experience drivin
 **Q: Tools used for generating/analyzing Amazon reports?**
 
 - **Primary:** Amazon SP-API (for automation & deep data), Custom-built Python/Node.js scripts & applications.
-- **Supporting:** Amazon Seller Central (for standard CSV downloads), PostgreSQL/Supabase (for data storage/aggregation), React/Next.js (for custom dashboard UIs).
+- **Supporting:** Amazon Seller Central (for standard CSV downloads), MongoDB/PostgreSQL (for data storage/aggregation), React/Next.js (for custom dashboard UIs).
 - **Visualization/Ad-hoc Analysis:** Google Looker Studio, Google Sheets.
 - **Development/Testing:** Postman, VS Code.
 
@@ -225,7 +225,7 @@ Highly motivated **Amazon Growth Specialist** with 5+ years of experience drivin
 - **Challenge:** Initial multi-marketplace data aggregation for the Portfolio Platform suffered performance issues and rate-limiting errors from SP-API calls during peak hours.
 - **Solution:**
   - Implemented **distributed caching using Redis** for frequently accessed, less volatile data (e.g., product details).
-  - Refactored database queries for Supabase and added **strategic indexing** based on common lookup patterns.
+  - Refactored database queries (MongoDB) and added **strategic indexing** based on common lookup patterns.
   - Implemented **intelligent request batching and throttling** logic to stay within SP-API rate limits, with exponential backoff for retries.
 - **Result:** Achieved a **60% reduction in API response times** for key data points and maintained **99.9%+ uptime** even during high load, ensuring reliable data for clients.
 

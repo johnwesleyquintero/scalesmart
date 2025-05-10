@@ -28,7 +28,7 @@ interface ColumnConfig {
 interface SampleDataConfig {
   columns: ColumnConfig[];
   rowCount?: number;
-  customGenerators?: Record<string, (config: DataTypeConfig) => unknown>;
+  customGenerators?: Record<string, (config: DataTypeConfig) => any>;
 }
 
 // Data generation functions
@@ -56,7 +56,8 @@ const dataGenerators = {
     return Number(num.toFixed(decimals));
   },
 
-  date: () => {
+  date: (config: DataTypeConfig['options'] = {}) => {
+    const { format = 'ISO' } = config;
     // Security: Appropriate for non-cryptographic use
     const randomBuffer = new Uint32Array(1);
     window.crypto.getRandomValues(randomBuffer); // Browser-specific crypto
@@ -101,12 +102,12 @@ const dataGenerators = {
  */
 const generateSampleData = (
   config: SampleDataConfig,
-): Record<string, unknown>[] => {
+): Record<string, any>[] => {
   const { columns, rowCount = 5, customGenerators = {} } = config;
 
   try {
     return Array.from({ length: rowCount }, () => {
-      const row: Record<string, unknown> = {};
+      const row: Record<string, any> = {};
 
       columns.forEach(({ name, dataType, required = true }) => {
         // 20% chance to skip non-required fields
@@ -128,7 +129,7 @@ const generateSampleData = (
           // Or throw error if preferred:
           // throw new Error(`Unsupported data type: ${dataType.type}`);
         } else {
-          row[name] = generator({ type: 'string', options: dataType.options });
+          row[name] = generator(dataType.options as any);
         }
       });
 

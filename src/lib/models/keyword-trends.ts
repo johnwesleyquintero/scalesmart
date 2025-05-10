@@ -1,12 +1,16 @@
+import { ObjectId } from 'mongodb';
+
 export interface KeywordTrend {
-  id?: string;
+  _id?: ObjectId;
   keyword: string;
   date: string;
   volume: number;
-  created_at: string;
+  createdAt: Date;
 }
 
 export interface KeywordTrendData {
   name: string;
   [keyword: string]: number | string;
 }
+
+export const KeywordTrendCollection = 'keyword-trends';

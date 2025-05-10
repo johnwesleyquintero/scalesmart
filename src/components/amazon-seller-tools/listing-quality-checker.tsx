@@ -28,8 +28,6 @@ import { useToast } from '@/hooks/use-toast'; // Keep one useToast import
 
 // Lib/Logic Imports (Assuming KeywordIntelligence exists and works as expected)
 // NOTE: KeywordIntelligence logic is simplified/mocked in processCSVRow
-// Client-side sanitization without JSDOM
-// const domPurify = DOMPurify(window);
 
 // --- Types ---
 
@@ -64,20 +62,6 @@ export type KeywordAnalysisResult = {
   matchType: 'exact' | 'fuzzy' | 'pattern';
   reason?: string;
 };
-
-// Amazon Product API response type
-export interface AmazonProductApiResponse {
-  asin: string;
-  title: string;
-  description: string;
-  bulletPoints: string[];
-  imageCount: number;
-  keywords: string[];
-  brand?: string;
-  category?: string;
-  rating?: number;
-  reviewCount?: number;
-}
 
 export type ListingData = {
   product: string;
@@ -388,31 +372,6 @@ const calculateScoreAndIssues = (
   };
 };
 
-// Fetches product data from Amazon Product API
-// async function fetchProductData(
-//   asin: string,
-// ): Promise<AmazonProductApiResponse> {
-//   const response = await fetch(`/api/amazon/products/${asin}`);
-//   if (!response.ok) {
-//     throw new Error(`Failed to fetch product data for ASIN: ${asin}`);
-//   }
-
-//   let data;
-//   try {
-//     data = await response.json();
-//     return data;
-//   } catch (error) {
-//     logError({
-//       message: 'Error fetching product data',
-//       component: 'ListingQualityChecker/fetchProductData',
-//       severity: 'high',
-//       error: error as Error,
-//       context: { asin: asin },
-//     });
-//     throw error;
-//   }
-// }
-
 const processCSVRow = async (row: CSVRow): Promise<ListingData> => {
   const keywords =
     row.keywords
@@ -440,11 +399,11 @@ const processCSVRow = async (row: CSVRow): Promise<ListingData> => {
     await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate async call
     keywordAnalysis = keywords.map((kw) => ({
       keyword: kw,
-
+      // eslint-disable-next-line sonarjs/pseudo-random -- Mock data
       isProhibited: Math.random() > 0.9, // Mock 10% chance of being prohibited
-
+      // eslint-disable-next-line sonarjs/pseudo-random -- Mock data
       score: Math.floor(Math.random() * 100),
-
+      // eslint-disable-next-line sonarjs/pseudo-random -- Mock data
       confidence: Math.random(),
       matchType: 'exact',
     }));
@@ -527,7 +486,7 @@ export default function ListingQualityChecker() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [asin, setAsin] = useState('');
-  const fileInputRef = useRef<HTMLInputElement | null>(null); // Ref for file input
+  const fileInputRef = useRef<HTMLInputElement>(undefined); // Ref for file input
 
   const handleFileUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -837,7 +796,7 @@ export default function ListingQualityChecker() {
                     className="hidden"
                     onChange={handleFileUpload}
                     disabled={isLoading}
-                    ref={fileInputRef}
+                    ref={fileInputRef as React.RefObject<HTMLInputElement>}
                   />
                 </label>
                 <SampleCsvButton

@@ -22,32 +22,21 @@ export const productDescriptionSchema = z.object({
 });
 
 // Debounce function for performance optimization
-export function debounce<T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   wait: number,
-): (...args: Parameters<T>) => ReturnType<T> & { cancel: () => void } {
-  let timeout: ReturnType<typeof setTimeout> | undefined;
+): ((...args: Parameters<T>) => ReturnType<T>) => {
+  let timeout: NodeJS.Timeout;
 
-  const debounced = (...args: Parameters<T>): ReturnType<T> | undefined => {
+  return (...args: Parameters<T>) => {
     clearTimeout(timeout);
-    let result: ReturnType<T> | undefined;
-    timeout = setTimeout(() => {
-      result = func(...args) as ReturnType<T> | undefined; // Cast the result
-    }, wait);
-    // Note: This simple implementation doesn't return the result of the *last* invocation
-    // immediately. A more complex implementation would store and return the last result.
-    // For a void function like the one used in description-editor, this is fine.
-    return result; // Will be undefined for void functions
+    return new Promise((resolve) => {
+      timeout = setTimeout(() => {
+        resolve(func(...args));
+      }, wait);
+    }) as ReturnType<T>;
   };
-
-  debounced.cancel = () => {
-    clearTimeout(timeout);
-  };
-
-  return debounced as (
-    ...args: Parameters<T>
-  ) => ReturnType<T> & { cancel: () => void };
-}
+};
 
 // Validate and sanitize product description
 export const validateProductDescription = (data: unknown) => {

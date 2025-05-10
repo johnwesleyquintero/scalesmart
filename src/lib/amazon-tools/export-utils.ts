@@ -9,10 +9,7 @@ import Papa from 'papaparse';
  * @param data Array of objects to export
  * @param filename Name of the file to download
  */
-interface ExportData {
-  [key: string]: unknown;
-}
-export function exportToCSV(data: ExportData[], filename: string) {
+export function exportToCSV(data: Record<string, any>[], filename: string) {
   // Create CSV content
   const csv = Papa.unparse(data);
 

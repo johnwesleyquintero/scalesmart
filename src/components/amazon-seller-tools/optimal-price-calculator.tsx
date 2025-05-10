@@ -21,7 +21,7 @@ import { ProductCategory } from '@/lib/amazon-types';
 import { logger } from '@/lib/logger';
 import type React from 'react'; // Import React explicitly
 import { useState } from 'react';
-import { ZodError, z } from 'zod'; // Import Zod for error handling type
+import { ZodError } from 'zod'; // Import Zod for error handling type
 
 // Define the state structure, aligning with form inputs
 // competitorPrices will be stored as a string in state, parsed later
@@ -123,14 +123,14 @@ export default function OptimalPriceCalculator() {
       // Key updates in validation handling
       if (!validationResult.success) {
         // FIX 1 & 2: Check if error exists and handle ZodError vs string error
-        function isZodError(error: unknown): error is ZodError {
+        function isZodError(error: any): error is ZodError {
           return error instanceof ZodError;
         }
 
         if (validationResult.error) {
           if (isZodError(validationResult.error)) {
             const errorMessages = validationResult.error.issues
-              .map((issue: z.ZodIssue) => `Validation error: ${issue.message}`) // Removed unnecessary object wrapping
+              .map((issue: any) => `Validation error: ${issue.message}`) // Removed unnecessary object wrapping
               .join('\n');
             setError(errorMessages);
           } else if (typeof validationResult.error === 'string') {

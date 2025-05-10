@@ -3,7 +3,7 @@ title: 'Application Architecture Overview'
 date: '2024-03-15'
 description: 'Technical deep dive into our application architecture and infrastructure decisions'
 category: ['System Architecture', 'Technical Documentation']
-tags: ['system-architecture', 'next-js', 'supabase', 'redis', 'security']
+tags: ['system-architecture', 'next-js', 'mongodb', 'redis', 'security']
 image: '/images/blog/architecture-overview.svg'
 ---
 
@@ -14,7 +14,7 @@ image: '/images/blog/architecture-overview.svg'
 ```mermaid
 flowchart TD
     Client[Web Client] -->|HTTPS| API[Next.js API Routes]
-    API -->|Supabase Client| DB[(Supabase)]
+    API -->|MongoDB Driver| DB[(MongoDB Cluster)]
     API -->|Redis Client| Cache[(Redis Cache)]
     API -->|Auth0 SDK| Auth[Auth0 Service]
 ```
@@ -30,7 +30,7 @@ flowchart TD
 ### Database Layer
 
 ```typescript
-// Example Supabase table definition
+// Example MongoDB schema definition
 type UserProfile = {
   _id: string;
   email: string;

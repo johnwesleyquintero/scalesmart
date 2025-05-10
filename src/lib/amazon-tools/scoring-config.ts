@@ -5,7 +5,7 @@ export interface ScoringRule {
     score: number;
     message?: string;
   }>;
-  customScoring?: (value: { rating: number; count: number }) => number;
+  customScoring?: (value: any) => number;
 }
 
 export interface ScoringConfig {
@@ -36,17 +36,18 @@ export const defaultScoringConfig: ScoringConfig = {
   bulletPoints: {
     weight: 0.2,
     thresholds: [],
-    customScoring: (): number => {
-      // const count = bullets.length;
-      // const avgLength =
-      //   bullets.reduce((sum, bullet) => sum + bullet.length, 0) / count;
+    customScoring: (bullets: string[]) => {
+      if (!bullets?.length) return 0;
+      const count = bullets.length;
+      const avgLength =
+        bullets.reduce((sum, bullet) => sum + bullet.length, 0) / count;
 
-      // let score = 0;
-      // score += Math.min(count, 5) * 1.5;
-      // if (avgLength >= 150 && avgLength <= 200) score += 2.5;
-      // else if (avgLength >= 100) score += 1.5;
+      let score = 0;
+      score += Math.min(count, 5) * 1.5;
+      if (avgLength >= 150 && avgLength <= 200) score += 2.5;
+      else if (avgLength >= 100) score += 1.5;
 
-      return 0;
+      return Math.min(score, 10);
     },
   },
   description: {

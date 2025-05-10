@@ -3,7 +3,6 @@ import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
 const CERTIFICATION_SECTION_HEADING = 'Certifications';
 // Then use CERTIFICATION_TITLE instead of repeating the string
-const MAG_SCHOOL = 'MAG School';
 const certifications = [
   {
     name: 'Amazon Advertising',
@@ -21,35 +20,35 @@ const certifications = [
   },
   {
     name: 'Catalog Management',
-    issuer: MAG_SCHOOL,
+    issuer: 'MAG School',
     date: '2024',
     status: 'Active',
     credentialId: '66a7c61defaf90db750bde04',
   },
   {
     name: 'Design & Conversion',
-    issuer: MAG_SCHOOL,
+    issuer: 'MAG School',
     date: '2024',
     status: 'Active',
     credentialId: '66a7c65840e6a05d9005d5eb',
   },
   {
     name: 'Launching on Amazon',
-    issuer: MAG_SCHOOL,
+    issuer: 'MAG School',
     date: '2024',
     status: 'Active',
     credentialId: '66a7ce36b87e351e77072f99',
   },
   {
     name: 'Main Image CTR Course',
-    issuer: MAG_SCHOOL,
+    issuer: 'MAG School',
     date: '2024',
     status: 'Active',
     credentialId: '66a7c5d70ef423bb240bd554',
   },
   {
     name: 'SEO Optimization',
-    issuer: MAG_SCHOOL,
+    issuer: 'MAG School',
     date: '2024',
     status: 'Active',
     credentialId: '66a7c4f76b8386f0560b9407',

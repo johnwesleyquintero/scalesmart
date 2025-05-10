@@ -18,7 +18,7 @@ export function AuthDisplay() {
     localStorage.setItem('authBannerDismissed', 'true');
   };
 
-  if (!isVisible) return null;
+  if (!isVisible) return undefined;
 
   return (
     <div className="relative bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">

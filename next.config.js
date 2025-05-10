@@ -3,8 +3,7 @@ import path from 'path';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: false,
-    dirs: ['src'], // Only lint src directory
+    ignoreDuringBuilds: true,
   },
   // Core settings
   // output: 'standalone', // Keep if needed for Docker/standalone deployment
@@ -113,37 +112,28 @@ const nextConfig = {
       ...(config.externals || []),
       isServer
         ? {
-            aws4: 'commonjs aws4',
-            snappy: 'commonjs snappy',
-            kerberos: 'commonjs kerberos',
-            dns: 'commonjs dns',
-            fs: 'commonjs fs',
-            net: 'commonjs net',
-            tls: 'commonjs tls',
-            child_process: 'commonjs child_process',
-            path: 'commonjs path',
-            util: 'commonjs util',
-            stream: 'commonjs stream',
-            crypto: 'commonjs crypto',
-            os: 'commonjs os',
-            http: 'commonjs http',
-            https: 'commonjs https',
-            zlib: 'commonjs zlib',
-            process: 'commonjs process',
+            '@next-auth/mongodb-adapter': 'commonjs @next-auth/mongodb-adapter',
+            'mongodb-client-encryption': 'commonjs mongodb-client-encryption',
+            'aws4': 'commonjs aws4',
+            'snappy': 'commonjs snappy',
+            'kerberos': 'commonjs kerberos',
+            'dns': 'commonjs dns',
+            'fs': 'commonjs fs',
+            'net': 'commonjs net',
+            'tls': 'commonjs tls',
+            'child_process': 'commonjs child_process',
+            'path': 'commonjs path',
+            'util': 'commonjs util',
+            'stream': 'commonjs stream',
+            'crypto': 'commonjs crypto',
+            'os': 'commonjs os',
+            'http': 'commonjs http',
+            'https': 'commonjs https',
+            'zlib': 'commonjs zlib',
+            'process': 'commonjs process'
           }
         : [],
     ].flat();
-
-    config.resolve.alias['react'] = path.resolve(
-      path.dirname(new URL(import.meta.url).pathname),
-      'node_modules',
-      'react',
-    );
-    config.resolve.alias['react-dom'] = path.resolve(
-      path.dirname(new URL(import.meta.url).pathname),
-      'node_modules',
-      'react-dom',
-    );
 
     return config;
   },

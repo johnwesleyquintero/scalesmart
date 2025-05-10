@@ -2,6 +2,7 @@
 'use client';
 
 import { useToast } from '@/hooks/use-toast';
+import { fetchKeywordAnalysis } from '@/lib/api/keyword-analysis';
 import { logError } from '@/lib/error-handling';
 import { type KeywordAnalysis } from '@/lib/keyword-intelligence';
 import {
@@ -25,12 +26,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-
-interface TooltipProps {
-  payload?: {
-    isProhibited: boolean;
-  };
-}
 
 // Local/UI Imports
 import { Badge } from '@/components/ui/badge';
@@ -69,7 +64,7 @@ interface CsvInputRow {
 
 // --- Helper Functions ---
 
-// Processes keywords in batches using Amazon Keyword API
+// Processes keywords in batches using KeywordIntelligence
 async function processKeywordBatch(
   keywords: string[],
 ): Promise<KeywordAnalysis[]> {
@@ -77,19 +72,8 @@ async function processKeywordBatch(
   for (let i = 0; i < keywords.length; i += BATCH_SIZE) {
     const batch = keywords.slice(i, i + BATCH_SIZE);
     try {
-      const response = await fetch('/api/amazon/keywords', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ keywords: batch }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-
-      const batchResults = await response.json();
+      // Use the analyze method from KeywordIntelligence
+      const batchResults = await fetchKeywordAnalysis(batch);
       results.push(...batchResults);
     } catch (error) {
       logError({
@@ -271,7 +255,7 @@ const CsvUploadSection: React.FC<CsvUploadSectionProps> = ({
               className="hidden"
               onChange={onFileUpload}
               disabled={isLoading}
-              ref={fileInputRef as React.Ref<HTMLInputElement>}
+              ref={fileInputRef}
             />
           </label>
           <div className="flex justify-center mt-4">
@@ -430,12 +414,8 @@ const ProductAnalysisCard: React.FC<ProductAnalysisCardProps> = ({
                 <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} />
                 <Tooltip
                   contentStyle={{ fontSize: '12px', padding: '5px 10px' }}
-                  formatter={(
-                    value: number,
-                    name: string,
-                    props: TooltipProps,
-                  ) => [
-                    `${value.toFixed(0)} ${props.payload?.isProhibited ? '(Prohibited)' : ''}`,
+                  formatter={(value: number, name: string, props: any) => [
+                    `${value.toFixed(0)} ${props.payload.isProhibited ? '(Prohibited)' : ''}`,
                     'Score',
                   ]}
                   labelFormatter={(label: string) => `Keyword: ${label}`}

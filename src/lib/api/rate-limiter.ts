@@ -1,3 +1,4 @@
+import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
 export const redis = new Redis({
@@ -9,25 +10,11 @@ export const redis = new Redis({
     process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '',
 });
 
-const window = 10000; // 10 seconds
-const maxRequests = 15;
+export const rateLimiter = new Ratelimit({
+  redis: redis as any,
+  limiter: Ratelimit.slidingWindow(15, '10 s'),
 
-export async function rateLimiter(
-  identifier: string,
-): Promise<{ success: boolean; reset: number }> {
-  const key = `rateLimit:${identifier}`;
-  const now = Date.now();
-
-  const requests = await (redis as any).zrangebyscore(key, now - window, now);
-  if (requests.length >= maxRequests) {
-    return { success: false, reset: now + window };
-  }
-
-  await (redis as any).zadd(key, { score: now, member: now });
-  await (redis as any).zremrangebyscore(key, 0, now - window);
-  await redis.expire(key, window / 1000);
-
-  return { success: true, reset: now + window };
-}
+  analytics: true,
+});
 
 export type RateLimiter = typeof rateLimiter;

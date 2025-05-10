@@ -151,14 +151,7 @@ export default function SalesEstimator() {
     setError(null);
 
     try {
-      interface CsvRow {
-        product: string;
-        category: string;
-        price: string;
-        competition?: string;
-      }
-
-      const result = await new Promise<Papa.ParseResult<CsvRow>>(
+      const result = await new Promise<Papa.ParseResult<any>>(
         (resolve, reject) => {
           Papa.parse(file, {
             header: true,
@@ -175,8 +168,8 @@ export default function SalesEstimator() {
       }
 
       const processedData = result.data
-        .filter((row: CsvRow) => row.product && row.category && row.price)
-        .map((row: CsvRow) => {
+        .filter((row: any) => row.product && row.category && row.price)
+        .map((row: any) => {
           const validatedData = productSchema.parse({
             product: row.product,
             category: row.category,

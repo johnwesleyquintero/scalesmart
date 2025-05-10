@@ -1,9 +1,10 @@
 import BlogImage from '@/components/blog/blog-image';
+import { MDXComponents as mdxComponents } from '@/components/blog/mdx-components';
 import { Badge } from '@/components/ui/badge';
 import { getAllPosts, getPostBySlug } from '@/lib/mdx';
 import { ArrowLeft, Calendar, Clock, Tag } from 'lucide-react';
-import { getMDXComponent } from 'mdx-bundler/client';
 import type { Metadata } from 'next';
+import { MDXRemote } from 'next-mdx-remote/rsc';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
@@ -16,7 +17,8 @@ export async function generateMetadata({
   params,
 }: Readonly<Props>): Promise<Metadata> {
   try {
-    const { slug } = await params;
+    // Await the params to ensure they are fully resolved
+    const { slug } = params;
     const post = await getPostBySlug(slug);
 
     const DEFAULT_IMAGE_URL = '/default-fallback.svg'; // Define the constant here
@@ -104,16 +106,14 @@ export async function generateStaticParams() {
 }
 
 export default async function BlogPostPage({ params }: Readonly<Props>) {
-  const { slug } = params;
-  const post = await getPostBySlug(slug);
+  // Await the params to ensure they are fully resolved
+  const post = await getPostBySlug(params.slug);
 
   if (!post) {
     notFound();
   }
 
   // Related posts functionality removed as it's currently unused
-
-  const MdxComponent = getMDXComponent(post.content);
 
   return (
     <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 min-h-screen">
@@ -169,7 +169,7 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
           </div>
 
           <article className="prose prose-lg dark:prose-invert max-w-none">
-            <MdxComponent />
+            <MDXRemote source={post.content} components={mdxComponents} />
           </article>
 
           <div className="mt-16 pt-8 border-t">

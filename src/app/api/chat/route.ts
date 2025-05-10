@@ -1,7 +1,6 @@
 import { rateLimiter } from '@/lib/api/rate-limiter';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -9,17 +8,10 @@ export async function POST(request: NextRequest) {
   let body = null;
   try {
     const identifier = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
-    const { success, reset } = await rateLimiter(identifier);
+    const { success } = await rateLimiter.limit(identifier);
 
     if (!success) {
-      const now = Date.now();
-      const retryAfter = Math.ceil((reset - now) / 1000);
-      return new NextResponse('Too many requests', {
-        status: 429,
-        headers: {
-          'Retry-After': String(retryAfter),
-        },
-      });
+      return new NextResponse('Too many requests', { status: 429 });
     }
 
     if (!process.env.GEMINI_API_KEY) {

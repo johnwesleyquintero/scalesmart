@@ -2,8 +2,8 @@ import type { AppEvent } from '@/types';
 
 declare global {
   interface Window {
-    gtag: (...args: unknown[]) => void;
-    dataLayer: unknown[];
+    gtag: (...args: any[]) => void;
+    dataLayer: any[];
     trackEvent: (event: AppEvent) => void;
   }
 }
@@ -36,7 +36,7 @@ export function trackEvent(event: AppEvent) {
 export function initAnalytics() {
   if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GA_ID) {
     window.dataLayer = window.dataLayer || [];
-    function gtag(...args: unknown[]) {
+    function gtag(...args: any[]) {
       window.dataLayer.push(args);
     }
     gtag('js', new Date());
@@ -59,6 +59,14 @@ export function trackPageView(url: string): void {
     });
   }
 }
+
+// Custom event types
+type TrackEventParams = {
+  category: 'contact' | 'download' | 'tool-usage' | 'error';
+  action: string;
+  label?: string;
+  value?: number;
+};
 
 export const Analytics = {
   contactSubmitted: () =>

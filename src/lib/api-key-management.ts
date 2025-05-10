@@ -4,8 +4,6 @@ import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { logger } from './logger';
 
-const USER_NOT_FOUND = 'User not found in Supabase';
-
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
@@ -22,6 +20,13 @@ const CRYPTO_CONFIG = {
   hashRounds: 12, // BCrypt cost factor
 };
 
+
+
+
+
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+const MAX_REQUESTS_PER_WINDOW = 5;
+
 type ApiKeyRecord = {
   key: string; // This will store the HASHED key
   createdAt: Date;
@@ -31,6 +36,10 @@ type ApiKeyRecord = {
 };
 
 // Supabase user type definition
+interface User {
+  id: string;
+  // other user fields...
+}
 
 /**
  * Generates a new secure API key (plain text)
@@ -43,7 +52,7 @@ export async function generateApiKey(): Promise<string> {
 }
 
 /**
- * Validates a plain text API key against the stored hash in Supabase
+ * Validates a plain text API key against the stored hash in MongoDB
  */
 export async function validateApiKey(
   plainKey: string,
@@ -59,7 +68,7 @@ export async function validateApiKey(
         .eq('isActive', true)
         .gt('expiresAt', new Date().toISOString())
         .maybeSingle();
-
+        
       if (error) throw error;
 
       if (!apiKeyRecord) {
@@ -71,7 +80,6 @@ export async function validateApiKey(
       const isValid = await bcrypt.compare(plainKey, apiKeyRecord.key);
       if (!isValid) {
         logger.warn('API key validation failed: Mismatch', { userId });
-        return false;
       }
       return isValid;
     } catch (error: unknown) {
@@ -167,24 +175,27 @@ export async function rotateApiKeys(
     .select()
     .eq('id', userId)
     .maybeSingle();
-
-  if (error || !user) {
-    throw new Error(USER_NOT_FOUND);
-  }
+    
+if (error || !user) {
+  throw new Error('User not found in Supabase');
+}
 
   // if (!(await isWithinRateLimit(`rotate:${userId}`))) {
   //   // Use specific key for rotation rate limit
   //   throw new Error('Rate limit exceeded for API key rotation');
   // }
 
-  try {
-    // Deactivate all existing keys for the user
-    const { count } = await supabase
-      .from(API_KEY_TABLE)
-      .update({ isActive: false })
-      .eq('userId', userId)
-      .eq('isActive', true);
-    logger.info(`Deactivated ${count} old keys for user ${userId}`);
+
+    try {
+      // Deactivate all existing keys for the user
+      const { count } = await supabase
+        .from(API_KEY_TABLE)
+        .update({ isActive: false })
+        .eq('userId', userId)
+        .eq('isActive', true);
+      logger.info(
+        `Deactivated ${count} old keys for user ${userId}`,
+      );
 
     // Generate new plain text key
     const plainKey = await generateApiKey();
@@ -200,26 +211,39 @@ export async function rotateApiKeys(
     };
 
     // Store the new key record in the database
-    const { error } = await supabase.from(API_KEY_TABLE).insert(newKeyRecord);
-
-    if (error) throw error;
-
-    logger.info(
-      `Successfully generated and stored new API key for user ${userId}`,
-    );
+      const { error } = await supabase
+        .from(API_KEY_TABLE)
+        .insert(newKeyRecord);
+      
+      if (error) throw error;
+      
+      logger.info(
+        `Successfully generated and stored new API key for user ${userId}`,
+      );
 
     // Return the record (with hashed key) AND the plain text key separately
     return { record: newKeyRecord, plainKey: plainKey };
   } catch (error: unknown) {
+    const isMongoError =
+      error &&
+      typeof error === 'object' &&
+      'name' in error &&
+      error.name === 'MongoError';
     logger.error('KeyRotationFailed', {
       userId,
       error: error instanceof Error ? error.stack : 'Unknown error',
+      retryable:
+        isMongoError &&
+        'hasErrorLabel' in error &&
+        typeof error.hasErrorLabel === 'function' &&
+        error.hasErrorLabel('RetryableWriteError'),
     });
     const errorMessage =
       error instanceof Error
         ? error.message
         : 'Unknown error during key rotation';
     throw new Error(`Failed to rotate API keys: ${errorMessage}`);
+  } finally {
   }
 }
 
@@ -235,10 +259,10 @@ export async function initializeApiKeys(
     .select()
     .eq('id', userId)
     .maybeSingle();
-
-  if (error || !user) {
-    throw new Error(USER_NOT_FOUND);
-  }
+    
+if (error || !user) {
+  throw new Error('User not found in Supabase');
+}
 
   // if (!(await isWithinRateLimit(`init:${userId}`))) {
   //   // Specific rate limit key
@@ -324,10 +348,10 @@ export async function deleteAllApiKeysForUser(userId: string): Promise<void> {
     .select()
     .eq('id', userId)
     .maybeSingle();
-
-  if (error || !user) {
-    throw new Error(USER_NOT_FOUND);
-  }
+    
+if (error || !user) {
+  throw new Error('User not found in Supabase');
+}
 
   // if (!(await isWithinRateLimit(`delete:${userId}`))) {
   //   // Specific rate limit key
@@ -388,3 +412,5 @@ async function isValidUserId(userId: string): Promise<boolean> {
     return false;
   }
 }
+
+

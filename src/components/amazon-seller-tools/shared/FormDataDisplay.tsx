@@ -4,16 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Download } from 'lucide-react';
 
-type FormDataValue = string | number | boolean;
-
 interface FormDataDisplayProps {
   title?: string;
-  data: Record<string, FormDataValue>[];
+  data: Record<string, any>[];
   onExport?: () => void;
   metrics?: Array<{
     label: string;
     key: string;
-    format?: (value: FormDataValue) => string;
+    format?: (value: any) => string;
   }>;
 }
 

@@ -1,9 +1,5 @@
-import {
-  type KeywordTrend,
-  type KeywordTrendData,
-} from '@/lib/models/keyword-trends';
 import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
+import { type KeywordTrend, type KeywordTrendData } from '@/lib/models/keyword-trends';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -11,6 +7,7 @@ const supabase = createClient(
 );
 
 const KEYWORD_TREND_TABLE = 'keyword_trends';
+import { NextResponse } from 'next/server';
 
 function processCSVData(data: string[]): KeywordTrend[] {
   const headers = data[0].split(',').map((h) => h.trim());
@@ -27,7 +24,7 @@ function processCSVData(data: string[]): KeywordTrend[] {
       keyword,
       date,
       volume,
-      created_at: new Date().toISOString(),
+      createdAt: new Date(),
     });
   });
 
@@ -50,7 +47,7 @@ export async function POST(request: Request) {
     const { error: insertError } = await supabase
       .from(KEYWORD_TREND_TABLE)
       .insert(trends);
-
+    
     if (insertError) throw insertError;
 
     // Retrieve and format the data
@@ -66,13 +63,13 @@ export async function POST(request: Request) {
           .from(KEYWORD_TREND_TABLE)
           .select('*')
           .eq('date', date);
-
+        
         if (queryError) throw queryError;
 
         keywords.forEach((keyword) => {
-          const entry = dateEntries.find(
-            (e: KeywordTrend) => e.keyword === keyword,
-          ) as KeywordTrend | undefined;
+          const entry = dateEntries.find((e: any) => e.keyword === keyword) as
+            | KeywordTrend
+            | undefined;
           dataPoint[keyword] = entry ? entry.volume : 0;
         });
         return dataPoint;
