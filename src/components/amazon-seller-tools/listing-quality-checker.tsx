@@ -29,10 +29,9 @@ import { useToast } from '@/hooks/use-toast'; // Keep one useToast import
 // Lib/Logic Imports (Assuming KeywordIntelligence exists and works as expected)
 // NOTE: KeywordIntelligence logic is simplified/mocked in processCSVRow
 import DOMPurify from 'dompurify';
-import { JSDOM } from 'jsdom';
 import { logError } from '@/lib/error-handling';
 
-const window = new JSDOM('').window;
+// Client-side sanitization without JSDOM
 const domPurify = DOMPurify(window);
 
 // --- Types ---
