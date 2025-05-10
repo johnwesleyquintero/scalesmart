@@ -8,8 +8,7 @@ export async function getAll(): Promise<string[]> {
   return [];
 }
 
-export async function add(keyword: string): Promise<void> {
-}
+export async function add(keyword: string): Promise<void> {}
 
 // Consider renaming this export for clarity if 'getAll' is the primary function used elsewhere
 export const ProhibitedKeywords = {

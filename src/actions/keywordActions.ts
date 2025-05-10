@@ -7,7 +7,7 @@ export async function getAllProhibitedKeywords(): Promise<string[]> {
     const { data: keywords, error } = await supabase
       .from('prohibited_keywords')
       .select('keyword');
-    
+
     if (error) throw error;
     return keywords.map((k: { keyword: string }) => k.keyword);
   } catch (error: unknown) {
@@ -34,7 +34,7 @@ export async function addProhibitedKeyword(
       .select('*')
       .eq('keyword', lowerCaseKeyword)
       .single();
-    
+
     if (queryError && !queryError.message.includes('No rows found')) {
       throw queryError;
     }
@@ -47,10 +47,10 @@ export async function addProhibitedKeyword(
       };
       try {
         const { error: insertError } = await supabase
-      .from('prohibited_keywords')
-      .insert(newKeyword);
-    
-    if (insertError) throw insertError;
+          .from('prohibited_keywords')
+          .insert(newKeyword);
+
+        if (insertError) throw insertError;
         console.log(
           `Server Action: Added prohibited keyword: ${keyword.trim()}`,
         );
