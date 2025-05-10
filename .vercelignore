@@ -1,4 +1,5 @@
-.git
+test/
+.gittest/
 .github
 .husky
 .vscode
@@ -7,8 +8,8 @@
 lighthouse-reports
 docs
 scripts
-*.log
-*.md
+_.log
+_.md
 !README.md
 .env.example
 .eslintrc.json
@@ -16,11 +17,13 @@ scripts
 .lintstagedrc.json
 
 # Test files and directories
-__tests__/
-*.test.*
-*.spec.*
+
+**tests**/
+_.test._
+_.spec._
 coverage/
-*.lcov
+\*.lcov
 jest.config.js
 jest.setup.js
-__mocks__/
+**mocks**/
+vitest.config.ts
