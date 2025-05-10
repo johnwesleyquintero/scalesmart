@@ -98,6 +98,35 @@ log_info() {
     log "INFO" "$1"
 }
 
+# --- UI Helper Functions ---
+CONTENT_WIDTH=57 # Define a consistent width for menu content
+
+strip_ansi() {
+    # Strips ANSI escape codes (specifically SGR sequences like color, bold, etc.)
+    # and also common cursor movement/clearing sequences if they were to appear.
+    # Using printf %s to handle potential % in the input string safely with sed.
+    printf "%s" "$1" | sed -E 's/\x1b\[[0-9;]*[mGKHJ]//g'
+}
+
+print_bordered_line() {
+    local text_with_color="$1"
+    local text_no_color
+    text_no_color=$(strip_ansi "$text_with_color")
+
+    local visible_len=${#text_no_color}
+    local padding_len=$((CONTENT_WIDTH - visible_len))
+
+    if ((padding_len < 0)); then
+        padding_len=0 # Safety net: if content is too long, don't attempt negative padding
+    fi
+
+    local padding_str
+    # Create a string of $padding_len spaces
+    padding_str=$(printf "%*s" "$padding_len" "")
+
+    echo -e "║${text_with_color}${padding_str}║"
+}
+
 log_warn() {
     echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} $1"
     log "WARN" "$1"
@@ -345,49 +374,90 @@ clean_artifacts() {
 
 # --- Interactive Menu ---
 show_menu() {
+    local i # loop counter
     clear
+
+    # Box drawing characters (current ones are good, mostly double-lined)
+    local border_top="╔$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╗"
+    local border_middle="╠$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╣"
+    local border_thin_sep="╟$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '─')╢"
+    local border_bottom="╚$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╝"
+
     # Header
-    echo -e "${ANSI_Bold}${ANSI_Cyan}╔════════════════════════════════════════════╗${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}║         ${ANSI_Yellow}Wescore Project Cli ${VERSION}${ANSI_Cyan}          ║${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}╠════════════════════════════════════════════╣${ANSI_Reset}"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_top}${ANSI_Reset}"
+    local title_core="Wescore Project Cli v${VERSION}"
+    local title_len=${#title_core}
+    local total_padding=$((CONTENT_WIDTH - title_len))
+    local pad_left=$((total_padding / 2))
+    local pad_right=$((total_padding - pad_left))
+    local title_line
+    title_line=$(printf "%*s%s%s%s%*s" "$pad_left" "" "${ANSI_Bold}${ANSI_Yellow}" "$title_core" "${ANSI_Cyan}" "$pad_right" "")
+    echo -e "║${title_line}${ANSI_Reset}║" # Outer ANSI_Reset for safety
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+
+    # Helper for section titles
+    print_section_title() {
+        local core_title="$1"
+        local color="${2:-${ANSI_Blue}}"
+        local title_text_len=${#core_title}
+        local total_sec_padding=$((CONTENT_WIDTH - title_text_len))
+        local pad_sec_left=$((total_sec_padding / 2))
+        local pad_sec_right=$((total_sec_padding - pad_sec_left))
+        local section_line_content
+        section_line_content=$(printf "%*s%s%s%s%*s" "$pad_sec_left" "" "${ANSI_Bold}${color}" "$core_title" "${ANSI_Reset}" "$pad_sec_right" "")
+        echo -e "║${section_line_content}║"
+    }
 
     # Development Section
-    echo -e "\n${ANSI_Bold}${ANSI_Blue}Development${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Green} 1) ${ANSI_Reset}Install Dependencies     ${ANSI_Yellow}[i]${ANSI_Reset} - Setup project packages"
-    echo -e "${ANSI_Bold}${ANSI_Green} 6) ${ANSI_Reset}Start Dev Server        ${ANSI_Yellow}[d]${ANSI_Reset} - Run development environment"
+    print_section_title "Development"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}1) ${ANSI_Reset}Install Dependencies     ${ANSI_Yellow}[i]${ANSI_Reset} - Setup project packages"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}6) ${ANSI_Reset}Start Dev Server        ${ANSI_Yellow}[d]${ANSI_Reset} - Run development environment"
 
     # Testing & Quality Section
-    echo -e "\n${ANSI_Bold}${ANSI_Blue}Testing & Quality${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Green} 2) ${ANSI_Reset}Run Tests              ${ANSI_Yellow}[t]${ANSI_Reset} - Execute test suite"
-    echo -e "${ANSI_Bold}${ANSI_Green} 7) ${ANSI_Reset}Run Code Checks        ${ANSI_Yellow}[c]${ANSI_Reset} - Lint and analyze code"
-    echo -e "${ANSI_Bold}${ANSI_Green} 8) ${ANSI_Reset}Security Audit         ${ANSI_Yellow}[a]${ANSI_Reset} - Check dependencies"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_section_title "Testing & Quality"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}2) ${ANSI_Reset}Run Tests              ${ANSI_Yellow}[t]${ANSI_Reset} - Execute test suite"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}7) ${ANSI_Reset}Run Code Checks        ${ANSI_Yellow}[c]${ANSI_Reset} - Lint and analyze code"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}8) ${ANSI_Reset}Security Audit         ${ANSI_Yellow}[a]${ANSI_Reset} - Check dependencies"
 
     # Build & Maintenance Section
-    echo -e "\n${ANSI_Bold}${ANSI_Blue}Build & Maintenance${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Green} 3) ${ANSI_Reset}Build Project          ${ANSI_Yellow}[b]${ANSI_Reset} - Create production build"
-    echo -e "\n${ANSI_Bold}${ANSI_Green} 4) ${ANSI_Reset}Clean Artifacts        ${ANSI_Yellow}[x]${ANSI_Reset} - Remove build files"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_section_title "Build & Maintenance"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}3) ${ANSI_Reset}Build Project          ${ANSI_Yellow}[b]${ANSI_Reset} - Create production build"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}4) ${ANSI_Reset}Clean Artifacts        ${ANSI_Yellow}[x]${ANSI_Reset} - Remove build files"
 
     # Monitoring Section
-    echo -e "\n${ANSI_Bold}${ANSI_Blue}Monitoring${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Green} 5) ${ANSI_Reset}Project Status         ${ANSI_Yellow}[s]${ANSI_Reset} - View dependencies"
-    echo -e "${ANSI_Bold}${ANSI_Green}11) ${ANSI_Reset}Update Tracker         ${ANSI_Yellow}[u]${ANSI_Reset} - Update project tracker"
-    echo -e "${ANSI_Bold}${ANSI_Green} 9) ${ANSI_Reset}View Logs              ${ANSI_Yellow}[l]${ANSI_Reset} - Check system logs"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_section_title "Monitoring"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}5) ${ANSI_Reset}Project Status         ${ANSI_Yellow}[s]${ANSI_Reset} - View dependencies"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}11)${ANSI_Reset} Update Tracker         ${ANSI_Yellow}[u]${ANSI_Reset} - Update project tracker" # Adjusted spacing for 11)
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}9) ${ANSI_Reset}View Logs              ${ANSI_Yellow}[l]${ANSI_Reset} - Check system logs"
 
     # Commit Generator
-    echo -e "\n${ANSI_Bold}${ANSI_Blue}Git${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Green}12) ${ANSI_Reset}Generate Commit        ${ANSI_Yellow}[g]${ANSI_Reset} - Create commit message only"
-    echo -e "${ANSI_Bold}${ANSI_Green}13) ${ANSI_Reset}Commit & Push All      ${ANSI_Yellow}[p]${ANSI_Reset} - Stage all, commit, and push"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_section_title "Git"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}12)${ANSI_Reset} Generate Commit        ${ANSI_Yellow}[g]${ANSI_Reset} - Create commit message only"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}13)${ANSI_Reset} Commit & Push All      ${ANSI_Yellow}[p]${ANSI_Reset} - Stage all, commit, and push"
 
     # Security Section
-    echo -e "\n${ANSI_Bold}${ANSI_Blue}Security${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Green}14) ${ANSI_Reset}Generate Secret Key    ${ANSI_Yellow}[k]${ANSI_Reset} - Generate a secure key"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_section_title "Security"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}14)${ANSI_Reset} Generate Secret Key    ${ANSI_Yellow}[k]${ANSI_Reset} - Generate a secure key"
 
     # Exit Option
-    echo -e "\n${ANSI_Bold}${ANSI_Red}10) ${ANSI_Reset}Exit                   ${ANSI_Yellow}[q]${ANSI_Reset} - Quit application"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_section_title "Exit" "${ANSI_Red}" # Use Red for Exit section
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Red}10)${ANSI_Reset} Exit                   ${ANSI_Yellow}[q]${ANSI_Reset} - Quit application"
 
-
-    echo -e "\n${ANSI_Bold}${ANSI_Cyan}╚════════════════════════════════════════════╝${ANSI_Reset}"
-    echo -e "${ANSI_Yellow}Use number or shortcut key in [brackets]${ANSI_Reset}"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_bottom}${ANSI_Reset}"
+    echo -e "${ANSI_Yellow}  Use number or shortcut key in [brackets]${ANSI_Reset}"
 }
 
 generate_secret_key() {
