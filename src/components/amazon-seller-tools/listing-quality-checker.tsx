@@ -28,6 +28,12 @@ import { useToast } from '@/hooks/use-toast'; // Keep one useToast import
 
 // Lib/Logic Imports (Assuming KeywordIntelligence exists and works as expected)
 // NOTE: KeywordIntelligence logic is simplified/mocked in processCSVRow
+import DOMPurify from 'dompurify';
+import { JSDOM } from 'jsdom';
+import { logError } from '@/lib/error-handling';
+
+const window = new JSDOM('').window;
+const domPurify = DOMPurify(window);
 
 // --- Types ---
 
@@ -62,6 +68,20 @@ export type KeywordAnalysisResult = {
   matchType: 'exact' | 'fuzzy' | 'pattern';
   reason?: string;
 };
+
+// Amazon Product API response type
+export interface AmazonProductApiResponse {
+  asin: string;
+  title: string;
+  description: string;
+  bulletPoints: string[];
+  imageCount: number;
+  keywords: string[];
+  brand?: string;
+  category?: string;
+  rating?: number;
+  reviewCount?: number;
+}
 
 export type ListingData = {
   product: string;
@@ -371,6 +391,26 @@ const calculateScoreAndIssues = (
     suggestions: suggestions.length > 0 ? suggestions : [],
   };
 };
+
+// Fetches product data from Amazon Product API
+async function fetchProductData(asin: string): Promise<AmazonProductApiResponse> {
+  try {
+    const response = await fetch(`/api/amazon/products/${asin}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch product data for ASIN: ${asin}`);
+    }
+    return await response.json();
+  } catch (error) {
+    logError({
+      message: 'Error fetching product data',
+      component: 'ListingQualityChecker/fetchProductData',
+      severity: 'high',
+      error: error as Error,
+      context: { asin }
+    });
+    throw error;
+  }
+}
 
 const processCSVRow = async (row: CSVRow): Promise<ListingData> => {
   const keywords =

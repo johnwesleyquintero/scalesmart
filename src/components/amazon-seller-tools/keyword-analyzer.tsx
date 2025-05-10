@@ -64,7 +64,7 @@ interface CsvInputRow {
 
 // --- Helper Functions ---
 
-// Processes keywords in batches using KeywordIntelligence
+// Processes keywords in batches using Amazon Keyword API
 async function processKeywordBatch(
   keywords: string[],
 ): Promise<KeywordAnalysis[]> {
@@ -72,8 +72,19 @@ async function processKeywordBatch(
   for (let i = 0; i < keywords.length; i += BATCH_SIZE) {
     const batch = keywords.slice(i, i + BATCH_SIZE);
     try {
-      // Use the analyze method from KeywordIntelligence
-      const batchResults = await fetchKeywordAnalysis(batch);
+      const response = await fetch('/api/amazon/keywords', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ keywords: batch }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
+      const batchResults = await response.json();
       results.push(...batchResults);
     } catch (error) {
       logError({
