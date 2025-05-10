@@ -3,7 +3,8 @@ import path from 'path';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   eslint: {
-    ignoreDuringBuilds: true,
+    ignoreDuringBuilds: false,
+    dirs: ['src'], // Only lint src directory
   },
   // Core settings
   // output: 'standalone', // Keep if needed for Docker/standalone deployment
