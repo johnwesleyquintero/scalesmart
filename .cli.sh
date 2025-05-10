@@ -11,6 +11,7 @@ LOG_PATTERNS=("*.cli.log" "*.tmp" "*.temp" "*.bak" "*.cache")
 REQUIRED_PROJECT_FILES=("package.json" "tsconfig.json" "next.config.js")
 GENERATED_COMMIT_MESSAGE="" # For sharing commit message between functions
 CONFIG_FILE=""
+TRACKER_FILE="c:\Users\johnw\portfolio\project_tracker.log"
 
 # --- ANSI Colors ---
 ANSI_Reset='\e[0m'
@@ -99,7 +100,7 @@ log_info() {
 }
 
 # --- UI Helper Functions ---
-CONTENT_WIDTH=57 # Define a consistent width for menu content
+CONTENT_WIDTH=68 # Define a consistent width for menu content
 
 strip_ansi() {
     # Strips ANSI escape codes (specifically SGR sequences like color, bold, etc.)
@@ -197,28 +198,6 @@ log_error() {
     return 1
 }
 
-log_warn() {
-    echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} $1"
-    log "WARN" "$1"
-}
-
-log_info() {
-    echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} $1"
-    log "INFO" "$1"
-}
-
-log() {
-    local level=$1
-    local message=$2
-    local timestamp=$(date +'%Y-%m-%d %T')
-
-    rotate_log "$LOG_FILE"
-
-    local log_dir=$(dirname "$LOG_FILE")
-    [[ ! -d "$log_dir" ]] && mkdir -p "$log_dir"
-
-    echo -e "${timestamp} [${level}] ${message}" >> "$LOG_FILE"
-}
 
 generate_commit_message() {
     local commit_type_input
@@ -434,7 +413,7 @@ show_menu() {
     print_section_title "Monitoring"
     echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
     print_bordered_line " ${ANSI_Bold}${ANSI_Green}5) ${ANSI_Reset}Project Status         ${ANSI_Yellow}[s]${ANSI_Reset} - View dependencies"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}11)${ANSI_Reset} Update Tracker         ${ANSI_Yellow}[u]${ANSI_Reset} - Update project tracker" # Adjusted spacing for 11)
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}11)${ANSI_Reset} Project Tracker        ${ANSI_Yellow}[u]${ANSI_Reset} - View & Add to Tracker Log"
     print_bordered_line " ${ANSI_Bold}${ANSI_Green}9) ${ANSI_Reset}View Logs              ${ANSI_Yellow}[l]${ANSI_Reset} - Check system logs"
 
     # Commit Generator
@@ -533,24 +512,6 @@ commit_and_push() {
 main() {
     validate_environment
 
-    # Cross-platform execution
-    if [[ "$OS" == "Linux" || "$OS" == "Darwin" ]]; then
-        chmod +x "$0"
-        ./"$0"
-    elif [[ "$OS" == "MINGW"* || "$OS" == "CYGWIN"* || "$OS" == "MSYS"* ]]; then
-        # On Windows, ensure we're using bash explicitly
-        if ! command -v bash >/dev/null 2>&1; then
-            log_error "bash not found. Please install Git Bash or WSL to run this script on Windows." "main"
-        fi
-        # Execute PowerShell portion if this is a Windows bash call
-        if [[ "$1" == "--powershell" ]]; then
-            exec pwsh -Command "& { . \"$0\"; }"
-        else
-            bash "$0" "--powershell"
-        fi
-    else
-        log_error "Unsupported operating system: $OS" "main"
-    fi
 
     while true; do
         show_menu
@@ -651,7 +612,7 @@ main() {
                 timestamp=$(date +'%Y-%m-%d %T')
                 local check_command="npm run check"
                 log_info "Running npm run check"
-                echo "[${timestamp}] Running: $check_command" >> "$ERROR_LOG_FILE"
+                echo "[${timestamp}] Running: $check_command" >> "$LOG_FILE"
                 if $check_command 2>&1 | tee .cli.log; then
                     local npm_check_exit_code=$?
                     log_info "npm run check completed with exit code: $npm_check_exit_code"
@@ -679,13 +640,40 @@ main() {
             8|"a") npm audit;;
             9|"l") cat "$LOG_FILE" ;;
             10|"q") exit 0 ;;
-            11|"u") {
-                log_info "Updating project tracker..."
-                if node ./.wescore/scripts/update-tracker.mjs 2>&1 | tee -a "$LOG_FILE"; then
-                    log_info "Project tracker update completed"
+            11|"u") { # Project Tracker
+                log_info "Accessing Project Tracker..."
+                echo -e "\n${ANSI_Bold}${ANSI_Magenta}--- Project Tracker ---${ANSI_Reset}"
+
+                if [[ -f "$TRACKER_FILE" && -s "$TRACKER_FILE" ]]; then
+                    echo -e "${ANSI_Yellow}Recent Entries (last 15):${ANSI_Reset}"
+                    tail -n 15 "$TRACKER_FILE"
+                    echo "" # Extra newline for spacing
                 else
-                    log_error "Failed to update project tracker" "node ./.wescore/scripts/update-tracker.mjs"
-                    echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to update project tracker. Check $LOG_FILE for details."
+                    echo -e "${ANSI_Cyan}Tracker is currently empty.${ANSI_Reset}"
+                fi
+
+                local add_choice
+                echo -e "${ANSI_Bold}${ANSI_Yellow}Add a new entry to the tracker? (y/N): ${ANSI_Reset}\c"
+                read -r add_choice
+                add_choice=$(echo "$add_choice" | tr '[:upper:]' '[:lower:]')
+
+                if [[ "$add_choice" == "y" ]]; then
+                    local tracker_note
+                    echo -e "${ANSI_Bold}${ANSI_Yellow}Enter tracker note: ${ANSI_Reset}\c"
+                    read -r tracker_note
+                    if [ -n "$tracker_note" ]; then
+                        local timestamp
+                        timestamp=$(date +"%Y-%m-%d %H:%M:%S")
+                        echo "$timestamp - $tracker_note" >> "$TRACKER_FILE"
+                        log_info "New entry added to tracker: $tracker_note"
+                        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Entry added to tracker."
+                    else
+                        log_warn "No tracker note entered. Nothing added."
+                        echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} No note entered. Nothing added."
+                    fi
+                else
+                    log_info "User chose not to add a new tracker entry."
+                    echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} No new entry added."
                 fi
             } ;;
             12|"g") {
@@ -715,10 +703,46 @@ fi
 
 # --- PowerShell Section ---
 # --- Global Variables ---
+$script:LOG_FILE = $env:LOG_FILE # Attempt to get from environment if set by Bash
+if (-not $script:LOG_FILE) { $script:LOG_FILE = "c:\Users\johnw\portfolio\.cli.ps.log" } # Default PS log
+$script:REQUIRED_NODE_VERSION = $env:REQUIRED_NODE_VERSION # Attempt to get from env
+if (-not $script:REQUIRED_NODE_VERSION) { $script:REQUIRED_NODE_VERSION = "16.0.0" }
+# ... (initialize other PowerShell script variables similarly, potentially from env vars if Bash exports them)
+$script:REQUIRED_NPM_VERSION="9.0.0"
+$script:BUILD_ARTIFACTS=(".next", ".vercel", "node_modules", "coverage", ".nyc_output", "storybook-static", "dist", "out")
+$script:LOG_PATTERNS=("*.cli.log", "*.tmp", "*.temp", "*.bak", "*.cache")
+$script:REQUIRED_PROJECT_FILES=("package.json", "tsconfig.json", "next.config.js")
+
+$script:ANSI = @{
+    Reset   = "`e[0m"
+    Bold    = "`e[1m"
+    Red     = "`e[31m"
+    Yellow  = "`e[33m"
+    Green   = "`e[32m"
+    Cyan    = "`e[36m"
+    Gray    = "`e[90m" # Using bright black for gray
+    # ... add other colors as needed by PowerShell part
+}
+
 $script:CurrentNodeVersion = $null
 $script:CurrentNpmVersion = $null
 
 # --- PowerShell Functions ---
+
+function Get-OrElse {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
+        $InputObject,
+        [Parameter(Mandatory=$true)]
+        $DefaultValue
+    )
+    if ($null -ne $InputObject -and $InputObject -isnot [System.Management.Automation.Language.NullString]) {
+        return $InputObject
+    } else {
+        return $DefaultValue
+    }
+}
 
 function Write-Log {
     [CmdletBinding()]
