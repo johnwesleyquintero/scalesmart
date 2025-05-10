@@ -134,6 +134,17 @@ const nextConfig = {
         : [],
     ].flat();
 
+    config.resolve.alias['react'] = path.resolve(
+      path.dirname(new URL(import.meta.url).pathname),
+      'node_modules',
+      'react',
+    );
+    config.resolve.alias['react-dom'] = path.resolve(
+      path.dirname(new URL(import.meta.url).pathname),
+      'node_modules',
+      'react-dom',
+    );
+
     return config;
   },
 };

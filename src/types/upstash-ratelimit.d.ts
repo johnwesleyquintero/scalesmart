@@ -10,19 +10,7 @@ declare module '@upstash/ratelimit' {
     window: string;
   }
 
-  interface Ratelimit {
-    limit: (identifier: string) => Promise<{ success: boolean }>;
-  }
-
   export class Ratelimit {
-    static slidingWindow(
-      arg0: number,
-      arg1: string,
-    ): {
-      slidingWindow: (requests: number, window: string) => SlidingWindowOptions;
-    } {
-      throw new Error('Method not implemented.');
-    }
     constructor(options: {
       redis: Redis;
       limiter: {
@@ -37,6 +25,7 @@ declare module '@upstash/ratelimit' {
   }
 }
 
+import { RedisCommands } from '@upstash/redis';
 declare module '@upstash/redis' {
   export interface Redis extends RedisCommands {}
 }

@@ -3,7 +3,6 @@
 
 import { getAllProhibitedKeywords } from '@/actions/keywordActions';
 import { useToast } from '@/hooks/use-toast';
-import { debounce } from '@/lib/description-validation'; // Assuming this exists and works
 import { logger } from '@/lib/logger';
 import {
   AlertCircle,
@@ -24,6 +23,9 @@ import React, {
   useState,
 } from 'react';
 import { z } from 'zod';
+
+// Import debounce within the component where it's used
+import { debounce } from '@/lib/description-validation';
 
 // UI Imports
 import { Badge } from '@/components/ui/badge';
@@ -144,16 +146,18 @@ const processCsvRow = (
     const asin = asinHeader ? row[asinHeader]?.trim() : '';
 
     // Validate essential data
+    const missingProductMessage = `Skipping row ${index + 1}: Missing product name.`;
+    const processCsvRowComponentName = 'DescriptionEditor/processCsvRow';
     if (!product) {
-      logger.warn(`Skipping row ${index + 1}: Missing product name.`, {
-        component: 'DescriptionEditor/processCsvRow',
+      logger.warn(missingProductMessage, {
+        component: processCsvRowComponentName,
       });
       return null;
     }
     if (!description) {
       logger.warn(
         `Skipping row ${index + 1} for "${product}": Missing description.`,
-        { component: 'DescriptionEditor/processCsvRow' },
+        { component: processCsvRowComponentName },
       );
       return null;
     }
@@ -186,6 +190,7 @@ const processCsvRow = (
 interface ManualAddProductFormProps {
   onSubmit: (data: z.infer<typeof manualProductSchema>) => void;
   isLoading: boolean;
+  prohibitedKeywords: string[];
 }
 
 function ManualAddProductForm({
@@ -293,28 +298,29 @@ interface ProductEditorAreaProps {
 
 function ProductEditorArea({
   product,
-  prohibitedKeywords, // Keep this prop if needed elsewhere, though not directly used in this component anymore
   onDescriptionChange,
   onSave,
 }: Readonly<ProductEditorAreaProps>) {
   const [showPreview, setShowPreview] = useState(false);
 
-  // Debounce the description change handler
-  // FIX: Added debounce to the dependency array
-  const debouncedDescriptionChange = useCallback(
-    (newDescription: string) => {
-      const debouncedFn = debounce((text: string) => {
-        onDescriptionChange(product.product, text);
-      }, 300);
-      debouncedFn(newDescription);
-    },
-    [onDescriptionChange, product.product],
+  // Create the debounced function using useMemo
+  const debouncedOnDescriptionChange = useMemo(
+    () => debounce(onDescriptionChange, 300),
+    [onDescriptionChange], // Recreate if onDescriptionChange changes
   );
+
+  // Clean up the debounced function on unmount
+  useEffect(() => {
+    return () => {
+      debouncedOnDescriptionChange.cancel();
+    };
+  }, [debouncedOnDescriptionChange]); // Dependency array includes the debounced function
 
   const handleTextareaChange = (
     event: React.ChangeEvent<HTMLTextAreaElement>,
   ) => {
-    debouncedDescriptionChange(event.target.value);
+    // Pass the product ID and new description to the debounced function
+    debouncedOnDescriptionChange(product.product, event.target.value);
   };
 
   const getScoreColorClass = (scoreValue: number): string => {
@@ -424,9 +430,22 @@ function ProductEditorArea({
             <p className="mt-2 text-xs text-muted-foreground">
               Use line breaks for paragraphs. Basic HTML like{' '}
               {/* FIX: Use HTML entities to display tags as text */}
-              <code>&lt;b&gt;</code>, <code>&lt;p&gt;</code>,{' '}
-              <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code> may be supported
-              by Amazon. Aim for 1000-2000 characters.
+              <code>
+                <b></b>
+              </code>
+              ,{' '}
+              <code>
+                <p></p>
+              </code>
+              ,{' '}
+              <code>
+                <ul></ul>
+              </code>
+              ,{' '}
+              <code>
+                <li></li>
+              </code>{' '}
+              may be supported by Amazon. Aim for 1000-2000 characters.
             </p>
           </div>
         )}
@@ -485,6 +504,8 @@ export default function DescriptionEditor() {
   // --- Event Handlers ---
 
   // Corrected handleFileUpload
+  const HANDLE_FILE_UPLOAD_COMPONENT_NAME =
+    'DescriptionEditor/handleFileUpload';
   const handleFileUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -494,19 +515,21 @@ export default function DescriptionEditor() {
       setError(undefined);
       setProducts([]);
       setActiveProductId(undefined); // Also reset active product
-
       console.log('Before Papa.parse');
       Papa.parse<CsvRowData>(file, {
+        // Specify the expected row type
         // Specify the expected row type
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
+          const HANDLE_FILE_UPLOAD_COMPONENT_NAME =
+            'DescriptionEditor/handleFileUpload';
           try {
             console.log('Papa.parse complete callback results:', results);
             // Log parsing start
             logger.info('CSV parsing complete.', {
               rowCount: results.data.length,
-              component: 'DescriptionEditor/handleFileUpload',
+              component: HANDLE_FILE_UPLOAD_COMPONENT_NAME,
             });
 
             if (results.errors.length > 0) {
@@ -516,7 +539,7 @@ export default function DescriptionEditor() {
               );
               logger.error('CSV parsing errors occurred.', {
                 errors: errorMessages,
-                component: 'DescriptionEditor/handleFileUpload',
+                component: HANDLE_FILE_UPLOAD_COMPONENT_NAME,
               });
               throw new Error(
                 `CSV parsing error: ${results.errors[0].message} on row ${results.errors[0].row}`,
@@ -527,7 +550,6 @@ export default function DescriptionEditor() {
             const requiredHeaders = ['product', 'description']; // Define required headers here
             const missingHeaders = requiredHeaders.filter(
               (header) =>
-                // eslint-disable-next-line sonarjs/no-nested-functions
                 !actualHeaders.some((h) => h.toLowerCase() === header),
             );
 
@@ -571,7 +593,7 @@ export default function DescriptionEditor() {
             logger.info('CSV processing successful.', {
               processedCount: processedProducts.length,
               skippedCount: results.data.length - processedProducts.length,
-              component: 'DescriptionEditor/handleFileUpload',
+              component: HANDLE_FILE_UPLOAD_COMPONENT_NAME,
             });
           } catch (err) {
             console.error('Error in complete callback:', err);
@@ -588,7 +610,7 @@ export default function DescriptionEditor() {
             });
             logger.error('CSV processing failed.', {
               error: err,
-              component: 'DescriptionEditor/handleFileUpload',
+              component: HANDLE_FILE_UPLOAD_COMPONENT_NAME,
             });
           } finally {
             setIsLoading(false);
@@ -610,7 +632,7 @@ export default function DescriptionEditor() {
           });
           logger.error('CSV file read error', {
             error: err,
-            component: 'DescriptionEditor/handleFileUpload',
+            component: HANDLE_FILE_UPLOAD_COMPONENT_NAME,
           });
           if (fileInputRef.current) {
             fileInputRef.current.value = ''; // Reset file input
@@ -618,8 +640,8 @@ export default function DescriptionEditor() {
         },
       });
     },
-    [prohibitedKeywords, toast], // Add prohibitedKeywords and toast to dependencies
-  ); // <-- This closes the useCallback for handleFileUpload
+    [toast, prohibitedKeywords],
+  );
 
   // Removed the duplicate handleFileUpload and standalone handleParseComplete/handleParseError
 
@@ -656,7 +678,7 @@ export default function DescriptionEditor() {
         description: `"${data.product}" added successfully.`,
       });
     },
-    [products, toast, prohibitedKeywords], // Include prohibitedKeywords
+    [products, toast, prohibitedKeywords],
   );
 
   // Called by ProductEditorArea when description changes
@@ -678,7 +700,7 @@ export default function DescriptionEditor() {
         }),
       );
     },
-    [prohibitedKeywords], // Include prohibitedKeywords
+    [prohibitedKeywords],
   );
 
   const handleSave = useCallback(
@@ -812,6 +834,7 @@ export default function DescriptionEditor() {
           <ManualAddProductForm
             onSubmit={handleManualSubmit}
             isLoading={isLoading}
+            prohibitedKeywords={prohibitedKeywords}
           />
         </DataCard>
       </div>

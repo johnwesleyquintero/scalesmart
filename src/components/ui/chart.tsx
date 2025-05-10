@@ -70,14 +70,14 @@ const ChartContainer = React.forwardRef<
 ChartContainer.displayName = 'Chart';
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
-  if (!config) return undefined;
+  if (!config) return null;
 
   const colorConfig = Object.entries(config).filter(
     ([, config]) => config.theme || config.color,
   );
 
   if (!colorConfig.length) {
-    return undefined;
+    return null;
   }
 
   return (
@@ -174,7 +174,7 @@ const ChartTooltipContent = React.forwardRef<
     ]);
 
     if (!active || !payload?.length) {
-      return undefined;
+      return null;
     }
 
     const nestLabel = payload.length === 1 && indicator !== 'dot';
@@ -277,7 +277,7 @@ const ChartLegendContent = React.forwardRef<
     const { config } = useChart();
 
     if (!payload?.length) {
-      return undefined;
+      return null;
     }
 
     return (

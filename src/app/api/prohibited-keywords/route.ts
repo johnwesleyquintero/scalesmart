@@ -11,7 +11,7 @@ export async function POST(request: Request) {
     const data = prohibitedKeywordsSchema.parse(await request.json());
     await fs.writeFile(filePath, JSON.stringify(data, null, 2));
     return NextResponse.json({ success: true });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(error);
     if (error instanceof z.ZodError) {
       return NextResponse.json(

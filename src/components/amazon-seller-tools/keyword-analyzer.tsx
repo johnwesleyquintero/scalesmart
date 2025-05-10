@@ -2,7 +2,6 @@
 'use client';
 
 import { useToast } from '@/hooks/use-toast';
-import { fetchKeywordAnalysis } from '@/lib/api/keyword-analysis';
 import { logError } from '@/lib/error-handling';
 import { type KeywordAnalysis } from '@/lib/keyword-intelligence';
 import {
@@ -26,6 +25,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+
+interface TooltipProps {
+  payload?: {
+    isProhibited: boolean;
+  };
+}
 
 // Local/UI Imports
 import { Badge } from '@/components/ui/badge';
@@ -79,11 +84,11 @@ async function processKeywordBatch(
         },
         body: JSON.stringify({ keywords: batch }),
       });
-      
+
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`);
       }
-      
+
       const batchResults = await response.json();
       results.push(...batchResults);
     } catch (error) {
@@ -266,7 +271,7 @@ const CsvUploadSection: React.FC<CsvUploadSectionProps> = ({
               className="hidden"
               onChange={onFileUpload}
               disabled={isLoading}
-              ref={fileInputRef}
+              ref={fileInputRef as React.Ref<HTMLInputElement>}
             />
           </label>
           <div className="flex justify-center mt-4">
@@ -425,8 +430,12 @@ const ProductAnalysisCard: React.FC<ProductAnalysisCardProps> = ({
                 <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} />
                 <Tooltip
                   contentStyle={{ fontSize: '12px', padding: '5px 10px' }}
-                  formatter={(value: number, name: string, props: any) => [
-                    `${value.toFixed(0)} ${props.payload.isProhibited ? '(Prohibited)' : ''}`,
+                  formatter={(
+                    value: number,
+                    name: string,
+                    props: TooltipProps,
+                  ) => [
+                    `${value.toFixed(0)} ${props.payload?.isProhibited ? '(Prohibited)' : ''}`,
                     'Score',
                   ]}
                   labelFormatter={(label: string) => `Keyword: ${label}`}

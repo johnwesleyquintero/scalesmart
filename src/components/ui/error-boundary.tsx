@@ -24,8 +24,10 @@ export default function ErrorBoundary({
       console.error('Error caught by error boundary:', error);
     };
 
-    window.addEventListener('error', errorHandler);
-    return () => window.removeEventListener('error', errorHandler);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('error', errorHandler);
+      return () => window.removeEventListener('error', errorHandler);
+    }
   }, []);
 
   if (hasError) {
@@ -49,7 +51,7 @@ export default function ErrorBoundary({
           onClick={() => {
             setHasError(false);
             setError(undefined);
-            window.location.reload();
+            if (typeof window !== 'undefined') window.location.reload();
           }}
           className="flex items-center gap-2"
         >

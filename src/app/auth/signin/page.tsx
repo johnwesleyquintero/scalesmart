@@ -19,8 +19,6 @@ export default function SignIn() {
           >
             Continue with GitHub
           </Button>
-
-          
         </div>
 
         <p className="text-sm text-center text-gray-500">

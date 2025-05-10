@@ -28,11 +28,8 @@ import { useToast } from '@/hooks/use-toast'; // Keep one useToast import
 
 // Lib/Logic Imports (Assuming KeywordIntelligence exists and works as expected)
 // NOTE: KeywordIntelligence logic is simplified/mocked in processCSVRow
-import DOMPurify from 'dompurify';
-import { logError } from '@/lib/error-handling';
-
 // Client-side sanitization without JSDOM
-const domPurify = DOMPurify(window);
+// const domPurify = DOMPurify(window);
 
 // --- Types ---
 
@@ -392,24 +389,29 @@ const calculateScoreAndIssues = (
 };
 
 // Fetches product data from Amazon Product API
-async function fetchProductData(asin: string): Promise<AmazonProductApiResponse> {
-  try {
-    const response = await fetch(`/api/amazon/products/${asin}`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch product data for ASIN: ${asin}`);
-    }
-    return await response.json();
-  } catch (error) {
-    logError({
-      message: 'Error fetching product data',
-      component: 'ListingQualityChecker/fetchProductData',
-      severity: 'high',
-      error: error as Error,
-      context: { asin }
-    });
-    throw error;
-  }
-}
+// async function fetchProductData(
+//   asin: string,
+// ): Promise<AmazonProductApiResponse> {
+//   const response = await fetch(`/api/amazon/products/${asin}`);
+//   if (!response.ok) {
+//     throw new Error(`Failed to fetch product data for ASIN: ${asin}`);
+//   }
+
+//   let data;
+//   try {
+//     data = await response.json();
+//     return data;
+//   } catch (error) {
+//     logError({
+//       message: 'Error fetching product data',
+//       component: 'ListingQualityChecker/fetchProductData',
+//       severity: 'high',
+//       error: error as Error,
+//       context: { asin: asin },
+//     });
+//     throw error;
+//   }
+// }
 
 const processCSVRow = async (row: CSVRow): Promise<ListingData> => {
   const keywords =
@@ -438,11 +440,11 @@ const processCSVRow = async (row: CSVRow): Promise<ListingData> => {
     await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate async call
     keywordAnalysis = keywords.map((kw) => ({
       keyword: kw,
-      // eslint-disable-next-line sonarjs/pseudo-random -- Mock data
+
       isProhibited: Math.random() > 0.9, // Mock 10% chance of being prohibited
-      // eslint-disable-next-line sonarjs/pseudo-random -- Mock data
+
       score: Math.floor(Math.random() * 100),
-      // eslint-disable-next-line sonarjs/pseudo-random -- Mock data
+
       confidence: Math.random(),
       matchType: 'exact',
     }));
@@ -525,7 +527,7 @@ export default function ListingQualityChecker() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [asin, setAsin] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(undefined); // Ref for file input
+  const fileInputRef = useRef<HTMLInputElement | null>(null); // Ref for file input
 
   const handleFileUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -835,7 +837,7 @@ export default function ListingQualityChecker() {
                     className="hidden"
                     onChange={handleFileUpload}
                     disabled={isLoading}
-                    ref={fileInputRef as React.RefObject<HTMLInputElement>}
+                    ref={fileInputRef}
                   />
                 </label>
                 <SampleCsvButton

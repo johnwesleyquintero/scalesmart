@@ -1,9 +1,7 @@
-import { createClient } from '@supabase/supabase-js';
 import { SupabaseAdapter } from '@next-auth/supabase-adapter';
 import { type NextAuthOptions, type Session } from 'next-auth';
 import { type JWT } from 'next-auth/jwt';
 import GithubProvider from 'next-auth/providers/github';
-
 
 export const authOptions: NextAuthOptions = {
   adapter: SupabaseAdapter({
@@ -15,7 +13,6 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.GITHUB_ID as string,
       clientSecret: process.env.GITHUB_SECRET as string,
     }),
-    
   ],
   session: {
     strategy: 'jwt',
@@ -27,7 +24,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async session({ session, token }: { session: Session; token: JWT }) {
       if (session?.user) {
-        session.user.id = token.sub;
+        session.user.id = token.sub ?? '';
       }
       if (token.accessToken) {
         session.accessToken = token.accessToken as string;

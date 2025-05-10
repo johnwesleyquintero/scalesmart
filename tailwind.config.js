@@ -3,6 +3,8 @@
 import typography from '@tailwindcss/typography';
 import tailwindcssAnimate from 'tailwindcss-animate';
 
+const PROSE_HEADING_COLOR = 'var(--tw-prose-headings)';
+
 const config = {
   darkMode: ['class'],
   content: [
@@ -108,16 +110,16 @@ const config = {
               },
             },
             h1: {
-              color: 'var(--tw-prose-headings)',
+              color: PROSE_HEADING_COLOR,
             },
             h2: {
-              color: 'var(--tw-prose-headings)',
+              color: PROSE_HEADING_COLOR,
             },
             h3: {
-              color: 'var(--tw-prose-headings)',
+              color: PROSE_HEADING_COLOR,
             },
             h4: {
-              color: 'var(--tw-prose-headings)',
+              color: PROSE_HEADING_COLOR,
             },
             code: {
               color: 'var(--tw-prose-code)',

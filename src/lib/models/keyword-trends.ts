@@ -1,5 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
-
 export interface KeywordTrend {
   id?: string;
   keyword: string;

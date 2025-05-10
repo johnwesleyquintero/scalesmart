@@ -234,10 +234,10 @@ function analyzeCampaignPerformance(
  * Validates a single raw row from the CSV.
  * Returns a validated row object or null if validation fails.
  */
-function validateRow(
-  row: unknown,
-  rowIndex: number,
-): { data: ValidatedRow | null; error: string | null } {
+function validateRow(row: unknown): {
+  data: ValidatedRow | null;
+  error: string | null;
+} {
   const item = row as RawCampaignData;
 
   // Basic structure check
@@ -328,12 +328,11 @@ function processRawCampaignData(rawData: unknown[]): {
   }
 
   rawData.forEach((row, index) => {
-    const rowIndex = index + 1; // User-friendly row number (1-based)
-    const validationResult = validateRow(row, rowIndex);
+    const validationResult = validateRow(row);
 
     if (validationResult.error || !validationResult.data) {
       errors.push({
-        row: rowIndex,
+        row: index + 1,
         message: validationResult.error || 'Unknown validation error',
       });
     } else {
@@ -357,7 +356,7 @@ function processRawCampaignData(rawData: unknown[]): {
         });
       } catch (error) {
         errors.push({
-          row: rowIndex,
+          row: index + 1,
           message:
             'Error during analysis: ' +
             (error instanceof Error ? error.message : 'Unknown error'),
@@ -556,7 +555,7 @@ export default function PpcCampaignAuditor() {
     const hasGeneralError = error && !error.startsWith('Processed'); // Don't show general error if it's just a warning about skipped rows
     const hasValidationErrs = validationErrors.length > 0;
 
-    if (!hasGeneralError && !hasValidationErrs) return undefined;
+    if (!hasGeneralError && !hasValidationErrs) return null;
 
     return (
       <div className="mt-4 p-4 border border-red-200 rounded-md bg-red-50 text-red-700">
@@ -596,8 +595,7 @@ export default function PpcCampaignAuditor() {
 
   const ProcessingStatus = () => {
     // Show status only if loading is finished and there was some processing
-    if (isLoading || (campaigns.length === 0 && skippedRows === 0))
-      return undefined;
+    if (isLoading || (campaigns.length === 0 && skippedRows === 0)) return null;
 
     const message =
       skippedRows > 0

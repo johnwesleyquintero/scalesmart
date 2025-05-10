@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
 import { logger } from './logger';
 
+const USER_NOT_FOUND = 'User not found in Supabase';
+
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
@@ -20,9 +22,6 @@ const CRYPTO_CONFIG = {
   hashRounds: 12, // BCrypt cost factor
 };
 
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 5;
-
 type ApiKeyRecord = {
   key: string; // This will store the HASHED key
   createdAt: Date;
@@ -32,10 +31,6 @@ type ApiKeyRecord = {
 };
 
 // Supabase user type definition
-interface User {
-  id: string;
-  // other user fields...
-}
 
 /**
  * Generates a new secure API key (plain text)
@@ -76,6 +71,7 @@ export async function validateApiKey(
       const isValid = await bcrypt.compare(plainKey, apiKeyRecord.key);
       if (!isValid) {
         logger.warn('API key validation failed: Mismatch', { userId });
+        return false;
       }
       return isValid;
     } catch (error: unknown) {
@@ -173,7 +169,7 @@ export async function rotateApiKeys(
     .maybeSingle();
 
   if (error || !user) {
-    throw new Error('User not found in Supabase');
+    throw new Error(USER_NOT_FOUND);
   }
 
   // if (!(await isWithinRateLimit(`rotate:${userId}`))) {
@@ -224,7 +220,6 @@ export async function rotateApiKeys(
         ? error.message
         : 'Unknown error during key rotation';
     throw new Error(`Failed to rotate API keys: ${errorMessage}`);
-  } finally {
   }
 }
 
@@ -242,7 +237,7 @@ export async function initializeApiKeys(
     .maybeSingle();
 
   if (error || !user) {
-    throw new Error('User not found in Supabase');
+    throw new Error(USER_NOT_FOUND);
   }
 
   // if (!(await isWithinRateLimit(`init:${userId}`))) {
@@ -331,7 +326,7 @@ export async function deleteAllApiKeysForUser(userId: string): Promise<void> {
     .maybeSingle();
 
   if (error || !user) {
-    throw new Error('User not found in Supabase');
+    throw new Error(USER_NOT_FOUND);
   }
 
   // if (!(await isWithinRateLimit(`delete:${userId}`))) {

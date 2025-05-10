@@ -15,16 +15,26 @@ export interface TrendAnalysisResult {
 }
 
 // --- Validation Schemas ---
+const SUPPORTED_DATE_FORMATS = [
+  'yyyy-MM-dd',
+  'MM/dd/yyyy',
+  'dd-MM-yyyy',
+] as const;
+
 export const trendDataSchema = z.object({
   keyword: z.string().min(1, 'Keyword is required').max(100),
-  date: z.string().refine((date) => {
-    // Try parsing with multiple date formats
-    const formats = ['yyyy-MM-dd', 'MM/dd/yyyy', 'dd-MM-yyyy'];
-    return formats.some((fmt) => {
-      const parsed = parse(date, fmt, new Date());
-      return isValid(parsed);
-    });
-  }, 'Invalid date format. Supported formats: YYYY-MM-DD, MM/DD/YYYY, DD-MM-YYYY'),
+  date: z.string().refine(
+    (date) => {
+      const DATE_FORMATS = SUPPORTED_DATE_FORMATS;
+      // Try parsing with multiple date formats
+      return DATE_FORMATS.some((fmt: (typeof DATE_FORMATS)[number]) => {
+        const parsed = parse(date, fmt, new Date());
+
+        return isValid(parsed);
+      });
+    },
+    `Invalid date format. Supported formats: ${SUPPORTED_DATE_FORMATS.join(', ')}`,
+  ),
   search_volume: z.union([
     z.number().min(0, 'Search volume must be non-negative'),
     z.string().transform((val, ctx) => {
@@ -96,10 +106,10 @@ export class KeywordTrendService {
   }
 
   private static standardizeDate(dateStr: string): string {
-    const formats = ['yyyy-MM-dd', 'MM/dd/yyyy', 'dd-MM-yyyy'];
+    const DATE_FORMATS = SUPPORTED_DATE_FORMATS;
     let standardDate = '';
 
-    for (const fmt of formats) {
+    for (const fmt of DATE_FORMATS) {
       const parsed = parse(dateStr, fmt, new Date());
       if (isValid(parsed)) {
         standardDate = format(parsed, 'yyyy-MM-dd');

@@ -236,7 +236,12 @@ export const calculateProductScore = (
     const breakdown = {
       title: applyThresholdScoring(data.title?.length || 0, config.title),
       bulletPoints:
-        config.bulletPoints.customScoring?.(data.bulletPoints || []) || 0, // Pass array or empty array
+        config.bulletPoints.customScoring?.({
+          rating:
+            data.bulletPoints?.reduce((sum, bullet) => sum + bullet.length, 0) /
+              (data.bulletPoints?.length || 1) || 0,
+          count: data.bulletPoints?.length || 0,
+        }) || 0,
       description: scoreDescription(data.description), // Use the updated scoreDescription
       images: applyThresholdScoring(data.imageCount || 0, config.images),
       reviews:

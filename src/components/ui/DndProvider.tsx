@@ -1,4 +1,4 @@
-import React, { JSX } from 'react';
+import React from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 
@@ -8,7 +8,7 @@ interface DndProviderProps {
 
 function DndProviderWrapper({
   children,
-}: Readonly<DndProviderProps>): JSX.Element {
+}: Readonly<DndProviderProps>): React.ReactElement {
   return <DndProvider backend={HTML5Backend}>{children}</DndProvider>;
 }
 

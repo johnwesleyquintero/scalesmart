@@ -53,12 +53,27 @@ export const MDXComponents = {
   img: ({
     className,
     alt,
+    src,
+    width,
+    height,
     ...props
-  }: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img className={cn('rounded-md border', className)} alt={alt} {...props} />
-  ),
-  hr: ({ ...props }) => (
+  }: React.ImgHTMLAttributes<HTMLImageElement>) => {
+    const parsedWidth =
+      typeof width === 'string' ? parseInt(width, 10) : width || 0;
+    const parsedHeight =
+      typeof height === 'string' ? parseInt(height, 10) : height || 0;
+    return (
+      <BlogImage
+        className={cn('rounded-md border', className)}
+        alt={alt || ''}
+        src={src || ''}
+        width={parsedWidth}
+        height={parsedHeight}
+        {...props}
+      />
+    );
+  },
+  hr: ({ ...props }: React.HTMLAttributes<HTMLHRElement>) => (
     <hr className="my-8 border-muted-foreground/20" {...props} />
   ),
   table: ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (

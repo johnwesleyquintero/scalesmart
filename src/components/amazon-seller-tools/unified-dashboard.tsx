@@ -418,14 +418,18 @@ export default function UnifiedDashboard() {
             setMetrics(transformedMetrics);
             setError(null); // Clear error on success
           }
-        } catch (transformError: any) {
+        } catch (transformError: unknown) {
           console.error('Error transforming data:', transformError);
-          setError(`Error processing report data: ${transformError.message}`);
+          setError(
+            `Error processing report data: ${transformError instanceof Error ? transformError.message : String(transformError)}`,
+          );
           setMetrics([]);
         } finally {
           setIsParsing(false);
           // Reset file input after successful processing
-          if (fileInputRef.current) fileInputRef.current.value = '';
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
           setSelectedFile(null); // Clear stored file
         }
       },
@@ -434,7 +438,9 @@ export default function UnifiedDashboard() {
         setError(`Failed to parse file: ${error.message}`);
         setMetrics([]);
         setIsParsing(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
         setSelectedFile(null); // Clear stored file
       },
     });
@@ -830,13 +836,9 @@ export default function UnifiedDashboard() {
               </h3>
               <Tabs defaultValue="editor" className="w-full">
                 <TabsList className="mb-4">
-                  <TabsTrigger value="editor">Description Editor</TabsTrigger>
                   <TabsTrigger value="quality">Quality Checker</TabsTrigger>
                   <TabsTrigger value="score">Score Calculator</TabsTrigger>
                 </TabsList>
-                <TabsContent value="editor">
-                  <DescriptionEditor />
-                </TabsContent>
                 <TabsContent value="quality">
                   <ListingQualityChecker />
                 </TabsContent>
@@ -846,6 +848,7 @@ export default function UnifiedDashboard() {
               </Tabs>
             </CardContent>
           </Card>
+          <DescriptionEditor />
         </TabsContent>
         <TabsContent value="financials">
           <Card>

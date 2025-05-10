@@ -9,6 +9,7 @@ REQUIRED_NPM_VERSION="9.0.0"
 BUILD_ARTIFACTS=(".next" ".vercel" "node_modules" "coverage" ".nyc_output" "storybook-static" "dist" "out")
 LOG_PATTERNS=("*.cli.log" "*.tmp" "*.temp" "*.bak" "*.cache")
 REQUIRED_PROJECT_FILES=("package.json" "tsconfig.json" "next.config.js")
+GENERATED_COMMIT_MESSAGE="" # For sharing commit message between functions
 CONFIG_FILE=""
 
 # --- ANSI Colors ---
@@ -191,19 +192,64 @@ log() {
 }
 
 generate_commit_message() {
-    local commit_type
+    local commit_type_input
     local commit_scope
     local commit_description
+    local commit_type
+    GENERATED_COMMIT_MESSAGE="" # Clear previous message
+    local suggested_description=""
 
-    echo -e "${ANSI_Bold}${ANSI_Yellow}Commit Type (e.g., feat, fix, chore): ${ANSI_Reset}\c"
-    read -r commit_type
-    commit_type=$(echo "$commit_type" | tr '[:upper:]' '[:lower:]')
+    local common_types=("feat" "fix" "chore" "docs" "style" "refactor" "test" "ci" "build" "perf" "revert")
+
+    echo -e "${ANSI_Bold}${ANSI_Yellow}Select Commit Type or enter a custom one:${ANSI_Reset}"
+    for i in "${!common_types[@]}"; do
+        echo -e "  ${ANSI_Green}$((i+1))) ${common_types[$i]}${ANSI_Reset}"
+    done
+    echo -e "  ${ANSI_Green}c) Custom type${ANSI_Reset}"
+    echo -e "${ANSI_Bold}${ANSI_Yellow}Your choice (number or custom type): ${ANSI_Reset}\c"
+    read -r commit_type_input
+
+    if [[ "$commit_type_input" =~ ^[0-9]+$ ]] && [ "$commit_type_input" -ge 1 ] && [ "$commit_type_input" -le "${#common_types[@]}" ]; then
+        commit_type="${common_types[$((commit_type_input-1))]}"
+    elif [[ "$commit_type_input" == "c" ]]; then
+        echo -e "${ANSI_Bold}${ANSI_Yellow}Enter Custom Commit Type: ${ANSI_Reset}\c"
+        read -r commit_type
+        commit_type=$(echo "$commit_type" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+        if [ -z "$commit_type" ]; then
+            log_error "Custom commit type cannot be empty." "generate_commit_message"
+            echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Custom commit type cannot be empty."
+            return 1
+        fi
+    else
+        commit_type=$(echo "$commit_type_input" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
+        if [ -z "$commit_type" ]; then
+            log_warn "No valid selection or custom type entered, defaulting to 'chore'."
+            commit_type="chore" # Default to 'chore' or handle as an error
+        fi
+    fi
+
+    # Generate suggested description based on commit type
+    case "$commit_type" in
+        "feat") suggested_description="Implement new feature: " ;;
+        "fix") suggested_description="Resolve issue: " ;;
+        "chore") suggested_description="Perform maintenance task: " ;;
+        "docs") suggested_description="Update documentation for: " ;;
+        "style") suggested_description="Format/refactor code style for: " ;;
+        "refactor") suggested_description="Refactor code related to: " ;;
+        "test") suggested_description="Add/update tests for: " ;;
+        "ci") suggested_description="Update CI/CD configuration for: " ;;
+        "build") suggested_description="Update build system for: " ;;
+        "perf") suggested_description="Improve performance of: " ;;
+        "revert") suggested_description="Revert changes related to: " ;;
+        *) suggested_description="Describe the change: " ;; # Default for custom or unlisted types
+    esac
 
     echo -e "${ANSI_Bold}${ANSI_Yellow}Commit Scope (optional, e.g., component name): ${ANSI_Reset}\c"
     read -r commit_scope
 
-    echo -e "${ANSI_Bold}${ANSI_Yellow}Commit Description: ${ANSI_Reset}\c"
-    read -r commit_description
+    # Prompt for description with the suggestion, allowing editing
+    local description_prompt="${ANSI_Bold}${ANSI_Yellow}Commit Description: ${ANSI_Reset}"
+    read -e -i "$suggested_description" -p "$description_prompt" -r commit_description
 
     local commit_message="$commit_type"
     if [ -n "$commit_scope" ]; then
@@ -211,9 +257,12 @@ generate_commit_message() {
     fi
     commit_message="$commit_message: $commit_description"
 
+    GENERATED_COMMIT_MESSAGE="$commit_message" # Store for other functions
+
     echo -e "${ANSI_Bold}${ANSI_Green}Generated Commit Message:${ANSI_Reset} $commit_message"
     echo "$commit_message" | clip  # Copy to clipboard (requires 'clip' on Windows, 'xclip' or 'xsel' on Linux)
     echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Commit message copied to clipboard!"
+    return 0 # Explicitly return success
 }
 
 # Default command timeout in seconds
@@ -326,14 +375,16 @@ show_menu() {
 
     # Commit Generator
     echo -e "\n${ANSI_Bold}${ANSI_Blue}Git${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Green}12) ${ANSI_Reset}Generate Commit        ${ANSI_Yellow}[g]${ANSI_Reset} - Create commit message"
+    echo -e "${ANSI_Bold}${ANSI_Green}12) ${ANSI_Reset}Generate Commit        ${ANSI_Yellow}[g]${ANSI_Reset} - Create commit message only"
+    echo -e "${ANSI_Bold}${ANSI_Green}13) ${ANSI_Reset}Commit & Push All      ${ANSI_Yellow}[p]${ANSI_Reset} - Stage all, commit, and push"
 
     # Security Section
     echo -e "\n${ANSI_Bold}${ANSI_Blue}Security${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Green}13) ${ANSI_Reset}Generate Secret Key    ${ANSI_Yellow}[k]${ANSI_Reset} - Generate a secure key"
+    echo -e "${ANSI_Bold}${ANSI_Green}14) ${ANSI_Reset}Generate Secret Key    ${ANSI_Yellow}[k]${ANSI_Reset} - Generate a secure key"
 
     # Exit Option
     echo -e "\n${ANSI_Bold}${ANSI_Red}10) ${ANSI_Reset}Exit                   ${ANSI_Yellow}[q]${ANSI_Reset} - Quit application"
+
 
     echo -e "\n${ANSI_Bold}${ANSI_Cyan}╚════════════════════════════════════════════╝${ANSI_Reset}"
     echo -e "${ANSI_Yellow}Use number or shortcut key in [brackets]${ANSI_Reset}"
@@ -344,6 +395,68 @@ generate_secret_key() {
     echo -e "${ANSI_Bold}${ANSI_Green}Generated Secret Key:${ANSI_Reset} $secret_key"
     echo "$secret_key" | clip
     echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Secret key copied to clipboard!"
+}
+
+commit_and_push() {
+    log_info "Starting commit and push process..."
+    echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} Preparing to commit and push changes."
+
+    # Check if inside a Git repository
+    if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+        log_error "Not inside a Git repository." "commit_and_push"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} This is not a Git repository. Aborting."
+        return 1
+    fi
+
+    # Stage all changes
+    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Staging all changes (git add .)..."
+    if git add .; then
+        log_info "Successfully staged all changes."
+        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} All changes staged."
+    else
+        log_error "Failed to stage changes." "commit_and_push (git add .)"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to stage changes. Aborting."
+        return 1
+    fi
+
+    # Generate commit message
+    if ! generate_commit_message; then
+        # generate_commit_message already logs errors and prints messages if it fails (e.g. empty custom type)
+        log_warn "Commit message generation was cancelled or failed." "commit_and_push"
+        echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} Commit message generation aborted. Nothing committed."
+        return 1 # generate_commit_message returned non-zero
+    fi
+
+    if [ -z "$GENERATED_COMMIT_MESSAGE" ]; then # Double check, though generate_commit_message should set it
+        log_error "Generated commit message is empty after successful call to generate_commit_message." "commit_and_push"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Commit message is empty. Aborting."
+        return 1
+    fi
+
+    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Committing with message: ${ANSI_Cyan}'$GENERATED_COMMIT_MESSAGE'${ANSI_Reset}"
+    if git commit -m "$GENERATED_COMMIT_MESSAGE"; then
+        log_info "Successfully committed changes with message: '$GENERATED_COMMIT_MESSAGE'"
+        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Changes committed."
+    else
+        log_error "Failed to commit changes." "commit_and_push (git commit -m \"$GENERATED_COMMIT_MESSAGE\")"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to commit. Check Git output above. Aborting push."
+        return 1
+    fi
+
+    # Push changes
+    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Pushing changes to remote..."
+    if git push; then
+        log_info "Successfully pushed changes."
+        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Changes pushed to remote."
+    else
+        log_error "Failed to push changes." "commit_and_push (git push)"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to push changes. Check Git output above."
+        return 1
+    fi
+
+    log_info "Commit and push process completed successfully."
+    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} All changes committed and pushed successfully!"
+    return 0
 }
 
 # --- Main Execution ---
@@ -509,7 +622,11 @@ main() {
                 log_info "Generating commit message..."
                 generate_commit_message
             } ;;
-            13|"k") {
+            13|"p") { # New: Commit & Push
+                log_info "Starting Commit & Push All..."
+                commit_and_push
+            } ;;
+            14|"k") { # Renumbered: Generate Secret Key
                 log_info "Generating secret key..."
                 generate_secret_key
             } ;;

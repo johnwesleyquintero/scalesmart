@@ -128,19 +128,17 @@ const parseAndValidateCsv = <T extends Record<string, unknown>>(
         const validRows: T[] = [];
         const errors: string[] = [];
 
-        results.data.forEach(
-          (value: unknown, index: number, array: unknown[]) => {
-            const row = value as Record<string, unknown>;
-            const { validRow, error } = processRow(row, index, validateRowFn);
-            if (validRow) {
-              validRows.push(validRow);
-            }
-            // Collect errors even if some rows are valid
-            if (error) {
-              errors.push(error);
-            }
-          },
-        );
+        results.data.forEach((value: unknown, index: number) => {
+          const row = value as Record<string, unknown>;
+          const { validRow, error } = processRow(row, index, validateRowFn);
+          if (validRow) {
+            validRows.push(validRow);
+          }
+          // Collect errors even if some rows are valid
+          if (error) {
+            errors.push(error);
+          }
+        });
 
         resolve({ validRows, errors });
       },

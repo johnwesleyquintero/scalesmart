@@ -1,6 +1,6 @@
 import { CodeBlockProps } from './chat-interface';
 
-const RehypePrism = ({ node, inline, className, children }: CodeBlockProps) => {
+const RehypePrism = ({ className, children }: CodeBlockProps) => {
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : '';
 
