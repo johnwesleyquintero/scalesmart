@@ -155,3 +155,31 @@ body {
   }
   /* Add more mobile-specific styles here */
 }
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: theme('colors.gray.300') theme('colors.gray.100');
+  }
+  .dark .scrollbar-thin {
+    scrollbar-color: theme('colors.gray.600') theme('colors.gray.800');
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: theme('colors.gray.100');
+    border-radius: 4px;
+  }
+  .dark .scrollbar-thin::-webkit-scrollbar-track {
+    background: theme('colors.gray.800');
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: theme('colors.gray.300');
+    border-radius: 4px;
+    border: 2px solid theme('colors.gray.100');
+  }
+  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: theme('colors.gray.600');
+    border: 2px solid theme('colors.gray.800');
+  }
+}

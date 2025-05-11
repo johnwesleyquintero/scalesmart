@@ -1,19 +1,36 @@
 'use client';
-import React from 'react';
+import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config';
+import DOMPurify from 'dompurify';
+import React, { JSX } from 'react';
 
 // --- Style Imports ---
 import 'katex/dist/katex.min.css'; // For math rendering
 import 'prismjs/themes/prism-tomorrow.css'; // For code block syntax highlighting
 
 // --- React and Hook Imports ---
+import type { Element as HastElement } from 'hast';
 import { useCallback, useEffect, useReducer, useRef } from 'react';
-
-// --- Markdown and Syntax Highlighting Imports ---
 import ReactMarkdown from 'react-markdown';
-import rehypeKatex from 'rehype-katex'; // Plugin for math rendering
-import rehypePrismPlus from 'rehype-prism-plus'; // Plugin for code blocks
-import remarkGfm from 'remark-gfm'; // Plugin for GitHub Flavored Markdown (tables, etc.)
-import remarkMath from 'remark-math'; // Plugin for math syntax
+import rehypeKatex from 'rehype-katex';
+import rehypePrismPlus from 'rehype-prism-plus';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+
+// --- Component Imports ---
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Clipboard,
+  ClipboardCheck,
+  Eye,
+  RotateCcw,
+  Trash2,
+} from 'lucide-react';
 
 // --- Interfaces ---
 interface Message {
@@ -24,20 +41,13 @@ interface Message {
   error?: string; // Error message if status is 'error'
   retryCount?: number; // How many times retry has been attempted
   retryLimit?: number; // Maximum number of retries allowed
-  // Optional: Add personal info if needed, but handle privacy carefully
-  // personalInfo?: { name: string; email: string; };
+  id?: string; // Unique identifier for the message
 }
 
 interface MessageBubbleProps {
   message: Message;
-  onRetry?: (message: Message) => void; // Function to retry sending a message
-  onDelete?: (timestamp: number) => void; // Function to delete a message
-}
-
-export interface CodeBlockProps {
-  inline?: boolean;
-  className?: string;
-  children?: React.ReactNode;
+  onRetry?: (message: Message) => void;
+  onDelete?: (timestamp: number) => void;
 }
 
 type ChatState = {
@@ -110,7 +120,12 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
       ) {
         return state;
       }
-      return { ...state, messages: [...state.messages, action.payload] };
+      {
+        const newMessage = action.payload.id
+          ? action.payload
+          : { ...action.payload, id: crypto.randomUUID() };
+        return { ...state, messages: [...state.messages, newMessage] };
+      }
     case 'UPDATE_MESSAGE':
       return {
         ...state,
@@ -140,11 +155,10 @@ function chatReducer(state: ChatState, action: ChatAction): ChatState {
 }
 
 // --- Main Chat Component ---
-function ChatInterface() {
+export default function ChatInterface() {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { messages, input, isLoading, isChatOpen } = state;
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const RETRY_LIMIT = 3; // Define the retry limit
 
   // --- Effects ---
 
@@ -157,7 +171,7 @@ function ChatInterface() {
     if (isChatOpen) {
       scrollToBottom();
     }
-  }, [messages.length, isChatOpen, scrollToBottom]); // Depend on messages length and chat open state
+  }, [messages]); // Depend on messages
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -181,10 +195,14 @@ function ChatInterface() {
             console.warn('Invalid chat messages format found in localStorage.');
             localStorage.removeItem('chatMessages');
           }
-        } catch (error) {
+        } catch (error: unknown) {
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : 'An unknown error occurred';
           console.error(
             'Failed to parse chat messages from localStorage:',
-            error,
+            errorMessage,
           );
           localStorage.removeItem('chatMessages');
         }
@@ -197,14 +215,169 @@ function ChatInterface() {
     if (typeof window !== 'undefined') {
       // Avoid saving initial empty state unnecessarily
       if (messages.length > 0 || localStorage.getItem('chatMessages')) {
-        // Filter out messages that might be in a temporary 'sending' state if desired,
-        // or save all including transient states. Saving all is simpler for resuming.
         localStorage.setItem('chatMessages', JSON.stringify(messages));
       }
     }
   }, [messages]); // Run whenever messages array changes
 
+  // Send initial greeting if chat is opened and empty
+  useEffect(() => {
+    if (isChatOpen && messages.length === 0 && !isLoading) {
+      // Check if a greeting hasn't ALREADY been added in this session/load
+      const hasGreetingAlready = messages.some(
+        (msg) =>
+          msg.role === 'assistant' &&
+          msg.content.startsWith("Hey there! I'm Wesley."), // Updated check
+      );
+
+      if (!hasGreetingAlready) {
+        const greetingMessage: Message = {
+          role: 'assistant',
+          content:
+            "Hey there! I'm Wesley. Thanks for stopping by my digital space. Feel free to ask me about:\n\n" +
+            "- My latest projects and what I'm working on.\n" +
+            '- My core skills and expertise in Amazon & e-commerce.\n' +
+            '- How to get in touch for collaborations or inquiries.\n\n' +
+            'What can I help you with today?',
+          timestamp: Date.now(),
+          status: 'sent',
+        };
+        dispatch({ type: 'ADD_MESSAGE', payload: greetingMessage });
+      }
+    }
+  }, [isChatOpen, messages, isLoading]); // Re-run if chat opens, messages change, or loading state changes
+
   // --- Message Handling Logic ---
+  const getRetryLimit = (messageOrContent: Message | string): number => {
+    return typeof messageOrContent === 'string'
+      ? 3
+      : (messageOrContent.retryLimit ?? 3);
+  };
+
+  const sendMessage = useCallback(
+    async (
+      message: Message,
+      isRetry: boolean,
+      timestampToUse: number,
+      currentRetryCount: number,
+    ) => {
+      const RETRY_LIMIT = message.retryLimit ?? ConfigRetryLimit ?? 3;
+      // Sanitize the message content before sending
+      const sanitizedContent = DOMPurify.sanitize(message.content);
+      try {
+        // --- Actual API Call ---
+        console.log('Calling /api/chat with message:', sanitizedContent);
+        const apiResponse = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: sanitizedContent.trim(),
+            history: messages
+              .filter((msg) => msg.status === 'sent')
+              .map(({ role, content }) => ({ role, content })),
+          }),
+        });
+
+        // --- Handle API Response ---
+        console.log('API Response:', apiResponse);
+        if (!apiResponse.ok) {
+          let errorData;
+          try {
+            errorData = await apiResponse.json();
+          } catch (jsonError) {
+            console.error('Failed to parse JSON error response:', jsonError);
+            throw new Error(
+              `API Error: ${apiResponse.status} ${apiResponse.statusText}. Failed to parse JSON response.`,
+            );
+          }
+          console.error('API Error Data:', errorData);
+          const errorMessage =
+            errorData?.error ||
+            `API Error: ${apiResponse.status} ${apiResponse.statusText}`;
+          throw new Error(errorMessage);
+        }
+
+        const data = await apiResponse.json();
+        console.log('API Data:', data); // Log the parsed JSON data
+        const aiContent = data?.response; // Changed 'reply' to 'response' to match backend
+        console.log('AI Reply Content:', aiContent);
+
+        // 1. Update user message status to 'sent' since the API request itself was successful
+        dispatch({
+          type: 'UPDATE_MESSAGE',
+          payload: {
+            timestamp: message.timestamp,
+            role: 'user',
+            updates: { status: 'sent', error: undefined },
+          },
+        });
+
+        // 2. Add the assistant's response or an error message if content is invalid
+        if (typeof aiContent === 'string' && aiContent.trim() !== '') {
+          const assistantMessage: Message = {
+            role: 'assistant',
+            content: aiContent,
+            timestamp: Date.now(),
+            status: 'sent',
+          };
+          dispatch({ type: 'ADD_MESSAGE', payload: assistantMessage });
+        } else {
+          console.error(
+            'AI Reply Content is empty, undefined, or not a string. API Data:',
+            data,
+          );
+          const assistantErrorMessage: Message = {
+            role: 'assistant',
+            content:
+              "Sorry, I couldn't fetch a valid response. Please try again or rephrase your question.",
+            timestamp: Date.now(),
+            status: 'sent', // Display as a normal assistant message, its content is the error.
+          };
+          dispatch({ type: 'ADD_MESSAGE', payload: assistantErrorMessage });
+        }
+      } catch (error: any) {
+        console.error('Failed to send/process message:', error);
+        // --- Retry Mechanism with Exponential Backoff ---
+        const retryCount = currentRetryCount + 1;
+        if (retryCount <= RETRY_LIMIT) {
+          const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
+          console.log(
+            `Retrying message (attempt ${retryCount}/${RETRY_LIMIT}) in ${
+              delay / 1000
+            } seconds...`,
+          );
+          setTimeout(() => {
+            sendMessage(message, true, timestampToUse, retryCount); // Recursive call for retry
+          }, delay);
+        } else {
+          // --- Update State on Error After Retries Exhausted ---
+          console.warn(`Max retries reached for message: ${message.timestamp}`);
+          dispatch({
+            type: 'UPDATE_MESSAGE',
+            payload: {
+              timestamp: message.timestamp,
+              role: 'user',
+              updates: {
+                status: 'error',
+                error:
+                  error instanceof Error
+                    ? `Failed after ${RETRY_LIMIT} retries: ${error.message}`
+                    : `Failed after ${RETRY_LIMIT} retries: An unknown error occurred`,
+                retryCount: retryCount,
+              },
+            },
+          });
+        }
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+        scrollToBottom();
+      }
+    },
+    [messages, scrollToBottom, dispatch],
+  );
+
   const handleMessageSubmit = useCallback(
     async (messageOrContent: Message | string) => {
       const isRetry = typeof messageOrContent !== 'string';
@@ -213,8 +386,9 @@ function ChatInterface() {
       const currentRetryCount = isRetry
         ? (messageOrContent.retryCount ?? 0)
         : 0;
+      const RETRY_LIMIT = getRetryLimit(messageOrContent);
 
-      if (!content.trim()) return;
+      if (!content?.trim()) return;
 
       // Check retry limit
       if (isRetry && currentRetryCount >= RETRY_LIMIT) {
@@ -266,88 +440,14 @@ function ChatInterface() {
       scrollToBottom(); // Scroll after adding/updating user message
       console.log('Submitting message:', content); // Log the message content
 
-      try {
-        // --- Actual API Call ---
-        console.log('Calling /api/chat with message:', content); // Log before API call
-        const apiResponse = await fetch('/api/chat', {
-          // Your backend endpoint
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: content.trim(),
-            // Send conversation history (successfully sent messages) for context
-            history: messages
-              .filter((msg) => msg.status === 'sent') // Only send confirmed messages
-              .map(({ role, content }) => ({ role, content })), // Format for backend
-          }),
-        });
-
-        // --- Handle API Response ---
-        console.log('API Response:', apiResponse); // Log the entire API response
-        if (!apiResponse.ok) {
-          const errorData = await apiResponse.json().catch(() => ({
-            error: `API Error: ${apiResponse.status} ${apiResponse.statusText}`,
-          }));
-          console.error('API Error Data:', errorData); // Log the error data
-          throw new Error(
-            errorData.error || `API Error: ${apiResponse.statusText}`,
-          ); // Throw the error after attempting to parse JSON
-        }
-
-        const data = await apiResponse.json();
-        console.log('API Data:', data); // Log the parsed JSON data
-        const aiContent = data?.reply; // Adjust based on your backend response structure
-
-        // --- Update State on Success ---
-        // 1. Update user message status to 'sent'
-        console.log('AI Reply Content:', aiContent);
-        if (!aiContent) {
-          console.error('AI Reply Content is empty or undefined:', data);
-        }
-        dispatch({
-          type: 'UPDATE_MESSAGE',
-          payload: {
-            timestamp: userMessage.timestamp,
-            role: 'user',
-            updates: { status: 'sent', error: undefined },
-          },
-        });
-
-        // 2. Add the assistant's response
-        const assistantMessage: Message = {
-          role: 'assistant',
-          content: aiContent,
-          timestamp: Date.now(), // Use a new timestamp for the assistant message
-          status: 'sent',
-        };
-        dispatch({ type: 'ADD_MESSAGE', payload: assistantMessage });
-      } catch (error) {
-        console.error('Failed to send/process message:', error); // Log full error
-        // --- Update State on Error ---
-        console.log('Updating message status to error');
-        dispatch({
-          type: 'UPDATE_MESSAGE',
-          payload: {
-            timestamp: userMessage.timestamp,
-            role: 'user',
-            updates: {
-              status: 'error',
-              error:
-                error instanceof Error
-                  ? error.message
-                  : 'An unknown error occurred',
-              retryCount: currentRetryCount + 1, // Increment retry count
-            },
-          },
-        });
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
-        scrollToBottom(); // Scroll after potential AI response or error update
-      }
+      await sendMessage(
+        userMessage,
+        isRetry,
+        timestampToUse,
+        currentRetryCount,
+      );
     },
-    [messages, scrollToBottom],
+    [messages, scrollToBottom, dispatch, sendMessage],
   ); // Include messages and scrollToBottom in dependencies
 
   // --- Delete Handler ---
@@ -388,7 +488,7 @@ function ChatInterface() {
           {/* Header */}
           <div className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
             <h3 className="font-semibold text-gray-800 dark:text-gray-100">
-              AI Assistant
+              Chat with Wesley
             </h3>
             <button
               onClick={() => dispatch({ type: 'TOGGLE_CHAT' })}
@@ -401,7 +501,7 @@ function ChatInterface() {
                   fillRule="evenodd"
                   d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
                   clipRule="evenodd"
-                ></path>
+                />
               </svg>
             </button>
           </div>
@@ -410,7 +510,7 @@ function ChatInterface() {
           <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800">
             {messages.map((msg) => (
               <MessageBubble
-                key={`${msg.role}-${msg.timestamp}`} // More robust key
+                key={msg.id}
                 message={msg}
                 onRetry={handleMessageSubmit}
                 onDelete={handleDeleteMessage}
@@ -510,22 +610,28 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 }: Readonly<MessageBubbleProps>) => {
   const isUser = message.role === 'user';
   // Conditional styling for user vs assistant, and dark mode
-  const RETRY_LIMIT = 3;
   const bubbleClass = isUser
     ? 'bg-blue-500 text-white ml-auto'
-    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100';
+    : // Assistant bubble needs to be relative for absolute positioning of copy button
+      'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100';
   const containerClass = isUser ? 'flex justify-end' : 'flex justify-start';
   const canRetry =
     message.status === 'error' &&
-    (message.retryCount ?? 0) < (message.retryLimit ?? RETRY_LIMIT);
+    (message.retryCount ?? 0) < (message.retryLimit ?? ConfigRetryLimit);
 
   return (
-    <div className={`${containerClass}`}>
+    <div className={`${containerClass} group relative`}>
       {' '}
+      {/* Added group and relative for copy button */}{' '}
       {/* Removed mb-4, handled by space-y in parent */}
       <div
         className={`${bubbleClass} max-w-[80%] rounded-lg p-3 break-words shadow-sm`}
       >
+        {/* Copy Button for Assistant Messages */}
+        {!isUser && message.status === 'sent' && (
+          <CopyMarkdownButton content={message.content} />
+        )}
+
         {/* Error State Display */}
         {message.status === 'error' ? (
           <div className="flex flex-col gap-1.5">
@@ -560,7 +666,8 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                   className="text-xs text-blue-200 hover:text-white dark:text-blue-300 dark:hover:text-blue-100 font-medium focus:outline-none focus:underline"
                   aria-label="Retry sending message"
                 >
-                  Retry
+                  {' '}
+                  <RotateCcw className="w-3 h-3 inline-block mr-1" /> Retry
                 </button>
               )}
               <button
@@ -568,7 +675,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 className="text-xs text-red-300 hover:text-red-100 dark:text-red-400 dark:hover:text-red-200 font-medium focus:outline-none focus:underline"
                 aria-label="Delete message"
               >
-                Delete
+                <Trash2 className="w-3 h-3 inline-block mr-1" /> Delete
               </button>
             </div>
           </div>
@@ -592,97 +699,180 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
 // --- Markdown Rendering Configuration ---
 
-// Custom renderer for code blocks (handles Mermaid and regular code)
+interface CodeBlockProps {
+  node?: HastElement; // The hast node, useful for metadata
+  inline?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+  [key: string]: any; // Allow other props from ReactMarkdown
+}
+
+// Custom renderer for code blocks (handles Mermaid, HTML, and regular code)
 const CodeBlock: React.FC<CodeBlockProps> = ({
+  inline,
   className,
   children,
-  inline,
+  ...props
 }) => {
   const match = /language-(\w+)/.exec(className || '');
-  const language = match ? match[1] : '';
+  const language = match?.[1];
+  const codeContent = String(children).replace(/\n$/, '');
 
-  // Handle Mermaid diagrams
-  // Note: Requires the Mermaid library to be loaded and initialized elsewhere (e.g., in a useEffect)
-  if (!inline && language === 'mermaid') {
-    return <pre className="mermaid">{String(children).trim()}</pre>;
-  }
-
-  // Handle inline code
   if (inline) {
     return (
-      <code className="bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded text-sm">
+      <code className={className} {...props}>
         {children}
       </code>
     );
   }
 
-  // Handle regular code blocks (rehypePrismPlus handles the highlighting)
+  if (language === 'mermaid') {
+    return (
+      <div className="mermaid-container my-4 overflow-x-auto bg-gray-100 dark:bg-gray-800 p-4 rounded-md">
+        <pre className={className}>
+          <code {...props}>{codeContent}</code>
+        </pre>
+        {/* Mermaid.js will render this. Ensure Mermaid is initialized. */}
+      </div>
+    );
+  }
+
+  if (language === 'html' || language === 'markup') {
+    return (
+      <div className="code-block-wrapper group/codeblock relative my-4">
+        <pre className={className} {...props}>
+          <code className={`language-${language}`}>{codeContent}</code>
+        </pre>
+        <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover/codeblock:opacity-100 transition-opacity">
+          <CopyMarkdownButton content={codeContent} />
+          <HtmlPreviewModal
+            htmlContent={codeContent}
+            triggerButton={
+              <button
+                className="p-1.5 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                aria-label="Preview HTML"
+                title="Preview HTML"
+              >
+                <Eye className="w-3.5 h-3.5" />
+              </button>
+            }
+          />
+        </div>
+      </div>
+    );
+  }
+
+  // Standard code block
   return (
-    <pre className={className}>
-      <code>{children}</code>
-    </pre>
+    <div className="code-block-wrapper group/codeblock relative my-4">
+      <pre className={className} {...props}>
+        <code className={`language-${language}`}>{codeContent}</code>
+      </pre>
+      <CopyMarkdownButton content={codeContent} />
+    </div>
   );
 };
 
-// Memoized function to render message content with Markdown
-const renderMessage = (content: string) => (
+const renderMessage = (content: string): JSX.Element => (
   <ReactMarkdown
-    remarkPlugins={[remarkGfm, remarkMath]} // Enable GitHub Flavored Markdown and Math syntax
+    remarkPlugins={[remarkGfm, remarkMath]}
     rehypePlugins={[
-      rehypeKatex, // Render math using KaTeX
-      [rehypePrismPlus, { showLineNumbers: false, ignoreMissing: true }], // Add syntax highlighting with Prism (line numbers disabled for chat)
+      rehypeKatex,
+      [rehypePrismPlus, { ignoreMissing: true, defaultLanguage: 'plaintext' }],
     ]}
     components={{
-      // Use custom CodeBlock component for rendering code elements
       code: CodeBlock,
-      // Customize other elements if needed, e.g., links to open in new tabs
-      a: ({ ...props }) => (
-        <a
-          {...props}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 dark:text-blue-400 hover:underline"
-        />
-      ),
+      p: (
+        props: React.PropsWithChildren<
+          JSX.IntrinsicElements['p'] & { node?: HastElement }
+        >,
+      ) => {
+        const { children } = props;
+        if (React.Children.count(children) === 1) {
+          const singleReactChild = React.Children.toArray(children)[0];
+          if (React.isValidElement(singleReactChild)) {
+            const childElement = singleReactChild as React.ReactElement<
+              { className?: string; [key: string]: unknown },
+              string | React.JSXElementConstructor<any>
+            >;
+            const elementType = childElement.type;
+            if (
+              elementType === 'pre' ||
+              (elementType === 'div' &&
+                (childElement.props.className?.includes('mermaid-container') ||
+                  childElement.props.className?.includes('code-block-wrapper')))
+            ) {
+              return <>{children}</>;
+            }
+          }
+        }
+        return <p {...props}>{children}</p>;
+      },
     }}
-    // Disallow potentially dangerous HTML
-    // rehypePlugins={[rehypeRaw]} // Use rehypeRaw carefully if you need to render raw HTML from the AI
   >
     {content}
   </ReactMarkdown>
 );
 
-// --- Export Component ---
-export default ChatInterface;
+// --- Copy Markdown Button Component ---
+const CopyMarkdownButton: React.FC<{ content: string }> = ({ content }) => {
+  const [copied, setCopied] = React.useState(false);
 
-// --- Add Tailwind CSS for scrollbar styling (optional, add to your global CSS or tailwind.config.js) ---
-/*
-@layer utilities {
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: theme('colors.gray.300') theme('colors.gray.100');
-  }
-  .dark .scrollbar-thin {
-    scrollbar-color: theme('colors.gray.600') theme('colors.gray.800');
-  }
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 8px;
-  }
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: theme('colors.gray.100');
-    border-radius: 4px;
-  }
-  .dark .scrollbar-thin::-webkit-scrollbar-track {
-    background: theme('colors.gray.800');
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: theme('colors.gray.300');
-    border-radius: 4px;
-    border: 2px solid theme('colors.gray.100');
-  }
-  .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: theme('colors.gray.600');
-    border: 2px solid theme('colors.gray.800');
-  }
-}
-*/
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      // Optionally, show an error toast/message to the user
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="absolute top-1 right-1 p-1.5 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      aria-label={copied ? 'Copied!' : 'Copy as Markdown'}
+      title={copied ? 'Copied!' : 'Copy as Markdown'}
+    >
+      {copied ? (
+        <ClipboardCheck className="w-3.5 h-3.5 text-green-500" />
+      ) : (
+        <Clipboard className="w-3.5 h-3.5" />
+      )}
+    </button>
+  );
+};
+
+// --- HTML Preview Modal Component ---
+const HtmlPreviewModal: React.FC<{
+  htmlContent: string;
+  triggerButton: React.ReactNode;
+}> = ({ htmlContent, triggerButton }) => {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>{triggerButton}</DialogTrigger>
+      <DialogContent className="sm:max-w-[80vw] h-[80vh] flex flex-col p-0">
+        <DialogHeader className="p-4 border-b">
+          <DialogTitle>HTML Preview</DialogTitle>
+        </DialogHeader>
+        <div className="flex-grow overflow-auto p-1">
+          <iframe
+            srcDoc={`
+              <html>
+                <head>
+                  <style>body { margin: 10px; font-family: sans-serif; } ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; } ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #555; }</style>
+                </head>
+                <body>${DOMPurify.sanitize(htmlContent)}</body>
+              </html>
+            `}
+            title="HTML Preview"
+            className="w-full h-full border-0"
+            sandbox="allow-scripts allow-same-origin" // Be cautious with allow-scripts if HTML is from untrusted sources
+          />
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};

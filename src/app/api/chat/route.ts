@@ -15,7 +15,15 @@ export async function POST(request: NextRequest) {
     }
 
     if (!process.env.GEMINI_API_KEY) {
-      throw new Error('Missing GEMINI_API_KEY environment variable');
+      console.error(
+        'Chat API Error: Missing GEMINI_API_KEY environment variable',
+      );
+      return NextResponse.json(
+        {
+          error: 'Chat service configuration error. API key is missing.',
+        },
+        { status: 500 },
+      );
     }
 
     body = await request.json();
@@ -28,49 +36,85 @@ export async function POST(request: NextRequest) {
     const portfolioContext = await import('@/data/chat-context.json');
 
     // Create a context-aware prompt that includes portfolio information
-    const contextPrompt = `You are an AI assistant for Wesley Quintero's portfolio website. You have access to the following information about Wesley:
+    const contextPrompt = `You are Wesley Quintero. Respond in the first person, using "I", "me", "my". You have access to the following information about yourself:
 
     Personal Information:
     - Name: ${portfolioContext.personalContext.personalInfo.name}
-    - Email: ${portfolioContext.personalContext.personalInfo.email}
+    - Email (Primary): ${portfolioContext.personalContext.personalInfo.email}
     - Location: ${portfolioContext.personalContext.personalInfo.location}
+    - Family: My brother is ${portfolioContext.personalContext.personalInfo.familyInfo.sibling}, my mother is ${portfolioContext.personalContext.personalInfo.familyInfo.mother}, and my father is ${portfolioContext.personalContext.personalInfo.familyInfo.father}. My girlfriend is ${portfolioContext.personalContext.personalInfo.familyInfo.girlfriend}.
     - Phone: ${portfolioContext.personalContext.personalInfo.phone}
     - Role: ${portfolioContext.personalContext.professionalProfile.title}
-    - Expertise: ${portfolioContext.personalContext.professionalProfile.description}
+    - Summary: ${portfolioContext.personalContext.professionalProfile.summary}
     - Core Competencies: ${portfolioContext.personalContext.professionalProfile.coreCompetencies.join(', ')}
     
     Technical Skills:
-    - Expert in: ${portfolioContext.personalContext.skills.technical.expert.join(', ')}
-    - Advanced in: ${portfolioContext.personalContext.skills.technical.advanced.join(', ')}
+    - Proficiencies: ${portfolioContext.personalContext.skills.technicalProficiencies?.join(', ') || 'Not specified'}
     - Soft Skills: ${portfolioContext.personalContext.skills.soft.join(', ')}
     
-    Amazon Expertise:
-    - Certifications: ${portfolioContext.personalContext.amazonExpertise.certifications.map((c) => c.name).join(', ')}
+    Amazon Web Services (AWS) Expertise:
+    - My Amazon Specific Certifications (Conceptual): ${portfolioContext.personalContext.amazonExpertise.certifications?.map((c) => c.name).join(', ') || 'Not specified'}
     - Areas: ${portfolioContext.personalContext.amazonExpertise.areasOfExpertise.join(', ')}
+    - Key Achievements: ${portfolioContext.personalContext.amazonExpertise.keyAchievements.join('; ')}
     
+    Work Experience:
+    ${portfolioContext.personalContext.workExperience
+      .map(
+        (exp) =>
+          `- ${exp.title} at ${exp.company} (${exp.period}): ${exp.description}. Achievements: ${exp.achievements.join(', ')}.`,
+      )
+      .join('\n    ')}
+
+    Education:
+    ${portfolioContext.personalContext.education
+      .map(
+        (edu) =>
+          `- ${edu.degree} from ${edu.institution} (${edu.period}). ${edu.description}`,
+      )
+      .join('\n    ')}
+
+    Certifications:
+    ${(portfolioContext.personalContext.certifications || [])
+      .map(
+        (cert) =>
+          `- ${cert.name} from ${cert.issuer} (Issued: ${cert.date}, Status: ${cert.status})`,
+      )
+      .join('\n    ')}
+
     Web App Information:
     - Project: ${portfolioContext.webappContext.projectOverview.name}
     - Description: ${portfolioContext.webappContext.projectOverview.description}
     
     Additional Resources:
-    - Blog: ${portfolioContext.personalContext.personalInfo.socialLinks.blog}
-    - Amazon Tools Blog: ${portfolioContext.personalContext.personalInfo.socialLinks.amazonToolsBlog}
-    - AI Implementation Blog: ${portfolioContext.personalContext.personalInfo.socialLinks.aiBlog}
-    - E-commerce Tips Blog: ${portfolioContext.personalContext.personalInfo.socialLinks.ecommerceBlog}
+    - Blog: ${portfolioContext.personalContext.personalInfo.socialLinks.blog.url} (Summary: ${portfolioContext.personalContext.personalInfo.socialLinks.blog.summary})
+    - Amazon Tools Blog: ${portfolioContext.personalContext.personalInfo.socialLinks.amazonToolsBlog.url} (Summary: ${portfolioContext.personalContext.personalInfo.socialLinks.amazonToolsBlog.summary})
+    - AI Implementation Blog: ${portfolioContext.personalContext.personalInfo.socialLinks.aiBlog.url} (Summary: ${portfolioContext.personalContext.personalInfo.socialLinks.aiBlog.summary})
+    - E-commerce Tips Blog: ${portfolioContext.personalContext.personalInfo.socialLinks.ecommerceBlog.url} (Summary: ${portfolioContext.personalContext.personalInfo.socialLinks.ecommerceBlog.summary})
 
-    Please provide accurate, personalized responses based on this information. For contact inquiries, share the appropriate contact details from the portfolio data.
-    
+    Development Setup:
+    - Hardware: ${portfolioContext.developmentSetup.hardware}
+    - Connectivity: ${portfolioContext.developmentSetup.connectivity}
+    - Audio/Video: ${portfolioContext.developmentSetup.audioVideo}
+    - Power Backup: ${portfolioContext.developmentSetup.powerBackup}
+    - Collaboration Tools: ${portfolioContext.developmentSetup.devToolsWorkflow.collaboration.join(', ')}
+    - Development Tools: ${portfolioContext.developmentSetup.devToolsWorkflow.development.join(', ')}
+
+    FAQs:
+    ${portfolioContext.faqs.map((faq) => `- Category: ${faq.category}, Question: ${faq.question}, Answer: ${faq.answer}`).join('\n')}
+
     Previous conversation context:
     ${history.map((msg: { role: string; content: string }) => `${msg.role}: ${msg.content}`).join('\n')}
+    
+    Please provide accurate, personalized responses based on this information about yourself. If someone asks for your contact details, share them. If asked about your family, you can briefly mention their names if you feel it's appropriate for the conversation, but keep it concise and professional.
     
     Current user message: ${message}`;
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-001',
+      model: 'gemini-1.5-flash-latest', // Using latest flash model
       generationConfig: {
         maxOutputTokens: 1000,
-        temperature: 0.7,
-        topP: 0.8,
+        temperature: 0.85, // Increased for more human-like, creative responses
+        topP: 0.9, // Slightly increased for more diversity
         topK: 40,
       },
     });

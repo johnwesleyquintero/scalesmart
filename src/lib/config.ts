@@ -11,3 +11,5 @@ export const siteConfig = {
     email: 'johnwesleyquintero@gmail.com',
   },
 };
+
+export const RETRY_LIMIT = 3;

@@ -2,7 +2,7 @@
 
 import dynamic from 'next/dynamic';
 
-const ChatInterface = dynamic(() => import('@/components/ui/chat-interface'), {
+const ChatInterface = dynamic(() => import('../ui/chat-interface'), {
   ssr: false,
 });
 
