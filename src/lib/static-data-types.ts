@@ -8,6 +8,7 @@ export interface StaticDataTypes {
   tools: Tool[];
   changelog: ChangelogEntry[];
   acos: AcosData[];
+  'prohibited-keywords': string[];
 }
 
 export interface AcosData {

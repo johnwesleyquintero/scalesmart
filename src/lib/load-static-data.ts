@@ -1,48 +1,120 @@
 import { generateSampleCsv } from './generate-sample-csv';
-import { StaticDataTypes } from './static-data-types';
+import {
+  BlogPost,
+  CaseStudy,
+  Experience,
+  Project,
+  StaticDataTypes,
+} from './static-data-types';
 
 // Ensure 'acos' is a valid key in StaticDataTypes
 
 export async function loadStaticData<T extends keyof StaticDataTypes>(
   file: T,
 ): Promise<StaticDataTypes[T]> {
-  function validateStaticData(data: unknown): data is StaticDataTypes[T] {
-    if (!Array.isArray(data)) return false;
-    return data.every((item) => {
-      const baseProps = 'id' in item && 'title' in item;
-      switch (file) {
-        case 'case-studies':
-          return baseProps && 'metrics' in item;
-        case 'blog':
-          return baseProps && 'content' in item;
-        default:
-          return baseProps;
-      }
-    });
-  }
   if (file === 'projects') {
-    return (await import('../data/portfolio-data/projects.json')).default
-      .projects as unknown as StaticDataTypes[T];
+    const projectsData = (await import('../data/portfolio-data/projects.json'))
+      .default.projects;
+    return projectsData.map((project, index) => {
+      const id = project.title.toLowerCase().replace(/ /g, '-') + '-' + index; // Generate a simple ID
+      const {
+        title,
+        description,
+        technologies,
+        image,
+        link,
+        github,
+        featured,
+      } = project;
+      const mappedProject: Project = {
+        id,
+        title,
+        description,
+        technologies: technologies || [],
+        image: image || undefined,
+        link: link || undefined,
+        github: github || undefined,
+        featured: featured || false,
+      };
+      return mappedProject;
+    }) as StaticDataTypes[T];
   }
   if (file === 'blog') {
     const data = await import('../data/portfolio-data/blog.json');
-    return data.default.posts.map((post) => ({
-      ...post,
-      content: post.content || '',
-      relatedPosts: post.relatedPosts || [],
-    })) as unknown as StaticDataTypes[T];
+    return data.default.posts.map((post) => {
+      const {
+        id,
+        slug,
+        title,
+        description,
+        date,
+        image,
+        tags,
+        readingTime,
+        author,
+        content,
+        relatedPosts,
+      } = post;
+      const mappedPost: BlogPost = {
+        id,
+        slug,
+        title,
+        description,
+        date,
+        image: image || undefined,
+        tags,
+        readingTime: readingTime || undefined,
+        author: author || undefined,
+        content: content || '',
+        relatedPosts: relatedPosts || [],
+      };
+      return mappedPost;
+    }) as StaticDataTypes[T];
   }
   if (file === 'case-studies') {
     const data = await import('../data/portfolio-data/case-studies.json');
-    return data.default.studies as unknown as StaticDataTypes[T];
+    return data.default.studies.map((study) => {
+      const { id, title, description, metrics, competitorData, date, tags } =
+        study;
+      const mappedStudy: CaseStudy = {
+        id,
+        title,
+        description,
+        metrics: metrics.map((metric) => ({
+          ...metric,
+          trend:
+            metric.trend === 'up'
+              ? 'up'
+              : metric.trend === 'down'
+                ? 'down'
+                : 'neutral',
+        })),
+        competitorData,
+        date,
+        tags,
+      };
+      return mappedStudy;
+    }) as StaticDataTypes[T];
   }
   if (file === 'changelog') {
     return (await import('../data/portfolio-data/changelog.json')).default
       .changes as StaticDataTypes[T];
   }
   if (file === 'experience') {
-    return (await import('../data/portfolio-data/experience.json')).default
-      .experience as StaticDataTypes[T];
+    return (
+      await import('../data/portfolio-data/experience.json')
+    ).default.experience.map((exp) => {
+      const { title, company, period, description, achievements } = exp;
+      const mappedExperience: Experience = {
+        company,
+        position: title,
+        startDate: period.split(' - ')[0],
+        endDate: period.split(' - ')[1] || 'Present',
+        description: Array.isArray(description) ? description : [description],
+        technologies: achievements,
+      };
+      return mappedExperience;
+    }) as StaticDataTypes[T];
   }
   if (file === 'tools') {
     return (await import('../data/portfolio-data/tools.json')).default
@@ -69,10 +141,30 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
       };
     });
 
-    if (!validateStaticData(data)) {
-      throw new Error(`Invalid ACOS data structure for ${file}`);
-    }
     return data as StaticDataTypes[T];
+  }
+
+  if (file === 'prohibited-keywords') {
+    const generalData = (
+      await import('../data/prohibited-keywords/general/general.json')
+    ).default.keywords as string[];
+    const legalData = (
+      await import('../data/prohibited-keywords/legal/legal.json')
+    ).default.keywords as string[];
+    const safetyData = (
+      await import('../data/prohibited-keywords/safety/safety.json')
+    ).default.keywords as string[];
+    const contentData = (
+      await import('../data/prohibited-keywords/content/content.json')
+    ).default.keywords as string[];
+
+    const allKeywords = new Set([
+      ...generalData,
+      ...legalData,
+      ...safetyData,
+      ...contentData,
+    ]);
+    return Array.from(allKeywords) as StaticDataTypes[T];
   }
 
   throw new Error(`Invalid file type: ${file}`);

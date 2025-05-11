@@ -39,4 +39,8 @@ const handler = NextAuth({
   },
 });
 
+import { loadStaticData } from '@/lib/load-static-data';
+
+loadStaticData('prohibited-keywords');
+
 export { handler as GET, handler as POST };

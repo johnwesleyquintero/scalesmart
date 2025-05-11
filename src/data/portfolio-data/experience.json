@@ -1,3 +1,70 @@
 {
-  "experience": []
+  "experience": [
+    {
+      "title": "Founder | Developer",
+      "company": "ScaleSmart",
+      "period": "Jan 2025 - Present",
+      "description": "All-in-One Amazon Seller Platform | Personal x Professional Portfolio",
+      "achievements": [
+        "Developed AI-powered tools for Amazon sellers",
+        "Created data visualization dashboards for seller insights",
+        "Automated listing optimization and inventory management"
+      ]
+    },
+    {
+      "title": "Amazon Specialist 2",
+      "company": "My Amazon Guy",
+      "period": "Oct 2024 - Mar 2025",
+      "description": "Skills: Data Visualization, Amazon SEO",
+      "achievements": [
+        "Implemented data visualization solutions for client reporting",
+        "Optimized Amazon SEO strategies for multiple clients",
+        "Increased client sales by an average of 35% through strategic optimizations"
+      ]
+    },
+    {
+      "title": "Item Specialist",
+      "company": "Bulk Buy America",
+      "period": "Mar 2024 - Sep 2024",
+      "description": "Remote US • Skills: VLOOKUP, Price Checker",
+      "achievements": [
+        "Utilized VLOOKUP and advanced Excel functions for inventory management",
+        "Developed custom price checker tools to optimize competitive pricing",
+        "Streamlined inventory processes resulting in 25% efficiency improvement"
+      ]
+    },
+    {
+      "title": "Marketplace Support",
+      "company": "Adorama",
+      "period": "May 2023 - Sep 2023",
+      "description": "Skills: B2B, Management",
+      "achievements": [
+        "Managed client relationships and marketplace integrations",
+        "Implemented efficient management processes",
+        "Provided technical support for marketplace operations"
+      ]
+    },
+    {
+      "title": "Amazon Account Manager",
+      "company": "Champion E-com LLC",
+      "period": "Oct 2022 - Sep 2023",
+      "description": "Skills: B2B, Management",
+      "achievements": [
+        "Oversaw account health and performance metrics",
+        "Developed management strategies for multiple clients",
+        "Implemented best practices for Amazon marketplace success"
+      ]
+    },
+    {
+      "title": "Amazon Wholesale Buyer",
+      "company": "Sales.support",
+      "period": "Oct 2018 - Jul 2022",
+      "description": "Skills: B2B, Management",
+      "achievements": [
+        "Identified profitable wholesale opportunities",
+        "Negotiated with suppliers for optimal pricing",
+        "Implemented inventory management systems"
+      ]
+    }
+  ]
 }

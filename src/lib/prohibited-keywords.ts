@@ -1,16 +1,27 @@
-import {} from './models/prohibited-keywords';
+import { loadStaticData } from './load-static-data';
+
+let prohibitedKeywords: string[] = [];
+
+async function initialize() {
+  prohibitedKeywords = (await loadStaticData(
+    'prohibited-keywords',
+  )) as string[];
+}
+
+initialize();
 
 export async function getAll(): Promise<string[]> {
-  console.log('getAll called');
-  return [];
+  return prohibitedKeywords;
+}
+
+export function isProhibited(keyword: string): boolean {
+  return prohibitedKeywords.includes(keyword.toLowerCase());
 }
 
 export async function add(): Promise<void> {}
 
-// Consider renaming this export for clarity if 'getAll' is the primary function used elsewhere
 export const ProhibitedKeywords = {
   getAll,
   add,
-  // Optional: Keep getKeywords if it's used elsewhere, but it's redundant with getAll
-  // getKeywords: getAll,
+  isProhibited,
 };

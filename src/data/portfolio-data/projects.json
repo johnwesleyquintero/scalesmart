@@ -7,7 +7,11 @@
       "deliverable": "Web Application",
       "impact": "Helped over 1000+ sellers improve their Amazon business metrics",
       "image": "/images/projects/sellsmart-hub.svg",
-      "docs": "/images/projects/sellsmart-docs.svg"
+      "docs": "/images/projects/sellsmart-docs.svg",
+      "technologies": [],
+      "link": null,
+      "github": null,
+      "featured": false
     },
     {
       "title": "DevFlowDB",
@@ -15,7 +19,11 @@
       "focus": "Developer Tools",
       "deliverable": "Desktop Application",
       "impact": "Reduced database management time by 40%",
-      "image": "/images/projects/devflowdb-preview.svg"
+      "image": "/images/projects/devflowdb-preview.svg",
+      "technologies": [],
+      "link": null,
+      "github": null,
+      "featured": false
     },
     {
       "title": "FBA Department Operations",
@@ -23,7 +31,11 @@
       "focus": "Operations Management",
       "deliverable": "Web Platform",
       "impact": "Improved fulfillment efficiency by 60%",
-      "image": "/images/projects/FBADepartmentOperations.png"
+      "image": "/images/projects/FBADepartmentOperations.png",
+      "technologies": [],
+      "link": null,
+      "github": null,
+      "featured": false
     },
     {
       "title": "Inventory Management System",
@@ -31,7 +43,11 @@
       "focus": "Supply Chain Management",
       "deliverable": "Cloud Solution",
       "impact": "Reduced stockouts by 85%",
-      "image": "/images/projects/InventoryManagementSystem.png"
+      "image": "/images/projects/InventoryManagementSystem.png",
+      "technologies": [],
+      "link": null,
+      "github": null,
+      "featured": false
     },
     {
       "title": "Wholesale Buyer's Guide",
@@ -39,7 +55,11 @@
       "focus": "Business Intelligence",
       "deliverable": "Web Application",
       "impact": "Increased profit margins by 25%",
-      "image": "/images/projects/WholesaleBuyer.png"
+      "image": "/images/projects/WholesaleBuyer.png",
+      "technologies": [],
+      "link": null,
+      "github": null,
+      "featured": false
     }
   ]
 }
