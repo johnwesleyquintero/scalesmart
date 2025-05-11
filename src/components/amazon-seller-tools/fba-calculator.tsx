@@ -53,41 +53,6 @@ type CsvInputRow = {
 import { logger } from '@/lib/logger';
 
 /**
- * Formats a number for display, handling edge cases
- * @param value The number to format
- * @param decimals Number of decimal places (default 2)
- * @returns Formatted string representation
- */
-const formatNumber = (value: number, decimals: number = 2): string => {
-  try {
-    if (!isFinite(value)) {
-      logger.warn('Non-finite value encountered in formatNumber', { value });
-      if (value > 0) return '∞';
-      if (value < 0) return '-∞';
-      return '0';
-    }
-
-    if (decimals < 0) {
-      logger.warn('Invalid decimals value in formatNumber', { decimals });
-      decimals = 2; // Reset to default
-    }
-
-    const absValue = Math.abs(value);
-    if (absValue >= 1e9) return `${(value / 1e9).toFixed(decimals)}B`;
-    if (absValue >= 1e6) return `${(value / 1e6).toFixed(decimals)}M`;
-    if (absValue >= 1e3) return `${(value / 1e3).toFixed(decimals)}K`;
-    return value.toFixed(decimals);
-  } catch (error) {
-    logger.error('Error in formatNumber', {
-      value,
-      decimals,
-      error: error instanceof Error ? error.message : 'Unknown error',
-    });
-    return '0';
-  }
-};
-
-/**
  * Calculates FBA metrics with improved error handling and validation
  */
 const calculateRoi = (profit: number, cost: number): number => {
@@ -394,12 +359,6 @@ export default function FbaCalculator() {
     });
   }, [toast]); // Added dependency
 
-  const getMarginColorClass = (margin: number): string => {
-    if (margin > 0) return 'text-green-600 dark:text-green-400';
-    if (margin < 0) return 'text-red-600 dark:text-red-400';
-    return 'text-yellow-600 dark:text-yellow-400';
-  };
-
   // --- Render ---
   return (
     <div className="space-y-6">
@@ -470,7 +429,6 @@ export default function FbaCalculator() {
         {/* Manual Entry Card */}
         <DataCard>
           <CardContent className="p-6">
-            {' '}
             {/* Explicit CardContent for padding control */}
             <h3 className="text-lg font-medium mb-4 text-center sm:text-left">
               Manual Calculation
@@ -552,7 +510,7 @@ export default function FbaCalculator() {
       {/* Loading Indicator */}
       {isLoading && (
         <div className="space-y-2 py-4 text-center">
-          <Progress value={undefined} className="h-2 w-1/2 mx-auto" />{' '}
+          <Progress value={undefined} className="h-2 w-1/2 mx-auto" />
           {/* Indeterminate */}
           <p className="text-sm text-muted-foreground">Processing data...</p>
         </div>
@@ -562,7 +520,6 @@ export default function FbaCalculator() {
       {results.length > 0 && !isLoading && (
         <DataCard>
           <CardContent className="p-0">
-            {' '}
             {/* Remove default padding for table */}
             <h3 className="text-lg font-semibold p-4 border-b">
               Calculation Results ({results.length} Products)
@@ -610,55 +567,42 @@ export default function FbaCalculator() {
                       ? `${item.margin.toFixed(2)}%`
                       : '∞';
 
+                    const px4py3 = 'px-4 py-3';
+
                     return (
                       <TableRow
                         key={`${item.product}-${index}`}
                         className="border-b last:border-b-0 hover:bg-muted/30 transition-colors"
                       >
-                        <TableCell className="px-4 py-3 font-medium">
+                        <TableCell className={`${px4py3} font-medium`}>
                           {item.product}
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-right">
+                        <TableCell className={`${px4py3} text-right`}>
                           {item.cost.toFixed(2)}
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-right">
+                        <TableCell className={`${px4py3} text-right`}>
                           {item.price.toFixed(2)}
                         </TableCell>
-                        <TableCell className="px-4 py-3 text-right">
+                        <TableCell className={`${px4py3} text-right`}>
                           {item.fees.toFixed(2)}
                         </TableCell>
                         <TableCell
-                          className={`px-4 py-3 text-right font-semibold ${profitColorClass}`}
+                          className={`${px4py3} text-right ${profitColorClass}`}
                         >
                           {item.profit.toFixed(2)}
                         </TableCell>
-                        <TableCell
-                          className={`px-4 py-3 text-right ${item.roi < 0 ? 'text-red-500' : 'text-green-500'}`}
-                        >
+                        <TableCell className={`${px4py3} text-right`}>
                           {roiDisplay}
                         </TableCell>
-                        <TableCell
-                          className={`px-4 py-3 text-right ${item.margin < 0 ? 'text-red-500' : 'text-green-500'}`}
-                        >
+                        <TableCell className={`${px4py3} text-right`}>
                           {marginDisplay}
                         </TableCell>
-                        <TableCell className="px-4 py-3">
-                          <div className="w-full min-w-[100px]">
-                            {' '}
-                            {/* Ensure progress bar has some width */}
-                            <Progress
-                              value={Math.max(
-                                0,
-                                Math.min(
-                                  isFinite(item.margin) ? item.margin : 0,
-                                  100,
-                                ),
-                              )}
-                              className="h-2"
-                              // Optional: Add color based on value
-                              // indicatorClassName={progressValue < 10 ? 'bg-red-500' : progressValue < 25 ? 'bg-yellow-500' : 'bg-green-500'}
-                            />
-                          </div>
+                        <TableCell className={`${px4py3} text-center`}>
+                          {item.margin > 20
+                            ? 'High'
+                            : item.margin > 10
+                              ? 'Medium'
+                              : 'Low'}
                         </TableCell>
                       </TableRow>
                     );
