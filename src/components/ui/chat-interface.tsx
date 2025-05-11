@@ -33,7 +33,7 @@ import {
 } from 'lucide-react';
 
 // --- Interfaces ---
-interface Message {
+export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number; // Unique identifier for the message
@@ -98,14 +98,14 @@ const removeMessageFromState = (
 };
 
 // --- Reducer ---
-const initialState: ChatState = {
+export const initialState: ChatState = {
   messages: [],
   input: '',
   isLoading: false,
   isChatOpen: false,
 };
 
-function chatReducer(state: ChatState, action: ChatAction): ChatState {
+export function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
     case 'SET_MESSAGES':
       return { ...state, messages: action.payload };
@@ -337,7 +337,7 @@ export default function ChatInterface() {
           };
           dispatch({ type: 'ADD_MESSAGE', payload: assistantErrorMessage });
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to send/process message:', error);
         // --- Retry Mechanism with Exponential Backoff ---
         const retryCount = currentRetryCount + 1;
@@ -713,7 +713,7 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   className,
   children,
   ...props
-}) => {
+}: CodeBlockProps) => {
   const match = /language-(\w+)/.exec(className || '');
   const language = match?.[1];
   const codeContent = String(children).replace(/\n$/, '');
