@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-dead-store */
-/* eslint-disable sonarjs/no-unused-vars */
 'use client';
 
 import {
@@ -52,19 +50,19 @@ export default function ProductScoreCalculator() {
   const [score, setScore] = useState<ProductScore | undefined>(undefined);
 
   // Explicitly type the event as ChangeEvent<HTMLInputElement>
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { id, value, type } = e.target;
-    setFormData({
-      ...formData,
-      [id]: type === 'number' ? parseFloat(value) || 0 : value,
-    });
-  };
+  // const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //   const { id, value, type } = e.target;
+  //   setFormData({
+  //     ...formData,
+  //     [id]: type === 'number' ? parseFloat(value) || 0 : value,
+  //   });
+  // };
 
   // Explicitly type the event as ChangeEvent<HTMLTextAreaElement>
-  const handleTextAreaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    setFormData({ ...formData, [id]: value });
-  };
+  // const handleTextAreaChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
+  //   const { id, value } = e.target;
+  //   setFormData({ ...formData, [id]: value });
+  // };
 
   const handleBulletPointChange = (index: number, value: string) => {
     const newBulletPoints = [...formData.bulletPoints];

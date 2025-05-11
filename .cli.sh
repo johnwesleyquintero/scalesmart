@@ -11,7 +11,7 @@ LOG_PATTERNS=("*.cli.log" "*.tmp" "*.temp" "*.bak" "*.cache")
 REQUIRED_PROJECT_FILES=("package.json" "tsconfig.json" "next.config.js")
 GENERATED_COMMIT_MESSAGE="" # For sharing commit message between functions
 CONFIG_FILE=""
-TRACKER_FILE="c:\Users\johnw\portfolio\project_tracker.log"
+TRACKER_FILE="c:\Users\johnw\portfolio\.cli_project_tracker.log"
 
 # --- ANSI Colors ---
 ANSI_Reset='\e[0m'
@@ -572,14 +572,16 @@ main() {
                     exit 1
                 fi
                 # Cleanup temporary log
-                rm -f .cli.log
+                # Do not delete .cli.log
             } ;;
             2|"t") {
+                # Overwrite .cli.log
                 log_info "Running tests..."
                 # Logging now goes to centralized log file
                 local test_command="npm test"
                 log_info "Running npm test"
-                if $test_command 2>&1 | tee .cli.log; then
+                echo "$(date +'%Y-%m-%d %H:%M:%S') - Running command: $test_command" > .cli.log
+                if $test_command  2>&1 | tee -a .cli.log; then
                     local npm_test_exit_code=$?
                     log_info "npm test completed with exit code: $npm_test_exit_code"
                     log_info "Tests completed successfully."
@@ -601,9 +603,9 @@ main() {
                     echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} npm test completed with errors. Check .cli.log for details."
                 fi
                 log_info "Tests completed. Check .cli.log for details."
-                rm -f .cli.log
+                # Do not delete .cli.log
             } ;;
-            3|"b") npm run build ;;
+            3|"b") { npm run build ;} ;;
             4|"x") clean_artifacts ;;
             5|"s") npm list ;;
             6|"d") npm run dev ;;
@@ -615,7 +617,9 @@ main() {
                 local check_command="npm run check"
                 log_info "Running npm run check"
                 echo "[${timestamp}] Running: $check_command" >> "$LOG_FILE"
-                if $check_command 2>&1 | tee .cli.log; then
+                local check_command_log="npm run check"
+                echo "$(date +'%Y-%m-%d %H:%M:%S') - Running command: $check_command_log" > .cli.log
+                if $check_command  2>&1 | tee -a .cli.log; then
                     local npm_check_exit_code=$?
                     log_info "npm run check completed with exit code: $npm_check_exit_code"
                     log_info "Code checks completed successfully."
@@ -637,9 +641,9 @@ main() {
                     echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} npm run check completed with errors. Check .cli.log for details."
                 fi
                 log_info "Code checks completed. Check .cli.log for details."
-                rm -f .cli.log
+                # Do not delete .cli.log
             } ;;
-            8|"a") npm audit;;
+            8|"a") { npm audit ;} ;;
             9|"l") cat "$LOG_FILE" ;;
             10|"q") exit 0 ;;
             11|"u") { # Project Tracker

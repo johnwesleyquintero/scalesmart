@@ -15,14 +15,6 @@ declare module '@upstash/ratelimit' {
   }
 
   export class Ratelimit {
-    static slidingWindow(
-      _: number,
-      _: string,
-    ): {
-      slidingWindow: (requests: number, window: string) => SlidingWindowOptions;
-    } {
-      throw new Error('Method not implemented.');
-    }
     constructor(options: {
       redis: Redis;
       limiter: {

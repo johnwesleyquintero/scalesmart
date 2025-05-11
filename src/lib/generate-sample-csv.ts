@@ -11,7 +11,7 @@ interface DataTypeConfig {
     max?: number;
     decimals?: number;
     values?: string[];
-    format?: 'ISO' | 'Locale'; // Refined date format options
+    // format?: 'ISO' | 'Locale'; // Refined date format options
     prefix?: string;
     suffix?: string;
     length?: number; // For string/asin
@@ -56,8 +56,7 @@ const dataGenerators = {
     return Number(num.toFixed(decimals));
   },
 
-  date: (config: DataTypeConfig['options'] = {}) => {
-    const { format = 'ISO' } = config;
+  date: () => {
     // Security: Appropriate for non-cryptographic use
     const randomBuffer = new Uint32Array(1);
     window.crypto.getRandomValues(randomBuffer); // Browser-specific crypto

@@ -35,7 +35,6 @@ interface MessageBubbleProps {
 }
 
 export interface CodeBlockProps {
-  node?: any;
   inline?: boolean;
   className?: string;
   children: React.ReactNode;
@@ -627,7 +626,7 @@ const renderMessage = (content: string) => (
       // Use custom CodeBlock component for rendering code elements
       code: CodeBlock as any, // Cast needed due to complex type inference
       // Customize other elements if needed, e.g., links to open in new tabs
-      a: ({ node, ...props }) => (
+      a: ({ ...props }) => (
         <a
           {...props}
           target="_blank"
