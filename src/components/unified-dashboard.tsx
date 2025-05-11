@@ -1,4 +1,4 @@
-// src/components/amazon-seller-tools/unified-dashboard.tsx
+// src/components/unified-dashboard.tsx
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -24,20 +24,20 @@ import { UnifiedDashboardHeader } from './UnifiedDashboardHeader';
 // Tool Components
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Loader2 } from 'lucide-react';
-import CsvDataMapper from './CsvDataMapper'; // <--- IMPORT CsvDataMapper
-import AcosCalculator from './acos-calculator';
-import { CompetitorAnalyzer } from './competitor-analyzer';
-import DescriptionEditor from './description-editor';
-import FbaCalculator from './fba-calculator';
-import KeywordAnalyzer from './keyword-analyzer';
-import KeywordDeduplicator from './keyword-deduplicator';
-import KeywordTrendAnalyzer from './keyword-trend-analyzer';
-import ListingQualityChecker from './listing-quality-checker';
-import OptimalPriceCalculator from './optimal-price-calculator';
-import PpcCampaignAuditor from './ppc-campaign-auditor';
-import ProductScoreCalculator from './product-score-calculator';
-import ProfitMarginCalculator from './profit-margin-calculator';
-import SalesEstimator from './sales-estimator';
+import CsvDataMapper from './amazon-seller-tools/CsvDataMapper'; // <--- IMPORT CsvDataMapper
+import AcosCalculator from './amazon-seller-tools/acos-calculator';
+import { CompetitorAnalyzer } from './amazon-seller-tools/competitor-analyzer';
+import DescriptionEditor from './amazon-seller-tools/description-editor';
+import FbaCalculator from './amazon-seller-tools/fba-calculator';
+import KeywordAnalyzer from './amazon-seller-tools/keyword-analyzer';
+import KeywordDeduplicator from './amazon-seller-tools/keyword-deduplicator';
+import KeywordTrendAnalyzer from './amazon-seller-tools/keyword-trend-analyzer';
+import ListingQualityChecker from './amazon-seller-tools/listing-quality-checker';
+import OptimalPriceCalculator from './amazon-seller-tools/optimal-price-calculator';
+import PpcCampaignAuditor from './amazon-seller-tools/ppc-campaign-auditor';
+import ProductScoreCalculator from './amazon-seller-tools/product-score-calculator';
+import ProfitMarginCalculator from './amazon-seller-tools/profit-margin-calculator';
+import SalesEstimator from './amazon-seller-tools/sales-estimator';
 
 // --- Interface ---
 // Define DashboardMetrics interface ONCE

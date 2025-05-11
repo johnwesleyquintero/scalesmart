@@ -10,6 +10,8 @@ export interface Experience {
   period: string;
   description: string;
   achievements: string[];
+  startDate: string | null;
+  endDate: string | null;
 }
 
 export interface Education {

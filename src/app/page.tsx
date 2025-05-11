@@ -17,7 +17,7 @@ const HeroSection = dynamic(() => import('@/components/hero-section'), {
 });
 
 const UnifiedDashboard = dynamic(
-  () => import('@/components/amazon-seller-tools/unified-dashboard'),
+  () => import('@/components/unified-dashboard'),
   { ssr: true },
 );
 

@@ -1,14 +1,30 @@
 'use client';
 
+import Logo from '@/components/Logo'; // Added import for your Logo component
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
 import { FileText, Loader2, Menu, Moon, Sun, X } from 'lucide-react';
 import { signIn, signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+
+const SITE_TITLE = 'Wesley Quintero';
+const COMMON_BUTTON_CLASSES =
+  'text-sm font-medium transition-all duration-300 hover:text-primary';
+
+// Define a more structured NavItem interface
+interface NavItem {
+  name: string;
+  href?: string; // Optional if it's an action like onClick
+  external?: boolean;
+  className?: string;
+  onClick?: () => void;
+  auth?: 'loggedIn' | 'loggedOut' | 'always'; // Controls visibility based on auth state
+  hideOnMobile?: boolean;
+  children?: NavItem[];
+}
 
 export default function Header() {
   const { data: session } = useSession();
@@ -111,23 +127,51 @@ export default function Header() {
     }
   };
 
-  const navItems = [
-    { name: 'Home', href: '#hero' },
-    { name: 'Projects', href: '#projects' },
-    { name: 'Tools', href: '#tools' },
-    { name: 'About', href: '#about' },
-    { name: 'Certifications', href: '#certifications' },
-    { name: 'Blog', href: '#blog' },
-    { name: 'Contact', href: '#contact' },
+  // Consolidate navItems, including auth actions
+  const navItems: NavItem[] = [
+    { name: 'Home', href: '#hero', auth: 'always' },
     {
-      name: 'Platform',
-      href: 'https://amzsync.vercel.app/',
-      external: true,
+      name: 'Projects',
+      href: '#projects',
+      auth: 'always',
+      children: [
+        { name: 'Tools', href: '#tools', auth: 'always' },
+        {
+          name: 'Platform',
+          href: 'https://amzsync.vercel.app/',
+          external: true,
+          auth: 'always',
+        },
+      ],
     },
     {
-      name: 'Resume',
-      href: 'https://johnwesleyquintero-resume.netlify.app/',
-      external: true,
+      name: 'About',
+      auth: 'always',
+      children: [
+        { name: 'About', href: '#about', auth: 'always' },
+        { name: 'Certifications', href: '#certifications', auth: 'always' },
+        {
+          name: 'Resume',
+          href: 'https://johnwesleyquintero-resume.netlify.app/',
+          auth: 'always',
+        },
+      ],
+    },
+    { name: 'Blog', href: '#blog', auth: 'always' },
+    { name: 'Contact', href: '#contact', auth: 'always' },
+
+    {
+      name: 'Sign In',
+      onClick: () => signIn(),
+      auth: 'loggedOut',
+      className: COMMON_BUTTON_CLASSES,
+    },
+    {
+      name: 'Sign Out',
+      onClick: () => signOut(),
+      auth: 'loggedIn',
+      className:
+        'text-sm font-medium transition-all duration-300 hover:text-primary',
     },
   ];
 
@@ -135,50 +179,88 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/favicon.svg" alt="Site Logo" width={32} height={32} />
-            <span className="text-xl font-bold">Wesley Quintero</span>
+          <Link
+            href="/"
+            className="flex items-center gap-2"
+            aria-label="Homepage"
+          >
+            {/* Replaced Image with your Logo component */}
+            {/* Using h-8 w-8 for a size similar to the previous 32x32px */}
+            <Logo className="h-8 w-8" title={`${SITE_TITLE} Site Logo`} />
+            <span className="text-2xl font-semibold">{SITE_TITLE}</span>
           </Link>
 
           <nav className="hidden md:flex md:gap-6 items-center">
-            {navItems.map((item) =>
-              item.external ? (
-                <a
-                  key={item.href}
-                  href={item.href}
-                  className="text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  {item.name}
-                </a>
-              ) : (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
-                >
-                  {item.name}
-                </Link>
-              ),
-            )}
-            {session ? (
-              <Button
-                variant="ghost"
-                onClick={() => signOut()}
-                className="text-sm font-medium transition-all duration-300 hover:text-primary"
-              >
-                Sign Out
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                onClick={() => signIn()}
-                className="text-sm font-medium transition-all duration-300 hover:text-primary"
-              >
-                Sign In
-              </Button>
-            )}
+            {navItems
+              .filter((item) => {
+                if (item.auth === 'loggedIn' && !session) return false;
+                if (item.auth === 'loggedOut' && session) return false;
+                return true;
+              })
+              .map((item) => {
+                if (item.children) {
+                  return (
+                    <div key={item.name} className="relative group">
+                      <button className="text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 group-hover:after:w-full">
+                        {item.name}
+                      </button>
+                      <div className="absolute hidden group-hover:block top-full left-0 mt-2 py-2 w-48 bg-white border rounded-md shadow-md z-10">
+                        {item.children.map((child) => (
+                          <Link
+                            key={child.name}
+                            href={child.href || '/'}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            {child.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                }
+
+                const commonClasses = cn(
+                  'text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full',
+                  item.className,
+                );
+
+                if (item.onClick) {
+                  return (
+                    <Button
+                      key={item.name}
+                      variant="ghost"
+                      onClick={item.onClick}
+                      className={cn(COMMON_BUTTON_CLASSES, item.className)}
+                    >
+                      {item.name}
+                    </Button>
+                  );
+                }
+
+                if (item.external) {
+                  return (
+                    <a
+                      key={item.name}
+                      href={item.href}
+                      className={commonClasses}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {item.name}
+                    </a>
+                  );
+                }
+
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href || '/'}
+                    className={commonClasses}
+                  >
+                    {item.name}
+                  </Link>
+                );
+              })}
           </nav>
 
           <div className="flex items-center gap-2">
@@ -336,33 +418,86 @@ export default function Header() {
           {isMenuOpen && (
             <div className="absolute left-0 right-0 top-16 z-50 border-b bg-background/95 backdrop-blur-sm p-4 md:hidden animate-fadeIn">
               <nav className="flex flex-col space-y-4">
-                {navItems.map((item) =>
-                  item.external ? (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      className="text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                      }}
-                    >
-                      {item.name}
-                    </a>
-                  ) : (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      className="text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
-                      onClick={() => {
-                        setIsMenuOpen(false);
-                      }}
-                    >
-                      {item.name}
-                    </Link>
-                  ),
-                )}
+                {navItems
+                  .filter((item) => {
+                    if (item.auth === 'loggedIn' && !session) return false;
+                    if (item.auth === 'loggedOut' && session) return false;
+                    return !item.hideOnMobile;
+                  })
+                  .map((item) => {
+                    if (item.children) {
+                      return (
+                        <div key={item.name}>
+                          <button
+                            className="block px-3 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md w-full text-left"
+                            onClick={() => setIsMenuOpen(false)}
+                          >
+                            {item.name}
+                          </button>
+                          {item.children.map((child) => (
+                            <Link
+                              key={child.name}
+                              href={child.href || '/'}
+                              className="block px-6 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md"
+                              onClick={() => setIsMenuOpen(false)}
+                            >
+                              {child.name}
+                            </Link>
+                          ))}
+                        </div>
+                      );
+                    }
+
+                    const mobileItemClasses = cn(
+                      'block px-3 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md',
+                      item.className,
+                    );
+
+                    if (item.onClick) {
+                      return (
+                        <Button
+                          key={item.name}
+                          variant="ghost"
+                          onClick={() => {
+                            item.onClick?.();
+                            setIsMenuOpen(false);
+                          }}
+                          className={cn(
+                            mobileItemClasses,
+                            'w-full text-left justify-start',
+                          )}
+                        >
+                          {item.name}
+                        </Button>
+                      );
+                    }
+
+                    if (item.external) {
+                      return (
+                        <a
+                          key={item.name}
+                          href={item.href}
+                          className={mobileItemClasses}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          {item.name}
+                        </a>
+                      );
+                    }
+
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href || '/'}
+                        className={mobileItemClasses}
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    );
+                  })}
               </nav>
             </div>
           )}

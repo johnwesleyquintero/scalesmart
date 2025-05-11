@@ -92,3 +92,66 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  .search-container {
+    width: 100%; /* Make the search container full width */
+  }
+
+  .search-container input {
+    width: 100%; /* Make the input full width */
+    max-width: 200px; /* Limit the maximum width of the input */
+    font-size: 14px; /* Reduce the font size */
+  }
+
+  .search-container kbd {
+    display: none !important; /* Hide the keyboard shortcut */
+  }
+
+  .md\:hidden {
+    display: flex !important; /* Show the menu button on smaller screens */
+  }
+
+  .md\:grid-cols-2 {
+    grid-template-columns: 1fr; /* Stack the columns vertically */
+  }
+
+  .text-4xl {
+    font-size: 2.5rem; /* Reduce the font size */
+  }
+
+  .text-xl {
+    font-size: 1.2rem; /* Reduce the font size */
+  }
+
+  .space-y-8 {
+    space-y: 1.5rem; /* Reduce the spacing */
+  }
+
+  .container {
+    padding-left: 1rem; /* Reduce the padding */
+    padding-right: 1rem; /* Reduce the padding */
+  }
+
+  .lg\:grid-cols-3 {
+    grid-template-columns: 1fr; /* One column on smaller screens */
+  }
+
+  .md\:grid-cols-2 {
+    grid-template-columns: 1fr; /* One column on smaller screens */
+  }
+
+  .md\:grid-cols-3 {
+    grid-template-columns: 1fr; /* One column on smaller screens */
+  }
+
+  .md\:grid-cols-2 {
+    grid-template-columns: 1fr; /* One column on smaller screens */
+  }
+  /* Add more mobile-specific styles here */
+}

@@ -23,7 +23,7 @@ interface Project {
   deliverable: string;
   impact: string;
   image: string;
-  github?: string;
+  github?: string | null;
   demo?: string;
 }
 
@@ -47,7 +47,7 @@ export default function ProjectsSection() {
       </div>
 
       <div className="mx-auto max-w-5xl">
-        <div className="mb-12">
+        <div className="mb-12 text-center">
           <Badge variant="secondary" className="mb-4">
             Featured Work
           </Badge>
@@ -78,7 +78,7 @@ export default function ProjectsSection() {
                     />
                   </div>
                   <CardHeader>
-                    <CardTitle className="text-xl font-bold">
+                    <CardTitle className="text-xl font-bold text-center">
                       {project.title}
                     </CardTitle>
                     <CardDescription className="text-sm text-muted-foreground">

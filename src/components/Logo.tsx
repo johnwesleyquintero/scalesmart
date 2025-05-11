@@ -1,22 +1,14 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { HTMLAttributes, useCallback, useId, useState } from 'react';
+import { HTMLAttributes, useCallback, useState } from 'react';
 import styles from './logo.module.css';
 
 interface LogoProps extends HTMLAttributes<SVGElement> {
   className?: string;
-  title?: string;
 }
 
-export default function Logo({
-  className,
-  title = 'Wesley Quintero Logo',
-  ...props
-}: Readonly<LogoProps>) {
-  const uid = useId();
-  const gradientId = `gradient-${uid}`;
-  const shadowId = `shadow-${uid}`;
+export default function Logo({ className, ...props }: Readonly<LogoProps>) {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleInteraction = useCallback((active: boolean) => {
@@ -25,11 +17,9 @@ export default function Logo({
 
   return (
     <svg
-      className={cn(className, styles.logo, isHovered && styles.hovered)}
-      viewBox="0 0 40 40"
       xmlns="http://www.w3.org/2000/svg"
-      role="img"
-      aria-label={title}
+      viewBox="0 0 40 40"
+      className={cn(className, styles.logo, isHovered && styles.hovered)}
       onMouseEnter={() => {
         handleInteraction(true);
       }}
@@ -46,25 +36,25 @@ export default function Logo({
       {...props}
     >
       <defs>
-        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--logo-color-1, #3245ff)">
+        <linearGradient id="mainGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#3245ff">
             <animate
               attributeName="stop-color"
-              values="var(--logo-color-1, #3245ff);var(--logo-color-2, #bc52ee);var(--logo-color-1, #3245ff)"
+              values="#3245ff; #bc52ee; #3245ff"
               dur="5s"
               repeatCount="indefinite"
             />
           </stop>
-          <stop offset="100%" stopColor="var(--logo-color-2, #bc52ee)">
+          <stop offset="100%" stopColor="#bc52ee">
             <animate
               attributeName="stop-color"
-              values="var(--logo-color-2, #bc52ee);var(--logo-color-1, #3245ff);var(--logo-color-2, #bc52ee)"
+              values="#bc52ee; #3245ff; #bc52ee"
               dur="5s"
               repeatCount="indefinite"
             />
           </stop>
         </linearGradient>
-        <filter id={shadowId}>
+        <filter id="shadow" x="-40%" y="-40%" width="200%" height="200%">
           <feDropShadow
             dx="2"
             dy="2"
@@ -75,22 +65,25 @@ export default function Logo({
       </defs>
 
       <path
-        fill={`url(#${gradientId})`}
+        fill="url(#mainGradient)"
         d="M20 5L35 35H5L20 5Z"
         className={styles.logoMark}
-        filter={`url(#${shadowId})`}
-        aria-hidden="true"
+        filter="url(#shadow)"
       />
       <path
         fill="none"
-        stroke="currentColor"
+        stroke="#fff"
         strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
         d="M25 15l10 15-15-10-10 15"
         className={styles.dynamicLine}
-        aria-hidden="true"
-      />
+      >
+        <animate
+          attributeName="stroke-dasharray"
+          values="0, 100; 100, 0"
+          dur="2s"
+          repeatCount="indefinite"
+        />
+      </path>
     </svg>
   );
 }

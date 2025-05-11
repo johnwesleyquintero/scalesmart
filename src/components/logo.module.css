@@ -7,7 +7,9 @@
   outline: none;
   transform-origin: center;
   will-change: transform;
-  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition:
+    transform 0.3s ease,
+    filter 0.3s ease;
 }
 
 .logo:focus-visible {
@@ -21,39 +23,28 @@
 }
 
 .logoMark {
-  transform-origin: center;
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
+  transition:
+    transform 0.3s ease,
+    filter 0.3s ease;
 }
 
 .logo:hover .logoMark {
   transform: scale(1.1);
+  filter: url(#shadow) brightness(1.2);
 }
 
 .hovered .logoMark {
   transform: scale(1.1);
+  filter: url(#shadow) brightness(1.2);
 }
 
 .dynamicLine {
   opacity: 0.8;
   stroke: currentColor;
+  stroke-width: 2;
   stroke-dasharray: 100;
   stroke-dashoffset: 100;
-  animation: draw 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  will-change: stroke-dashoffset;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .logo,
-  .logoMark {
-    transition: none;
-  }
-
-  .dynamicLine {
-    animation: none;
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-  }
+  animation: draw 2s linear infinite;
 }
 
 @keyframes draw {

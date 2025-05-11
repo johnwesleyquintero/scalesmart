@@ -9,7 +9,9 @@
         "Developed AI-powered tools for Amazon sellers",
         "Created data visualization dashboards for seller insights",
         "Automated listing optimization and inventory management"
-      ]
+      ],
+      "startDate": "2025-01-01",
+      "endDate": null
     },
     {
       "title": "Amazon Specialist 2",
@@ -20,7 +22,9 @@
         "Implemented data visualization solutions for client reporting",
         "Optimized Amazon SEO strategies for multiple clients",
         "Increased client sales by an average of 35% through strategic optimizations"
-      ]
+      ],
+      "startDate": "2024-10-01",
+      "endDate": "2025-03-01"
     },
     {
       "title": "Item Specialist",
@@ -31,7 +35,9 @@
         "Utilized VLOOKUP and advanced Excel functions for inventory management",
         "Developed custom price checker tools to optimize competitive pricing",
         "Streamlined inventory processes resulting in 25% efficiency improvement"
-      ]
+      ],
+      "startDate": "2024-03-01",
+      "endDate": "2024-09-01"
     },
     {
       "title": "Marketplace Support",
@@ -42,7 +48,9 @@
         "Managed client relationships and marketplace integrations",
         "Implemented efficient management processes",
         "Provided technical support for marketplace operations"
-      ]
+      ],
+      "startDate": "2023-05-01",
+      "endDate": "2023-09-01"
     },
     {
       "title": "Amazon Account Manager",
@@ -53,7 +61,9 @@
         "Oversaw account health and performance metrics",
         "Developed management strategies for multiple clients",
         "Implemented best practices for Amazon marketplace success"
-      ]
+      ],
+      "startDate": "2022-10-01",
+      "endDate": "2023-09-01"
     },
     {
       "title": "Amazon Wholesale Buyer",
@@ -64,7 +74,9 @@
         "Identified profitable wholesale opportunities",
         "Negotiated with suppliers for optimal pricing",
         "Implemented inventory management systems"
-      ]
+      ],
+      "startDate": "2018-10-01",
+      "endDate": "2022-07-01"
     }
   ]
 }
