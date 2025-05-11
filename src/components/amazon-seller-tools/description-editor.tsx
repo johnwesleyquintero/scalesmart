@@ -119,6 +119,9 @@ const calculateScore = (text: string, prohibitedKeywords: string[]): number => {
   return Math.max(0, Math.min(100, Math.round(score)));
 };
 
+// --- Constants for Logging ---
+const COMPONENT_NAME_PROCESS_CSV_ROW = 'DescriptionEditor/processCsvRow';
+const COMPONENT_NAME_HANDLE_FILE_UPLOAD = 'DescriptionEditor/handleFileUpload';
 // --- NEW Helper Function to process a single CSV row ---
 const processCsvRow = (
   row: CsvRowData,
@@ -145,19 +148,19 @@ const processCsvRow = (
 
     // Validate essential data
     if (!product) {
-      logger.warn(`Skipping row ${index + 1}: Missing product name.`, {
-        component: 'DescriptionEditor/processCsvRow',
+      const missingProductMessage = `Skipping row ${index + 1}: Missing product name.`;
+      logger.warn(missingProductMessage, {
+        component: COMPONENT_NAME_PROCESS_CSV_ROW,
       });
       return null;
     }
+    const missingDescriptionMessage = `Skipping row ${index + 1} for "\${product}": Missing description.`;
     if (!description) {
-      logger.warn(
-        `Skipping row ${index + 1} for "${product}": Missing description.`,
-        { component: 'DescriptionEditor/processCsvRow' },
-      );
+      logger.warn(missingDescriptionMessage, {
+        component: COMPONENT_NAME_PROCESS_CSV_ROW,
+      });
       return null;
     }
-
     // Calculate metrics
     const score = calculateScore(description, prohibitedKeywords);
     const keywordCount = countKeywords(description, prohibitedKeywords);
@@ -174,7 +177,7 @@ const processCsvRow = (
   } catch (validationError) {
     logger.warn(
       `Validation/Processing failed for row ${index + 1}: ${validationError instanceof Error ? validationError.message : 'Unknown error'}`,
-      { component: 'DescriptionEditor/processCsvRow', rowData: row },
+      { component: COMPONENT_NAME_PROCESS_CSV_ROW, rowData: row },
     );
     return null;
   }
@@ -286,14 +289,13 @@ function ManualAddProductForm({
 // Area for editing/previewing the selected product's description
 interface ProductEditorAreaProps {
   product: ProductDescription;
-  prohibitedKeywords: string[];
   onDescriptionChange: (productId: string, newDescription: string) => void;
   onSave: (product: ProductDescription) => void;
+  prohibitedKeywords: string[]; // Added to satisfy TypeScript
 }
 
 function ProductEditorArea({
   product,
-  prohibitedKeywords, // Keep this prop if needed elsewhere, though not directly used in this component anymore
   onDescriptionChange,
   onSave,
 }: Readonly<ProductEditorAreaProps>) {
@@ -424,9 +426,22 @@ function ProductEditorArea({
             <p className="mt-2 text-xs text-muted-foreground">
               Use line breaks for paragraphs. Basic HTML like{' '}
               {/* FIX: Use HTML entities to display tags as text */}
-              <code>&lt;b&gt;</code>, <code>&lt;p&gt;</code>,{' '}
-              <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code> may be supported
-              by Amazon. Aim for 1000-2000 characters.
+              <code>
+                <b></b>
+              </code>
+              ,{' '}
+              <code>
+                <p></p>
+              </code>
+              ,{' '}
+              <code>
+                <ul></ul>
+              </code>
+              ,{' '}
+              <code>
+                <li></li>
+              </code>{' '}
+              may be supported by Amazon. Aim for 1000-2000 characters.
             </p>
           </div>
         )}
@@ -504,19 +519,20 @@ export default function DescriptionEditor() {
           try {
             console.log('Papa.parse complete callback results:', results);
             // Log parsing start
-            logger.info('CSV parsing complete.', {
+            const csvParsingInfoMessage = 'CSV parsing complete.';
+            logger.info(csvParsingInfoMessage, {
               rowCount: results.data.length,
-              component: 'DescriptionEditor/handleFileUpload',
+              component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
             });
-
             if (results.errors.length > 0) {
               // Log specific PapaParse errors
               const errorMessages = results.errors.map(
                 (err) => `Row ${err.row}: ${err.message}`,
               );
-              logger.error('CSV parsing errors occurred.', {
+              const csvParsingErrorMessage = 'CSV parsing errors occurred.';
+              logger.error(csvParsingErrorMessage, {
                 errors: errorMessages,
-                component: 'DescriptionEditor/handleFileUpload',
+                component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
               });
               throw new Error(
                 `CSV parsing error: ${results.errors[0].message} on row ${results.errors[0].row}`,
@@ -527,7 +543,6 @@ export default function DescriptionEditor() {
             const requiredHeaders = ['product', 'description']; // Define required headers here
             const missingHeaders = requiredHeaders.filter(
               (header) =>
-                // eslint-disable-next-line sonarjs/no-nested-functions
                 !actualHeaders.some((h) => h.toLowerCase() === header),
             );
 
@@ -571,7 +586,7 @@ export default function DescriptionEditor() {
             logger.info('CSV processing successful.', {
               processedCount: processedProducts.length,
               skippedCount: results.data.length - processedProducts.length,
-              component: 'DescriptionEditor/handleFileUpload',
+              component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
             });
           } catch (err) {
             console.error('Error in complete callback:', err);
@@ -588,7 +603,7 @@ export default function DescriptionEditor() {
             });
             logger.error('CSV processing failed.', {
               error: err,
-              component: 'DescriptionEditor/handleFileUpload',
+              component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
             });
           } finally {
             setIsLoading(false);
@@ -597,9 +612,10 @@ export default function DescriptionEditor() {
             }
           }
         },
-        error: (err: Error) => {
-          console.error('Papa.parse error callback:', err);
-          const message = `Error reading CSV file: ${err.message}`;
+        error: (_err: Error) => {
+          // Changed err to _err as it's not used
+          console.error('Papa.parse error callback:', _err);
+          const message = `Error reading CSV file: ${_err.message}`;
           setError(message);
           setIsLoading(false);
           setProducts([]);
@@ -609,8 +625,8 @@ export default function DescriptionEditor() {
             variant: 'destructive',
           });
           logger.error('CSV file read error', {
-            error: err,
-            component: 'DescriptionEditor/handleFileUpload',
+            error: _err,
+            component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
           });
           if (fileInputRef.current) {
             fileInputRef.current.value = ''; // Reset file input

@@ -394,6 +394,12 @@ export default function FbaCalculator() {
     });
   }, [toast]); // Added dependency
 
+  const getMarginColorClass = (margin: number): string => {
+    if (margin > 0) return 'text-green-600 dark:text-green-400';
+    if (margin < 0) return 'text-red-600 dark:text-red-400';
+    return 'text-yellow-600 dark:text-yellow-400';
+  };
+
   // --- Render ---
   return (
     <div className="space-y-6">
@@ -593,8 +599,10 @@ export default function FbaCalculator() {
                 </TableHeader>
                 <TableBody>
                   {results.map((item, index) => {
-                    const profitColor =
-                      item.profit < 0 ? 'text-red-500' : 'text-green-500';
+                    const isProfitable = item.profit >= 0;
+                    const profitColorClass = isProfitable
+                      ? 'text-green-500'
+                      : 'text-red-500';
                     const roiDisplay = isFinite(item.roi)
                       ? `${item.roi.toFixed(2)}%`
                       : '∞';
@@ -620,7 +628,7 @@ export default function FbaCalculator() {
                           {item.fees.toFixed(2)}
                         </TableCell>
                         <TableCell
-                          className={`px-4 py-3 text-right font-semibold ${profitColor}`}
+                          className={`px-4 py-3 text-right font-semibold ${profitColorClass}`}
                         >
                           {item.profit.toFixed(2)}
                         </TableCell>
@@ -664,8 +672,3 @@ export default function FbaCalculator() {
     </div>
   );
 }
-const getMarginColorClass = (margin: number): string => {
-  if (margin > 0) return 'text-green-600 dark:text-green-400';
-  if (margin < 0) return 'text-red-600 dark:text-red-400';
-  return 'text-yellow-600 dark:text-yellow-400';
-};

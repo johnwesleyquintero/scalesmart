@@ -16,8 +16,8 @@ declare module '@upstash/ratelimit' {
 
   export class Ratelimit {
     static slidingWindow(
-      arg0: number,
-      arg1: string,
+      _: number,
+      _: string,
     ): {
       slidingWindow: (requests: number, window: string) => SlidingWindowOptions;
     } {
@@ -38,5 +38,5 @@ declare module '@upstash/ratelimit' {
 }
 
 declare module '@upstash/redis' {
-  export interface Redis extends RedisCommands {}
+  export interface Redis {}
 }

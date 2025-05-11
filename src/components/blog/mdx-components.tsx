@@ -53,10 +53,17 @@ export const MDXComponents = {
   img: ({
     className,
     alt,
-    ...props
+    src,
+    width,
+    height,
   }: React.ImgHTMLAttributes<HTMLImageElement>) => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img className={cn('rounded-md border', className)} alt={alt} {...props} />
+    <BlogImage
+      className={className}
+      src={src}
+      alt={alt || ''}
+      width={width}
+      height={height}
+    />
   ),
   hr: ({ ...props }) => (
     <hr className="my-8 border-muted-foreground/20" {...props} />

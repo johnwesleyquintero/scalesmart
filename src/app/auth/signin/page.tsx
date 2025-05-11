@@ -19,14 +19,6 @@ export default function SignIn() {
           >
             Continue with GitHub
           </Button>
-
-          <Button
-            className="w-full flex items-center justify-center gap-2"
-            onClick={() => {}}
-            variant="outline"
-          >
-            Continue with LinkedIn
-          </Button>
         </div>
 
         <p className="text-sm text-center text-gray-500">

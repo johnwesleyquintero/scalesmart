@@ -20,8 +20,8 @@ const CRYPTO_CONFIG = {
   hashRounds: 12, // BCrypt cost factor
 };
 
-const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-const MAX_REQUESTS_PER_WINDOW = 5;
+// const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
+// const MAX_REQUESTS_PER_WINDOW = 5;
 
 type ApiKeyRecord = {
   key: string; // This will store the HASHED key
@@ -32,10 +32,10 @@ type ApiKeyRecord = {
 };
 
 // Supabase user type definition
-interface User {
-  id: string;
-  // other user fields...
-}
+// interface User {
+//   id: string;
+// other user fields...
+// }
 
 /**
  * Generates a new secure API key (plain text)
@@ -234,7 +234,6 @@ export async function rotateApiKeys(
         ? error.message
         : 'Unknown error during key rotation';
     throw new Error(`Failed to rotate API keys: ${errorMessage}`);
-  } finally {
   }
 }
 
