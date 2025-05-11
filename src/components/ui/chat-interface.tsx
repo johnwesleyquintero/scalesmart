@@ -793,7 +793,7 @@ const renderMessage = (content: string): JSX.Element => (
           if (React.isValidElement(singleReactChild)) {
             const childElement = singleReactChild as React.ReactElement<
               { className?: string; [key: string]: unknown },
-              string | React.JSXElementConstructor<any>
+              string | React.JSXElementConstructor<unknown>
             >;
             const elementType = childElement.type;
             if (

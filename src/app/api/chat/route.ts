@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
     Current user message: ${message}`;
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash-latest', // Using latest flash model
+      model: 'gemini-2.0-flash-001', // Using latest flash model
       generationConfig: {
         maxOutputTokens: 1000,
         temperature: 0.85, // Increased for more human-like, creative responses

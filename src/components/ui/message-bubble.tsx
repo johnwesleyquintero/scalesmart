@@ -19,28 +19,20 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
 
 interface ReactMarkdownProps {
   children: ReactNode;
-  remarkPlugins: any[];
-  rehypePlugins: any[];
+  remarkPlugins: Pluggable[];
+  rehypePlugins: Pluggable[];
   className?: string;
 }
 
 interface CodeProps {
-  node?: any;
+  node?: unknown;
   inline?: boolean;
   children?: ReactNode;
   className?: string;
 }
 
-interface Message {
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: number;
-  status?: 'sending' | 'sent' | 'error';
-  error?: string;
-  retryCount?: number;
-  retryLimit?: number;
-}
-
+import { Pluggable } from 'unified';
+import { Message } from './chat-interface';
 interface MessageBubbleProps {
   message: Message;
   onRetry?: (message: Message) => void;
@@ -76,17 +68,25 @@ export function MessageBubble({
           remarkPlugins: [remarkGfm, remarkMath],
           rehypePlugins: [
             rehypeKatex,
-            [rehypePrismPlus, { ignoreMissing: true }],
+            [rehypePrismPlus, { ignoreMissing: true }] as Pluggable,
           ],
           className: 'prose prose-sm dark:prose-invert max-w-none break-words',
         } as ReactMarkdownProps)}
         components={{
-          pre: ({ node, ...props }: any) => (
+          pre: ({
+            node,
+            ...props
+          }: {
+            node?: { children: any[] } | undefined;
+            [key: string]: any;
+          }) => (
             <div className="relative group">
               <pre {...props} className="rounded-md p-4 overflow-x-auto" />
               <button
                 onClick={() =>
-                  handleCopyClick(node?.children[0]?.children[0]?.value || '')
+                  handleCopyClick(
+                    (node?.children[0]?.children[0]?.value as string) || '',
+                  )
                 }
                 className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
                 aria-label="Copy code"
