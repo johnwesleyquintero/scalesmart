@@ -17,6 +17,7 @@
     "cli": "bash .cli.sh",
     "lint": "eslint --config eslint.config.mjs .",
     "create-index": "ts-node --esm src/lib/mongodb/create-unique-index.ts",
+    "clean": "rimraf .next",
     "check": "npm run lint && npm run typecheck && npm run test && npm run format"
   },
   "dependencies": {

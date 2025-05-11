@@ -399,11 +399,10 @@ const processCSVRow = async (row: CSVRow): Promise<ListingData> => {
     await new Promise((resolve) => setTimeout(resolve, 50)); // Simulate async call
     keywordAnalysis = keywords.map((kw) => ({
       keyword: kw,
-      // eslint-disable-next-line sonarjs/pseudo-random -- Mock data
       isProhibited: Math.random() > 0.9, // Mock 10% chance of being prohibited
-      // eslint-disable-next-line sonarjs/pseudo-random -- Mock data
+
       score: Math.floor(Math.random() * 100),
-      // eslint-disable-next-line sonarjs/pseudo-random -- Mock data
+
       confidence: Math.random(),
       matchType: 'exact',
     }));

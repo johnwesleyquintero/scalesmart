@@ -2,8 +2,8 @@ import type { AppEvent } from '@/types';
 
 declare global {
   interface Window {
-    gtag: (...args: any[]) => void;
-    dataLayer: any[];
+    gtag: (...args: unknown[]) => void;
+    dataLayer: unknown[];
     trackEvent: (event: AppEvent) => void;
   }
 }
@@ -36,7 +36,7 @@ export function trackEvent(event: AppEvent) {
 export function initAnalytics() {
   if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GA_ID) {
     window.dataLayer = window.dataLayer || [];
-    function gtag(...args: any[]) {
+    function gtag(...args: unknown[]) {
       window.dataLayer.push(args);
     }
     gtag('js', new Date());

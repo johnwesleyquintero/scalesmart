@@ -166,8 +166,9 @@ export async function apiKeyMiddleware(request: Request) {
 export async function rotateApiKeys(
   userId: string,
 ): Promise<{ record: ApiKeyRecord; plainKey: string }> {
+  const USER_TABLE = 'users';
   const { data: user, error } = await supabase
-    .from('users')
+    .from(USER_TABLE)
     .select()
     .eq('id', userId)
     .maybeSingle();

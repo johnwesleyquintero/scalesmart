@@ -59,10 +59,10 @@ export const MDXComponents = {
   }: React.ImgHTMLAttributes<HTMLImageElement>) => (
     <BlogImage
       className={className}
-      src={src}
+      src={src as string}
       alt={alt || ''}
-      width={width}
-      height={height}
+      width={width as number}
+      height={height as number}
     />
   ),
   hr: ({ ...props }) => (

@@ -488,6 +488,9 @@ commit_and_push() {
         echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Changes committed."
         # Log the commit message to the project tracker
         echo "$(date +'%Y-%m-%d %H:%M:%S') - Commit: $GENERATED_COMMIT_MESSAGE" >> "$TRACKER_FILE" 2>/dev/null || log_warn "Failed to log commit message to tracker."
+
+        # Rotate logs if needed
+        rotate_log "$TRACKER_FILE"
     else
         log_error "Failed to commit changes." "commit_and_push (git commit -m \"$GENERATED_COMMIT_MESSAGE\")"
         echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to commit. Check Git output above. Aborting push."

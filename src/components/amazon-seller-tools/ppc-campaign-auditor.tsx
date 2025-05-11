@@ -328,12 +328,12 @@ function processRawCampaignData(rawData: unknown[]): {
   }
 
   rawData.forEach((row, index) => {
-    const rowIndex = index + 1; // User-friendly row number (1-based)
-    const validationResult = validateRow(row, rowIndex);
+    const validationResult = validateRow(row, index + 1);
+    // const rowIndex = index + 1; // User-friendly row number (1-based)
 
     if (validationResult.error || !validationResult.data) {
       errors.push({
-        row: rowIndex,
+        row: index + 1,
         message: validationResult.error || 'Unknown validation error',
       });
     } else {
@@ -357,7 +357,7 @@ function processRawCampaignData(rawData: unknown[]): {
         });
       } catch (error) {
         errors.push({
-          row: rowIndex,
+          row: index + 1,
           message:
             'Error during analysis: ' +
             (error instanceof Error ? error.message : 'Unknown error'),

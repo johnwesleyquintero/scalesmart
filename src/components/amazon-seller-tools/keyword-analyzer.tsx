@@ -198,13 +198,12 @@ const KeywordAnalyzerInfoBox: React.FC = () => (
       <p className="font-medium">How it Works:</p>
       <ul className="list-disc list-inside ml-4">
         <li>
-          Upload a CSV with &apos;product&apos; and comma-separated
-          &apos;keywords&apos; columns. Optional: &apos;searchVolume&apos;,
-          &apos;competition&apos; (Low/Medium/High).
+          Upload a CSV with 'product' and comma-separated 'keywords' columns.
+          Optional: 'searchVolume', 'competition' (Low/Medium/High).
         </li>
         <li>Or, manually enter comma-separated keywords for quick analysis.</li>
         <li>
-          The tool analyzes each keyword&apos;s potential (score, confidence,
+          The tool analyzes each keyword's potential (score, confidence,
           prohibited status).
         </li>
         <li>
@@ -297,9 +296,9 @@ const ManualAnalysisSection: React.FC<ManualAnalysisSectionProps> = ({
             <Input
               id="manual-keywords"
               value={manualKeywords}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                onKeywordsChange(e.target.value)
-              }
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                onKeywordsChange(e.target.value);
+              }}
               placeholder="Enter keywords, comma-separated"
               className="flex-grow"
               disabled={isLoading}
@@ -414,8 +413,12 @@ const ProductAnalysisCard: React.FC<ProductAnalysisCardProps> = ({
                 <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} />
                 <Tooltip
                   contentStyle={{ fontSize: '12px', padding: '5px 10px' }}
-                  formatter={(value: number, name: string, props: any) => [
-                    `${value.toFixed(0)} ${props.payload.isProhibited ? '(Prohibited)' : ''}`,
+                  formatter={(
+                    value: number,
+                    name: string,
+                    { payload }: any,
+                  ) => [
+                    `${value.toFixed(0)} ${payload.isProhibited ? '(Prohibited)' : ''}`,
                     'Score',
                   ]}
                   labelFormatter={(label: string) => `Keyword: ${label}`}
