@@ -108,7 +108,7 @@ const generateSampleData = (
 
   try {
     return Array.from({ length: rowCount }, () => {
-      const row: Record<string, any> = {};
+      const row: Record<string, GeneratedValue> = {};
 
       columns.forEach(({ name, dataType, required = true }) => {
         // 20% chance to skip non-required fields
@@ -130,18 +130,10 @@ const generateSampleData = (
           // Or throw error if preferred:
           // throw new Error(`Unsupported data type: ${dataType.type}`);
         } else {
-          row[name] = generator(
-            (dataType.options || {
-              type: '',
-              min: 0,
-              max: 0,
-              decimals: 0,
-              values: [],
-              prefix: '',
-              suffix: '',
-              length: 0,
-            }) as any,
-          );
+          row[name] = generator({
+            ...(dataType.options || {}),
+            type: dataType.type,
+          } as DataTypeConfig);
         }
       });
 

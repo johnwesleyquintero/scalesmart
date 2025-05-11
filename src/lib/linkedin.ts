@@ -1,7 +1,7 @@
 const experienceData = [
   {
     title: 'Founder/Developer',
-    company: 'SellSmart',
+    company: 'ScaleSmart',
     period: 'Jan 2025 - Present',
     description: 'All-in-One Amazon Seller Platform',
     achievements: [

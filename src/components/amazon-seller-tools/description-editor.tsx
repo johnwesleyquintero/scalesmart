@@ -305,7 +305,8 @@ function ProductEditorArea({
   // FIX: Added debounce to the dependency array
   const debouncedDescriptionChange = useCallback(
     (newDescription: string) => {
-      const debouncedFn = debounce((text: string) => {
+      const debouncedFn = debounce((...args: unknown[]) => {
+        const text = args[0] as string;
         onDescriptionChange(product.product, text);
       }, 300);
       debouncedFn(newDescription);
