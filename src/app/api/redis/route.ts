@@ -1,5 +1,5 @@
-import { createClient, RedisClientType } from 'redis';
 import { NextResponse } from 'next/server';
+import { createClient, RedisClientType } from 'redis';
 
 let redisClient: RedisClientType;
 
@@ -9,8 +9,17 @@ export async function initializeRedis() {
       throw new Error('Redis URL not configured');
     }
 
+    console.log('REDIS_URL:', process.env.REDIS_URL);
     redisClient = createClient({
       url: process.env.REDIS_URL,
+    });
+
+    redisClient.on('connect', () => {
+      console.log('Redis connected successfully (api/redis)');
+    });
+
+    redisClient.on('error', (err) => {
+      console.error('Redis Client Error (api/redis):', err);
     });
 
     redisClient.on('error', (err) => {

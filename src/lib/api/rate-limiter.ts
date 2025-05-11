@@ -9,9 +9,28 @@ const redisUrl = (
 const redisToken =
   process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || '';
 
-export const redis = new Redis(redisUrl, {
-  password: redisToken,
-});
+console.log('Redis URL:', redisUrl);
+console.log('Redis Token:', redisToken);
+
+let redis: Redis;
+try {
+  redis = new Redis(redisUrl, {
+    password: redisToken,
+  });
+
+  redis.on('connect', () => {
+    console.log('Redis connected successfully (rate-limiter)');
+  });
+
+  redis.on('error', (err) => {
+    console.error('Redis connection error (rate-limiter):', err);
+  });
+} catch (error) {
+  console.error('Error creating Redis client (rate-limiter):', error);
+  throw error; // Re-throw to prevent the app from running without a Redis connection
+}
+
+export { redis };
 
 export const rateLimiter = {
   limit: async (identifier: string) => {
