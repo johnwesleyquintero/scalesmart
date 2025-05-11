@@ -1,17 +1,40 @@
 #!/usr/bin/env bash
 
+# --- Function to load configuration from file ---
+load_config() {
+  local config_file=".cli.config.sh"
+  if [ -f "$config_file" ]; then
+    while IFS='=' read -r key value; do
+      # Remove leading/trailing whitespace from key and value
+      key=$(echo "$key" | tr -d '[:space:]')
+      value=$(echo "$value" | tr -d '"') # Remove quotes
+      value=$(echo "$value" | sed 's/#.*//') # Remove comments
+
+      # Only set variables that are not empty and are valid
+      if [ -n "$key" ] && [ -n "$value" ] && [[ "$key" =~ ^[A-Za-z_]+$ ]]; then
+        export "$key"="$value"
+      fi
+    done < "$config_file"
+  fi
+}
+
+# Load configuration
+load_config
+
 # --- Script Configuration ---
+# Load configuration
+load_config
 OS="$(uname -s)"
 VERSION="1.2.0"
-LOG_FILE="c:\Users\johnw\portfolio\.cli.log"
-REQUIRED_NODE_VERSION="16.0.0"
-REQUIRED_NPM_VERSION="9.0.0"
-BUILD_ARTIFACTS=(".next" ".vercel" "node_modules" "package-lock.json" "coverage" ".nyc_output" "storybook-static" "dist" "out")
-LOG_PATTERNS=("*.cli.log" "*.tmp" "*.temp" "*.bak" "*.cache")
-REQUIRED_PROJECT_FILES=("package.json" "tsconfig.json" "next.config.js")
+LOG_FILE="${LOG_FILE:-c:\Users\johnw\portfolio\.cli.log}"
+REQUIRED_NODE_VERSION="${REQUIRED_NODE_VERSION:-16.0.0}"
+REQUIRED_NPM_VERSION="${REQUIRED_NPM_VERSION:-9.0.0}"
+BUILD_ARTIFACTS=(${BUILD_ARTIFACTS:-(".next" ".vercel" "node_modules" "package-lock.json" "coverage" ".nyc_output" "storybook-static" "dist" "out")})
+LOG_PATTERNS=(${LOG_PATTERNS:-("*.cli.log" "*.tmp" "*.temp" "*.bak" "*.cache")})
+REQUIRED_PROJECT_FILES=(${REQUIRED_PROJECT_FILES:-("package.json" "tsconfig.json" "next.config.js")})
 GENERATED_COMMIT_MESSAGE="" # For sharing commit message between functions
 CONFIG_FILE=""
-TRACKER_FILE="c:\Users\johnw\portfolio\.cli_project_tracker.log"
+TRACKER_FILE="${TRACKER_FILE:-c:\Users\johnw\portfolio\.cli_project_tracker.log}"
 
 # --- ANSI Colors ---
 ANSI_Reset='\e[0m'
@@ -136,6 +159,7 @@ log_warn() {
 log_error() {
     local message="$1"
     local command_executed="${2:-N/A}"
+    local exit_code="${3:-N/A}"
     local timestamp=$(date +'%Y-%m-%d %T')
     local file=""
     local line=""
@@ -557,20 +581,20 @@ main() {
                             log_info "Package verification successful"
                         else
                             local npm_ls_exit_code=$?
-                            log_error "npm ls --depth=0 failed with exit code: $npm_ls_exit_code" "1|i"
+                            log_error "npm ls --depth=0 failed" "npm ls --depth=0" "$npm_ls_exit_code"
                             stop_spinner
-                            log_error "Dependency verification failed" "1|i"
+                            log_error "Dependency verification failed"  "npm ls --depth=0" "$npm_ls_exit_code"
                             echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Package verification failed - check .cli.log for details"
                         fi
                     else
                         stop_spinner
-                        log_error "node_modules directory not found after installation" "1|i"
+                        log_error "node_modules directory not found after installation" "npm install" "N/A"
                         echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Installation failed - node_modules not found"
                         exit 1
                     fi
                 else
                     stop_spinner
-                    log_error "Dependency installation failed" "1|i"
+                    log_error "Dependency installation failed" "npm install" "N/A"
                     echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Installation failed - check .cli.log for details"
                     exit 1
                 fi
@@ -591,8 +615,8 @@ main() {
                     echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Tests completed successfully."
                 else
                     local npm_test_exit_code=$?
-                    log_error "npm test failed with exit code: $npm_test_exit_code" "$test_command"
-                    log_error "Tests failed. Check .cli.log for details." "$test_command"
+                    log_error "npm test failed" "$test_command" "$npm_test_exit_code"
+                    log_error "Tests failed. Check .cli.log for details." "$test_command" "$npm_test_exit_code"
                     echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Tests failed. Check .cli.log for details."
                     exit 1
                 fi
@@ -629,8 +653,8 @@ main() {
                     echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Code checks completed successfully."
                 else
                     local npm_check_exit_code=$?
-                    log_error "npm run check failed with exit code: $npm_check_exit_code" "$check_command"
-                    log_error "Code checks failed. Check .cli.log for details." "$check_command"
+                    log_error "npm run check failed" "$check_command" "$npm_check_exit_code"
+                    log_error "Code checks failed. Check .cli.log for details." "$check_command" "$npm_check_exit_code"
                     echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Code checks failed. Check .cli.log for details."
                     exit 1
                 fi
