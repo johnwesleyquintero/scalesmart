@@ -20,6 +20,13 @@ import Papa from 'papaparse';
 import { useRef, useState } from 'react';
 import { z } from 'zod';
 
+interface CsvRow {
+  product: string;
+  category: string;
+  price: number;
+  competition: string;
+}
+
 // Zod schema for input validation
 const productSchema = z.object({
   product: z.string().min(1, 'Product name is required'),
@@ -151,7 +158,7 @@ export default function SalesEstimator() {
     setError(null);
 
     try {
-      const result = await new Promise<Papa.ParseResult<any>>(
+      const result = await new Promise<Papa.ParseResult<CsvRow>>(
         (resolve, reject) => {
           Papa.parse(file, {
             header: true,
@@ -168,8 +175,8 @@ export default function SalesEstimator() {
       }
 
       const processedData = result.data
-        .filter((row: any) => row.product && row.category && row.price)
-        .map((row: any) => {
+        .filter((row: CsvRow) => row.product && row.category && row.price)
+        .map((row: CsvRow) => {
           const validatedData = productSchema.parse({
             product: row.product,
             category: row.category,

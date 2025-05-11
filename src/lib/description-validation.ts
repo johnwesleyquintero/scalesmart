@@ -1,4 +1,5 @@
 import DOMPurify from 'isomorphic-dompurify';
+// @ts-ignore
 import { NodeJS } from 'node';
 import { z } from 'zod';
 import { asinSchema, productNameSchema } from './input-validation';

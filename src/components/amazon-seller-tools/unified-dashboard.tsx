@@ -418,9 +418,11 @@ export default function UnifiedDashboard() {
             setMetrics(transformedMetrics);
             setError(null); // Clear error on success
           }
-        } catch (transformError: any) {
+        } catch (transformError: unknown) {
           console.error('Error transforming data:', transformError);
-          setError(`Error processing report data: ${transformError.message}`);
+          setError(
+            `Error processing report data: ${(transformError as Error).message}`,
+          );
           setMetrics([]);
         } finally {
           setIsParsing(false);

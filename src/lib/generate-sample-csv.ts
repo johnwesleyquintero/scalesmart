@@ -25,10 +25,12 @@ interface ColumnConfig {
   description?: string;
 }
 
+type GeneratedValue = string | number | boolean | null | undefined;
+
 interface SampleDataConfig {
   columns: ColumnConfig[];
   rowCount?: number;
-  customGenerators?: Record<string, (config: DataTypeConfig) => any>;
+  customGenerators?: Record<string, (config: DataTypeConfig) => GeneratedValue>;
 }
 
 // Data generation functions
@@ -101,7 +103,7 @@ const dataGenerators = {
  */
 const generateSampleData = (
   config: SampleDataConfig,
-): Record<string, any>[] => {
+): Record<string, GeneratedValue>[] => {
   const { columns, rowCount = 5, customGenerators = {} } = config;
 
   try {
@@ -128,7 +130,18 @@ const generateSampleData = (
           // Or throw error if preferred:
           // throw new Error(`Unsupported data type: ${dataType.type}`);
         } else {
-          row[name] = generator(dataType.options as any);
+          row[name] = generator(
+            (dataType.options || {
+              type: '',
+              min: 0,
+              max: 0,
+              decimals: 0,
+              values: [],
+              prefix: '',
+              suffix: '',
+              length: 0,
+            }) as any,
+          );
         }
       });
 

@@ -50,6 +50,9 @@ export async function generateApiKey(): Promise<string> {
 /**
  * Validates a plain text API key against the stored hash in MongoDB
  */
+const API_KEY_VALIDATION_DB_ERROR = 'API Key Validation DB Error';
+const API_KEY_VALIDATION_CONNECTION_ERROR =
+  'API Key Validation Connection/Setup Error';
 export async function validateApiKey(
   plainKey: string,
   userId: string,
@@ -79,7 +82,7 @@ export async function validateApiKey(
       }
       return isValid;
     } catch (error: unknown) {
-      logger.error('API Key Validation DB Error', {
+      logger.error(API_KEY_VALIDATION_DB_ERROR, {
         error: error instanceof Error ? error.message : 'UnknownError',
         userId,
         keySnippet: plainKey.slice(0, 4) + '***' + plainKey.slice(-4),
@@ -88,7 +91,7 @@ export async function validateApiKey(
     }
   } catch (connectionError: unknown) {
     // Catch errors from connectToDatabase() or other issues outside the inner try
-    logger.error('API Key Validation Connection/Setup Error', {
+    logger.error(API_KEY_VALIDATION_CONNECTION_ERROR, {
       error:
         connectionError instanceof Error
           ? connectionError.message
@@ -163,10 +166,11 @@ export async function apiKeyMiddleware(request: Request) {
  * Rotates API keys by generating a new one and deactivating old ones.
  * Returns the new ApiKeyRecord containing the *hashed* key, along with the *plain text* key.
  */
+const USER_TABLE = 'users';
+
 export async function rotateApiKeys(
   userId: string,
 ): Promise<{ record: ApiKeyRecord; plainKey: string }> {
-  const USER_TABLE = 'users';
   const { data: user, error } = await supabase
     .from(USER_TABLE)
     .select()
@@ -278,6 +282,7 @@ export async function initializeApiKeys(
       logger.info(
         `User ${userId} already has an active API key. No initialization needed.`,
       );
+      await deleteApiKeysForUser(userId);
       return null; // Indicate no new key was generated
     }
   } catch (error: unknown) {
@@ -294,6 +299,8 @@ export async function initializeApiKeys(
 /**
  * Gets the active API key record for a user (returns the stored record with hashed key).
  */
+const GET_API_KEY_RECORD_ERROR = 'Error getting API key record';
+
 export async function getApiKeyRecord(
   userId: string,
 ): Promise<ApiKeyRecord | undefined> {
@@ -301,14 +308,6 @@ export async function getApiKeyRecord(
     logger.warn(`Invalid userId format or user not found: ${userId}`);
     return undefined;
   }
-
-  // if (!(await isWithinRateLimit(`get:${userId}`))) {
-  //   // Specific rate limit key
-  //   logger.warn(
-  //     `Rate limit exceeded for getApiKeyRecord call by user: ${userId}`,
-  //   );
-  //   return undefined;
-  // }
 
   try {
     const { data: apiKeyRecord, error } = await supabase
@@ -318,60 +317,46 @@ export async function getApiKeyRecord(
       .eq('isActive', true)
       .gt('expiresAt', new Date().toISOString())
       .single();
+
     if (error) {
-      logger.error('Error getting API key record', { userId, error });
-      return undefined; // Return undefined on error
+      logger.error(GET_API_KEY_RECORD_ERROR, { userId, error });
+      return undefined;
     }
-    // findOne returns T | null. Convert null to undefined.
+
     return apiKeyRecord ?? undefined;
   } catch (error: unknown) {
-    logger.error('Error getting API key record', { userId, error });
-    return undefined; // Return undefined on error
+    logger.error(GET_API_KEY_RECORD_ERROR, { userId, error });
+    return undefined;
   }
 }
 
 /**
  * Deletes all API keys (active and inactive) for a user. Use with caution.
  */
-export async function deleteAllApiKeysForUser(userId: string): Promise<void> {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select()
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (error || !user) {
-    throw new Error('User not found in Supabase');
-  }
-
-  // if (!(await isWithinRateLimit(`delete:${userId}`))) {
-  //   // Specific rate limit key
-  //   throw new Error('Rate limit exceeded for API key deletion');
-  // }
-
+async function deleteApiKeysForUser(userId: string): Promise<void> {
   try {
+    // Deactivate all existing keys for the user
     const { error } = await supabase
       .from(API_KEY_TABLE)
       .delete()
       .eq('userId', userId);
+
     if (error) {
-      logger.error('Error deleting API keys', { userId, error });
+      logger.error('Failed to delete API keys for user', { userId, error });
       throw error;
     }
-    logger.info(`Deleted API keys for user ${userId}`);
+
+    logger.info(`Deleted all API keys for user ${userId}`);
   } catch (error: unknown) {
     logger.error('Error deleting API keys', { userId, error });
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : 'Unknown error during key deletion';
-    throw new Error(`Failed to delete API keys: ${errorMessage}`);
+    throw new Error(
+      `Failed to delete API keys for user ${userId}: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`,
+    );
   }
 }
 
-// --- Helper Functions ---
-
-// Basic format check (UUID v4) - doesn't hit the DB
 function isValidUserIdFormat(userId: string): boolean {
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -399,7 +384,10 @@ async function isValidUserId(userId: string): Promise<boolean> {
     }
     return true;
   } catch (error: unknown) {
-    logger.error('Error validating userId against database', { userId, error });
+    logger.error('Error validating userId against database', {
+      userId,
+      error,
+    });
     return false;
   }
 }

@@ -6,12 +6,12 @@ import { Download } from 'lucide-react';
 
 interface FormDataDisplayProps {
   title?: string;
-  data: Record<string, any>[];
+  data: Record<string, unknown>[];
   onExport?: () => void;
   metrics?: Array<{
     label: string;
     key: string;
-    format?: (value: any) => string;
+    format?: (value: unknown) => string;
   }>;
 }
 
@@ -36,7 +36,7 @@ export default function FormDataDisplay({
                   <div key={key} className="space-y-1">
                     <p className="text-sm text-muted-foreground">{label}</p>
                     <p className="font-medium">
-                      {format ? format(item[key]) : item[key]}
+                      {format ? format(item[key]) : String(item[key])}
                     </p>
                   </div>
                 ))}

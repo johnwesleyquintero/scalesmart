@@ -1,5 +1,5 @@
-// Move 'use client' directive to the top of the file
 'use client';
+// Move 'use client' directive to the top of the file
 
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -234,10 +234,10 @@ function analyzeCampaignPerformance(
  * Validates a single raw row from the CSV.
  * Returns a validated row object or null if validation fails.
  */
-function validateRow(
-  row: unknown,
-  rowIndex: number,
-): { data: ValidatedRow | null; error: string | null } {
+function validateRow(row: unknown): {
+  data: ValidatedRow | null;
+  error: string | null;
+} {
   const item = row as RawCampaignData;
 
   // Basic structure check
@@ -328,9 +328,7 @@ function processRawCampaignData(rawData: unknown[]): {
   }
 
   rawData.forEach((row, index) => {
-    const validationResult = validateRow(row, index + 1);
-    // const rowIndex = index + 1; // User-friendly row number (1-based)
-
+    const validationResult = validateRow(row);
     if (validationResult.error || !validationResult.data) {
       errors.push({
         row: index + 1,
@@ -624,8 +622,9 @@ export default function PpcCampaignAuditor() {
           <p className="font-medium">CSV Format Requirements:</p>
           <ul className="list-disc list-inside ml-4">
             <li>
-              Required columns (case-insensitive headers): <code>name</code>,{' '}
-              <code>type</code>, <code>spend</code>, <code>sales</code>,{' '}
+              Required columns (case-insensitive headers): <code>name</code>
+              ,&nbsp;
+              <code>type</code>, <code>spend</code>, <code>sales</code>,&nbsp;
               <code>impressions</code>, <code>clicks</code>
             </li>
             <li>
@@ -634,7 +633,7 @@ export default function PpcCampaignAuditor() {
               commas within numbers. Impressions/clicks must be whole numbers.
             </li>
             <li>
-              Example Row:{' '}
+              Example Row:&nbsp;
               <code>
                 SP - Product Targeting,Sponsored Products,55.20,310.50,8500,150
               </code>
@@ -720,49 +719,7 @@ export default function PpcCampaignAuditor() {
             <div className="space-y-4">
               {campaigns.map((campaign, index) => (
                 <Card key={`${campaign.name}-${index}`}>
-                  <CardContent className="p-4">
-                    <CampaignCard campaign={campaign} />
-                    <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 border-t pt-4">
-                      <div>
-                        <h4 className="mb-2 text-sm font-medium text-red-600 dark:text-red-400">
-                          Detected Issues ({campaign.issues.length})
-                        </h4>
-                        {campaign.issues.length > 0 &&
-                        !campaign.issues.includes(
-                          'No major performance issues detected.',
-                        ) ? (
-                          <ul className="list-disc list-inside space-y-1 text-sm text-red-700 dark:text-red-300">
-                            {campaign.issues.map((issue, i) => (
-                              <li key={`issue-${index}-${i}`}>{issue}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="text-sm text-muted-foreground italic">
-                            None
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <h4 className="mb-2 text-sm font-medium text-blue-600 dark:text-blue-400">
-                          Recommendations ({campaign.recommendations.length})
-                        </h4>
-                        {campaign.recommendations.length > 0 &&
-                        !campaign.recommendations.includes(
-                          'Performance looks stable. Continue monitoring key metrics.',
-                        ) ? (
-                          <ul className="list-disc list-inside space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                            {campaign.recommendations.map((rec, i) => (
-                              <li key={`rec-${index}-${i}`}>{rec}</li>
-                            ))}
-                          </ul>
-                        ) : (
-                          <p className="text-sm text-muted-foreground italic">
-                            None
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
+                  <CampaignCard campaign={campaign} />
                 </Card>
               ))}
             </div>

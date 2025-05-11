@@ -21,9 +21,9 @@ export default function BlogImage({
     <Image
       src={src}
       alt={alt}
-      width={width}
-      height={height}
       className={className}
+      width={width || 200}
+      height={height || 200}
     />
   );
 }

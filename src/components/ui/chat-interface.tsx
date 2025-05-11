@@ -37,7 +37,7 @@ interface MessageBubbleProps {
 export interface CodeBlockProps {
   inline?: boolean;
   className?: string;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 type ChatState = {
@@ -264,9 +264,11 @@ function ChatInterface() {
       }
       dispatch({ type: 'SET_LOADING', payload: true });
       scrollToBottom(); // Scroll after adding/updating user message
+      console.log('Submitting message:', content); // Log the message content
 
       try {
         // --- Actual API Call ---
+        console.log('Calling /api/chat with message:', content); // Log before API call
         const apiResponse = await fetch('/api/chat', {
           // Your backend endpoint
           method: 'POST',
@@ -283,20 +285,27 @@ function ChatInterface() {
         });
 
         // --- Handle API Response ---
+        console.log('API Response:', apiResponse); // Log the entire API response
         if (!apiResponse.ok) {
           const errorData = await apiResponse.json().catch(() => ({
             error: `API Error: ${apiResponse.status} ${apiResponse.statusText}`,
           }));
+          console.error('API Error Data:', errorData); // Log the error data
           throw new Error(
             errorData.error || `API Error: ${apiResponse.statusText}`,
           ); // Throw the error after attempting to parse JSON
         }
 
         const data = await apiResponse.json();
-        const aiContent = data.reply; // Adjust based on your backend response structure
+        console.log('API Data:', data); // Log the parsed JSON data
+        const aiContent = data?.reply; // Adjust based on your backend response structure
 
         // --- Update State on Success ---
         // 1. Update user message status to 'sent'
+        console.log('AI Reply Content:', aiContent);
+        if (!aiContent) {
+          console.error('AI Reply Content is empty or undefined:', data);
+        }
         dispatch({
           type: 'UPDATE_MESSAGE',
           payload: {
@@ -315,8 +324,9 @@ function ChatInterface() {
         };
         dispatch({ type: 'ADD_MESSAGE', payload: assistantMessage });
       } catch (error) {
-        console.error('Failed to send/process message:', error);
+        console.error('Failed to send/process message:', error); // Log full error
         // --- Update State on Error ---
+        console.log('Updating message status to error');
         dispatch({
           type: 'UPDATE_MESSAGE',
           payload: {
@@ -624,7 +634,7 @@ const renderMessage = (content: string) => (
     ]}
     components={{
       // Use custom CodeBlock component for rendering code elements
-      code: CodeBlock as any, // Cast needed due to complex type inference
+      code: CodeBlock,
       // Customize other elements if needed, e.g., links to open in new tabs
       a: ({ ...props }) => (
         <a

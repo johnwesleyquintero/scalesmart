@@ -414,13 +414,32 @@ const ProductAnalysisCard: React.FC<ProductAnalysisCardProps> = ({
                 <Tooltip
                   contentStyle={{ fontSize: '12px', padding: '5px 10px' }}
                   formatter={(
-                    value: number,
+                    value:
+                      | number
+                      | string
+                      | null
+                      | undefined
+                      | (number | string)[],
                     name: string,
-                    { payload }: any,
-                  ) => [
-                    `${value.toFixed(0)} ${payload.isProhibited ? '(Prohibited)' : ''}`,
-                    'Score',
-                  ]}
+                    props: any,
+                  ):
+                    | [string | React.ReactElement, string | React.ReactElement]
+                    | null
+                    | undefined => {
+                    if (!props || !props.payload) {
+                      return null;
+                    }
+                    const { payload }: { payload: any } = props;
+                    const actualValue = Array.isArray(value) ? value[0] : value;
+                    const formattedValue =
+                      typeof actualValue === 'number'
+                        ? actualValue?.toFixed(2)
+                        : '0.00';
+                    return [
+                      `${formattedValue} ${payload?.isProhibited ? '(Prohibited)' : ''}`,
+                      'Score',
+                    ];
+                  }}
                   labelFormatter={(label: string) => `Keyword: ${label}`}
                 />
                 <Legend
