@@ -421,7 +421,9 @@ const ProductAnalysisCard: React.FC<ProductAnalysisCardProps> = ({
                       | undefined
                       | (number | string)[],
                     name: string,
-                    props: any,
+                    props: {
+                      payload?: { isProhibited: boolean; keyword: string };
+                    },
                   ):
                     | [string | React.ReactElement, string | React.ReactElement]
                     | null
@@ -429,7 +431,11 @@ const ProductAnalysisCard: React.FC<ProductAnalysisCardProps> = ({
                     if (!props || !props.payload) {
                       return null;
                     }
-                    const { payload }: { payload: any } = props;
+                    const {
+                      payload,
+                    }: {
+                      payload?: { isProhibited: boolean; keyword: string };
+                    } = props;
                     const actualValue = Array.isArray(value) ? value[0] : value;
                     const formattedValue =
                       typeof actualValue === 'number'
