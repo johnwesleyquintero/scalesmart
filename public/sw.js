@@ -1,10 +1,5 @@
-/*global self, caches, fetch, console*/
 /**
  * @fileoverview Service worker script.
- * @global self
- * @global caches
- * @global fetch
- * @global console
  */
 // Service worker global scope: self, caches, fetch, and console are implicitly available.
 const CACHE_NAME = 'my-app-cache-v1';

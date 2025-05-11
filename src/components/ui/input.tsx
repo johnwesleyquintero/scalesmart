@@ -27,7 +27,6 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       name,
       placeholder,
       required,
-      disabled,
       ...props
     },
     ref,

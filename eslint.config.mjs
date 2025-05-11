@@ -103,20 +103,4 @@ export default [
       'sonarjs/cognitive-complexity': ['error', 15],
     },
   },
-  eslint.configs.recommended,
-  tseslint.configs.recommended,
-  {
-    plugins: {
-      sonarjs,
-      '@typescript-eslint': tseslint,
-    },
-    rules: {
-      'sonarjs/no-duplicate-string': 'error',
-      'sonarjs/no-identical-functions': 'error',
-      'no-unused-vars': 'off',
-      '@typescript-eslint/no-unused-vars': ['error'],
-      '@typescript-eslint/no-explicit-any': 'warn',
-      'sonarjs/cognitive-complexity': ['error', 15],
-    },
-  },
 ];

@@ -2,6 +2,7 @@ import { Award, Calendar, CheckCircle } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
 const CERTIFICATION_SECTION_HEADING = 'Certifications';
+const MAG_SCHOOL = 'MAG School';
 // Then use CERTIFICATION_TITLE instead of repeating the string
 const certifications = [
   {
@@ -20,35 +21,35 @@ const certifications = [
   },
   {
     name: 'Catalog Management',
-    issuer: 'MAG School',
+    issuer: MAG_SCHOOL,
     date: '2024',
     status: 'Active',
     credentialId: '66a7c61defaf90db750bde04',
   },
   {
     name: 'Design & Conversion',
-    issuer: 'MAG School',
+    issuer: MAG_SCHOOL,
     date: '2024',
     status: 'Active',
     credentialId: '66a7c65840e6a05d9005d5eb',
   },
   {
     name: 'Launching on Amazon',
-    issuer: 'MAG School',
+    issuer: MAG_SCHOOL,
     date: '2024',
     status: 'Active',
     credentialId: '66a7ce36b87e351e77072f99',
   },
   {
     name: 'Main Image CTR Course',
-    issuer: 'MAG School',
+    issuer: MAG_SCHOOL,
     date: '2024',
     status: 'Active',
     credentialId: '66a7c5d70ef423bb240bd554',
   },
   {
     name: 'SEO Optimization',
-    issuer: 'MAG School',
+    issuer: MAG_SCHOOL,
     date: '2024',
     status: 'Active',
     credentialId: '66a7c4f76b8386f0560b9407',

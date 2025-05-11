@@ -1,14 +1,11 @@
-import {
-  ProhibitedKeyword,
-  ProhibitedKeywordCollection,
-} from './models/prohibited-keywords';
+import {} from './models/prohibited-keywords';
 
 export async function getAll(): Promise<string[]> {
   console.log('getAll called');
   return [];
 }
 
-export async function add(keyword: string): Promise<void> {}
+export async function add(): Promise<void> {}
 
 // Consider renaming this export for clarity if 'getAll' is the primary function used elsewhere
 export const ProhibitedKeywords = {

@@ -1,4 +1,3 @@
-import { createClient } from '@supabase/supabase-js';
 import { SupabaseAdapter } from '@next-auth/supabase-adapter';
 import { type NextAuthOptions, type Session } from 'next-auth';
 import { type JWT } from 'next-auth/jwt';
@@ -32,7 +31,7 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async session({ session, token }: { session: Session; token: JWT }) {
-      if (session?.user) {
+      if (session?.user && token.sub) {
         session.user.id = token.sub;
       }
       if (token.accessToken) {
