@@ -251,7 +251,9 @@ export default function ProjectManagement() {
                           {task.dueDate && (
                             <span className="inline-flex items-center">
                               <Calendar className="h-4 w-4 mr-1" />
-                              {new Date(task.dueDate).toLocaleDateString()}
+                              {new Date(task.dueDate).toLocaleDateString(
+                                'en-US',
+                              )}
                             </span>
                           )}
                           {task.assignee && (
