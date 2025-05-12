@@ -10,10 +10,17 @@ export const authOptions: NextAuthOptions = {
   }),
   providers: [
     GithubProvider({
-      clientId: process.env.GITHUB_ID as string,
-      clientSecret: process.env.GITHUB_SECRET as string,
+      clientId: 'Ov23liRMBuL7lRtK6yvf',
+      clientSecret: 'ee4d59a12e9d64f3dd3fdb0abf0980b7747cd638',
+      authorization: {
+        params: {
+          scope: 'read:user user:email',
+        },
+      },
     }),
   ],
+  // Update the Homepage URL in the GitHub OAuth app settings to: https://wescode.vercel.app/
+  // Update the Authorization callback URL in the GitHub OAuth app settings to: https://wescode.vercel.app/api/auth/callback/github
   session: {
     strategy: 'jwt',
   },

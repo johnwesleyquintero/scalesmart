@@ -1,6 +1,10 @@
 {
   "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "baseUrl": "./src",
     "allowJs": true,
     "target": "ES6",
@@ -24,14 +28,27 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
-      "@/lib/*": ["./lib/*"],
-      "@/components/*": ["./components/*"],
-      "@/app/components/*": ["./app/components/*"],
-      "@/hooks/*": ["./app/hooks/*"] // Ensure this line exists
+      "@/*": [
+        "./*"
+      ],
+      "@/lib/*": [
+        "./lib/*"
+      ],
+      "@/components/*": [
+        "./components/*"
+      ],
+      "@/app/components/*": [
+        "./app/components/*"
+      ],
+      "@/hooks/*": [
+        "./app/hooks/*"
+      ] // Ensure this line exists
     }
   },
-  "types": ["@testing-library/jest-dom", "node"],
+  "types": [
+    "@testing-library/jest-dom",
+    "node"
+  ],
   "include": [
     "next-env.d.ts",
     "**/*.ts",
@@ -45,7 +62,10 @@
     "src/types/**/*",
     "src/types/index.d.ts"
   ],
-  "typeRoots": ["./src/types", "./node_modules/@types"],
+  "typeRoots": [
+    "./src/types",
+    "./node_modules/@types"
+  ],
   "exclude": [
     ".next",
     "jest.config.js",
