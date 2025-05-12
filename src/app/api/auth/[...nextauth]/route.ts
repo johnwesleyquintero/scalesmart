@@ -7,12 +7,6 @@ const handler = NextAuth({
     GithubProvider({
       clientId: process.env.GITHUB_ID || '',
       clientSecret: process.env.GITHUB_SECRET || '',
-      authorization: {
-        params: {
-          redirect_uri:
-            'https://fdagmiviwysvfilycgun.supabase.co/auth/v1/callback',
-        },
-      },
     }),
   ],
   session: {
