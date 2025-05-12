@@ -65,7 +65,7 @@ export default function HeroSection() {
               size="lg"
               className="hover:scale-105 duration-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300 border-2 border-purple-200 dark:border-purple-800 hover:border-purple-300 dark:hover:border-purple-700"
             >
-              <Link href="#tools">Amazon Tools</Link>
+              <Link href="/amazon-seller-tools">Amazon Tools</Link>
             </Button>
             <Button
               asChild

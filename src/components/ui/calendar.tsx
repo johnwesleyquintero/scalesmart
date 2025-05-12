@@ -1,11 +1,11 @@
-import React from 'react';
-import { DayPicker } from 'react-day-picker';
-('use client');
+'use client';
 
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import React from 'react';
 import type { CustomComponents } from 'react-day-picker';
+import { DayPicker } from 'react-day-picker';
 
 interface CustomComponentsWithIcons extends CustomComponents {
   IconLeft: React.FC<{ className?: string }>;

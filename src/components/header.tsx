@@ -17,11 +17,11 @@ const COMMON_BUTTON_CLASSES =
 // Define a more structured NavItem interface
 interface NavItem {
   name: string;
-  href?: string; // Optional if it's an action like onClick
+  href?: string;
   external?: boolean;
   className?: string;
   onClick?: () => void;
-  auth?: 'loggedIn' | 'loggedOut' | 'always'; // Controls visibility based on auth state
+  auth?: 'loggedIn' | 'loggedOut' | 'always';
   hideOnMobile?: boolean;
   children?: NavItem[];
 }
@@ -135,10 +135,30 @@ export default function Header() {
       href: '#projects',
       auth: 'always',
       children: [
-        { name: 'Tools', href: '#tools', auth: 'always' },
         {
-          name: 'Platform',
-          href: 'https://amzsync.vercel.app/',
+          name: 'Amazon Seller Tools',
+          href: '/amazon-seller-tools',
+          external: true,
+          auth: 'always',
+        },
+        {
+          name: 'Resume Scanner', // Our new star!
+          href: '/ats', // Assuming this will be the route for it
+          auth: 'always',
+        },
+        {
+          name: 'CRM',
+          href: '/crm',
+          auth: 'always',
+        },
+        {
+          name: 'Project Management',
+          href: '/project-management',
+          auth: 'always',
+        },
+        {
+          name: 'Free Certificate Courses',
+          href: '/academy',
           external: true,
           auth: 'always',
         },
@@ -153,6 +173,7 @@ export default function Header() {
         {
           name: 'Resume',
           href: 'https://johnwesleyquintero-resume.netlify.app/',
+          external: true,
           auth: 'always',
         },
       ],
@@ -204,16 +225,32 @@ export default function Header() {
                       <button className="text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 group-hover:after:w-full">
                         {item.name}
                       </button>
-                      <div className="absolute hidden group-hover:block top-full left-0 mt-2 py-2 w-48 bg-white border rounded-md shadow-md z-10">
-                        {item.children.map((child) => (
-                          <Link
-                            key={child.name}
-                            href={child.href || '/'}
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            {child.name}
-                          </Link>
-                        ))}
+                      {/* Removed mt-2 to close the gap between button and dropdown */}
+                      <div className="absolute hidden group-hover:block top-full left-0 py-2 w-48 bg-white border rounded-md shadow-md z-10">
+                        {item.children.map((child) => {
+                          if (child.external) {
+                            return (
+                              <a
+                                key={child.name}
+                                href={child.href || '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                {child.name}
+                              </a>
+                            );
+                          }
+                          return (
+                            <Link
+                              key={child.name}
+                              href={child.href || '/'}
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              {child.name}
+                            </Link>
+                          );
+                        })}
                       </div>
                     </div>
                   );
@@ -434,16 +471,32 @@ export default function Header() {
                           >
                             {item.name}
                           </button>
-                          {item.children.map((child) => (
-                            <Link
-                              key={child.name}
-                              href={child.href || '/'}
-                              className="block px-6 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md"
-                              onClick={() => setIsMenuOpen(false)}
-                            >
-                              {child.name}
-                            </Link>
-                          ))}
+                          {item.children.map((child) => {
+                            if (child.external) {
+                              return (
+                                <a
+                                  key={child.name}
+                                  href={child.href || '#'}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="block px-6 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md"
+                                  onClick={() => setIsMenuOpen(false)}
+                                >
+                                  {child.name}
+                                </a>
+                              );
+                            }
+                            return (
+                              <Link
+                                key={child.name}
+                                href={child.href || '/'}
+                                className="block px-6 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md"
+                                onClick={() => setIsMenuOpen(false)}
+                              >
+                                {child.name}
+                              </Link>
+                            );
+                          })}
                         </div>
                       );
                     }

@@ -1,4 +1,6 @@
 import ClientProviders from '@/components/client-providers';
+import Footer from '@/components/footer'; // <--- IMPORT THE FOOTER
+import Header from '@/components/header'; // <--- IMPORT THE HEADER
 import { cn } from '@/lib/utils';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
@@ -56,9 +58,11 @@ export default function RootLayout({
         )}
       >
         <ClientProviders>
+          <Header /> {/* <--- ADD THE GLOBAL HEADER HERE */}
           <main id="main" className="flex-1">
             {children}
           </main>
+          <Footer /> {/* <--- FOOTER MOVED HERE */}
         </ClientProviders>
       </body>
     </html>

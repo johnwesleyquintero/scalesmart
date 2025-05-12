@@ -16,3 +16,17 @@ export const supabase = createClient(supabaseUrl!, supabaseKey!);
 export async function connectToDatabase() {
   return { supabase };
 }
+
+export async function getTableSchema(tableName: string) {
+  try {
+    const { data, error } = await supabase.from(tableName).select('*').limit(0);
+    if (error) {
+      console.error('Error fetching table schema:', error);
+      throw error;
+    }
+    return data;
+  } catch (error) {
+    console.error('Failed to get table schema:', error);
+    throw error;
+  }
+}

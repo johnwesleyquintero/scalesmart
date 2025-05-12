@@ -1,3 +1,6 @@
+// Amazon Tools API Client
+// This file contains the API client for interacting with the Amazon Tools API.
+/*global RequestInit*/ // Tell ESLint that RequestInit is a global type
 import { logError } from '../error-handling';
 
 interface ApiClientOptions {
@@ -25,20 +28,34 @@ class ApiClient {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
-        ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          ...(this.apiKey && { 'X-Api-Key': this.apiKey }),
-          ...options.headers,
-        },
+      // Construct headers carefully
+      const finalHeaders = new Headers(options.headers); // Initialize with incoming headers
+      finalHeaders.set('Content-Type', 'application/json'); // Set/overwrite our default
+      if (this.apiKey) {
+        finalHeaders.set('X-Api-Key', this.apiKey); // Add API key
+      }
+
+      // Construct fetch options to be type-safe
+      const fetchOptions: RequestInit = {
+        ...options, // Spread other options like method, body, etc.
+        headers: finalHeaders, // Use the carefully constructed headers
         signal: controller.signal,
-      });
+      };
+
+      const response = await fetch(`${this.baseUrl}${endpoint}`, fetchOptions);
 
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        let errorBody = '';
+        try {
+          errorBody = await response.text(); // Attempt to get more error details
+        } catch (e) {
+          // Ignore if body cannot be read
+        }
+        throw new Error(
+          `API Error: ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 100)}`,
+        );
       }
 
       return response.json();

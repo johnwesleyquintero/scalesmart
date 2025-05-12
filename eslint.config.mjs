@@ -22,6 +22,7 @@ export default [
       '**/__mocks__/**', // Added this line
       '**/*.test.{js,jsx,ts,tsx}',
       '**/*.spec.{js,jsx,ts,tsx}',
+      'public/pdf.worker.min.mjs',
     ],
   },
   {
@@ -87,7 +88,7 @@ export default [
         ecmaFeatures: { jsx: true },
         ecmaVersion: 'latest',
         sourceType: 'module',
-        project: ['./tsconfig.json'],
+        warnOnUnsupportedTypeScriptVersion: false,
       },
     },
     plugins: {

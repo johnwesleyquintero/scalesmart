@@ -1,6 +1,6 @@
 'use server';
-import { supabase } from '@/lib/supabase';
 import { ProhibitedKeyword } from '@/lib/models/prohibited-keywords';
+import { supabase } from '@/lib/supabase';
 
 export async function getAllProhibitedKeywords(): Promise<string[]> {
   try {
@@ -12,7 +12,7 @@ export async function getAllProhibitedKeywords(): Promise<string[]> {
     return keywords.map((k: { keyword: string }) => k.keyword);
   } catch (error: unknown) {
     console.error('Server Action Failed - getAllProhibitedKeywords:', error);
-    return [];
+    throw error;
   }
 }
 

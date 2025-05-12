@@ -1,8 +1,3 @@
-// test/setup.ts
-import { vi } from 'vitest';
+import '@testing-library/jest-dom';
 
-// Mock any modules or setup environment here
-// For example:
-// vi.mock('some-module', () => ({
-//   // mock implementations
-// }));
+console.log('test/setup.ts is being executed');

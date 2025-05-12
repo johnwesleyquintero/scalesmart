@@ -29,16 +29,20 @@ export default async function BlogPage() {
   return (
     <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 min-h-screen">
       <div className="container mx-auto px-4 py-16">
-        <div className="mb-12 text-center">
-          <h1 className="text-4xl font-bold tracking-tight mb-4 md:text-5xl">
-            Blog & Articles
-          </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground text-lg">
+        {/* Page Title Section */}
+        <div className="text-center">
+          {' '}
+          {/* Optional: remove mb-12 if my-6 on h1 is sufficient */}{' '}
+          {/* Removed extra space */}
+          <h1 className="text-3xl font-bold my-6">Blog & Articles</h1>
+          <p className="mx-auto max-w-2xl text-muted-foreground text-lg">
+            {' '}
+            {/* Consider if mt-4 is still needed or if my-6 handles it */}
             Sharing insights and strategies for Amazon sellers and e-commerce
             businesses.
           </p>
         </div>
-
+        {/* Removed mx-auto max-w-2xl from the paragraph */}
         <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
           {posts.map((post) => (
             <Card

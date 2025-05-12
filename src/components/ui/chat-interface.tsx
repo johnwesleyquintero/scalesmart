@@ -1,7 +1,7 @@
 'use client';
 import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config';
 import DOMPurify from 'dompurify';
-import React, { JSX } from 'react';
+import React, { useCallback, useEffect, useReducer, useRef } from 'react';
 
 // --- Style Imports ---
 import 'katex/dist/katex.min.css'; // For math rendering
@@ -9,7 +9,7 @@ import 'prismjs/themes/prism-tomorrow.css'; // For code block syntax highlightin
 
 // --- React and Hook Imports ---
 import type { Element as HastElement } from 'hast';
-import { useCallback, useEffect, useReducer, useRef } from 'react';
+import type { JSX } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import rehypePrismPlus from 'rehype-prism-plus';
@@ -17,20 +17,8 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 // --- Component Imports ---
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Clipboard,
-  ClipboardCheck,
-  Eye,
-  RotateCcw,
-  Trash2,
-} from 'lucide-react';
+import { RotateCcw, Trash2 } from 'lucide-react';
+import CopyMarkdownButton from './CopyMarkdownButton';
 
 // --- Interfaces ---
 export interface Message {
@@ -698,41 +686,31 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 };
 
 // --- Markdown Rendering Configuration ---
+import { FC } from 'react';
 
 interface CodeBlockProps {
-  node?: HastElement; // The hast node, useful for metadata
+  node?: HastElement;
   inline?: boolean;
   className?: string;
   children?: React.ReactNode;
-  [key: string]: any; // Allow other props from ReactMarkdown
 }
 
 // Custom renderer for code blocks (handles Mermaid, HTML, and regular code)
-const CodeBlock: React.FC<CodeBlockProps> = ({
-  inline,
-  className,
-  children,
-  ...props
-}: CodeBlockProps) => {
+const CodeBlock: FC<CodeBlockProps> = ({ inline, className, children }) => {
   const match = /language-(\w+)/.exec(className || '');
   const language = match?.[1];
   const codeContent = String(children).replace(/\n$/, '');
 
   if (inline) {
-    return (
-      <code className={className} {...props}>
-        {children}
-      </code>
-    );
+    return <code className={className}>{codeContent}</code>;
   }
 
   if (language === 'mermaid') {
     return (
       <div className="mermaid-container my-4 overflow-x-auto bg-gray-100 dark:bg-gray-800 p-4 rounded-md">
         <pre className={className}>
-          <code {...props}>{codeContent}</code>
+          <code>{codeContent}</code>
         </pre>
-        {/* Mermaid.js will render this. Ensure Mermaid is initialized. */}
       </div>
     );
   }
@@ -740,24 +718,9 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   if (language === 'html' || language === 'markup') {
     return (
       <div className="code-block-wrapper group/codeblock relative my-4">
-        <pre className={className} {...props}>
+        <pre className={className}>
           <code className={`language-${language}`}>{codeContent}</code>
         </pre>
-        <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover/codeblock:opacity-100 transition-opacity">
-          <CopyMarkdownButton content={codeContent} />
-          <HtmlPreviewModal
-            htmlContent={codeContent}
-            triggerButton={
-              <button
-                className="p-1.5 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                aria-label="Preview HTML"
-                title="Preview HTML"
-              >
-                <Eye className="w-3.5 h-3.5" />
-              </button>
-            }
-          />
-        </div>
       </div>
     );
   }
@@ -765,10 +728,9 @@ const CodeBlock: React.FC<CodeBlockProps> = ({
   // Standard code block
   return (
     <div className="code-block-wrapper group/codeblock relative my-4">
-      <pre className={className} {...props}>
+      <pre className={className}>
         <code className={`language-${language}`}>{codeContent}</code>
       </pre>
-      <CopyMarkdownButton content={codeContent} />
     </div>
   );
 };
@@ -782,97 +744,8 @@ const renderMessage = (content: string): JSX.Element => (
     ]}
     components={{
       code: CodeBlock,
-      p: (
-        props: React.PropsWithChildren<
-          JSX.IntrinsicElements['p'] & { node?: HastElement }
-        >,
-      ) => {
-        const { children } = props;
-        if (React.Children.count(children) === 1) {
-          const singleReactChild = React.Children.toArray(children)[0];
-          if (React.isValidElement(singleReactChild)) {
-            const childElement = singleReactChild as React.ReactElement<
-              { className?: string; [key: string]: unknown },
-              string | React.JSXElementConstructor<unknown>
-            >;
-            const elementType = childElement.type;
-            if (
-              elementType === 'pre' ||
-              (elementType === 'div' &&
-                (childElement.props.className?.includes('mermaid-container') ||
-                  childElement.props.className?.includes('code-block-wrapper')))
-            ) {
-              return <>{children}</>;
-            }
-          }
-        }
-        return <p {...props}>{children}</p>;
-      },
     }}
   >
     {content}
   </ReactMarkdown>
 );
-
-// --- Copy Markdown Button Component ---
-const CopyMarkdownButton: React.FC<{ content: string }> = ({ content }) => {
-  const [copied, setCopied] = React.useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-      // Optionally, show an error toast/message to the user
-    }
-  };
-
-  return (
-    <button
-      onClick={handleCopy}
-      className="absolute top-1 right-1 p-1.5 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
-      aria-label={copied ? 'Copied!' : 'Copy as Markdown'}
-      title={copied ? 'Copied!' : 'Copy as Markdown'}
-    >
-      {copied ? (
-        <ClipboardCheck className="w-3.5 h-3.5 text-green-500" />
-      ) : (
-        <Clipboard className="w-3.5 h-3.5" />
-      )}
-    </button>
-  );
-};
-
-// --- HTML Preview Modal Component ---
-const HtmlPreviewModal: React.FC<{
-  htmlContent: string;
-  triggerButton: React.ReactNode;
-}> = ({ htmlContent, triggerButton }) => {
-  return (
-    <Dialog>
-      <DialogTrigger asChild>{triggerButton}</DialogTrigger>
-      <DialogContent className="sm:max-w-[80vw] h-[80vh] flex flex-col p-0">
-        <DialogHeader className="p-4 border-b">
-          <DialogTitle>HTML Preview</DialogTitle>
-        </DialogHeader>
-        <div className="flex-grow overflow-auto p-1">
-          <iframe
-            srcDoc={`
-              <html>
-                <head>
-                  <style>body { margin: 10px; font-family: sans-serif; } ::-webkit-scrollbar { width: 8px; height: 8px; } ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; } ::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; } ::-webkit-scrollbar-thumb:hover { background: #555; }</style>
-                </head>
-                <body>${DOMPurify.sanitize(htmlContent)}</body>
-              </html>
-            `}
-            title="HTML Preview"
-            className="w-full h-full border-0"
-            sandbox="allow-scripts allow-same-origin" // Be cautious with allow-scripts if HTML is from untrusted sources
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-};
