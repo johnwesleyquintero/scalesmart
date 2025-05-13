@@ -31,7 +31,10 @@ export async function GET(
       },
       scope: frontmatter, // Makes frontmatter available in the MDX content if you use it there
     });
-    return NextResponse.json({ source: mdxSource, frontmatter });
+    return NextResponse.json({
+      source: mdxSource,
+      frontmatter: { ...frontmatter, courseId: frontmatter.courseId || null },
+    });
   } catch (error) {
     console.error(`Error loading MDX module for slug "${slug}":`, error);
     return NextResponse.json(
