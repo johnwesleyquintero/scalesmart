@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
+import { useEffect, useId, useState } from 'react';
 
 interface Customer {
   id: string;
@@ -16,6 +17,7 @@ interface Customer {
 }
 
 export default function CRMComponent() {
+  const customerId = useId();
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   // Initialize customers state from localStorage or as an empty array
   const [customers, setCustomers] = useState<Customer[]>(() => {
@@ -103,7 +105,7 @@ export default function CRMComponent() {
       // Add new customer
       const newCustomer = {
         ...formData,
-        id: Date.now().toString(),
+        id: customerId,
       };
       setCustomers([...customers, newCustomer]);
       resetForm();
@@ -126,6 +128,55 @@ export default function CRMComponent() {
       if (editingCustomer?.id === id) {
         resetForm();
       }
+    }
+  };
+
+  const escapeCSVField = (field: string | undefined | null): string => {
+    if (field === undefined || field === null) {
+      return '';
+    }
+    let str = String(field);
+    // If the field contains a comma, newline, or double quote, enclose it in double quotes.
+    if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+      // Escape existing double quotes by doubling them
+      str = str.replace(/"/g, '""');
+      return `"${str}"`;
+    }
+    return str;
+  };
+
+  const exportTasksToCSV = () => {
+    if (customers.length === 0) {
+      alert('No customers to export.');
+      return;
+    }
+
+    const headers = ['ID', 'Name', 'Email', 'Phone', 'Notes'];
+    const csvRows = [
+      headers.join(','), // Header row
+      ...customers.map((customer) =>
+        [
+          escapeCSVField(customer.id),
+          escapeCSVField(customer.name),
+          escapeCSVField(customer.email),
+          escapeCSVField(customer.phone),
+          escapeCSVField(customer.notes),
+        ].join(','),
+      ),
+    ];
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    if (link.download !== undefined) {
+      // Feature detection
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', 'customers.csv');
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     }
   };
 
@@ -209,8 +260,15 @@ export default function CRMComponent() {
         </CardContent>
       </Card>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex justify-between items-center">
           <CardTitle>Customer List</CardTitle>
+          <Button
+            variant="outline"
+            onClick={exportTasksToCSV}
+            title="Export customers to CSV"
+          >
+            <Download className="mr-2 h-4 w-4" /> Export CSV
+          </Button>
         </CardHeader>
         <CardContent>
           {customers.length === 0 ? (

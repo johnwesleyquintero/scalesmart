@@ -15,13 +15,17 @@ import { useEffect, useState } from 'react';
 
 const moduleItemStyle = 'text-secondary-foreground';
 
+const ACADEMY_ACTIVE_COURSE_ID_KEY = 'academyActiveCourseId_v1';
+const ACADEMY_ACTIVE_MODULE_ID_KEY = 'academyActiveModuleId_v1';
+// Future key for progress: const ACADEMY_COURSES_PROGRESS_KEY = 'academyCoursesProgress_v1';
+
 type Course = {
   id: string;
   title: string;
   description: string;
   duration: string;
   level: 'Beginner' | 'Intermediate' | 'Advanced';
-  progress: number;
+  progress: number; // This will be managed by localStorage in a future step if needed
   modules: Module[];
   locked: boolean;
   category: 'PPC' | 'SEO' | 'Strategy';
@@ -31,7 +35,7 @@ type Module = {
   id: string;
   title: string;
   duration: string;
-  completed: boolean;
+  completed: boolean; // This will be managed by localStorage in a future step if needed
   type: 'video' | 'article' | 'quiz';
   contentSlug?: string; // Changed from articleContent to contentSlug
 };
@@ -39,9 +43,9 @@ type Module = {
 export default function SchoolComponent() {
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [activeModule, setActiveModule] = useState<Module | null>(null);
-
   const [courses, setCourses] = useState<Course[]>([]);
 
+  // 1. Fetch courses from API
   useEffect(() => {
     async function fetchCourses() {
       try {
@@ -58,6 +62,61 @@ export default function SchoolComponent() {
 
     fetchCourses();
   }, []);
+
+  // 2. Restore active course and module from localStorage
+  useEffect(() => {
+    if (courses.length === 0 || typeof window === 'undefined') return;
+
+    const restoreFromStorage = () => {
+      const storedCourseId = localStorage.getItem(ACADEMY_ACTIVE_COURSE_ID_KEY);
+      if (!storedCourseId) return;
+
+      const foundCourse = courses.find((c) => c.id === storedCourseId);
+      if (!foundCourse) {
+        localStorage.removeItem(ACADEMY_ACTIVE_COURSE_ID_KEY);
+        localStorage.removeItem(ACADEMY_ACTIVE_MODULE_ID_KEY);
+        return;
+      }
+
+      setActiveCourse(foundCourse);
+
+      const storedModuleId = localStorage.getItem(ACADEMY_ACTIVE_MODULE_ID_KEY);
+      if (!storedModuleId || !foundCourse.modules) return;
+
+      const foundModule = foundCourse.modules.find(
+        (m) => m.id === storedModuleId,
+      );
+      if (foundModule) {
+        setActiveModule(foundModule);
+      } else {
+        localStorage.removeItem(ACADEMY_ACTIVE_MODULE_ID_KEY);
+      }
+    };
+
+    restoreFromStorage();
+  }, [courses]);
+
+  // 3. Save active course ID to localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      activeCourse
+        ? localStorage.setItem(ACADEMY_ACTIVE_COURSE_ID_KEY, activeCourse.id)
+        : localStorage.removeItem(ACADEMY_ACTIVE_COURSE_ID_KEY);
+    }
+  }, [activeCourse]);
+
+  // 4. Save activeModule.id to localStorage whenever activeModule changes
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (activeModule) {
+        localStorage.setItem(ACADEMY_ACTIVE_MODULE_ID_KEY, activeModule.id);
+      } else if (localStorage.getItem(ACADEMY_ACTIVE_COURSE_ID_KEY)) {
+        // Only remove module ID if there's an active course context
+        // If activeCourse is null, the previous useEffect handles clearing this.
+        localStorage.removeItem(ACADEMY_ACTIVE_MODULE_ID_KEY);
+      }
+    }
+  }, [activeModule]);
 
   const startCourse = (course: Course) => {
     setActiveCourse(course);

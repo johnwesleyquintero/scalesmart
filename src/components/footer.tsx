@@ -110,6 +110,11 @@ export default function Footer() {
           <p className="text-center text-sm text-muted-foreground">
             &copy; {currentYear} Wesley Quintero. All rights reserved.
           </p>
+          <div className="text-center text-sm text-muted-foreground">
+            <Link href="/privacy-policy" className="hover:text-primary">
+              Privacy & Policy
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
