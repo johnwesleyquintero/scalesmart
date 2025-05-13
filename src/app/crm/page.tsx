@@ -37,10 +37,43 @@ export default function CRMComponent() {
       const storedCustomers = localStorage.getItem('crmCustomers');
       if (storedCustomers) {
         try {
-          setCustomers(JSON.parse(storedCustomers));
+          const parsedData = JSON.parse(storedCustomers);
+          if (Array.isArray(parsedData)) {
+            // Validate and ensure each customer has a unique ID
+            const validatedCustomers: Customer[] = parsedData.map(
+              (item: any, index: number) => {
+                // Ensure item is an object and provide defaults, especially for ID
+                // If item.id is missing, null, or empty string, generate a new one.
+                const id =
+                  typeof item.id === 'string' && item.id
+                    ? item.id
+                    : `generated-${Date.now()}-${index}`;
+                const name =
+                  typeof item.name === 'string' && item.name
+                    ? item.name
+                    : 'Unnamed Customer';
+
+                return {
+                  id,
+                  name,
+                  email: typeof item.email === 'string' ? item.email : '',
+                  phone: typeof item.phone === 'string' ? item.phone : '',
+                  notes: typeof item.notes === 'string' ? item.notes : '',
+                };
+              },
+            );
+            setCustomers(validatedCustomers);
+          } else {
+            console.warn(
+              'Stored crmCustomers is not an array, clearing localStorage.',
+            );
+            localStorage.removeItem('crmCustomers');
+            setCustomers([]); // Initialize with empty array if stored data is invalid
+          }
         } catch (error) {
           console.error('Error parsing customers from localStorage:', error);
-          // localStorage.removeItem('crmCustomers'); // Optionally clear corrupted data
+          localStorage.removeItem('crmCustomers'); // Clear corrupted data
+          setCustomers([]); // Initialize with empty array on error
         }
       }
       setHasAttemptedInitialLoad(true); // Mark that we've tried to load.
