@@ -215,8 +215,15 @@ export default function ProjectManagement() {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Project Board</h1>
+        {/* Centered Title and Description */}
+        <h1 className="text-3xl font-bold my-6 text-center">Project Board</h1>
+        <p className="text-lg text-muted-foreground text-center mb-8">
+          Organize your projects, track tasks, and manage deadlines effectively
+          with this Kanban-style board.
+        </p>
+
+        {/* Action Buttons - aligned to the right */}
+        <div className="flex justify-end items-center mb-6">
           <div className="flex gap-2">
             <Button onClick={() => setShowAddForm(true)}>
               <Plus className="mr-2 h-4 w-4" /> Add Task
