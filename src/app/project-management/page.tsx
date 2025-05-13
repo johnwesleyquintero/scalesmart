@@ -1,9 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Plus, X } from 'lucide-react';
+import { CalendarDays, Check, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
 type Task = {
@@ -250,7 +249,7 @@ export default function ProjectManagement() {
                         <div className="flex justify-between items-center text-sm">
                           {task.dueDate && (
                             <span className="inline-flex items-center">
-                              <Calendar className="h-4 w-4 mr-1" />
+                              <CalendarDays className="h-4 w-4 mr-1" />
                               {new Date(task.dueDate).toLocaleDateString(
                                 'en-US',
                               )}
