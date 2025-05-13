@@ -9,6 +9,7 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 export const initGeminiAI = () => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
+    console.error('GEMINI_API_KEY is not defined in the environment');
     throw new Error('Missing GEMINI_API_KEY environment variable');
   }
   return new GoogleGenerativeAI(apiKey);

@@ -120,8 +120,12 @@ export async function POST(request: NextRequest) {
     });
 
     const chat = model.startChat();
+    console.log(`Context prompt size: ${contextPrompt.length}`);
+    const startTime = Date.now();
     const result = await chat.sendMessage(contextPrompt);
+    const endTime = Date.now();
     const response = result.response;
+    console.log(`Gemini API call duration: ${endTime - startTime}ms`);
 
     return NextResponse.json({
       response: response.text(),
