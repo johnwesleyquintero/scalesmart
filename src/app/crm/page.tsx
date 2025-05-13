@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Download } from 'lucide-react';
-import { useEffect, useId, useState } from 'react';
+import { Copy, Download } from 'lucide-react';
+import { memo, useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 interface Customer {
   id: string;
@@ -16,30 +17,42 @@ interface Customer {
   notes: string;
 }
 
+// Memoize ReactMarkdown to prevent re-renders if props haven't changed
+const MemoizedReactMarkdown = memo(ReactMarkdown);
+
 export default function CRMComponent() {
-  const customerId = useId();
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  // Initialize customers state from localStorage or as an empty array
-  const [customers, setCustomers] = useState<Customer[]>(() => {
-    // This function runs only on initial render
+  // Initialize customers state as an empty array for the first render on both server and client.
+  const [customers, setCustomers] = useState<Customer[]>([]);
+
+  // This state will track if we have attempted to load from localStorage.
+  // It helps prevent saving an empty 'customers' array to localStorage
+  // before we've had a chance to load existing data.
+  const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
+
+  // Effect to load customers from localStorage on initial client-side mount
+  useEffect(() => {
+    // This effect runs only on the client, after the initial render.
     if (typeof window !== 'undefined') {
       const storedCustomers = localStorage.getItem('crmCustomers');
       if (storedCustomers) {
         try {
-          return JSON.parse(storedCustomers);
+          setCustomers(JSON.parse(storedCustomers));
         } catch (error) {
           console.error('Error parsing customers from localStorage:', error);
-          return [];
+          // localStorage.removeItem('crmCustomers'); // Optionally clear corrupted data
         }
       }
+      setHasAttemptedInitialLoad(true); // Mark that we've tried to load.
     }
-    return [];
-  });
+  }, []); // Empty dependency array ensures this runs only once on mount.
 
-  // Effect to save customers to localStorage whenever it changes
+  // Effect to save customers to localStorage whenever 'customers' changes, but only after the initial load attempt.
   useEffect(() => {
-    localStorage.setItem('crmCustomers', JSON.stringify(customers));
-  }, [customers]);
+    if (hasAttemptedInitialLoad) {
+      localStorage.setItem('crmCustomers', JSON.stringify(customers));
+    }
+  }, [customers, hasAttemptedInitialLoad]);
 
   const [formData, setFormData] = useState<Omit<Customer, 'id'>>({
     name: '',
@@ -75,12 +88,12 @@ export default function CRMComponent() {
     const phoneRegex = /^\d{3}-\d{3}-\d{4}$/; // Basic US phone number format
 
     // Basic validation
-    if (!formData.name || !formData.email) {
-      alert('Name and Email are required fields');
+    if (!formData.name) {
+      alert('Name is a required field');
       return;
     }
 
-    if (!emailRegex.test(formData.email)) {
+    if (formData.email && !emailRegex.test(formData.email)) {
       alert('Please enter a valid email address.');
       return;
     }
@@ -105,7 +118,7 @@ export default function CRMComponent() {
       // Add new customer
       const newCustomer = {
         ...formData,
-        id: customerId,
+        id: Date.now().toString(),
       };
       setCustomers([...customers, newCustomer]);
       resetForm();
@@ -143,6 +156,20 @@ export default function CRMComponent() {
       return `"${str}"`;
     }
     return str;
+  };
+
+  const handleCopyToClipboard = async (text: string) => {
+    if (!navigator.clipboard) {
+      alert('Clipboard API not available. Please copy manually.');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      alert('Notes copied to clipboard as Markdown!');
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+      alert('Failed to copy notes. See console for details.');
+    }
   };
 
   const exportTasksToCSV = () => {
@@ -208,7 +235,7 @@ export default function CRMComponent() {
                 />
               </div>
               <div>
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   name="email"
@@ -216,7 +243,6 @@ export default function CRMComponent() {
                   value={formData.email}
                   onChange={handleInputChange}
                   placeholder="john@example.com"
-                  required
                 />
               </div>
             </div>
@@ -272,11 +298,18 @@ export default function CRMComponent() {
         </CardHeader>
         <CardContent>
           {customers.length === 0 ? (
-            <p className="text-muted-foreground">No customers added yet.</p>
+            <p className="text-muted-foreground">
+              {hasAttemptedInitialLoad
+                ? 'No customers added yet.'
+                : 'Loading customers...'}
+            </p>
           ) : (
             <div className="space-y-4">
               {customers.map((customer) => (
-                <div key={customer.id} className="border rounded-lg p-4">
+                <div
+                  key={`customer-card-${customer.id}`}
+                  className="border rounded-lg p-4"
+                >
                   <div className="flex justify-between items-start">
                     <div>
                       <h3 className="font-bold">{customer.name}</h3>
@@ -295,6 +328,16 @@ export default function CRMComponent() {
                       >
                         Edit
                       </Button>
+                      {customer.notes && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleCopyToClipboard(customer.notes)}
+                          title="Copy notes as Markdown"
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="destructive"
                         size="sm"
@@ -306,9 +349,13 @@ export default function CRMComponent() {
                   </div>
                   {customer.notes && (
                     <div className="mt-2">
-                      <p className="text-sm text-muted-foreground">
-                        {customer.notes}
-                      </p>
+                      {/* Use ReactMarkdown to render notes */}
+                      {/* Added prose styles for basic markdown formatting */}
+                      <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
+                        <MemoizedReactMarkdown>
+                          {customer.notes}
+                        </MemoizedReactMarkdown>
+                      </div>
                     </div>
                   )}
                 </div>
