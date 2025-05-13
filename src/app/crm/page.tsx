@@ -28,6 +28,7 @@ export default function CRMComponent() {
   // This state will track if we have attempted to load from localStorage.
   // It helps prevent saving an empty 'customers' array to localStorage
   // before we've had a chance to load existing data.
+  const [searchQuery, setSearchQuery] = useState('');
   const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
 
   // Effect to load customers from localStorage on initial client-side mount
@@ -240,6 +241,19 @@ export default function CRMComponent() {
     }
   };
 
+  // Filter customers based on search query
+  const filteredCustomers = customers.filter((customer) => {
+    const query = searchQuery.toLowerCase().trim();
+    if (!query) return true; // If query is empty, show all customers
+
+    return (
+      customer.name.toLowerCase().includes(query) ||
+      customer.email.toLowerCase().includes(query) ||
+      customer.phone.toLowerCase().includes(query) ||
+      customer.notes.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold my-6 text-center">CRM Dashboard</h1>
@@ -319,26 +333,38 @@ export default function CRMComponent() {
         </CardContent>
       </Card>
       <Card>
-        <CardHeader className="flex justify-between items-center">
-          <CardTitle>Customer List</CardTitle>
-          <Button
-            variant="outline"
-            onClick={exportTasksToCSV}
-            title="Export customers to CSV"
-          >
-            <Download className="mr-2 h-4 w-4" /> Export CSV
-          </Button>
+        <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <CardTitle className="whitespace-nowrap">Customer List</CardTitle>
+          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto md:ml-auto">
+            <Input
+              type="search"
+              placeholder="Search customers..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full sm:w-auto md:min-w-[250px] lg:min-w-[300px]"
+            />
+            <Button
+              variant="outline"
+              onClick={exportTasksToCSV}
+              title="Export customers to CSV"
+              className="w-full sm:w-auto"
+            >
+              <Download className="mr-2 h-4 w-4" /> Export CSV
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
-          {customers.length === 0 ? (
+          {filteredCustomers.length === 0 ? (
             <p className="text-muted-foreground">
-              {hasAttemptedInitialLoad
-                ? 'No customers added yet.'
-                : 'Loading customers...'}
+              {searchQuery
+                ? 'No customers match your search.'
+                : hasAttemptedInitialLoad
+                  ? 'No customers added yet.'
+                  : 'Loading customers...'}
             </p>
           ) : (
             <div className="space-y-4">
-              {customers.map((customer) => (
+              {filteredCustomers.map((customer) => (
                 <div
                   key={`customer-card-${customer.id}`}
                   className="border rounded-lg p-4"
