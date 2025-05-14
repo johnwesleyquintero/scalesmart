@@ -48,6 +48,17 @@ type Module = {
   contentSlug?: string; // Changed from articleContent to contentSlug
 };
 
+// Helper function to calculate course progress
+const calculateCourseProgress = (course: Course): number => {
+  if (!course.modules || course.modules.length === 0) {
+    return 0;
+  }
+  const completedModules = course.modules.filter(
+    (module) => module.completed,
+  ).length;
+  return Math.round((completedModules / course.modules.length) * 100);
+};
+
 export default function SchoolComponent() {
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [activeModule, setActiveModule] = useState<Module | null>(null);
@@ -233,9 +244,34 @@ const ActiveCourseDisplay = ({
 }: {
   startModule: (module: Module) => void;
   activeCourse: Course;
-  setActiveCourse: (course: null) => void;
+  setActiveCourse: (course: Course | null) => void;
   activeModule: Module | null;
 }) => {
+  const markModuleAsCompleted = (module: Module) => {
+    // 1. Update the module's completed status
+    const updatedModules = activeCourse.modules.map((m) =>
+      m.id === module.id ? { ...m, completed: true } : m,
+    );
+
+    // 2. Update the active course with the updated modules
+    const updatedCourse: Course = {
+      ...activeCourse,
+      modules: updatedModules,
+      progress: calculateCourseProgress({
+        ...activeCourse,
+        modules: updatedModules,
+      }),
+    };
+
+    // 3. Update the active course in state
+    setActiveCourse(updatedCourse);
+
+    // 4. Update localStorage
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(ACADEMY_ACTIVE_COURSE_ID_KEY, updatedCourse.id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Course Header */}
@@ -366,9 +402,7 @@ const ActiveCourseDisplay = ({
           {!activeModule.completed && (
             <CardFooter>
               <Button
-                onClick={() =>
-                  console.log(`Completing module ${activeModule.id}`)
-                }
+                onClick={() => markModuleAsCompleted(activeModule)}
                 className="w-full"
               >
                 Mark as Completed
@@ -377,8 +411,6 @@ const ActiveCourseDisplay = ({
           )}
         </Card>
       )}
-
-      {/* Quiz Results */}
     </div>
   );
 };

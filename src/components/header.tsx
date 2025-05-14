@@ -157,7 +157,7 @@ export default function Header() {
           auth: 'always',
         },
         {
-          name: 'Free Certificate Courses',
+          name: 'Amazon Seller Academy',
           href: '/academy',
           external: true,
           auth: 'always',
@@ -178,7 +178,7 @@ export default function Header() {
         },
       ],
     },
-    { name: 'Blog', href: '#blog', auth: 'always' },
+    { name: 'Blog', href: '/blog', auth: 'always' },
     { name: 'Contact', href: '#contact', auth: 'always' },
 
     {
@@ -356,9 +356,7 @@ export default function Header() {
                               <Link
                                 key={item.slug}
                                 href={`/blog/${item.slug}`}
-                                className={cn(
-                                  'block px-2 py-1 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground',
-                                )}
+                                className="block px-2 py-1 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground"
                                 onClick={() => {
                                   setQuery('');
                                   setIsSearchOpen(false);
