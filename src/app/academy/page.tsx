@@ -54,9 +54,13 @@ export default function SchoolComponent() {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
+        console.log('Response data:', data);
         setCourses(data);
+        console.log('Successfully fetched courses:', data);
       } catch (error) {
         console.error('Failed to fetch courses:', error);
+        console.log('Error fetching courses:', error);
+        console.log('Error object:', error);
       }
     }
 
