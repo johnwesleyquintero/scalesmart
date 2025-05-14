@@ -50,7 +50,7 @@ class ApiClient {
         let errorBody = '';
         try {
           errorBody = await response.text(); // Attempt to get more error details
-        } catch (e) {
+        } catch {
           // Ignore if body cannot be read
         }
         throw new Error(
@@ -134,8 +134,12 @@ class ApiClient {
   }
 }
 
+export { ApiClient };
+
 // Create and export a singleton instance
-export const apiClient = new ApiClient({
+const apiClient = new ApiClient({
   baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.example.com',
   apiKey: process.env.NEXT_PUBLIC_API_KEY,
 });
+
+export { apiClient };

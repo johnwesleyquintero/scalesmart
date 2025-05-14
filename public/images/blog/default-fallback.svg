@@ -20,13 +20,13 @@
 
   <!-- Background -->
   <rect width="1200" height="630" fill="url(#bg-gradient)" />
-  
+
   <!-- Decorative elements -->
   <circle cx="150" cy="150" r="80" fill="#ffffff" fill-opacity="0.1" />
   <circle cx="1050" cy="480" r="120" fill="#ffffff" fill-opacity="0.1" />
-  
+
   <!-- Title -->
   <text x="600" y="315" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="white" filter="url(#shadow)">
-    Default Blog Image
+    Image Available Soon!
   </text>
 </svg>

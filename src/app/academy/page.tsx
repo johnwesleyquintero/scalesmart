@@ -10,7 +10,15 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Award, BarChart2, BookOpen, Check, Lock, Play } from 'lucide-react';
+import {
+  Award,
+  BarChart2,
+  BookOpen,
+  Check,
+  ExternalLink,
+  Lock,
+  Play,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const moduleItemStyle = 'text-secondary-foreground';
@@ -281,21 +289,106 @@ const ActiveCourseDisplay = ({
           </CardContent>
         </Card>
       ) : (
-        <div>
-          {activeModule.type === 'quiz' ? (
-            'Quiz Component'
-          ) : (
-            <a href={`/blog/${activeModule.contentSlug}`}>
-              Learning Module: {activeModule.title}
-            </a>
+        <Card>
+          <CardHeader>
+            <CardTitle>{activeModule.title}</CardTitle>
+            <CardDescription>
+              {activeModule.duration} •{' '}
+              {activeModule.type.charAt(0).toUpperCase() +
+                activeModule.type.slice(1)}{' '}
+              Content
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {activeModule.type === 'quiz' ? (
+              <div className="space-y-4">
+                <p>This module contains a quiz to test your knowledge.</p>
+                <Button onClick={() => console.log('Quiz started')}>
+                  Start Quiz
+                </Button>
+              </div>
+            ) : activeModule.type === 'article' && activeModule.contentSlug ? (
+              <div className="space-y-4">
+                <p>
+                  This module is an article. Please review the content by
+                  clicking the link below. It will open in a new tab.
+                </p>
+                <Button asChild variant="outline">
+                  <a
+                    href={`/blog/${activeModule.contentSlug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Open Article <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </div>
+            ) : activeModule.type === 'video' && activeModule.contentSlug ? (
+              <div className="space-y-4">
+                <p>
+                  This module is a video. Please watch it below or open it in a
+                  new tab.
+                </p>
+                {(() => {
+                  const videoId = getYouTubeVideoId(activeModule.contentSlug!);
+                  if (videoId) {
+                    return (
+                      <div className="aspect-video w-full max-w-2xl mx-auto bg-muted rounded-lg overflow-hidden">
+                        <iframe
+                          width="100%"
+                          height="100%"
+                          src={`https://www.youtube.com/embed/${videoId}`}
+                          title="YouTube video player"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    );
+                  }
+                  return (
+                    <Button asChild variant="outline">
+                      <a
+                        href={activeModule.contentSlug}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Open Video <ExternalLink className="ml-2 h-4 w-4" />
+                      </a>
+                    </Button>
+                  );
+                })()}
+              </div>
+            ) : (
+              <p>Content for this module is not yet available.</p>
+            )}
+          </CardContent>
+          {!activeModule.completed && (
+            <CardFooter>
+              <Button
+                onClick={() =>
+                  console.log(`Completing module ${activeModule.id}`)
+                }
+                className="w-full"
+              >
+                Mark as Completed
+              </Button>
+            </CardFooter>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Quiz Results */}
     </div>
   );
 };
+
+// Helper function to extract YouTube Video ID from URL
+function getYouTubeVideoId(url: string): string | null {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return match && match[2].length === 11 ? match[2] : null;
+}
 
 const ModuleItem = ({
   module,
