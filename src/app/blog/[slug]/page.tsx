@@ -12,10 +12,15 @@ import path from 'path';
 const blogDirectory = path.join(process.cwd(), 'src/app/content/blog');
 
 async function getBlogPost(slug: string) {
-  const filePath = path.join(blogDirectory, `${slug}.mdx`);
-  const fileContent = fs.readFileSync(filePath, 'utf-8');
-  const mdxSource = await serialize(fileContent);
-  return mdxSource;
+  try {
+    const filePath = path.join(blogDirectory, `${slug}.mdx`);
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const mdxSource = await serialize(fileContent);
+    return mdxSource;
+  } catch (error) {
+    console.error(`Error getting blog post ${slug}:`, error);
+    return null;
+  }
 }
 
 export default async function BlogPostPage({
@@ -38,7 +43,7 @@ export default async function BlogPostPage({
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <MDXRemote {...mdxSource} />
+      {mdxSource ? <MDXRemote {...mdxSource} /> : <p>Blog post not found.</p>}
     </div>
   );
 }
