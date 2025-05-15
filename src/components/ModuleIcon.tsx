@@ -1,27 +1,36 @@
+'use client';
+
 import { ModuleType } from '@/types';
-import { BarChart2, BookOpen, Check, Play } from 'lucide-react';
+import { Book, Check, FileText, Video } from 'lucide-react';
 import React from 'react';
 
-type ModuleIconProps = {
-  type: ModuleType;
+interface ModuleIconProps {
+  type: string;
   completed?: boolean;
-};
+}
 
 const ModuleIcon: React.FC<ModuleIconProps> = ({ type, completed }) => {
-  if (completed) {
-    return <Check className="h-5 w-5 text-green-500" />;
-  }
+  let icon;
 
   switch (type) {
-    case ModuleType.VIDEO:
-      return <Play className="h-5 w-5" />;
     case ModuleType.ARTICLE:
-      return <BookOpen className="h-5 w-5" />;
+      icon = <FileText />;
+      break;
+    case ModuleType.VIDEO:
+      icon = <Video />;
+      break;
     case ModuleType.QUIZ:
-      return <BarChart2 className="h-5 w-5" />;
+      icon = <Book />;
+      break;
     default:
-      return null;
+      icon = <FileText />;
   }
+
+  if (completed) {
+    icon = <Check />;
+  }
+
+  return <div className="w-6 h-6 flex items-center justify-center">{icon}</div>;
 };
 
 export default ModuleIcon;

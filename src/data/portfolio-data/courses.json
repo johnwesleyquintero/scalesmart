@@ -7,7 +7,16 @@
     "level": "Beginner",
     "locked": false,
     "progress": 0,
-    "modules": []
+    "modules": [
+      {
+        "id": "101",
+        "title": "Keyword Research",
+        "type": "article",
+        "duration": "30 minutes",
+        "link": "/blog/keyword-research",
+        "completed": false
+      }
+    ]
   },
   {
     "id": "2",

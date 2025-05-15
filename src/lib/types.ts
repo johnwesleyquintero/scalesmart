@@ -51,6 +51,35 @@ export interface BlogPost {
   }[];
 }
 
+export interface Module {
+  id: string;
+  title: string;
+  type: string;
+  duration: string;
+  content?: string;
+  completed: boolean;
+  link?: string;
+  contentSlug?: string;
+}
+
+export enum ModuleType {
+  ARTICLE = 'article',
+  VIDEO = 'video',
+  QUIZ = 'quiz',
+}
+
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  level: string;
+  locked: boolean;
+  progress: number;
+  category: string;
+  modules: Module[];
+}
+
 export type LogLevel = 'error' | 'warn' | 'info' | 'debug';
 
 export interface LoggerConfig {

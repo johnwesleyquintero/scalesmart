@@ -1,0 +1,64 @@
+{
+  "courses": [
+    {
+      "id": "1",
+      "title": "Amazon SEO Fundamentals - Crash Course",
+      "description": "Learn the basics of Amazon SEO and how to optimize your listings for higher rankings in this quick crash course.",
+      "duration": "2 hours",
+      "level": "Beginner",
+      "locked": false,
+      "progress": 0,
+      "category": "SEO",
+      "modules": [
+        {
+          "id": "101",
+          "title": "Keyword Research - Crash Course",
+          "type": "article",
+          "duration": "15 minutes",
+          "content": "Brief overview of keyword research...",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "title": "Amazon PPC Mastery - Crash Course",
+      "description": "Master the art of Amazon PPC and learn how to create profitable advertising campaigns in this quick crash course.",
+      "duration": "3 hours",
+      "level": "Intermediate",
+      "locked": true,
+      "progress": 0,
+      "category": "PPC",
+      "modules": [
+        {
+          "id": "201",
+          "title": "Campaign Structure - Crash Course",
+          "type": "article",
+          "duration": "15 minutes",
+          "content": "Brief overview of campaign structure...",
+          "completed": false
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "title": "Amazon Product Research - Crash Course",
+      "description": "Learn how to find profitable products to sell on Amazon in this quick crash course.",
+      "duration": "2.5 hours",
+      "level": "Beginner",
+      "locked": false,
+      "progress": 0,
+      "category": "Product Research",
+      "modules": [
+        {
+          "id": "301",
+          "title": "Product Research Basics - Crash Course",
+          "type": "article",
+          "duration": "20 minutes",
+          "content": "Brief overview of product research basics...",
+          "completed": false
+        }
+      ]
+    }
+  ]
+}

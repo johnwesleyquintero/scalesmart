@@ -6,8 +6,8 @@ import { useEffect, useState } from 'react';
 
 interface AcademyContentProps {
   courses: Course[];
-  CourseList: React.ComponentType<any>;
-  ActiveCourseDisplay: React.ComponentType<any>;
+  CourseList: React.ComponentType<{ startCourse: (course: Course) => void }>;
+  ActiveCourseDisplay: React.ComponentType<{}>;
 }
 
 function AcademyContentClient({
@@ -15,7 +15,8 @@ function AcademyContentClient({
   CourseList,
   ActiveCourseDisplay,
 }: AcademyContentProps) {
-  const { activeCourse, setActiveCourse, setCourses } = useAcademy();
+  const { activeCourse, setActiveCourse, setActiveModule, setCourses } =
+    useAcademy();
 
   const [progressValues, setProgressValues] = useState<{
     [key: `course-${string}-progress`]: number;
@@ -74,6 +75,14 @@ function AcademyContentClient({
     setCourses(coursesWithLocalStorage);
   }, [courses, progressValues, setCourses]);
 
+  const startCourse = (course: Course) => {
+    setActiveCourse(course);
+    if (course.modules && course.modules.length > 0) {
+      setActiveModule(course.modules[0]);
+      console.log('Setting activeModule:', course.modules[0]);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto p-4">
       {/* Page Title Section */}
@@ -87,7 +96,7 @@ function AcademyContentClient({
       </div>
       {/* Module Content or Quiz */}
       {!activeCourse ? (
-        <CourseList startCourse={setActiveCourse} />
+        <CourseList startCourse={startCourse} />
       ) : (
         <ActiveCourseDisplay />
       )}

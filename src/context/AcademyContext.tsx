@@ -1,11 +1,5 @@
 import { Course, Module } from '@/types';
-import React, {
-  createContext,
-  Dispatch,
-  useContext,
-  useEffect,
-  useState,
-} from 'react';
+import React, { createContext, Dispatch, useContext, useState } from 'react';
 import useAcademyStorage from '../hooks/use-academy-storage';
 
 type AcademyContextType = {
@@ -16,6 +10,8 @@ type AcademyContextType = {
   courses: Course[];
   setCourses: Dispatch<React.SetStateAction<Course[]>>;
   startModule: (module: Module) => void;
+  academyData: { courses: Course[]; quizResults?: any[] };
+  saveData: (data: { courses: Course[]; quizResults?: any[] }) => void;
 };
 
 const AcademyContext = createContext<AcademyContextType | undefined>(undefined);
@@ -27,21 +23,13 @@ type AcademyProviderProps = {
 
 export const AcademyProvider: React.FC<AcademyProviderProps> = ({
   children,
+  initialCourses,
 }) => {
   console.log('AcademyProvider - Running');
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [activeModule, setActiveModule] = useState<Module | null>(null);
   const { academyData, saveData } = useAcademyStorage();
-  const [courses, setCourses] = useState<Course[]>(academyData.courses || []);
-
-  useEffect(() => {
-    setCourses(academyData.courses || []);
-  }, [academyData]);
-  // Force re-render when academyData changes
-  const [, forceUpdate] = useState({});
-  useEffect(() => {
-    forceUpdate({});
-  }, [academyData]);
+  const [courses, setCourses] = useState<Course[]>(initialCourses);
 
   const startModule = (module: Module) => {
     const updatedCourses = courses.map((course: Course) => {
@@ -70,6 +58,8 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
     courses,
     setCourses,
     startModule,
+    academyData,
+    saveData,
   };
 
   return (
