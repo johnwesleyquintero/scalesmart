@@ -99,7 +99,7 @@ export function validateAndProcessData(data: CsvRow[]): {
   return { validData, errors };
 }
 
-import { logger } from '@/lib/logger';
+import { error, warn } from '@/lib/logger';
 import { sanitizeHtml } from '@/lib/sanitize';
 
 interface ChartDataPoint {
@@ -268,16 +268,14 @@ export function CompetitorAnalyzer() {
             setChartData(formattedData);
           } else {
             sessionStorage.removeItem('chartData');
-            logger.warn(
-              'Data exceeds storage limit, not saved to localStorage',
-            );
+            warn('Data exceeds storage limit, not saved to localStorage');
           }
           setIsLoading(false);
           return;
         }
       }
-    } catch (error) {
-      logger.error('Error processing CSV data:', { error });
+    } catch (error: any) {
+      error('Error processing CSV data:', { error });
       toast({
         title: 'Error',
         description: 'Failed to process data',
@@ -304,7 +302,7 @@ export function CompetitorAnalyzer() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        logger.error('API Error:', {
+        error('API Error:', {
           status: response.status,
           error: errorText,
         });
@@ -320,7 +318,7 @@ export function CompetitorAnalyzer() {
       try {
         data = await response.json();
         if (!data || !data.competitors || !data.metrics) {
-          logger.error('Invalid API response:', { data });
+          error('Invalid API response:', { data });
           throw new Error('Invalid response format from server');
         }
 
@@ -333,7 +331,7 @@ export function CompetitorAnalyzer() {
           });
         });
       } catch (error) {
-        logger.error('API parsing error:', { error });
+        error('API parsing error:', { error });
         throw new Error(
           error instanceof Error
             ? error.message

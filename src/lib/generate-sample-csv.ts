@@ -1,5 +1,4 @@
 import Papa from 'papaparse';
-import { logger } from './logger';
 
 // Define supported data types and their generators
 type DataType = 'string' | 'number' | 'date' | 'boolean' | 'enum' | 'asin'; // Added 'asin' for potential specific generation
@@ -123,7 +122,7 @@ const generateSampleData = (
         const generator =
           customGenerators[dataType.type] || dataGenerators[dataType.type];
         if (!generator) {
-          logger.warn(
+          console.warn(
             `Unsupported data type: ${dataType.type} for column ${name}. Skipping.`,
           );
           row[name] = ''; // Assign empty string if generator missing
@@ -140,7 +139,7 @@ const generateSampleData = (
       return row;
     });
   } catch (error) {
-    logger.error('Error generating sample data', { error, config });
+    console.error('Error generating sample data', { error, config });
     throw new Error(
       `Failed to generate sample data: ${error instanceof Error ? error.message : 'Unknown error'}`,
     );
@@ -540,7 +539,7 @@ export function generateSampleCsv(
 ): string {
   const config = sampleDataConfigs[dataType];
   if (!config) {
-    logger.error(`Unsupported data type for CSV generation: ${dataType}`);
+    console.error(`Unsupported data type for CSV generation: ${dataType}`);
     // Return empty header row or throw error? Returning header is safer for download.
     // throw new Error(`Unsupported data type: ${dataType}`);
     return ''; // Or return a default header?
@@ -556,7 +555,7 @@ export function generateSampleCsv(
     // Papaparse automatically uses the keys of the first object as headers
     return Papa.unparse(data, { header: true });
   } catch (error) {
-    logger.error('Error generating sample CSV', { error, dataType });
+    console.error('Error generating sample CSV', { error, dataType });
     throw new Error(
       `Failed to generate sample CSV: ${error instanceof Error ? error.message : 'Unknown error'}`,
     );
@@ -577,7 +576,7 @@ export function downloadSampleCsv(
     typeof Blob === 'undefined' ||
     typeof URL === 'undefined'
   ) {
-    logger.error(
+    console.error(
       'CSV download function called outside of browser environment.',
     );
     throw new Error('CSV download is only available in the browser.');
@@ -589,7 +588,7 @@ export function downloadSampleCsv(
     const csv = generateSampleCsv(dataType);
     if (!csv) {
       // Handle case where generateSampleCsv might return empty (e.g., unsupported type logged)
-      logger.error(
+      console.error(
         `[CSV Download] Generated CSV string is empty for type ${dataType}, aborting download. Check logs for errors.`,
       );
       // Optionally, inform the user via UI feedback (e.g., toast notification)
@@ -626,7 +625,7 @@ export function downloadSampleCsv(
     console.log('[CSV Download] Completed download and cleaned up resources');
   } catch (error: unknown) {
     // Log the specific error
-    logger.error('Error during CSV download process', {
+    console.error('Error during CSV download process', {
       error,
       dataType,
       fileName,

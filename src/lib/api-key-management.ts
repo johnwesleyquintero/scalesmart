@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcrypt';
 import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
-import { logger } from './logger';
+import { error, info, warn } from './logger';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -20,9 +20,6 @@ const CRYPTO_CONFIG = {
   hashRounds: 12, // BCrypt cost factor
 };
 
-// const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minute
-// const MAX_REQUESTS_PER_WINDOW = 5;
-
 type ApiKeyRecord = {
   key: string; // This will store the HASHED key
   createdAt: Date;
@@ -30,12 +27,6 @@ type ApiKeyRecord = {
   isActive: boolean;
   userId: string;
 };
-
-// Supabase user type definition
-// interface User {
-//   id: string;
-// other user fields...
-// }
 
 /**
  * Generates a new secure API key (plain text)
@@ -50,54 +41,40 @@ export async function generateApiKey(): Promise<string> {
 /**
  * Validates a plain text API key against the stored hash in MongoDB
  */
-const API_KEY_VALIDATION_DB_ERROR = 'API Key Validation DB Error';
-const API_KEY_VALIDATION_CONNECTION_ERROR =
-  'API Key Validation Connection/Setup Error';
 export async function validateApiKey(
   plainKey: string,
   userId: string,
 ): Promise<boolean> {
-  // Outer try-catch for connection errors or unexpected issues
   try {
-    try {
-      const { data: apiKeyRecord, error } = await supabase
-        .from(API_KEY_TABLE)
-        .select()
-        .eq('userId', userId)
-        .eq('isActive', true)
-        .gt('expiresAt', new Date().toISOString())
-        .maybeSingle();
+    const { data: apiKeyRecord, error: dbError } = await supabase
+      .from(API_KEY_TABLE)
+      .select()
+      .eq('userId', userId)
+      .eq('isActive', true)
+      .gt('expiresAt', new Date().toISOString())
+      .maybeSingle();
 
-      if (error) throw error;
+    if (dbError) throw dbError;
 
-      if (!apiKeyRecord) {
-        logger.warn('No active API key found for validation', { userId });
-        return false;
-      }
-
-      // Compare the provided plain text key with the stored hash
-      const isValid = await bcrypt.compare(plainKey, apiKeyRecord.key);
-      if (!isValid) {
-        logger.warn('API key validation failed: Mismatch', { userId });
-      }
-      return isValid;
-    } catch (error: unknown) {
-      logger.error(API_KEY_VALIDATION_DB_ERROR, {
-        error: error instanceof Error ? error.message : 'UnknownError',
-        userId,
-        keySnippet: plainKey.slice(0, 4) + '***' + plainKey.slice(-4),
-      });
+    if (!apiKeyRecord) {
+      warn('No active API key found for validation', { userId });
       return false;
     }
-  } catch (connectionError: unknown) {
+
+    // Compare the provided plain text key with the stored hash
+    const isValid = await bcrypt.compare(plainKey, apiKeyRecord.key);
+    if (!isValid) {
+      warn('API key validation failed: Mismatch', { userId });
+      return false;
+    }
+
+    return true;
+  } catch (error: any) {
     // Catch errors from connectToDatabase() or other issues outside the inner try
-    logger.error(API_KEY_VALIDATION_CONNECTION_ERROR, {
-      error:
-        connectionError instanceof Error
-          ? connectionError.message
-          : 'UnknownError',
+    error('API_KEY_VALIDATION_DB_ERROR', {
       userId,
     });
+    // Log the specific error if it's an Error instance
     return false;
   }
 }
@@ -115,7 +92,7 @@ export async function apiKeyMiddleware(request: Request) {
     const userId = requestBody.userId; // Assuming userId is present in the body
 
     if (!userId) {
-      logger.warn('apiKeyMiddleware: Missing userId in request body');
+      warn('apiKeyMiddleware: Missing userId in request body');
       return NextResponse.json(
         { error: 'Missing userId in request body' },
         { status: 400 },
@@ -124,7 +101,7 @@ export async function apiKeyMiddleware(request: Request) {
 
     // Basic validation for userId format before hitting the DB
     if (typeof userId !== 'string' || !isValidUserIdFormat(userId)) {
-      logger.warn('apiKeyMiddleware: Invalid userId format in request body', {
+      warn('apiKeyMiddleware: Invalid userId format in request body', {
         userId,
       });
       return NextResponse.json(
@@ -135,7 +112,7 @@ export async function apiKeyMiddleware(request: Request) {
 
     // Validate the API key (this involves bcrypt comparison)
     if (!(await validateApiKey(apiKey, userId))) {
-      logger.warn('apiKeyMiddleware: Invalid or expired API key', { userId });
+      warn('apiKeyMiddleware: Invalid or expired API key', { userId });
       return NextResponse.json(
         { error: 'Invalid or expired API key' },
         { status: 401 },
@@ -143,10 +120,16 @@ export async function apiKeyMiddleware(request: Request) {
     }
 
     // If validation passes, return undefined to allow the original request to proceed.
-    logger.info('apiKeyMiddleware: API key validated successfully', { userId });
+    info('apiKeyMiddleware: API key validated successfully', { userId });
     return undefined;
-  } catch (error) {
-    logger.error('Error in apiKeyMiddleware', { error });
+  } catch (error: any) {
+    // Log the specific error if it's an Error instance
+    error('Error in apiKeyMiddleware', {
+      error: error instanceof Error ? error : null,
+      context: {
+        userId: request.headers.get('x-api-key') ? 'present' : 'missing',
+      }, // Add context
+    });
     // Check if the error is due to JSON parsing
     if (error instanceof SyntaxError) {
       return NextResponse.json(
@@ -164,36 +147,27 @@ export async function apiKeyMiddleware(request: Request) {
 
 /**
  * Rotates API keys by generating a new one and deactivating old ones.
- * Returns the new ApiKeyRecord containing the *hashed* key, along with the *plain text* key.
  */
-const USER_TABLE = 'users';
-
 export async function rotateApiKeys(
   userId: string,
 ): Promise<{ record: ApiKeyRecord; plainKey: string }> {
-  const { data: user, error } = await supabase
-    .from(USER_TABLE)
-    .select()
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (error || !user) {
-    throw new Error('User not found in Supabase');
-  }
-
-  // if (!(await isWithinRateLimit(`rotate:${userId}`))) {
-  //   // Use specific key for rotation rate limit
-  //   throw new Error('Rate limit exceeded for API key rotation');
-  // }
-
   try {
+    const { data: user, error: dbError } = await supabase
+      .from('users')
+      .select()
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (dbError || !user) {
+      throw new Error('User not found in Supabase');
+    }
+
     // Deactivate all existing keys for the user
     const { count } = await supabase
       .from(API_KEY_TABLE)
       .update({ isActive: false })
-      .eq('userId', userId)
-      .eq('isActive', true);
-    logger.info(`Deactivated ${count} old keys for user ${userId}`);
+      .eq('userId', userId);
+    info(`Deactivated ${count} old keys for user ${userId}`);
 
     // Generate new plain text key
     const plainKey = await generateApiKey();
@@ -209,30 +183,28 @@ export async function rotateApiKeys(
     };
 
     // Store the new key record in the database
-    const { error } = await supabase.from(API_KEY_TABLE).insert(newKeyRecord);
+    const startTime = Date.now();
+    const { error: insertError } = await supabase
+      .from(API_KEY_TABLE)
+      .insert(newKeyRecord);
 
-    if (error) throw error;
+    if (insertError) {
+      error('Error inserting new API key', {
+        error: insertError instanceof Error ? insertError : undefined,
+      });
+      throw insertError;
+    }
+    const duration = Date.now() - startTime;
+    info(`Inserted new API key in ${duration}ms`);
 
-    logger.info(
-      `Successfully generated and stored new API key for user ${userId}`,
-    );
+    info(`Successfully generated and stored new API key for user ${userId}`);
 
     // Return the record (with hashed key) AND the plain text key separately
     return { record: newKeyRecord, plainKey: plainKey };
-  } catch (error: unknown) {
-    const isMongoError =
-      error &&
-      typeof error === 'object' &&
-      'name' in error &&
-      error.name === 'MongoError';
-    logger.error('KeyRotationFailed', {
+  } catch (error: any) {
+    error('KeyRotationFailed', {
       userId,
-      error: error instanceof Error ? error.stack : 'Unknown error',
-      retryable:
-        isMongoError &&
-        'hasErrorLabel' in error &&
-        typeof error.hasErrorLabel === 'function' &&
-        error.hasErrorLabel('RetryableWriteError'),
+      error: error instanceof Error ? error.stack : null,
     });
     const errorMessage =
       error instanceof Error
@@ -244,49 +216,49 @@ export async function rotateApiKeys(
 
 /**
  * Initializes API key management by creating the first key if none exists.
- * Returns the plain text key if a new one was created, otherwise null.
  */
 export async function initializeApiKeys(
   userId: string,
 ): Promise<string | null> {
-  const { data: user, error } = await supabase
-    .from('users')
-    .select()
-    .eq('id', userId)
-    .maybeSingle();
-
-  if (error || !user) {
-    throw new Error('User not found in Supabase');
-  }
-
-  // if (!(await isWithinRateLimit(`init:${userId}`))) {
-  //   // Specific rate limit key
-  //   throw new Error('Rate limit exceeded for API key initialization');
-  // }
-
   try {
-    const existingKey = await supabase
+    const { data: user, error: dbError } = await supabase
+      .from('users')
+      .select()
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (dbError || !user) {
+      throw new Error('User not found in Supabase');
+    }
+
+    const { data: existingKey, error: selectError } = await supabase
       .from(API_KEY_TABLE)
       .select('*')
       .eq('userId', userId)
       .eq('isActive', true)
       .single(); // Check for active keys
 
-    if (!existingKey.data) {
-      logger.info(`No active key found for user ${userId}. Initializing...`);
+    if (selectError) {
+      error('Error selecting API key', {
+        error: selectError instanceof Error ? selectError : undefined,
+      });
+      throw selectError;
+    }
+
+    if (!existingKey) {
+      info(`No active key found for user ${userId}. Initializing...`);
       // Rotate keys will generate and store the first key
       const { plainKey } = await rotateApiKeys(userId);
-      logger.info(`API key initialized successfully for user ${userId}.`);
+      info(`API key initialized successfully for user ${userId}.`);
       return plainKey; // Return the newly generated plain key
     } else {
-      logger.info(
+      info(
         `User ${userId} already has an active API key. No initialization needed.`,
       );
       await deleteApiKeysForUser(userId);
       return null; // Indicate no new key was generated
     }
   } catch (error: unknown) {
-    logger.error('Error initializing API keys', { userId, error });
     const errorMessage =
       error instanceof Error
         ? error.message
@@ -304,28 +276,30 @@ const GET_API_KEY_RECORD_ERROR = 'Error getting API key record';
 export async function getApiKeyRecord(
   userId: string,
 ): Promise<ApiKeyRecord | undefined> {
-  if (!(await isValidUserId(userId))) {
-    logger.warn(`Invalid userId format or user not found: ${userId}`);
+  if (!isValidUserIdFormat(userId)) {
+    warn(`Invalid userId format or user not found: ${userId}`);
     return undefined;
   }
 
   try {
-    const { data: apiKeyRecord, error } = await supabase
-      .from(API_KEY_TABLE)
+    const startTime = Date.now();
+    const { data: apiKeyRecord, error: dbError } = await supabase
+      .from(API_KEY_TABLE) // Explicitly type the table data
       .select('*')
-      .eq('userId', userId)
+      .eq('userId', userId) // Should be userId, not id
       .eq('isActive', true)
       .gt('expiresAt', new Date().toISOString())
-      .single();
+      .maybeSingle(); // Use maybeSingle as it might not exist
 
-    if (error) {
-      logger.error(GET_API_KEY_RECORD_ERROR, { userId, error });
-      return undefined;
+    if (dbError) {
+      error(GET_API_KEY_RECORD_ERROR, { userId, error: dbError });
+      throw dbError; // Re-throw DB errors
     }
-
+    const duration = Date.now() - startTime;
+    info(`Validated userId against database in ${duration}ms`);
     return apiKeyRecord ?? undefined;
-  } catch (error: unknown) {
-    logger.error(GET_API_KEY_RECORD_ERROR, { userId, error });
+  } catch (error) {
+    error('Error getting API key record', { userId });
     return undefined;
   }
 }
@@ -336,23 +310,27 @@ export async function getApiKeyRecord(
 async function deleteApiKeysForUser(userId: string): Promise<void> {
   try {
     // Deactivate all existing keys for the user
-    const { error } = await supabase
+    const { error: dbError } = await supabase
       .from(API_KEY_TABLE)
       .delete()
       .eq('userId', userId);
 
-    if (error) {
-      logger.error('Failed to delete API keys for user', { userId, error });
-      throw error;
+    if (dbError) {
+      error('Failed to delete API keys for user', {
+        userId,
+        error: dbError instanceof Error ? dbError : undefined,
+      });
+      throw dbError;
     }
 
-    logger.info(`Deleted all API keys for user ${userId}`);
-  } catch (error: unknown) {
-    logger.error('Error deleting API keys', { userId, error });
+    info(`Deleted all API keys for user ${userId}`);
+  } catch (error: any) {
+    error('Error deleting API keys', { userId });
     throw new Error(
       `Failed to delete API keys for user ${userId}: ${
-        error instanceof Error ? error.message : 'Unknown error'
-      }`,
+        // Log the specific error if it's an Error instance
+        error instanceof Error ? error : undefined
+      }${error instanceof Error ? error.message : 'Unknown error'}`,
     );
   }
 }
@@ -361,33 +339,4 @@ function isValidUserIdFormat(userId: string): boolean {
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return typeof userId === 'string' && uuidRegex.test(userId);
-}
-
-// Checks format AND existence in the database
-async function isValidUserId(userId: string): Promise<boolean> {
-  if (!isValidUserIdFormat(userId)) {
-    logger.warn(`Invalid userId format: ${userId}`);
-    return false;
-  }
-
-  // Check if user exists in the database
-  try {
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id')
-      .eq('id', userId)
-      .single();
-
-    if (error || !user) {
-      logger.warn(`User not found in database: ${userId}`);
-      return false;
-    }
-    return true;
-  } catch (error: unknown) {
-    logger.error('Error validating userId against database', {
-      userId,
-      error,
-    });
-    return false;
-  }
 }

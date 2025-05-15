@@ -50,7 +50,7 @@ class ApiClient {
         let errorBody = '';
         try {
           errorBody = await response.text(); // Attempt to get more error details
-        } catch (e) {
+        } catch {
           // Ignore if body cannot be read
         }
         throw new Error(

@@ -42,7 +42,7 @@ export default function CRMComponent() {
           if (Array.isArray(parsedData)) {
             // Validate and ensure each customer has a unique ID
             const validatedCustomers: Customer[] = parsedData.map(
-              (item: any, index: number) => {
+              (item: unknown, index: number) => {
                 // Ensure item is an object and provide defaults, especially for ID
                 // If item.id is missing, null, or empty string, generate a new one.
                 const id =

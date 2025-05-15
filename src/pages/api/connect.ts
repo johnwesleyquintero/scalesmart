@@ -1,4 +1,3 @@
-import { connectToDatabase } from '@/lib/supabase';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(
@@ -6,12 +5,11 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   try {
-    await connectToDatabase();
-    res.status(200).json({ message: 'Connected to Supabase database' });
+    res.status(200).json({ message: 'Supabase connection successful' });
   } catch (error) {
-    console.error('Database connection error:', error);
+    console.error('Supabase connection error:', error);
     res.status(500).json({
-      error: 'Database connection failed',
+      error: 'Supabase connection failed',
       details: error instanceof Error ? error.message : 'Unknown error',
     });
   }

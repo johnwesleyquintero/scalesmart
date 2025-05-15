@@ -1,32 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 
-if (!process.env.SUPABASE_URL) {
-  throw new Error('Please add your Supabase URL to .env.local');
-}
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-if (!process.env.SUPABASE_ANON_KEY) {
-  throw new Error('Please add your Supabase Anon Key to .env.local');
-}
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-export const supabase = createClient(supabaseUrl!, supabaseKey!);
-
-export async function connectToDatabase() {
-  return { supabase };
-}
-
-export async function getTableSchema(tableName: string) {
+export async function getTableSchema(tableName: string): Promise<unknown> {
   try {
-    const { data, error } = await supabase.from(tableName).select('*').limit(0);
+    const { data, error } = await supabase.rpc('get_table_schema', {
+      table_name: tableName,
+    });
+
     if (error) {
       console.error('Error fetching table schema:', error);
-      throw error;
+      return null;
     }
+
     return data;
   } catch (error) {
-    console.error('Failed to get table schema:', error);
-    throw error;
+    console.error('Unexpected error fetching table schema:', error);
+    return null;
   }
 }

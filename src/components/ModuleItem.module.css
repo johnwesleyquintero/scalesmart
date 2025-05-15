@@ -1,0 +1,9 @@
+.moduleIcon {
+  padding: 0.5rem;
+  border-radius: 9999px;
+}
+
+.moduleIconCompleted {
+  background-color: #f0fdf4; /* Emerald 100 */
+  color: #16a34a; /* Emerald 700 */
+}

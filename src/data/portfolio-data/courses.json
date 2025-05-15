@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "title": "Amazon SEO Fundamentals",
+    "description": "Learn the basics of Amazon SEO and how to optimize your listings for higher rankings.",
+    "duration": "2 hours",
+    "level": "Beginner",
+    "locked": false,
+    "progress": 0,
+    "modules": []
+  },
+  {
+    "id": "2",
+    "title": "Amazon PPC Mastery",
+    "description": "Master the art of Amazon PPC and learn how to create profitable advertising campaigns.",
+    "duration": "3 hours",
+    "level": "Intermediate",
+    "locked": true,
+    "progress": 0,
+    "modules": []
+  }
+]

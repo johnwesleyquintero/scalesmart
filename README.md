@@ -1,171 +1,188 @@
-# Wesley Quintero - Professional Portfolio
+# Supabase CLI
 
-**[View Live Portfolio](https://wesleyquintero.vercel.app/)**
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-A modern, responsive portfolio website showcasing my skills, projects, and professional experience as a Data-Driven Amazon & E-commerce Specialist.
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-![Portfolio Preview](public/portfolio-preview.svg)
+This repository contains all the functionality for Supabase CLI.
 
-## Features
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-- Modern, responsive UI with dark/light mode support.
-- Advanced Amazon Seller Tools suite including:
-  - ACoS Calculator with historical trend analysis
-  - Competitor Analyzer for pricing and listing performance
-  - FBA Calculator with basic CSV upload functionality
-  - Keyword Deduplicator (core functionality)
-- Integrated blog with MDX support, rich typography, and related posts suggestions.
+## Getting started
 
-### Enhanced Resume Download
+### Install the CLI
 
-- One-click PDF resume download
-- Optimized file size and fast delivery
-- Automatic PDF generation from profile data
-- Cached for improved performance
-
-### Blog Structure
-
-- MDX-powered content with code highlighting
-- Custom SVG illustrations for each post
-- Rich typography with Tailwind Typography
-- Responsive images and media
-- Category-based filtering
-- Reading time estimation
-- Related posts suggestions
-
-## Technologies Used
-
-- Next.js 14 (App Router)
-- React 18
-- TypeScript
-- Tailwind CSS
-- shadcn/ui components
-- MDX for blog content
-- Lucide React icons
-- Vercel hosting
-
-## Projects
-
-- [SellSmart Hub](https://sellsmart-hub.vercel.app/) - AI-powered analytics and automation tools for Amazon sellers
-- [DevFlowDB](https://devflowdb.vercel.app/) - Lightweight WASM-powered SQL database
-- [Inventory Management](https://sellsmart-docs.vercel.app/) - Streamlined listing management & account health
-- [FBA Department Operations](https://sellsmart-docs.vercel.app/) - Comprehensive training & workflow planning
-- [SellSmart Design x Docs](https://sellsmart-docs.vercel.app/) - Design system documentation
-- [Wholesale Buyer's Guide](https://sellsmart-docs.vercel.app/) - Client engagement & inventory management
-
-## Blog
-
-The portfolio includes a fully-featured blog with MDX support:
-
-- Static generation of blog pages
-- Custom SVG illustrations for each post
-- Rich typography with Tailwind Typography
-- Code syntax highlighting
-- Responsive design for all devices
-
-## Getting Started
-
-1. Clone the repository
-
-   ```bash
-   git clone https://github.com/johnwesleyquintero/portfolio.git
-   cd portfolio
-   ```
-
-2. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-3. Start development server
-
-   ```bash
-   npm run dev
-   ```
-
-4. Open http://localhost:3000 in your browser
-
-## Development
-
-To contribute to this project:
-
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature/your-feature`)
-3. Commit your changes (`git commit -m 'Add some feature'`)
-4. Push to the branch (`git push origin feature/your-feature`)
-5. Open a Pull Request
-
-## Deployment
-
-This project supports both automatic CI/CD deployment and manual workflows:
-
-### Automated Deployment (CI/CD)
-
-- Pushes to `main` branch trigger production deployment
-- PR environments created for branches matching `feat/*` or `fix/*`
-
-### Manual Deployment
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-npm install -g vercel@latest
-vercel deploy --prod --confirm
+npm i supabase --save-dev
 ```
 
-### Environment Configuration
-
-Ensure these environment variables are set in Vercel:
-
-- `NEXT_PUBLIC_VERCEL_ENV` (production/preview/development)
-- `NEXT_PUBLIC_GA_ID` (Analytics)
-- `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS` (Contact form)
-- `MONGODB_URI` (Database connection string)
-- `MONGODB_DB_NAME` (Database name)
-- `KV_URL` (Upstash Redis connection URL)
-- `KV_REST_API_TOKEN` (Redis API access token)
-- `KV_REST_API_URL` (Redis REST endpoint)
-
-### CI/CD Features
-
-- Automated testing via `vercel.yml`
-- Branch preview environments
-- Rollback protection
-- Deployment status checks
-
-## Environment Variables
-
-Copy `.env.example` to `.env` and update with your own values:
+To install the beta release channel:
 
 ```bash
-cp .env.example .env
+npm i supabase@beta --save-dev
 ```
 
-## Available Scripts
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
-- `npm run dev`: Starts development server
-- `npm run build`: Creates production build
-- `npm run start`: Runs production server
-- `npm run lint`: Runs ESLint
-- `npm run format`: Formats code with Prettier
+```
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
+```
 
-## Tech Stack Details
+> **Note**
+> For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-- **Next.js 14**: App Router, Server Components, Streaming
-- **TypeScript**: Strict typing throughout the project
-- **Tailwind CSS**: Utility-first CSS with dark/light mode support
-- **shadcn/ui**: Accessible, customizable components
-- **MDX**: Markdown with React component support
+<details>
+  <summary><b>macOS</b></summary>
 
-## Tools Documentation
+Available via [Homebrew](https://brew.sh). To install:
 
-| Tool Name            | Status  | Version | Core Features                         | Implementation Status                   | Planned Enhancements                    |
-| -------------------- | ------- | ------- | ------------------------------------- | --------------------------------------- | --------------------------------------- |
-| ACoS Calculator      | Active  | 1.5.0   | Campaign tracking, Revenue analysis   | Core functionality complete             | Advanced visualization, Export options  |
-| PPC Campaign Auditor | Beta    | 0.9.0   | Performance metrics, Bid optimization | Basic metrics implemented               | AI-powered suggestions, Trend analysis  |
-| Description Editor   | Active  | 1.5.0   | HTML formatting, Keyword integration  | Core functionality complete             | Enhanced SEO tools, Mobile optimization |
-| Keyword Deduplicator | Active  | 1.5.0   | Bulk processing, Duplicate detection  | Core functionality with pending updates | AI suggestions, Performance tracking    |
-| Competitor Analyzer  | Planned | -       | Market research, Pricing analysis     | In development                          | Data enrichment, Automated monitoring   |
+```sh
+brew install supabase/tap/supabase
+```
 
----
+To install the beta release channel:
 
-[//]: # (Documentation last updated: ${new Date().toISOString()})
+```sh
+brew install supabase/tap/supabase-beta
+brew link --overwrite supabase-beta
+```
+
+To upgrade:
+
+```sh
+brew upgrade supabase
+```
+
+</details>
+
+<details>
+  <summary><b>Windows</b></summary>
+
+Available via [Scoop](https://scoop.sh). To install:
+
+```powershell
+scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+scoop install supabase
+```
+
+To upgrade:
+
+```powershell
+scoop update supabase
+```
+
+</details>
+
+<details>
+  <summary><b>Linux</b></summary>
+
+Available via [Homebrew](https://brew.sh) and Linux packages.
+
+#### via Homebrew
+
+To install:
+
+```sh
+brew install supabase/tap/supabase
+```
+
+To upgrade:
+
+```sh
+brew upgrade supabase
+```
+
+#### via Linux packages
+
+Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+```sh
+sudo apk add --allow-untrusted <...>.apk
+```
+
+```sh
+sudo dpkg -i <...>.deb
+```
+
+```sh
+sudo rpm -i <...>.rpm
+```
+
+```sh
+sudo pacman -U <...>.pkg.tar.zst
+```
+
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+```sh
+go install github.com/supabase/cli@latest
+```
+
+Add a symlink to the binary in `$PATH` for easier access:
+
+```sh
+ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+```
+
+This works on other non-standard Linux distros.
+
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+To install in your working directory:
+
+```bash
+pkgx install supabase
+```
+
+Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+
+</details>
+
+### Run the CLI
+
+```bash
+supabase bootstrap
+```
+
+Or using npx:
+
+```bash
+npx supabase bootstrap
+```
+
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+
+## Docs
+
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
+
+## Breaking changes
+
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
+
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
+
+## Developing
+
+To run from source:
+
+```sh
+# Go >= 1.22
+go run . help
+```

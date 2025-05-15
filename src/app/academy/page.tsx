@@ -1,5 +1,12 @@
 'use client';
 
+import { Course, Module, ModuleType } from '@/types';
+import { Award, BookOpen, Check, Lock } from 'lucide-react';
+
+import AcademyContentClient from '@/components/AcademyContentClient';
+import ModuleIcon from '@/components/ModuleIcon';
+import styles from '@/components/ModuleItem.module.css';
+import Quiz from '@/components/Quiz';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,161 +17,50 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Award, BarChart2, BookOpen, Check, Lock, Play } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { AcademyProvider, useAcademy } from '@/context/AcademyContext';
 
 const moduleItemStyle = 'text-secondary-foreground';
 
-const ACADEMY_ACTIVE_COURSE_ID_KEY = 'academyActiveCourseId_v1';
-const ACADEMY_ACTIVE_MODULE_ID_KEY = 'academyActiveModuleId_v1';
-// Future key for progress: const ACADEMY_COURSES_PROGRESS_KEY = 'academyCoursesProgress_v1';
-
-type Course = {
-  id: string;
-  title: string;
-  description: string;
-  duration: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
-  progress: number; // This will be managed by localStorage in a future step if needed
-  modules: Module[];
-  locked: boolean;
-  category: 'PPC' | 'SEO' | 'Strategy';
-};
-
-type Module = {
-  id: string;
-  title: string;
-  duration: string;
-  completed: boolean; // This will be managed by localStorage in a future step if needed
-  type: 'video' | 'article' | 'quiz';
-  contentSlug?: string; // Changed from articleContent to contentSlug
-};
+import { useEffect, useState } from 'react';
 
 export default function SchoolComponent() {
-  const [activeCourse, setActiveCourse] = useState<Course | null>(null);
-  const [activeModule, setActiveModule] = useState<Module | null>(null);
   const [courses, setCourses] = useState<Course[]>([]);
 
-  // 1. Fetch courses from API
   useEffect(() => {
-    async function fetchCourses() {
+    const fetchCourses = async () => {
       try {
-        const response = await fetch('/api/academy-courses');
+        const response = await fetch(`/api/academy-courses`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        console.log('Response data:', data);
         setCourses(data);
-        console.log('Successfully fetched courses:', data);
       } catch (error) {
         console.error('Failed to fetch courses:', error);
-        console.log('Error fetching courses:', error);
-        console.log('Error object:', error);
       }
-    }
+    };
 
     fetchCourses();
   }, []);
 
-  // 2. Restore active course and module from localStorage
-  useEffect(() => {
-    if (courses.length === 0 || typeof window === 'undefined') return;
-
-    const restoreFromStorage = () => {
-      const storedCourseId = localStorage.getItem(ACADEMY_ACTIVE_COURSE_ID_KEY);
-      if (!storedCourseId) return;
-
-      const foundCourse = courses.find((c) => c.id === storedCourseId);
-      if (!foundCourse) {
-        localStorage.removeItem(ACADEMY_ACTIVE_COURSE_ID_KEY);
-        localStorage.removeItem(ACADEMY_ACTIVE_MODULE_ID_KEY);
-        return;
-      }
-
-      setActiveCourse(foundCourse);
-
-      const storedModuleId = localStorage.getItem(ACADEMY_ACTIVE_MODULE_ID_KEY);
-      if (!storedModuleId || !foundCourse.modules) return;
-
-      const foundModule = foundCourse.modules.find(
-        (m) => m.id === storedModuleId,
-      );
-      if (foundModule) {
-        setActiveModule(foundModule);
-      } else {
-        localStorage.removeItem(ACADEMY_ACTIVE_MODULE_ID_KEY);
-      }
-    };
-
-    restoreFromStorage();
-  }, [courses]);
-
-  // 3. Save active course ID to localStorage
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      activeCourse
-        ? localStorage.setItem(ACADEMY_ACTIVE_COURSE_ID_KEY, activeCourse.id)
-        : localStorage.removeItem(ACADEMY_ACTIVE_COURSE_ID_KEY);
-    }
-  }, [activeCourse]);
-
-  // 4. Save activeModule.id to localStorage whenever activeModule changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (activeModule) {
-        localStorage.setItem(ACADEMY_ACTIVE_MODULE_ID_KEY, activeModule.id);
-      } else if (localStorage.getItem(ACADEMY_ACTIVE_COURSE_ID_KEY)) {
-        // Only remove module ID if there's an active course context
-        // If activeCourse is null, the previous useEffect handles clearing this.
-        localStorage.removeItem(ACADEMY_ACTIVE_MODULE_ID_KEY);
-      }
-    }
-  }, [activeModule]);
-
-  const startCourse = (course: Course) => {
-    setActiveCourse(course);
-    setActiveModule(null);
-  };
-
-  const startModule = (module: Module) => {
-    setActiveModule(module);
-  };
-
   return (
-    <div className="max-w-7xl mx-auto p-4">
-      {/* Page Title Section */}
-      <div className="text-center mb-8">
-        {/* Optional: remove mb-8 if my-6 on h1 is sufficient */}{' '}
-        {/* Removed extra space */}
-        <h1 className="text-3xl font-bold my-6">Amazon Seller Academy</h1>
-        <p className="text-lg text-muted-foreground">
-          Master Amazon PPC, SEO, and sales strategies with our comprehensive
-          courses
-        </p>
-      </div>
-      {/* Module Content or Quiz */}
-      {!activeCourse ? (
-        <CourseList courses={courses} startCourse={startCourse} />
-      ) : (
-        <ActiveCourseDisplay
-          activeCourse={activeCourse}
-          setActiveCourse={setActiveCourse}
-          activeModule={activeModule}
-          startModule={startModule}
-        />
-      )}
-    </div>
+    <AcademyProvider initialCourses={courses}>
+      <AcademyContentClient
+        courses={courses}
+        CourseList={CourseList}
+        ActiveCourseDisplay={ActiveCourseDisplay}
+      />
+    </AcademyProvider>
   );
 }
 
 const CourseList = ({
-  courses,
   startCourse,
 }: {
-  courses: Course[];
   startCourse: (course: Course) => void;
 }) => {
+  const { courses } = useAcademy();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {courses.map((course) => (
@@ -198,13 +94,6 @@ const CourseList = ({
                 {course.level}
               </span>
             </div>
-            <div className="mt-4">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Progress</span>
-                <span>{course.progress}%</span>
-              </div>
-              <Progress value={course.progress} className="h-2" />
-            </div>
           </div>
           <CardFooter>
             <Button
@@ -221,17 +110,31 @@ const CourseList = ({
   );
 };
 
-const ActiveCourseDisplay = ({
-  activeCourse,
-  setActiveCourse,
-  activeModule,
-  startModule,
-}: {
-  startModule: (module: Module) => void;
-  activeCourse: Course;
-  setActiveCourse: (course: null) => void;
-  activeModule: Module | null;
-}) => {
+const ActiveCourseDisplay = () => {
+  const { activeCourse, setActiveCourse, activeModule } = useAcademy();
+  const questions = [
+    {
+      id: '1',
+      text: 'What is Amazon PPC?',
+      options: [
+        'Pay-Per-Click advertising',
+        'Product Placement Cost',
+        'Post-Purchase Communication',
+      ],
+      correctAnswer: 'Pay-Per-Click advertising',
+    },
+    {
+      id: '2',
+      text: 'What is SEO?',
+      options: [
+        'Search Engine Optimization',
+        'Sales Enhancement Opportunity',
+        'Seller Engagement Overview',
+      ],
+      correctAnswer: 'Search Engine Optimization',
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Course Header */}
@@ -239,8 +142,8 @@ const ActiveCourseDisplay = ({
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle>{activeCourse.title}</CardTitle>
-              <CardDescription>{activeCourse.description}</CardDescription>
+              <CardTitle>{activeCourse?.title}</CardTitle>
+              <CardDescription>{activeCourse?.description}</CardDescription>
             </div>
             <Button variant="outline" onClick={() => setActiveCourse(null)}>
               Back to Courses
@@ -252,11 +155,11 @@ const ActiveCourseDisplay = ({
             <div className="flex-1">
               <div className="flex justify-between text-sm mb-1">
                 <span>Course Progress</span>
-                <span>{activeCourse.progress}%</span>
+                <span>{activeCourse?.progress}%</span>
               </div>
-              <Progress value={activeCourse.progress} className="h-2" />
+              <Progress value={activeCourse?.progress} className="h-2" />
             </div>
-            {activeCourse.progress === 100 && (
+            {activeCourse?.progress === 100 && (
               <Button variant="secondary">
                 <Award className="h-4 w-4 mr-2" />
                 Get Certificate
@@ -274,22 +177,18 @@ const ActiveCourseDisplay = ({
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {activeCourse.modules.map((module) => (
-                <ModuleItem
-                  key={module.id}
-                  module={module}
-                  startModule={startModule}
-                />
+              {activeCourse?.modules.map((module: Module) => (
+                <ModuleItem key={module.id} module={module} />
               ))}
             </div>
           </CardContent>
         </Card>
       ) : (
         <div>
-          {activeModule.type === 'quiz' ? (
-            'Quiz Component'
+          {activeModule.type === ModuleType.QUIZ ? (
+            <Quiz questions={questions} />
           ) : (
-            <a href={`/blog/${activeModule.contentSlug}`}>
+            <a href={activeModule.link || `/blog/${activeModule.contentSlug}`}>
               Learning Module: {activeModule.title}
             </a>
           )}
@@ -301,26 +200,8 @@ const ActiveCourseDisplay = ({
   );
 };
 
-const ModuleItem = ({
-  module,
-  startModule,
-}: {
-  module: Module;
-  startModule: (module: Module) => void;
-}) => {
-  const getModuleIcon = (type: string) => {
-    switch (type) {
-      case 'video':
-        return <Play className="h-5 w-5" />;
-      case 'article':
-        return <BookOpen className="h-5 w-5" />;
-      case 'quiz':
-        return <BarChart2 className="h-5 w-5" />;
-      default:
-        return null;
-    }
-  };
-
+const ModuleItem = ({ module }: { module: Module }) => {
+  const { startModule } = useAcademy();
   return (
     <div
       className={`p-4 border rounded-lg flex justify-between items-center ${
@@ -332,17 +213,11 @@ const ModuleItem = ({
     >
       <div className="flex items-center space-x-4">
         <div
-          className={`p-2 rounded-full ${
-            module.completed
-              ? moduleItemStyle
-              : module.type === 'video'
-                ? moduleItemStyle
-                : module.type === 'article'
-                  ? moduleItemStyle
-                  : moduleItemStyle
+          className={`${styles.moduleIcon} ${
+            module.completed ? styles.moduleIconCompleted : ''
           }`}
         >
-          {getModuleIcon(module.type)}
+          <ModuleIcon type={module.type} completed={module.completed} />
         </div>
         <div>
           <h3 className="font-medium">{module.title}</h3>
