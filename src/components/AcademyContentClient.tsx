@@ -1,34 +1,59 @@
 'use client';
 
 import { useAcademy } from '@/context/AcademyContext';
-import { Course } from '@/types';
+import useUserProfile from '@/hooks/use-user-profile';
+import { getRecommendedCourses } from '@/lib/course-recommendations';
+import { Course, ModuleType } from '@/types';
 import { useEffect, useState } from 'react';
+import CaseStudyModule from './CaseStudyModule';
+import ExerciseModule from './ExerciseModule';
+import VideoModule from './VideoModule';
+// import useUserProfile from '@/hooks/use-user-profile';
+// import { getRecommendedCourses } from '@/lib/course-recommendations';
 
 interface AcademyContentProps {
   courses: Course[];
-  CourseList: React.ComponentType<{ startCourse: (course: Course) => void }>;
-  ActiveCourseDisplay: React.ComponentType<{}>;
+  CourseList: React.ComponentType<{
+    startCourse: (course: Course) => void;
+    courses: Course[];
+  }>;
 }
 
 function AcademyContentClient({
   courses,
   CourseList,
-  ActiveCourseDisplay,
+  // ActiveCourseDisplay, // Removed unused prop
 }: AcademyContentProps) {
-  const { activeCourse, setActiveCourse, setActiveModule, setCourses } =
-    useAcademy();
+  const {
+    activeCourse,
+    setActiveCourse,
+    setActiveModule,
+    setCourses,
+    activeModule,
+  } = useAcademy(); // Added activeModule to destructure
+  const { userProfile } = useUserProfile();
+  const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
 
   const [progressValues, setProgressValues] = useState<{
     [key: `course-${string}-progress`]: number;
   }>(
-    courses.reduce(
-      (acc, course) => {
-        acc[`course-${course.id}-progress`] = course.progress;
-        return acc;
-      },
-      {} as { [key: `course-${string}-progress`]: number },
-    ),
+    Array.isArray(courses)
+      ? courses.reduce(
+          (acc, course) => {
+            acc[`course-${course.id}-progress`] = course.progress;
+            return acc;
+          },
+          {} as { [key: `course-${string}-progress`]: number },
+        )
+      : {},
   );
+
+  useEffect(() => {
+    if (userProfile) {
+      const recommended = getRecommendedCourses(userProfile);
+      setRecommendedCourses(recommended);
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -36,11 +61,13 @@ function AcademyContentClient({
     }
 
     const storedProgressValues: { [key: string]: number } = {};
-    courses.forEach((course) => {
-      const key = `course-${course.id}-progress`;
-      const item = localStorage.getItem(key);
-      storedProgressValues[key] = item ? parseInt(item, 10) : course.progress;
-    });
+    if (Array.isArray(courses)) {
+      courses.forEach((course) => {
+        const key = `course-${course.id}-progress`;
+        const item = localStorage.getItem(key);
+        storedProgressValues[key] = item ? parseInt(item, 10) : course.progress;
+      });
+    }
 
     setProgressValues(storedProgressValues as { [key: string]: number });
   }, [courses]);
@@ -70,6 +97,7 @@ function AcademyContentClient({
         progressValues[
           `course-${course.id}-progress` as keyof typeof progressValues
         ] || course.progress,
+      locked: course.locked,
     }));
 
     setCourses(coursesWithLocalStorage);
@@ -82,6 +110,9 @@ function AcademyContentClient({
       console.log('Setting activeModule:', course.modules[0]);
     }
   };
+
+  console.log('AcademyContentClient: courses prop =', courses); // ADDED LOGGING STATEMENT
+  console.log('AcademyContentClient: recommendedCourses =', recommendedCourses); // ADDED LOGGING STATEMENT
 
   return (
     <div className="max-w-7xl mx-auto p-4">
@@ -96,9 +127,35 @@ function AcademyContentClient({
       </div>
       {/* Module Content or Quiz */}
       {!activeCourse ? (
-        <CourseList startCourse={startCourse} />
+        <CourseList
+          startCourse={startCourse}
+          courses={recommendedCourses.length > 0 ? recommendedCourses : courses}
+        /> // Pass recommended courses
       ) : (
-        <ActiveCourseDisplay />
+        <>
+          {activeCourse &&
+            activeCourse.modules &&
+            activeModule &&
+            (() => {
+              if (!activeModule) {
+                return <p>No module selected</p>;
+              }
+              switch (activeModule?.type) {
+                case 'article' as ModuleType:
+                  return <p>Article Content Here</p>;
+                case 'video' as ModuleType:
+                  return <VideoModule />;
+                case 'exercise' as ModuleType:
+                  return <ExerciseModule />;
+                case 'caseStudy' as ModuleType:
+                  return <CaseStudyModule />;
+                case 'quiz' as ModuleType:
+                  return <p>Quiz Content Here</p>;
+                default:
+                  return <p>Unknown Module Type</p>;
+              }
+            })()}
+        </>
       )}
     </div>
   );

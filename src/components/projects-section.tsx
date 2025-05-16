@@ -95,15 +95,19 @@ const getLanguageColor = (language: string | null): string => {
 };
 
 export default function ProjectsSection() {
+  console.log('ProjectsSection: rendering'); // ADDED LOGGING STATEMENT
   const [activeTab, setActiveTab] = useState('all');
   const [projects, setProjects] = useState<GitHubRepo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchProjects() {
+      console.log('fetchProjects: setIsLoading(true)');
       setIsLoading(true);
       try {
+        console.log('fetchProjects: calling getGitHubProjects');
         const fetchedProjects = await getGitHubProjects('johnwesleyquintero');
+        console.log('fetchProjects: fetchedProjects =', fetchedProjects);
 
         const MIN_DESCRIPTION_LENGTH = 20; // Minimum characters for a description to be considered "real"
         const MAX_PROJECTS_TO_SHOW = 10; // Show top N projects
@@ -122,12 +126,18 @@ export default function ProjectsSection() {
           .sort((a, b) => b.stargazers_count - a.stargazers_count) // Sort by stars
           .slice(0, MAX_PROJECTS_TO_SHOW); // Take the top N
 
+        console.log('fetchProjects: curatedProjects =', curatedProjects);
         setProjects(curatedProjects);
       } catch (error) {
-        console.error('Error fetching or processing projects:', error);
+        console.error(
+          'fetchProjects: Error fetching or processing projects:',
+          error,
+        );
         setProjects([]); // Set to empty array on error
+      } finally {
+        console.log('fetchProjects: setIsLoading(false)');
+        setIsLoading(false);
       }
-      setIsLoading(false);
     }
 
     fetchProjects();

@@ -8,7 +8,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
-import { logger } from '@/lib/logger';
 import {
   AlertCircle,
   Download,
@@ -139,7 +138,7 @@ export default function SalesEstimator() {
         confidence: getConfidenceLevel(item.competition, item.price),
       };
     } catch (error) {
-      logger.error('Error calculating sales data', {
+      console.error('Error calculating sales data', {
         error,
         item,
         component: 'SalesEstimator',
@@ -200,7 +199,7 @@ export default function SalesEstimator() {
         title: 'Success',
         description: `Processed ${processedData.length} products`,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       const errorMessage =
         error instanceof Error
           ? error.message
@@ -210,9 +209,8 @@ export default function SalesEstimator() {
       toast({
         title: 'Error',
         description: errorMessage,
-        variant: 'destructive',
       });
-      logger.error('CSV parsing error', {
+      console.error('CSV parsing error', {
         error,
         component: 'SalesEstimator',
       });
@@ -266,9 +264,8 @@ export default function SalesEstimator() {
       toast({
         title: 'Error',
         description: errorMessage,
-        variant: 'destructive',
       });
-      logger.error('Manual estimate error', {
+      console.error('Manual estimate error', {
         error,
         input: manualProduct,
         component: 'SalesEstimator',
@@ -307,14 +304,13 @@ export default function SalesEstimator() {
         description: 'Sales estimates exported successfully',
       });
     } catch (error) {
-      logger.error('Export error', {
+      console.error('Export error', {
         error,
         component: 'SalesEstimator',
       });
       toast({
         title: 'Error',
         description: 'Failed to export sales estimates',
-        variant: 'destructive',
       });
     }
   };

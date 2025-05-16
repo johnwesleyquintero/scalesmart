@@ -1,68 +1,100 @@
 'use client';
 
-import { Course, Module, ModuleType } from '@/types';
-import { Award, BookOpen, Check, Lock } from 'lucide-react';
+import { Course } from '@/types';
+import { BookOpen, Lock } from 'lucide-react';
 
 import AcademyContentClient from '@/components/AcademyContentClient';
-import styles from '@/components/ModuleItem.module.css';
-import Quiz from '@/components/Quiz';
 import { Button } from '@/components/ui/button';
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { AcademyProvider, useAcademy } from '@/context/AcademyContext';
+import { AcademyProvider } from '@/context/AcademyContext';
 import { useEffect, useState } from 'react';
 
 const moduleItemStyle = 'text-secondary-foreground';
 
-import ModuleIcon from '@/components/ModuleIcon';
-
 export default function SchoolComponent() {
-  const [courses, setCourses] = useState<Course[]>([]);
+  const [courses, setCourses] = useState<Course[] | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchCourses() {
-      console.log('Fetching courses from http://localhost:3000/api/courses');
+      setLoading(true);
+      setError(null);
+      console.log(
+        'Fetching courses from http://localhost:3000/api/academy-courses',
+      );
       try {
-        const response = await fetch('http://localhost:3000/api/courses');
+        const response = await fetch(
+          'http://localhost:3000/api/academy-courses',
+        );
+        console.log('API Response Status:', response.status);
         if (!response.ok) {
-          console.error('Response not ok');
-          throw new Error(`HTTP error! status: ${response.status}`);
+          const errorText = await response.text();
+          console.error('API Error Response Text:', errorText);
+          throw new Error(
+            `HTTP error! status: ${response.status}, message: ${errorText || response.statusText}`,
+          );
         }
         const data = await response.json();
-        setCourses(data.courses);
-      } catch (error) {
-        console.error('Failed to fetch courses:', error);
-        setCourses([]);
+        console.log('Data from API:', data);
+
+        if (Array.isArray(data)) {
+          setCourses(data); // API returns the array directly
+        } else {
+          console.error(
+            'API Error: Expected an array of courses, but received:',
+            data, // Log the actual data received if it's not an array
+          );
+          setError(
+            'Course data from server was not in the expected array format.',
+          );
+          setCourses([]); // Default to empty array to prevent further errors
+        }
+      } catch (e) {
+        console.error('Failed to fetch courses:', e);
+        setError(e instanceof Error ? e.message : 'An unknown error occurred');
+        setCourses([]); // Default to empty array on error
+      } finally {
+        setLoading(false);
       }
     }
     fetchCourses();
   }, []);
 
+  if (loading) {
+    return <p className="text-center p-8">Loading courses...</p>;
+  }
+
+  if (error) {
+    return (
+      <p className="text-center p-8 text-red-500">
+        Error loading courses: {error}. Please check the console for more
+        details.
+      </p>
+    );
+  }
+
   return (
-    <AcademyProvider initialCourses={courses}>
-      <AcademyContentClient
-        courses={courses}
-        CourseList={CourseList}
-        ActiveCourseDisplay={ActiveCourseDisplay}
-      />
+    // courses should be an array by now if no error and not loading
+    <AcademyProvider initialCourses={courses || []}>
+      <AcademyContentClient courses={courses || []} CourseList={CourseList} />
     </AcademyProvider>
   );
 }
 
 const CourseList = ({
   startCourse,
+  courses,
 }: {
   startCourse: (course: Course) => void;
+  courses: import('@/types').Course[];
 }) => {
-  const { courses } = useAcademy();
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {courses.map((course) => (
@@ -85,13 +117,7 @@ const CourseList = ({
                 {course.duration}
               </span>
               <span
-                className={`px-2 py-1 rounded-full text-xs ${
-                  course.level === 'Beginner'
-                    ? moduleItemStyle
-                    : course.level === 'Intermediate'
-                      ? moduleItemStyle
-                      : moduleItemStyle
-                }`}
+                className={`px-2 py-1 rounded-full text-xs ${moduleItemStyle}`}
               >
                 {course.level}
               </span>
@@ -108,156 +134,6 @@ const CourseList = ({
           </CardFooter>
         </Card>
       ))}
-    </div>
-  );
-};
-
-const ActiveCourseDisplay = () => {
-  const { activeCourse, setActiveCourse, activeModule } = useAcademy();
-  const questions = [
-    {
-      id: '1',
-      text: 'What is Amazon PPC?',
-      options: [
-        'Pay-Per-Click advertising',
-        'Product Placement Cost',
-        'Post-Purchase Communication',
-      ],
-      correctAnswer: 'Pay-Per-Click advertising',
-      explanation:
-        'Amazon PPC (Pay-Per-Click) is an advertising model where sellers pay a fee each time a customer clicks on their ad.',
-    },
-    {
-      id: '2',
-      text: 'What is SEO?',
-      options: [
-        'Search Engine Optimization',
-        'Sales Enhancement Opportunity',
-        'Seller Engagement Overview',
-      ],
-      correctAnswer: 'Search Engine Optimization',
-      explanation:
-        'SEO (Search Engine Optimization) is the practice of optimizing a website to rank higher in search engine results.',
-    },
-  ];
-
-  console.log('Active Course Display is rendering');
-  console.log('Active Course:', activeCourse);
-  console.log('Active Module:', activeModule);
-
-  const { academyData } = useAcademy();
-  const quizResults = academyData.quizResults || [];
-
-  const courseQuizResults = quizResults.filter(
-    (result: { courseId: string }) => result.courseId === activeCourse?.id,
-  );
-
-  return (
-    <div className="space-y-6">
-      {/* Course Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-start">
-            <div>
-              <CardTitle>{activeCourse?.title}</CardTitle>
-              <CardDescription>{activeCourse?.description}</CardDescription>
-            </div>
-            <Button variant="outline" onClick={() => setActiveCourse(null)}>
-              Back to Courses
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Course Progress</span>
-                <span>{activeCourse?.progress}%</span>
-              </div>
-              <Progress value={activeCourse?.progress} className="h-2" />
-            </div>
-            {activeCourse?.progress === 100 && (
-              <Button variant="secondary">
-                <Award className="h-4 w-4 mr-2" />
-                Get Certificate
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Module Content or Quiz */}
-      {!activeModule ? (
-        <Card>
-          <CardHeader>
-            <CardTitle>Course Modules</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {activeCourse?.modules.map((module: Module) => (
-                <ModuleItem key={module.id} module={module} />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      ) : (
-        <div>
-          {activeModule.type === ModuleType.QUIZ ? (
-            <>
-              <Quiz questions={questions} />
-              {courseQuizResults.length > 0 && (
-                <p className="mt-2">
-                  Your score: {courseQuizResults[0].score} /{' '}
-                  {courseQuizResults[0].totalQuestions}
-                </p>
-              )}
-            </>
-          ) : (
-            <a href={activeModule.link || `/blog/${activeModule.contentSlug}`}>
-              Learning Module: {activeModule.title}
-            </a>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
-const ModuleItem = ({ module }: { module: Module }) => {
-  const { startModule } = useAcademy();
-
-  return (
-    <div
-      className={`p-4 border rounded-lg flex justify-between items-center ${
-        module.completed
-          ? 'border-secondary border-2 text-secondary-foreground'
-          : 'border-gray-200'
-      }`}
-      onClick={() => startModule(module)}
-    >
-      <div className="flex items-center space-x-4">
-        <div
-          className={`${styles.moduleIcon} ${
-            module.completed ? styles.moduleIconCompleted : ''
-          }`}
-        >
-          <ModuleIcon type={module.type} completed={module.completed} />
-        </div>
-        <div>
-          <h3 className="font-medium">{module.title}</h3>
-          <p className="text-sm text-muted-foreground">
-            {module.duration} • {module.type}
-          </p>
-        </div>
-      </div>
-      {module.completed ? (
-        <>
-          <Check className="h-4 w-4 mr-2" />
-          Completed
-        </>
-      ) : (
-        <span>Start</span>
-      )}
     </div>
   );
 };

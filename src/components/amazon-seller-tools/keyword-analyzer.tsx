@@ -693,7 +693,6 @@ export default function KeywordAnalyzer() {
         toast({
           title: 'Analysis Complete',
           description: `Successfully analyzed ${processedProducts.length} products.`,
-          variant: 'default',
         });
       } catch (err) {
         const message =
@@ -705,7 +704,6 @@ export default function KeywordAnalyzer() {
         toast({
           title: 'Processing Failed',
           description: message,
-          variant: 'destructive',
         });
       } finally {
         setIsLoading(false);
@@ -725,7 +723,6 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Input Required',
         description: 'Please enter keywords to analyze.',
-        variant: 'destructive',
       });
       return;
     }
@@ -777,7 +774,6 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Analysis Complete',
         description: `Analyzed ${keywords.length} manually entered keywords.`,
-        variant: 'default',
       });
     } catch (err) {
       const message =
@@ -786,7 +782,6 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Analysis Failed',
         description: message,
-        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -799,7 +794,6 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Export Error',
         description: 'No data to export.',
-        variant: 'destructive',
       });
       return;
     }
@@ -838,7 +832,6 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Export Successful',
         description: 'Keyword analysis exported to CSV.',
-        variant: 'default',
       });
     } catch (err) {
       const message =
@@ -847,7 +840,6 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Export Failed',
         description: message,
-        variant: 'destructive',
       });
     }
   }, [products, toast]);
@@ -863,7 +855,6 @@ export default function KeywordAnalyzer() {
     toast({
       title: 'Data Cleared',
       description: 'All analysis results have been removed.',
-      variant: 'default',
     });
   }, [toast]);
 

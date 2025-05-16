@@ -82,6 +82,9 @@ export default [
         beforeEach: 'readonly',
         afterEach: 'readonly',
         jest: 'readonly',
+        warn: 'readonly',
+        error: 'readonly',
+        info: 'readonly',
       },
       parser: parser,
       parserOptions: {

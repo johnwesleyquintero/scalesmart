@@ -1,12 +1,10 @@
-'use client';
-
 import { useToast } from '@/hooks/use-toast';
 import { type TrendDataPoint } from '@/lib/amazon-tools/keyword-trend-service';
 import {
   AlertCircle,
   Download,
   FileText,
-  Info,
+  Info as InfoIcon,
   Upload,
   XCircle,
 } from 'lucide-react';
@@ -28,7 +26,6 @@ import { Button } from '@/components/ui/button';
 import { CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { KeywordTrendService } from '@/lib/amazon-tools/keyword-trend-service';
-import { logger } from '@/lib/logger';
 import DataCard from './DataCard';
 import SampleCsvButton from './sample-csv-button';
 
@@ -71,17 +68,17 @@ export default function KeywordTrendAnalyzer() {
         header: true,
         skipEmptyLines: true,
         dynamicTyping: true, // Enable dynamic typing for numeric values
-        complete: async (result) => {
+        complete: async (result: Papa.ParseResult<TrendDataPoint>) => {
           try {
             // Log the start of processing
-            logger.info('Starting trend data processing', {
+            console.info('Starting trend data processing', {
               fileName: file.name,
               rowCount: result.data.length,
             });
 
             if (result.errors.length > 0) {
               const errorMessage = `CSV parsing error: ${result.errors[0].message}. Check row ${result.errors[0].row}.`;
-              logger.error(errorMessage, {
+              console.error(errorMessage, {
                 fileName: file.name,
                 rowIndex: result.errors[0].row,
                 error: result.errors[0],
@@ -90,14 +87,14 @@ export default function KeywordTrendAnalyzer() {
             }
 
             const actualHeaders =
-              result.meta.fields?.map((h) => h.toLowerCase()) || [];
+              result.meta.fields?.map((h: string) => h.toLowerCase()) || [];
             const missingHeaders = REQUIRED_COLUMNS.filter(
               (header) => !actualHeaders.includes(header),
             );
 
             if (missingHeaders.length > 0) {
               const errorMessage = `Missing required CSV columns: ${missingHeaders.join(', ')}. Found: ${actualHeaders.join(', ') || 'None'}`;
-              logger.error(errorMessage, {
+              console.error(errorMessage, {
                 fileName: file.name,
                 missingHeaders,
                 foundHeaders: actualHeaders,
@@ -108,7 +105,7 @@ export default function KeywordTrendAnalyzer() {
             if (result.data.length === 0) {
               const errorMessage =
                 'The uploaded CSV file appears to be empty or contains no data rows.';
-              logger.warn(errorMessage, { fileName: file.name });
+              console.warn(errorMessage, { fileName: file.name });
               throw new Error(errorMessage);
             }
 
@@ -119,7 +116,7 @@ export default function KeywordTrendAnalyzer() {
             if (processedData.length === 0) {
               const errorMessage =
                 'No valid trend data found after processing. Please check your data format.';
-              logger.error(errorMessage, {
+              console.error(errorMessage, {
                 fileName: file.name,
                 rowCount: result.data.length,
               });
@@ -133,15 +130,14 @@ export default function KeywordTrendAnalyzer() {
             toast({
               title: 'Analysis Complete',
               description: `Successfully analyzed trends for ${foundKeywords.length} keywords over ${processedData.length} dates.`,
-              variant: 'default',
             });
 
-            logger.info('Trend analysis completed successfully', {
+            console.info('Trend analysis completed successfully', {
               fileName: file.name,
               keywordCount: foundKeywords.length,
               datePoints: processedData.length,
             });
-          } catch (err) {
+          } catch (err: unknown) {
             const message =
               err instanceof Error
                 ? err.message
@@ -152,7 +148,6 @@ export default function KeywordTrendAnalyzer() {
             toast({
               title: 'Processing Failed',
               description: message,
-              variant: 'destructive',
             });
           } finally {
             setIsLoading(false);
@@ -170,7 +165,6 @@ export default function KeywordTrendAnalyzer() {
           toast({
             title: 'Upload Failed',
             description: `Error reading CSV file: ${err.message}`,
-            variant: 'destructive',
           });
           // Reset file input on read error too
           if (event.target) {
@@ -189,7 +183,6 @@ export default function KeywordTrendAnalyzer() {
       toast({
         title: 'Export Error',
         description: msg,
-        variant: 'destructive',
       });
       return;
     }
@@ -210,16 +203,14 @@ export default function KeywordTrendAnalyzer() {
       toast({
         title: 'Export Successful',
         description: 'Keyword trend analysis exported to CSV.',
-        variant: 'default',
       });
-    } catch (err) {
+    } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(`Failed to export data: ${message}`);
       toast({
         title: 'Export Failed',
         description: message,
-        variant: 'destructive',
       });
     }
   }, [chartData, toast]);
@@ -234,7 +225,6 @@ export default function KeywordTrendAnalyzer() {
     toast({
       title: 'Data Cleared',
       description: 'All trend analysis results have been removed.',
-      variant: 'default',
     });
   }, [toast]);
 
@@ -243,7 +233,7 @@ export default function KeywordTrendAnalyzer() {
     <div className="space-y-6">
       {/* Info Box */}
       <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg flex items-start gap-3">
-        <Info className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+        <InfoIcon className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
         <div className="text-sm text-blue-700 dark:text-blue-300">
           <p className="font-medium">How it Works:</p>
           <ul className="list-disc list-inside ml-4">

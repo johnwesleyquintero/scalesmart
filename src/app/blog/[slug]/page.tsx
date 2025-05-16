@@ -131,7 +131,7 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
         <div className="max-w-3xl mx-auto">
           <div className="mb-8">
             <div className="flex flex-wrap gap-2 mb-4">
-              {post.tags.map((tag: string) => (
+              {post.tags?.map((tag: string) => (
                 <Badge key={tag} variant="secondary" className="text-xs">
                   <Tag className="h-3 w-3 mr-1" />
                   {tag}
@@ -168,9 +168,11 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
             )}
           </div>
 
-          <article className="prose prose-lg dark:prose-invert max-w-none">
-            <MDXRemote source={post.content} components={mdxComponents} />
-          </article>
+          {post.content && (
+            <article className="prose prose-lg dark:prose-invert max-w-none">
+              <MDXRemote source={post.content} components={mdxComponents} />
+            </article>
+          )}
 
           <div className="mt-16 pt-8 border-t">
             <h2 className="text-2xl font-bold mb-4">Continue Reading</h2>

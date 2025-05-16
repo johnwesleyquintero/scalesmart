@@ -24,7 +24,7 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { logError } from '@/lib/error-handling'; // Import logError
-import { logger } from '@/lib/logger'; // Import logger
+import { info } from '@/lib/logger';
 import DataCard from './DataCard';
 import SampleCsvButton from './sample-csv-button';
 
@@ -163,7 +163,7 @@ export default function KeywordDeduplicator() {
         );
 
         // Process results after Papa.parse promise resolves
-        logger.info('Starting CSV processing for Keyword Deduplicator', {
+        info('Starting CSV processing for Keyword Deduplicator', {
           fileName: file.name,
           rowCount: result.data.length,
         });
@@ -209,25 +209,18 @@ export default function KeywordDeduplicator() {
         toast({
           title: 'CSV Processed',
           description: `Successfully processed ${processedData.length} products.`,
-          variant: 'default',
         });
-        logger.info('CSV processing completed successfully', {
+        info('CSV processing completed successfully', {
           processedCount: processedData.length,
           skippedCount: result.data.length - processedData.length,
         });
       } catch (err) {
         // Handle all errors (parsing, validation, processing)
         const message =
-          err instanceof Error
-            ? err.message
-            : 'An unknown error occurred during processing.';
+          err instanceof Error ? err.message : 'An unknown error occurred.';
         setError(message);
         setProducts([]);
-        toast({
-          title: 'Processing Failed',
-          description: message,
-          variant: 'destructive',
-        });
+        toast({ title: 'Processing Failed', description: message });
         logError({
           message: 'CSV processing failed',
           component: 'KeywordDeduplicator/handleFileUpload',
@@ -275,7 +268,6 @@ export default function KeywordDeduplicator() {
         toast({
           title: 'Keywords Processed',
           description: `Deduplicated keywords for "${productName}". ${result.duplicatesRemoved} duplicates removed.`,
-          variant: 'default',
         });
       } else {
         // This case should ideally be caught by processKeywordData's internal logging/return undefined
@@ -286,11 +278,7 @@ export default function KeywordDeduplicator() {
       const message =
         err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(message);
-      toast({
-        title: 'Processing Error',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Processing Error', description: message });
       logError({
         message: 'Manual processing failed',
         component: 'KeywordDeduplicator/handleManualProcess',
@@ -305,11 +293,7 @@ export default function KeywordDeduplicator() {
     if (products.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast({
-        title: 'Export Error',
-        description: msg,
-        variant: 'destructive',
-      });
+      toast({ title: 'Export Error', description: msg });
       return;
     }
     setError(undefined);
@@ -335,7 +319,6 @@ export default function KeywordDeduplicator() {
       toast({
         title: 'Export Successful',
         description: 'Cleaned keywords exported to CSV.',
-        variant: 'default',
       });
     } catch (err) {
       const message =
@@ -343,16 +326,13 @@ export default function KeywordDeduplicator() {
           ? err.message
           : 'An unknown error occurred during export.';
       setError(`Failed to export data: ${message}`);
-      toast({
-        title: 'Export Failed',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Export Failed', description: message });
       logError({
         message: 'CSV export failed',
         component: 'KeywordDeduplicator/handleExport',
         severity: 'high',
         error: err instanceof Error ? err : new Error(message),
+        context: { manualProduct, manualKeywords },
       });
     }
   }, [products, toast]);
@@ -368,7 +348,6 @@ export default function KeywordDeduplicator() {
     toast({
       title: 'Data Cleared',
       description: 'All keyword data has been removed.',
-      variant: 'default',
     });
   }, [toast]);
 

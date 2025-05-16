@@ -2,7 +2,7 @@ import fs from 'fs';
 import matter from 'gray-matter';
 import path from 'path';
 import { z } from 'zod';
-import { BlogPost } from './types';
+import { BlogPost } from '@/types';
 
 const matterDataSchema = z.object({
   title: z.string(),
@@ -112,7 +112,9 @@ export async function getPostBySlug(
       .filter(
         (post: BlogPost) =>
           post.slug !== slug &&
-          post.tags.some((tag: string) => data.tags?.includes(tag) ?? false),
+          (post.tags ?? []).some(
+            (tag: string) => data.tags?.includes(tag) ?? false,
+          ),
       )
       .slice(0, 2);
 

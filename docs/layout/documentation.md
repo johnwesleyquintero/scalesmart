@@ -1,0 +1,33 @@
+# Root Layout Documentation (`src/app/layout.tsx`)
+
+## Overview
+
+The Root Layout (`src/app/layout.tsx`) defines the overall structure and styling for all pages in the application. It includes global components such as the `Header` and `Footer`, and configures metadata and viewport settings.
+
+## Functionality
+
+- **Defines Root HTML Structure:** Sets the `lang` attribute and includes necessary CSS classes for styling.
+- **Includes Global Components:** Renders the `Header` and `Footer` components on every page.
+- **Configures Metadata:** Defines the application's metadata, such as title, description, and Open Graph properties.
+- **Configures Viewport:** Defines the viewport settings for different devices.
+- **Provides Client Providers:** Wraps the content with `ClientProviders` to enable client-side functionality.
+
+## Technical Details
+
+- The page uses the `cn` function from `@/lib/utils` to apply conditional CSS classes.
+- It uses the `Metadata` and `Viewport` types from `next`.
+- It uses the `Inter` font from `next/font/google`.
+- It uses the `ClientProviders` component to enable client-side functionality.
+
+## Components
+
+- `RootLayout`: The main layout component.
+- `Header`: The global header component.
+- `Footer`: The global footer component.
+- `ClientProviders`: A component that provides client-side context and providers.
+
+## Data Flow
+
+1.  The `RootLayout` component receives the `children` prop, which represents the content of the current page.
+2.  It renders the `Header`, `main`, and `Footer` components, wrapping the `children` within the `main` element.
+3.  The `ClientProviders` component provides client-side context and providers to the entire application.

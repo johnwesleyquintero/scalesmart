@@ -18,7 +18,6 @@ import {
   type OptimalPriceInputs,
 } from '@/lib/amazon-tools/optimal-price-schema';
 import { ProductCategory } from '@/lib/amazon-types';
-import { logger } from '@/lib/logger';
 import type React from 'react'; // Import React explicitly
 import { useState } from 'react';
 import { ZodError, z } from 'zod'; // Import Zod for error handling type
@@ -182,7 +181,7 @@ export default function OptimalPriceCalculator() {
       const margin = calculateMargin(profit, optimalPrice);
 
       // Log successful calculation
-      logger.info('Optimal price calculated successfully', {
+      console.info('Optimal price calculated successfully', {
         component: 'OptimalPriceCalculator',
         inputs: validatedData,
         results: { optimalPrice, profit, margin },

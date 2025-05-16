@@ -2,7 +2,6 @@ import { parse } from 'node-html-parser';
 // Assuming ProductListingData is defined in amazon-types and includes these fields
 // If not, you'll need to define it or adjust the type usage.
 import { type ProductListingData } from '../amazon-types';
-import { logger } from '../logger';
 import {
   defaultScoringConfig,
   type ScoringConfig,
@@ -230,7 +229,7 @@ export const calculateProductScore = (
 
     // Assuming data has an 'asin' property, adjust if needed based on ProductListingData definition
     const asin = data.asin || 'N/A'; // Use N/A if asin is not present
-    logger.info('Calculating product score', { asin: asin });
+    console.info('Calculating product score', { asin: asin });
 
     // Ensure customScoring functions are called with the correct data structure
     const breakdown = {
@@ -268,7 +267,7 @@ export const calculateProductScore = (
       messages, // Assign the destructured messages
     };
 
-    logger.info('Product score calculated successfully', {
+    console.info('Product score calculated successfully', {
       asin: asin,
       score: result.overall,
     });

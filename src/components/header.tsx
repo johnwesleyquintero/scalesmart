@@ -162,6 +162,11 @@ export default function Header() {
           external: true,
           auth: 'always',
         },
+        {
+          name: 'Workflow Builder',
+          href: '/workflow-builder',
+          auth: 'always',
+        },
       ],
     },
     {

@@ -1,7 +1,7 @@
+import { QuizResult } from '@/lib/types';
 import { Course, Module } from '@/types';
 import React, { createContext, Dispatch, useContext, useState } from 'react';
 import useAcademyStorage from '../hooks/use-academy-storage';
-
 type AcademyContextType = {
   activeCourse: Course | null;
   setActiveCourse: Dispatch<React.SetStateAction<Course | null>>;
@@ -10,8 +10,8 @@ type AcademyContextType = {
   courses: Course[];
   setCourses: Dispatch<React.SetStateAction<Course[]>>;
   startModule: (module: Module) => void;
-  academyData: { courses: Course[]; quizResults?: any[] };
-  saveData: (data: { courses: Course[]; quizResults?: any[] }) => void;
+  academyData: { courses: Course[]; quizResults?: QuizResult[] | undefined };
+  saveData: (data: { courses: Course[]; quizResults?: QuizResult[] }) => void;
 };
 
 const AcademyContext = createContext<AcademyContextType | undefined>(undefined);

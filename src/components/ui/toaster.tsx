@@ -1,6 +1,7 @@
 'use client';
 
-import { useToast } from '@/hooks/use-toast';
+import type { ToasterToast, State } from '@/app/hooks/use-toast'; // Import the State type, aliasing as ToastState
+import React, { useEffect, useState } from 'react';
 import {
   Toast,
   ToastClose,
@@ -8,14 +9,29 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-} from '@/components/ui/toast';
+} from '@/components/ui/toast'; // These components come from your local ui/toast.tsx
+import { toastInternalState } from '@/app/hooks/use-toast';
 
 export function Toaster() {
-  const { toasts } = useToast();
+  const [currentToasts, setCurrentToasts] = useState<ToasterToast[]>([]);
+
+  useEffect(() => {
+    setCurrentToasts(toastInternalState.getToasts());
+    const unsubscribe = toastInternalState.subscribe((state: State) => {
+      setCurrentToasts(state.toasts);
+    });
+    return () => unsubscribe();
+  }, []);
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, ...props }) {
+      {currentToasts?.map(function ({
+        id,
+        title,
+        description,
+        action,
+        ...props
+      }: ToasterToast) {
         return (
           <Toast key={id} {...props}>
             <div className="grid gap-1">

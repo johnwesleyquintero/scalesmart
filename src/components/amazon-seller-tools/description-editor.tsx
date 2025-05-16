@@ -4,7 +4,6 @@
 import { getAllProhibitedKeywords } from '@/actions/keywordActions';
 import { useToast } from '@/hooks/use-toast';
 import { debounce } from '@/lib/description-validation'; // Assuming this exists and works
-import { logger } from '@/lib/logger';
 import {
   AlertCircle,
   Download,
@@ -120,14 +119,21 @@ const calculateScore = (text: string, prohibitedKeywords: string[]): number => {
 };
 
 // --- Constants for Logging ---
-const COMPONENT_NAME_PROCESS_CSV_ROW = 'DescriptionEditor/processCsvRow';
-const COMPONENT_NAME_HANDLE_FILE_UPLOAD = 'DescriptionEditor/handleFileUpload';
+// const COMPONENT_NAME_PROCESS_CSV_ROW = 'DescriptionEditor/processCsvRow';
+// const COMPONENT_NAME_HANDLE_FILE_UPLOAD = 'DescriptionEditor/handleFileUpload';
 // --- NEW Helper Function to process a single CSV row ---
 const processCsvRow = (
   row: CsvRowData,
   index: number,
   actualHeaders: string[],
   prohibitedKeywords: string[],
+  toast: ({
+    title,
+    description,
+  }: {
+    title: string;
+    description?: string;
+  }) => void, // Pass toast function
 ): ProductDescription | null => {
   try {
     // Find headers case-insensitively
@@ -149,15 +155,17 @@ const processCsvRow = (
     // Validate essential data
     if (!product) {
       const missingProductMessage = `Skipping row ${index + 1}: Missing product name.`;
-      logger.warn(missingProductMessage, {
-        component: COMPONENT_NAME_PROCESS_CSV_ROW,
+      toast({
+        title: 'Missing Product Name',
+        description: missingProductMessage,
       });
       return null;
     }
-    const missingDescriptionMessage = `Skipping row ${index + 1} for "\${product}": Missing description.`;
+    const missingDescriptionMessage = `Skipping row ${index + 1} for "${product}": Missing description.`;
     if (!description) {
-      logger.warn(missingDescriptionMessage, {
-        component: COMPONENT_NAME_PROCESS_CSV_ROW,
+      toast({
+        title: 'Missing Description',
+        description: missingDescriptionMessage,
       });
       return null;
     }
@@ -175,10 +183,10 @@ const processCsvRow = (
       score: score,
     };
   } catch (validationError) {
-    logger.warn(
-      `Validation/Processing failed for row ${index + 1}: ${validationError instanceof Error ? validationError.message : 'Unknown error'}`,
-      { component: COMPONENT_NAME_PROCESS_CSV_ROW, rowData: row },
-    );
+    toast({
+      title: 'Validation Failed',
+      description: `Validation/Processing failed for row ${index + 1}: ${validationError instanceof Error ? validationError.message : 'Unknown error'}`,
+    });
     return null;
   }
 };
@@ -470,20 +478,11 @@ export default function DescriptionEditor() {
       try {
         const keywords = await getAllProhibitedKeywords();
         setProhibitedKeywords(keywords);
-        logger.info('Fetched prohibited keywords.', {
-          count: keywords.length,
-          component: 'DescriptionEditor',
-        });
-      } catch (err) {
-        logger.error('Failed to fetch prohibited keywords', {
-          error: err,
-          component: 'DescriptionEditor',
-        });
+      } catch {
         setError('Failed to load prohibited keywords list.');
         toast({
           title: 'Keyword Fetch Failed',
           description: 'Could not load prohibited keywords.',
-          variant: 'destructive',
         });
       } finally {
         setIsLoading(false);
@@ -520,24 +519,17 @@ export default function DescriptionEditor() {
           try {
             console.log('Papa.parse complete callback results:', results);
             // Log parsing start
-            const csvParsingInfoMessage = 'CSV parsing complete.';
-            logger.info(csvParsingInfoMessage, {
-              rowCount: results.data.length,
-              component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
-            });
             if (results.errors.length > 0) {
               // Log specific PapaParse errors
-              const errorMessages = results.errors.map(
-                (err) => `Row ${err.row}: ${err.message}`,
-              );
-              const csvParsingErrorMessage = 'CSV parsing errors occurred.';
-              logger.error(csvParsingErrorMessage, {
-                errors: errorMessages,
-                component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
-              });
-              throw new Error(
-                `CSV parsing error: ${results.errors[0].message} on row ${results.errors[0].row}`,
-              );
+              // Safely access error message and row
+              const firstError = results.errors[0];
+              const errorMessage =
+                firstError?.message || 'Unknown parsing error';
+              const errorRow =
+                firstError?.row !== undefined
+                  ? ` on row ${firstError.row}`
+                  : '';
+              throw new Error(`CSV parsing error: ${errorMessage}${errorRow}`);
             }
 
             const actualHeaders = results.meta.fields || [];
@@ -561,14 +553,20 @@ export default function DescriptionEditor() {
 
             // Process rows using the helper function
             const processedProducts: ProductDescription[] = results.data
-              .map((row, index) =>
-                processCsvRow(
-                  row,
-                  index,
-                  actualHeaders,
-                  prohibitedKeywords, // Pass prohibitedKeywords here
-                ),
-              )
+              .map((row, index) => {
+                try {
+                  return processCsvRow(
+                    row,
+                    index,
+                    actualHeaders,
+                    prohibitedKeywords, // Pass prohibitedKeywords here
+                    toast, // Pass the toast function
+                  );
+                } catch (e) {
+                  console.error(e);
+                  return null;
+                }
+              })
               .filter((item): item is ProductDescription => item !== null); // Filter out null results
 
             if (processedProducts.length === 0) {
@@ -582,12 +580,6 @@ export default function DescriptionEditor() {
             toast({
               title: 'CSV Processed',
               description: `Successfully processed ${processedProducts.length} products.`,
-              variant: 'default',
-            });
-            logger.info('CSV processing successful.', {
-              processedCount: processedProducts.length,
-              skippedCount: results.data.length - processedProducts.length,
-              component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
             });
           } catch (err) {
             console.error('Error in complete callback:', err);
@@ -597,15 +589,7 @@ export default function DescriptionEditor() {
                 : 'An unknown error occurred during processing.';
             setError(message);
             setProducts([]);
-            toast({
-              title: 'Processing Failed',
-              description: message,
-              variant: 'destructive',
-            });
-            logger.error('CSV processing failed.', {
-              error: err,
-              component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
-            });
+            toast({ title: 'Processing Failed', description: message });
           } finally {
             setIsLoading(false);
             if (fileInputRef.current) {
@@ -620,15 +604,7 @@ export default function DescriptionEditor() {
           setError(message);
           setIsLoading(false);
           setProducts([]);
-          toast({
-            title: 'Upload Failed',
-            description: message,
-            variant: 'destructive',
-          });
-          logger.error('CSV file read error', {
-            error: _err,
-            component: COMPONENT_NAME_HANDLE_FILE_UPLOAD,
-          });
+          toast({ title: 'Upload Failed', description: message });
           if (fileInputRef.current) {
             fileInputRef.current.value = ''; // Reset file input
           }
@@ -650,11 +626,7 @@ export default function DescriptionEditor() {
       ) {
         const msg = `Product "${data.product}" already exists. Please use a unique name.`;
         setError(msg);
-        toast({
-          title: 'Duplicate Error',
-          description: msg,
-          variant: 'destructive',
-        });
+        toast({ title: 'Duplicate Error', description: msg });
         return;
       }
 
@@ -673,7 +645,7 @@ export default function DescriptionEditor() {
         description: `"${data.product}" added successfully.`,
       });
     },
-    [products, toast, prohibitedKeywords], // Include prohibitedKeywords
+    [products, prohibitedKeywords, toast], // Include prohibitedKeywords and toast
   );
 
   // Called by ProductEditorArea when description changes
@@ -695,25 +667,18 @@ export default function DescriptionEditor() {
         }),
       );
     },
-    [prohibitedKeywords], // Include prohibitedKeywords
+    [prohibitedKeywords],
   );
 
-  const handleSave = useCallback(
-    (productToSave: ProductDescription) => {
-      // In a real app, this would be an API call
-      console.log('Saving product:', productToSave);
-      logger.info('Product save triggered (local simulation)', {
-        product: productToSave.product,
-        component: 'DescriptionEditor',
-      });
-      toast({
-        title: 'Changes Saved (Locally)',
-        description: `Changes for "${productToSave.product}" are reflected in the list.`,
-      });
-      // No actual state change needed here as it's updated live
-    },
-    [toast],
-  );
+  const handleSave = useCallback((productToSave: ProductDescription) => {
+    // In a real app, this would be an API call
+    console.log('Saving product:', productToSave);
+    toast({
+      title: 'Changes Saved (Locally)',
+      description: `Changes for "${productToSave.product}" are reflected in the list.`,
+    });
+    // No actual state change needed here as it's updated live
+  }, []);
 
   const handleExport = useCallback(() => {
     if (products.length === 0) {
@@ -721,7 +686,6 @@ export default function DescriptionEditor() {
       toast({
         title: 'Export Error',
         description: 'No data available to export.',
-        variant: 'destructive',
       });
       return;
     }
@@ -754,15 +718,7 @@ export default function DescriptionEditor() {
           ? err.message
           : 'An unknown error occurred during export.';
       setError(`Failed to export data: ${message}`);
-      toast({
-        title: 'Export Failed',
-        description: message,
-        variant: 'destructive',
-      });
-      logger.error('CSV Export Error', {
-        error: err,
-        component: 'DescriptionEditor',
-      });
+      toast({ title: 'Export Failed', description: message });
     }
   }, [products, toast]);
 
@@ -851,6 +807,7 @@ export default function DescriptionEditor() {
             onClick={clearData}
             disabled={isLoading}
           >
+            <XCircle className="mr-2 h-4 w-4" />
             Clear All Data
           </Button>
         </div>

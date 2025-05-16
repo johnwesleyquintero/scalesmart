@@ -1,0 +1,24 @@
+# Contact API Endpoint Documentation (`src/app/api/contact/route.ts`)
+
+## Overview
+
+The `src/app/api/contact/route.ts` file defines an API endpoint that handles contact form submissions. It validates the input data, sends an email using Nodemailer, and returns a JSON response indicating success or failure.
+
+## Functionality
+
+- **Handles Contact Form Submissions:** Receives contact form submissions from the client.
+- **Validates Input Data:** Validates the input data to ensure that all required fields are present.
+- **Sends Email using Nodemailer:** Sends an email using Nodemailer with the contact form data.
+- **Returns JSON Response:** Returns a JSON response indicating success or failure.
+
+## Technical Details
+
+- The endpoint uses the `nodemailer` library to send emails.
+- The endpoint uses environment variables to store the SMTP host, user, password, and contact email address.
+
+## Data Flow
+
+1.  A POST request is made to the `/api/contact` endpoint with the contact form data.
+2.  The endpoint validates the input data to ensure that all required fields are present.
+3.  The endpoint sends an email using Nodemailer with the contact form data.
+4.  The endpoint returns a JSON response indicating success or failure.

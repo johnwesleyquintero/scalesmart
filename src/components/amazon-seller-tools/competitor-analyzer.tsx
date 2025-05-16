@@ -1,4 +1,3 @@
-import { useIsMobile } from '@/app/hooks/use-mobile';
 import { Card, Input } from '@/components/ui';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -8,6 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { useIsMobile } from '@/components/ui/use-mobile';
 import { toast } from '@/components/ui/use-toast';
 import { Info } from 'lucide-react';
 import Papa from 'papaparse';
@@ -232,19 +232,16 @@ export function CompetitorAnalyzer() {
 
   const processCsvData = (): void => {
     try {
-      let processedSellerData = sellerData;
-      let processedCompetitorData = competitorData;
-
-      if (!processedSellerData && sellerData) {
-        processedSellerData = sellerData;
+      if (!sellerData && !competitorData) {
+        return;
       }
 
-      if (!processedCompetitorData.length && competitorData.length) {
-        processedCompetitorData = competitorData;
-      }
+      const processData = (data: ProcessedRow[] | undefined) => {
+        if (!data) {
+          return undefined;
+        }
 
-      if (processedSellerData && processedCompetitorData) {
-        const formattedData = processedCompetitorData.map((row) => {
+        return data.map((row) => {
           const competitor = sanitizeHtml(row.asin || row.niche || 'N/A');
           const dataPoint: ChartDataPoint = {
             name: competitor,
@@ -259,23 +256,35 @@ export function CompetitorAnalyzer() {
 
           return dataPoint;
         });
+      };
 
-        if (formattedData.length > 0 && metrics.length > 0) {
-          // Check storage size before saving
-          const dataSize = new Blob([JSON.stringify(formattedData)]).size;
-          if (dataSize <= MAX_STORAGE_SIZE) {
-            sessionStorage.setItem('chartData', JSON.stringify(formattedData));
-            setChartData(formattedData);
-          } else {
-            sessionStorage.removeItem('chartData');
-            warn('Data exceeds storage limit, not saved to localStorage');
-          }
-          setIsLoading(false);
-          return;
-        }
+      let formattedData: ChartDataPoint[] = [];
+
+      const processedSellerData = processData(sellerData);
+      const processedCompetitorData = processData(competitorData);
+
+      if (processedSellerData) {
+        formattedData = formattedData.concat(processedSellerData);
       }
-    } catch (error: any) {
-      error('Error processing CSV data:', { error });
+      if (processedCompetitorData) {
+        formattedData = formattedData.concat(processedCompetitorData);
+      }
+
+      if (formattedData.length > 0 && metrics.length > 0) {
+        // Check storage size before saving
+        const dataSize = new Blob([JSON.stringify(formattedData)]).size;
+        if (dataSize <= MAX_STORAGE_SIZE) {
+          sessionStorage.setItem('chartData', JSON.stringify(formattedData));
+          setChartData(formattedData);
+        } else {
+          sessionStorage.removeItem('chartData');
+          warn('Data exceeds storage limit, not saved to localStorage');
+        }
+        setIsLoading(false);
+        return;
+      }
+    } catch (error) {
+      console.error('Error processing CSV data:', error);
       toast({
         title: 'Error',
         description: 'Failed to process data',
@@ -302,10 +311,7 @@ export function CompetitorAnalyzer() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        error('API Error:', {
-          status: response.status,
-          error: errorText,
-        });
+        error('API Error:', `Status: ${response.status}, Error: ${errorText}`);
         throw new Error(`Failed to fetch competitor data: ${response.status}`);
       }
 
@@ -318,7 +324,7 @@ export function CompetitorAnalyzer() {
       try {
         data = await response.json();
         if (!data || !data.competitors || !data.metrics) {
-          error('Invalid API response:', { data });
+          error('Invalid API response:', JSON.stringify(data));
           throw new Error('Invalid response format from server');
         }
 
@@ -330,13 +336,9 @@ export function CompetitorAnalyzer() {
             return isNaN(num) ? 0 : num;
           });
         });
-      } catch (error) {
-        error('API parsing error:', { error });
-        throw new Error(
-          error instanceof Error
-            ? error.message
-            : 'Failed to parse server response',
-        );
+      } catch (error: unknown) {
+        console.error('API parsing error:', error);
+        throw new Error(String(error));
       }
 
       const formattedData = data.competitors.map((competitor, index) => {

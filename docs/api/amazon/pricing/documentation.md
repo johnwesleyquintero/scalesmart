@@ -1,0 +1,23 @@
+# Amazon Pricing API Endpoint Documentation (`src/app/api/amazon/pricing/route.ts`)
+
+## Overview
+
+The Amazon Pricing API endpoint (`src/app/api/amazon/pricing/route.ts`) calculates the optimal price for a product based on the provided base price, competition data, and demand factor. It validates the input data using `zod` and uses the `AmazonAlgorithms.calculateOptimalPrice` function to calculate the optimal price.
+
+## Functionality
+
+- **Calculates Optimal Price:** Calculates the optimal price for a product based on the provided input data.
+- **Validates Input Data:** Validates the input data using the `zod` library.
+- **Returns JSON Response:** Returns the optimal price and analysis as a JSON response.
+
+## Technical Details
+
+- The endpoint uses the `zod` library to validate the request body.
+- The endpoint uses the `AmazonAlgorithms.calculateOptimalPrice` function to calculate the optimal price.
+
+## Data Flow
+
+1.  A POST request is made to the `/api/amazon/pricing` endpoint with the base price, competition data, and demand factor.
+2.  The endpoint validates the request body using the `zod` library.
+3.  The endpoint calculates the optimal price using the `AmazonAlgorithms.calculateOptimalPrice` function.
+4.  The endpoint returns the optimal price and analysis as a JSON response.

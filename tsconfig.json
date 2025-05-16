@@ -28,7 +28,7 @@
       "@/lib/*": ["./lib/*"],
       "@/components/*": ["./components/*"],
       "@/app/components/*": ["./app/components/*"],
-      "@/hooks/*": ["./app/hooks/*"] // Ensure this line exists
+      "@/hooks/*": ["./hooks/*"] // Ensure this line exists
     }
   },
   "types": ["@testing-library/jest-dom", "node"],

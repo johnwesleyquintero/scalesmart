@@ -1,75 +1,48 @@
-import { debounce } from 'lodash-es';
-import { useEffect, useState } from 'react';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useToast } from '@/hooks/use-toast';
+import { Course } from '@/types';
 
-interface QuizResult {
-  courseId: string;
-  quizId: string;
-  score: number;
-  totalQuestions: number;
-}
+// It's good practice to define types for your data structures.
+// If 'Course' is defined elsewhere, you might want to import it.
+// For now, here's a basic definition:
 
-interface AcademyData {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
-  quizResults?: QuizResult[];
+export interface AcademyDataType {
+  courses: Course[];
+  // You can add other top-level properties to academyData here if needed
+  // e.g., userPreferences?: Record<string, any>;
 }
 
 const useAcademyStorage = () => {
-  console.log('useAcademyStorage - Running');
-  const [academyData, setAcademyData] = useState<AcademyData>(() => {
-    if (typeof window !== 'undefined') {
-      // Initialize from local storage
-      const storedData = localStorage.getItem('academyData');
-      try {
-        let parsedData = storedData ? JSON.parse(storedData) : { courses: [] };
+  const { toast } = useToast();
+  const [academyData, setAcademyData] = useLocalStorage<AcademyDataType>(
+    'academyData',
+    { courses: [] }, // Initial value for the client
+    { courses: [] }, // Default server value (used during SSR or if localStorage is unavailable)
+  );
 
-        // Data validation and versioning
-        if (typeof parsedData === 'object' && parsedData !== null) {
-          if (!parsedData.version) {
-            // If no version, assume it's an older version and initialize
-            parsedData = { version: 1, data: parsedData };
-          } else if (parsedData.version !== 1) {
-            // Handle different versions here (e.g., migration logic)
-            console.warn(
-              `Local storage data version mismatch. Expected version 1, found version ${parsedData.version}. Resetting.`,
-            );
-            parsedData = { version: 1, data: {} }; // Reset to a known state
-          }
-          return parsedData.data;
-        } else {
-          console.error('Invalid data found in localStorage. Resetting.');
-          return {};
-        }
-      } catch (error) {
-        console.error('Error parsing data from localStorage:', error);
-        return {}; // Return an empty object in case of an error
-      }
-    } else {
-      return {};
+  const saveData = (updates: Partial<AcademyDataType>) => {
+    try {
+      setAcademyData((currentData) => {
+        // Ensure courses is always an array, merging updates correctly
+        const newCourses =
+          updates.courses !== undefined ? updates.courses : currentData.courses;
+        return {
+          ...currentData,
+          ...updates,
+          courses: newCourses || [], // Fallback to empty array if newCourses is null/undefined
+        };
+      });
+      toast({
+        title: 'Data Saved',
+        description: 'Academy data has been updated successfully.',
+      });
+    } catch (error) {
+      console.error('Failed to save academy data:', error);
+      toast({
+        title: 'Error',
+        description: 'Could not save academy data. Please try again.',
+      });
     }
-  });
-
-  const debouncedSetItem = debounce((data: AcademyData) => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(
-          'academyData',
-          JSON.stringify({ version: 1, data }),
-        );
-      } catch (error) {
-        console.error('Error saving data to localStorage:', error);
-        // Consider adding more sophisticated error handling,
-        // such as retrying or notifying the user.
-      }
-    }
-  }, 500); // Debounce for 500ms
-
-  useEffect(() => {
-    debouncedSetItem(academyData);
-  }, [academyData]);
-
-  const saveData = (newData: AcademyData) => {
-    setAcademyData({ ...newData, courses: newData.courses || [] });
   };
 
   return { academyData, saveData };

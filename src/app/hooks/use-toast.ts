@@ -40,7 +40,7 @@ type Action =
       toastId?: ToasterToast['id'];
     };
 
-interface State {
+export interface State {
   toasts: ToasterToast[];
 }
 
@@ -185,5 +185,21 @@ function useToast() {
 }
 
 export { toast, useToast };
+// This is the object our Toaster component will use
+export const toastInternalState = {
+  getToasts: () => memoryState.toasts,
+  subscribe: (listener: (state: State) => void) => {
+    listeners.push(listener);
+    // Return an unsubscribe function
+    return () => {
+      const index = listeners.indexOf(listener);
+      if (index > -1) {
+        listeners.splice(index, 1);
+      }
+    };
+  },
+};
+
+export type { ToasterToast };
 
 export default useToast;

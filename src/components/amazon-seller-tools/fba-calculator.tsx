@@ -50,7 +50,6 @@ type CsvInputRow = {
 };
 
 // Import validation schemas and logger
-import { logger } from '@/lib/logger';
 
 /**
  * Calculates FBA metrics with improved error handling and validation
@@ -85,11 +84,12 @@ const calculateFbaMetrics = async (
     const margin = calculateMargin(profit, validatedPrice);
 
     return { profit, roi, margin };
-  } catch (error) {
+  } catch (error: unknown) {
     // Log the error with detailed information
-    logger.error('Failed to calculate FBA metrics', {
+    console.error('Failed to calculate FBA metrics', {
       component: 'FbaCalculator',
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error:
+        error instanceof Error ? (error as Error).message : 'Unknown error',
       input,
     });
     // Rethrow with more descriptive message
@@ -248,20 +248,15 @@ export default function FbaCalculator() {
             toast({
               title: 'CSV Processed',
               description: `${processedMessage}.${skippedMessage}`,
-              variant: 'default',
             });
-          } catch (err) {
+          } catch (err: unknown) {
             const message =
               err instanceof Error
                 ? err.message
                 : 'An unknown error occurred during processing.';
             setError(message);
             setResults([]);
-            toast({
-              title: 'Processing Failed',
-              description: message,
-              variant: 'destructive',
-            });
+            toast({ title: 'Processing Failed', description: message });
           } finally {
             setIsLoading(false);
 
@@ -277,7 +272,6 @@ export default function FbaCalculator() {
           toast({
             title: 'Upload Failed',
             description: `Error reading CSV file: ${err.message}`,
-            variant: 'destructive',
           });
 
           if (event.target) {
@@ -293,11 +287,7 @@ export default function FbaCalculator() {
     if (results.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast({
-        title: 'Export Error',
-        description: msg,
-        variant: 'destructive',
-      });
+      toast({ title: 'Export Error', description: msg });
       return;
     }
     setError(null);
@@ -329,19 +319,14 @@ export default function FbaCalculator() {
       toast({
         title: 'Export Successful',
         description: 'FBA calculation results exported to CSV.',
-        variant: 'default',
       });
-    } catch (err) {
+    } catch (err: unknown) {
       const message =
         err instanceof Error
           ? err.message
           : 'An unknown error occurred during export.';
       setError(`Failed to export data: ${message}`);
-      toast({
-        title: 'Export Failed',
-        description: message,
-        variant: 'destructive',
-      });
+      toast({ title: 'Export Failed', description: message });
     }
   }, [results, toast]); // Added dependencies
 
@@ -355,7 +340,6 @@ export default function FbaCalculator() {
     toast({
       title: 'Data Cleared',
       description: 'All calculation results have been removed.',
-      variant: 'default',
     });
   }, [toast]); // Added dependency
 
@@ -442,16 +426,14 @@ export default function FbaCalculator() {
                   toast({
                     title: 'Calculation Complete',
                     description: `Calculated metrics for ${values.product}`,
-                    variant: 'default',
                   });
-                } catch (error) {
+                } catch (error: unknown) {
                   toast({
                     title: 'Calculation Failed',
                     description:
                       error instanceof Error
                         ? error.message
                         : 'Failed to calculate metrics',
-                    variant: 'destructive',
                   });
                 }
               }}

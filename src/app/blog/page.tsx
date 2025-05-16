@@ -80,7 +80,7 @@ export default async function BlogPage() {
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag: string) => (
+                  {post.tags?.map((tag: string) => (
                     <Badge key={tag} variant="secondary" className="text-xs">
                       {tag}
                     </Badge>

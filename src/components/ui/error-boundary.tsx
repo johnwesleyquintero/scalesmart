@@ -1,4 +1,5 @@
 'use client';
+import ErrorGuide from '@/components/ErrorGuide';
 import React from 'react';
 
 import { Button } from '@/components/ui/button';
@@ -36,12 +37,9 @@ export default function ErrorBoundary({
           Something went wrong
         </h2>
         <p className="mb-4 text-sm text-muted-foreground">
-          Please refer to the{' '}
-          <a href="/docs/error-guide.md" className="underline">
-            error guide
-          </a>{' '}
-          for further details.
+          Please refer to the error guide for further details.
         </p>
+        <ErrorGuide />
         <p className="mb-6 max-w-md text-red-700 dark:text-red-300">
           We apologize for the inconvenience. An unexpected error has occurred.
         </p>

@@ -12,12 +12,22 @@ import { BookOpen, Lock } from 'lucide-react';
 async function fetchCourses() {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/courses`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/academy-courses`,
     );
     const data = await response.json();
-    return data.courses as Course[];
+    // API returns the array directly, not nested under a 'courses' key
+    if (Array.isArray(data)) {
+      return data as Course[];
+    }
+    // Log an error and return an empty array if the data is not an array
+    console.error(
+      'Error fetching courses in CourseListServer: API did not return an array. Received:',
+      data,
+    );
+    return [];
   } catch (error) {
-    console.error('Error fetching courses:', error);
+    // Log the specific error
+    console.error('Error fetching courses in CourseListServer:', error);
     return [];
   }
 }

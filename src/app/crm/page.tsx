@@ -5,9 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Copy, Download } from 'lucide-react';
+import { Copy, Download, Loader2 } from 'lucide-react';
 import { memo, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import { useLocalStorage } from '../../hooks/use-local-storage';
 
 interface Customer {
   id: string;
@@ -21,72 +22,19 @@ interface Customer {
 const MemoizedReactMarkdown = memo(ReactMarkdown);
 
 export default function CRMComponent() {
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   // Initialize customers state as an empty array for the first render on both server and client.
-  const [customers, setCustomers] = useState<Customer[]>([]);
-
-  // This state will track if we have attempted to load from localStorage.
-  // It helps prevent saving an empty 'customers' array to localStorage
-  // before we've had a chance to load existing data.
   const [searchQuery, setSearchQuery] = useState('');
   const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [customers, setCustomers] = useLocalStorage<Customer[]>(
+    'crmCustomers',
+    [],
+    [],
+  );
 
-  // Effect to load customers from localStorage on initial client-side mount
   useEffect(() => {
-    // This effect runs only on the client, after the initial render.
-    if (typeof window !== 'undefined') {
-      const storedCustomers = localStorage.getItem('crmCustomers');
-      if (storedCustomers) {
-        try {
-          const parsedData = JSON.parse(storedCustomers);
-          if (Array.isArray(parsedData)) {
-            // Validate and ensure each customer has a unique ID
-            const validatedCustomers: Customer[] = parsedData.map(
-              (item: unknown, index: number) => {
-                // Ensure item is an object and provide defaults, especially for ID
-                // If item.id is missing, null, or empty string, generate a new one.
-                const id =
-                  typeof item.id === 'string' && item.id
-                    ? item.id
-                    : `generated-${Date.now()}-${index}`;
-                const name =
-                  typeof item.name === 'string' && item.name
-                    ? item.name
-                    : 'Unnamed Customer';
-
-                return {
-                  id,
-                  name,
-                  email: typeof item.email === 'string' ? item.email : '',
-                  phone: typeof item.phone === 'string' ? item.phone : '',
-                  notes: typeof item.notes === 'string' ? item.notes : '',
-                };
-              },
-            );
-            setCustomers(validatedCustomers);
-          } else {
-            console.warn(
-              'Stored crmCustomers is not an array, clearing localStorage.',
-            );
-            localStorage.removeItem('crmCustomers');
-            setCustomers([]); // Initialize with empty array if stored data is invalid
-          }
-        } catch (error) {
-          console.error('Error parsing customers from localStorage:', error);
-          localStorage.removeItem('crmCustomers'); // Clear corrupted data
-          setCustomers([]); // Initialize with empty array on error
-        }
-      }
-      setHasAttemptedInitialLoad(true); // Mark that we've tried to load.
-    }
-  }, []); // Empty dependency array ensures this runs only once on mount.
-
-  // Effect to save customers to localStorage whenever 'customers' changes, but only after the initial load attempt.
-  useEffect(() => {
-    if (hasAttemptedInitialLoad) {
-      localStorage.setItem('crmCustomers', JSON.stringify(customers));
-    }
-  }, [customers, hasAttemptedInitialLoad]);
+    setHasAttemptedInitialLoad(true);
+  }, []);
 
   const [formData, setFormData] = useState<Omit<Customer, 'id'>>({
     name: '',
@@ -95,7 +43,7 @@ export default function CRMComponent() {
     notes: '',
   });
 
-  const resetForm = () => {
+  const resetForm = (): void => {
     setFormData({
       name: '',
       email: '',
@@ -109,7 +57,7 @@ export default function CRMComponent() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData((prev: Omit<Customer, 'id'>) => ({
       ...prev,
       [name]: value,
     }));
@@ -140,7 +88,7 @@ export default function CRMComponent() {
     if (editingCustomer) {
       // Update existing customer
       setCustomers(
-        customers.map((customer) =>
+        customers.map((customer: Customer) =>
           customer.id === editingCustomer.id
             ? { ...formData, id: editingCustomer.id }
             : customer,
@@ -171,7 +119,9 @@ export default function CRMComponent() {
 
   const handleDelete = (id: string) => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
-      setCustomers(customers.filter((customer) => customer.id !== id));
+      setCustomers(
+        customers.filter((customer: Customer) => customer.id !== id),
+      );
       if (editingCustomer?.id === id) {
         resetForm();
       }
@@ -215,7 +165,7 @@ export default function CRMComponent() {
     const headers = ['ID', 'Name', 'Email', 'Phone', 'Notes'];
     const csvRows = [
       headers.join(','), // Header row
-      ...customers.map((customer) =>
+      ...customers.map((customer: Customer) =>
         [
           escapeCSVField(customer.id),
           escapeCSVField(customer.name),
@@ -242,7 +192,7 @@ export default function CRMComponent() {
   };
 
   // Filter customers based on search query
-  const filteredCustomers = customers.filter((customer) => {
+  const filteredCustomers = customers.filter((customer: Customer) => {
     const query = searchQuery.toLowerCase().trim();
     if (!query) return true; // If query is empty, show all customers
 
@@ -255,83 +205,85 @@ export default function CRMComponent() {
   });
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold my-6 text-center">CRM Dashboard</h1>
-      <p className="text-lg text-muted-foreground text-center mb-8">
-        Manage your customer relationships, track interactions, and organize
-        contact information.
-      </p>
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle>
-            {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <>
+      <div className="container mx-auto p-4">
+        <h1 className="text-3xl font-bold my-6 text-center">CRM Dashboard</h1>
+        <p className="text-lg text-muted-foreground text-center mb-8">
+          Manage your customer relationships, track interactions, and organize
+          contact information.
+        </p>
+        <Card className="mb-6">
+          <CardHeader>
+            <CardTitle>
+              {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    placeholder="John Doe"
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="john@example.com"
+                  />
+                </div>
+              </div>
               <div>
-                <Label htmlFor="name">Name *</Label>
+                <Label htmlFor="phone">Phone</Label>
                 <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
                   onChange={handleInputChange}
-                  placeholder="John Doe"
-                  required
+                  placeholder="(123) 456-7890"
                 />
               </div>
               <div>
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  name="notes"
+                  value={formData.notes}
                   onChange={handleInputChange}
-                  placeholder="john@example.com"
+                  placeholder="Customer preferences, special requirements, etc."
+                  rows={3}
                 />
               </div>
-            </div>
-            <div>
-              <Label htmlFor="phone">Phone</Label>
-              <Input
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                placeholder="(123) 456-7890"
-              />
-            </div>
-            <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                placeholder="Customer preferences, special requirements, etc."
-                rows={3}
-              />
-            </div>
-            <div className="flex justify-end">
-              {editingCustomer && (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={resetForm}
-                  className="mr-2"
-                >
-                  Cancel
+              <div className="flex justify-end">
+                {editingCustomer && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={resetForm}
+                    className="mr-2"
+                  >
+                    Cancel
+                  </Button>
+                )}
+                <Button type="submit">
+                  {editingCustomer ? 'Update Customer' : 'Add Customer'}
                 </Button>
-              )}
-              <Button type="submit">
-                {editingCustomer ? 'Update Customer' : 'Add Customer'}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
       <Card>
         <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <CardTitle className="whitespace-nowrap">Customer List</CardTitle>
@@ -356,15 +308,17 @@ export default function CRMComponent() {
         <CardContent>
           {filteredCustomers.length === 0 ? (
             <p className="text-muted-foreground">
-              {searchQuery
-                ? 'No customers match your search.'
-                : hasAttemptedInitialLoad
-                  ? 'No customers added yet.'
-                  : 'Loading customers...'}
+              {searchQuery ? (
+                'No customers match your search.'
+              ) : hasAttemptedInitialLoad ? (
+                'No customers added yet.'
+              ) : (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              )}
             </p>
           ) : (
             <div className="space-y-4">
-              {filteredCustomers.map((customer) => (
+              {filteredCustomers.map((customer: Customer) => (
                 <div
                   key={`customer-card-${customer.id}`}
                   className="border rounded-lg p-4"
@@ -423,6 +377,6 @@ export default function CRMComponent() {
           )}
         </CardContent>
       </Card>
-    </div>
+    </>
   );
 }

@@ -3,7 +3,8 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, Check, Download, Plus, Trash2, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import React, { useState } from 'react';
+import { useLocalStorage } from '../../hooks/use-local-storage';
 
 type Task = {
   id: string;
@@ -53,10 +54,19 @@ const DEFAULT_TASKS: Task[] = [
 ];
 
 export default function ProjectManagement() {
-  const [tasks, setTasks] = useState<Task[]>(() => {
-    // This function runs only on initial component mount
-    return DEFAULT_TASKS;
+  const [newTask, setNewTask] = useState<Omit<Task, 'id'>>({
+    title: '',
+    description: '',
+    status: 'todo',
   });
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+
+  const [tasks, setTasks] = useLocalStorage<Task[]>(
+    LOCAL_STORAGE_KEY,
+    DEFAULT_TASKS,
+    DEFAULT_TASKS,
+  );
 
   const escapeCSVField = (field: string | undefined | null): string => {
     if (field === undefined || field === null) {
@@ -88,7 +98,7 @@ export default function ProjectManagement() {
     ];
     const csvRows = [
       headers.join(','), // Header row
-      ...tasks.map((task) =>
+      ...tasks.map((task: Task) =>
         [
           escapeCSVField(task.id),
           escapeCSVField(task.title),
@@ -115,53 +125,11 @@ export default function ProjectManagement() {
     }
   };
 
-  const [newTask, setNewTask] = useState<Omit<Task, 'id'>>({
-    title: '',
-    description: '',
-    status: 'todo',
-  });
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [draggedTask, setDraggedTask] = useState<Task | null>(null);
-
   const columns: Column[] = [
     { id: 'todo', title: 'To Do', color: 'bg-blue-100' },
     { id: 'in-progress', title: 'In Progress', color: 'bg-yellow-100' },
     { id: 'done', title: 'Done', color: 'bg-green-100' },
   ];
-
-  // Load tasks from localStorage on initial mount
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const storedTasks = localStorage.getItem(LOCAL_STORAGE_KEY);
-        if (storedTasks) {
-          const parsedTasks = JSON.parse(storedTasks);
-          if (Array.isArray(parsedTasks)) {
-            setTasks(parsedTasks);
-          } else {
-            console.warn(
-              'Stored tasks format is incorrect, using default tasks and clearing invalid storage.',
-            );
-            localStorage.removeItem(LOCAL_STORAGE_KEY);
-            setTasks(DEFAULT_TASKS); // Fallback to default
-          }
-        } else {
-          setTasks(DEFAULT_TASKS); // No tasks in storage, use default
-        }
-      } catch (error) {
-        console.error('Failed to load tasks from localStorage:', error);
-        localStorage.removeItem(LOCAL_STORAGE_KEY); // Clear potentially corrupted data
-        setTasks(DEFAULT_TASKS); // Fallback to default
-      }
-    }
-  }, []); // Empty dependency array ensures this runs only once on mount
-
-  // Save tasks to localStorage whenever the tasks state changes
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(tasks));
-    }
-  }, [tasks]);
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -169,7 +137,7 @@ export default function ProjectManagement() {
 
     const task: Task = {
       ...newTask,
-      id: Date.now().toString(),
+      id: typeof window !== 'undefined' ? Date.now().toString() : 'temp_id', // Generate ID only on client
     };
     setTasks([...tasks, task]);
     setNewTask({
@@ -187,7 +155,7 @@ export default function ProjectManagement() {
   const handleDrop = (status: 'todo' | 'in-progress' | 'done') => {
     if (!draggedTask) return;
 
-    const updatedTasks = tasks.map((t) =>
+    const updatedTasks = tasks.map((t: Task) =>
       t.id === draggedTask.id ? { ...t, status } : t,
     );
     setTasks(updatedTasks);
@@ -199,7 +167,7 @@ export default function ProjectManagement() {
   };
 
   const deleteTask = (id: string) => {
-    setTasks(tasks.filter((task) => task.id !== id));
+    setTasks(tasks.filter((task: Task) => task.id !== id));
   };
 
   const clearAllTasks = () => {
@@ -247,7 +215,7 @@ export default function ProjectManagement() {
 
         {showAddForm && (
           <Card className="mb-6">
-            <CardHeader className="flex flex-row justify-between items-center">
+            <CardHeader>
               <CardTitle>Add New Task</CardTitle>
               <Button
                 variant="ghost"
@@ -344,54 +312,51 @@ export default function ProjectManagement() {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="font-semibold text-lg">{column.title}</h2>
                 <span className="bg-white px-2 py-1 rounded-full text-sm">
-                  {tasks.filter((t) => t.status === column.id).length}
+                  {tasks.filter((t: Task) => t.status === column.id).length}
                 </span>
               </div>
 
               <div className="space-y-3">
                 {tasks
-                  .filter((task) => task.status === column.id)
-                  .map((task) => (
+                  .filter((task: Task) => task.status === column.id)
+                  .map((task: Task) => (
                     <Card
                       key={task.id}
                       draggable
                       onDragStart={() => handleDragStart(task)}
                       className="cursor-move hover:shadow-md transition-shadow"
                     >
-                      <CardHeader className="flex flex-row justify-between items-start p-4">
-                        <div>
-                          <h3 className="font-medium">{task.title}</h3>
-                          {task.description && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {task.description}
-                            </p>
-                          )}
-                        </div>
+                      <CardHeader>
+                        <CardTitle>{task.title}</CardTitle>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
                           onClick={() => deleteTask(task.id)}
                         >
                           <X className="h-4 w-4" />
                         </Button>
                       </CardHeader>
-                      <CardContent className="p-4 pt-0">
-                        <div className="flex justify-between items-center text-sm">
-                          {task.dueDate && (
+                      <CardContent>
+                        {task.description && (
+                          <p className="text-sm text-muted-foreground">
+                            {task.description}
+                          </p>
+                        )}
+                        {task.dueDate && (
+                          <div className="flex justify-between items-center text-sm">
                             <span className="inline-flex items-center">
                               <CalendarDays className="h-4 w-4 mr-1" />
                               {new Date(task.dueDate).toLocaleDateString(
                                 'en-US',
                               )}
                             </span>
-                          )}
-                          {task.assignee && (
-                            <span className="bg-gray-200 px-2 py-1 rounded-full">
-                              {task.assignee}
-                            </span>
-                          )}
-                        </div>
+                            {task.assignee && (
+                              <span className="bg-gray-200 px-2 py-1 rounded-full">
+                                {task.assignee}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   ))}

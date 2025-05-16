@@ -7,9 +7,11 @@ import React, { useEffect, useState } from 'react';
 interface Question {
   id: string;
   text: string;
-  options: string[];
-  correctAnswer: string;
-  explanation?: string;
+  questionType: 'multipleChoice' | 'trueFalse' | 'fillInTheBlank' | 'text';
+  options?: string[]; // Only for multipleChoice
+  correctAnswer: string | string[]; // String for single answer, string[] for multiple correct answers
+  feedback?: { [key: string]: string }; // Feedback for incorrect answers, keyed by option or other identifier
+  explanation?: string; // Explanation for the correct answer
 }
 
 interface QuizProps {
@@ -27,12 +29,23 @@ const Quiz: React.FC<QuizProps> = ({ questions }) => {
 
   const handleAnswerSelect = (answer: string) => {
     setSelectedAnswer(answer);
-    const isCorrect = answer === currentQuestion.correctAnswer;
+    let isCorrect = false;
+    if (currentQuestion.questionType !== 'text') {
+      if (Array.isArray(currentQuestion.correctAnswer)) {
+        isCorrect = currentQuestion.correctAnswer.includes(answer);
+      } else {
+        isCorrect = answer === currentQuestion.correctAnswer;
+      }
+    } else {
+      isCorrect =
+        answer.toLowerCase() ===
+        (currentQuestion.correctAnswer as string).toLowerCase();
+    }
     setIsAnswerCorrect(isCorrect);
   };
 
   const handleNextQuestion = () => {
-    if (selectedAnswer === currentQuestion.correctAnswer) {
+    if (selectedAnswer && isAnswerCorrect) {
       setScore(score + 1);
     }
     setSelectedAnswer('');
@@ -58,9 +71,11 @@ const Quiz: React.FC<QuizProps> = ({ questions }) => {
     if (quizCompleted && activeCourse) {
       const quizResult = {
         courseId: activeCourse?.id,
+        moduleId: '1', // Assuming a single module per course for now
         quizId: '1', // Assuming a single quiz per course for now
         score: score,
         totalQuestions: questions.length,
+        timestamp: new Date().toISOString(),
       };
 
       const newQuizResults = academyData.quizResults
@@ -95,21 +110,31 @@ const Quiz: React.FC<QuizProps> = ({ questions }) => {
         Question {currentQuestionIndex + 1} of {questions.length}
       </h2>
       <p className="mb-4">{currentQuestion.text}</p>
-      <div className="space-y-2">
-        {currentQuestion.options.map((option) => (
-          <button
-            key={option}
-            onClick={() => handleAnswerSelect(option)}
-            className={`p-2 border rounded-md w-full text-left ${
-              selectedAnswer === option
-                ? 'bg-blue-100 border-blue-500'
-                : 'border-gray-300'
-            }`}
-          >
-            {option}
-          </button>
-        ))}
-      </div>
+      {currentQuestion.questionType === 'multipleChoice' && (
+        <div className="space-y-2">
+          {currentQuestion.options?.map((option) => (
+            <button
+              key={option}
+              onClick={() => handleAnswerSelect(option)}
+              className={`p-2 border rounded-md w-full text-left ${
+                selectedAnswer === option
+                  ? 'bg-blue-100 border-blue-500'
+                  : 'border-gray-300'
+              }`}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
+      {currentQuestion.questionType === 'text' && (
+        <input
+          type="text"
+          value={selectedAnswer}
+          onChange={(e) => handleAnswerSelect(e.target.value)}
+          className="p-2 border rounded-md w-full"
+        />
+      )}
       {isAnswerCorrect !== null && (
         <>
           <p
@@ -117,6 +142,11 @@ const Quiz: React.FC<QuizProps> = ({ questions }) => {
           >
             {isAnswerCorrect ? 'Correct!' : 'Incorrect.'}
           </p>
+          {!isAnswerCorrect && currentQuestion.feedback && selectedAnswer && (
+            <p className="mt-1 text-sm italic">
+              {currentQuestion.feedback[selectedAnswer] || 'Incorrect'}
+            </p>
+          )}
           {isAnswerCorrect && currentQuestion.explanation && (
             <p className="mt-1 text-sm italic">{currentQuestion.explanation}</p>
           )}

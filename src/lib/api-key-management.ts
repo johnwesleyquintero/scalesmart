@@ -71,9 +71,13 @@ export async function validateApiKey(
     return true;
   } catch (error: any) {
     // Catch errors from connectToDatabase() or other issues outside the inner try
-    error('API_KEY_VALIDATION_DB_ERROR', {
-      userId,
-    });
+    error(
+      'API_KEY_VALIDATION_DB_ERROR',
+      error instanceof Error ? error : String(error),
+      {
+        userId,
+      },
+    );
     // Log the specific error if it's an Error instance
     return false;
   }
@@ -124,12 +128,15 @@ export async function apiKeyMiddleware(request: Request) {
     return undefined;
   } catch (error: any) {
     // Log the specific error if it's an Error instance
-    error('Error in apiKeyMiddleware', {
-      error: error instanceof Error ? error : null,
-      context: {
-        userId: request.headers.get('x-api-key') ? 'present' : 'missing',
-      }, // Add context
-    });
+    error(
+      'Error in apiKeyMiddleware',
+      error instanceof Error ? error : String(error),
+      {
+        context: {
+          userId: request.headers.get('x-api-key') ? 'present' : 'missing',
+        }, // Add context
+      },
+    );
     // Check if the error is due to JSON parsing
     if (error instanceof SyntaxError) {
       return NextResponse.json(
@@ -189,9 +196,10 @@ export async function rotateApiKeys(
       .insert(newKeyRecord);
 
     if (insertError) {
-      error('Error inserting new API key', {
-        error: insertError instanceof Error ? insertError : undefined,
-      });
+      error(
+        'Error inserting new API key',
+        insertError instanceof Error ? insertError : String(insertError),
+      );
       throw insertError;
     }
     const duration = Date.now() - startTime;
@@ -203,8 +211,8 @@ export async function rotateApiKeys(
     return { record: newKeyRecord, plainKey: plainKey };
   } catch (error: any) {
     error('KeyRotationFailed', {
+      error: error instanceof Error ? error : new Error(String(error)),
       userId,
-      error: error instanceof Error ? error.stack : null,
     });
     const errorMessage =
       error instanceof Error
@@ -239,9 +247,10 @@ export async function initializeApiKeys(
       .single(); // Check for active keys
 
     if (selectError) {
-      error('Error selecting API key', {
-        error: selectError instanceof Error ? selectError : undefined,
-      });
+      error(
+        'Error selecting API key',
+        selectError instanceof Error ? selectError : String(selectError),
+      );
       throw selectError;
     }
 
@@ -258,7 +267,7 @@ export async function initializeApiKeys(
       await deleteApiKeysForUser(userId);
       return null; // Indicate no new key was generated
     }
-  } catch (error: unknown) {
+  } catch (error: any) {
     const errorMessage =
       error instanceof Error
         ? error.message
@@ -292,13 +301,13 @@ export async function getApiKeyRecord(
       .maybeSingle(); // Use maybeSingle as it might not exist
 
     if (dbError) {
-      error(GET_API_KEY_RECORD_ERROR, { userId, error: dbError });
+      error(GET_API_KEY_RECORD_ERROR, String(dbError), { userId });
       throw dbError; // Re-throw DB errors
     }
     const duration = Date.now() - startTime;
     info(`Validated userId against database in ${duration}ms`);
     return apiKeyRecord ?? undefined;
-  } catch (error) {
+  } catch (error: any) {
     error('Error getting API key record', { userId });
     return undefined;
   }
@@ -316,26 +325,34 @@ async function deleteApiKeysForUser(userId: string): Promise<void> {
       .eq('userId', userId);
 
     if (dbError) {
-      error('Failed to delete API keys for user', {
-        userId,
-        error: dbError instanceof Error ? dbError : undefined,
-      });
+      error(
+        'Failed to delete API keys for user',
+        dbError instanceof Error ? String(dbError) : undefined,
+        {
+          userId,
+        },
+      );
       throw dbError;
     }
 
     info(`Deleted all API keys for user ${userId}`);
   } catch (error: any) {
-    error('Error deleting API keys', { userId });
+    error(
+      'Error deleting API keys',
+      error instanceof Error ? String(error) : new Error(String(error)).message,
+      {
+        userId,
+      },
+    );
     throw new Error(
       `Failed to delete API keys for user ${userId}: ${
-        // Log the specific error if it's an Error instance
-        error instanceof Error ? error : undefined
-      }${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.message : 'Unknown error'
+      }`,
     );
   }
 }
 
-function isValidUserIdFormat(userId: string): boolean {
+export function isValidUserIdFormat(userId: string): boolean {
   const uuidRegex =
     /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
   return typeof userId === 'string' && uuidRegex.test(userId);

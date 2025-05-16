@@ -7,13 +7,41 @@
     "level": "Beginner",
     "locked": false,
     "progress": 0,
+    "type": "ARTICLE",
     "modules": [
       {
         "id": "101",
         "title": "Keyword Research",
-        "type": "article",
+        "type": "ARTICLE",
         "duration": "30 minutes",
         "link": "/blog/keyword-research",
+        "completed": false
+      },
+      {
+        "id": "102",
+        "title": "Keyword Research Quiz",
+        "type": "QUIZ",
+        "questions": [
+          {
+            "id": "q1",
+            "text": "What is the primary goal of keyword research?",
+            "questionType": "multipleChoice",
+            "options": [
+              "To find the most expensive keywords",
+              "To identify relevant search terms",
+              "To write compelling ad copy",
+              "To analyze competitor websites"
+            ],
+            "correctAnswer": "To identify relevant search terms",
+            "feedback": {
+              "To find the most expensive keywords": "Incorrect. Keyword research focuses on relevance, not cost.",
+              "To identify relevant search terms": "Correct!",
+              "To write compelling ad copy": "Incorrect. Ad copy is written *using* the keywords found in research.",
+              "To analyze competitor websites": "Incorrect. Competitor analysis is related, but not the primary goal."
+            },
+            "explanation": "The primary goal of keyword research is to identify the search terms that people are using to find information related to your product or service."
+          }
+        ],
         "completed": false
       }
     ]
@@ -26,6 +54,199 @@
     "level": "Intermediate",
     "locked": true,
     "progress": 0,
+    "type": "ARTICLE",
     "modules": []
+  },
+  {
+    "id": "3",
+    "title": "Amazon FBA: Getting Started",
+    "description": "A comprehensive guide to launching your business with Fulfillment by Amazon (FBA).",
+    "duration": "4 hours",
+    "level": "Beginner",
+    "locked": false,
+    "progress": 0,
+    "type": "ARTICLE",
+    "modules": [
+      {
+        "id": "301",
+        "title": "FBA Overview and Benefits",
+        "type": "ARTICLE",
+        "duration": "45 minutes",
+        "link": "/blog/fba-overview",
+        "completed": false
+      },
+      {
+        "id": "302",
+        "title": "Product Selection and Sourcing",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "link": "/blog/product-selection",
+        "completed": false
+      },
+      {
+        "id": "303",
+        "title": "Creating Your Amazon Seller Account",
+        "type": "VIDEO",
+        "duration": "1 hour",
+        "link": "/videos/seller-account-setup",
+        "completed": false
+      },
+      {
+        "id": "304",
+        "title": "Shipping and Inventory Management",
+        "type": "ARTICLE",
+        "duration": "1 hour 15 minutes",
+        "link": "/blog/shipping-inventory",
+        "completed": false
+      },
+      {
+        "id": "305",
+        "title": "FBA Fees and Profitability",
+        "type": "ARTICLE",
+        "duration": "30 minutes",
+        "link": "/blog/fba-fees",
+        "completed": false
+      }
+    ]
+  },
+  {
+    "id": "4",
+    "title": "Advanced Amazon Listing Optimization",
+    "description": "Deep dive into advanced techniques for optimizing your Amazon listings to increase visibility and sales.",
+    "duration": "5 hours",
+    "level": "Intermediate",
+    "locked": true,
+    "progress": 0,
+    "type": "ARTICLE",
+    "modules": [
+      {
+        "id": "401",
+        "title": "A+ Content and Enhanced Brand Content",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "link": "/blog/a-plus-content",
+        "completed": false
+      },
+      {
+        "id": "402",
+        "title": "Amazon SEO Best Practices 2025",
+        "type": "ARTICLE",
+        "duration": "1 hour 30 minutes",
+        "link": "/blog/amazon-seo-2025",
+        "completed": false
+      },
+      {
+        "id": "403",
+        "title": "Image Optimization and Video Marketing",
+        "type": "VIDEO",
+        "duration": "1 hour",
+        "link": "/videos/image-optimization",
+        "completed": false
+      },
+      {
+        "id": "404",
+        "title": "Product Reviews and Ratings",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "link": "/blog/product-reviews",
+        "completed": false
+      },
+      {
+        "id": "405",
+        "title": "Amazon Listing Compliance",
+        "type": "ARTICLE",
+        "duration": "30 minutes",
+        "link": "/blog/listing-compliance",
+        "completed": false
+      }
+    ]
+  },
+  {
+    "id": "5",
+    "title": "Amazon Brand Registry and Protection",
+    "description": "Learn the benefits of Amazon Brand Registry, how to enroll, and strategies for protecting your brand.",
+    "duration": "3 hours",
+    "level": "Intermediate",
+    "locked": false,
+    "progress": 0,
+    "type": "ARTICLE",
+    "modules": [
+      {
+        "id": "501",
+        "title": "Benefits of Amazon Brand Registry",
+        "type": "ARTICLE",
+        "duration": "45 minutes",
+        "link": "/blog/brand-registry-benefits",
+        "completed": false
+      },
+      {
+        "id": "502",
+        "title": "Enrolling in Amazon Brand Registry",
+        "type": "VIDEO",
+        "duration": "1 hour",
+        "link": "/videos/brand-registry-enrollment",
+        "completed": false
+      },
+      {
+        "id": "503",
+        "title": "Brand Protection Strategies",
+        "type": "ARTICLE",
+        "duration": "1 hour 15 minutes",
+        "link": "/blog/brand-protection",
+        "completed": false
+      },
+      {
+        "id": "504",
+        "title": "Reporting Infringements",
+        "type": "ARTICLE",
+        "duration": "30 minutes",
+        "link": "/blog/reporting-infringements",
+        "completed": false
+      }
+    ]
+  },
+  {
+    "id": "6",
+    "title": "Amazon Product Research and Validation",
+    "description": "Focus on product research techniques, identifying profitable products, and validating product ideas.",
+    "duration": "4 hours",
+    "level": "Beginner",
+    "locked": false,
+    "progress": 0,
+    "type": "ARTICLE",
+    "modules": [
+      {
+        "id": "601",
+        "title": "Product Research Fundamentals",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "link": "/blog/product-research-fundamentals",
+        "completed": false
+      },
+      {
+        "id": "602",
+        "title": "Identifying Profitable Products",
+        "type": "ARTICLE",
+        "duration": "1 hour 30 minutes",
+        "link": "/blog/profitable-products",
+        "completed": false
+      },
+      {
+        "id": "603",
+        "title": "Product Validation Techniques",
+        "type": "VIDEO",
+        "duration": "1 hour",
+        "link": "/videos/product-validation",
+        "completed": false
+      },
+      {
+        "id": "604",
+        "title": "Using Amazon Seller Central Tools for Research",
+        "type": "ARTICLE",
+        "duration": "30 minutes",
+        "link": "/blog/seller-central-tools",
+        "completed": false
+      }
+    ]
   }
 ]

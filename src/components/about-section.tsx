@@ -11,11 +11,9 @@ import {
 import educationData from '@/data/portfolio-data/education.json';
 import experienceData from '@/data/portfolio-data/experience.json';
 import skillsData from '@/data/portfolio-data/skills.json';
-import type { Education, Experience, Skill } from '@/lib/types'; // Assuming Education type is in lib/types
 import { Briefcase, GraduationCap, Lightbulb } from 'lucide-react';
 
 // Define the constant for the repeated string
-const SKILLS_B2B_MANAGEMENT = 'Skills: B2B, Management';
 
 export default function AboutSection() {
   return (
@@ -50,20 +48,22 @@ export default function AboutSection() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="flex flex-wrap gap-3">
-                  {skillsData.skills.map((skill: Skill) => (
-                    <Badge
-                      key={skill.name}
-                      variant="secondary"
-                      className="px-3 py-1 text-sm hover:bg-primary/20 transition-colors"
-                    >
-                      {skill.name}
-                      {skill.level && (
-                        <span className="ml-1.5 opacity-75 text-xs">
-                          ({skill.level})
-                        </span>
-                      )}
-                    </Badge>
-                  ))}
+                  {skillsData.skills.map(
+                    (skill: { name: string; level: number; icon: string }) => (
+                      <Badge
+                        key={skill.name}
+                        variant="secondary"
+                        className="px-3 py-1 text-sm hover:bg-primary/20 transition-colors"
+                      >
+                        {skill.name}
+                        {skill.level && (
+                          <span className="ml-1.5 opacity-75 text-xs">
+                            ({skill.level})
+                          </span>
+                        )}
+                      </Badge>
+                    ),
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -85,7 +85,18 @@ export default function AboutSection() {
               </CardHeader>
               <CardContent className="p-6 space-y-3">
                 {experienceData.experience.map(
-                  (exp: Experience, index: number) => (
+                  (
+                    exp: {
+                      title: string;
+                      company: string;
+                      period: string;
+                      description: string;
+                      achievements: string[];
+                      startDate: string;
+                      endDate: string | null;
+                    },
+                    index: number,
+                  ) => (
                     <div
                       key={index}
                       className="relative pl-10 pb-4 last:pb-0 border-l border-border/50 ml-3 pt-1"
@@ -106,9 +117,7 @@ export default function AboutSection() {
                         </p>
                       )}
                       <p className="text-sm text-foreground/80">
-                        {exp.description === SKILLS_B2B_MANAGEMENT
-                          ? 'Key responsibilities included B2B client management and team leadership, focusing on strategic growth and operational efficiency.'
-                          : exp.description}
+                        {exp.description}
                       </p>
                     </div>
                   ),
@@ -133,7 +142,16 @@ export default function AboutSection() {
               </CardHeader>
               <CardContent className="p-6 space-y-3">
                 {educationData.education.map(
-                  (edu: Education, index: number) => (
+                  (
+                    edu: {
+                      institution: string;
+                      degree: string;
+                      period: string;
+                      description: string;
+                      skills: string[];
+                    },
+                    index: number,
+                  ) => (
                     <div
                       key={index}
                       className="relative pl-10 pb-4 last:pb-0 border-l border-border/50 ml-3 pt-1"

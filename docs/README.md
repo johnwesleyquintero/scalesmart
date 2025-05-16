@@ -1,0 +1,151 @@
+# Documentation Directory
+
+This directory contains documentation for various aspects of the project.
+
+## Overview
+
+This directory contains documentation for various aspects of the project. Below is a list of subdirectories and their purposes:
+
+- **academy/:** Documentation related to the academy section of the project, likely containing course materials, architectural diagrams, and enhancement plans.
+- **admin/:** Documentation for the admin panel or administrative features of the project.
+- **amazon-seller-tools/:** Documentation for tools related to Amazon sellers, possibly including API integrations or data analysis.
+- **api/:** Documentation for the project's API endpoints, including details for academy articles, courses, Amazon integrations, authentication, chat, contact forms, content management, downloads, module progress, prohibited keywords, Redis, resumes, and search functionality.
+- **architecture/:** High-level architectural documentation for the project.
+- **ats/:** Documentation related to an Applicant Tracking System (ATS) integration or features.
+- **blog/:** Documentation for the blog section of the project, including layout and slug configurations.
+- **chat/:** Documentation for the chat functionality of the project.
+- **content/:** Documentation related to content management, specifically for the blog.
+- **crm/:** Documentation for the Customer Relationship Management (CRM) features of the project.
+- **data/:** Contains sample data or data-related documentation.
+- **error/:** Documentation related to error handling and error pages.
+- **error-guide/:** Documentation providing guidance on different types of errors.
+- **hooks/:** Documentation for custom React hooks used in the project, including those for mobile and toast notifications.
+- **implementation/:** Documentation about the implementation details of certain features.
+- **layout/:** Documentation for the overall layout of the application.
+- **loading/:** Documentation for loading states and components.
+- **local-storage/:** Documentation related to the usage of local storage.
+- **metadata/:** Documentation for the metadata of the application.
+- **not-found/:** Documentation for the 404 (Not Found) page.
+- **page/:** Documentation for general pages within the application.
+- **privacy-policy/:** Documentation for the privacy policy page.
+- **project-management/:** Documentation for project management related features.
+- **robots/:** Documentation for the robots.txt file.
+- **scripts/:** Contains scripts used in the project.
+- **sitemap/:** Documentation for the sitemap.xml file.
+- **strategies/:** Documentation for different strategies used in the project.
+- **supabase/:** Documentation related to Supabase integration, including RLS (Row Level Security) policies.
+- **workflow-builder/:** Documentation for the workflow builder feature.
+
+## Subdirectories
+
+Below is a list of subdirectories and their contents:
+
+- **academy/:** Documentation related to the academy section of the project, likely containing course materials, architectural diagrams, and enhancement plans.
+  - Files:
+    - academy_architecture.md
+    - academy_curriculum_enhancement_plan.md
+    - academy_enhancement_review_guide.md
+    - documentation.md
+    - course-list-server/
+    - school-component/
+- **admin/:** Documentation for the admin panel or administrative features of the project.
+  - Files:
+    - documentation.md
+- **amazon-seller-tools/:** Documentation for tools related to Amazon sellers, possibly including API integrations or data analysis.
+  - Files:
+    - documentation.md
+- **api/:** Documentation for the project's API endpoints, including details for academy articles, courses, Amazon integrations, authentication, chat, contact forms, content management, downloads, module progress, prohibited keywords, Redis, resumes, and search functionality.
+  - Files:
+    - academy-article/
+    - academy-courses/
+    - amazon/
+    - auth/
+    - chat/
+    - contact/
+    - content/
+    - download/
+    - module-progress/
+    - prohibited-keywords/
+    - redis/
+    - resume/
+    - search/
+- **architecture/:** High-level architectural documentation for the project.
+  - Files:
+    - architecture.md
+- **ats/:** Documentation related to an Applicant Tracking System (ATS) integration or features.
+  - Files:
+    - documentation.md
+- **blog/:** Documentation for the blog section of the project, including layout and slug configurations.
+  - Files:
+    - documentation.md
+    - layout/
+    - slug/
+- **chat/:** Documentation for the chat functionality of the project.
+  - Files:
+    - documentation.md
+- **content/:** Documentation related to content management, specifically for the blog.
+  - Files:
+    - blog/
+- **crm/:** Documentation for the Customer Relationship Management (CRM) features of the project.
+  - Files:
+    - documentation.md
+- **data/:** Contains sample data or data-related documentation.
+  - Files:
+    - sample_data.csv
+- **error/:** Documentation related to error handling and error pages.
+  - Files:
+    - documentation.md
+- **error-guide/:** Documentation providing guidance on different types of errors.
+  - Files:
+    - error-guide.mdx
+    - route/
+- **hooks/:** Documentation for custom React hooks used in the project, including those for mobile and toast notifications.
+  - Files:
+    - use-mobile/
+    - use-toast/
+- **implementation/:** Documentation about the implementation details of certain features.
+  - Files:
+    - background-implementation.md
+- **layout/:** Documentation for the overall layout of the application.
+  - Files:
+    - documentation.md
+- **loading/:** Documentation for loading states and components.
+  - Files:
+    - documentation.md
+- **local-storage/:** Documentation related to the usage of local storage.
+  - Files:
+    - documentation.md
+- **metadata/:** Documentation for the metadata of the application.
+  - Files:
+    - documentation.md
+- **not-found/:** Documentation for the 404 (Not Found) page.
+  - Files:
+    - documentation.md
+- **page/:** Documentation for general pages within the application.
+  - Files:
+    - documentation.md
+- **privacy-policy/:** Documentation for the privacy policy page.
+  - Files:
+    - documentation.md
+- **project-management/:** Documentation for project management related features.
+  - Files:
+    - documentation.md
+- **robots/:** Documentation for the robots.txt file.
+  - Files:
+    - documentation.md
+- **scripts/:** Contains scripts used in the project.
+  - Files:
+    - No files found.
+- **sitemap/:** Documentation for the sitemap.xml file.
+  - Files:
+    - documentation.md
+- **strategies/:** Documentation for different strategies used in the project.
+  - Files:
+    - synchronization_strategy.md
+- **supabase/:** Documentation related to Supabase integration, including RLS (Row Level Security) policies.
+  - Files:
+    - rls.md
+    - supabase_windows_amd64.tar.gz
+- **workflow-builder/:** Documentation for the workflow builder feature.
+  - Files:
+    - documentation.md

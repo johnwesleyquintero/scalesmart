@@ -1,12 +1,11 @@
+import { toast } from '@/app/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useToast } from '@/hooks/use-toast';
 import {
   validateFbaForm,
   type FbaFormData,
 } from '@/lib/amazon-tools/fba-form-schema';
-import { logger } from '@/lib/logger';
 import React from 'react';
 import type { FbaCalculationInput } from './fba-calculator';
 
@@ -21,7 +20,6 @@ export default function ManualFbaForm({
   onSubmit,
   onReset,
 }: Readonly<ManualFbaFormProps>) {
-  const { toast } = useToast();
   const [values, setValues] =
     React.useState<FbaCalculationInput>(initialValues);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -47,7 +45,7 @@ export default function ManualFbaForm({
 
       if (validationErrors.length > 0) {
         // Log validation errors
-        logger.warn('FBA form validation failed', {
+        console.warn('FBA form validation failed', {
           component: 'ManualFbaForm',
           errors: validationErrors,
           formData: values,
@@ -57,13 +55,12 @@ export default function ManualFbaForm({
         toast({
           title: 'Validation Error',
           description: validationErrors[0].message,
-          variant: 'destructive',
         });
         return;
       }
 
       // Log successful submission
-      logger.info('FBA form submitted successfully', {
+      console.info('FBA form submitted successfully', {
         component: 'ManualFbaForm',
         formData: values,
       });
@@ -71,7 +68,7 @@ export default function ManualFbaForm({
       onSubmit(values);
     } catch (error) {
       // Log unexpected errors
-      logger.error('Unexpected error in FBA form submission', {
+      console.error((error as Error).message, {
         component: 'ManualFbaForm',
         error: error instanceof Error ? error.message : 'Unknown error',
         formData: values,
@@ -80,7 +77,6 @@ export default function ManualFbaForm({
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
-        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);

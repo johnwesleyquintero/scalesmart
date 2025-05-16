@@ -510,7 +510,6 @@ export default function ListingQualityChecker() {
           toast({
             title: 'Success',
             description: `${file.name} processed successfully with ${processedData.length} listings.`,
-            variant: 'default',
           });
         } catch (uploadError) {
           const errorMessage =
@@ -522,7 +521,6 @@ export default function ListingQualityChecker() {
           toast({
             title: 'Error Processing CSV',
             description: errorMessage,
-            variant: 'destructive',
           });
         } finally {
           setIsLoading(false);
@@ -537,7 +535,6 @@ export default function ListingQualityChecker() {
         toast({
           title: 'Error Reading File',
           description: 'Could not read the selected file.',
-          variant: 'destructive',
         });
         setIsLoading(false);
         if (fileInputRef.current) {
@@ -605,7 +602,6 @@ export default function ListingQualityChecker() {
       toast({
         title: 'Input Required',
         description: 'Please enter an ASIN to check.',
-        variant: 'destructive',
       });
       return;
     }
@@ -616,7 +612,6 @@ export default function ListingQualityChecker() {
       toast({
         title: 'Invalid Format',
         description: 'ASIN should be 10 letters/numbers.',
-        variant: 'destructive',
       });
       return;
     }
@@ -633,14 +628,12 @@ export default function ListingQualityChecker() {
         toast({
           title: 'ASIN Already Added',
           description: `Analysis for ASIN ${trimmedAsin} is already displayed.`,
-          variant: 'default',
         });
       } else {
         setListings((prevListings) => [...prevListings, newListing]);
         toast({
           title: 'ASIN Check Complete',
           description: `Analysis for ${trimmedAsin} added.`,
-          variant: 'default',
         });
       }
       setAsin(''); // Clear input after successful check
@@ -654,7 +647,6 @@ export default function ListingQualityChecker() {
       toast({
         title: 'ASIN Check Failed',
         description: errorMessage,
-        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -671,7 +663,6 @@ export default function ListingQualityChecker() {
     toast({
       title: 'Data Cleared',
       description: 'All listing analysis results have been removed.',
-      variant: 'default',
     });
   }, [toast]);
 
@@ -681,7 +672,6 @@ export default function ListingQualityChecker() {
       toast({
         title: 'Export Error',
         description: 'No analysis results to export.',
-        variant: 'destructive',
       });
       return;
     }
@@ -719,7 +709,6 @@ export default function ListingQualityChecker() {
       toast({
         title: 'Export Successful',
         description: 'Analysis results exported to CSV.',
-        variant: 'default',
       });
     } catch (err) {
       const message =
@@ -730,7 +719,6 @@ export default function ListingQualityChecker() {
       toast({
         title: 'Export Failed',
         description: message,
-        variant: 'destructive',
       });
     }
   }, [listings, toast]);
