@@ -12,7 +12,7 @@ REQUIRED_NPM_VERSION="9.0.0"
 
 # --- Build Artifacts ---
 # The build artifacts to clean.
-BUILD_ARTIFACTS=(".next" ".vercel" "node_modules" "package-lock.json" "coverage" ".nyc_output" "storybook-static" "dist" "out")
+BUILD_ARTIFACTS=(".next" ".vercel" "node_modules" "coverage" ".nyc_output" "storybook-static" "dist" "out")
 
 # --- Log Patterns ---
 # The log patterns to clean.

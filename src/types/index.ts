@@ -45,5 +45,5 @@ export type BlogPost = {
   readingTime?: string;
   author?: string;
   content?: string;
-  relatedPosts?: any[];
+  relatedPosts?: unknown[];
 };

@@ -1,3 +1,4 @@
+import React from 'react';
 import { useDrop } from 'react-dnd';
 import ReactFlow from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -33,6 +34,13 @@ const WorkflowCanvas = ({
     }),
   }));
 
+  const dropRef = React.useCallback(
+    (node: HTMLDivElement) => {
+      drop(node);
+    },
+    [drop],
+  );
+
   return (
     <div style={{ width: '100%', height: '100%', border: '1px dashed gray' }}>
       <ReactFlow
@@ -41,7 +49,7 @@ const WorkflowCanvas = ({
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        ref={drop as any}
+        ref={dropRef}
         fitView
       />
     </div>

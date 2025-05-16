@@ -15,9 +15,17 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ type, label }) => {
     }),
   }));
 
+  const divRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (divRef.current) {
+      drag(divRef.current);
+    }
+  }, [drag]);
+
   return (
     <div
-      ref={drag as any}
+      ref={divRef}
       style={{
         border: '1px solid black',
         padding: '10px',
@@ -28,5 +36,4 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ type, label }) => {
     </div>
   );
 };
-
 export default DraggableNode;
