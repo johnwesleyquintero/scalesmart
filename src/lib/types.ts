@@ -25,6 +25,7 @@ export interface Module {
   duration: string;
   link?: string;
   completed: boolean;
+  videoUrl?: string;
 }
 
 export interface QuizResult {

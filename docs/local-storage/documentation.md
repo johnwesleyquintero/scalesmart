@@ -9,7 +9,7 @@ This documentation describes how local storage is used in the application. Local
 Local storage is used in the application for the following purposes:
 
 - **Storing User Data:**
-  - Course progress in `src/hooks/use-academy-storage.ts` and `src/components/AcademyContentClient.tsx`
+  - Course progress in `src/hooks/use-academy-storage.ts`
   - Chat messages in `src/components/ui/chat-interface.tsx`
   - Workflow data in `src/app/workflow-builder/page.tsx`
   - Task data in `src/app/project-management/page.tsx`

@@ -46,7 +46,7 @@ export interface CaseStudy {
     name: string;
     value: number;
     change: number;
-    trend: 'up' | 'down' | 'neutral';
+    trend: string;
   }[];
   competitorData: CompetitorDataRow[];
   date: string;
@@ -87,11 +87,11 @@ export interface Project {
 
 export interface Experience {
   company: string;
-  position: string;
+  title: string;
   startDate: string;
-  endDate: string;
+  endDate: string | null;
   description: string[];
-  technologies: string[];
+  achievements: string[];
 }
 
 export interface Education {

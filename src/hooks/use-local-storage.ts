@@ -1,31 +1,42 @@
 import CryptoJS from 'crypto-js';
 import DOMPurify from 'dompurify';
 import lzstring from 'lz-string';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useToast } from './use-toast'; // Import useToast
 
-const generateEncryptionKey = () => {
-  if (typeof window === 'undefined') {
-    return ''; // Or some default value, but encryption won't work server-side
-  }
+// Helper function to get encryption configuration, ensuring client-side evaluation for key generation.
+const getEncryptionConfig = (() => {
+  let clientWarningEmitted = false; // Closure to ensure warning is emitted only once per client session
 
-  let key = sessionStorage.getItem('encryptionKey');
-  if (!key) {
-    key = window.crypto.randomUUID(); // Generate a unique key
-    sessionStorage.setItem('encryptionKey', key);
-  }
-  return key;
-};
+  return () => {
+    if (typeof window === 'undefined') {
+      // Server-side context or during build; encryption is not applicable here.
+      return { secretKey: '', canEncrypt: false, isClientContext: false };
+    }
 
-const SECRET_KEY = generateEncryptionKey();
-
-const CAN_ENCRYPT = !!SECRET_KEY;
-
-if (!CAN_ENCRYPT) {
-  console.warn(
-    'No encryption key available. Data will be stored unencrypted in local storage. Ensure this is acceptable for the data being stored.',
-  );
-}
+    let key = sessionStorage.getItem('encryptionKey');
+    if (!key) {
+      try {
+        key = window.crypto.randomUUID();
+        sessionStorage.setItem('encryptionKey', key);
+      } catch (e) {
+        console.error(
+          'Failed to generate/store encryption key in sessionStorage:',
+          e,
+        );
+        key = null; // Ensure key is null if generation/storage failed
+      }
+    }
+    const canEncrypt = !!key;
+    if (!canEncrypt && !clientWarningEmitted) {
+      console.warn(
+        'Client: Could not establish an encryption key. Data will be stored unencrypted in local storage. Ensure this is acceptable.',
+      );
+      clientWarningEmitted = true;
+    }
+    return { secretKey: key || '', canEncrypt, isClientContext: true };
+  };
+})();
 
 const CHUNK_SIZE = 100000; // Adjust chunk size as needed
 
@@ -56,20 +67,31 @@ export function useLocalStorage<T>(
   serverValue: T,
 ) {
   const [storedValue, setStoredValue] = useState<T>(initialValue);
-  const { toast } = useToast(); // Get the toast function
+  const { toast } = useToast();
+  const serverValueRef = useRef(serverValue);
 
-  // Moved sanitizeValue here to be accessible by both useEffect and setValue
-  const sanitizeValue = (value: T): T => {
-    if (typeof value === 'string') return DOMPurify.sanitize(value) as T;
-    if (typeof value === 'object' && value !== null)
+  const sanitizeValue = useCallback((value: T): T => {
+    if (typeof value === 'string') {
+      // Check if the string contains HTML tags
+      if (/<[^>]*>/g.test(value)) {
+        return DOMPurify.sanitize(value) as T;
+      }
+      return value;
+    }
+    if (typeof value === 'object' && value !== null) {
       return JSON.parse(DOMPurify.sanitize(JSON.stringify(value))) as T;
+    }
     return value;
-  };
+  }, []);
 
   useEffect(() => {
+    if (serverValueRef.current !== serverValue) {
+      serverValueRef.current = serverValue;
+    }
+
     const getInitialValue = async () => {
       if (typeof window === 'undefined') {
-        return serverValue;
+        return serverValueRef.current;
       }
 
       // Check if the value is in the cache
@@ -78,13 +100,60 @@ export function useLocalStorage<T>(
         return cache[key] as T;
       }
 
-      return readFromLocalStorage(key, initialValue);
-    };
+      // Define these helpers inside or memoize if they were outside and used sanitizeValue
+      const retrieveAndCombineChunks = (k: string): string => {
+        const chunkKeys = Object.keys(localStorage)
+          .filter((chunkKey) => chunkKey.startsWith(`${k}_chunk`))
+          .sort();
+        return chunkKeys
+          .map((chunkKey) => localStorage.getItem(chunkKey) || '')
+          .join('');
+      };
+      const decryptData = (data: string, k: string): string | null => {
+        const { secretKey, canEncrypt: clientCanEncrypt } =
+          getEncryptionConfig();
+        try {
+          // Only attempt decryption if on client and encryption is possible
+          const decrypted = clientCanEncrypt
+            ? CryptoJS.AES.decrypt(data, secretKey).toString(CryptoJS.enc.Utf8)
+            : data;
+          if (!decrypted && clientCanEncrypt) {
+            // Warn if decryption was attempted and failed
+            console.warn(
+              'Decryption failed for key:',
+              k,
+              '. Returning initial value.',
+            );
+            return null;
+          }
+          return decrypted;
+        } catch (decryptionError) {
+          console.error(
+            `Decryption error for localStorage key "${k}" (data might be corrupted or key changed):`,
+            decryptionError,
+          );
+          Object.keys(localStorage)
+            .filter((chunkKey) => chunkKey.startsWith(`${k}_chunk`))
+            .forEach((chunkKey) => localStorage.removeItem(chunkKey)); // Clear corrupted data
+          return null;
+        }
+      };
+      const parseAndSanitizeInternal = (
+        decrypted: string,
+        k: string,
+      ): T | undefined => {
+        try {
+          const parsedValue = JSON.parse(decrypted) as T;
+          return sanitizeValue(parsedValue); // Use memoized sanitizeValue
+        } catch (parseError) {
+          console.error('Error parsing decrypted JSON:', parseError);
+          Object.keys(localStorage)
+            .filter((chunkKey) => chunkKey.startsWith(`${k}_chunk`))
+            .forEach((chunkKey) => localStorage.removeItem(chunkKey)); // Clear corrupted data
+          return undefined;
+        }
+      };
 
-    const readFromLocalStorage = async (
-      key: string,
-      initialValue: T,
-    ): Promise<T> => {
       console.log('Reading data from local storage for key:', key);
       try {
         const combinedData = retrieveAndCombineChunks(key);
@@ -104,7 +173,7 @@ export function useLocalStorage<T>(
         const decrypted = decryptData(decompressedData, key);
         if (!decrypted) return initialValue;
 
-        const parsedValue = parseAndSanitize(decrypted, key);
+        const parsedValue = parseAndSanitizeInternal(decrypted, key);
         if (parsedValue === undefined) return initialValue;
 
         return parsedValue;
@@ -116,128 +185,88 @@ export function useLocalStorage<T>(
       }
     };
 
-    const retrieveAndCombineChunks = (key: string): string => {
-      const chunkKeys = Object.keys(localStorage)
-        .filter((k) => k.startsWith(`${key}_chunk`))
-        .sort();
-      return chunkKeys.map((k) => localStorage.getItem(k) || '').join('');
-    };
-
-    const decryptData = (data: string, key: string): string | null => {
-      try {
-        const decrypted = CAN_ENCRYPT
-          ? CryptoJS.AES.decrypt(data, SECRET_KEY).toString(CryptoJS.enc.Utf8)
-          : data;
-
-        if (!decrypted) {
-          console.warn(
-            'Decryption failed for key:',
-            key,
-            '. Returning initial value.',
-          );
-          return null;
-        }
-
-        return decrypted;
-      } catch (decryptionError) {
-        console.error(
-          `Decryption error for localStorage key "${key}":`,
-          decryptionError,
-        );
-        console.warn(
-          `Malformed UTF-8 data encountered for key "${key}". Clearing the item from localStorage.`,
-        );
-        Object.keys(localStorage)
-          .filter((k) => k.startsWith(`${key}_chunk`))
-          .forEach((k) => localStorage.removeItem(k));
-        return null;
-      }
-    };
-
-    const parseAndSanitize = (
-      decrypted: string,
-      key: string,
-    ): T | undefined => {
-      try {
-        const parsedValue = JSON.parse(decrypted) as T;
-        return sanitizeValue(parsedValue);
-      } catch (parseError) {
-        console.error('Error parsing decrypted JSON:', parseError);
-        Object.keys(localStorage)
-          .filter((k) => k.startsWith(`${key}_chunk`))
-          .forEach((k) => localStorage.removeItem(k));
-        return undefined;
-      }
-    };
-
     getInitialValue().then((value) => {
-      setStoredValue(value);
-      cache[key] = value;
+      // Add this check to prevent unnecessary state updates
+      if (value !== storedValue) {
+        setStoredValue(value);
+        cache[key] = value;
+      }
     });
-  }, [key, serverValue]);
+  }, [key, initialValue, serverValue, sanitizeValue, storedValue]); // Ensure initialValue and serverValue are stable if objects/arrays
 
-  const setValue = (value: T | ((val: T) => T)) => {
-    try {
-      const valueToStore =
-        value instanceof Function ? value(storedValue as T) : value;
+  const setValue = useCallback(
+    (value: T | ((val: T) => T)) => {
+      try {
+        // Use functional update with setStoredValue to get the latest storedValue
+        // and avoid needing storedValue in useCallback's dependency array.
+        setStoredValue((currentStoredValue) => {
+          const valueToStore =
+            value instanceof Function ? value(currentStoredValue) : value;
 
-      const sanitizedValue = sanitizeValue(valueToStore);
+          const sanitized = sanitizeValue(valueToStore); // Use memoized sanitizeValue
+          const stringifiedValue = JSON.stringify(sanitized);
+          const {
+            secretKey,
+            canEncrypt: clientCanEncrypt,
+            isClientContext,
+          } = getEncryptionConfig();
 
-      const stringifiedValue = JSON.stringify(sanitizedValue);
+          let dataToCompress: string;
+          if (isClientContext && !clientCanEncrypt) {
+            // On client, but cannot encrypt (e.g., sessionStorage failed)
+            console.warn(
+              `Storing data for key "${key}" unencrypted as client-side encryption is not available.`,
+            );
+            dataToCompress = stringifiedValue;
+          } else if (!isClientContext) {
+            // Not in a client context (e.g. SSR), store unencrypted
+            dataToCompress = stringifiedValue;
+          } else {
+            dataToCompress = CryptoJS.AES.encrypt(
+              stringifiedValue,
+              secretKey,
+            ).toString(); // Encrypt on client
+          }
 
-      // Encrypt the data
-      let dataToCompress: string;
-      if (!CAN_ENCRYPT) {
-        dataToCompress = stringifiedValue; // Store unencrypted
-      } else {
-        dataToCompress = CryptoJS.AES.encrypt(
-          stringifiedValue,
-          SECRET_KEY,
-        ).toString();
-      }
+          const compressedData = compress(dataToCompress);
+          const chunks = chunkString(compressedData, CHUNK_SIZE);
 
-      const compressedData = compress(dataToCompress);
+          Object.keys(localStorage)
+            .filter((k) => k.startsWith(`${key}_chunk`))
+            .forEach((chunkKey) => localStorage.removeItem(chunkKey));
 
-      const chunks = chunkString(compressedData, CHUNK_SIZE);
+          chunks.forEach((chunk, index) => {
+            localStorage.setItem(`${key}_chunk${index}`, chunk);
+          });
 
-      // Clear existing chunks
-      Object.keys(localStorage)
-        .filter((k) => k.startsWith(`${key}_chunk`))
-        .forEach((chunkKey) => localStorage.removeItem(chunkKey));
-
-      // Store data in chunks
-      console.log(
-        'Writing data to local storage for key:',
-        key,
-        'value:',
-        valueToStore,
-      );
-      chunks.forEach((chunk, index) => {
-        localStorage.setItem(`${key}_chunk${index}`, chunk);
-      });
-
-      setStoredValue(valueToStore);
-      cache[key] = valueToStore; // Update the cache
-    } catch (error) {
-      if (error instanceof Error && error.name === 'QuotaExceededError') {
-        console.error('LocalStorage quota exceeded:', error);
-        toast({
-          title: 'Storage Full',
-          description:
-            'Cannot save data. Local storage is full. Please clear some space or contact support.',
+          cache[key] = valueToStore; // Update the cache
+          return valueToStore; // Return the new value for setStoredValue
         });
-      } else {
-        console.error('Error setting or encrypting localStorage key:\n', error);
-        toast({
-          title: 'Storage Error',
-          description:
-            'Could not save data to local storage. Please try again.',
-        });
+      } catch (error) {
+        if (error instanceof Error && error.name === 'QuotaExceededError') {
+          console.error('LocalStorage quota exceeded:', error);
+          toast({
+            title: 'Storage Full',
+            description:
+              'Cannot save data. Local storage is full. Please clear some space or contact support.',
+          });
+        } else {
+          console.error(
+            'Error setting or encrypting localStorage key:\n',
+            error,
+          );
+          toast({
+            title: 'Storage Error',
+            description:
+              'Could not save data to local storage. Please try again.',
+          });
+        }
+      } finally {
+        console.log('Finished writing data to local storage for key:', key);
       }
-    } finally {
-      console.log('Finished writing data to local storage for key:', key);
-    }
-  };
+    },
+    [key, toast, sanitizeValue],
+  ); // SECRET_KEY & CAN_ENCRYPT are module scope constants
 
   return [storedValue, setValue] as const;
 }

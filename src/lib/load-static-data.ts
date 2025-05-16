@@ -13,35 +13,45 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
   file: T,
 ): Promise<StaticDataTypes[T]> {
   if (file === 'projects') {
-    const projectsData = (await import('../data/portfolio-data/projects.json'))
-      .default.projects;
-    return projectsData.map((project, index) => {
-      const id = project.title.toLowerCase().replace(/ /g, '-') + '-' + index; // Generate a simple ID
-      const {
-        title,
-        description,
-        technologies,
-        image,
-        link,
-        github,
-        featured,
-      } = project;
-      const mappedProject: Project = {
-        id,
-        title,
-        description,
-        technologies: technologies || [],
-        image: image || undefined,
-        link: link || undefined,
-        github: github || undefined,
-        featured: featured || false,
+    interface ProjectsJson {
+      default: {
+        default: {
+          projects: Project[];
+        };
       };
-      return mappedProject;
-    }) as StaticDataTypes[T];
+    }
+    const projectsData = (await import(
+      '../data/portfolio-data/projects.json'
+    )) as ProjectsJson;
+    return projectsData.default.default.projects.map(
+      (project: Project, index: number) => {
+        const id = project.title.toLowerCase().replace(/ /g, '-') + '-' + index;
+        const {
+          title,
+          description,
+          technologies,
+          image,
+          link,
+          github,
+          featured,
+        } = project;
+        const mappedProject: Project = {
+          id,
+          title,
+          description,
+          technologies: technologies || [],
+          image: image || undefined,
+          link: link || undefined,
+          github: github || undefined,
+          featured: featured || false,
+        };
+        return mappedProject;
+      },
+    ) as StaticDataTypes[T];
   }
   if (file === 'blog') {
     const data = await import('../data/portfolio-data/blog.json');
-    return data.default.posts.map((post) => {
+    return data.default.posts.map((post: BlogPost) => {
       const {
         id,
         slug,
@@ -73,22 +83,29 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
   }
   if (file === 'case-studies') {
     const data = await import('../data/portfolio-data/case-studies.json');
-    return data.default.studies.map((study) => {
+    return data.default.studies.map((study: CaseStudy) => {
       const { id, title, description, metrics, competitorData, date, tags } =
         study;
       const mappedStudy: CaseStudy = {
         id,
         title,
         description,
-        metrics: metrics.map((metric) => ({
-          ...metric,
-          trend:
-            metric.trend === 'up'
-              ? 'up'
-              : metric.trend === 'down'
-                ? 'down'
-                : 'neutral',
-        })),
+        metrics: metrics.map(
+          (metric: {
+            name: string;
+            value: number;
+            change: number;
+            trend: string;
+          }) => ({
+            ...metric,
+            trend:
+              metric.trend === 'up'
+                ? 'up'
+                : metric.trend === 'down'
+                  ? 'down'
+                  : 'neutral',
+          }),
+        ),
         competitorData,
         date,
         tags,
@@ -104,14 +121,15 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
     return (
       await import('../data/portfolio-data/experience.json')
     ).default.experience.map((exp) => {
-      const { title, company, period, description, achievements } = exp;
+      const { title, company, startDate, endDate, description, achievements } =
+        exp;
       const mappedExperience: Experience = {
         company,
-        position: title,
-        startDate: period.split(' - ')[0],
-        endDate: period.split(' - ')[1] || 'Present',
+        title,
+        startDate,
+        endDate: endDate || 'Present',
         description: Array.isArray(description) ? description : [description],
-        technologies: achievements,
+        achievements,
       };
       return mappedExperience;
     }) as StaticDataTypes[T];

@@ -187,15 +187,17 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
 
                 return (
                   <Link
-                      key={typedRelatedPost.slug}
-                      href={`/blog/${typedRelatedPost.slug}`}
-                      className="block p-4 rounded-lg border hover:bg-muted/50 transition-colors"
-                    >
-                      <h3 className="font-medium mb-1">{typedRelatedPost.title}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        {typedRelatedPost.description || ''}
-                      </p>
-                    </Link>
+                    key={typedRelatedPost.slug}
+                    href={`/blog/${typedRelatedPost.slug}`}
+                    className="block p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                  >
+                    <h3 className="font-medium mb-1">
+                      {typedRelatedPost.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {typedRelatedPost.description || ''}
+                    </p>
+                  </Link>
                 );
               })}
             </div>

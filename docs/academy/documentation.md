@@ -6,7 +6,7 @@ The Academy Page (`src/app/academy/page.tsx`) is the main page for the academy s
 
 ## Functionality
 
-- **Renders SchoolComponent:** The primary function of this page is to render the `SchoolComponent`, which likely contains the core UI and logic for the academy section.
+- **Renders SchoolComponent:** The primary function of this page is to render the `SchoolComponent`, which contains the core UI and logic for the academy section.
 
 ## Technical Details
 

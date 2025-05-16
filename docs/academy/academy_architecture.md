@@ -17,18 +17,24 @@ This document outlines the architecture of the Amazon Seller Academy page (`src/
 - **`src/components/AcademyContentClient.tsx`:**
   - Displays the course list or the active course content.
   - Uses the `useAcademy` hook to access the academy context.
+  - Uses the `useUserProfile` hook to access the user profile.
+  - Uses `getRecommendedCourses` to display recommended courses.
   - Handles the `startCourse` function to set the active course and module.
-  - Manages the progress values using local storage.
+  - Renders different module types based on the `activeModule.type`. Currently, it supports `article`, `video`, `exercise`, `caseStudy`, and `quiz` module types.
 - **`src/hooks/use-academy-storage.ts`:**
-  - Manages the local storage for academy data.
+  - Manages the local storage for academy data and provides export functionality.
   - Handles initialization, retrieval, and saving of data to `localStorage`.
-  - Includes error handling, data validation, performance optimization (debounce), and data versioning.
+  - Includes error handling, data validation.
+- **`src/hooks/use-user-profile.ts`:**
+  - Retrieves the user profile data.
+- **`src/lib/course-recommendations.ts`:**
+  - Contains the `getRecommendedCourses` function, which recommends courses based on the user profile.
 - **`src/lib/types.ts`:**
   - Defines the types for `Course`, `Module`, and other related interfaces.
 - **`src/context/AcademyContext.tsx`:**
-  - (Likely) Contains the `AcademyProvider` and the `useAcademy` hook, which manage the state related to the academy courses, active course, and active module.
+  - Contains the `AcademyProvider` and the `useAcademy` hook, which manage the state related to the academy courses, active course, and active module.
 
-## Goals (as defined in the original plan)
+## Goals
 
 - Implement progress persistence across sessions.
 - Track module completion status and reflect it in the UI.

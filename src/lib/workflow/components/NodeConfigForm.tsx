@@ -3,8 +3,8 @@ import { NodeProperty, NodeType } from '../types';
 
 interface NodeConfigFormProps {
   nodeType: NodeType;
-  onChange: (propertyName: string, value: any) => void;
-  values: Record<string, any>;
+  onChange: (propertyName: string, value: unknown) => void;
+  values: Record<string, unknown>;
 }
 
 const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
@@ -21,7 +21,7 @@ const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
             <input
               type="text"
               id={property.name}
-              value={values[property.name] || ''}
+              value={(values[property.name] as string) || ''}
               onChange={(e) => onChange(property.name, e.target.value)}
             />
           )}
@@ -29,7 +29,7 @@ const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
             <input
               type="number"
               id={property.name}
-              value={values[property.name] || 0}
+              value={(values[property.name] as number) || 0}
               onChange={(e) =>
                 onChange(property.name, parseFloat(e.target.value))
               }
@@ -39,14 +39,16 @@ const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
             <input
               type="checkbox"
               id={property.name}
-              checked={values[property.name] || false}
+              checked={(values[property.name] as boolean) || false}
               onChange={(e) => onChange(property.name, e.target.checked)}
             />
           )}
           {property.type === 'select' && (
             <select
               id={property.name}
-              value={values[property.name] || property.options?.[0] || ''}
+              value={
+                (values[property.name] as string) || property.options?.[0] || ''
+              }
               onChange={(e) => onChange(property.name, e.target.value)}
             >
               {property.options?.map((option: string) => (

@@ -1,7 +1,11 @@
 import React from 'react';
 
-const CaseStudyModule: React.FC = () => {
-  return <div>Case Study Module</div>;
+const CaseStudyModule = () => {
+  return (
+    <div>
+      <p>Case Study Content Here</p>
+    </div>
+  );
 };
 
 export default CaseStudyModule;

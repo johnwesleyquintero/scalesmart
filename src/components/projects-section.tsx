@@ -155,11 +155,13 @@ export default function ProjectsSection() {
       <div className="mx-auto max-w-5xl">
         <div className="mb-12 text-center">
           <Badge variant="secondary" className="mb-4">
-            Featured Work
+            GitHub Projects
           </Badge>
-          <h2 className="mb-4 text-3xl font-bold md:text-4xl">Projects</h2>
+          <h2 className="mb-4 text-3xl font-bold md:text-4xl">
+            GitHub Projects
+          </h2>
           <p className="text-xl text-muted-foreground">
-            A showcase of my recent projects and their impact on businesses.
+            A showcase of my recent public repositories on GitHub.
           </p>
         </div>
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>

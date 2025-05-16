@@ -7,7 +7,8 @@ import { NodeType } from '@/lib/workflow/types';
 import React, { useCallback } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { addEdge, useEdgesState, useNodesState, Edge } from 'reactflow';
+import { addEdge, useEdgesState, useNodesState } from 'reactflow';
+import { Connection } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 const borderColor = '1px solid #ccc';
@@ -39,8 +40,12 @@ const WorkflowBuilderPage = () => {
   ]);
 
   const onConnect = useCallback(
-    (params: Edge) => {
-      setEdges((eds) => addEdge(params, eds));
+    (connection: Connection) => {
+      const edge = {
+        ...connection,
+        id: `edge-${connection.source}-${connection.target}`,
+      };
+      setEdges((eds) => addEdge(edge, eds));
     },
     [setEdges],
   );

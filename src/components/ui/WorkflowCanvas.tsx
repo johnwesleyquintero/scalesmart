@@ -1,14 +1,21 @@
 import React from 'react';
 import { useDrop } from 'react-dnd';
-import ReactFlow from 'reactflow';
+import ReactFlow, {
+  Node as ReactFlowNode,
+  Edge as ReactFlowEdge,
+  OnNodesChange,
+  OnEdgesChange,
+  OnConnect,
+} from 'reactflow';
 import 'reactflow/dist/style.css';
+import { Node, Edge } from '@/lib/workflow/types';
 
 interface WorkflowCanvasProps {
-  nodes: any[];
-  edges: any[];
-  onNodesChange: any;
-  onEdgesChange: any;
-  onConnect: any;
+  nodes: (Node | ReactFlowNode)[];
+  edges: (Edge | ReactFlowEdge)[];
+  onNodesChange: OnNodesChange;
+  onEdgesChange: OnEdgesChange;
+  onConnect: OnConnect;
 }
 
 const WorkflowCanvas = ({
@@ -27,7 +34,12 @@ const WorkflowCanvas = ({
         position: { x: 100, y: 100 },
         data: { label: item.type },
       };
-      onNodesChange((nds: any[]) => nds.concat(newNode));
+      onNodesChange([
+        {
+          type: 'add',
+          item: newNode,
+        },
+      ]);
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),

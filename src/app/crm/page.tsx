@@ -2,89 +2,158 @@
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Copy, Download, Loader2 } from 'lucide-react';
-import { memo, useEffect, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
+import { Download, Loader2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useLocalStorage } from '../../hooks/use-local-storage';
+import { Toaster, toast } from 'sonner'; // Import Toaster and toast
+import { CustomerForm } from './components/CustomerForm'; // Import new component
+import { CustomerListItem } from './components/CustomerListItem'; // Import new component
+import type { Customer } from './types'; // Import Customer type
 
-interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  notes: string;
+// Helper function to escape fields for CSV
+const escapeCSVField = (field: string | undefined | null): string => {
+  if (field === undefined || field === null) {
+    return '';
+  }
+  let str = String(field);
+  if (str.includes(',') || str.includes('\n') || str.includes('"')) {
+    str = str.replace(/"/g, '""');
+    return `"${str}"`;
+  }
+  return str;
+};
+
+// Helper function to generate CSV data string
+const generateCustomerCSVData = (customers: Customer[]): string | null => {
+  if (customers.length === 0) {
+    return null;
+  }
+  const headers = ['ID', 'Name', 'Email', 'Phone', 'Category', 'Notes'];
+  const csvRows = [headers.join(',')];
+  customers.forEach((customer) => {
+    csvRows.push(
+      [
+        escapeCSVField(customer.id),
+        escapeCSVField(customer.name),
+        escapeCSVField(customer.email),
+        escapeCSVField(customer.phone),
+        escapeCSVField(customer.category),
+        escapeCSVField(customer.notes),
+      ].join(','),
+    );
+  });
+  return csvRows.join('\n');
+};
+
+// Helper function to filter customers
+const filterCustomers = (
+  customers: Customer[],
+  searchQuery: string,
+  categoryFilter: string,
+): Customer[] => {
+  const normalizedQuery = searchQuery.toLowerCase().trim();
+  return customers.filter((customer) => {
+    const matchesSearch =
+      !normalizedQuery ||
+      Object.values(customer).some(
+        (value) =>
+          typeof value === 'string' &&
+          value.toLowerCase().includes(normalizedQuery),
+      );
+    const matchesCategory =
+      !categoryFilter || customer.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+};
+
+interface CustomerListContentProps {
+  filteredCustomers: Customer[];
+  searchQuery: string;
+  categoryFilter: string;
+  hasAttemptedInitialLoad: boolean;
+  onEdit: (customer: Customer) => void;
+  onDelete: (id: string) => void;
+  onCopyNotes: (notes: string) => void;
 }
 
-// Memoize ReactMarkdown to prevent re-renders if props haven't changed
-const MemoizedReactMarkdown = memo(ReactMarkdown);
+const CustomerListContent: React.FC<CustomerListContentProps> = ({
+  filteredCustomers,
+  searchQuery,
+  categoryFilter,
+  hasAttemptedInitialLoad,
+  onEdit,
+  onDelete,
+  onCopyNotes,
+}) => {
+  if (filteredCustomers.length > 0) {
+    return (
+      <div className="space-y-4">
+        {filteredCustomers.map((customer) => (
+          <CustomerListItem
+            key={`customer-card-${customer.id}`}
+            customer={customer}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onCopyNotes={onCopyNotes}
+          />
+        ))}
+      </div>
+    );
+  }
+
+  // Logic for when filteredCustomers.length === 0
+  let emptyStateContent;
+  if (searchQuery && !categoryFilter) {
+    emptyStateContent = 'No customers match your search.';
+  } else if (!searchQuery && categoryFilter) {
+    emptyStateContent = 'No customers match the selected category.';
+  } else if (searchQuery && categoryFilter) {
+    emptyStateContent =
+      'No customers match your search and the selected category.';
+  } else if (hasAttemptedInitialLoad) {
+    // No filters active, initial load done
+    emptyStateContent = 'No customers added yet.';
+  } else {
+    // No filters active, initial load not done (or in progress)
+    emptyStateContent = <Loader2 className="h-4 w-4 animate-spin" />;
+  }
+
+  return <p className="text-muted-foreground">{emptyStateContent}</p>;
+};
 
 export default function CRMComponent() {
-  // Initialize customers state as an empty array for the first render on both server and client.
   const [searchQuery, setSearchQuery] = useState('');
   const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+
+  // Initialize customers state. The third argument [] is for server-side rendering
+  // to prevent hydration mismatch, ensuring it's an empty array on first server render.
   const [customers, setCustomers] = useLocalStorage<Customer[]>(
     'crmCustomers',
     [],
     [],
   );
 
+  // This effect helps in determining if we have tried to load from localStorage.
+  // Useful for showing a loading state or a "no data" message correctly.
   useEffect(() => {
     setHasAttemptedInitialLoad(true);
   }, []);
 
-  const [formData, setFormData] = useState<Omit<Customer, 'id'>>({
-    name: '',
-    email: '',
-    phone: '',
-    notes: '',
-  });
-
-  const resetForm = (): void => {
-    setFormData({
-      name: '',
-      email: '',
-      phone: '',
-      notes: '',
-    });
+  const handleCancelEdit = () => {
     setEditingCustomer(null);
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev: Omit<Customer, 'id'>) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^\d{3}-\d{3}-\d{4}$/; // Basic US phone number format
-
-    // Basic validation
-    if (!formData.name) {
-      alert('Name is a required field');
-      return;
-    }
-
-    if (formData.email && !emailRegex.test(formData.email)) {
-      alert('Please enter a valid email address.');
-      return;
-    }
-
-    if (formData.phone && !phoneRegex.test(formData.phone)) {
-      alert('Please enter a valid phone number in the format XXX-XXX-XXXX.');
-      return;
-    }
-
+  const handleSaveCustomer = (formData: Omit<Customer, 'id'>) => {
     if (editingCustomer) {
       // Update existing customer
       setCustomers(
@@ -94,8 +163,8 @@ export default function CRMComponent() {
             : customer,
         ),
       );
+      toast.success('Customer updated successfully!');
       setEditingCustomer(null);
-      resetForm();
     } else {
       // Add new customer
       const newCustomer = {
@@ -103,18 +172,14 @@ export default function CRMComponent() {
         id: Date.now().toString(),
       };
       setCustomers([...customers, newCustomer]);
-      resetForm();
+      toast.success('Customer added successfully!');
     }
   };
 
   const handleEdit = (customer: Customer) => {
     setEditingCustomer(customer);
-    setFormData({
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      notes: customer.notes,
-    });
+    // Scroll to form for better UX, optional
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = (id: string) => {
@@ -122,60 +187,34 @@ export default function CRMComponent() {
       setCustomers(
         customers.filter((customer: Customer) => customer.id !== id),
       );
+      toast.info('Customer deleted.');
       if (editingCustomer?.id === id) {
-        resetForm();
+        setEditingCustomer(null);
       }
     }
   };
 
-  const escapeCSVField = (field: string | undefined | null): string => {
-    if (field === undefined || field === null) {
-      return '';
-    }
-    let str = String(field);
-    // If the field contains a comma, newline, or double quote, enclose it in double quotes.
-    if (str.includes(',') || str.includes('\n') || str.includes('"')) {
-      // Escape existing double quotes by doubling them
-      str = str.replace(/"/g, '""');
-      return `"${str}"`;
-    }
-    return str;
-  };
-
   const handleCopyToClipboard = async (text: string) => {
     if (!navigator.clipboard) {
-      alert('Clipboard API not available. Please copy manually.');
+      toast.error('Clipboard API not available. Please copy manually.');
       return;
     }
     try {
       await navigator.clipboard.writeText(text);
-      alert('Notes copied to clipboard as Markdown!');
+      toast.success('Notes copied to clipboard as Markdown!');
     } catch (err) {
       console.error('Failed to copy text: ', err);
-      alert('Failed to copy notes. See console for details.');
+      toast.error('Failed to copy notes. See console for details.');
     }
   };
 
   const exportTasksToCSV = () => {
-    if (customers.length === 0) {
-      alert('No customers to export.');
+    const csvString = generateCustomerCSVData(customers);
+    if (!csvString) {
+      toast.info('No customers to export.');
       return;
     }
 
-    const headers = ['ID', 'Name', 'Email', 'Phone', 'Notes'];
-    const csvRows = [
-      headers.join(','), // Header row
-      ...customers.map((customer: Customer) =>
-        [
-          escapeCSVField(customer.id),
-          escapeCSVField(customer.name),
-          escapeCSVField(customer.email),
-          escapeCSVField(customer.phone),
-          escapeCSVField(customer.notes),
-        ].join(','),
-      ),
-    ];
-    const csvString = csvRows.join('\n');
     const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     if (link.download !== undefined) {
@@ -188,195 +227,120 @@ export default function CRMComponent() {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
+      toast.success('Customers exported successfully!');
+    } else {
+      toast.error('CSV export is not supported by your browser.');
     }
   };
 
-  // Filter customers based on search query
-  const filteredCustomers = customers.filter((customer: Customer) => {
-    const query = searchQuery.toLowerCase().trim();
-    if (!query) return true; // If query is empty, show all customers
+  const filteredCustomers = filterCustomers(
+    customers,
+    searchQuery,
+    categoryFilter,
+  );
 
-    return (
-      customer.name.toLowerCase().includes(query) ||
-      customer.email.toLowerCase().includes(query) ||
-      customer.phone.toLowerCase().includes(query) ||
-      customer.notes.toLowerCase().includes(query)
-    );
-  });
+  const uniqueCategories = [
+    ...new Set(
+      customers
+        .map((customer) => customer.category) // Get category: string | undefined | null
+        .filter(
+          (category): category is string =>
+            typeof category === 'string' && category.trim() !== '',
+        ) // Keep only strings that are not blank after trimming
+        .map((category) => category.trim()), // Use the trimmed version
+    ),
+  ].sort();
 
   return (
     <>
+      <Toaster position="top-right" richColors />
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-bold my-6 text-center">CRM Dashboard</h1>
         <p className="text-lg text-muted-foreground text-center mb-8">
           Manage your customer relationships, track interactions, and organize
           contact information.
         </p>
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>
-              {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Name *</Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    placeholder="John Doe"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="john@example.com"
-                  />
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="phone">Phone</Label>
+        <div className="flex flex-col gap-6">
+          <Card className="flex-1">
+            <CardHeader>
+              <CardTitle>
+                {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CustomerForm
+                key={editingCustomer ? editingCustomer.id : 'add-customer-form'} // Re-key to reset form state when editingCustomer changes
+                initialData={
+                  editingCustomer
+                    ? {
+                        name: editingCustomer.name,
+                        email: editingCustomer.email,
+                        phone: editingCustomer.phone,
+                        notes: editingCustomer.notes,
+                        category: editingCustomer.category || '',
+                      }
+                    : null
+                }
+                onSubmitSuccess={handleSaveCustomer}
+                onCancel={editingCustomer ? handleCancelEdit : undefined}
+                isEditing={!!editingCustomer}
+              />
+            </CardContent>
+          </Card>
+
+          <Card className="flex-1">
+            <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <CardTitle className="whitespace-nowrap">Customer List</CardTitle>
+              <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto md:ml-auto">
                 <Input
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="(123) 456-7890"
+                  type="search"
+                  placeholder="Search customers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full sm:w-auto md:min-w-[250px] lg:min-w-[300px]"
                 />
-              </div>
-              <div>
-                <Label htmlFor="notes">Notes</Label>
-                <Textarea
-                  id="notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  placeholder="Customer preferences, special requirements, etc."
-                  rows={3}
-                />
-              </div>
-              <div className="flex justify-end">
-                {editingCustomer && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={resetForm}
-                    className="mr-2"
-                  >
-                    Cancel
-                  </Button>
-                )}
-                <Button type="submit">
-                  {editingCustomer ? 'Update Customer' : 'Add Customer'}
+                <Select
+                  value={categoryFilter}
+                  onValueChange={(value) =>
+                    setCategoryFilter(value === 'all' ? '' : value)
+                  }
+                >
+                  <SelectTrigger className="w-full sm:w-auto md:min-w-[180px]">
+                    <SelectValue placeholder="Filter by category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {uniqueCategories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  variant="outline"
+                  onClick={exportTasksToCSV}
+                  title="Export customers to CSV"
+                  className="w-full sm:w-auto"
+                >
+                  <Download className="mr-2 h-4 w-4" /> Export CSV
                 </Button>
               </div>
-            </form>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <CustomerListContent
+                filteredCustomers={filteredCustomers}
+                searchQuery={searchQuery}
+                categoryFilter={categoryFilter}
+                hasAttemptedInitialLoad={hasAttemptedInitialLoad}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onCopyNotes={handleCopyToClipboard}
+              />
+            </CardContent>
+          </Card>
+        </div>
       </div>
-      <Card>
-        <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <CardTitle className="whitespace-nowrap">Customer List</CardTitle>
-          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto md:ml-auto">
-            <Input
-              type="search"
-              placeholder="Search customers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-auto md:min-w-[250px] lg:min-w-[300px]"
-            />
-            <Button
-              variant="outline"
-              onClick={exportTasksToCSV}
-              title="Export customers to CSV"
-              className="w-full sm:w-auto"
-            >
-              <Download className="mr-2 h-4 w-4" /> Export CSV
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {filteredCustomers.length === 0 ? (
-            <p className="text-muted-foreground">
-              {searchQuery ? (
-                'No customers match your search.'
-              ) : hasAttemptedInitialLoad ? (
-                'No customers added yet.'
-              ) : (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              )}
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {filteredCustomers.map((customer: Customer) => (
-                <div
-                  key={`customer-card-${customer.id}`}
-                  className="border rounded-lg p-4"
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold">{customer.name}</h3>
-                      <p className="text-muted-foreground">{customer.email}</p>
-                      {customer.phone && (
-                        <p className="text-muted-foreground">
-                          {customer.phone}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEdit(customer)}
-                      >
-                        Edit
-                      </Button>
-                      {customer.notes && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleCopyToClipboard(customer.notes)}
-                          title="Copy notes as Markdown"
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                      )}
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(customer.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                  {customer.notes && (
-                    <div className="mt-2">
-                      {/* Use ReactMarkdown to render notes */}
-                      {/* Added prose styles for basic markdown formatting */}
-                      <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
-                        <MemoizedReactMarkdown>
-                          {customer.notes}
-                        </MemoizedReactMarkdown>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
     </>
   );
 }

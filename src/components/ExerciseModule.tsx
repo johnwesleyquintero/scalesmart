@@ -1,7 +1,11 @@
 import React from 'react';
 
-const ExerciseModule: React.FC = () => {
-  return <div>Exercise Module</div>;
+const ExerciseModule = () => {
+  return (
+    <div>
+      <p>Exercise Content Here</p>
+    </div>
+  );
 };
 
 export default ExerciseModule;

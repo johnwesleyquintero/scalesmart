@@ -3,7 +3,7 @@ export interface NodeProperty {
   label: string;
   type: 'string' | 'number' | 'boolean' | 'select';
   options?: string[];
-  defaultValue?: any;
+  defaultValue?: unknown;
 }
 
 export interface NodeType {
@@ -16,5 +16,13 @@ export interface Node {
   id: string;
   type: string;
   position: { x: number; y: number };
-  data: Record<string, any>;
+  data: Record<string, unknown>;
+}
+
+export interface Edge {
+  id: string;
+  source: string;
+  target: string;
+  type?: string;
+  data?: Record<string, unknown>;
 }

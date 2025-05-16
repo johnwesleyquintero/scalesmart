@@ -33,20 +33,9 @@ function AcademyContentClient({
   } = useAcademy(); // Added activeModule to destructure
   const { userProfile } = useUserProfile();
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
-
   const [progressValues, setProgressValues] = useState<{
     [key: `course-${string}-progress`]: number;
-  }>(
-    Array.isArray(courses)
-      ? courses.reduce(
-          (acc, course) => {
-            acc[`course-${course.id}-progress`] = course.progress;
-            return acc;
-          },
-          {} as { [key: `course-${string}-progress`]: number },
-        )
-      : {},
-  );
+  }>({});
 
   useEffect(() => {
     if (userProfile) {
@@ -56,52 +45,31 @@ function AcademyContentClient({
   }, [userProfile]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-
-    const storedProgressValues: { [key: string]: number } = {};
+    // Initialize progressValues from academyData
     if (Array.isArray(courses)) {
-      courses.forEach((course) => {
-        const key = `course-${course.id}-progress`;
-        const item = localStorage.getItem(key);
-        storedProgressValues[key] = item ? parseInt(item, 10) : course.progress;
-      });
+      const initialProgressValues = courses.reduce(
+        (acc, course) => {
+          acc[`course-${course.id}-progress`] = course.progress;
+          return acc;
+        },
+        {} as { [key: `course-${string}-progress`]: number },
+      );
+      setProgressValues(initialProgressValues);
     }
-
-    setProgressValues(storedProgressValues as { [key: string]: number });
   }, [courses]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
+    // Update courses with progress from progressValues
+    if (Array.isArray(courses)) {
+      const coursesWithProgress = courses.map((course) => ({
+        ...course,
+        progress:
+          progressValues[`course-${course.id}-progress`] || course.progress,
+        locked: course.locked,
+      }));
+      setCourses(coursesWithProgress);
     }
-
-    courses.forEach((course) => {
-      const key = `course-${course.id}-progress`;
-      localStorage.setItem(
-        key,
-        progressValues[key as keyof typeof progressValues]?.toString() ||
-          course.progress.toString(),
-      );
-    });
   }, [courses, progressValues]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const coursesWithLocalStorage = courses.map((course) => ({
-      ...course,
-      progress:
-        progressValues[
-          `course-${course.id}-progress` as keyof typeof progressValues
-        ] || course.progress,
-      locked: course.locked,
-    }));
-
-    setCourses(coursesWithLocalStorage);
-  }, [courses, progressValues, setCourses]);
 
   const startCourse = (course: Course) => {
     setActiveCourse(course);

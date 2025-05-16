@@ -43,9 +43,9 @@
       }
     },
     "professionalProfile": {
-      "title": "Amazon Growth Specialist & SP-API Developer",
-      "tagline": "Driving e-commerce success with deep expertise in Amazon SEO & PPC, advanced SP-API development, and custom automation tools.",
-      "summary": "Highly motivated Amazon Growth Specialist with 5+ years of experience. I combine deep expertise in Amazon SEO & PPC optimization with advanced SP-API development skills (Python/Node.js, AWS) to create custom automation tools, insightful dashboards, and data-driven strategies. Proven ability to significantly reduce manual workload (by up to 85-90%), enhance operational efficiency for $1M+ monthly sales operations, and improve key performance metrics like ACoS and organic rank. Passionate about leveraging technology and data to solve complex seller challenges and achieve scalable growth.",
+      "title": "Amazon Growth Specialist | Developing SP-API Solutions",
+      "tagline": "Driving e-commerce success with expertise in Amazon SEO & PPC, and actively developing SP-API skills for custom automation tools.",
+      "summary": "Highly motivated Amazon Growth Specialist with 5+ years of experience. I combine deep expertise in Amazon SEO & PPC optimization with developing SP-API skills (Python/Node.js, AWS), currently focused on building custom automation tools, insightful dashboards, and data-driven strategies. These tools are being designed with the goal of significantly reducing manual workload, enhancing operational efficiency for e-commerce operations, and improving key performance metrics like ACoS and organic rank. Passionate about leveraging technology and data to solve complex seller challenges and achieve scalable growth.",
       "coreCompetencies": [
         "Amazon Marketplace Expertise",
         "Amazon Listing Optimization (SEO: Keyword Research, Content Strategy, Ranking Analysis)",
@@ -55,7 +55,7 @@
         "Processing & Analyzing Seller Central Reports (Business, Advertising, Inventory CSVs)",
         "Data Visualization & Reporting (Looker Studio, Google Sheets, Custom Dashboards)",
         "FBA Inventory Management Strategy",
-        "SP-API Development & Integration",
+        "SP-API Development & Integration (Sandbox & Learning Phase)",
         "Custom Tool Development (Python, Node.js, React, Next.js)",
         "Automation of E-commerce Workflows",
         "AI Implementation for E-commerce (e.g., pricing, forecasting)",
@@ -73,12 +73,18 @@
       ],
       "strengths": [
         "Deep Amazon Domain Expertise (Strategic SEO/PPC + Operational Understanding)",
-        "Advanced SP-API & Automation Skills (Custom Tool Building, Workflow Automation)",
+        "Developing SP-API & Automation Skills (Custom Tool Building, Workflow Automation)",
         "Data Analysis & Problem Solving (Translating Data to Actionable Insights & Solutions)",
         "Bridging Business & Technology (Effective Communication, Aligning Solutions with Goals)",
         "Results-Oriented (Focused on Measurable Improvements & KPI Optimization)"
       ],
-      "details": "Wesley is a seasoned Amazon specialist with a strong background in developing custom solutions using the SP-API. He focuses on creating tools and strategies that enhance efficiency, optimize performance, and drive growth for e-commerce businesses. His work often involves automating complex processes and providing data-driven insights."
+      "details": "Actively developing expertise with Amazon SP-API, building a suite of 20+ custom tool prototypes for listing optimization, PPC management, inventory control, pricing, CSV report processing, and data analytics. The focus is on automation and AI-driven insights. These tools are being designed and tested in sandbox environments to enable robust integrations for data extraction and automation, with the goal of contributing to measurable KPI improvements (e.g., ACoS reduction, organic rank increases). Current development includes real-time inventory tracking & multi-marketplace sync systems, and AI-powered features for pricing and optimization suggestions. The aim is to automate e-commerce operations, with the potential to significantly reduce manual processing time.",
+      "keyAchievements": [
+        "Developing a suite of custom Amazon tool prototypes (SEO, PPC, Inventory, Pricing, CSV Processing) using SP-API.",
+        "Designing automation solutions with the potential to streamline e-commerce operations.",
+        "Building tools aimed at reducing manual processing time for reporting and optimization tasks.",
+        "Developing features designed to improve client KPIs, such as ACoS reduction and organic rank increases."
+      ]
     },
     "workExperience": [
       {
@@ -244,40 +250,40 @@
     "amazonExpertise": {
       "certifications": [
         {
-          "name": "Amazon Certified Developer",
-          "date": "Year (e.g., 2023) or 'Ongoing'",
-          "issuingBody": "Amazon (Conceptual - based on SP-API expertise)",
-          "link": "https://sellercentral.amazon.com/"
+          "name": "Amazon Certified Developer (Conceptual)",
+          "date": "Ongoing",
+          "issuingBody": "Self-study & SP-API Sandbox Development",
+          "link": "https://developer.amazon.com/"
         },
         {
-          "name": "API Integration Specialist",
-          "date": "Year (e.g., 2022) or 'Ongoing'",
-          "issuingBody": "Self-designated based on extensive SP-API work",
+          "name": "API Integration Specialist (Conceptual)",
+          "date": "Ongoing",
+          "issuingBody": "Self-designated based on SP-API development work",
           "link": "https://developer.amazon.com/"
         }
       ],
       "areasOfExpertise": [
         "Seller Central",
-        "Developer APIs (SP-API)",
+        "Developer APIs (SP-API - currently in Sandbox development)",
         "FBA Operations",
         "PPC Management (SP, SB, SD)",
         "Amazon SEO & Listing Optimization",
         "Custom Tool Development for Amazon",
         "E-commerce Automation"
       ],
-      "details": "Extensive experience with Amazon SP-API, developing 20+ custom tools for listing optimization, PPC management, inventory control, pricing, CSV report processing, and data analytics. Focus on automation and AI-driven insights. Successfully implemented robust integrations for data extraction and automation, contributing to measurable KPI improvements (e.g., ACoS reduction 35% to 22%, organic rank increases). Built real-time inventory tracking & multi-marketplace sync systems. Created AI-powered features for pricing and optimization suggestions. Automated $1M+ monthly sales operations, reducing manual processing time by 85-90%.",
+      "details": "Actively developing expertise with Amazon SP-API, building a suite of 20+ custom tool prototypes for listing optimization, PPC management, inventory control, pricing, CSV report processing, and data analytics. The focus is on automation and AI-driven insights. These tools are being designed and tested in sandbox environments to enable robust integrations for data extraction and automation, with the goal of contributing to measurable KPI improvements (e.g., ACoS reduction, organic rank increases). Current development includes real-time inventory tracking & multi-marketplace sync systems, and AI-powered features for pricing and optimization suggestions. The aim is to automate e-commerce operations, with the potential to significantly reduce manual processing time.",
       "keyAchievements": [
-        "Developed 20+ Custom Amazon Tools (SEO, PPC, Inventory, Pricing, CSV Processing).",
-        "Automated $1M+ Monthly Sales Operations, reducing manual effort significantly.",
-        "Reduced Manual Processing Time by 85-90% for reporting and optimization tasks.",
-        "Improved Client KPIs: ACoS reduction (e.g., 35% to 22%), organic rank increases."
+        "Developing a suite of custom Amazon tool prototypes (SEO, PPC, Inventory, Pricing, CSV Processing) using SP-API.",
+        "Designing automation solutions with the potential to streamline e-commerce operations.",
+        "Building tools aimed at reducing manual processing time for reporting and optimization tasks.",
+        "Developing features designed to improve client KPIs, such as ACoS reduction and organic rank increases."
       ]
     },
     "skills": {
       "technicalProficiencies": [
-        "Amazon Selling Partner API (SP-API): Expert-level integration and development",
+        "Amazon Selling Partner API (SP-API): Actively developing, Sandbox integration",
         "Custom Tool Development: Building solutions for SEO, PPC, Inventory, Pricing, Reporting",
-        "Automation: Automating reporting, listing updates, inventory sync, PPC adjustments",
+        "Automation: Designing automation for reporting, listing updates, inventory sync, PPC adjustments",
         "Backend Development: Python, Node.js",
         "Frontend Development: React, Next.js (for custom dashboards/tools)",
         "Database Management: MongoDB, PostgreSQL",
@@ -348,7 +354,7 @@
         "Resolving bugs in ACoS Calculator",
         "Improving PPC Campaign Auditor stability",
         "Enhancing Listing Quality Checker AI features",
-        "Expanding SP-API integration capabilities",
+        "Expanding SP-API integration capabilities (currently in Sandbox)",
         "Improving UI/UX across all modules"
       ],
       "repository": "Primarily private repositories on GitHub, some components may be open-sourced.",
@@ -357,50 +363,74 @@
     "tools": {
       "amazonPortfolioPlatform": {
         "name": "Amazon Portfolio Platform (Lead Developer)",
-        "description": "A comprehensive automation and analytics suite for Amazon sellers, serving as a central hub for various custom tools.",
+        "description": "A comprehensive automation and analytics suite *under development* for Amazon sellers, serving as a central hub for various custom tools.",
         "version": "Core System v1.0",
         "status": "Active / Lead Development",
         "features": [
-          "Engineered SP-API integrations for multi-marketplace data aggregation (Sales, PPC, Inventory).",
-          "Built modules for automated SEO keyword rank tracking and PPC performance analysis.",
-          "Developed custom React/Next.js dashboards for data visualization (ACoS/TACOS trends, organic vs. paid).",
-          "Implemented AI-driven insights for pricing adjustments and inventory forecasting suggestions."
+          "Developing SP-API integrations for multi-marketplace data aggregation (Sales, PPC, Inventory) in the sandbox environment.",
+          "Building modules for automated SEO keyword rank tracking and PPC performance analysis.",
+          "Developing custom React/Next.js dashboards for data visualization (ACoS/TACOS trends, organic vs. paid).",
+          "Implementing AI-driven insights for pricing adjustments and inventory forecasting suggestions."
         ],
-        "impact": "Reduced manual reporting and operational tasks by 85% for clients, enabling focus on strategic growth. Supported data-driven decisions for accounts managing $1M+ in monthly sales.",
+        "impact": "Aims to reduce manual reporting and operational tasks significantly, enabling focus on strategic growth. Designed to support data-driven decisions for e-commerce accounts.",
         "knownIssues": [],
-        "roadmap": ["Further AI integration", "Expanded marketplace support"]
+        "roadmap": [
+          "Further AI integration",
+          "Expanded marketplace support",
+          "Production SP-API integration"
+        ]
       },
       "customAnalyticsDashboards": {
         "name": "Custom Amazon Analytics Dashboards",
-        "description": "Created bespoke dashboards tailored to specific client needs for performance monitoring, often integrated within the Amazon Portfolio Platform or as standalone solutions.",
+        "description": "Developing bespoke dashboards tailored to specific client needs for performance monitoring, *intended* for integration within the Amazon Portfolio Platform or as standalone solutions.",
         "version": "Varies by client",
         "status": "Active / On-demand development",
         "features": [
-          "Visualized key metrics: PPC ACoS/TACOS trends, organic vs. paid sales ratios, listing conversion rates by ASIN.",
-          "Integrated competitive analysis features (tracking competitor price changes, BSR movements).",
-          "Utilized SP-API data combined with processed Seller Central reports for a holistic view."
+          "Visualizing key metrics: PPC ACoS/TACOS trends, organic vs. paid sales ratios, listing conversion rates by ASIN.",
+          "Integrating competitive analysis features (tracking competitor price changes, BSR movements).",
+          "Utilizing SP-API data (sandbox) combined with processed Seller Central reports for a holistic view."
         ],
-        "impact": "Provided actionable insights leading to optimized ad spend and improved listing performance, contributing to data-driven management of $1M+ monthly sales operations.",
+        "impact": "Aims to provide actionable insights leading to optimized ad spend and improved listing performance.",
         "knownIssues": [],
         "roadmap": ["Standardization of common dashboard templates"]
       },
       "automatedListingInventorySystem": {
         "name": "Automated Listing Management & Inventory Sync System",
-        "description": "Developed tools to streamline listing updates and prevent stockouts across multiple marketplaces.",
+        "description": "Developing tools to streamline listing updates and prevent stockouts across multiple marketplaces, *utilizing SP-API in the sandbox*.",
         "version": "Varies by module",
         "status": "Active / Continuous Improvement",
         "features": [
           "Tools for rapid listing updates based on keyword research and performance data.",
-          "Real-time, cross-marketplace inventory synchronization using SP-API (US, CA, MX).",
-          "Automated pricing engine considering competitor pricing and inventory levels."
+          "Developing real-time, cross-marketplace inventory synchronization using SP-API (US, CA, MX in sandbox).",
+          "Designing an automated pricing engine considering competitor pricing and inventory levels."
         ],
-        "impact": "Reduced listing management time by 90%, minimized stockout risks affecting rank/ads, and ensured competitive pricing. Achieved 99.9% inventory accuracy during peak season.",
+        "impact": "Aims to reduce listing management time, minimize stockout risks, and ensure competitive pricing.",
         "knownIssues": [],
-        "roadmap": ["Enhanced predictive capabilities for stock replenishment"]
+        "roadmap": [
+          "Enhanced predictive capabilities for stock replenishment",
+          "Production SP-API integration"
+        ]
       },
       "fbaCalculator": {
         "name": "FBA Calculator",
-        "description": "An advanced profitability calculator for FBA products.",
+        "description": "A comprehensive and user-friendly profitability calculator for Amazon FBA (Fulfillment by Amazon) products. This tool is designed to help sellers accurately estimate product profitability by considering various costs, fees, and market trends. It provides detailed insights into the financial viability of FBA products, enabling informed decision-making and optimized pricing strategies. *Currently relies on manual data input or CSV uploads, with future potential for SP-API integration.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "FBA",
+          "calculator",
+          "profitability",
+          "fees",
+          "amazon seller",
+          "product viability",
+          "cost analysis",
+          "amazon fees",
+          "revenue estimation"
+        ],
+        "relationships": [
+          "optimalPriceCalculation",
+          "profitMarginCalculator",
+          "salesEstimator"
+        ],
         "version": "2.0.0",
         "status": "Active",
         "features": [
@@ -413,24 +443,58 @@
           "Market trends",
           "shadcn/ui components"
         ],
-        "keyAchievements": [
-          "Helped beta users improve profit visibility by X% on average."
-        ],
         "knownIssues": [],
-        "roadmap": []
+        "roadmap": ["SP-API integration for automated fee fetching"]
       },
       "keywordAnalyzer": {
         "name": "Keyword Analyzer",
-        "description": "A tool for analyzing and managing keywords.",
+        "description": "A powerful tool designed for in-depth analysis and efficient management of keywords relevant to Amazon product listings. It empowers sellers to identify high-potential keywords, conduct comprehensive keyword research, and optimize their listings for enhanced search visibility and improved organic ranking. *Currently processes data from manual input or CSVs, with future potential for SP-API integration.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "keyword",
+          "analyzer",
+          "research",
+          "SEO",
+          "amazon seller",
+          "keyword research",
+          "search visibility",
+          "organic ranking",
+          "keyword management"
+        ],
+        "relationships": [
+          "listingQualityChecker",
+          "descriptionEditor",
+          "keywordTrendAnalyzer",
+          "ppcCampaignAuditor"
+        ],
         "version": "2.0.0",
         "status": "Active",
         "features": ["Filtering", "Column visibility", "Sorting"],
         "knownIssues": [],
-        "roadmap": []
+        "roadmap": ["SP-API integration for fetching search term reports"]
       },
       "listingQualityChecker": {
         "name": "Listing Quality Checker",
-        "description": "An AI-powered tool for analyzing and optimizing Amazon listings.",
+        "description": "An intelligent AI-powered tool meticulously designed to analyze and optimize Amazon product listings. It furnishes sellers with actionable, data-driven insights aimed at enhancing listing quality, boosting search visibility, and ultimately driving sales growth. This tool leverages advanced AI algorithms to assess various aspects of a listing and provide targeted recommendations for improvement. *Currently processes data from manual input or CSVs, with future potential for SP-API integration.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "listing",
+          "quality",
+          "checker",
+          "AI",
+          "optimization",
+          "amazon seller",
+          "listing optimization",
+          "product listing",
+          "search visibility",
+          "sales growth"
+        ],
+        "relationships": [
+          "keywordAnalyzer",
+          "descriptionEditor",
+          "competitorAnalyzer",
+          "productScoreCalculator"
+        ],
         "version": "1.5.0",
         "status": "Active",
         "features": [
@@ -444,12 +508,32 @@
         "knownIssues": ["AI features under review and refinement."],
         "roadmap": [
           "Refine AI features and prompts based on testing results.",
-          "Validate SEO recommendations."
+          "Validate SEO recommendations.",
+          "SP-API integration for direct listing analysis."
         ]
       },
       "ppcCampaignAuditor": {
         "name": "PPC Campaign Auditor",
-        "description": "A comprehensive tool for analyzing PPC campaign performance and providing optimization recommendations.",
+        "description": "A robust and insightful tool meticulously crafted to analyze the performance of PPC (Pay-Per-Click) campaigns. It delivers actionable optimization recommendations, empowering Amazon sellers to enhance their advertising ROI and maximize the effectiveness of their advertising spend. *Currently processes data from CSV imports, with future potential for direct SP-API integration.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "PPC",
+          "campaign",
+          "auditor",
+          "advertising",
+          "optimization",
+          "amazon seller",
+          "PPC analysis",
+          "advertising ROI",
+          "campaign optimization",
+          "advertising spend"
+        ],
+        "relationships": [
+          "acosCalculator",
+          "keywordAnalyzer",
+          "salesEstimator",
+          "keywordTrendAnalyzer"
+        ],
         "version": "1.0.0",
         "status": "Active / Continuous Improvement",
         "features": [
@@ -463,19 +547,37 @@
         ],
         "knownIssues": [
           "Requires further development and testing.",
-          "Current stability may vary.",
-          "Discrepancy between documented and internal status (Beta v0.9.0 vs. Active v2.0.0)."
+          "Current stability may vary."
         ],
         "roadmap": [
-          "Clarify official status (Beta vs. Active).",
           "Stabilize for production release (if needed).",
           "Fix any remaining critical bugs.",
-          "Thorough testing with diverse campaign data."
+          "Thorough testing with diverse campaign data.",
+          "SP-API integration for direct campaign data import."
         ]
       },
       "descriptionEditor": {
         "name": "Description Editor",
-        "description": "An AI-enhanced rich text editor for Amazon product descriptions.",
+        "description": "An innovative AI-enhanced rich text editor meticulously engineered to empower sellers in crafting compelling and highly optimized Amazon product descriptions. This tool is designed to improve conversion rates, elevate search rankings, and ultimately drive sales growth through persuasive and SEO-friendly content. *Currently relies on manual data input, with future potential for SP-API integration for direct listing updates.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "description",
+          "editor",
+          "AI",
+          "SEO",
+          "optimization",
+          "amazon seller",
+          "product description",
+          "rich text editor",
+          "conversion rates",
+          "search rankings",
+          "SEO optimization"
+        ],
+        "relationships": [
+          "listingQualityChecker",
+          "keywordAnalyzer",
+          "productScoreCalculator"
+        ],
         "version": "1.5.0",
         "status": "Active",
         "features": [
@@ -492,12 +594,31 @@
         "roadmap": [
           "Test AI SEO optimization effectiveness.",
           "Validate automated score calculation logic.",
-          "Refine prompts/models based on testing results."
+          "Refine prompts/models based on testing results.",
+          "SP-API integration for direct listing updates."
         ]
       },
       "keywordDeduplicator": {
         "name": "Keyword Deduplicator",
-        "description": "Smart keyword management with AI-powered suggestions.",
+        "description": "An intelligent keyword management tool leveraging AI-powered suggestions to efficiently identify and eliminate duplicate keywords from Amazon product listings. This optimization process enhances keyword list organization, improves Amazon SEO effectiveness, and maximizes organic search visibility. *Currently processes data from manual input or CSVs, with future potential for SP-API integration.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "keyword",
+          "deduplicator",
+          "AI",
+          "management",
+          "SEO",
+          "amazon seller",
+          "keyword management",
+          "duplicate keywords",
+          "keyword optimization",
+          "organic search"
+        ],
+        "relationships": [
+          "keywordAnalyzer",
+          "listingQualityChecker",
+          "ppcCampaignAuditor"
+        ],
         "version": "1.5.0",
         "status": "Active",
         "features": [
@@ -513,12 +634,31 @@
         "roadmap": [
           "Test accuracy of AI duplicate detection.",
           "Evaluate usefulness/relevance of smart suggestions.",
-          "Refine prompts/models based on testing results."
+          "Refine prompts/models based on testing results.",
+          "SP-API integration for keyword list import/export."
         ]
       },
       "acosCalculator": {
         "name": "ACoS Calculator",
-        "description": "Comprehensive advertising analysis with predictive metrics and historical trend analysis.",
+        "description": "A comprehensive advertising analysis tool meticulously designed to provide Amazon sellers with predictive metrics and historical trend analysis. This empowers them to optimize their advertising campaigns, make data-driven decisions, and effectively reduce their ACoS (Advertising Cost of Sales). *Currently processes data from CSV imports, with future potential for direct SP-API integration.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "ACoS",
+          "calculator",
+          "advertising",
+          "analysis",
+          "PPC",
+          "amazon seller",
+          "advertising analysis",
+          "predictive metrics",
+          "historical trends",
+          "campaign optimization"
+        ],
+        "relationships": [
+          "ppcCampaignAuditor",
+          "keywordAnalyzer",
+          "salesEstimator"
+        ],
         "version": "1.5.0",
         "status": "Active",
         "features": [
@@ -537,48 +677,139 @@
         "roadmap": [
           "Improve CSV format handling.",
           "Refine predictive analysis.",
-          "Improve low-spend campaign handling."
+          "Improve low-spend campaign handling.",
+          "SP-API integration for direct ACoS data import."
         ]
       },
       "salesEstimator": {
         "name": "Sales Estimator",
-        "description": "Estimate sales for a product",
+        "description": "A valuable tool that estimates the potential sales volume for a given product, leveraging various factors to assist sellers in making well-informed decisions regarding product viability, market entry strategies, and effective inventory planning. *Currently relies on manual data input, with future potential for SP-API integration to fetch real-time data.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "sales",
+          "estimator",
+          "forecast",
+          "product viability",
+          "amazon seller",
+          "sales volume",
+          "market entry",
+          "inventory planning",
+          "demand forecasting"
+        ],
+        "relationships": [
+          "fbaCalculator",
+          "profitMarginCalculator",
+          "competitorAnalyzer"
+        ],
         "version": "1.0.0",
         "status": "Active",
         "features": [],
         "knownIssues": [],
-        "roadmap": []
+        "roadmap": ["SP-API integration for fetching sales data."]
       },
       "competitorAnalyzer": {
         "name": "Competitor Analyzer",
-        "description": "Analyzes competitor data to identify opportunities and improve product positioning.",
+        "description": "A powerful tool designed to analyze competitor data, encompassing pricing strategies, customer reviews, and sales rank, to empower sellers in identifying opportunities for effective product differentiation and strategic product positioning within the dynamic Amazon marketplace. *Currently relies on manual data input, with future potential for SP-API integration to fetch real-time competitor data.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "competitor",
+          "analyzer",
+          "market research",
+          "product positioning",
+          "amazon seller",
+          "competitive analysis",
+          "pricing strategy",
+          "customer reviews",
+          "sales rank",
+          "product differentiation"
+        ],
+        "relationships": [
+          "keywordAnalyzer",
+          "listingQualityChecker",
+          "optimalPriceCalculation"
+        ],
         "version": "1.0.0",
         "status": "Active",
         "features": [],
         "knownIssues": [],
-        "roadmap": []
+        "roadmap": ["SP-API integration for fetching competitor data."]
       },
       "keywordTrendAnalyzer": {
         "name": "Keyword Trend Analyzer",
-        "description": "Analyzes keyword trends to identify popular and emerging keywords.",
+        "description": "A strategic tool that analyzes keyword trends over time, empowering sellers to identify popular and emerging keywords. This enables them to optimize their listings, refine their PPC campaigns, and achieve maximum visibility in the ever-evolving Amazon marketplace. *Currently relies on manual data input or CSVs, with future potential for SP-API integration to fetch real-time keyword data.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "keyword",
+          "trend",
+          "analyzer",
+          "SEO",
+          "PPC",
+          "amazon seller",
+          "keyword trends",
+          "emerging keywords",
+          "listing optimization",
+          "PPC campaigns",
+          "market visibility"
+        ],
+        "relationships": [
+          "keywordAnalyzer",
+          "ppcCampaignAuditor",
+          "listingQualityChecker"
+        ],
         "version": "1.0.0",
         "status": "Active",
         "features": [],
         "knownIssues": [],
-        "roadmap": []
+        "roadmap": ["SP-API integration for fetching keyword trend data."]
       },
       "profitMarginCalculator": {
         "name": "Profit Margin Calculator",
-        "description": "Calculates profit margins to determine profitability and optimize pricing strategies.",
+        "description": "A crucial tool that calculates profit margins based on a comprehensive range of cost factors, empowering sellers to accurately determine product profitability and optimize their pricing strategies to achieve maximum revenue and sustainable business growth. *Currently relies on manual data input, with future potential for SP-API integration to fetch real-time cost data.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "profit",
+          "margin",
+          "calculator",
+          "pricing",
+          "profitability",
+          "amazon seller",
+          "profit margin",
+          "cost analysis",
+          "pricing strategies",
+          "revenue optimization"
+        ],
+        "relationships": [
+          "fbaCalculator",
+          "optimalPriceCalculation",
+          "salesEstimator"
+        ],
         "version": "1.0.0",
         "status": "Active",
         "features": [],
         "knownIssues": [],
-        "roadmap": []
+        "roadmap": ["SP-API integration for fetching cost data."]
       },
       "productScoreCalculator": {
         "name": "Product Score Calculator",
-        "description": "Calculates a quality score for your Amazon product listing based on various optimization factors.",
+        "description": "A valuable tool that calculates a comprehensive quality score for Amazon product listings based on a range of crucial optimization factors. It provides sellers with a clear, data-driven benchmark for assessing listing quality and identifying specific areas for targeted improvement. *Currently relies on manual data input, with future potential for SP-API integration to fetch real-time listing data.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "product",
+          "score",
+          "calculator",
+          "listing quality",
+          "optimization",
+          "amazon seller",
+          "listing score",
+          "product listing",
+          "quality assessment",
+          "optimization factors"
+        ],
+        "relationships": [
+          "listingQualityChecker",
+          "descriptionEditor",
+          "keywordAnalyzer"
+        ],
         "version": "1.0.0",
         "status": "Active",
         "features": [
@@ -597,11 +828,30 @@
           "Bullet points are limited to 5.",
           "Description allows HTML formatting, but there's no sanitization, which could be a security risk."
         ],
-        "roadmap": []
+        "roadmap": ["SP-API integration for fetching listing data."]
       },
       "optimalPriceCalculation": {
         "name": "Optimal Price Calculation",
-        "description": "Calculates the optimal price for a product based on cost, current price, competitor prices, and other factors.",
+        "description": "A sophisticated tool that calculates the optimal price for a product by considering a multitude of factors, including product cost, competitor prices, and conversion rates. This empowers sellers to maximize profitability, optimize sales volume, and achieve sustainable growth in the competitive Amazon marketplace. *Currently relies on manual data input, with future potential for SP-API integration to fetch real-time data.*",
+        "category": "Amazon Seller Tools",
+        "keywords": [
+          "optimal",
+          "price",
+          "calculation",
+          "pricing strategy",
+          "profitability",
+          "amazon seller",
+          "pricing optimization",
+          "competitive pricing",
+          "conversion rates",
+          "sales volume"
+        ],
+        "relationships": [
+          "fbaCalculator",
+          "competitorAnalyzer",
+          "salesEstimator",
+          "profitMarginCalculator"
+        ],
         "version": "0.1.0",
         "status": "Active",
         "features": [
@@ -622,7 +872,7 @@
           "Input fields are not validated for all possible error conditions.",
           "`ProductCategory` is hardcoded as `ProductCategory.STANDARD`."
         ],
-        "roadmap": []
+        "roadmap": ["SP-API integration for fetching relevant pricing data."]
       }
     },
     "components": {
@@ -743,7 +993,7 @@
     {
       "category": "Reporting, Analysis & Data Strategy",
       "question": "How do you approach reporting and analysis for Amazon sellers?",
-      "answer": "My approach is data-driven and actionable. I prioritize direct SP-API integration for granular, real-time data, feeding custom tools like my Portfolio Platform. I'm also proficient with standard Seller Central CSV reports. I build custom dashboards (React/Next.js, Looker Studio) to visualize critical KPIs and use automation tools (PPC Auditor, ACoS Calculator) for efficient data processing. The goal is a holistic view connecting Sales, Advertising, Inventory, and Listing Quality, always tying KPIs back to profitability and strategic objectives."
+      "answer": "My approach is data-driven and actionable. I prioritize direct SP-API integration (currently in sandbox development) for granular, real-time data, feeding custom tools like my Portfolio Platform. I'm also proficient with standard Seller Central CSV reports. I build custom dashboards (React/Next.js, Looker Studio) to visualize critical KPIs and use automation tools (PPC Auditor, ACoS Calculator) for efficient data processing. The goal is a holistic view connecting Sales, Advertising, Inventory, and Listing Quality, always tying KPIs back to profitability and strategic objectives."
     },
     {
       "category": "Reporting, Analysis & Data Strategy",
@@ -753,12 +1003,12 @@
     {
       "category": "Reporting, Analysis & Data Strategy",
       "question": "Can you give an example of an insight leading to business improvement?",
-      "answer": "Situation: Client's TACOS rising. Action: Used my PPC Campaign Auditor (identified high-spend, low-conversion campaigns), SP-API Search Term data (confirmed wasted spend), Business Reports (declining CVR on key ASINs), and Listing Quality Checker (flagged optimization gaps). Result: Recommended pausing wasteful PPC, reallocating budget, optimizing listings. Achieved a 15% ACoS reduction and 10% CVR increase within a month for their $1M+/month operation."
+      "answer": "Situation: A common challenge for Amazon sellers is rising TACOS. Action: The tools I'm developing, like the PPC Campaign Auditor and Listing Quality Checker, are designed to analyze data (including potential SP-API data in the future) to identify issues like wasted ad spend or listing optimization gaps. Result: These tools aim to provide insights that would lead to recommendations like adjusting PPC bids, reallocating budget, and optimizing listings, with the goal of improving key metrics like ACoS and conversion rates."
     },
     {
       "category": "Reporting, Analysis & Data Strategy",
       "question": "What tools do you use for generating/analyzing Amazon reports?",
-      "answer": "Primary tools are the Amazon SP-API for automation and deep data, along with custom-built Python/Node.js scripts and applications. Supporting tools include Amazon Seller Central for CSVs, MongoDB/PostgreSQL for data storage, React/Next.js for custom UIs, Google Looker Studio/Sheets for visualization, and Postman/VS Code for development/testing."
+      "answer": "Primary tools are the Amazon SP-API (sandbox development) for automation and deep data, along with custom-built Python/Node.js scripts and applications. Supporting tools include Amazon Seller Central for CSVs, MongoDB/PostgreSQL for data storage, React/Next.js for custom UIs, Google Looker Studio/Sheets for visualization, and Postman/VS Code for development/testing."
     },
     {
       "category": "Amazon Functional Expertise (SEO/PPC)",
@@ -773,17 +1023,17 @@
     {
       "category": "Technical Expertise & Problem Solving",
       "question": "Describe your experience within the Amazon ecosystem.",
-      "answer": "I have 5+ years of hands-on experience managing seller accounts, focusing on SEO & PPC. I'm an SP-API Specialist, building custom tools and automating tasks (reporting, inventory, listings) with bespoke analytics dashboards (like my Portfolio Platform). My full-stack capability (Python/Node.js, AWS Lambda, React/Next.js, Mongo/Postgres) allows me to bridge business needs with effective technical solutions."
+      "answer": "I have 5+ years of hands-on experience managing seller accounts, focusing on SEO & PPC. I'm actively developing my skills as an SP-API Specialist, building custom tools and automating tasks (reporting, inventory, listings) with bespoke analytics dashboards (like my Portfolio Platform). My full-stack capability (Python/Node.js, AWS Lambda, React/Next.js, Mongo/Postgres) allows me to bridge business needs with effective technical solutions."
     },
     {
       "category": "Technical Expertise & Problem Solving",
       "question": "How do you keep your technical skills up-to-date?",
-      "answer": "I actively monitor Amazon Developer News & SP-API documentation, participate in developer forums, engage in continuous learning (AWS certifications, e-commerce tech trends), and conduct hands-on experimentation with new API features and technologies in personal projects."
+      "answer": "I actively monitor Amazon Developer News & SP-API documentation, participate in developer forums, engage in continuous learning (AWS certifications, e-commerce tech trends), and conduct hands-on experimentation with new API features and technologies in personal projects, including sandbox development with SP-API."
     },
     {
       "category": "Technical Expertise & Problem Solving",
       "question": "Tell me about working under pressure or a tight deadline.",
-      "answer": "Example: Needed to deploy real-time, multi-marketplace inventory sync via SP-API before Q4 for a major client. Tasked with implementing and testing sync across US, CA, MX in 2 weeks. Action: Prioritized core SP-API Inventory API integration, daily stand-ups, automated API endpoint testing. Result: Deployed successfully, maintaining 99.9% inventory accuracy during peak season for $1M+ monthly sales."
+      "answer": "Example: Needed to develop a prototype for real-time, multi-marketplace inventory sync via SP-API (sandbox) for a portfolio project. Tasked with implementing and testing sync across US, CA, MX in 2 weeks. Action: Prioritized core SP-API Inventory API integration, daily stand-ups, automated API endpoint testing in the sandbox. Result: Successfully developed the prototype, demonstrating inventory sync capabilities for a $1M+ monthly sales operation scenario."
     },
     {
       "category": "Technical Expertise & Problem Solving",
@@ -792,13 +1042,13 @@
     },
     {
       "category": "Technical Expertise & Problem Solving",
-      "question": "Describe a complex integration challenge you solved.",
-      "answer": "Challenge: Multi-marketplace data aggregation for the Portfolio Platform had performance issues and SP-API rate-limiting. Solution: Implemented Redis caching, refactored DB queries with indexing, and built intelligent request batching/throttling logic with exponential backoff. Result: Achieved a 60% reduction in API response times and maintained 99.9%+ uptime during high load."
+      "question": "Describe a complex integration challenge you solved?",
+      "answer": "Challenge: Building a platform that aggregates data from multiple Amazon marketplaces presents challenges like managing data volume and respecting API rate limits (especially with SP-API). Solution: I'm currently implementing strategies like Redis caching, optimizing database queries with indexing, and developing intelligent request batching and throttling logic with exponential backoff. The goal is to ensure efficient data handling and maintain platform responsiveness as I build out these integrations."
     },
     {
       "category": "Technical Expertise & Problem Solving",
       "question": "Give an example of an optimization challenge (functional/business).",
-      "answer": "Challenge: Client's flagship product had high ACoS (35%) and stagnant organic rank. Solution: PPC deep dive (found wasted spend, added negatives), SEO audit (identified keyword gaps), combined action (restructured PPC, adjusted bids, optimized listing content). Result: Reduced ACoS to 22% in 6 weeks, organic rank for top 5 keywords improved by 3 positions."
+      "answer": "Challenge: A client's flagship product had high ACoS (35%) and stagnant organic rank. Solution: A deep dive into their PPC (found wasted spend, added negatives), an SEO audit (identified keyword gaps), and combined action (restructured PPC, adjusted bids, optimized listing content). Result: Reduced ACoS to 22% in 6 weeks, and the organic rank for their top 5 keywords improved by an average of 3 positions."
     },
     {
       "category": "Work Style & Remote Capabilities",
@@ -818,12 +1068,12 @@
     {
       "category": "Behavioral - Learning from Mistakes",
       "question": "Share an experience where you learned from a mistake.",
-      "answer": "S: Early version of an Automated Listing Management System had an intermittent inventory sync bug under race conditions. T: Needed to fix it quickly as accuracy is critical. A: Implemented detailed logging, reproduced the bug in test, identified the flaw, refactored to use atomic DB operations, and added specific integration tests. R: Deployed the fix, resolving errors. Added tests prevent regressions, and the issue was documented as a learning point."
+      "answer": "S: An early version of an Automated Listing Management System prototype had an intermittent inventory sync bug under race conditions in the sandbox. T: Needed to fix it quickly as accuracy is critical for demonstration. A: Implemented detailed logging, reproduced the bug in the test environment, identified the flaw, refactored to use atomic DB operations, and added specific integration tests. R: Deployed the fix, resolving errors. Added tests prevent regressions, and the issue was documented as a learning point."
     },
     {
       "category": "Behavioral - Taking Initiative",
-      "question": "Give an example of a time you took initiative.",
-      "answer": "S: Noticed significant time spent manually analyzing Search Term Reports for negative keywords. T: Realized this was inefficient and prone to error. A: Prototyped a Python script using SP-API to flag potential negatives. Presented it and potential time savings, gained approval to develop it into a robust tool (part of PPC Campaign Auditor). R: Tool reduced manual analysis time by ~70% and improved consistency."
+      "question": "Give an example of a time you took initiative?",
+      "answer": "S: I noticed that manually analyzing Amazon Search Term Reports to find negative keywords was very time-consuming and prone to missing opportunities. T: I saw a chance to automate this. A: I took the initiative to prototype a Python script that uses the SP-API (in the sandbox for now) to automatically identify potential negative keywords based on performance data. This prototype is now being developed into a feature within the PPC Campaign Auditor tool. R: The goal is for this tool to significantly reduce the manual effort and improve the accuracy of negative keyword management for sellers."
     }
   ],
   "developmentSetup": {

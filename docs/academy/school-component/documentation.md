@@ -11,6 +11,7 @@ The `SchoolComponent` (`src/app/academy/SchoolComponent.tsx`) fetches and displa
 - **Displays Error State:** Shows an error message if there is an error fetching the courses.
 - **Provides Academy Context:** Uses the `AcademyProvider` to provide the list of courses to the `AcademyContentClient` component.
 - **Renders Course List:** Renders a list of courses using the `CourseList` component.
+- **Exports Academy Data:** Provides a button to export academy data from local storage.
 
 ## Technical Details
 
@@ -35,3 +36,5 @@ The `SchoolComponent` (`src/app/academy/SchoolComponent.tsx`) fetches and displa
 7.  The `AcademyProvider` provides the list of courses to the `AcademyContentClient` component.
 8.  The `AcademyContentClient` component renders the `CourseList` component, passing the list of courses as the `courses` prop.
 9.  The `CourseList` component renders a list of courses, displaying the title, description, duration, and level of each course.
+10. Provides a button to export academy data from local storage.
+11. When the button is clicked, the `handleExportData` function is called, which retrieves the academy data from local storage and triggers a download.

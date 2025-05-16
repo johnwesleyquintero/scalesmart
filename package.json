@@ -110,6 +110,7 @@
     "react-hook-form": "^7.55.0",
     "react-hot-toast": "^2.5.2",
     "react-markdown": "^10.1.0",
+    "react-player": "^2.16.0",
     "react-resizable-panels": "^2.1.7",
     "react-to-pdf": "^2.0.0",
     "reactflow": "^11.11.4",

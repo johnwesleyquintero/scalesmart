@@ -25,6 +25,7 @@ export type Module = {
   type: ModuleType;
   contentSlug?: string;
   link?: string;
+  videoUrl?: string;
 };
 
 export type AppEvent = {

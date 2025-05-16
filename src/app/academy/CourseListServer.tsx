@@ -10,10 +10,12 @@ import { Course } from '@/types';
 import { BookOpen, Lock } from 'lucide-react';
 
 async function fetchCourses() {
+  const baseUrl =
+    process.env.NODE_ENV === 'development'
+      ? 'http://localhost:3000'
+      : 'https://wesleyquintero.vercel.app';
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/api/academy-courses`,
-    );
+    const response = await fetch(`${baseUrl}/api/academy-courses`);
     const data = await response.json();
     // API returns the array directly, not nested under a 'courses' key
     if (Array.isArray(data)) {

@@ -1,5 +1,6 @@
 // src/hooks/use-user-profile.ts
 import { UserProfile, defaultUserProfile } from '../lib/user-profile';
+import { useCallback } from 'react';
 import { useLocalStorage } from './use-local-storage';
 
 const USER_PROFILE_KEY = 'userProfile';
@@ -14,39 +15,56 @@ const useUserProfile = () => {
   return {
     userProfile,
     setUserProfile,
-    // Add functions to update user profile here, e.g.,
-    updateExperienceLevel: (
-      level: 'Beginner' | 'Intermediate' | 'Advanced',
-    ) => {
-      setUserProfile({ ...userProfile, experienceLevel: level });
-    },
-    addInterest: (interest: string) => {
-      setUserProfile({
-        ...userProfile,
-        interests: [...userProfile.interests, interest],
-      });
-    },
-    removeInterest: (interest: string) => {
-      setUserProfile({
-        ...userProfile,
-        interests: userProfile.interests.filter((i) => i !== interest),
-      });
-    },
-    updateCourseProgress: (courseId: string, progress: number) => {
-      setUserProfile({
-        ...userProfile,
-        courseProgress: {
-          ...userProfile.courseProgress,
-          [courseId]: progress,
-        },
-      });
-    },
-    addBadge: (badge: string) => {
-      setUserProfile({
-        ...userProfile,
-        badges: userProfile.badges ? [...userProfile.badges, badge] : [badge],
-      });
-    },
+    updateExperienceLevel: useCallback(
+      (level: 'Beginner' | 'Intermediate' | 'Advanced') => {
+        setUserProfile((currentProfile) => ({
+          ...currentProfile,
+          experienceLevel: level,
+        }));
+      },
+      [setUserProfile],
+    ),
+    addInterest: useCallback(
+      (interest: string) => {
+        setUserProfile((currentProfile) => ({
+          ...currentProfile,
+          interests: [...currentProfile.interests, interest],
+        }));
+      },
+      [setUserProfile],
+    ),
+    removeInterest: useCallback(
+      (interest: string) => {
+        setUserProfile((currentProfile) => ({
+          ...currentProfile,
+          interests: currentProfile.interests.filter((i) => i !== interest),
+        }));
+      },
+      [setUserProfile],
+    ),
+    updateCourseProgress: useCallback(
+      (courseId: string, progress: number) => {
+        setUserProfile((currentProfile) => ({
+          ...currentProfile,
+          courseProgress: {
+            ...currentProfile.courseProgress,
+            [courseId]: progress,
+          },
+        }));
+      },
+      [setUserProfile],
+    ),
+    addBadge: useCallback(
+      (badge: string) => {
+        setUserProfile((currentProfile) => ({
+          ...currentProfile,
+          badges: currentProfile.badges
+            ? [...currentProfile.badges, badge]
+            : [badge],
+        }));
+      },
+      [setUserProfile],
+    ),
   };
 };
 
@@ -54,7 +72,6 @@ const useUserProfile = () => {
 // - Security: If userProfile contains sensitive data, encrypt before storing.
 // - Performance: Debounce/throttle updates to optimize.
 // - Data Size: Consider the size of the user profile data.
-// - Error Handling: Ensure errors are handled gracefully.
 // - Data Validation: Consider adding validation.
 
 export default useUserProfile;

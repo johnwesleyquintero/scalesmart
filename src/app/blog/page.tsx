@@ -34,7 +34,9 @@ export default async function BlogPage() {
           {' '}
           {/* Optional: remove mb-12 if my-6 on h1 is sufficient */}{' '}
           {/* Removed extra space */}
-          <h1 className="text-3xl font-bold my-6">Blog & Articles</h1>
+          <h1 className="text-3xl font-bold my-6">
+            Blogs | Articles | Case Studies
+          </h1>
           <p className="mx-auto max-w-2xl text-muted-foreground text-lg">
             {' '}
             {/* Consider if mt-4 is still needed or if my-6 handles it */}

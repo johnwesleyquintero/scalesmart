@@ -26,13 +26,9 @@ export default function SchoolComponent() {
     async function fetchCourses() {
       setLoading(true);
       setError(null);
-      console.log(
-        'Fetching courses from http://localhost:3000/api/academy-courses',
-      );
+      console.log('Fetching courses from /api/academy-courses');
       try {
-        const response = await fetch(
-          'http://localhost:3000/api/academy-courses',
-        );
+        const response = await fetch('/api/academy-courses');
         console.log('API Response Status:', response.status);
         if (!response.ok) {
           const errorText = await response.text();
@@ -80,11 +76,31 @@ export default function SchoolComponent() {
     );
   }
 
+  const handleExportData = () => {
+    const data = localStorage.getItem('academyData');
+    if (data) {
+      const blob = new Blob([data], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'academy-data.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      alert('No academy data found in local storage.');
+    }
+  };
+
   return (
-    // courses should be an array by now if no error and not loading
-    <AcademyProvider initialCourses={courses || []}>
-      <AcademyContentClient courses={courses || []} CourseList={CourseList} />
-    </AcademyProvider>
+    <div className="flex justify-end">
+      <Button onClick={handleExportData}>Export Academy Data</Button>
+      {/* courses should be an array by now if no error and not loading */}
+      <AcademyProvider initialCourses={courses || []}>
+        <AcademyContentClient courses={courses || []} CourseList={CourseList} />
+      </AcademyProvider>
+    </div>
   );
 }
 
