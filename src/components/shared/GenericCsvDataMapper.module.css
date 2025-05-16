@@ -1,0 +1,61 @@
+/* c:\Users\johnw\portfolio\src\components\shared\GenericCsvDataMapper.module.css */
+.mapperContainer {
+  padding: 20px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+  color: #333;
+}
+
+.mappingGrid {
+  display: grid;
+  gap: 15px;
+}
+
+.mappingRow {
+  display: grid;
+  grid-template-columns: 1fr 2fr; /* Adjust as needed */
+  align-items: center;
+  gap: 10px;
+}
+
+.label {
+  font-weight: bold;
+}
+
+.required {
+  color: red;
+  margin-left: 4px;
+}
+
+.hint {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 2px;
+}
+
+.selectTrigger {
+  width: 100%;
+}
+
+.submitButton {
+  margin-top: 20px;
+  display: block; /* To allow margin auto for centering if needed */
+  width: 100%;
+}
+
+.loading,
+.noHeaders {
+  text-align: center;
+  padding: 20px;
+  font-style: italic;
+  color: #777;
+}

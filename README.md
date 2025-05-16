@@ -2,20 +2,25 @@
 
 ## Description
 
-This project is a portfolio website built with Next.js, TypeScript, and Tailwind CSS. It showcases a variety of projects and skills, including:
+This project is a comprehensive portfolio platform, the "Wes-verse," built with Next.js, TypeScript, and Tailwind CSS. It showcases an integrated suite of custom-built applications and tools, demonstrating a wide range of skills. The current "Wes-apps" include:
 
 - Blog
-- Academy
-- Admin Dashboard
-- Amazon Seller Tools
+- **WesAcademy:** An online learning platform.
+- **Admin Dashboard:** For managing project content and settings.
+- **WesTools:** A suite of tools for Amazon sellers (Bootleg Helium 10).
+- **WeScan:** A Resume Scanner/ATS tool.
 - Chat Interface
-- CRM
-- Workflow Builder
+- **WesCRM:** A Customer Relationship Management tool (Bootleg Hubspot CRM).
+- **WesSync:** A project management tool (Bootleg Asana).
+- **WesNode:** A workflow automation builder (Bootleg n8n).
+
+The platform is designed to be an ever-expanding ecosystem, with potential for more "WesIntegrations" in the future.
 
 The project also includes API routes for various functionalities, such as:
 
 - Academy Articles
 - Academy Courses
+- ATS (Resume Processing)
 - Amazon Competitor Analysis
 - Amazon Inventory
 - Amazon Keyword Trends
@@ -69,12 +74,14 @@ The project also includes API routes for various functionalities, such as:
 ## Usage
 
 - **Blog:** Browse articles and learn about various topics.
-- **Academy:** Access courses and learning materials.
+- **WesAcademy:** Access courses and learning materials.
 - **Admin Dashboard:** Manage project content and settings.
-- **Amazon Seller Tools:** Utilize tools for Amazon seller activities.
+- **WesTools:** Utilize tools for Amazon seller activities.
+- **WeScan:** Scan and analyze resumes.
 - **Chat Interface:** Communicate with others through the chat feature.
-- **CRM:** Manage customer relationships.
-- **Workflow Builder:** Create and manage workflows.
+- **WesCRM:** Manage customer relationships.
+- **WesSync:** Manage projects and tasks.
+- **WesNode:** Create and manage automated workflows.
 
 ## Contributing
 

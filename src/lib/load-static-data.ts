@@ -163,26 +163,10 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
   }
 
   if (file === 'prohibited-keywords') {
-    const generalData = (
-      await import('../data/prohibited-keywords/general/general.json')
-    ).default.keywords as string[];
-    const legalData = (
-      await import('../data/prohibited-keywords/legal/legal.json')
-    ).default.keywords as string[];
-    const safetyData = (
-      await import('../data/prohibited-keywords/safety/safety.json')
-    ).default.keywords as string[];
-    const contentData = (
-      await import('../data/prohibited-keywords/content/content.json')
-    ).default.keywords as string[];
-
-    const allKeywords = new Set([
-      ...generalData,
-      ...legalData,
-      ...safetyData,
-      ...contentData,
-    ]);
-    return Array.from(allKeywords) as StaticDataTypes[T];
+    // Load from the single source of truth JSON file
+    const data = await import('../data/prohibited-keywords.json');
+    // Assuming the JSON file directly contains the array of strings
+    return data.default as StaticDataTypes[T];
   }
 
   throw new Error(`Invalid file type: ${file}`);

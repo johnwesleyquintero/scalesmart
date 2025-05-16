@@ -1,7 +1,6 @@
 // src/components/amazon-seller-tools/description-editor.tsx
 'use client';
 
-import { getAllProhibitedKeywords } from '@/actions/keywordActions';
 import { useToast } from '@/hooks/use-toast';
 import { debounce } from '@/lib/description-validation'; // Assuming this exists and works
 import {
@@ -476,7 +475,14 @@ export default function DescriptionEditor() {
     const fetchKeywords = async () => {
       setIsLoading(true);
       try {
-        const keywords = await getAllProhibitedKeywords();
+        // Fetch from the API route instead of the action
+        const response = await fetch('/api/prohibited-keywords');
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch prohibited keywords: ${response.statusText}`,
+          );
+        }
+        const keywords: string[] = await response.json();
         setProhibitedKeywords(keywords);
       } catch {
         setError('Failed to load prohibited keywords list.');
@@ -489,7 +495,9 @@ export default function DescriptionEditor() {
       }
     };
     fetchKeywords();
-  }, [toast]);
+
+    // We only want this to run once on mount.
+  }, []);
 
   // Find the active product object based on the ID
   const activeProduct = useMemo(

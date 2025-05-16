@@ -1,0 +1,59 @@
+.pageContainer {
+  display: flex;
+  height: 100vh;
+  flex-direction: column; /* Changed from row to column to stack header and content */
+}
+
+.contentWrapper {
+  display: flex;
+  flex-grow: 1; /* Allows this area to fill remaining space */
+  overflow: hidden; /* Prevents content from overflowing the viewport height */
+}
+
+.sidebar {
+  width: 250px; /* Slightly wider for better usability */
+  padding: 15px;
+  border-right: 1px solid #e0e0e0; /* Lighter border */
+  background-color: #f9f9f9; /* Light background for sidebar */
+  overflow-y: auto; /* Allow scrolling if many nodes */
+}
+
+.sidebar h2 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  font-size: 1.2em;
+  color: #333;
+}
+
+.mainContent {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* Important for React Flow to behave well */
+}
+
+.header {
+  height: 60px; /* Slightly taller header */
+  padding: 0 20px;
+  border-bottom: 1px solid #e0e0e0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Pushes title and buttons apart */
+  background-color: #fff;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.5em;
+}
+
+.headerButtons {
+  display: flex;
+  gap: 10px;
+}
+
+.executeButton {
+  margin: 10px;
+  padding: 8px 15px;
+  align-self: flex-start; /* Align button to the start of the cross axis */
+}

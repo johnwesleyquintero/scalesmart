@@ -20,7 +20,7 @@ import {
 } from 'recharts';
 
 // Tool Components
-import CsvDataMapper from '@/components/amazon-seller-tools/CsvDataMapper'; // <--- IMPORT CsvDataMapper
+import GenericCsvDataMapper from '@/components/shared/GenericCsvDataMapper'; // <--- IMPORT GenericCsvDataMapper
 import AcosCalculator from '@/components/amazon-seller-tools/acos-calculator';
 import { CompetitorAnalyzer } from '@/components/amazon-seller-tools/competitor-analyzer';
 import DescriptionEditor from '@/components/amazon-seller-tools/description-editor';
@@ -45,7 +45,7 @@ import {
 
 // --- Interface ---
 // Define DashboardMetrics interface ONCE
-interface DashboardMetrics {
+export interface DashboardMetrics {
   date: string;
   sales: number;
   profit: number;
@@ -61,19 +61,27 @@ interface DashboardMetrics {
   [key: string]: unknown;
 }
 
+import type { CsvColumnMapping } from '@/types/data-mapping';
+
 // --- Target Metrics for Mapper ---
 // Define the structure and requirements for mapping
 const TARGET_METRICS_CONFIG: {
   key: keyof DashboardMetrics;
   label: string;
   required: boolean;
+  hint?: string;
 }[] = [
-  { key: 'date', label: 'Date/Period', required: true },
-  { key: 'sales', label: 'Sales ($)', required: true },
-  { key: 'impressions', label: 'Impressions', required: false }, // Make optional if not always needed for initial view
-  { key: 'clicks', label: 'Clicks', required: false }, // Make optional
-  { key: 'orders', label: 'Orders/Units', required: true }, // Required for Conversion Rate
-  { key: 'sessions', label: 'Sessions/Views', required: true }, // Required for Conversion Rate
+  { key: 'date', label: 'Date/Period', required: true, hint: undefined },
+  { key: 'sales', label: 'Sales ($)', required: true, hint: undefined },
+  {
+    key: 'impressions',
+    label: 'Impressions',
+    required: false,
+    hint: undefined,
+  },
+  { key: 'clicks', label: 'Clicks', required: false, hint: undefined },
+  { key: 'orders', label: 'Orders/Units', required: true, hint: undefined },
+  { key: 'sessions', label: 'Sessions/Views', required: true, hint: undefined },
   // Add other optional metrics if needed for direct mapping
   // { key: 'profit', label: 'Profit ($)', required: false },
   // { key: 'acos', label: 'ACoS (%)', required: false },
@@ -225,10 +233,11 @@ const PlaceholderChartContainer = ({
 // Define getDateFromRow ONCE
 const getDateFromRow = (
   row: Record<string, string>,
-  mappedHeader: string | null,
+  mappedHeader: keyof DashboardMetrics | null,
 ): string => {
+  const mappedHeaderString = mappedHeader as string | null;
   const potentialHeaders = [
-    mappedHeader,
+    mappedHeaderString,
     'Date',
     'Settlement end date',
     'Day',
@@ -244,10 +253,11 @@ const getDateFromRow = (
 // Define getNumericValueFromRow ONCE
 const getNumericValueFromRow = (
   row: Record<string, string>,
-  mappedHeader: string | null,
+  mappedHeader: keyof DashboardMetrics | null,
   fallbackHeaders: string[] = [],
 ): number => {
-  const headersToCheck = [mappedHeader, ...fallbackHeaders].filter(
+  const mappedHeaderString = mappedHeader as string | null;
+  const headersToCheck = [mappedHeaderString, ...fallbackHeaders].filter(
     Boolean,
   ) as string[];
   for (const header of headersToCheck) {
@@ -264,9 +274,10 @@ const getNumericValueFromRow = (
 // Define transformCsvRow ONCE
 const transformCsvRow = (
   row: Record<string, string>,
-  mapping: Record<keyof DashboardMetrics, string | null>,
+  mapping: CsvColumnMapping,
 ): DashboardMetrics | null => {
-  const date = getDateFromRow(row, mapping.date);
+  const dateHeader = mapping.date;
+  const date = getDateFromRow(row, dateHeader);
   if (date === 'Unknown') {
     return null; // Skip rows where date cannot be determined
   }
@@ -379,9 +390,7 @@ export default function UnifiedDashboard() {
   };
 
   // --- MODIFIED handleMappingComplete ---
-  const handleMappingComplete = (
-    mapping: Record<keyof DashboardMetrics, string | null>,
-  ) => {
+  const handleMappingComplete = (mapping: CsvColumnMapping) => {
     console.log('Mapping confirmed:', mapping);
     if (!selectedFile) {
       setError('No file selected for processing.');
@@ -517,7 +526,7 @@ export default function UnifiedDashboard() {
     if (showMapper && csvHeaders.length > 0) {
       // --- Show Mapper ---
       return (
-        <CsvDataMapper<DashboardMetrics> // Specify the generic type
+        <GenericCsvDataMapper // Specify the generic type
           csvHeaders={csvHeaders}
           targetMetrics={TARGET_METRICS_CONFIG}
           onMappingComplete={handleMappingComplete}
