@@ -177,25 +177,27 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
           <div className="mt-16 pt-8 border-t">
             <h2 className="text-2xl font-bold mb-4">Continue Reading</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              {post.relatedPosts?.map(
-                (relatedPost: {
+              {post.relatedPosts?.map((relatedPost) => {
+                const typedRelatedPost = relatedPost as {
                   id: string;
                   slug: string;
                   title: string;
                   description: string;
-                }) => (
+                };
+
+                return (
                   <Link
-                    key={relatedPost.slug}
-                    href={`/blog/${relatedPost.slug}`}
-                    className="block p-4 rounded-lg border hover:bg-muted/50 transition-colors"
-                  >
-                    <h3 className="font-medium mb-1">{relatedPost.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {relatedPost.description || ''}
-                    </p>
-                  </Link>
-                ),
-              )}
+                      key={typedRelatedPost.slug}
+                      href={`/blog/${typedRelatedPost.slug}`}
+                      className="block p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                    >
+                      <h3 className="font-medium mb-1">{typedRelatedPost.title}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {typedRelatedPost.description || ''}
+                      </p>
+                    </Link>
+                );
+              })}
             </div>
           </div>
         </div>

@@ -116,7 +116,13 @@ export async function getPostBySlug(
             (tag: string) => data.tags?.includes(tag) ?? false,
           ),
       )
-      .slice(0, 2);
+      .slice(0, 2)
+      .map((p) => ({
+        id: p.id,
+        slug: p.slug,
+        title: p.title,
+        description: p.description,
+      }));
 
     return {
       id: slug,
