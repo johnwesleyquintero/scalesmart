@@ -119,9 +119,14 @@ const CourseList = ({
           className={` ${course.locked ? 'opacity-75 bg-gray-100' : ''}`}
         >
           <img
-            src={course.imageUrl || 'https://via.placeholder.com/400x200'}
+            src={course.imageUrl || '/default-fallback.svg'} // Default to your SVG if imageUrl is not present
             alt={course.title}
             className="h-40 w-full object-cover rounded-md"
+            onError={(e) => {
+              // If course.imageUrl was present but failed to load, set to fallback
+              e.currentTarget.src = '/default-fallback.svg';
+              e.currentTarget.onerror = null; // Prevent infinite loops if the fallback itself fails
+            }}
           />
           <CardHeader>
             <div className="flex justify-between items-start">
