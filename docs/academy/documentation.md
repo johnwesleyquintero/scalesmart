@@ -13,6 +13,13 @@ The Academy Page (`src/app/academy/page.tsx`) is the main page for the academy s
 - The page is a simple functional component that imports and renders another component.
 - It relies on the `SchoolComponent` to handle the actual content and functionality of the academy page.
 
+## Recent Changes
+
+-   Added alt text to the images: `alt={`${course.title} course`}`.
+-   Improved the color contrast for the course level text.
+-   Implemented client-side caching using `localStorage` to reduce initial load time.
+-   Added a subtle border to each course card to aid user differentiation.
+
 ## Components
 
 - `AcademyPage`: The main academy page component.

@@ -16,12 +16,18 @@ interface AcademyContentProps {
   CourseList: React.ComponentType<{
     startCourse: (course: Course) => void;
     courses: Course[];
+    filter: string;
+    sort: string;
   }>;
+  filter: string;
+  sort: string;
 }
 
 function AcademyContentClient({
   courses,
   CourseList,
+  filter,
+  sort,
   // ActiveCourseDisplay, // Removed unused prop
 }: AcademyContentProps) {
   const {
@@ -30,7 +36,7 @@ function AcademyContentClient({
     setActiveModule,
     setCourses,
     activeModule,
-  } = useAcademy(); // Added activeModule to destructure
+  } = useAcademy();
   const { userProfile } = useUserProfile();
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
   const [progressValues, setProgressValues] = useState<{
@@ -98,7 +104,9 @@ function AcademyContentClient({
         <CourseList
           startCourse={startCourse}
           courses={recommendedCourses.length > 0 ? recommendedCourses : courses}
-        /> // Pass recommended courses
+          filter={filter}
+          sort={sort}
+        />
       ) : (
         <>
           {activeCourse &&

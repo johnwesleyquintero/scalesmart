@@ -65,32 +65,18 @@ const Quiz: React.FC<QuizProps> = ({ questions }) => {
     setQuizCompleted(false);
   };
 
-  const { academyData, saveData, activeCourse } = useAcademy();
+  const { startModule, activeModule } = useAcademy(); // Use startModule from context
 
   useEffect(() => {
-    if (quizCompleted && activeCourse) {
-      const quizResult = {
-        courseId: activeCourse?.id,
-        moduleId: '1', // Assuming a single module per course for now
-        quizId: '1', // Assuming a single quiz per course for now
-        score: score,
-        totalQuestions: questions.length,
-        timestamp: new Date().toISOString(),
-      };
-
-      const newQuizResults = academyData.quizResults
-        ? [...academyData.quizResults, quizResult]
-        : [quizResult];
-      saveData({ ...academyData, quizResults: newQuizResults });
+    if (quizCompleted) {
+      // If the activeModule is this quiz, mark it as completed via context
+      // This will also update course progress and save data.
+      if (activeModule && activeModule.type === 'quiz' /* && activeModule.id === thisQuizModule.id */) {
+        // You might want to pass the actual activeModule object if it contains more than just type
+        startModule(activeModule); 
+      }
     }
-  }, [
-    quizCompleted,
-    score,
-    questions.length,
-    activeCourse?.id,
-    academyData,
-    saveData,
-  ]);
+  }, [quizCompleted, activeModule, startModule, score, questions.length]); // Added score and questions.length if they are needed for quizResult logic elsewhere
 
   if (quizCompleted) {
     return (

@@ -31,6 +31,10 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
   const { academyData, saveData } = useAcademyStorage();
   const [courses, setCourses] = useState<Course[]>(initialCourses);
 
+  React.useEffect(() => {
+    setCourses(initialCourses);
+  }, [initialCourses]);
+
   const startModule = (module: Module) => {
     const updatedCourses = courses.map((course: Course) => {
       if (course.id === activeCourse?.id) {
