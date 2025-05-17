@@ -18,7 +18,8 @@ export async function generateMetadata({
 }: Readonly<Props>): Promise<Metadata> {
   try {
     // Await the params to ensure they are fully resolved
-    const { slug } = params;
+    const resolvedParams = await params;
+    const { slug } = resolvedParams;
     const post = await getPostBySlug(slug);
 
     const DEFAULT_IMAGE_URL = '/default-fallback.svg'; // Define the constant here
@@ -107,7 +108,9 @@ export async function generateStaticParams() {
 
 export default async function BlogPostPage({ params }: Readonly<Props>) {
   // Await the params to ensure they are fully resolved
-  const post = await getPostBySlug(params.slug);
+  const resolvedParams = await params;
+  const { slug } = resolvedParams;
+  const post = await getPostBySlug(slug);
 
   if (!post) {
     notFound();

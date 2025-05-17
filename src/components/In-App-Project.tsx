@@ -95,7 +95,7 @@ const InAppProjects = () => {
       id="platform-features"
       className="py-16 md:py-20 bg-muted/20 dark:bg-muted/10"
     >
-      <div className="container">
+      <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
           <Badge variant="secondary" className="mb-4 text-sm">
             Platform Features

@@ -135,7 +135,10 @@ export default function SchoolComponent() {
   };
 
   return (
-    <div className="flex flex-col items-center mt-4">
+    // This div now defines the max-width and centering for all its content.
+    // Using 'container mx-auto p-4' to match CRM page's container style.
+    // items-stretch allows children like AcademyContentClient (w-full) to take full width within the padded container.
+    <div className="container mx-auto p-4 flex flex-col items-stretch mt-4">
       <div className="flex justify-center space-x-4 mb-4">
         <select
           value={filter}
@@ -169,7 +172,11 @@ export default function SchoolComponent() {
           sort={sort}
         />
       </AcademyProvider>
-      <Button onClick={handleExportData}>Export Academy Data</Button>
+      <div className="mt-4 flex justify-center">
+        {' '}
+        {/* Centering the button within the max-width container */}
+        <Button onClick={handleExportData}>Export Academy Data</Button>
+      </div>
     </div>
   );
 }
@@ -251,7 +258,9 @@ const CourseList = ({
               onClick={() => startCourse(course)}
               disabled={course.locked}
               className="w-full"
-              aria-label={course.locked ? 'Coming Soon' : `Start ${course.title}`} // Add aria-label for accessibility
+              aria-label={
+                course.locked ? 'Coming Soon' : `Start ${course.title}`
+              } // Add aria-label for accessibility
             >
               {course.locked ? 'Coming Soon' : 'Start Course'}
             </Button>

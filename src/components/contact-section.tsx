@@ -38,7 +38,11 @@ export default function ContactSection() {
         <div className="absolute inset-0 bg-gradient-to-r from-purple-100/50 to-blue-100/50 dark:from-purple-950/50 dark:to-blue-950/50 blur-3xl"></div>
       </div>
 
-      <div className="mx-auto max-w-5xl">
+      {/*
+        The parent <section> is already a 'container' which handles max-width and centering.
+        This inner div should take the full width of that container.
+      */}
+      <div className="w-full">
         <div className="mb-12 text-center">
           <Badge variant="secondary" className="mb-4">
             Contact

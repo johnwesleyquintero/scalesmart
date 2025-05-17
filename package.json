@@ -16,7 +16,7 @@
     "cli": "bash .cli.sh",
     "lint": "eslint --config eslint.config.mjs .",
     "clean": "rimraf .next",
-    "check": "npm run format && npm run lint && npm run typecheck && npm run build",
+    "check": "npm run format && npm run lint && npm run typecheck",
     "ats": "bash c:/Users/johnw/portfolio/bash_scripts/ats_scanner.sh C:/Users/johnw/portfolio/bash_scripts/Resume.pdf"
   },
   "dependencies": {

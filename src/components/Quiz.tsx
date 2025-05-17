@@ -1,6 +1,7 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { ModuleType } from '@/types'; // Import ModuleType
 import { useAcademy } from '@/context/AcademyContext';
 import React, { useEffect, useState } from 'react';
 
@@ -71,9 +72,13 @@ const Quiz: React.FC<QuizProps> = ({ questions }) => {
     if (quizCompleted) {
       // If the activeModule is this quiz, mark it as completed via context
       // This will also update course progress and save data.
-      if (activeModule && activeModule.type === 'quiz' /* && activeModule.id === thisQuizModule.id */) {
+      if (
+        activeModule &&
+        activeModule.type ===
+          ModuleType.QUIZ /* && activeModule.id === thisQuizModule.id */
+      ) {
         // You might want to pass the actual activeModule object if it contains more than just type
-        startModule(activeModule); 
+        startModule(activeModule);
       }
     }
   }, [quizCompleted, activeModule, startModule, score, questions.length]); // Added score and questions.length if they are needed for quizResult logic elsewhere

@@ -36,21 +36,50 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
   }, [initialCourses]);
 
   const startModule = (module: Module) => {
-    const updatedCourses = courses.map((course: Course) => {
-      if (course.id === activeCourse?.id) {
-        const updatedModules = course.modules.map((m: Module) => {
+    if (!activeCourse) return; // Should not happen if a module is being started
+
+    let courseWasUpdated = false;
+    const updatedCourses = courses.map((c: Course) => {
+      if (c.id === activeCourse.id) {
+        let completedModulesCount = 0;
+        const updatedModules = c.modules.map((m: Module) => {
           if (m.id === module.id) {
-            return { ...m, completed: true };
+            // Only update if it's not already completed to avoid unnecessary saves
+            if (!m.completed) {
+              courseWasUpdated = true;
+            }
+            m = { ...m, completed: true };
+          }
+          if (m.completed) {
+            completedModulesCount++;
           }
           return m;
         });
-        return { ...course, modules: updatedModules };
+
+        const newProgress =
+          c.modules.length > 0
+            ? Math.round((completedModulesCount / c.modules.length) * 100)
+            : 0;
+        if (c.progress !== newProgress || courseWasUpdated) {
+          // Check if progress actually changed or module was just marked
+          courseWasUpdated = true; // Ensure we save if progress changed even if module was already complete
+        }
+        return { ...c, modules: updatedModules, progress: newProgress };
       }
-      return course;
+      return c;
     });
 
-    saveData({ ...academyData, courses: updatedCourses });
-    setCourses(updatedCourses);
+    if (courseWasUpdated) {
+      saveData({ ...academyData, courses: updatedCourses });
+      setCourses(updatedCourses);
+      // Ensure activeCourse state is updated to the instance from the new courses array
+      const currentlyActiveCourseFromUpdatedList = updatedCourses.find(
+        (uc) => uc.id === activeCourse.id,
+      );
+      if (currentlyActiveCourseFromUpdatedList) {
+        setActiveCourse(currentlyActiveCourseFromUpdatedList);
+      }
+    }
     setActiveModule(module);
   };
 

@@ -15,10 +15,10 @@ The Academy Page (`src/app/academy/page.tsx`) is the main page for the academy s
 
 ## Recent Changes
 
--   Added alt text to the images: `alt={`${course.title} course`}`.
--   Improved the color contrast for the course level text.
--   Implemented client-side caching using `localStorage` to reduce initial load time.
--   Added a subtle border to each course card to aid user differentiation.
+- Added alt text to the images: `alt={`${course.title} course`}`.
+- Improved the color contrast for the course level text.
+- Implemented client-side caching using `localStorage` to reduce initial load time.
+- Added a subtle border to each course card to aid user differentiation.
 
 ## Components
 

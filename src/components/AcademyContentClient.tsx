@@ -1,9 +1,10 @@
 'use client';
 
 import { useAcademy } from '@/context/AcademyContext';
+import { Button } from '@/components/ui/button';
 import useUserProfile from '@/hooks/use-user-profile';
-import { getRecommendedCourses } from '@/lib/course-recommendations';
-import { Course, ModuleType } from '@/types';
+import { getRecommendedCourses } from '@/lib/course-recommendations'; // Assuming Module is also in @/types
+import { Course, Module, ModuleType } from '@/types';
 import { useEffect, useState } from 'react';
 import CaseStudyModule from './CaseStudyModule';
 import ExerciseModule from './ExerciseModule';
@@ -34,14 +35,12 @@ function AcademyContentClient({
     activeCourse,
     setActiveCourse,
     setActiveModule,
-    setCourses,
+    // setCourses, // We won't call setCourses directly from here for progress updates
+    // courses: contextCourses, // activeCourse from context is sufficient for display
     activeModule,
   } = useAcademy();
   const { userProfile } = useUserProfile();
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
-  const [progressValues, setProgressValues] = useState<{
-    [key: `course-${string}-progress`]: number;
-  }>({});
 
   useEffect(() => {
     if (userProfile) {
@@ -50,46 +49,38 @@ function AcademyContentClient({
     }
   }, [userProfile]);
 
-  useEffect(() => {
-    // Initialize progressValues from academyData
-    if (Array.isArray(courses)) {
-      const initialProgressValues = courses.reduce(
-        (acc, course) => {
-          acc[`course-${course.id}-progress`] = course.progress;
-          return acc;
-        },
-        {} as { [key: `course-${string}-progress`]: number },
-      );
-      setProgressValues(initialProgressValues);
-    }
-  }, [courses]);
+  // This useEffect was causing issues with an undefined 'course' variable.
+  // The logic to set the active course and its first module is handled by startCourse.
+  // useEffect(() => {
+  // setActiveCourse(course);
+  // if (course.modules && course.modules.length > 0) {
+  // setActiveModule(course.modules[0]);
+  // console.log('Setting activeModule:', course.modules[0]);
+  // }
+  // }, []); // Removed problematic useEffect
 
-  useEffect(() => {
-    // Update courses with progress from progressValues
-    if (Array.isArray(courses)) {
-      const coursesWithProgress = courses.map((course) => ({
-        ...course,
-        progress:
-          progressValues[`course-${course.id}-progress`] || course.progress,
-        locked: course.locked,
-      }));
-      setCourses(coursesWithProgress);
-    }
-  }, [courses, progressValues]);
-
-  const startCourse = (course: Course) => {
-    setActiveCourse(course);
-    if (course.modules && course.modules.length > 0) {
-      setActiveModule(course.modules[0]);
-      console.log('Setting activeModule:', course.modules[0]);
+  const startCourse = (selectedCourse: Course) => {
+    setActiveCourse(selectedCourse);
+    if (selectedCourse.modules && selectedCourse.modules.length > 0) {
+      setActiveModule(selectedCourse.modules[0]);
     }
   };
 
-  console.log('AcademyContentClient: courses prop =', courses); // ADDED LOGGING STATEMENT
-  console.log('AcademyContentClient: recommendedCourses =', recommendedCourses); // ADDED LOGGING STATEMENT
+  const handleSelectModule = (module: Module) => {
+    setActiveModule(module);
+  };
+
+  const handleBackToCourses = () => {
+    setActiveCourse(null);
+    setActiveModule(null);
+  };
+
+  // console.log('AcademyContentClient: courses prop =', courses);
+  // console.log('AcademyContentClient: recommendedCourses =', recommendedCourses);
 
   return (
-    <div className="max-w-7xl mx-auto p-4 bg-gray-100 rounded-lg shadow-md">
+    // This component now takes the full width provided by its parent in SchoolComponent.
+    <div className="w-full p-4 bg-gray-100 rounded-lg shadow-md">
       {/* Page Title Section */}
       <div className="text-center mb-8">
         {/* Optional: remove mb-8 if my-6 on h1 is sufficient */}
@@ -102,35 +93,102 @@ function AcademyContentClient({
       {/* Module Content or Quiz */}
       {!activeCourse ? (
         <CourseList
-          startCourse={startCourse}
+          startCourse={startCourse} // This is the local startCourse function
           courses={recommendedCourses.length > 0 ? recommendedCourses : courses}
           filter={filter}
           sort={sort}
         />
       ) : (
         <>
-          {activeCourse &&
-            activeCourse.modules &&
-            activeModule &&
-            (() => {
-              if (!activeModule) {
-                return <p>No module selected</p>;
-              }
-              switch (activeModule?.type) {
-                case 'article' as ModuleType:
-                  return <p>Article Content Here</p>;
-                case 'video' as ModuleType:
-                  return <VideoModule />;
-                case 'exercise' as ModuleType:
-                  return <ExerciseModule />;
-                case 'caseStudy' as ModuleType:
-                  return <CaseStudyModule />;
-                case 'quiz' as ModuleType:
-                  return <p>Quiz Content Here</p>;
-                default:
-                  return <p>Unknown Module Type</p>;
-              }
-            })()}
+          {/* activeCourse is guaranteed to be non-null here */}
+          <div>
+            <Button
+              onClick={handleBackToCourses}
+              variant="outline"
+              className="mb-4"
+            >
+              &larr; Back to Courses
+            </Button>
+            <h2 className="text-2xl font-bold mb-2">{activeCourse.title}</h2>
+            <p className="text-sm text-gray-600 mb-4">
+              Overall Progress: {activeCourse.progress || 0}%
+            </p>
+
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="w-full md:w-1/4 bg-white p-4 rounded shadow-lg">
+                <h3 className="text-lg font-semibold mb-3 border-b pb-2">
+                  Modules
+                </h3>
+                {activeCourse.modules && activeCourse.modules.length > 0 ? (
+                  <ul className="space-y-1">
+                    {activeCourse.modules.map((module) => (
+                      <li key={module.id}>
+                        <button
+                          onClick={() => handleSelectModule(module)}
+                          className={`w-full text-left p-2.5 rounded-md hover:bg-gray-100 transition-colors duration-150 flex justify-between items-center text-sm ${
+                            activeModule?.id === module.id
+                              ? 'bg-blue-100 text-blue-700 font-medium ring-1 ring-blue-300'
+                              : 'text-gray-700'
+                          }`}
+                        >
+                          <span>{module.title || `Module ${module.id}`}</span>
+                          {module.completed && (
+                            <span className="text-green-500 text-xs font-medium ml-2">
+                              ✓
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-gray-500">
+                    No modules available for this course.
+                  </p>
+                )}
+              </div>
+              <div className="w-full md:w-3/4 bg-white p-6 rounded shadow-lg min-h-[300px]">
+                {activeModule ? (
+                  (() => {
+                    const ModuleSpecificContent = () => {
+                      switch (activeModule.type) {
+                        case 'article' as ModuleType:
+                          return (
+                            <p>Article Content Here for {activeModule.title}</p>
+                          );
+                        case 'video' as ModuleType:
+                          return <VideoModule />;
+                        case 'exercise' as ModuleType:
+                          return <ExerciseModule />;
+                        case 'caseStudy' as ModuleType:
+                          return <CaseStudyModule />;
+                        case 'quiz' as ModuleType:
+                          return (
+                            <p>Quiz Content Here for {activeModule.title}</p>
+                          ); // Placeholder for Quiz component
+                        default:
+                          return (
+                            <p>Unknown Module Type: {activeModule.type}</p>
+                          );
+                      }
+                    };
+                    return (
+                      <div>
+                        <h3 className="text-xl font-semibold mb-4 pb-2 border-b">
+                          {activeModule.title || `Module ${activeModule.id}`}
+                        </h3>
+                        <ModuleSpecificContent />
+                      </div>
+                    );
+                  })()
+                ) : (
+                  <p className="text-center text-gray-500 pt-16">
+                    Select a module from the list to view its content.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
         </>
       )}
     </div>

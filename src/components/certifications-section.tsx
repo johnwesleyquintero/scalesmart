@@ -66,7 +66,7 @@ const certifications = [
 export default function CertificationsSection() {
   return (
     <section id="certifications" className="py-20">
-      <div className="container">
+      <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
           <h2 className="section-heading">{CERTIFICATION_SECTION_HEADING}</h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">

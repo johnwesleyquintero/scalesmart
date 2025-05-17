@@ -102,8 +102,8 @@ const blogPosts = [
 export default function BlogSection() {
   console.log('BlogSection rendered');
   return (
-    <section id="blog" className="bg-muted/30 py-20">
-      <div className="container">
+    <section id="blog" className="py-20 bg-muted/30">
+      <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
           <h2 className="section-heading">Blog &amp; Articles</h2>
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
