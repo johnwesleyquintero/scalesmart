@@ -4,6 +4,45 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
+// Define interfaces for the context data structures to avoid 'any'
+interface AmazonCertification {
+  name: string;
+  // Add other properties if they exist and are used
+}
+
+interface WorkExperience {
+  title: string;
+  company: string;
+  period: string;
+  description: string;
+  achievements: string[];
+}
+
+interface Education {
+  degree: string;
+  institution: string;
+  period: string;
+  description: string;
+}
+
+interface GeneralCertification {
+  name: string;
+  issuer: string;
+  date: string;
+  status: string;
+}
+
+interface FAQ {
+  category: string;
+  question: string;
+  answer: string;
+}
+
+interface ChatHistoryMessage {
+  role: string;
+  content: string;
+}
+
 export async function POST(request: NextRequest) {
   let body = null;
   try {
@@ -33,7 +72,8 @@ export async function POST(request: NextRequest) {
     const { message, history = [] } = body;
 
     // Load portfolio context
-    const portfolioContext = await import('@/data/chat-context.json');
+    const portfolioContextData = await import('@/data/chat-context.json');
+    const portfolioContext = portfolioContextData.default[0];
 
     // Create a context-aware prompt that includes portfolio information
     const contextPrompt = `You are Wesley Quintero. Respond in the first person, using "I", "me", "my". You have access to the following information about yourself:
@@ -53,14 +93,14 @@ export async function POST(request: NextRequest) {
     - Soft Skills: ${portfolioContext.personalContext.skills.soft.join(', ')}
     
     Amazon Web Services (AWS) Expertise:
-    - My Amazon Specific Certifications (Conceptual): ${portfolioContext.personalContext.amazonExpertise.certifications?.map((c) => c.name).join(', ') || 'Not specified'}
+    - My Amazon Specific Certifications (Conceptual): ${portfolioContext.personalContext.amazonExpertise.certifications?.map((c: AmazonCertification) => c.name).join(', ') || 'Not specified'}
     - Areas: ${portfolioContext.personalContext.amazonExpertise.areasOfExpertise.join(', ')}
     - Key Achievements: ${portfolioContext.personalContext.amazonExpertise.keyAchievements.join('; ')}
     
     Work Experience:
     ${portfolioContext.personalContext.workExperience
       .map(
-        (exp) =>
+        (exp: WorkExperience) => // Type assertion might be needed if portfolioContext is not strictly typed: (exp as WorkExperience)
           `- ${exp.title} at ${exp.company} (${exp.period}): ${exp.description}. Achievements: ${exp.achievements.join(', ')}.`,
       )
       .join('\n    ')}
@@ -68,7 +108,7 @@ export async function POST(request: NextRequest) {
     Education:
     ${portfolioContext.personalContext.education
       .map(
-        (edu) =>
+        (edu: Education) => // Type assertion might be needed: (edu as Education)
           `- ${edu.degree} from ${edu.institution} (${edu.period}). ${edu.description}`,
       )
       .join('\n    ')}
@@ -76,10 +116,9 @@ export async function POST(request: NextRequest) {
     Certifications:
     ${(portfolioContext.personalContext.certifications || [])
       .map(
-        (cert) =>
+        (cert: GeneralCertification) => // Type assertion might be needed: (cert as GeneralCertification)
           `- ${cert.name} from ${cert.issuer} (Issued: ${cert.date}, Status: ${cert.status})`,
-      )
-      .join('\n    ')}
+      ).join('\n    ')}
 
     Web App Information:
     - Project: ${portfolioContext.webappContext.projectOverview.name}
@@ -100,10 +139,10 @@ export async function POST(request: NextRequest) {
     - Development Tools: ${portfolioContext.developmentSetup.devToolsWorkflow.development.join(', ')}
 
     FAQs:
-    ${portfolioContext.faqs.map((faq) => `- Category: ${faq.category}, Question: ${faq.question}, Answer: ${faq.answer}`).join('\n')}
+    ${portfolioContext.faqs.map((faq: FAQ) => `- Category: ${faq.category}, Question: ${faq.question}, Answer: ${faq.answer}`).join('\n')}
 
     Previous conversation context:
-    ${history.map((msg: { role: string; content: string }) => `${msg.role}: ${msg.content}`).join('\n')}
+    ${(history as ChatHistoryMessage[]).map((msg: ChatHistoryMessage) => `${msg.role}: ${msg.content}`).join('\n')}
     
     Please provide accurate, personalized responses based on this information about yourself. If someone asks for your contact details, share them. If asked about your family, you can briefly mention their names if you feel it's appropriate for the conversation, but keep it concise and professional.
     
