@@ -13,6 +13,38 @@ The Amazon Seller Tools Dashboard (`src/app/amazon-seller-tools/page.tsx`) provi
 - **PPC & Ads:** Provides tools for managing PPC campaigns, including a campaign auditor.
 - **Competition:** Offers tools for analyzing competitors, including a competitor analyzer and sales estimator.
 
+## Potential Enhancements
+
+- **Data Integration (API):** Integrate the dashboard with the Amazon Marketplace Web Service (MWS) API or the Selling Partner API (SP-API) to allow for real-time data retrieval. This would involve:
+
+  - Adding API authentication and data retrieval logic.
+  - Modifying the data mapping component to handle API data.
+  - Updating the dashboard components to display real-time data.
+  - **Anticipated Benefits:**
+    - Eliminate the need for manual data uploads.
+    - Provide real-time data updates.
+    - Improve the accuracy and reliability of the data.
+    - Enhance the user experience.
+
+- **Enhanced Data Transformation:** Enhance the `transformCsvRow` function to handle more diverse CSV formats and data types. This would involve:
+
+  - Adding more robust error handling and validation.
+  - Supporting different date formats.
+  - Allowing users to define custom data transformations.
+  - **Anticipated Benefits:**
+    - Improve the flexibility and usability of the dashboard.
+    - Allow the dashboard to handle more diverse CSV formats.
+    - Reduce the need for users to manually edit their CSV files.
+
+- **More Comprehensive Metrics:** Expand the `DashboardMetrics` interface to include more metrics, such as:
+  - Advertising Cost of Sales (ACoS)
+  - Return on Ad Spend (ROAS)
+  - Customer Acquisition Cost (CAC)
+  - Lifetime Value (LTV)
+  - **Anticipated Benefits:**
+    - Provide users with a more complete picture of their business performance.
+    - Allow users to make more informed decisions.
+
 ## Technical Details
 
 - The dashboard uses the `recharts` library for creating charts.

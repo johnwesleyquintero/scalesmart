@@ -13,7 +13,7 @@ import {
   Input,
   Label,
   Progress,
-} from '@/components/ui'; // Corrected: Use import type for type-only imports
+} from '@/components/ui';
 import { type MetricKey } from '@/lib/amazon-tools/types';
 import { logError } from '@/lib/error-handling';
 import {
@@ -22,12 +22,11 @@ import {
 } from '@/lib/hooks/use-campaign-validator';
 import { useCsvParser } from '@/lib/hooks/use-csv-parser';
 import { monetaryValueSchema, numberSchema } from '@/lib/input-validation';
-import { AlertCircle, Download, Info, Upload, X, XCircle } from 'lucide-react'; // Corrected: Use import type for type-only imports
+import { AlertCircle, Download, Info, Upload, X, XCircle } from 'lucide-react';
 import Papa from 'papaparse';
 import type { ChangeEvent } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react'; // Corrected: Use import type for type-only imports
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-// Import Recharts components
 import {
   Bar,
   BarChart,
@@ -38,6 +37,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { CurrencySelector } from './CurrencySelector';
 import SampleCsvButton from './sample-csv-button';
 
 // --- Interfaces & Types ---
@@ -46,7 +46,6 @@ export interface CampaignData {
   campaign: string;
   adSpend: number;
   sales: number;
-  // Corrected: Removed redundant | undefined
   impressions?: number;
   clicks?: number;
   acos?: number;
@@ -81,16 +80,10 @@ const chartConfig = {
   };
 };
 
-// Removed unused constant
-// const RED_COLOR = 'text-red-500';
-
-// --- Helper Functions ---
-
-// Removed unused function getAcosColor
-
 const calculateLocalMetrics = (
   adSpend: number,
   sales: number,
+  currency: { value: string; symbol: string },
   impressions?: number,
   clicks?: number,
 ): Omit<
@@ -98,9 +91,21 @@ const calculateLocalMetrics = (
   'campaign' | 'adSpend' | 'sales' | 'impressions' | 'clicks'
 > => {
   try {
+    // Currency conversion (replace with a real API if available)
+    const conversionRates: { [key: string]: number } = {
+      USD: 1,
+      EUR: 1.1,
+      GBP: 1.3,
+      JPY: 0.0072,
+      CAD: 0.73,
+    };
+
+    const usdAdSpend = adSpend * (conversionRates[currency.value] || 1);
+    const usdSales = sales * (conversionRates[currency.value] || 1);
+
     // Validate inputs
-    const validatedAdSpend = monetaryValueSchema.parse(adSpend);
-    const validatedSales = monetaryValueSchema.parse(sales);
+    const validatedAdSpend = monetaryValueSchema.parse(usdAdSpend);
+    const validatedSales = monetaryValueSchema.parse(usdSales);
     const validatedImpressions =
       impressions !== undefined ? numberSchema.parse(impressions) : undefined;
     const validatedClicks =
@@ -162,6 +167,11 @@ export default function AcosCalculator() {
   const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
+  const [selectedCurrency, setSelectedCurrency] = useState({
+    label: 'US Dollar',
+    value: 'USD',
+    symbol: '$',
+  });
   const [selectedMetric, setSelectedMetric] =
     useState<keyof typeof chartConfig>('acos');
   const [manualCampaign, setManualCampaign] = useState({
@@ -222,6 +232,7 @@ export default function AcosCalculator() {
         const metrics = calculateLocalMetrics(
           Number(row.adSpend),
           Number(row.sales),
+          selectedCurrency,
           Number(row.impressions) || undefined,
           Number(row.clicks) || undefined,
         );
@@ -248,13 +259,12 @@ export default function AcosCalculator() {
       }
       setIsLoading(true);
       setError(undefined);
-      // Corrected: Call async function without making the callback async itself
       csvParser.parseFile(file).catch((err) => {
         setError(err instanceof Error ? err.message : String(err));
         setIsLoading(false);
       });
     },
-    [csvParser], // csvParser dependency is correct
+    [csvParser],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -284,7 +294,6 @@ export default function AcosCalculator() {
   );
 
   const handleManualCalculate = useCallback(() => {
-    // Corrected: Use undefined instead of null
     setError(undefined);
     setIsLoading(true);
     try {
@@ -301,7 +310,7 @@ export default function AcosCalculator() {
       }
       const adSpend = Number.parseFloat(manualCampaign.adSpend);
       const sales = Number.parseFloat(manualCampaign.sales);
-      const metrics = calculateLocalMetrics(adSpend, sales);
+      const metrics = calculateLocalMetrics(adSpend, sales, selectedCurrency);
       const newCampaign: CampaignData = {
         campaign: manualCampaign.campaign.trim(),
         adSpend,
@@ -317,14 +326,13 @@ export default function AcosCalculator() {
     } finally {
       setIsLoading(false);
     }
-  }, [manualCampaign, isManualInputValid]);
+  }, [manualCampaign, isManualInputValid, selectedCurrency]);
 
   const handleExport = useCallback(() => {
     if (campaigns.length === 0) {
       setError('No data to export.');
       return;
     }
-    // Corrected: Use undefined instead of null
     setError(undefined);
     const exportData = campaigns.map((campaign) => ({
       campaign: campaign.campaign,
@@ -364,7 +372,6 @@ export default function AcosCalculator() {
 
   const clearData = useCallback(() => {
     setCampaigns([]);
-    // Corrected: Use undefined instead of null
     setError(undefined);
     setManualCampaign({ campaign: '', adSpend: '', sales: '' });
   }, []);
@@ -397,17 +404,14 @@ export default function AcosCalculator() {
           <YAxis tick={{ fontSize: 10 }} domain={['auto', 'auto']} />
           <Tooltip
             contentStyle={{ fontSize: '12px', padding: '5px 10px' }}
-            // Corrected: Use 'unknown' and type checks instead of 'any'
             formatter={(value: unknown) => {
-              // Handle array case (less likely for simple BarChart but good practice)
               if (Array.isArray(value)) {
                 const firstValue = value[0];
-                if (firstValue === Infinity) return 'Infinity'; // Corrected: Use 'Infinity' string
+                if (firstValue === Infinity) return 'Infinity';
                 if (typeof firstValue === 'number')
                   return firstValue.toFixed(2);
                 return firstValue ?? 'N/A';
               }
-              // Handle single value case
               if (value === Infinity) return 'Infinity';
               if (typeof value === 'number') return value.toFixed(2);
               return value ?? 'N/A';
@@ -498,6 +502,9 @@ export default function AcosCalculator() {
             <CardTitle>Manual Calculation</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            <CurrencySelector
+              onCurrencyChange={(currency) => setSelectedCurrency(currency)}
+            />
             <div>
               <Label htmlFor="manual-campaign">Campaign Name*</Label>
               <Input
@@ -551,7 +558,7 @@ export default function AcosCalculator() {
         <Alert variant={error.includes('warnings') ? 'default' : 'destructive'}>
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>
-            {error.includes('warnings') ? 'Warning' : 'Error'}
+            {error.includes('warnings') ? 'default' : 'Error'}
           </AlertTitle>
           <AlertDescription>{error}</AlertDescription>
           <Button

@@ -57,6 +57,9 @@ export interface DashboardMetrics {
   review_rating: number;
   orders?: number;
   sessions?: number;
+  roas?: number;
+  cac?: number;
+  ltv?: number;
   // Add index signature to satisfy Record<string, unknown> constraint
   [key: string]: unknown;
 }
@@ -85,6 +88,9 @@ const TARGET_METRICS_CONFIG: {
   // Add other optional metrics if needed for direct mapping
   // { key: 'profit', label: 'Profit ($)', required: false },
   // { key: 'acos', label: 'ACoS (%)', required: false },
+  { key: 'roas', label: 'ROAS (%)', required: false },
+  { key: 'cac', label: 'CAC ($)', required: false },
+  { key: 'ltv', label: 'LTV ($)', required: false },
   // { key: 'inventory_level', label: 'Inventory Level', required: false },
   // { key: 'review_rating', label: 'Review Rating', required: false },
 ];
@@ -314,6 +320,9 @@ const transformCsvRow = (
     review_rating: 0, // Placeholder
     orders: orders,
     sessions: sessions,
+    roas: 0, // Placeholder
+    cac: 0, // Placeholder
+    ltv: 0, // Placeholder
   };
 };
 
