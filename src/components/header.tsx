@@ -10,7 +10,7 @@ import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
-const SITE_TITLE = 'Wesley Quintero';
+const SITE_TITLE = 'ScaleSmart'; // Define your site title here
 const COMMON_BUTTON_CLASSES =
   'text-sm font-medium transition-all duration-300 hover:text-primary';
 
