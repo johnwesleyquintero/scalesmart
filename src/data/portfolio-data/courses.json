@@ -14,34 +14,15 @@
         "title": "Keyword Research",
         "type": "ARTICLE",
         "duration": "30 minutes",
-        "link": "/blog/keyword-research",
+        "content": "# Keyword Research\n\nKeyword research is the process of identifying the search terms that people are using to find information related to your product or service. It is a crucial step in optimizing your Amazon listings for higher rankings.\n\n## Benefits of Keyword Research\n\n*   Improved search visibility\n*   Increased traffic to your listings\n*   Higher conversion rates\n*   Better understanding of customer needs",
         "completed": false
       },
       {
         "id": "102",
         "title": "Keyword Research Quiz",
         "type": "QUIZ",
-        "questions": [
-          {
-            "id": "q1",
-            "text": "What is the primary goal of keyword research?",
-            "questionType": "multipleChoice",
-            "options": [
-              "To find the most expensive keywords",
-              "To identify relevant search terms",
-              "To write compelling ad copy",
-              "To analyze competitor websites"
-            ],
-            "correctAnswer": "To identify relevant search terms",
-            "feedback": {
-              "To find the most expensive keywords": "Incorrect. Keyword research focuses on relevance, not cost.",
-              "To identify relevant search terms": "Correct!",
-              "To write compelling ad copy": "Incorrect. Ad copy is written *using* the keywords found in research.",
-              "To analyze competitor websites": "Incorrect. Competitor analysis is related, but not the primary goal."
-            },
-            "explanation": "The primary goal of keyword research is to identify the search terms that people are using to find information related to your product or service."
-          }
-        ],
+        "duration": "30 minutes",
+        "content": "[{\"id\": \"q1\", \"question\": \"What is the primary goal of keyword research?\", \"answers\": [\"To find the most expensive keywords\", \"To identify relevant search terms\", \"To write compelling ad copy\", \"To analyze competitor websites\"], \"correctAnswer\": \"To identify relevant search terms\"}]",
         "completed": false
       }
     ]
@@ -55,7 +36,24 @@
     "locked": true,
     "progress": 0,
     "type": "ARTICLE",
-    "modules": []
+    "modules": [
+      {
+        "id": "201",
+        "title": "Mastering Amazon PPC",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "link": "/blog/mastering-amazon-ppc",
+        "completed": false
+      },
+      {
+        "id": "202",
+        "title": "PPC Best Practices",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "link": "/blog/mastering-amazon-ppc",
+        "completed": false
+      }
+    ]
   },
   {
     "id": "3",
@@ -245,6 +243,72 @@
         "type": "ARTICLE",
         "duration": "30 minutes",
         "link": "/blog/seller-central-tools",
+        "completed": false
+      }
+    ]
+  },
+  {
+    "id": "7",
+    "title": "Advanced Amazon PPC Strategies",
+    "description": "Take your Amazon PPC skills to the next level with this advanced course. Learn how to automate your campaigns, implement sophisticated targeting strategies, and master the art of data-driven optimization.",
+    "duration": "4-5 hours",
+    "level": "Advanced",
+    "locked": false,
+    "progress": 0,
+    "type": "ARTICLE",
+    "modules": [
+      {
+        "id": "701",
+        "title": "PPC Automation and Scripting",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "description": "Learn how to automate your Amazon PPC campaigns using the Amazon Ads API and custom scripts.",
+        "content": "# PPC Automation and Scripting\n\nThis module covers the basics of PPC automation and scripting. You will learn how to use the Amazon Ads API to automate your campaigns and create custom rules for bid management.",
+        "completed": false
+      },
+      {
+        "id": "702",
+        "title": "Advanced Targeting Strategies",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "description": "Discover advanced targeting strategies to reach your ideal customers on Amazon.",
+        "content": "# Advanced Targeting Strategies\n\nThis module covers advanced targeting strategies, including audience targeting, product targeting, and layered targeting.",
+        "completed": false
+      },
+      {
+        "id": "703",
+        "title": "Data-Driven Optimization",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "description": "Master the art of data-driven optimization and learn how to use key metrics to improve your PPC performance.",
+        "content": "# Data-Driven Optimization\n\nThis module covers in-depth analysis of ACoS, ROAS, TACoS, and other key metrics. You will also learn about attribution modeling and algorithmic bidding.",
+        "completed": false
+      },
+      {
+        "id": "704",
+        "title": "Amazon DSP",
+        "type": "ARTICLE",
+        "duration": "1 hour",
+        "description": "Get an introduction to Amazon DSP and learn how to use it to reach a wider audience.",
+        "content": "# Amazon DSP\n\nThis module covers the basics of Amazon DSP, including setting up and managing DSP campaigns, targeting options, and measuring campaign performance.",
+        "completed": false
+      },
+      {
+        "id": "705",
+        "title": "Sponsored Display Ads",
+        "type": "ARTICLE",
+        "duration": "30 minutes",
+        "description": "Learn how to use Sponsored Display ads to retarget customers and promote product discovery.",
+        "content": "# Sponsored Display Ads\n\nThis module covers how to leverage Sponsored Display ads for retargeting and product discovery. You will also learn best practices for ad creative and messaging.",
+        "completed": false
+      },
+      {
+        "id": "706",
+        "title": "PPC for International Markets",
+        "type": "ARTICLE",
+        "duration": "30 minutes",
+        "description": "Adapt your PPC strategies for different languages and cultures and learn how to manage campaigns in multiple marketplaces.",
+        "content": "# PPC for International Markets\n\nThis module covers adapting PPC strategies for different languages and cultures, keyword translation and localization, and managing PPC campaigns in multiple marketplaces.",
         "completed": false
       }
     ]

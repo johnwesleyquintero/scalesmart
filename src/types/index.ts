@@ -15,6 +15,7 @@ export type Course = {
   progress: number;
   modules: Module[];
   category?: string; // Added category property
+  imageUrl?: string;
 };
 
 export type Module = {

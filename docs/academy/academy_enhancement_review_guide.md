@@ -1,5 +1,7 @@
 ## Academy Enhancement Review Guide
 
+The SWOT analysis and recommendations for improving the academy can be found in [academy_swot_analysis_and_recommendations.md](academy_swot_analysis_and_recommendations.md).
+
 **Purpose:** This guide provides instructions for reviewers to validate the recent enhancements implemented in the Academy.
 
 **Key Changes:**

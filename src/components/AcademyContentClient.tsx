@@ -83,7 +83,7 @@ function AcademyContentClient({
   console.log('AcademyContentClient: recommendedCourses =', recommendedCourses); // ADDED LOGGING STATEMENT
 
   return (
-    <div className="max-w-7xl mx-auto p-4">
+    <div className="max-w-7xl mx-auto p-4 bg-gray-100 rounded-lg shadow-md">
       {/* Page Title Section */}
       <div className="text-center mb-8">
         {/* Optional: remove mb-8 if my-6 on h1 is sufficient */}

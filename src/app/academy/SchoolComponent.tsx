@@ -94,12 +94,12 @@ export default function SchoolComponent() {
   };
 
   return (
-    <div className="flex justify-end">
-      <Button onClick={handleExportData}>Export Academy Data</Button>
+    <div className="flex flex-col items-center mt-4">
       {/* courses should be an array by now if no error and not loading */}
       <AcademyProvider initialCourses={courses || []}>
         <AcademyContentClient courses={courses || []} CourseList={CourseList} />
       </AcademyProvider>
+      <Button onClick={handleExportData}>Export Academy Data</Button>
     </div>
   );
 }
@@ -114,7 +114,12 @@ const CourseList = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {courses.map((course) => (
-        <Card key={course.id} className={course.locked ? 'opacity-75' : ''}>
+        <Card key={course.id} className={` ${course.locked ? 'opacity-75 bg-gray-100' : ''}`}>
+          <img
+            src={course.imageUrl || "https://via.placeholder.com/400x200"}
+            alt={course.title}
+            className="h-40 w-full object-cover rounded-md"
+          />
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>

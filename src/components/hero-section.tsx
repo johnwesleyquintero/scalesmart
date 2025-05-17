@@ -35,7 +35,7 @@ export default function HeroSection() {
               Empowering Amazon Sellers with
               <span className="font-semibold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
                 {' '}
-                Data-driven Solutions
+                ScaleSmart Data-driven Solutions
               </span>{' '}
               and
               <span className="font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">

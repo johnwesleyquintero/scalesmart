@@ -1,126 +1,83 @@
-# Academy Curriculum Enhancement Plan
+# Amazon Seller Academy Curriculum Enhancement Plan: Advanced PPC Strategies
 
 ## Overview
 
-This document outlines the plan to enhance the Amazon Seller Academy's curriculum, based on the "Improvement Plan" outlined in `academy_architecture.md`.
+The SWOT analysis and recommendations for improving the academy can be found in [academy_swot_analysis_and_recommendations.md](academy_swot_analysis_and_recommendations.md).
 
-## Goals
+This plan outlines the proposed enhancements to the Amazon Seller Academy curriculum, focusing on advanced Pay-Per-Click (PPC) strategies. The goal is to provide experienced Amazon sellers with the knowledge and skills they need to optimize their PPC campaigns, maximize profitability, and scale their businesses.
 
-- Diversify module types.
-- Improve the quiz component.
-- Enhance the curriculum.
-- Implement personalized learning paths.
+## Existing Courses
 
-## Detailed Plan
+- Amazon SEO Fundamentals
+- Amazon PPC Mastery
+- Amazon FBA: Getting Started
+- Advanced Amazon Listing Optimization
+- Amazon Brand Registry and Protection
+- Amazon Product Research and Validation
 
-### 1. Diversified Module Types
+## Identified Gaps and Improvements
 
-- **Changes Needed:**
-  - Modify the `Module` type definition in `src/lib/types.ts` to include a `type` property (e.g., "video", "exercise", "caseStudy", "article", "quiz").
-  - Update the `AcademyContentClient` component (`src/components/AcademyContentClient.tsx`) to render different components based on the `module.type`.
-  - Create new components for each module type (e.g., `VideoModule.tsx`, `ExerciseModule.tsx`, `CaseStudyModule.tsx`). These components will handle the specific rendering and interaction logic for each module type.
-  - Update the data structure (likely in `src/data/portfolio-data/courses.json` or similar) to include the `type` property for each module.
-- **Data Structures:**
+The existing "Amazon PPC Mastery" course is listed as "Intermediate" and currently lacks detailed content. There is a need for a more advanced course that covers topics such as:
 
-  - Extend the `Module` interface in `src/lib/types.ts`:
+- PPC automation and scripting
+- Advanced targeting strategies
+- Detailed PPC metrics and optimization techniques
+- Amazon DSP (Demand-Side Platform)
+- Sponsored Display Ads
+- PPC for international markets
 
-  ```typescript
-  export interface Module {
-    id: string;
-    title: string;
-    type: 'article' | 'video' | 'exercise' | 'caseStudy' | 'quiz'; // Added type
-    contentSlug?: string; // For articles
-    videoUrl?: string; // For videos
-    exerciseData?: any; // For interactive exercises (e.g., JSON with instructions, code snippets)
-    caseStudyId?: string; // For case studies
-    quizId?: string; // For quizzes
-  }
-  ```
+## Proposed New Content
 
-- **Components:**
-  - Create `VideoModule.tsx`: This component will display a video player (using a library like `react-player` or a standard HTML5 video element).
-  - Create `ExerciseModule.tsx`: This component will render interactive exercises. The specific implementation will depend on the exercise format (e.g., code challenges, drag-and-drop activities).
-  - Create `CaseStudyModule.tsx`: This component will display case study content, potentially pulling data from a separate data source.
+A new course, "Advanced Amazon PPC Strategies," will be created to address these gaps.
 
-### 2. Improved Quiz Component
+## Detailed Course Plan
 
-- **Changes Needed:**
-  - Enhance the `Quiz` component (`src/components/Quiz.tsx`) to provide feedback for incorrect answers, explanations for correct answers, and support for different question types.
-  - Modify the quiz data structure (likely in `src/data/portfolio-data/courses.json` or similar) to include question types, correct answers, feedback, and explanations.
-- **Data Structures:**
+**Course Title:** Advanced Amazon PPC Strategies
 
-  - Extend the `Quiz` data structure (e.g., within the `Module` or a separate `Quiz` type):
+**Course Description:** Take your Amazon PPC skills to the next level with this advanced course. Learn how to automate your campaigns, implement sophisticated targeting strategies, and master the art of data-driven optimization.
 
-  ```typescript
-  export interface Question {
-    id: string;
-    type: 'multipleChoice' | 'trueFalse' | 'fillInTheBlank'; // Added question types
-    text: string;
-    options?: string[]; // For multiple choice
-    correctAnswer: string | string[]; // For multiple choice, true/false, or fill-in-the-blank
-    feedbackIncorrect?: string;
-    explanationCorrect?: string;
-  }
+**Target Audience:** Experienced Amazon sellers who have a solid understanding of PPC fundamentals and are looking to scale their campaigns and maximize profitability.
 
-  export interface Quiz {
-    id: string;
-    title: string;
-    questions: Question[];
-  }
-  ```
+**Course Level:** Advanced
 
-- **Components:**
-  - Update the `Quiz` component to render different question types based on the `question.type`.
-  - Implement logic to display feedback and explanations after the user submits their answers.
+**Course Duration:** 4-5 hours
 
-### 3. Curriculum Enhancement
+**Course Modules:**
 
-- **Changes Needed:**
-  - Add new courses and modules to the `courses.json` (or similar) data file, covering a wider range of Amazon seller topics.
-  - Ensure the content is up-to-date and reflects the latest Amazon policies and best practices.
-- **Data Structures:**
-  - Update the `Course` and `Module` data structures in `src/lib/types.ts` and the corresponding data files (`src/data/portfolio-data/courses.json` or similar) to include the new courses and modules.
+1.  **Module 1: PPC Automation and Scripting (1 hour)**
+    - Introduction to the Amazon Ads API
+    - Setting up API access and authentication
+    - Creating custom rules for bid management
+    - Automated reporting and performance analysis
+    - Case studies and examples
+2.  **Module 2: Advanced Targeting Strategies (1 hour)**
+    - Deep dive into audience targeting (retargeting, in-market audiences, demographics)
+    - Product targeting: strategies for targeting competitor ASINs and categories
+    - Layered targeting: combining keyword, product, and audience targeting for maximum impact
+    - Advanced keyword research techniques
+3.  **Module 3: Data-Driven Optimization (1 hour)**
+    - In-depth analysis of ACoS, ROAS, TACoS, and other key metrics
+    - Attribution modeling and understanding the customer journey
+    - Algorithmic bidding and advanced bid optimization techniques
+    - Using data visualization to identify trends and opportunities
+4.  **Module 4: Amazon DSP (1 hour)**
+    - Introduction to Amazon DSP and its capabilities
+    - Setting up and managing DSP campaigns
+    - Targeting options and audience segmentation in DSP
+    - Measuring and optimizing DSP campaign performance
+    - Case studies and examples
+5.  **Module 5: Sponsored Display Ads (30 minutes)**
+    - Leveraging Sponsored Display ads for retargeting and product discovery
+    - Optimizing Sponsored Display campaigns for conversions
+    - Best practices for ad creative and messaging
+6.  **Module 6: PPC for International Markets (30 minutes)**
+    - Adapting PPC strategies for different languages and cultures
+    - Keyword translation and localization
+    - Managing PPC campaigns in multiple marketplaces
+    - Tax and legal considerations for international PPC
 
-### 4. Personalized Learning Paths
+## Integration with Amazon Seller Tools
 
-- **Changes Needed:**
-  - Implement a system to recommend courses and modules based on the user's experience level and interests.
-  - Allow users to track their progress and earn badges or certificates for completing courses.
-  - This will likely involve creating a user profile and storing user data (experience level, interests, course progress) in local storage (as per the architecture document) or potentially a database (if the note about local storage is no longer valid).
-- **Data Structures:**
-
-  - Create a `UserProfile` interface (or extend an existing one) to store user-specific data:
-
-  ```typescript
-  export interface UserProfile {
-    id: string; // User ID (e.g., from local storage)
-    experienceLevel: 'beginner' | 'intermediate' | 'advanced';
-    interests: string[]; // Array of interest tags (e.g., "product research", "advertising")
-    completedCourses: string[]; // Array of course IDs
-    // Add other relevant user data
-  }
-  ```
-
-- **Components:**
-  - Create a component to display recommended courses and modules based on the user's profile.
-  - Implement logic to update the user's profile when they complete courses or modules.
-  - Consider a badge/certificate component.
-
-### Mermaid Diagram (High-Level Overview)
-
-```mermaid
-graph LR
-    A[User] --> B{Academy Page (src/app/academy/page.tsx)};
-    B --> C{AcademyContentClient (src/components/AcademyContentClient.tsx)};
-    C --> D{Module Components (Video, Exercise, CaseStudy, Quiz)};
-    C --> E{Quiz Component (src/components/Quiz.tsx)};
-    C --> F{Course & Module Data (courses.json, etc.)};
-    C --> G{User Profile & Recommendations};
-    D --> H{Video Player};
-    D --> I{Interactive Exercise};
-    D --> J{Case Study Content};
-    E --> K{Question Types, Feedback, Explanations};
-    G --> L{Experience Level & Interests};
-    G --> M{Completed Courses};
-    G --> N{Recommendations};
-```
+- The course will include practical exercises and case studies that utilize the Amazon Seller Tools components.
+- For example, students will use the "PPC Campaign Auditor" (if available) to analyze real-world campaigns and identify areas for improvement.
+- They will also use keyword research tools to discover new, high-potential keywords.

@@ -69,6 +69,9 @@ export default function RootLayout({
           'flex-col',
           'selection:bg-primary/10',
           'selection:text-primary',
+          'mx-auto',
+          'flex',
+          'justify-center'
         )}
       >
         <ClientProviders>
