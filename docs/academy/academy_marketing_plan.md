@@ -1,4 +1,4 @@
-# Amazon Seller Academy Marketing Plan
+# ScaleSmart Academy Marketing Plan
 
 ## 1. Target Segments
 

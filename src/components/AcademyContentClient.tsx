@@ -87,7 +87,7 @@ function AcademyContentClient({
       {/* Page Title Section */}
       <div className="text-center mb-8">
         {/* Optional: remove mb-8 if my-6 on h1 is sufficient */}
-        <h1 className="text-3xl font-bold my-6">Amazon Seller Academy</h1>
+        <h1 className="text-3xl font-bold my-6">ScaleSmart Academy</h1>
         <p className="text-lg text-muted-foreground">
           Master Amazon PPC, SEO, and sales strategies with our comprehensive
           courses

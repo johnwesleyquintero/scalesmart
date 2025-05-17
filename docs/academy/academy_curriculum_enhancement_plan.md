@@ -1,10 +1,10 @@
-# Amazon Seller Academy Curriculum Enhancement Plan: Advanced PPC Strategies
+# ScaleSmart Academy Curriculum Enhancement Plan: Advanced PPC Strategies
 
 ## Overview
 
 The SWOT analysis and recommendations for improving the academy can be found in [academy_swot_analysis_and_recommendations.md](academy_swot_analysis_and_recommendations.md).
 
-This plan outlines the proposed enhancements to the Amazon Seller Academy curriculum, focusing on advanced Pay-Per-Click (PPC) strategies. The goal is to provide experienced Amazon sellers with the knowledge and skills they need to optimize their PPC campaigns, maximize profitability, and scale their businesses.
+This plan outlines the proposed enhancements to the ScaleSmart Academy curriculum, focusing on advanced Pay-Per-Click (PPC) strategies. The goal is to provide experienced Amazon sellers with the knowledge and skills they need to optimize their PPC campaigns, maximize profitability, and scale their businesses.
 
 ## Existing Courses
 

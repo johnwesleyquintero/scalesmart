@@ -1,8 +1,8 @@
-# Amazon Seller Academy Architecture
+# ScaleSmart Academy Architecture
 
 ## Overview
 
-This document outlines the architecture of the Amazon Seller Academy page (`src/app/academy/page.tsx`). It describes the key components and their responsibilities.
+This document outlines the architecture of the ScaleSmart Academy page (`src/app/academy/page.tsx`). It describes the key components and their responsibilities.
 
 ## Note:
 
@@ -112,7 +112,7 @@ Key observations:
 - **Module Types:** It renders different module types based on the `activeModule.type`, including `article`, `video`, `exercise`, `caseStudy`, `quiz`, and `simulation`.
 - **Module Rendering:** It imports and renders specific components for `VideoModule`, `ExerciseModule`, `CaseStudyModule`, and `SimulationModule`. However, it only displays placeholder text for `article` and `quiz` modules.
 
-Now I have a more complete picture of the Amazon Seller Academy platform. I can refine the SWOT analysis and develop actionable recommendations.
+Now I have a more complete picture of the ScaleSmart Academy platform. I can refine the SWOT analysis and develop actionable recommendations.
 
 **SWOT Analysis (Updated):**
 
@@ -150,7 +150,7 @@ Now I have a more complete picture of the Amazon Seller Academy platform. I can 
 
 **Actionable Recommendations:**
 
-Based on the SWOT analysis, here are actionable recommendations for improving the Amazon Seller Academy platform:
+Based on the SWOT analysis, here are actionable recommendations for improving the ScaleSmart Academy platform:
 
 1.  **Content Enhancement:**
     - Develop detailed content for existing courses that lack depth, such as the "Amazon PPC Mastery" course.
@@ -200,7 +200,7 @@ To measure the effectiveness of the proposed changes, track the following metric
   - Reduction in seller errors
   - Positive feedback from sellers
 
-By implementing these recommendations and tracking the defined metrics, the Amazon Seller Academy platform can significantly increase seller engagement, knowledge retention, and ultimately, seller success and platform ROI.
+By implementing these recommendations and tracking the defined metrics, the ScaleSmart Academy platform can significantly increase seller engagement, knowledge retention, and ultimately, seller success and platform ROI.
 
 ```mermaid
 graph TD
