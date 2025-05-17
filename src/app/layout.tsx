@@ -71,7 +71,7 @@ export default function RootLayout({
           'selection:text-primary',
           'mx-auto',
           'flex',
-          'justify-center'
+          'justify-center',
         )}
       >
         <ClientProviders>

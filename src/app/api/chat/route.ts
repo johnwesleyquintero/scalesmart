@@ -100,7 +100,9 @@ export async function POST(request: NextRequest) {
     Work Experience:
     ${portfolioContext.personalContext.workExperience
       .map(
-        (exp: WorkExperience) => // Type assertion might be needed if portfolioContext is not strictly typed: (exp as WorkExperience)
+        (
+          exp: WorkExperience, // Type assertion might be needed if portfolioContext is not strictly typed: (exp as WorkExperience)
+        ) =>
           `- ${exp.title} at ${exp.company} (${exp.period}): ${exp.description}. Achievements: ${exp.achievements.join(', ')}.`,
       )
       .join('\n    ')}
@@ -108,7 +110,9 @@ export async function POST(request: NextRequest) {
     Education:
     ${portfolioContext.personalContext.education
       .map(
-        (edu: Education) => // Type assertion might be needed: (edu as Education)
+        (
+          edu: Education, // Type assertion might be needed: (edu as Education)
+        ) =>
           `- ${edu.degree} from ${edu.institution} (${edu.period}). ${edu.description}`,
       )
       .join('\n    ')}
@@ -116,9 +120,12 @@ export async function POST(request: NextRequest) {
     Certifications:
     ${(portfolioContext.personalContext.certifications || [])
       .map(
-        (cert: GeneralCertification) => // Type assertion might be needed: (cert as GeneralCertification)
+        (
+          cert: GeneralCertification, // Type assertion might be needed: (cert as GeneralCertification)
+        ) =>
           `- ${cert.name} from ${cert.issuer} (Issued: ${cert.date}, Status: ${cert.status})`,
-      ).join('\n    ')}
+      )
+      .join('\n    ')}
 
     Web App Information:
     - Project: ${portfolioContext.webappContext.projectOverview.name}
