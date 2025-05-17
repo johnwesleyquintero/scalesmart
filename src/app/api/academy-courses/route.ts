@@ -31,8 +31,9 @@ export async function GET() {
   // In a real application, you would fetch data from a database or CMS here.
   // For now, we're returning the dummy data.
   try {
-    // Simulate fetching data
-    const courses = dummyCourses;
+    // Fetch courses from database or CMS here
+    // const courses = await fetchCourses();
+    const courses = dummyCourses; // Replace with fetched data
     return NextResponse.json(courses);
   } catch (error) {
     console.error('Error fetching academy courses:', error);

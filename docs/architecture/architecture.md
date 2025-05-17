@@ -61,3 +61,16 @@ CREATE TABLE users (
   updatedAt TIMESTAMPTZ DEFAULT NOW()
 );
 ```
+
+## Middleware and Public Paths
+
+The application uses middleware (`src/middleware.ts`) to handle authentication and authorization. The middleware checks for a valid authentication token and redirects unauthenticated users to the sign-in page.
+
+### Public Paths
+
+The middleware defines a set of public paths that do not require authentication. These paths are defined in the `src/config/publicPaths.ts` file. This allows for easier management and modification of public routes.
+
+### Implementation Details
+
+- The `middleware.ts` file uses the `getToken` function from `next-auth/jwt` to retrieve the authentication token.
+- The `publicPaths.ts` file exports an array of regular expressions and strings that define the public paths.

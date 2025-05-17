@@ -20,8 +20,7 @@ interface MetricsData {
 function processCSVData(data: string[]): CompetitorData[] {
   const headers = data[0].split(',').map((h) => h.trim());
   const rows = data.slice(1);
-  const result: CompetitorData[] = [];
-  for (const row of rows) {
+  const result: CompetitorData[] = rows.map((row) => {
     const values = row.split(',');
     const obj: CompetitorData = {
       asin: '',
@@ -31,12 +30,28 @@ function processCSVData(data: string[]): CompetitorData[] {
       conversion_rate: 0,
       click_through_rate: 0,
     };
+
     for (let i = 0; i < headers.length; i++) {
       const header = headers[i];
-      obj[header] = isNaN(Number(values[i])) ? values[i] : Number(values[i]);
+      let value: string | number = values[i];
+
+      if (
+        [
+          'price',
+          'reviews',
+          'rating',
+          'conversion_rate',
+          'click_through_rate',
+        ].includes(header)
+      ) {
+        const numValue = Number(value);
+        value = isNaN(numValue) ? 0 : numValue;
+      }
+
+      obj[header] = value;
     }
-    result.push(obj);
-  }
+    return obj;
+  });
   return result;
 }
 

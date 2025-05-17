@@ -22,7 +22,8 @@ The Academy Article API endpoint (`src/app/api/academy-article/[slug]/route.ts`)
 ## Data Flow
 
 1.  A request is made to the `/api/academy-article/[slug]` endpoint, where `[slug]` is the slug of the academy article.
-2.  The endpoint reads the MDX file from the file system.
-3.  The endpoint parses the frontmatter from the MDX file using the `matter` library.
-4.  The endpoint serializes the MDX content using the `next-mdx-remote/serialize` library.
-5.  The endpoint returns the serialized MDX source and frontmatter as a JSON response.
+2.  The endpoint validates the slug to ensure it only contains allowed characters (alphanumeric, hyphens, and underscores).
+3.  The endpoint reads the MDX file from the file system.
+4.  The endpoint parses the frontmatter from the MDX file using the `matter` library.
+5.  The endpoint serializes the MDX content using the `next-mdx-remote/serialize` library.
+6.  The endpoint returns the serialized MDX source and frontmatter as a JSON response.

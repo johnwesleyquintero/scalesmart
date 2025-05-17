@@ -2,20 +2,20 @@
 
 ## Overview
 
-The `src/app/api/prohibited-keywords/route.ts` file defines an API endpoint that allows updating the list of prohibited keywords in the `data/prohibited-keywords.json` file. It validates the input data using `zod` and writes the updated list to the file.
+This documentation describes the server action for managing prohibited keywords.
 
 ## Functionality
 
-- **Updates Prohibited Keywords:** Updates the list of prohibited keywords in the `data/prohibited-keywords.json` file.
-- **Validates Input Data:** Validates the input data using the `zod` library.
+- **Adds Prohibited Keywords:** Adds a prohibited keyword to the database.
+- **Validates Input Data:** Validates the input data using Zod.
 
 ## Technical Details
 
-- The endpoint uses the `fs/promises` module to write the updated list to the file.
-- The endpoint uses the `zod` library to validate the input data.
+- The server action uses Supabase to interact with the database.
+- The server action uses the `zod` library to validate the input data.
 
 ## Data Flow
 
-1.  A POST request is made to the `/api/prohibited-keywords` endpoint with the updated list of prohibited keywords.
-2.  The endpoint validates the input data using the `zod` library.
-3.  The endpoint writes the updated list to the `data/prohibited-keywords.json` file.
+1.  The `addProhibitedKeyword` server action is called with the keyword.
+2.  The input data is validated using Zod.
+3.  The server action attempts to add the keyword to the database.

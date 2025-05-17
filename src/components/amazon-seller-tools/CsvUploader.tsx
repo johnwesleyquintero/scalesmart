@@ -3,9 +3,9 @@
 import DragDropArea from '@/components/ui/DragDropArea';
 import { Button } from '@/components/ui/button';
 import { validateCsvContent } from '@/lib/input-validation';
-import { FileText, Info, Loader2 } from 'lucide-react'; // Added Loader2
+import { FileText, Info, Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
-import { useCallback, useRef } from 'react'; // Added React, useRef
+import { useCallback, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import SampleCsvButton from './sample-csv-button';
 
@@ -176,6 +176,7 @@ export const CsvUploader = <T extends Record<string, unknown>>({
   onClear: externalOnClear,
 }: CsvUploaderProps<T>) => {
   const fileInputRef = useRef<HTMLInputElement>(null); // Ref for file input
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
 
   const handleFileValidation = useCallback(
     async (file: File) => {
@@ -234,6 +235,7 @@ export const CsvUploader = <T extends Record<string, unknown>>({
       try {
         onUploadError?.(undefined);
         handleFileValidation(file);
+        setSelectedFileName(file.name);
         const csvContent = await handleFileRead(file);
         const { validRows, errors } = await handleCsvProcessing(csvContent);
         handleUploadResults(validRows, errors);
@@ -251,6 +253,7 @@ export const CsvUploader = <T extends Record<string, unknown>>({
       handleUploadResults,
       resetFileInput,
       onUploadError,
+      setSelectedFileName,
     ],
   );
   const onDrop = useCallback(
@@ -259,7 +262,9 @@ export const CsvUploader = <T extends Record<string, unknown>>({
         processFile(acceptedFiles[0]);
       } else {
         // Handle rejected files (e.g., wrong type, too large) - react-dropzone might provide details
-        onUploadError?.('File rejected. Check type or size.');
+        onUploadError?.(
+          'File rejected. Check type or size or ensure it is a CSV file.',
+        );
       }
     },
     [processFile, onUploadError],
@@ -282,7 +287,8 @@ export const CsvUploader = <T extends Record<string, unknown>>({
     }
     // Call external clear handler if provided
     externalOnClear?.();
-  }, [externalOnClear, onUploadError]);
+    setSelectedFileName(null);
+  }, [externalOnClear, onUploadError, setSelectedFileName]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -328,10 +334,10 @@ export const CsvUploader = <T extends Record<string, unknown>>({
               <span className="text-sm font-medium">
                 {isDragActive
                   ? 'Drop the CSV file here...'
-                  : 'Click or drag CSV file to upload'}
+                  : selectedFileName || 'Click or drag CSV file to upload'}
               </span>
               <p className="text-xs text-muted-foreground mt-1">
-                Drag &apos;n&apos; drop, or click to select file
+                Drag 'n' drop, or click to select file
               </p>
             </>
           )}
@@ -363,5 +369,3 @@ export const CsvUploader = <T extends Record<string, unknown>>({
 };
 
 export default CsvUploader;
-
-// Removed unused code and ensured proper handling of exceptions

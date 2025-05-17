@@ -16,5 +16,5 @@ The Academy Courses API endpoint (`src/app/api/academy-courses/route.ts`) return
 ## Data Flow
 
 1.  A request is made to the `/api/academy-courses` endpoint.
-2.  The endpoint imports the list of courses from the `src/data/portfolio-data/courses.json` file.
+2.  The endpoint fetches the list of courses. (Implementation TBD)
 3.  The endpoint returns the list of courses as a JSON response.

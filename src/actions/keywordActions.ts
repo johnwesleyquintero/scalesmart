@@ -1,6 +1,13 @@
 'use server';
 import { ProhibitedKeyword } from '@/lib/models/prohibited-keywords';
 import { supabase } from '@/lib/supabase';
+import { z } from 'zod';
+
+const keywordSchema = z.string().trim().toLowerCase().min(1).max(50);
+
+function normalizeKeyword(keyword: string): string {
+  return keyword.trim().toLowerCase();
+}
 
 export async function getAllProhibitedKeywords(): Promise<string[]> {
   try {
@@ -19,20 +26,16 @@ export async function getAllProhibitedKeywords(): Promise<string[]> {
 export async function addProhibitedKeyword(
   keyword: string,
 ): Promise<{ success: boolean; message: string }> {
-  if (
-    !keyword ||
-    typeof keyword !== 'string' ||
-    keyword.trim().length === 0 ||
-    keyword.trim().length > 50
-  ) {
-    return { success: false, message: 'Invalid keyword provided.' };
-  }
   try {
-    const lowerCaseKeyword = keyword.trim().toLowerCase();
+    const validatedKeyword = keywordSchema.safeParse(keyword);
+    if (!validatedKeyword.success) {
+      return { success: false, message: 'Invalid keyword provided.' };
+    }
+    const normalizedKeyword = normalizeKeyword(validatedKeyword.data);
     const { data: exists, error: queryError } = await supabase
       .from('prohibited_keywords')
       .select('*')
-      .eq('keyword', lowerCaseKeyword)
+      .eq('keyword', normalizedKeyword)
       .single();
 
     if (queryError && !queryError.message.includes('No rows found')) {
@@ -41,7 +44,7 @@ export async function addProhibitedKeyword(
 
     if (!exists) {
       const newKeyword: Omit<ProhibitedKeyword, '_id'> = {
-        keyword: keyword.trim().toLowerCase(),
+        keyword: normalizedKeyword,
         createdAt: new Date(),
         updatedAt: new Date(),
       };

@@ -18,6 +18,15 @@ export async function GET(
   { params }: { params: { slug: string } },
 ) {
   const { slug } = params;
+
+  // Validate slug
+  if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+    return NextResponse.json(
+      { error: 'Invalid slug format.' },
+      { status: 400 },
+    );
+  }
+
   const fullPath = path.join(articlesDirectory, `${slug}.mdx`);
   try {
     const fileContents = fs.readFileSync(fullPath, 'utf8');

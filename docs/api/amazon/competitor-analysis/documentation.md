@@ -14,7 +14,7 @@ The Amazon Competitor Analysis API endpoint (`src/app/api/amazon/competitor-anal
 
 - The endpoint uses the `zod` library to validate the request body.
 - The endpoint defines interfaces for the CSV data and processed metrics data.
-- The endpoint uses the `processCSVData` function to process the uploaded CSV data.
+- The endpoint uses the `processCSVData` function to process the uploaded CSV data, including handling of invalid data types.
 - The endpoint uses the `loadStaticData` function to load static data.
 
 ## Data Flow

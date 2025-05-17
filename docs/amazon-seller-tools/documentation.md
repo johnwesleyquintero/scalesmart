@@ -42,6 +42,6 @@ The Amazon Seller Tools Dashboard (`src/app/amazon-seller-tools/page.tsx`) provi
 ## Data Flow
 
 1.  The `UnifiedDashboard` component initializes the dashboard and sets up the tabs.
-2.  The `CsvDataMapper` component allows users to upload and map data from a CSV file.
+2.  The `CsvDataMapper` component allows users to upload and map data from a CSV file. The component now provides more specific error messages to the user.
 3.  The data is then used to generate charts and metrics in the dashboard.
 4.  The various tools in the dashboard use the data to perform calculations and analysis.

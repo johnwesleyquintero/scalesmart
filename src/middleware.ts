@@ -2,6 +2,7 @@ import { get } from '@vercel/edge-config';
 import { getToken } from 'next-auth/jwt';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
+import publicPaths from './config/publicPaths';
 
 export async function middleware(request: NextRequest) {
   const maintenanceMode = await get('maintenance_mode');
@@ -11,18 +12,22 @@ export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
 
   // Define public paths that don't require authentication
-  const isPublicPath = [
-    '/api/amazon',
-    '/amazon-seller-tools',
-    '/blog',
-    '/',
-  ].includes(path);
+  const isPublicPath = publicPaths.some((pattern) =>
+    typeof pattern === 'string' ? path === pattern : path.match(pattern),
+  );
 
   // Get the token from the request
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
+  let token;
+  try {
+    token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+  } catch (error) {
+    console.error('Error getting token:', error);
+    // Optionally, redirect to an error page or return a specific response
+    return NextResponse.redirect(new URL('/error', request.url));
+  }
 
   // Allow access to public paths
   if (isPublicPath) {
