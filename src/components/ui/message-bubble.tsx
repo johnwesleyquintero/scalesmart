@@ -16,7 +16,7 @@ import rehypeKatex from 'rehype-katex';
 import rehypePrismPlus from 'rehype-prism-plus';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
+import { Dialog, DialogContent, DialogTitle } from './dialog';
 
 interface ReactMarkdownProps {
   children: ReactNode;
@@ -126,6 +126,7 @@ export function MessageBubble({
             'bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30',
         )}
       >
+        <DialogTitle>Message</DialogTitle>
         {renderMessageContent()}
 
         {/* Message Actions */}
@@ -174,9 +175,6 @@ export function MessageBubble({
       {/* Preview Dialog */}
       <Dialog open={isPreviewOpen} onOpenChange={setIsPreviewOpen}>
         <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Message Preview</DialogTitle>
-          </DialogHeader>
           <div className="mt-4">{renderMessageContent()}</div>
         </DialogContent>
       </Dialog>
