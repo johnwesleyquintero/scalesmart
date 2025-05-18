@@ -61,7 +61,6 @@ import {
 import { ArrowDownRight, ArrowUpRight, Minus } from 'lucide-react'; // Icons for comparison
 
 // Import the sample CSV file. Next.js will provide a URL to it.
-import sampleDataUrl from '@/data/amazon-tools-sample-data/sample_amazon_data.csv';
 
 // --- Interface ---
 // Define DashboardMetrics interface ONCE
@@ -735,14 +734,25 @@ export default function UnifiedDashboard() {
     console.log('Mapping cancelled.');
   };
 
-  const handleDownloadSampleCsv = () => {
-    const link = document.createElement('a');
-    // sampleDataUrl is the path provided by the import
-    link.href = sampleDataUrl;
-    link.setAttribute('download', 'sample_amazon_data.csv'); // This is the name the file will have when downloaded
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownloadSampleCsv = async () => {
+    try {
+      const response = await fetch('/api/download');
+      if (!response.ok) {
+        throw new Error(`Failed to download: ${response.status}`);
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'sample_amazon_data.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error: unknown) {
+      console.error('Error downloading sample CSV:', error);
+      setError(`Download failed: ${(error as Error).message}`);
+    }
   };
 
   const handleUploadClick = () => {
@@ -777,7 +787,7 @@ export default function UnifiedDashboard() {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       setError(null);
-    } catch (err) {
+    } catch (err: unknown) {
       setError(
         `Failed to export data: ${err instanceof Error ? err.message : 'Unknown error'}`,
       );
@@ -945,8 +955,8 @@ export default function UnifiedDashboard() {
       onMappingComplete={onMappingComplete}
       sampleDataRow={sampleDataRow}
       onCancel={onCancel}
-      title="Map Business Report Columns"
-      description="Match the columns from your uploaded Business Report CSV to the required dashboard fields. Required fields are needed for calculations."
+      title="Map Report Columns"
+      description="Match the columns from your uploaded Report CSV to the required dashboard fields. Required fields are needed for calculations."
     />
   );
 

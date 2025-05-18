@@ -2,6 +2,8 @@
 import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config';
 import DOMPurify from 'dompurify';
 import React, { useCallback, useEffect, useReducer, useRef } from 'react';
+import { initializeDB, setItem } from '@/lib/indexeddb-service';
+import { cachedFetch } from '@/lib/api-cache';
 
 // --- Style Imports ---
 import 'katex/dist/katex.min.css'; // For math rendering
@@ -161,52 +163,63 @@ export default function ChatInterface() {
     }
   }, [messages]); // Depend on messages
 
-  // Load messages from localStorage on mount
+  // Load messages from IndexedDB on mount
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const savedMessages = localStorage.getItem('chatMessages');
-      if (savedMessages) {
-        try {
-          const parsedMessages: Message[] = JSON.parse(savedMessages);
-          if (Array.isArray(parsedMessages)) {
-            // Filter out any potentially invalid message structures during load
-            const validMessages = parsedMessages.filter(
-              (msg) =>
-                msg &&
-                typeof msg === 'object' &&
-                msg.role &&
-                msg.content &&
-                msg.timestamp,
-            );
-            dispatch({ type: 'SET_MESSAGES', payload: validMessages });
+    const loadMessages = async () => {
+      if (typeof window === 'undefined') return;
+
+      try {
+        const allMessages: Message[] = [];
+        const db = await initializeDB();
+        const transaction = db.transaction('chatMessages', 'readonly');
+        const objectStore = transaction.objectStore('chatMessages');
+        const request = objectStore.openCursor();
+
+        console.time('Load chat messages from IndexedDB');
+        request.onsuccess = (event: Event) => {
+          const cursor = (event.target as IDBRequest<IDBCursorWithValue>)
+            .result;
+          if (cursor) {
+            allMessages.push(cursor.value);
+            cursor.continue();
           } else {
-            console.warn('Invalid chat messages format found in localStorage.');
-            localStorage.removeItem('chatMessages');
+            console.timeEnd('Load chat messages from IndexedDB');
+            dispatch({ type: 'SET_MESSAGES', payload: allMessages });
           }
-        } catch (error: unknown) {
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : 'An unknown error occurred';
-          console.error(
-            'Failed to parse chat messages from localStorage:',
-            errorMessage,
-          );
-          localStorage.removeItem('chatMessages');
-        }
+        };
+
+        request.onerror = (event: Event) => {
+          console.error('Error loading chat messages from IndexedDB:', event);
+        };
+      } catch (indexedDBError) {
+        console.error(
+          'Error initializing IndexedDB or loading data:',
+          indexedDBError,
+        );
       }
-    }
+    };
+
+    loadMessages();
+    console.log('Chat messages loaded from IndexedDB');
   }, []); // Run only once on mount
 
-  // Save messages to localStorage when they change
+  // Save messages to IndexedDB when they change
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      // Avoid saving initial empty state unnecessarily
-      if (messages.length > 0 || localStorage.getItem('chatMessages')) {
-        localStorage.setItem('chatMessages', JSON.stringify(messages));
+    const saveMessages = async () => {
+      if (typeof window !== 'undefined') {
+        console.time('Save chat messages to IndexedDB');
+        for (const message of messages) {
+          await setItem('chatMessages', message.timestamp.toString(), message);
+        }
+        console.timeEnd('Save chat messages to IndexedDB');
       }
-    }
-  }, [messages]); // Run whenever messages array changes
+    };
+    saveMessages();
+    console.log('Chat messages saved to IndexedDB');
+  }, [messages, setItem]); // Run whenever messages array changes
+
+  // Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
+  // and uncomment the localStorage code.
 
   // Send initial greeting if chat is opened and empty
   useEffect(() => {
@@ -255,7 +268,8 @@ export default function ChatInterface() {
       try {
         // --- Actual API Call ---
         console.log('Calling /api/chat with message:', sanitizedContent);
-        const apiResponse = await fetch('/api/chat', {
+        console.time('Fetch /api/chat');
+        const apiResponse = await cachedFetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -267,6 +281,7 @@ export default function ChatInterface() {
               .map(({ role, content }) => ({ role, content })),
           }),
         });
+        console.timeEnd('Fetch /api/chat');
 
         // --- Handle API Response ---
         console.log('API Response:', apiResponse);
@@ -749,3 +764,6 @@ const renderMessage = (content: string): JSX.Element => (
     {content}
   </ReactMarkdown>
 );
+
+// Rollback strategy: To revert to the previous version, simply remove the cachedFetch import
+// and replace cachedFetch with fetch.

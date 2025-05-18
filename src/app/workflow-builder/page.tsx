@@ -7,6 +7,7 @@ import { NodeType } from '@/lib/workflow/types';
 import React, { useCallback, useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import { setItem, getItem } from '@/lib/indexeddb-service';
 import {
   addEdge,
   useEdgesState,
@@ -18,6 +19,7 @@ import {
 import 'reactflow/dist/style.css';
 
 import styles from './WorkflowBuilderPage.module.css';
+const workflowStoreName = 'workflows';
 
 const WorkflowBuilderPage = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([
@@ -149,47 +151,56 @@ const WorkflowBuilderPage = () => {
     </DndProvider>
   );
 
-  function saveWorkflow(currentNodes: Node[], currentEdges: Edge[]) {
+  async function saveWorkflow(currentNodes: Node[], currentEdges: Edge[]) {
     try {
+      console.time('Save workflow to IndexedDB');
       const workflow = { nodes: currentNodes, edges: currentEdges };
-      localStorage.setItem('workflow', JSON.stringify(workflow));
+      await setItem(workflowStoreName, 'currentWorkflow', workflow);
+      console.timeEnd('Save workflow to IndexedDB');
       // Consider using a toast notification here for better UX
       alert('Workflow saved successfully!');
     } catch (error) {
-      console.error('Failed to save workflow to local storage:', error);
+      console.error('Failed to save workflow to IndexedDB:', error);
+      console.log('Workflow saving failed to IndexedDB');
       // Display an error message to the user
       alert('Failed to save workflow. Please check the console for details.');
     }
   }
 
-  function loadWorkflow() {
-    const workflowString = localStorage.getItem('workflow');
-    if (workflowString) {
-      try {
-        const workflow = JSON.parse(workflowString);
-        if (
-          typeof workflow === 'object' &&
-          workflow !== null &&
-          Array.isArray(workflow.nodes) &&
-          Array.isArray(workflow.edges)
-        ) {
-          setNodes(workflow.nodes);
-          setEdges(workflow.edges);
-          // Consider using a toast notification here
-          alert('Workflow loaded successfully!');
-        } else {
-          console.error('Invalid workflow data in local storage:', workflow);
-          alert(
-            'Failed to load workflow: Invalid data format. Please check the console for details.',
-          );
-        }
-      } catch (error) {
-        console.error('Failed to load workflow from local storage:', error);
-        // Display an error message to the user
-        alert('Failed to load workflow. Please check the console for details.');
+  async function loadWorkflow() {
+    try {
+      // Load data from IndexedDB
+      console.log('Loading workflow from IndexedDB');
+      console.time('Load workflow from IndexedDB');
+      const workflow = await getItem(workflowStoreName, 'currentWorkflow');
+      if (
+        typeof workflow === 'object' &&
+        workflow !== null &&
+        Array.isArray((workflow as { nodes: Node[] }).nodes) &&
+        Array.isArray((workflow as { edges: Edge[] }).edges)
+      ) {
+        setNodes((workflow as { nodes: Node[] }).nodes);
+        setEdges((workflow as { edges: Edge[] }).edges);
+        console.log('Workflow loaded successfully from IndexedDB');
+        console.timeEnd('Load workflow from IndexedDB');
+        // Consider using a toast notification here
+        alert('Workflow loaded successfully!');
+      } else {
+        console.error('Invalid workflow data in IndexedDB:', workflow);
+        console.log('Workflow loading failed from IndexedDB');
+        alert(
+          'Failed to load workflow: Invalid data format. Please check the console for details.',
+        );
       }
+    } catch (error) {
+      console.error('Failed to load workflow from IndexedDB:', error);
+      // Display an error message to the user
+      alert('Failed to load workflow. Please check the console for details.');
     }
   }
 };
 
 export default WorkflowBuilderPage;
+
+// Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
+// and the console.time statements.

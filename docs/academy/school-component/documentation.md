@@ -17,8 +17,10 @@ The `SchoolComponent` (`src/app/academy/SchoolComponent.tsx`) fetches and displa
 
 - The component uses the `useState` hook to manage the state of the courses, loading, and error.
 - The component uses the `useEffect` hook to fetch the courses from the API when the component mounts.
-- The component uses the `fetch` API to make the API request.
+- The component uses the `cachedFetch` function to make the API request.
+- The component uses IndexedDB to cache the courses data.
 - The component uses the `AcademyProvider` to provide context to the `AcademyContentClient` component.
+- The component implements filtering and sorting functionality, allowing users to filter courses by category (All, Amazon SEO, Amazon PPC, Amazon FBA) and sort them by title or duration.
 
 ## Components
 

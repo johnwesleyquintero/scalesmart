@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import Papa from 'papaparse';
 import React, { useCallback, useRef, useState } from 'react'; // Added React import
+import { cachedFetch } from '@/lib/api-cache';
 
 // Local/UI Imports
 import DataCard from '@/components/amazon-seller-tools/DataCard';
@@ -552,12 +553,14 @@ export default function ListingQualityChecker() {
     asinToCheck: string,
   ): Promise<ListingData> => {
     try {
-      const response = await fetch(`/api/amazon/listing/${asinToCheck}`, {
+      console.time('Fetch ASIN data');
+      const response = await cachedFetch(`/api/amazon/listing/${asinToCheck}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
       });
+      console.timeEnd('Fetch ASIN data');
 
       if (!response.ok) {
         throw new Error(`Failed to fetch ASIN data: ${response.statusText}`);
@@ -1056,3 +1059,6 @@ export default function ListingQualityChecker() {
     </div>
   );
 }
+
+// Rollback strategy: To revert to the previous version, simply remove the cachedFetch import
+// and replace cachedFetch with fetch.

@@ -17,4 +17,6 @@ export const defaultUserProfile: UserProfile = {
   experienceLevel: 'Beginner',
   interests: [],
   completedCourses: [],
+  courseProgress: {},
+  badges: [],
 };

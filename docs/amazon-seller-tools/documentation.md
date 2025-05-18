@@ -7,11 +7,12 @@ The Amazon Seller Tools page (`c:\Users\johnw\portfolio\src\app\amazon-seller-to
 ## 2. Main Features
 
 - **Unified Dashboard:** Provides an overview of key business metrics once data is uploaded.
-- **CSV Data Upload & Mapping:** Users can upload their Amazon Business Report CSVs. A dynamic mapping interface helps match CSV columns to the required data fields.
+- **CSV Data Upload & Mapping:** Users can upload their Amazon Business Report CSVs. A dynamic mapping interface using the `GenericCsvDataMapper` component helps match CSV columns to the required data fields.
 - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons.
   - Charts: Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions).
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
+- **Period-over-Period Comparison:** Displays key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one.
 - **Specialized Tool Suite:** Organized into tabs for:
   - Keywords
   - Listing Optimization
@@ -31,7 +32,7 @@ The "Overview" tab is the primary landing spot for data analysis.
 2.  **Select your CSV file:** Choose an Amazon Business Report (or a similarly structured CSV) from your computer.
 3.  **Column Mapping:**
 
-    - After selecting a file, a "Map Business Report Columns" interface will appear.
+    - After selecting a file, a "Map Report Columns" interface powered by the `GenericCsvDataMapper` component will appear.
     - This interface displays headers from your CSV file and target fields required by the dashboard (e.g., 'Date', 'Total Sales', 'Ad Spend').
     - For each target field, select the corresponding column from your CSV using the dropdown menus.
     - Hints are provided for each target field to guide you.
@@ -49,7 +50,7 @@ Once mapping is complete and the data is processed:
 - **KPI Cards:**
 
   - **Summary KPIs:** Cards at the top display overall averages or totals for metrics like "Avg. Conversion Rate," "Total Sales," and "Avg. Clicks."
-  - **Period-over-Period Comparison KPIs:** If enough data points exist for the selected time granularity, this section shows key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
+  - **Period-over-Period Comparison KPIs:** This section shows key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
 
 - **Charts:**
 
@@ -59,12 +60,17 @@ Once mapping is complete and the data is processed:
 
 - **Time Granularity:**
 
-  - Use the "Select Time Granularity" dropdown (top right of the data view) to change the aggregation period (Daily, Weekly, Monthly, Quarterly, Yearly). Charts and KPI comparisons will update accordingly.
+  - Use the "Select Time Granularity" dropdown to change the aggregation period (Daily, Weekly, Monthly, Quarterly, Yearly). Charts and KPI comparisons will update accordingly.
 
   !Dashboard View Placeholder
   _(Ideally, replace this with an actual screenshot of the dashboard with data loaded)_
 
-### 3.3. Interacting with the Dashboard
+### 3.3. Period-over-Period Comparison
+
+- The dashboard displays period-over-period comparisons for key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS).
+- Changes are indicated with icons (up/down arrows) and percentage differences.
+
+### 3.4. Interacting with the Dashboard
 
 - **Refresh:** Click the "Refresh" button in the header to clear current data and start over (e.g., to upload a new file).
 - **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.

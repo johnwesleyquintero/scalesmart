@@ -83,7 +83,7 @@ export default function ProjectManagement() {
   };
 
   const exportTasksToCSV = () => {
-    if (tasks.length === 0) {
+    if ((tasks ?? []).length === 0) {
       alert('No tasks to export.');
       return;
     }
@@ -98,7 +98,7 @@ export default function ProjectManagement() {
     ];
     const csvRows = [
       headers.join(','), // Header row
-      ...tasks.map((task: Task) =>
+      ...(tasks ?? []).map((task: Task) =>
         [
           escapeCSVField(task.id),
           escapeCSVField(task.title),
@@ -139,7 +139,7 @@ export default function ProjectManagement() {
       ...newTask,
       id: typeof window !== 'undefined' ? Date.now().toString() : 'temp_id', // Generate ID only on client
     };
-    setTasks([...tasks, task]);
+    setTasks([...(tasks ?? []), task]);
     setNewTask({
       title: '',
       description: '',
@@ -155,7 +155,7 @@ export default function ProjectManagement() {
   const handleDrop = (status: 'todo' | 'in-progress' | 'done') => {
     if (!draggedTask) return;
 
-    const updatedTasks = tasks.map((t: Task) =>
+    const updatedTasks = (tasks ?? []).map((t: Task) =>
       t.id === draggedTask.id ? { ...t, status } : t,
     );
     setTasks(updatedTasks);
@@ -167,7 +167,7 @@ export default function ProjectManagement() {
   };
 
   const deleteTask = (id: string) => {
-    setTasks(tasks.filter((task: Task) => task.id !== id));
+    setTasks((tasks ?? []).filter((task: Task) => task.id !== id));
   };
 
   const clearAllTasks = () => {
@@ -312,12 +312,15 @@ export default function ProjectManagement() {
               <div className="flex justify-between items-center mb-4">
                 <h2 className="font-semibold text-lg">{column.title}</h2>
                 <span className="bg-white px-2 py-1 rounded-full text-sm">
-                  {tasks.filter((t: Task) => t.status === column.id).length}
+                  {
+                    (tasks ?? []).filter((t: Task) => t.status === column.id)
+                      .length
+                  }
                 </span>
               </div>
 
               <div className="space-y-3">
-                {tasks
+                {(tasks ?? [])
                   .filter((task: Task) => task.status === column.id)
                   .map((task: Task) => (
                     <Card

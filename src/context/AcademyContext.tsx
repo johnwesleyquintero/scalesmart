@@ -91,7 +91,7 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
     courses,
     setCourses,
     startModule,
-    academyData,
+    academyData: academyData ?? { courses: [] },
     saveData,
   };
 

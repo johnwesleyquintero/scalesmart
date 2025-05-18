@@ -11,7 +11,9 @@ import { useIsMobile } from '@/components/ui/use-mobile';
 import { toast } from '@/components/ui/use-toast';
 import { Info } from 'lucide-react';
 import Papa from 'papaparse';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
+import { setItem, getItem } from '@/lib/indexeddb-service';
+import { cachedFetch } from '@/lib/api-cache';
 import {
   CartesianGrid,
   Legend,
@@ -230,7 +232,7 @@ export function CompetitorAnalyzer() {
     return true;
   };
 
-  const processCsvData = (): void => {
+  const processCsvData = async (): Promise<void> => {
     try {
       if (!sellerData && !competitorData) {
         return;
@@ -274,11 +276,10 @@ export function CompetitorAnalyzer() {
         // Check storage size before saving
         const dataSize = new Blob([JSON.stringify(formattedData)]).size;
         if (dataSize <= MAX_STORAGE_SIZE) {
-          sessionStorage.setItem('chartData', JSON.stringify(formattedData));
+          await setItem('competitorAnalysis', 'chartData', formattedData);
           setChartData(formattedData);
         } else {
-          sessionStorage.removeItem('chartData');
-          warn('Data exceeds storage limit, not saved to localStorage');
+          warn('Data exceeds storage limit, not saved to IndexedDB');
         }
         setIsLoading(false);
         return;
@@ -296,7 +297,7 @@ export function CompetitorAnalyzer() {
 
   const fetchAndProcessApiData = async (): Promise<void> => {
     try {
-      const response = await fetch('/api/amazon/competitor-analysis', {
+      const response = await cachedFetch('/api/amazon/competitor-analysis', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -401,7 +402,26 @@ export function CompetitorAnalyzer() {
   };
 
   const isMobile = useIsMobile();
+  const [, setSavedAnalysis] = useState<unknown>(null);
 
+  useEffect(() => {
+    const loadAnalysis = async () => {
+      try {
+        console.time('Load competitor analysis from IndexedDB');
+        const cachedData = await getItem('competitorAnalysis', 'chartData');
+        console.timeEnd('Load competitor analysis from IndexedDB');
+        if (cachedData) {
+          setSavedAnalysis(cachedData);
+          setChartData(cachedData as ChartDataPoint[]);
+        }
+      } catch (e) {
+        console.error('Error getting data from IndexedDB:', e);
+      }
+    };
+    loadAnalysis();
+  }, []);
+
+  // Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
   return (
     <Card className="p-6">
       <div className="space-y-4">
@@ -533,29 +553,30 @@ export function CompetitorAnalyzer() {
           <Button
             variant="outline"
             disabled={!chartData}
-            onClick={() => {
-              // Save analysis results to localStorage
+            onClick={async () => {
+              // Save analysis results to IndexedDB
               const timestamp = new Date().toISOString();
-              const savedAnalyses = JSON.parse(
-                sessionStorage.getEncryptedItem('competitorAnalyses') || '[]',
-              );
-              savedAnalyses.push({
-                id: timestamp,
-                date: new Date().toLocaleString(),
-                asin,
-                metrics,
-                chartData,
-              });
-              // Replaced localStorage with encrypted session storage
-              sessionStorage.setEncryptedItem(
-                'competitorAnalyses',
-                JSON.stringify(savedAnalyses),
-              );
-              toast({
-                title: 'Success',
-                description: 'Analysis saved for future reference',
-                variant: 'default',
-              });
+              try {
+                await setItem('competitorAnalysis', timestamp, {
+                  id: timestamp,
+                  date: new Date().toLocaleString(),
+                  asin,
+                  metrics,
+                  chartData,
+                });
+                toast({
+                  title: 'Success',
+                  description: 'Analysis saved for future reference',
+                  variant: 'default',
+                });
+              } catch (e) {
+                console.error('Error saving data to IndexedDB:', e);
+                toast({
+                  title: 'Error',
+                  description: 'Failed to save analysis',
+                  variant: 'destructive',
+                });
+              }
             }}
           >
             Save Analysis

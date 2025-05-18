@@ -7,18 +7,27 @@ export async function GET() {
   try {
     const filePath = path.join(
       process.cwd(),
-      'public',
-      'profile',
-      'Wesley Quintero - Resume.pdf',
+      'src',
+      'data',
+      'amazon-tools-sample-data',
+      'sample_amazon_data.csv',
     );
-    const fileBuffer = await readFile(filePath);
+    let fileBuffer;
+    try {
+      fileBuffer = await readFile(filePath);
+    } catch (error: unknown) {
+      console.error('Error reading file:', error);
+      return new NextResponse('Failed to read file', { status: 500 });
+    }
+
+    const headers = {
+      'Content-Type': 'text/csv',
+      'Content-Disposition': 'attachment; filename="sample_amazon_data.csv"',
+      'Access-Control-Allow-Origin': '*',
+    };
 
     return new NextResponse(fileBuffer, {
-      headers: {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition':
-          'attachment; filename="Wesley_Quintero_Resume.pdf"',
-      },
+      headers: headers,
     });
   } catch (error) {
     console.error('Error serving PDF:', error);

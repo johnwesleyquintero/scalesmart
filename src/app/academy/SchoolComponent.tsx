@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/card';
 import { AcademyProvider } from '@/context/AcademyContext';
 import { useEffect, useState } from 'react';
+import { setItem, getItem } from '@/lib/indexeddb-service';
+import { cachedFetch } from '@/lib/api-cache';
 
 const moduleItemStyle = 'text-gray-700';
 
@@ -31,34 +33,23 @@ export default function SchoolComponent() {
       setError(null);
       console.log('Fetching courses from /api/academy-courses');
 
-      // Clear local storage before fetching data
-      localStorage.removeItem('courses');
-
-      // Check if data is in localStorage
-      const cachedData = localStorage.getItem('courses');
-      if (cachedData) {
-        try {
-          const parsedData = JSON.parse(cachedData);
-          if (Array.isArray(parsedData)) {
-            console.log('Data from localStorage:', parsedData);
-            setCourses(parsedData);
-            setLoading(false);
-            return; // Exit the function early
-          } else {
-            console.error(
-              'localStorage Error: Expected an array of courses, but received:',
-              parsedData,
-            );
-            localStorage.removeItem('courses'); // Remove invalid data
-          }
-        } catch (e) {
-          console.error('Error parsing localStorage data:', e);
-          localStorage.removeItem('courses'); // Remove invalid data
+      // Load data from IndexedDB
+      try {
+        console.time('Load courses from IndexedDB');
+        const cachedData = await getItem('courses', 'all');
+        if (cachedData) {
+          console.log('Courses loaded from IndexedDB:', cachedData);
+          setCourses(cachedData as Course[]);
+          setLoading(false);
+          console.timeEnd('Load courses from IndexedDB');
+          return; // Exit the function early
         }
+      } catch (e) {
+        console.error('Error getting data from IndexedDB:', e);
       }
 
       try {
-        const response = await fetch('/api/academy-courses');
+        const response = await cachedFetch('/api/academy-courses');
         console.log('API Response Status:', response.status);
         if (!response.ok) {
           const errorText = await response.text();
@@ -74,7 +65,9 @@ export default function SchoolComponent() {
 
         if (Array.isArray(data)) {
           setCourses(data); // API returns the array directly
-          localStorage.setItem('courses', JSON.stringify(data)); // Store data in localStorage
+          console.time('Save courses to IndexedDB');
+          await setItem('courses', 'all', data); // Store data in IndexedDB
+          console.timeEnd('Save courses to IndexedDB');
         } else {
           console.error(
             'API Error: Expected an array of courses, but received:',
@@ -180,6 +173,9 @@ export default function SchoolComponent() {
     </div>
   );
 }
+
+// Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
+// and the console.time statements.
 
 const categoryOptions = ['All', 'Amazon SEO', 'Amazon PPC', 'Amazon FBA'];
 const sortOptions = ['Title', 'Duration'];

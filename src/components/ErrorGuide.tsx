@@ -2,13 +2,14 @@
 
 import MdxRenderer from '@/components/MdxRenderer';
 import { useEffect, useState } from 'react';
+import { cachedFetch } from '@/lib/api-cache';
 
 const ErrorGuide = () => {
   const [mdxContent, setMdxContent] = useState('');
 
   useEffect(() => {
     const fetchMdxContent = async () => {
-      const response = await fetch('/error-guide');
+      const response = await cachedFetch('/error-guide');
       const content = await response.text();
       setMdxContent(content);
     };
@@ -20,3 +21,6 @@ const ErrorGuide = () => {
 };
 
 export default ErrorGuide;
+
+// Rollback strategy: To revert to the previous version, simply remove the cachedFetch import
+// and replace cachedFetch with fetch.

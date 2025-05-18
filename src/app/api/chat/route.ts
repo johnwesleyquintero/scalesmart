@@ -182,7 +182,9 @@ export async function POST(request: NextRequest) {
     console.log(`Context prompt size: ${contextPromptSize}`);
 
     if (contextPromptSize > 15000) {
-      console.warn('Context prompt size exceeds 15000 characters. This may lead to errors.');
+      console.warn(
+        'Context prompt size exceeds 15000 characters. This may lead to errors.',
+      );
     }
 
     const startTime = Date.now();
@@ -201,7 +203,8 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       ...(body?.message && { lastMessage: body.message }),
     });
-    const errorMessage = error instanceof Error ? (error as Error).message : 'Unknown error';
+    const errorMessage =
+      error instanceof Error ? (error as Error).message : 'Unknown error';
     console.error('Chat API Error Details:', {
       errorName: (error as Error).name,
       errorMessage: errorMessage,

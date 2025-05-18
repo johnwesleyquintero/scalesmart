@@ -13,6 +13,7 @@ import {
   Upload,
   XCircle,
 } from 'lucide-react';
+import { cachedFetch } from '@/lib/api-cache';
 import Papa from 'papaparse';
 import React, {
   useCallback,
@@ -476,11 +477,9 @@ export default function DescriptionEditor() {
       setIsLoading(true);
       try {
         // Fetch from the API route instead of the action
-        const response = await fetch('/api/prohibited-keywords');
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch prohibited keywords: ${response.statusText}`,
-          );
+        const response = await cachedFetch('/api/prohibited-keywords');
+        if (!response) {
+          throw new Error(`Failed to fetch prohibited keywords`);
         }
         const keywords: string[] = await response.json();
         setProhibitedKeywords(keywords);

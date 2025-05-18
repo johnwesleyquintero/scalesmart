@@ -12,11 +12,17 @@ import {
 import { Input } from '@/components/ui/input';
 import { Download, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useLocalStorage } from '../../hooks/use-local-storage';
+// import { useLocalStorage } from '../../hooks/use-local-storage';
 import { Toaster, toast } from 'sonner'; // Import Toaster and toast
 import { CustomerForm } from './components/CustomerForm'; // Import new component
 import { CustomerListItem } from './components/CustomerListItem'; // Import new component
 import type { Customer } from './types'; // Import Customer type
+import {
+  addCustomer,
+  updateCustomer,
+  deleteCustomer,
+  getAllCustomers,
+} from '@/lib/indexeddb';
 
 // Helper function to escape fields for CSV
 const escapeCSVField = (field: string | undefined | null): string => {
@@ -137,42 +143,88 @@ export default function CRMComponent() {
 
   // Initialize customers state. The third argument [] is for server-side rendering
   // to prevent hydration mismatch, ensuring it's an empty array on first server render.
-  const [customers, setCustomers] = useLocalStorage<Customer[]>(
-    'crmCustomers',
-    [],
-    [],
-  );
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  // const [customers, setCustomers] = useLocalStorage<Customer[]>(
+  //   'crmCustomers',
+  //   [],
+  //   [],
+  // );
+
+  const migrateDataFromLocalStorage = async () => {
+    try {
+      const localStorageData = localStorage.getItem('crmCustomers');
+      if (localStorageData) {
+        const parsedData: Customer[] = JSON.parse(localStorageData);
+        for (const customer of parsedData) {
+          await addCustomer(customer);
+        }
+        localStorage.removeItem('crmCustomers');
+        toast.success(
+          'Successfully migrated data from localStorage to IndexedDB!',
+        );
+      }
+    } catch (error) {
+      console.error('Error migrating data from localStorage:', error);
+      toast.error(
+        'Failed to migrate data from localStorage. See console for details.',
+      );
+    }
+  };
 
   // This effect helps in determining if we have tried to load from localStorage.
   // Useful for showing a loading state or a "no data" message correctly.
   useEffect(() => {
-    setHasAttemptedInitialLoad(true);
+    const loadCustomers = async () => {
+      try {
+        await migrateDataFromLocalStorage();
+        const allCustomers = await getAllCustomers();
+        setCustomers(allCustomers);
+      } catch (error) {
+        console.error('Error loading customers from IndexedDB:', error);
+        toast.error('Failed to load customers. See console for details.');
+      } finally {
+        setHasAttemptedInitialLoad(true);
+      }
+    };
+
+    loadCustomers();
   }, []);
 
   const handleCancelEdit = () => {
     setEditingCustomer(null);
   };
 
-  const handleSaveCustomer = (formData: Omit<Customer, 'id'>) => {
+  const handleSaveCustomer = async (formData: Omit<Customer, 'id'>) => {
     if (editingCustomer) {
       // Update existing customer
-      setCustomers(
-        customers.map((customer: Customer) =>
-          customer.id === editingCustomer.id
-            ? { ...formData, id: editingCustomer.id }
-            : customer,
-        ),
-      );
-      toast.success('Customer updated successfully!');
-      setEditingCustomer(null);
+      const updatedCustomer: Customer = { ...formData, id: editingCustomer.id };
+      try {
+        await updateCustomer(updatedCustomer);
+        setCustomers(
+          customers.map((customer: Customer) =>
+            customer.id === editingCustomer.id ? updatedCustomer : customer,
+          ),
+        );
+        toast.success('Customer updated successfully!');
+        setEditingCustomer(null);
+      } catch (error) {
+        console.error('Error updating customer in IndexedDB:', error);
+        toast.error('Failed to update customer. See console for details.');
+      }
     } else {
       // Add new customer
-      const newCustomer = {
+      const newCustomer: Customer = {
         ...formData,
         id: Date.now().toString(),
       };
-      setCustomers([...customers, newCustomer]);
-      toast.success('Customer added successfully!');
+      try {
+        await addCustomer(newCustomer);
+        setCustomers([...customers, newCustomer]);
+        toast.success('Customer added successfully!');
+      } catch (error) {
+        console.error('Error adding customer to IndexedDB:', error);
+        toast.error('Failed to add customer. See console for details.');
+      }
     }
   };
 
@@ -182,14 +234,20 @@ export default function CRMComponent() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
-      setCustomers(
-        customers.filter((customer: Customer) => customer.id !== id),
-      );
-      toast.info('Customer deleted.');
-      if (editingCustomer?.id === id) {
-        setEditingCustomer(null);
+      try {
+        await deleteCustomer(id);
+        setCustomers(
+          customers.filter((customer: Customer) => customer.id !== id),
+        );
+        toast.info('Customer deleted.');
+        if (editingCustomer?.id === id) {
+          setEditingCustomer(null);
+        }
+      } catch (error) {
+        console.error('Error deleting customer from IndexedDB:', error);
+        toast.error('Failed to delete customer. See console for details.');
       }
     }
   };

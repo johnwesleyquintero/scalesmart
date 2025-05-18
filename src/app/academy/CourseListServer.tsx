@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/card';
 import { Course } from '@/types';
 import { BookOpen, Lock } from 'lucide-react';
+import { cachedFetch } from '@/lib/api-cache';
 
 async function fetchCourses() {
   const baseUrl =
@@ -15,8 +16,8 @@ async function fetchCourses() {
       ? 'http://localhost:3000'
       : 'https://wesleyquintero.vercel.app';
   try {
-    const response = await fetch(`${baseUrl}/api/academy-courses`);
-    const data = await response.json();
+    const data = await cachedFetch(`${baseUrl}/api/academy-courses`);
+
     // API returns the array directly, not nested under a 'courses' key
     if (Array.isArray(data)) {
       return data as Course[];

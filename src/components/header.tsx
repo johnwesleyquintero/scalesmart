@@ -9,6 +9,7 @@ import { signIn, signOut, useSession } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { cachedFetch } from '@/lib/api-cache';
 
 const SITE_TITLE = 'ScaleSmart'; // Define your site title here
 const COMMON_BUTTON_CLASSES =
@@ -33,8 +34,8 @@ export default function Header() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
@@ -86,11 +87,12 @@ export default function Header() {
     queryKey: ['search', debouncedQuery],
     queryFn: async () => {
       if (!debouncedQuery) return { blog: [], tools: [] };
-      const response = await fetch(
+      console.time('Fetch search results');
+      const data = await cachedFetch(
         `/api/search?q=${encodeURIComponent(debouncedQuery)}`,
       );
-      if (!response.ok) throw new Error('Search failed');
-      return await response.json();
+      console.timeEnd('Fetch search results');
+      return data;
     },
     enabled: !!debouncedQuery,
   });
@@ -102,14 +104,14 @@ export default function Header() {
     }
   };
 
-  const toggleMenu = () => {
+  const toggleMenu = (): void => {
     setIsMenuOpen(!isMenuOpen);
   };
 
   const handleExportClick = async () => {
     try {
       setIsDownloading(true);
-      const response = await fetch('/api/download');
+      const response = await cachedFetch('/api/download');
       if (!response.ok) throw new Error('Download failed');
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -349,14 +351,30 @@ export default function Header() {
                       <span>Searching...</span>
                     </div>
                   )}
-                  {!isLoading && data && (
+                  {!isLoading && data && !(data instanceof Response) && (
                     <div className="space-y-4">
-                      {data.blog && data.blog.length > 0 && (
-                        <div>
+                      {(
+                        data as {
+                          blog: { slug: string; title: string }[];
+                          tools: { id: string }[];
+                        }
+                      ).blog &&
+                      (
+                        data as {
+                          blog: { slug: string; title: string }[];
+                          tools: { id: string }[];
+                        }
+                      ).blog.length > 0 ? (
+                        <div key="blog">
                           <div className="mb-2 text-sm font-medium text-muted-foreground">
                             Blog Posts
                           </div>
-                          {data.blog.map(
+                          {(
+                            data as {
+                              blog: { slug: string; title: string }[];
+                              tools: { id: string }[];
+                            }
+                          ).blog.map(
                             (item: { slug: string; title: string }) => (
                               <Link
                                 key={item.slug}
@@ -374,13 +392,29 @@ export default function Header() {
                             ),
                           )}
                         </div>
-                      )}
-                      {data.tools && data.tools.length > 0 && (
-                        <div>
+                      ) : null}
+                      {(
+                        data as {
+                          blog: { slug: string; title: string }[];
+                          tools: { id: string }[];
+                        }
+                      ).tools &&
+                      (
+                        data as {
+                          blog: { slug: string; title: string }[];
+                          tools: { id: string }[];
+                        }
+                      ).tools.length > 0 ? (
+                        <div key="tools">
                           <div className="mb-2 text-sm font-medium text-muted-foreground">
                             Tools
                           </div>
-                          {data.tools.map((item: { id: string }) => (
+                          {(
+                            data as {
+                              blog: { slug: string; title: string }[];
+                              tools: { id: string }[];
+                            }
+                          ).tools.map((item: { id: string }) => (
                             <Link
                               key={item.id}
                               href={`#${item.id}`}
@@ -396,12 +430,23 @@ export default function Header() {
                             </Link>
                           ))}
                         </div>
-                      )}
-                      {!data.blog?.length && !data.tools?.length && (
+                      ) : null}
+                      {!(
+                        data as {
+                          blog: { slug: string; title: string }[];
+                          tools: { id: string }[];
+                        }
+                      ).blog?.length &&
+                      !(
+                        data as {
+                          blog: { slug: string; title: string }[];
+                          tools: { id: string }[];
+                        }
+                      ).tools?.length ? (
                         <div className="text-sm text-muted-foreground text-center py-2">
                           No results found
                         </div>
-                      )}
+                      ) : null}
                     </div>
                   )}
                 </div>
@@ -544,6 +589,9 @@ export default function Header() {
                         </a>
                       );
                     }
+
+                    // Rollback strategy: To revert to the previous version, simply remove the cachedFetch import
+                    // and replace cachedFetch with fetch.
 
                     return (
                       <Link

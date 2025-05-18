@@ -15,7 +15,11 @@ const useAcademyStorageService = () => {
   const setAcademyDataValue = (
     value: AcademyDataType | ((val: AcademyDataType) => AcademyDataType),
   ) => {
-    setAcademyData(value);
+    setAcademyData(
+      typeof value === 'function'
+        ? value(academyData ?? { courses: [] })
+        : value,
+    );
   };
 
   const exportAcademyData = () => {

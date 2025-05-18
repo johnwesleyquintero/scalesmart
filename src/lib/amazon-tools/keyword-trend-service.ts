@@ -1,4 +1,5 @@
 // src/lib/amazon-tools/keyword-trend-service.ts
+import { getItem, setItem } from '@/lib/indexeddb-service';
 import { logError } from '@/lib/error-handling';
 import { format, isValid, parse } from 'date-fns';
 import { z } from 'zod';
@@ -50,11 +51,7 @@ export const trendDataSchema = z.object({
 export type TrendDataInput = z.infer<typeof trendDataSchema>;
 
 // --- Cache Implementation ---
-const CACHE_DURATION = 1000 * 60 * 60; // 1 hour
-const trendCache = new Map<
-  string,
-  { data: TrendAnalysisResult; timestamp: number }
->();
+const API_CACHE_STORE = 'apiCache';
 
 // --- Service Implementation ---
 export class KeywordTrendService {
@@ -97,10 +94,6 @@ export class KeywordTrendService {
     );
   }
 
-  private static isCacheValid(timestamp: number): boolean {
-    return Date.now() - timestamp < CACHE_DURATION;
-  }
-
   private static standardizeDate(dateStr: string): string {
     let standardDate = '';
 
@@ -135,11 +128,13 @@ export class KeywordTrendService {
     try {
       // Generate cache key from input data
       const cacheKey = this.getCacheKey(rawData as TrendDataInput[]);
-      const cached = trendCache.get(cacheKey);
+      console.time(`Load keyword trends for ${cacheKey} from cache`);
+      const cached = await getItem(API_CACHE_STORE, cacheKey);
+      console.timeEnd(`Load keyword trends for ${cacheKey} from cache`);
 
       // Return cached data if valid
-      if (cached && this.isCacheValid(cached.timestamp)) {
-        return cached.data;
+      if (cached) {
+        return cached as TrendAnalysisResult;
       }
 
       // Validate and process each row
@@ -183,7 +178,9 @@ export class KeywordTrendService {
       const result = { chartData, keywords: keywordList };
 
       // Cache the results
-      trendCache.set(cacheKey, { data: result, timestamp: Date.now() });
+      console.time(`Save keyword trends for ${cacheKey} to cache`);
+      await setItem(API_CACHE_STORE, cacheKey, result);
+      console.timeEnd(`Save keyword trends for ${cacheKey} to cache`);
 
       return result;
     } catch (error) {
@@ -196,4 +193,6 @@ export class KeywordTrendService {
       throw error;
     }
   }
+
+  // Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
 }
