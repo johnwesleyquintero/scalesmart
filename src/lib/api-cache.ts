@@ -36,7 +36,7 @@ async function cachedFetch(
     console.timeEnd(`Load ${url} from cache`);
     if (cachedResponse) {
       console.log(`Returning cached response for ${url}`);
-      return new Response(JSON.stringify(cachedResponse), {
+      return new Response(JSON.stringify(cachedResponse.data), {
         headers: { 'content-type': 'application/json' },
       });
     }
