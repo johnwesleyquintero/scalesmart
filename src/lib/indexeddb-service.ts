@@ -135,4 +135,20 @@ async function removeItem(storeName: string, key: string): Promise<void> {
   });
 }
 
-export { initializeDB, getItem, setItem, removeItem };
+async function deleteDatabase(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const request = window.indexedDB.deleteDatabase(DB_NAME);
+
+    request.onerror = () => {
+      console.error('Failed to delete database');
+      reject(request.error);
+    };
+
+    request.onsuccess = () => {
+      console.log('Database deleted successfully');
+      resolve();
+    };
+  });
+}
+
+export { initializeDB, getItem, setItem, removeItem, deleteDatabase };

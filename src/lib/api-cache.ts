@@ -1,5 +1,12 @@
 import { getItem, setItem } from './indexeddb-service';
 
+import { Course } from '@/types';
+
+interface CachedResponse {
+  url: string;
+  data: Course[];
+}
+
 interface RequestInit {
   method?: string;
   headers?: { [key: string]: string };
@@ -32,11 +39,11 @@ async function cachedFetch(
 ): Promise<Response> {
   try {
     console.time(`Load ${url} from cache`);
-    const cachedResponse = await getItem(API_CACHE_STORE, url);
+    const cachedResponse = await getItem<CachedResponse>(API_CACHE_STORE, url);
     console.timeEnd(`Load ${url} from cache`);
     if (cachedResponse) {
       console.log(`Returning cached response for ${url}`);
-      return new Response(JSON.stringify(cachedResponse), {
+      return new Response(JSON.stringify(cachedResponse.data), {
         headers: { 'content-type': 'application/json' },
       });
     }

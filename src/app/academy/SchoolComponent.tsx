@@ -14,8 +14,9 @@ import {
 } from '@/components/ui/card';
 import { AcademyProvider } from '@/context/AcademyContext';
 import { useEffect, useState } from 'react';
-import { setItem, getItem } from '@/lib/indexeddb-service';
+import { setItem, getItem, deleteDatabase } from '@/lib/indexeddb-service';
 import { cachedFetch } from '@/lib/api-cache';
+
 
 const moduleItemStyle = 'text-gray-700';
 
@@ -32,6 +33,15 @@ export default function SchoolComponent() {
       setLoading(true);
       setError(null);
       console.log('Fetching courses from /api/academy-courses');
+
+      // Clear IndexedDB cache
+      try {
+        console.log('Deleting IndexedDB database');
+        await deleteDatabase();
+        console.log('IndexedDB database deleted');
+      } catch (e) {
+        console.error('Error deleting IndexedDB database:', e);
+      }
 
       // Load data from IndexedDB
       try {
