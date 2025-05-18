@@ -1,79 +1,175 @@
-# Amazon Seller Tools Dashboard Documentation (`src/app/amazon-seller-tools/page.tsx`)
+# Amazon Seller Tools Page Documentation
 
-## Overview
+## 1. Overview
 
-The Amazon Seller Tools Dashboard (`src/app/amazon-seller-tools/page.tsx`) provides a suite of tools designed to help Amazon sellers analyze data, optimize listings, and improve performance. The dashboard is organized into tabs, each containing a set of related tools.
+The Amazon Seller Tools page (`c:\Users\johnw\portfolio\src\app\amazon-seller-tools\page.tsx`) is a comprehensive dashboard and toolkit designed for Amazon sellers. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools for keyword research, listing optimization, financial calculations, PPC analysis, and competitor research.
 
-## Functionality
+## 2. Main Features
 
-- **Overview:** Displays key metrics and charts based on uploaded Amazon Business Report data.
-- **Keywords:** Provides tools for keyword analysis, including keyword analysis, deduplication, and trend analysis.
-- **Listing Optimization:** Offers tools for optimizing product listings, including a description editor, listing quality checker, and product score calculator.
-- **Financials:** Includes tools for financial calculations, such as FBA calculator, ACoS calculator, profit margin calculator, and optimal price calculator.
-- **PPC & Ads:** Provides tools for managing PPC campaigns, including a campaign auditor.
-- **Competition:** Offers tools for analyzing competitors, including a competitor analyzer and sales estimator.
+- **Unified Dashboard:** Provides an overview of key business metrics once data is uploaded.
+- **CSV Data Upload & Mapping:** Users can upload their Amazon Business Report CSVs. A dynamic mapping interface helps match CSV columns to the required data fields.
+- **Data Visualization:**
+  - KPI Cards: Displaying current metrics and period-over-period comparisons.
+  - Charts: Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions).
+- **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
+- **Specialized Tool Suite:** Organized into tabs for:
+  - Keywords
+  - Listing Optimization
+  - Financials
+  - PPC & Ads
+  - Competition
+- **Data Export:** Processed and aggregated dashboard data can be exported as a CSV.
+- **Sample Data:** A sample CSV file is available for download to demonstrate the expected format and functionality.
 
-## Potential Enhancements
+## 3. How to Use the Overview Dashboard
 
-- **Data Integration (API):** Integrate the dashboard with the Amazon Marketplace Web Service (MWS) API or the Selling Partner API (SP-API) to allow for real-time data retrieval. This would involve:
+The "Overview" tab is the primary landing spot for data analysis.
 
-  - Adding API authentication and data retrieval logic.
-  - Modifying the data mapping component to handle API data.
-  - Updating the dashboard components to display real-time data.
-  - **Anticipated Benefits:**
-    - Eliminate the need for manual data uploads.
-    - Provide real-time data updates.
-    - Improve the accuracy and reliability of the data.
-    - Enhance the user experience.
+### 3.1. Uploading Data
 
-- **Enhanced Data Transformation:** Enhance the `transformCsvRow` function to handle more diverse CSV formats and data types. This would involve:
+1.  **Click "Choose Report File (.csv)":** This button is located in the initial view of the "Overview" tab.
+2.  **Select your CSV file:** Choose an Amazon Business Report (or a similarly structured CSV) from your computer.
+3.  **Column Mapping:**
 
-  - Adding more robust error handling and validation.
-  - Supporting different date formats.
-  - Allowing users to define custom data transformations.
-  - **Anticipated Benefits:**
-    - Improve the flexibility and usability of the dashboard.
-    - Allow the dashboard to handle more diverse CSV formats.
-    - Reduce the need for users to manually edit their CSV files.
+    - After selecting a file, a "Map Business Report Columns" interface will appear.
+    - This interface displays headers from your CSV file and target fields required by the dashboard (e.g., 'Date', 'Total Sales', 'Ad Spend').
+    - For each target field, select the corresponding column from your CSV using the dropdown menus.
+    - Hints are provided for each target field to guide you.
+    - A sample data row from your CSV is shown to help with mapping.
+    - Required fields (like 'Date') must be mapped.
+    - Click "Confirm Mapping" to process the file or "Cancel" to abort.
 
-- **More Comprehensive Metrics:** Expand the `DashboardMetrics` interface to include more metrics, such as:
-  - Advertising Cost of Sales (ACoS)
-  - Return on Ad Spend (ROAS)
-  - Customer Acquisition Cost (CAC)
-  - Lifetime Value (LTV)
-  - **Anticipated Benefits:**
-    - Provide users with a more complete picture of their business performance.
-    - Allow users to make more informed decisions.
+    !Data Mapper UI Placeholder
+    _(Ideally, replace this with an actual screenshot of the GenericCsvDataMapper component in action)_
 
-## Technical Details
+### 3.2. Viewing Data
 
-- The dashboard uses the `recharts` library for creating charts.
-- The `papaparse` library is used to parse CSV files.
-- The dashboard uses tabs to organize the different tools.
-- The dashboard uses dynamic imports to load components, improving initial load time.
-- The dashboard uses local storage to store user preferences and data.
+Once mapping is complete and the data is processed:
 
-## Components
+- **KPI Cards:**
 
-- `UnifiedDashboard`: The main dashboard component.
-- `CsvDataMapper`: A component that allows users to map columns from a CSV file to the required dashboard fields.
-- `KeywordAnalyzer`: A component that provides tools for keyword analysis.
-- `KeywordDeduplicator`: A component that removes duplicate keywords from a list.
-- `KeywordTrendAnalyzer`: A component that analyzes keyword trends.
-- `DescriptionEditor`: A component that allows users to edit product descriptions.
-- `ListingQualityChecker`: A component that checks the quality of product listings.
-- `ProductScoreCalculator`: A component that calculates a score for a product based on various factors.
-- `FbaCalculator`: A component that calculates FBA fees.
-- `AcosCalculator`: A component that calculates ACoS (Advertising Cost of Sales).
-- `ProfitMarginCalculator`: A component that calculates profit margins.
-- `OptimalPriceCalculator`: A component that calculates the optimal price for a product.
-- `PpcCampaignAuditor`: A component that audits PPC campaigns.
-- `CompetitorAnalyzer`: A component that analyzes competitors.
-- `SalesEstimator`: A component that estimates sales.
+  - **Summary KPIs:** Cards at the top display overall averages or totals for metrics like "Avg. Conversion Rate," "Total Sales," and "Avg. Clicks."
+  - **Period-over-Period Comparison KPIs:** If enough data points exist for the selected time granularity, this section shows key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
 
-## Data Flow
+- **Charts:**
 
-1.  The `UnifiedDashboard` component initializes the dashboard and sets up the tabs.
-2.  The `CsvDataMapper` component allows users to upload and map data from a CSV file. The component now provides more specific error messages to the user.
-3.  The data is then used to generate charts and metrics in the dashboard.
-4.  The various tools in the dashboard use the data to perform calculations and analysis.
+  - **Total Sales Trends:** A line chart showing total sales over time.
+  - **Ad Clicks & Ad Impressions:** A bar chart displaying advertising clicks and impressions.
+  - **Total Orders & Total Sessions:** A bar chart showing total orders and sessions.
+
+- **Time Granularity:**
+
+  - Use the "Select Time Granularity" dropdown (top right of the data view) to change the aggregation period (Daily, Weekly, Monthly, Quarterly, Yearly). Charts and KPI comparisons will update accordingly.
+
+  !Dashboard View Placeholder
+  _(Ideally, replace this with an actual screenshot of the dashboard with data loaded)_
+
+### 3.3. Interacting with the Dashboard
+
+- **Refresh:** Click the "Refresh" button in the header to clear current data and start over (e.g., to upload a new file).
+- **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
+- **Docs:** Links to external documentation for the Amazon Seller Tools.
+- **Error Handling:** If issues occur during file upload, parsing, or mapping, an error message will be displayed. You'll often have an option to "Try uploading again."
+
+## 4. Data Structure (`DashboardMetrics` Interface)
+
+The dashboard processes uploaded data into a standardized `DashboardMetrics` object for each data row/period. Key fields include:
+
+```typescript
+export interface DashboardMetrics {
+  date: string; // YYYY-MM-DD
+  unique_identifier?: string; // ASIN, SKU, etc.
+
+  // Business Report / Total Metrics
+  total_sales?: number;
+  total_orders?: number;
+  total_sessions?: number;
+  total_page_views?: number;
+  total_conversion_rate?: number;
+
+  // Advertising Metrics
+  ad_impressions?: number;
+  ad_clicks?: number;
+  ad_spend?: number;
+  ad_sales?: number;
+  ad_orders?: number;
+
+  // Calculated Advertising Metrics
+  acos?: number;
+  roas?: number;
+  cpc?: number;
+  ctr?: number;
+  ad_conversion_rate?: number;
+
+  // Other potential metrics
+  profit?: number;
+  inventory_level?: number;
+  review_rating?: number;
+  cac?: number;
+  ltv?: number;
+  [key: string]: unknown; // Index signature
+}
+```
+
+The TARGET_METRICS_CONFIG array defines the labels, requirements, and expected types for the data mapping process.
+
+## 5. Specialized Tool Tabs
+
+Beyond the overview dashboard, the page provides several tabs, each containing a suite of specialized tools:
+
+### 5.1. Keywords
+
+- Analyzer: For general keyword analysis.
+- Deduplicator: To remove duplicate keywords from lists.
+- Trend Analyzer: To analyze keyword trends over time.
+
+### 5.2. Listing Optimization
+
+- Description Editor: To help craft and optimize product descriptions.
+- Quality Checker: To assess the quality of a product listing.
+- Score Calculator: To calculate a score for a product listing based on various factors.
+
+### 5.3. Financials
+
+- FBA Calculator: To estimate FBA fees and profitability.
+- ACoS Calculator: To calculate Advertising Cost of Sales.
+- Profit Margin Calc: To calculate profit margins.
+- Optimal Price Calc: To help determine optimal pricing strategies.
+
+### 5.4. PPC & Ads
+
+- Campaign Auditor: To audit PPC campaign performance.
+
+### 5.5. Competition
+
+- Competitor Analyzer: To analyze competitor products and strategies.
+- Sales Estimator: To estimate sales for certain products.
+  Each of these tools is a self-contained component designed for a specific task.
+
+## 6. Technical Notes
+
+- Frontend: Built with TypeScript and React (Next.js).
+- UI Components: Uses Shadcn UI components (Button, Card, Tabs, Select, Alert).
+- Charting: Recharts library for data visualization.
+- CSV Parsing: PapaParse library for handling CSV file uploads.
+- Date Manipulation: date-fns library for handling dates and time granularities.
+- State Management: React's useState and useRef hooks.
+
+## 7. Sample Data
+
+A sample CSV file (sample_amazon_data.csv) can be downloaded via the "Download Sample CSV" button on the initial "Overview" tab. This file demonstrates the expected data structure and can be used to test the dashboard's functionality without your own data. The sample data includes columns like:
+
+- Date
+- ASIN
+- Ordered product sales
+- Total order items
+- Sessions
+- Page Views
+- Impressions (Ad)
+- Clicks (Ad)
+- Spend (Ad)
+- Sales (Ad)
+- Orders (Ad)
+  This helps users understand what kind of data the tool expects and how it maps to the dashboard metrics.
+
+This documentation should give a good overview of the Amazon Seller Tools page. You can expand on specific tools or sections as needed!

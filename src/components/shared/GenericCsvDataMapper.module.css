@@ -4,52 +4,117 @@
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background-color: #f9f9f9;
-  max-width: 600px;
-  margin: 20px auto;
+  /* max-width: 900px; Removed to allow full width like tabs */
+  margin: 20px 0; /* Keep vertical margin, remove horizontal auto for full width */
 }
 
 .title {
-  text-align: center;
-  margin-bottom: 20px;
   font-size: 1.5em;
+  margin-bottom: 0.5em;
   color: #333;
 }
 
-.mappingGrid {
-  display: grid;
-  gap: 15px;
+.mapperContainer p {
+  font-size: 0.9em;
+  color: #555;
+  margin-bottom: 1.5em;
+}
+
+.mappingTable {
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* Space between rows */
+  margin-bottom: 20px;
 }
 
 .mappingRow {
   display: grid;
-  grid-template-columns: 1fr 2fr; /* Adjust as needed */
+  grid-template-columns: 2fr 1fr 2fr 2fr; /* Adjust column ratios as needed */
   align-items: center;
-  gap: 10px;
+  gap: 15px; /* Space between cells in a row */
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+.mappingHeaderRow {
+  background-color: #f0f0f0;
+  font-weight: bold;
+  color: #333;
+  border-bottom: 2px solid #ddd;
+}
+
+.targetMetricHeader,
+.expectedTypeHeader,
+.csvColumnHeader,
+.sampleValueHeader {
+  padding: 8px 0;
+}
+
+.targetMetricCell,
+.expectedTypeCell,
+.csvColumnCell,
+.sampleValueCell {
+  display: flex;
+  flex-direction: column; /* For label and hint */
+  justify-content: center;
 }
 
 .label {
-  font-weight: bold;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px; /* Space between label and hint if present */
 }
 
 .required {
   color: red;
   margin-left: 4px;
 }
-
 .hint {
-  font-size: 0.85em;
-  color: #666;
+  font-size: 0.8em;
+  color: #777;
   margin-top: 2px;
+}
+
+.typeBadge {
+  background-color: #e0e7ff; /* Example: light blue */
+  color: #4338ca; /* Example: darker blue */
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  display: inline-block; /* So it doesn't take full width */
+  text-transform: capitalize;
 }
 
 .selectTrigger {
   width: 100%;
 }
 
-.submitButton {
+.sampleText {
+  font-style: italic;
+  color: #555;
+  background-color: #f0f0f0;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  max-width: 150px; /* Prevent very long samples from breaking layout */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.noSampleText {
+  font-style: italic;
+  color: #999;
+  font-size: 0.9em;
+}
+
+.actionButtons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
   margin-top: 20px;
-  display: block; /* To allow margin auto for centering if needed */
-  width: 100%;
 }
 
 .loading,
@@ -57,5 +122,6 @@
   text-align: center;
   padding: 20px;
   font-style: italic;
+  font-size: 1.1em;
   color: #777;
 }
