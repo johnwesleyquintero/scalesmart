@@ -14,6 +14,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest",
     "cli": "bash .cli.sh",
+    "deploy": "npx vercel deploy",
     "lint": "eslint --config eslint.config.mjs .",
     "clean": "rimraf .next",
     "check": "npm run format && npm run lint && npm run typecheck",

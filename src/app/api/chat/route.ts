@@ -53,13 +53,25 @@ export async function POST(request: NextRequest) {
       return new NextResponse('Too many requests', { status: 429 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
       console.error(
         'Chat API Error: Missing GEMINI_API_KEY environment variable',
       );
       return NextResponse.json(
         {
           error: 'Chat service configuration error. API key is missing.',
+        },
+        { status: 500 },
+      );
+    }
+
+    // Validate the API key format
+    if (!apiKey.startsWith('AIzaSyAP') || apiKey.length !== 39) {
+      console.error('Chat API Error: Invalid GEMINI_API_KEY format');
+      return NextResponse.json(
+        {
+          error: 'Chat service configuration error. Invalid API key format.',
         },
         { status: 500 },
       );
@@ -166,7 +178,13 @@ export async function POST(request: NextRequest) {
     });
 
     const chat = model.startChat();
-    console.log(`Context prompt size: ${contextPrompt.length}`);
+    const contextPromptSize = contextPrompt.length;
+    console.log(`Context prompt size: ${contextPromptSize}`);
+
+    if (contextPromptSize > 15000) {
+      console.warn('Context prompt size exceeds 15000 characters. This may lead to errors.');
+    }
+
     const startTime = Date.now();
     const result = await chat.sendMessage(contextPrompt);
     const endTime = Date.now();
@@ -183,12 +201,19 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
       ...(body?.message && { lastMessage: body.message }),
     });
+    const errorMessage = error instanceof Error ? (error as Error).message : 'Unknown error';
+    console.error('Chat API Error Details:', {
+      errorName: (error as Error).name,
+      errorMessage: errorMessage,
+      errorStack: (error as Error).stack,
+      body: body,
+    });
     return NextResponse.json(
       {
         error:
           'Our chat service is temporarily unavailable. Please try again later.',
         ...(process.env.NODE_ENV === 'development' && {
-          details: error instanceof Error ? error.message : 'Unknown error',
+          details: errorMessage,
         }),
       },
       { status: 500 },
