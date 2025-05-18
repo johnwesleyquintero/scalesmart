@@ -1,0 +1,71 @@
+# Client-Side Storage Documentation (IndexedDB & Local Storage)
+
+## Overview
+
+This document outlines how client-side storage, primarily **IndexedDB** and to a lesser extent **Local Storage**, is utilized within the application.
+
+A significant migration has been undertaken to move several features from `localStorage` (and `sessionStorage`) to **IndexedDB**. This change leverages IndexedDB's capabilities for storing larger amounts of structured data, improving performance, enabling more complex queries, and supporting potential offline functionalities more robustly.
+
+Refer to the IndexedDB Integration Plan for more detailed schematics and the original migration strategy.
+
+## IndexedDB Usage
+
+IndexedDB is now the primary client-side storage solution for most dynamic and larger datasets within the application. A dedicated service typically manages IndexedDB operations, including database initialization, schema management, and data access.
+
+The following features and data types now utilize IndexedDB:
+
+- **Chat Messages:**
+  - Previously stored in `localStorage` (related to `src/components/ui/chat-interface.tsx`).
+  - Migrated to IndexedDB for better storage and querying of message history.
+- **Workflow Data:**
+  - Previously stored in `localStorage` (related to `src/app/workflow-builder/page.tsx`).
+  - Migrated to IndexedDB to handle complex workflow structures.
+- **Course Data & Progress:**
+  - Previously stored in `localStorage` (managed by `src/hooks/use-academy-storage.ts` and related to `src/app/academy/SchoolComponent.tsx`).
+  - Migrated to IndexedDB for storing course information and user progress.
+- **Amazon Seller Tools Data (e.g., Competitor Analysis):**
+  - Previously stored in `sessionStorage` (related to `src/components/amazon-seller-tools/competitor-analyzer.tsx`).
+  - Migrated to IndexedDB for persistent storage of analysis results.
+- **API Data Caching:**
+  - A new generic caching mechanism using IndexedDB has been implemented to store API responses, reducing server load and speeding up data retrieval.
+
+## Local Storage Usage
+
+With the migration to IndexedDB, the direct use of `localStorage` for complex application data has been significantly reduced. However, `localStorage` may still be employed for:
+
+- **Simple User Preferences:** Small, non-critical key-value pairs like UI themes or minor settings.
+- **Task Data:**
+  - Task data for the project management tool (related to `src/app/project-management/page.tsx`) currently still utilizes `localStorage`.
+
+### `src/hooks/use-local-storage.ts`
+
+This custom hook remains available for interacting with `localStorage`. Its features include:
+
+- **Encryption:** Encrypts data before storing it in `localStorage` to offer a basic level of protection for any data still housed there.
+- **Chunking:** Splits large data into smaller chunks to work around `localStorage` size limits. This is less critical now that larger datasets are intended for IndexedDB.
+
+It is primarily used for the remaining features that depend on `localStorage`, such as the aforementioned task data.
+
+## Technical Details: IndexedDB vs. Local Storage
+
+- **Data Persistence:** Both IndexedDB and `localStorage` persist data after the browser is closed. IndexedDB is generally more robust and designed for larger, more critical datasets.
+- **Data Security:**
+  - Both are client-side storage mechanisms and are accessible via browser developer tools.
+  - Sensitive data should always be encrypted before being stored client-side. The `indexeddb_integration_plan.md` outlines encryption for sensitive data in IndexedDB, and the `useLocalStorage` hook provides encryption for `localStorage`.
+- **Data Size Limit:**
+  - `localStorage` typically has a limit of 5-10MB per origin.
+  - IndexedDB offers significantly larger storage limits, often determined by available disk space and user permissions, making it suitable for extensive datasets and offline applications.
+- **Data Structure & Querying:**
+  - `localStorage` is a simple key-value store.
+  - IndexedDB is an object-oriented, transactional database with support for indexes, allowing for more complex queries and efficient data retrieval.
+
+## Best Practices for Client-Side Storage
+
+- **Choose the Right Tool:** Use IndexedDB for structured data, large datasets, and when offline capabilities or complex queries are needed. Use `localStorage` for very simple key-value pairs or small user preferences if IndexedDB seems like overkill for that specific, minor use case.
+- **Prioritize IndexedDB for New Features:** For new features requiring client-side persistence of significant data, IndexedDB should be the default consideration.
+- **Encrypt Sensitive Data:** Regardless of the storage mechanism, always encrypt sensitive information before storing it on the client-side.
+- **Handle IndexedDB Schema Versioning:** Implement proper schema versioning and migration logic for IndexedDB to handle updates smoothly.
+- **Error Handling:** Implement robust error handling for all storage operations (both IndexedDB and `localStorage`).
+- **Data Validation:** Validate data before storing it and upon retrieval.
+- **Provide User Control:** Offer users ways to manage their stored data, such as clearing caches or exporting their information.
+- **Inform Users:** Clearly communicate how user data is stored and used in the application's privacy policy (e.g., `src/app/privacy-policy/page.tsx`).

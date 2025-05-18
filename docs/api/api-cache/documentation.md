@@ -1,0 +1,44 @@
+# API Cache Documentation (`src/lib/api-cache.ts`)
+
+## Overview
+
+The `src/lib/api-cache.ts` file defines a utility function `cachedFetch` that provides a simple caching mechanism for API requests. This function is designed to improve performance by reducing the number of API calls made to the server.
+
+## Functionality
+
+- **Cache API Responses:** Caches the responses from API requests to reduce the number of calls to the server.
+- **Automatic Cache Invalidation:** Automatically invalidates the cache after a specified time period.
+- **Error Handling:** Handles errors gracefully and returns the error response to the client.
+
+## Technical Details
+
+- The function uses IndexedDB for caching.
+- The function uses the `fetch` API to make the API request.
+
+## Usage
+
+```typescript
+import { cachedFetch } from '@/lib/api-cache';
+
+const MyComponent = async () => {
+  const response = await cachedFetch('/api/my-endpoint');
+  const data = await response.json();
+
+  return (
+    <div>
+      {data.map((item) => (
+        <p key={item.id}>{item.name}</p>
+      ))}
+    </div>
+  );
+};
+```
+
+## Parameters
+
+- `url`: The URL of the API endpoint to fetch.
+- `options`: The options to pass to the `fetch` API.
+
+## Return Value
+
+The function returns a promise that resolves to a `Response` object.
