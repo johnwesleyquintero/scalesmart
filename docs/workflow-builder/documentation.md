@@ -12,6 +12,22 @@ The Workflow Builder page is a React component that allows users to create and m
 - **Workflow Loading:** Users can load a previously saved workflow from IndexedDB.
 - **Workflow Execution:** Users can execute the workflow, which will run the logic defined by the nodes and edges.
 
+## Additional Notes:
+
+```
+
+## Git
+
+```
+@git-changes Execute Git commands to commit and push all staged changes to the remote repository. Generate concise, descriptive, and informative commit messages that accurately reflect the nature and scope of each change. Prioritize messages that clearly explain *why* the changes were made, not just *what* was changed. Use the imperative mood in commit messages. After committing and pushing, verify the successful execution of the operations and report any errors.
+```
+
+## Documentation
+
+```
+@documentation Refine and expand the documentation within the `docs/` directory. Specifically, identify and modify the documentation files that reflect recent implementations and code changes. Ensure accuracy, clarity, and completeness in the updated documentation, reflecting the current state of the codebase.
+```
+
 ## Technical Details
 
 - The page uses the `reactflow` library for the visual workflow builder.

@@ -29,9 +29,13 @@ The Academy Courses API endpoint (`src/app/api/academy-courses/route.ts`) is res
 
 Returns a list of academy courses from MDX files located in `c:\Users\johnw\portfolio\src\app\content\academy`.
 
+#### Query Parameters
+
+-   `slug` (optional): If provided, returns only the course with the specified slug.
+
 #### Success Response
 
-- **Code:** 200 OK
+-   **Code:** 200 OK
 
 #### Example
 
@@ -57,3 +61,90 @@ Returns a list of academy courses from MDX files located in `c:\Users\johnw\port
     ]
   }
 ]
+
+### `POST`
+
+Creates a new academy course.
+
+#### Request Body
+
+```json
+{
+  "title": "New Course Title",
+  "description": "New course description",
+  "duration": "2h 0m",
+  "level": "Intermediate",
+  "category": "Marketing",
+  "tags": ["SEO", "Content Marketing"],
+  "author": "Marketing Team",
+  "interactive": true,
+  "content": "## Module 1: Introduction to SEO"
+}
+```
+
+#### Success Response
+
+-   **Code:** 201 Created
+-   **Content:**
+
+```json
+{
+  "message": "Course created successfully",
+  "slug": "new-course-title"
+}
+```
+
+### `PUT`
+
+Updates an existing academy course.
+
+#### Request Body
+
+```json
+{
+  "title": "Updated Course Title",
+  "description": "Updated course description",
+  "duration": "2h 30m",
+  "level": "Advanced",
+  "category": "Marketing",
+  "tags": ["SEO", "Content Marketing", "Analytics"],
+  "author": "Marketing Team",
+  "interactive": true,
+  "content": "## Module 1: Advanced SEO Techniques"
+}
+```
+
+#### Success Response
+
+-   **Code:** 200 OK
+-   **Content:**
+
+```json
+{
+  "message": "Course updated successfully",
+  "slug": "updated-course-title"
+}
+```
+
+### `DELETE`
+
+Deletes an academy course.
+
+#### Request Body
+
+```json
+{
+  "slug": "course-to-delete"
+}
+```
+
+#### Success Response
+
+-   **Code:** 200 OK
+-   **Content:**
+
+```json
+{
+  "message": "Course deleted successfully",
+  "slug": "course-to-delete"
+}
