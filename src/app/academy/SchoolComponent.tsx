@@ -1,6 +1,6 @@
 'use client';
 
-import { Course } from '@/types';
+import { Course } from '@/components/AcademyContentClient';
 
 import { AcademyContentClient } from '@/components/AcademyContentClient';
 import { Button } from '@/components/ui/button';
@@ -11,76 +11,18 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useEffect, useState } from 'react';
-import { cachedFetch } from '@/lib/api-cache';
+import { useState } from 'react';
 import { AcademyProvider } from '@/context/AcademyContext';
 
 const moduleItemStyle = 'text-gray-700';
 
-export default function SchoolComponent() {
-  const [courses, setCourses] = useState<Course[] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  // Moved useState for filter and sort to the top
+interface SchoolComponentProps {
+  academyData: Course[];
+}
+
+export default function SchoolComponent({ academyData }: SchoolComponentProps) {
   const [filter, setFilter] = useState('All');
   const [sort, setSort] = useState('Title');
-
-  useEffect(() => {
-    async function fetchCourses() {
-      setLoading(true);
-      setError(null);
-      console.log('Fetching courses from /api/academy-courses');
-
-      try {
-        const response = await cachedFetch('/api/academy-courses');
-        console.log('API Response Status:', response.status);
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('API Error Response Text:', errorText);
-          throw new Error(
-            `HTTP error! status: ${response.status}, message: ${
-              errorText || response.statusText
-            }`,
-          );
-        }
-        const data = await response.json();
-        console.log('Data from API:', data);
-
-        if (Array.isArray(data)) {
-          setCourses(data); // API returns the array directly
-        } else {
-          console.error(
-            'API Error: Expected an array of courses, but received:',
-            data, // Log the actual data received if it's not an array
-          );
-          setError(
-            'Course data from server was not in the expected array format.',
-          );
-          setCourses([]); // Default to empty array to prevent further errors
-        }
-      } catch (e) {
-        console.error('Failed to fetch courses:', e);
-        setError(e instanceof Error ? e.message : 'An unknown error occurred');
-        setCourses([]); // Default to empty array on error
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchCourses();
-  }, []);
-
-  if (loading) {
-    return <p className="text-center p-8">Loading courses...</p>;
-  }
-
-  if (error) {
-    return (
-      <p className="text-center p-8 text-red-500">
-        Error loading courses: {error}. Please check the console for more
-        details.
-      </p>
-    );
-  }
 
   const handleExportData = () => {
     const data = localStorage.getItem('academyData');
@@ -108,15 +50,13 @@ export default function SchoolComponent() {
   };
 
   return (
-    // This div now defines the max-width and centering for all its content.
-    // Using 'container mx-auto p-4' to match CRM page's container style.
-    // items-stretch allows children like AcademyContentClient (w-full) to take full width within the padded container.
     <div className="container mx-auto p-4 flex flex-col items-stretch mt-4">
       <div className="flex justify-center space-x-4 mb-4">
         <select
           value={filter}
           onChange={handleFilterChange}
           className="border rounded px-2 py-1"
+          aria-label="Filter by category"
         >
           {categoryOptions.map((option) => (
             <option key={option} value={option}>
@@ -128,6 +68,7 @@ export default function SchoolComponent() {
           value={sort}
           onChange={handleSortChange}
           className="border rounded px-2 py-1"
+          aria-label="Sort by"
         >
           {sortOptions.map((option) => (
             <option key={option} value={option}>
@@ -136,25 +77,20 @@ export default function SchoolComponent() {
           ))}
         </select>
       </div>
-      {/* courses should be an array by now if no error and not loading */}
-      <AcademyProvider initialCourses={courses || []}>
+      <AcademyProvider initialCourses={academyData || []}>
         <AcademyContentClient
-          courses={courses || []}
+          courses={academyData || []}
           CourseList={CourseList}
           filter={filter}
           sort={sort}
         />
       </AcademyProvider>
       <div className="mt-4 flex justify-center">
-        {/* Centering the button within the max-width container */}
         <Button onClick={handleExportData}>Export Academy Data</Button>
       </div>
     </div>
   );
 }
-
-// Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
-// and the console.time statements.
 
 const categoryOptions = ['All', 'Amazon SEO', 'Amazon PPC', 'Amazon FBA'];
 const sortOptions = ['Title', 'Duration'];
@@ -166,20 +102,19 @@ const CourseList = ({
   sort,
 }: {
   startCourse: (course: Course) => void;
-  courses: import('@/types').Course[];
+  courses: Course[];
   filter: string;
   sort: string;
 }) => {
   const filteredCourses = courses
     .filter((course) => {
       if (filter === 'All') return true;
-      return course.category === filter; // Assuming each course has a category property
+      return course.category === filter;
     })
     .sort((a, b) => {
       if (sort === 'Title') {
         return a.title.localeCompare(b.title);
       }
-      // Assuming duration is a string like "2 hours"
       const durationA = parseInt(a.duration.split(' ')[0]);
       const durationB = parseInt(b.duration.split(' ')[0]);
       return durationA - durationB;
@@ -187,11 +122,11 @@ const CourseList = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {filteredCourses.map((course) => {
+      {filteredCourses.map((course, index) => {
         try {
           return (
             <Card
-              key={course.id}
+              key={`${course.slug}-${index}`}
               className={` ${
                 course.locked ? 'opacity-75 bg-gray-100' : ''
               } border border-gray-200`}
@@ -215,6 +150,9 @@ const CourseList = ({
                     {course.level}
                   </span>
                 </div>
+                <p className="text-sm text-gray-500">
+                  Progress: {course.progress || 0}%
+                </p>
               </div>
               <CardFooter>
                 <Button
@@ -223,7 +161,7 @@ const CourseList = ({
                   className="w-full"
                   aria-label={
                     course.locked ? 'Coming Soon' : `Start ${course.title}`
-                  } // Add aria-label for accessibility
+                  }
                 >
                   {course.locked ? 'Coming Soon' : 'Start Course'}
                 </Button>
@@ -232,7 +170,7 @@ const CourseList = ({
           );
         } catch (error) {
           console.error('Error rendering course:', course, error);
-          return null; // Return null to prevent the error from crashing the entire component
+          return null;
         }
       })}
     </div>

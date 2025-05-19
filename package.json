@@ -90,6 +90,7 @@
     "embla-carousel-react": "^8.5.1",
     "express-rate-limit": "^7.5.0",
     "figlet": "^1.8.1",
+    "fuse.js": "^7.1.0",
     "gradient-string": "^3.0.0",
     "gray-matter": "^4.0.3",
     "input-otp": "^1.4.1",

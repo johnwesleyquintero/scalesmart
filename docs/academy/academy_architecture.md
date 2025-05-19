@@ -30,7 +30,9 @@ This document outlines the architecture of the ScaleSmart Academy page (`src/app
 - **`src/lib/course-recommendations.ts`:**
   - Contains the `getRecommendedCourses` function, which recommends courses based on the user profile.
 - **`src/lib/types.ts`:**
-  - Defines the types for `Course`, `Module`, and other related interfaces.
+  - Defines the types for `Module`, and other related interfaces.
+- **`src/components/AcademyContentClient.tsx`:**
+  - Defines the `Course` interface.
 - **`src/context/AcademyContext.tsx`:**
   - Contains the `AcademyProvider` and the `useAcademy` hook, which manage the state related to the academy courses, active course, and active module.
 

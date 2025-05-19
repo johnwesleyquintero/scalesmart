@@ -4,13 +4,26 @@ import { useAcademy } from '@/context/AcademyContext';
 import { Button } from '@/components/ui/button';
 import useUserProfile from '@/hooks/use-user-profile';
 import { getRecommendedCourses } from '@/lib/course-recommendations'; // Assuming Module is also in @/types
-import { Course, Module, ModuleType } from '@/types';
+import { Module, ModuleType } from '@/types';
+
+export interface Course {
+  id: string;
+  title: string;
+  type: ModuleType;
+  description: string;
+  duration: string;
+  level: 'Beginner' | 'Intermediate' | 'Advanced';
+  locked: boolean;
+  progress: number;
+  modules: Module[];
+  category?: string; // Added category property
+  slug: string;
+}
+
 import { useEffect, useState } from 'react';
 import CaseStudyModule from './CaseStudyModule';
 import ExerciseModule from './ExerciseModule';
 import VideoModule from './VideoModule';
-// import useUserProfile from '@/hooks/use-user-profile';
-// import { getRecommendedCourses } from '@/lib/course-recommendations';
 
 interface AcademyContentProps {
   courses: Course[];
@@ -25,39 +38,40 @@ interface AcademyContentProps {
 }
 
 function AcademyContentClient({
-  courses,
+  courses: allCourses,
   CourseList,
   filter,
   sort,
-  // ActiveCourseDisplay, // Removed unused prop
 }: AcademyContentProps) {
-  const {
-    activeCourse,
-    setActiveCourse,
-    setActiveModule,
-    // setCourses, // We won't call setCourses directly from here for progress updates
-    // courses: contextCourses, // activeCourse from context is sufficient for display
-    activeModule,
-  } = useAcademy();
+  const { activeCourse, setActiveCourse, setActiveModule, activeModule } =
+    useAcademy();
   const { userProfile } = useUserProfile();
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
 
   useEffect(() => {
     if (userProfile) {
       const recommended = getRecommendedCourses(userProfile);
-      setRecommendedCourses(recommended);
+      setRecommendedCourses(recommended as Course[]);
     }
   }, [userProfile]);
 
-  // This useEffect was causing issues with an undefined 'course' variable.
-  // The logic to set the active course and its first module is handled by startCourse.
-  // useEffect(() => {
-  // setActiveCourse(course);
-  // if (course.modules && course.modules.length > 0) {
-  // setActiveModule(course.modules[0]);
-  // console.log('Setting activeModule:', course.modules[0]);
-  // }
-  // }, []); // Removed problematic useEffect
+  useEffect(() => {
+    if (activeCourse && activeModule) {
+      // Store progress in IndexedDB
+      const storeProgress = async () => {
+        try {
+          // Assuming you have a function to interact with IndexedDB
+          // Example: await saveModuleProgress(userProfile?.id, activeCourse.id, activeModule.id, true);
+          console.log(
+            `Saving progress for user ${userProfile?.id}, course ${activeCourse.id}, module ${activeModule.id}`,
+          );
+        } catch (error) {
+          console.error('Error saving module progress:', error);
+        }
+      };
+      storeProgress();
+    }
+  }, [activeCourse, activeModule, userProfile]);
 
   const startCourse = (selectedCourse: Course) => {
     setActiveCourse(selectedCourse);
@@ -75,36 +89,46 @@ function AcademyContentClient({
     setActiveModule(null);
   };
 
-  // console.log('AcademyContentClient: courses prop =', courses);
-  // console.log('AcademyContentClient: recommendedCourses =', recommendedCourses);
+  // Filter out duplicate courses based on slug
+  const courses = allCourses.filter(
+    (course: Course, index, self) =>
+      course.slug && index === self.findIndex((t) => t.slug === course.slug),
+  );
 
   return (
     <div className="w-full p-4 bg-gray-100 rounded-lg shadow-md">
-      {/* Page Title Section */}
       <div className="text-center mb-8">
-        {/* Optional: remove mb-8 if my-6 on h1 is sufficient */}
         <h1 className="text-3xl font-bold my-6">ScaleSmart Academy</h1>
         <p className="text-lg text-muted-foreground">
           Master Amazon PPC, SEO, and sales strategies with our comprehensive
           courses
         </p>
       </div>
-      {/* Module Content or Quiz */}
+
       {!activeCourse ? (
         <CourseList
-          startCourse={startCourse} // This is the local startCourse function
-          courses={recommendedCourses.length > 0 ? recommendedCourses : courses}
+          startCourse={startCourse}
+          courses={
+            recommendedCourses.length > 0
+              ? recommendedCourses.filter(
+                  (recommendedCourse) =>
+                    !courses.find(
+                      (course) => course.slug === recommendedCourse.slug,
+                    ),
+                )
+              : courses
+          }
           filter={filter}
           sort={sort}
         />
       ) : (
         <>
-          {/* activeCourse is guaranteed to be non-null here */}
           <div>
             <Button
               onClick={handleBackToCourses}
               variant="outline"
               className="mb-4"
+              aria-label="Back to Courses"
             >
               &larr; Back to Courses
             </Button>
@@ -129,6 +153,7 @@ function AcademyContentClient({
                               ? 'bg-blue-100 text-blue-700 font-medium ring-1 ring-blue-300'
                               : 'text-gray-700'
                           }`}
+                          aria-label={`Select module ${module.title}`}
                         >
                           <span>{module.title || `Module ${module.id}`}</span>
                           {module.completed && (

@@ -5,19 +5,6 @@ export enum ModuleType {
   QUIZ = 'quiz',
 }
 
-export interface Course {
-  id: string;
-  title: string;
-  type: ModuleType;
-  description: string;
-  duration: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
-  locked: boolean;
-  progress: number;
-  modules: Module[];
-  category?: string; // Added category property
-}
-
 export interface Module {
   id: string;
   title: string;
