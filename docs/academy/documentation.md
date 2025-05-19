@@ -15,10 +15,10 @@ The Academy Page (`src/app/academy/page.tsx`) is the main page for the academy s
 
 ## Recent Changes
 
-- Added alt text to the images: `alt={`${course.title} course`}`.
-- Improved the color contrast for the course level text.
-- Implemented client-side caching using `localStorage` to reduce initial load time.
-- Added a subtle border to each course card to aid user differentiation.
+- Refactored SchoolComponent to remove IndexedDB caching logic and improve course rendering.
+- Updated AcademyContentClient to be exported as a named export.
+- Modified AcademyContext to prevent unnecessary re-renders.
+- Improved error handling in CourseList component.
 
 ## Components
 

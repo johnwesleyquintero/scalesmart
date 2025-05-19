@@ -11,7 +11,7 @@ The Academy Courses API endpoint (`src/app/api/academy-courses/route.ts`) return
 ## Technical Details
 
 - The endpoint uses the `NextResponse` object from `next/server` to return the JSON response.
-- The endpoint imports the list of courses from the `src/data/portfolio-data/courses.json` file.
+- The endpoint reads the list of courses from the `public/courses.json` file.
 
 ## Data Flow
 
