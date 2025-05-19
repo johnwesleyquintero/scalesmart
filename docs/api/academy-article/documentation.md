@@ -1,0 +1,68 @@
+# Academy Article API Documentation (`src/app/api/academy-article/[slug]/route.ts`)
+
+## Overview
+
+The Academy Article API (`src/app/api/academy-article/[slug]/route.ts`) is responsible for fetching article content for the academy modules. It retrieves the content from MDX files stored in the `src/app/content/academy` directory.
+
+## Functionality
+
+- **Retrieves Article Content:** The API fetches the content of an MDX file based on the provided slug.
+
+## Technical Details
+
+- The API uses the `fs` module to read the MDX file.
+- It constructs the file path by joining the `academyDirectory` with the slug and the `.mdx` extension.
+- It returns the file content in the response.
+
+## Request
+
+### Endpoint
+
+`/api/academy-article/[slug]`
+
+### Method
+
+`GET`
+
+### Parameters
+
+- `slug`: The slug of the article to retrieve. This is a required parameter and should match the name of the MDX file (without the extension) in the `src/app/content/academy` directory.
+
+## Response
+
+### Success
+
+- **Status Code:** `200 OK`
+- **Content Type:** `application/json`
+- **Body:**
+
+```json
+{
+  "content": "string" // The content of the MDX file.
+}
+```
+
+### Error
+
+- **Status Code:** `500 Internal Server Error`
+- **Content Type:** `application/json`
+- **Body:**
+
+```json
+{
+  "error": "Failed to load article"
+}
+```
+
+## Example
+
+### Request
+
+`/api/academy-article/example-article`
+
+### Response
+
+```json
+{
+  "content": "# Example Article Content"
+}
