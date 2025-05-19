@@ -3,5 +3,5 @@ User-agent: *
 Allow: /
 
 # Sitemap location
-Sitemap: https://wesleyquintero.vercel.app/sitemap.xml
+Sitemap: https://wescode.vercel.app/sitemap.xml
 

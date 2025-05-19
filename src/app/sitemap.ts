@@ -2,7 +2,7 @@ export const dynamic = 'force-static';
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://wesleyquintero.vercel.app';
+  const baseUrl = 'https://wescode.vercel.app';
 
   return [
     {

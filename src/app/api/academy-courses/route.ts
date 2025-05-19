@@ -26,12 +26,12 @@ function validateCourseData(data: CourseData) {
 }
 
 async function getCourses() {
-  const fileNames = fs
+ const fileNames = fs
     .readdirSync(contentDirectory)
-    .filter((fileName) => fileName.endsWith('.mdx'));
+    .filter((fileName) => fileName.endsWith('.mdx') && fileName !== 'metadata.json');
   const courses = fileNames.map((fileName) => {
     try {
-      const fullPath = path.join(contentDirectory, fileName);
+   const fullPath = path.join(contentDirectory, fileName);
       const fileContents = fs.readFileSync(fullPath, 'utf8');
 
       // Use gray-matter to parse the MDX content and metadata

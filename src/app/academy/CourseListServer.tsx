@@ -15,7 +15,7 @@ async function fetchCourses() {
   const baseUrl =
     process.env.NODE_ENV === 'development'
       ? 'http://localhost:3000'
-      : 'https://wesleyquintero.vercel.app';
+      : 'https://wescode.vercel.app';
   try {
     const data = await cachedFetch(`${baseUrl}/api/academy-courses`);
 

@@ -55,7 +55,7 @@ export async function generateMetadata({
 
     const canonicalUrl = new URL(
       `/blog/${slug}`,
-      'https://wesleyquintero.vercel.app',
+      'https://wescode.vercel.app',
     ).toString();
 
     return {

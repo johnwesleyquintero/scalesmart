@@ -30,20 +30,20 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://wesleyquintero.vercel.app/',
+    url: 'https://wescode.vercel.app/',
     title: `${AUTHOR_NAME} | Data Analytics Innovator`,
     description:
       'Data Analytics Innovator and Founder of Nebula Suite, building tools that streamline workflows and provide valuable insights.',
     siteName: `${AUTHOR_NAME} Portfolio`,
     images: [
       {
-        url: 'https://wesleyquintero.vercel.app/og-image.svg',
+        url: 'https://wescode.vercel.app/og-image.svg',
         width: 1200,
         height: 630,
         alt: `${AUTHOR_NAME} Portfolio`,
       },
       {
-        url: `https://wesleyquintero.vercel.app${defaultImage}`,
+        url: `https://wescode.vercel.app${defaultImage}`,
         width: 1200,
         height: 630,
         alt: `${AUTHOR_NAME} Portfolio Fallback`,
@@ -56,8 +56,8 @@ export const metadata: Metadata = {
     description:
       'Data Analytics Innovator and Founder of Nebula Suite, building tools that streamline workflows and provide valuable insights.',
     images: [
-      'https://wesleyquintero.vercel.app/og-image.svg',
-      `https://wesleyquintero.vercel.app${defaultImage}`,
+      'https://wescode.vercel.app/og-image.svg',
+      `https://wescode.vercel.app${defaultImage}`,
     ],
   },
   robots: {
@@ -87,12 +87,12 @@ export const metadata: Metadata = {
   metadataBase:
     process.env.NODE_ENV === 'development'
       ? new URL('https://localhost:3000')
-      : new URL('https://wesleyquintero.vercel.app'),
+      : new URL('https://wescode.vercel.app'),
   verification: {
     google: 'google-site-verification-code', // Replace with actual code
   },
   alternates: {
-    canonical: 'https://wesleyquintero.vercel.app',
+    canonical: 'https://wescode.vercel.app',
   },
   generator: 'Next.js',
   applicationName: `${AUTHOR_NAME} Portfolio`,

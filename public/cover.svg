@@ -117,14 +117,14 @@
 
     <!-- Website -->
     <g class="contact-item" transform="translate(1440, 420)">
-      <title>Website: https://wesleyquintero.vercel.app</title>
+      <title>Website: https://wescode.vercel.app</title>
       <!-- Icon parts grouped and transform applied to the group -->
       <g class="contact-icon" transform="translate(30, -14) scale(1.2)">
         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
       </g>
       <!-- Text y adjusted to 0 -->
-      <text x="80" y="0" class="text contact-text contact-link">https://wesleyquintero.vercel.app</text>
+      <text x="80" y="0" class="text contact-text contact-link">https://wescode.vercel.app</text>
     </g>
   </g>
 

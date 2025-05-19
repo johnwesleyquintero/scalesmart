@@ -13,7 +13,7 @@ The `CourseListServer` (`src/app/academy/CourseListServer.tsx`) component fetche
 
 - The component is a server component, meaning it fetches the data on the server before rendering the component.
 - The component uses the `cachedFetch` function to make the API request.
-- The component dynamically constructs the base URL for the API endpoint based on the environment (development or production). In development, it uses `http://localhost:3000`, and in production, it uses `https://wesleyquintero.vercel.app`.
+- The component dynamically constructs the base URL for the API endpoint based on the environment (development or production). In development, it uses `http://localhost:3000`, and in production, it uses `https://wescode.vercel.app`.
 
 ## Components
 

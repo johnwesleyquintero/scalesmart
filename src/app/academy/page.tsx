@@ -4,7 +4,7 @@ export default async function AcademyPage() {
   const baseUrl =
     process.env.NODE_ENV === 'development'
       ? 'http://localhost:3000'
-      : 'https://wesleyquintero.vercel.app';
+      : 'https://wescode.vercel.app';
   try {
     const res = await fetch(`${baseUrl}/api/academy-courses`);
     const academyData = await res.json();

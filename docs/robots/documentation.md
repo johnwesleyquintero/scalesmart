@@ -8,7 +8,7 @@ The `robots.txt` file (`src/app/robots.txt`) provides instructions to search eng
 
 - **Allows All Crawlers:** The `User-agent: *` directive allows all search engine crawlers to access the site.
 - **Allows All Pages:** The `Allow: /` directive allows crawlers to access all pages on the site.
-- **Points to Sitemap:** The `Sitemap: https://wesleyquintero.vercel.app/sitemap.xml` directive tells crawlers the location of the sitemap file, which provides a list of all the pages on the site.
+- **Points to Sitemap:** The `Sitemap: https://wescode.vercel.app/sitemap.xml` directive tells crawlers the location of the sitemap file, which provides a list of all the pages on the site.
 
 ## Technical Details
 
