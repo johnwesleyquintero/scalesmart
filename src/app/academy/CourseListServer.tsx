@@ -1,3 +1,4 @@
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -36,7 +37,27 @@ async function fetchCourses() {
 }
 
 const CourseListServer = async () => {
-  const courses = await fetchCourses();
+  const [courses, setCourses] = React.useState<Course[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      const fetchedCourses = await fetchCourses();
+      setCourses(fetchedCourses);
+      setIsLoading(false);
+    };
+
+    fetchData();
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading courses...</div>;
+  }
+
+  if (!courses || courses.length === 0) {
+    return <div>Failed to load courses. Please try again later.</div>;
+  }
 
   return <CourseList courses={courses} />;
 };
@@ -46,7 +67,7 @@ const CourseList = ({ courses }: { courses: Course[] }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {courses.map((course) => (
-        <Card key={course.id} className={course.locked ? 'opacity-75' : ''}>
+        <Card key={course.id} className={`${course.locked ? 'opacity-75' : ''} shadow-md`}>
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>

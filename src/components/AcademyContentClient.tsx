@@ -4,26 +4,13 @@ import { useAcademy } from '@/context/AcademyContext';
 import { Button } from '@/components/ui/button';
 import useUserProfile from '@/hooks/use-user-profile';
 import { getRecommendedCourses } from '@/lib/course-recommendations'; // Assuming Module is also in @/types
-import { Module, ModuleType } from '@/types';
-
-export interface Course {
-  id: string;
-  title: string;
-  type: ModuleType;
-  description: string;
-  duration: string;
-  level: 'Beginner' | 'Intermediate' | 'Advanced';
-  locked: boolean;
-  progress: number;
-  modules: Module[];
-  category?: string; // Added category property
-  slug: string;
-}
+import { Module, ModuleType, Course } from '@/types';
 
 import { useEffect, useState } from 'react';
-import CaseStudyModule from './CaseStudyModule';
-import ExerciseModule from './ExerciseModule';
+import ArticleModule from './ArticleModule';
 import VideoModule from './VideoModule';
+import ExerciseModule from './ExerciseModule';
+import CaseStudyModule from './CaseStudyModule';
 
 interface AcademyContentProps {
   courses: Course[];
@@ -36,6 +23,32 @@ interface AcademyContentProps {
   filter: string;
   sort: string;
 }
+
+interface ModuleSpecificContentProps {
+  activeModule: Module;
+}
+
+const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({ activeModule }) => {
+  switch (activeModule.type) {
+    case ModuleType.ARTICLE:
+      return activeModule.contentSlug ? (
+        <ArticleModule contentSlug={activeModule.contentSlug} />
+      ) : (
+        <p>No content available for this module.</p>
+      );
+    case ModuleType.VIDEO:
+      return <VideoModule />;
+    case ModuleType.EXERCISE:
+      return <ExerciseModule />;
+    case ModuleType.CASE_STUDY:
+      return <CaseStudyModule />;
+    case ModuleType.QUIZ:
+      return <p>Quiz Content Here for {activeModule.title}</p>; // Placeholder for Quiz component
+    default:
+      return <p>Unknown Module Type: {activeModule.type}</p>;
+  }
+};
+
 
 function AcademyContentClient({
   courses: allCourses,
@@ -173,38 +186,12 @@ function AcademyContentClient({
               </div>
               <div className="w-full md:w-3/4 bg-white p-6 rounded shadow-lg min-h-[300px]">
                 {activeModule ? (
-                  (() => {
-                    const ModuleSpecificContent = () => {
-                      switch (activeModule.type) {
-                        case 'article' as ModuleType:
-                          return (
-                            <p>Article Content Here for {activeModule.title}</p>
-                          );
-                        case 'video' as ModuleType:
-                          return <VideoModule />;
-                        case 'exercise' as ModuleType:
-                          return <ExerciseModule />;
-                        case 'caseStudy' as ModuleType:
-                          return <CaseStudyModule />;
-                        case 'quiz' as ModuleType:
-                          return (
-                            <p>Quiz Content Here for {activeModule.title}</p>
-                          ); // Placeholder for Quiz component
-                        default:
-                          return (
-                            <p>Unknown Module Type: {activeModule.type}</p>
-                          );
-                      }
-                    };
-                    return (
-                      <div>
-                        <h3 className="text-xl font-semibold mb-4 pb-2 border-b">
-                          {activeModule.title || `Module ${activeModule.id}`}
-                        </h3>
-                        <ModuleSpecificContent />
-                      </div>
-                    );
-                  })()
+                  <div>
+                    <h3 className="text-xl font-semibold mb-4 pb-2 border-b">
+                      {activeModule.title || `Module ${activeModule.id}`}
+                    </h3>
+                    <ModuleSpecificContent activeModule={activeModule} />
+                  </div>
                 ) : (
                   <p className="text-center text-gray-500 pt-16">
                     Select a module from the list to view its content.

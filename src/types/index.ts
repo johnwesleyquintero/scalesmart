@@ -2,6 +2,8 @@ export enum ModuleType {
   VIDEO = 'VIDEO',
   ARTICLE = 'ARTICLE',
   QUIZ = 'QUIZ',
+  EXERCISE = 'EXERCISE',
+  CASE_STUDY = 'CASE_STUDY',
 }
 
 export type Course = {
@@ -16,6 +18,7 @@ export type Course = {
   modules: Module[];
   category?: string; // Added category property
   imageUrl?: string;
+  slug?: string;
 };
 
 export type Module = {

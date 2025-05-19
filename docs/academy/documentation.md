@@ -15,11 +15,11 @@ The Academy Page (`src/app/academy/page.tsx`) is the main page for the academy s
 
 ## Recent Changes
 
-- Refactored course level styling in `CourseListServer.tsx` using a `getLevelTextColor` utility function.
-- Refactored filtering and sorting logic in `SchoolComponent.tsx` into `filterCourses` and `sortCourses` utility functions.
-- Improved code organization and readability.
-- Added `academy_enhancement_plan.md` to document the academy enhancement plan.
-- Removed `mdx_structure_plan.md`.
+- **CourseListServer.tsx:** Updated to fetch courses asynchronously using `React.useState` and `React.useEffect`. Added loading and error handling. Updated card styling to include a shadow.
+- **SchoolComponent.tsx:** The `CourseList` component now receives an `activeCourse` prop.
+- **AcademyContentClient.tsx:** Created `ModuleSpecificContent` component to handle rendering of different module types. Now imports `ArticleModule`.
+- **types/index.ts:** Added `EXERCISE` and `CASE_STUDY` to the `ModuleType` enum. Added `slug` to the `Course` type.
+- **ArticleModule.tsx:** Added a new component for displaying article content.
 
 ## Components
 
@@ -49,3 +49,16 @@ The `Course` interface defines the structure of a course object. It has the foll
 - `modules`: An array of `Module` objects that make up the course.
 - `category`: The category of the course (e.g., `Amazon SEO`, `Amazon PPC`, `Amazon FBA`).
 - `slug`: A unique slug for the course, used in the URL.
+
+### ArticleModule Component
+
+The `ArticleModule` component is responsible for displaying article content within a module. It fetches the article content based on the `contentSlug` prop and renders it.
+
+#### Functionality
+
+- Fetches article content from the `/api/academy-article/[slug]` endpoint.
+- Displays the article content.
+
+#### Props
+
+- `contentSlug`: The slug of the article to display.

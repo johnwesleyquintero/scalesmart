@@ -1,9 +1,8 @@
 'use client';
 
-import { Course } from '@/components/AcademyContentClient';
-
 import { AcademyContentClient } from '@/components/AcademyContentClient';
 import { Button } from '@/components/ui/button';
+import { Course } from '@/types';
 import {
   Card,
   CardDescription,
@@ -80,7 +79,14 @@ export default function SchoolComponent({ academyData }: SchoolComponentProps) {
       <AcademyProvider initialCourses={academyData || []}>
         <AcademyContentClient
           courses={academyData || []}
-          CourseList={CourseList}
+          CourseList={(props: {
+            startCourse: (course: Course) => void;
+            courses: Course[];
+            filter: string;
+            sort: string;
+          }) =>
+            CourseList({ ...props, activeCourse: null })
+          }
           filter={filter}
           sort={sort}
         />
@@ -105,6 +111,7 @@ const CourseList = ({
   courses: Course[];
   filter: string;
   sort: string;
+  activeCourse: Course | null;
 }) => {
   const filteredCourses = courses
     .filter((course) => {
