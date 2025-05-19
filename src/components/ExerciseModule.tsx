@@ -13,39 +13,14 @@ const ExerciseModule: React.FC<ExerciseModuleProps> = ({
   courseId,
   moduleId,
 }) => {
-  const handleComplete = async () => {
-    try {
-      const response = await fetch('/api/module-progress', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId,
-          courseId: courseId,
-          moduleId: moduleId,
-          progress: 100, // Mark as complete
-        }),
-      });
-
-      if (response.ok) {
-        alert('Exercise completed!');
-      } else {
-        console.error('Failed to update progress:', response.status);
-        alert('Failed to update progress. Please try again.');
-      }
-    } catch (error) {
-      console.error('Error updating progress:', error);
-      alert('Error updating progress. Please try again.');
-    }
-  };
-
   return (
     <div>
       <h2>Exercise</h2>
+      <p>User ID: {userId}</p>
+      <p>Course ID: {courseId}</p>
+      <p>Module ID: {moduleId}</p>
       <p>{exercise}</p>
-      <textarea />
-      <button onClick={handleComplete}>Mark as Complete</button>
+      <textarea placeholder="Enter your answer here..." rows={5} cols={50} />
     </div>
   );
 };

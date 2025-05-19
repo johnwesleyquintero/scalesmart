@@ -6,8 +6,8 @@ const ACADEMY_DATA_KEY = 'academyData';
 const useAcademyStorageService = () => {
   const [academyData, setAcademyData] = useLocalStorage<AcademyDataType>(
     ACADEMY_DATA_KEY,
-    { courses: [] },
-    { courses: [] },
+    { courses: [], moduleProgress: {}, quizResults: {} },
+    { courses: [], moduleProgress: {}, quizResults: {} },
   );
 
   const getAcademyData = () => academyData;
@@ -17,7 +17,9 @@ const useAcademyStorageService = () => {
   ) => {
     setAcademyData(
       typeof value === 'function'
-        ? value(academyData ?? { courses: [] })
+        ? value(
+            academyData ?? { courses: [], moduleProgress: {}, quizResults: {} },
+          )
         : value,
     );
   };

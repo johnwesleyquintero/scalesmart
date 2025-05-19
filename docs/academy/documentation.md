@@ -1,64 +1,50 @@
-# Academy Page Documentation (`src/app/academy/page.tsx`)
+# Academy Content Update Process
 
-## Overview
+This document outlines the process for updating content in the ScaleSmart Academy.
 
-The Academy Page (`src/app/academy/page.tsx`) is the main page for the academy section of the application. It serves as the entry point for users to access the academy's content and features.
+## Content Creation
 
-## Functionality
+1.  Create new content as MDX files in the `src/app/content/academy` directory.
+2.  Ensure each file includes the following metadata:
+    - `title`: The title of the module.
+    - `description`: A brief description of the module.
+    - `moduleType`: The type of module (`article`, `video`, `exercise`, `caseStudy`, `quiz`, `simulation`).
 
-- **Renders SchoolComponent:** The primary function of this page is to render the `SchoolComponent`, which contains the core UI and logic for the academy section.
+## Content Integration
 
-## Technical Details
+1.  Import the new MDX files into the relevant course component.
+2.  Update the course's module list to include the new module.
 
-- The page is a simple functional component that imports and renders another component.
-- It relies on the `SchoolComponent` to handle the actual content and functionality of the academy page.
+## Content Review
 
-## Recent Changes
+1.  All content updates must be reviewed and approved by the content team.
+2.  Ensure the content is accurate, up-to-date, and relevant.
 
-- **CourseListServer.tsx:** Updated to fetch courses asynchronously using `React.useState` and `React.useEffect`. Added loading and error handling. Updated card styling to include a shadow.
-- **SchoolComponent.tsx:** The `CourseList` component now receives an `activeCourse` prop.
-- **AcademyContentClient.tsx:** Created `ModuleSpecificContent` component to handle rendering of different module types. Now imports `ArticleModule`.
-- **types/index.ts:** Added `EXERCISE` and `CASE_STUDY` to the `ModuleType` enum. Added `slug` to the `Course` type.
-- **ArticleModule.tsx:** Added a new component for displaying article content.
+## Content Updates
 
-## Components
-
-- `AcademyPage`: The main academy page component.
-- `SchoolComponent`: The component that is rendered by the `AcademyPage`. It receives the `academyData` prop, which is an array of `Course` objects.
-
-## Data Flow
-
-1.  The `AcademyPage` component is rendered when a user navigates to the `/academy` route.
-2.  The component imports and renders the `SchoolComponent`.
-3.  The `SchoolComponent` then handles the display of the academy's content and features.
+1.  Regularly review existing content to ensure it remains accurate and up-to-date.
+2.  Update content as needed to reflect changes in the Amazon marketplace.
 
 ## Data Structures
 
-### Course Interface
+### `AcademyDataType`
 
-The `Course` interface defines the structure of a course object. It has the following properties:
+The `AcademyDataType` interface defines the structure of the academy data stored in local storage. It includes the following properties:
 
-- `id`: A unique identifier for the course.
-- `title`: The title of the course.
-- `type`: The type of the course (e.g., `article`, `video`, `quiz`).
-- `description`: A brief description of the course.
-- `duration`: The estimated duration of the course.
-- `level`: The difficulty level of the course (e.g., `Beginner`, `Intermediate`, `Advanced`).
-- `locked`: A boolean indicating whether the course is locked or unlocked.
-- `progress`: The user's progress in the course (as a percentage).
-- `modules`: An array of `Module` objects that make up the course.
-- `category`: The category of the course (e.g., `Amazon SEO`, `Amazon PPC`, `Amazon FBA`).
-- `slug`: A unique slug for the course, used in the URL.
+*   `courses`: An array of `Course` objects representing the available courses.
+*   `moduleProgress`: A record of module completion status, where the key is the module ID and the value is a boolean indicating whether the module is completed.
+*   `quizResults`: A record of quiz results, where the key is the module ID and the value is a `QuizResult` object containing the quiz score, attempts, and pass status.
 
-### ArticleModule Component
+## Components
 
-The `ArticleModule` component is responsible for displaying article content within a module. It fetches the article content based on the `contentSlug` prop and renders it.
+### `useAcademyStorage` Hook
 
-#### Functionality
+The `useAcademyStorage` hook is responsible for managing the academy data in local storage. It provides functions for:
 
-- Fetches article content from the `/api/academy-article/[slug]` endpoint.
-- Displays the article content.
+*   Initializing the academy data.
+*   Retrieving the academy data.
+*   Saving updates to the academy data.
 
-#### Props
+### Quiz Component
 
-- `contentSlug`: The slug of the article to display.
+The `Quiz` component is used to create interactive quizzes within academy modules. It allows users to test their knowledge and track their progress. The quiz results are stored in the `quizResults` property of the `AcademyDataType` in local storage.

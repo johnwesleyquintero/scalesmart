@@ -4,6 +4,7 @@ export enum ModuleType {
   QUIZ = 'QUIZ',
   EXERCISE = 'EXERCISE',
   CASE_STUDY = 'CASE_STUDY',
+  SIMULATION = 'SIMULATION',
 }
 
 export type Course = {
@@ -19,6 +20,12 @@ export type Course = {
   category?: string; // Added category property
   imageUrl?: string;
   slug?: string;
+  completed: boolean;
+  lastVisited?: Date; // Track last visited course
+  metadata: {
+    level: string;
+    tags: string[];
+  };
 };
 
 export type Module = {
@@ -31,6 +38,7 @@ export type Module = {
   link?: string;
   videoUrl?: string;
   exercise?: string;
+  lastVisited?: Date; // Track last visited module
 };
 
 export type AppEvent = {
@@ -52,4 +60,18 @@ export type BlogPost = {
   author?: string;
   content?: string;
   relatedPosts?: unknown[];
+};
+
+export interface Question {
+  id: number;
+  text: string;
+  options: string[];
+  correctAnswer: string;
+  explanation: string;
+}
+
+export type QuizResult = {
+  score: number;
+  attempts: number;
+  pass: boolean;
 };

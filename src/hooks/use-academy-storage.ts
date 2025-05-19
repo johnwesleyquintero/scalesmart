@@ -1,16 +1,14 @@
 import { useToast } from '@/hooks/use-toast';
-import { Course } from '@/types';
+import { Course, QuizResult } from '@/types';
 import { useCallback } from 'react';
 import useAcademyStorageService from '@/lib/academy-storage-service';
 
-// It's good practice to define types for your data structures.
-// If 'Course' is defined elsewhere, you might want to import it.
-// For now, here's a basic definition:
-
 export interface AcademyDataType {
   courses: Course[];
-  // You can add other top-level properties to academyData here if needed
-  // e.g., userPreferences?: Record<string, any>;
+  moduleProgress: Record<string, boolean>; // ModuleId: Completed
+  quizResults: Record<string, QuizResult>; // ModuleId: QuizResult
+  lastVisitedCourse?: string; // CourseId
+  lastVisitedModule?: string; // ModuleId
 }
 
 const useAcademyStorage = () => {
@@ -43,15 +41,39 @@ const useAcademyStorage = () => {
         }
 
         setAcademyDataValue((currentData: AcademyDataType) => {
-          // Ensure courses is always an array, merging updates correctly
           const newCourses =
             updates.courses !== undefined
               ? updates.courses
               : currentData.courses;
+
+          const newModuleProgress =
+            updates.moduleProgress !== undefined
+              ? { ...currentData.moduleProgress, ...updates.moduleProgress }
+              : currentData.moduleProgress;
+
+          const newQuizResults =
+            updates.quizResults !== undefined
+              ? { ...currentData.quizResults, ...updates.quizResults }
+              : currentData.quizResults;
+
+          const newLastVisitedCourse =
+            updates.lastVisitedCourse !== undefined
+              ? updates.lastVisitedCourse
+              : currentData.lastVisitedCourse;
+
+          const newLastVisitedModule =
+            updates.lastVisitedModule !== undefined
+              ? updates.lastVisitedModule
+              : currentData.lastVisitedModule;
+
           return {
             ...currentData,
             ...updates,
-            courses: newCourses || [], // Fallback to empty array if newCourses is null/undefined
+            courses: newCourses || [],
+            moduleProgress: newModuleProgress || {},
+            quizResults: newQuizResults || {},
+            lastVisitedCourse: newLastVisitedCourse,
+            lastVisitedModule: newLastVisitedModule,
           };
         });
 
@@ -81,7 +103,42 @@ const useAcademyStorage = () => {
     [setAcademyDataValue, toast],
   );
 
-  return { academyData, saveData };
+  const markModuleComplete = useCallback(
+    (moduleId: string) => {
+      saveData({ moduleProgress: { [moduleId]: true } });
+    },
+    [saveData],
+  );
+
+  const updateQuizResult = useCallback(
+    (moduleId: string, result: QuizResult) => {
+      saveData({ quizResults: { [moduleId]: result } });
+    },
+    [saveData],
+  );
+
+  const markCourseVisited = useCallback(
+    (courseId: string) => {
+      saveData({ lastVisitedCourse: courseId });
+    },
+    [saveData],
+  );
+
+  const markModuleVisited = useCallback(
+    (moduleId: string) => {
+      saveData({ lastVisitedModule: moduleId });
+    },
+    [saveData],
+  );
+
+  return {
+    academyData,
+    saveData,
+    markModuleComplete,
+    updateQuizResult,
+    markCourseVisited,
+    markModuleVisited,
+  };
 };
 
 export default useAcademyStorage;

@@ -26,30 +26,41 @@ function validateCourseData(data: CourseData) {
 }
 
 async function getCourses() {
-  const fileNames = fs.readdirSync(contentDirectory).filter(fileName => fileName !== 'metadata.json');
+  const fileNames = fs
+    .readdirSync(contentDirectory)
+    .filter((fileName) => fileName.endsWith('.mdx'));
   const courses = fileNames.map((fileName) => {
     try {
       const fullPath = path.join(contentDirectory, fileName);
       const fileContents = fs.readFileSync(fullPath, 'utf8');
 
-      // Use gray-matter to parse the post metadata section
+      // Use gray-matter to parse the MDX content and metadata
       const matterResult = matter(fileContents);
+      const { data, content } = matterResult;
 
-      // Combine the data with the id
-      if (Object.keys(matterResult.data).length === 0) {
-        console.warn(`No metadata found in ${fileName}`);
-        return null;
-      }
+      // Standardize metadata
+      const metadata = {
+        title: data.title || fileName.replace(/\.mdx$/, ''),
+        description: data.description || '',
+        duration: data.duration || '',
+        level: data.level || '',
+        category: data.category || '',
+        tags: data.tags || [],
+        author: data.author || '',
+        interactive: data.interactive || false,
+      };
+
       return {
         slug: fileName.replace(/\.mdx$/, ''),
-        ...matterResult.data,
+        metadata,
+        content,
       };
     } catch (error) {
       console.error(`Error processing file ${fileName}:`, error);
       return null; // Return null for files that cause errors
     }
   });
-  return courses.filter(course => course !== null); // Filter out null values
+  return courses.filter((course) => course !== null); // Filter out null values
 }
 
 export async function GET() {

@@ -3,14 +3,16 @@
 import { useAcademy } from '@/context/AcademyContext';
 import { Button } from '@/components/ui/button';
 import useUserProfile from '@/hooks/use-user-profile';
-import { getRecommendedCourses } from '@/lib/course-recommendations'; // Assuming Module is also in @/types
+import { getRecommendedCourses } from '@/lib/course-recommendations';
 import { Module, ModuleType, Course } from '@/types';
+import useAcademyStorage from '@/hooks/use-academy-storage'; // Import the hook
 
 import { useEffect, useState } from 'react';
 import ArticleModule from './ArticleModule';
 import VideoModule from './VideoModule';
 import ExerciseModule from './ExerciseModule';
 import CaseStudyModule from './CaseStudyModule';
+import Quiz from './Quiz';
 
 interface AcademyContentProps {
   courses: Course[];
@@ -32,6 +34,36 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
   activeModule,
 }) => {
   const { activeCourse } = useAcademy();
+
+  const sampleQuestions = [
+    {
+      id: 1,
+      text: 'What is Amazon Brand Registry?',
+      options: [
+        'A program to protect your brand on Amazon',
+        'A tool for keyword research',
+        'A service for managing inventory',
+        'A way to get free advertising',
+      ],
+      correctAnswer: 'A program to protect your brand on Amazon',
+      explanation:
+        'Amazon Brand Registry helps you protect your trademarks and intellectual property on Amazon.',
+    },
+    {
+      id: 2,
+      text: 'What is product validation?',
+      options: [
+        'Ensuring your product meets safety standards',
+        'Confirming there is demand for your product',
+        'Checking for patent infringements',
+        'Calculating your profit margin',
+      ],
+      correctAnswer: 'Confirming there is demand for your product',
+      explanation:
+        'Product validation involves researching and confirming that there is sufficient customer demand for your product before investing in inventory.',
+    },
+  ];
+
   switch (activeModule.type) {
     case ModuleType.ARTICLE:
       return activeModule.contentSlug ? (
@@ -55,7 +87,9 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
     case ModuleType.CASE_STUDY:
       return <CaseStudyModule />;
     case ModuleType.QUIZ:
-      return <p>Quiz Content Here for {activeModule.title}</p>; // Placeholder for Quiz component
+      return <Quiz questions={sampleQuestions} moduleId={activeModule.id} />;
+    case ModuleType.SIMULATION:
+      return <p>Simulation Content Here for {activeModule.title}</p>; // Placeholder for Simulation component
     default:
       return <p>Unknown Module Type: {activeModule.type}</p>;
   }
@@ -70,32 +104,26 @@ function AcademyContentClient({
   const { activeCourse, setActiveCourse, setActiveModule, activeModule } =
     useAcademy();
   const { userProfile } = useUserProfile();
+  const [searchQuery, setSearchQuery] = useState('');
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
+  const { academyData, markModuleVisited } = useAcademyStorage();
+  const completedCourseIds = Object.keys(academyData?.moduleProgress || {});
 
   useEffect(() => {
     if (userProfile) {
-      const recommended = getRecommendedCourses(userProfile);
-      setRecommendedCourses(recommended as Course[]);
+      getRecommendedCourses(userProfile, completedCourseIds).then(
+        (recommended) => {
+          setRecommendedCourses(recommended as Course[]);
+        },
+      );
     }
-  }, [userProfile]);
+  }, [userProfile, completedCourseIds]);
 
   useEffect(() => {
     if (activeCourse && activeModule) {
-      // Store progress in IndexedDB
-      const storeProgress = async () => {
-        try {
-          // Assuming you have a function to interact with IndexedDB
-          // Example: await saveModuleProgress(userProfile?.id, activeCourse.id, activeModule.id, true);
-          console.log(
-            `Saving progress for user ${userProfile?.id}, course ${activeCourse.id}, module ${activeModule.id}`,
-          );
-        } catch (error) {
-          console.error('Error saving module progress:', error);
-        }
-      };
-      storeProgress();
+      markModuleVisited(activeModule.id); // Mark module as visited
     }
-  }, [activeCourse, activeModule, userProfile]);
+  }, [activeCourse, activeModule, markModuleVisited]);
 
   const startCourse = (selectedCourse: Course) => {
     setActiveCourse(selectedCourse);
@@ -130,21 +158,34 @@ function AcademyContentClient({
       </div>
 
       {!activeCourse ? (
-        <CourseList
-          startCourse={startCourse}
-          courses={
-            recommendedCourses.length > 0
-              ? recommendedCourses.filter(
-                  (recommendedCourse) =>
-                    !courses.find(
-                      (course) => course.slug === recommendedCourse.slug,
-                    ),
-                )
-              : courses
-          }
-          filter={filter}
-          sort={sort}
-        />
+        <>
+          <input
+            type="text"
+            placeholder="Search courses..."
+            className="w-full p-2 mb-4 border rounded"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <CourseList
+            startCourse={startCourse}
+            courses={courses
+              .filter((course) =>
+                course.title
+                  ?.toLowerCase()
+                  ?.includes(searchQuery.toLowerCase()),
+              )
+              .filter((course) =>
+                recommendedCourses.length > 0
+                  ? !recommendedCourses.find(
+                      (recommendedCourse) =>
+                        course.slug === recommendedCourse.slug,
+                    )
+                  : true,
+              )}
+            filter={filter}
+            sort={sort}
+          />
+        </>
       ) : (
         <>
           <div>
@@ -167,7 +208,7 @@ function AcademyContentClient({
                   Modules
                 </h3>
                 {activeCourse.modules && activeCourse.modules.length > 0 ? (
-                  <ul className="space-y-1 max-h-60 overflow-y-auto">
+                  <ol className="list-decimal space-y-1 max-h-60 overflow-y-auto">
                     {activeCourse.modules.map((module) => (
                       <li key={module.id}>
                         <button
@@ -181,15 +222,21 @@ function AcademyContentClient({
                           title={module.title || `Module ${module.id}`}
                         >
                           <span>{module.title || `Module ${module.id}`}</span>
-                          {module.completed && (
+                          {academyData?.moduleProgress?.[module.id] && (
                             <span className="text-green-500 text-xs font-medium ml-2">
                               ✓
                             </span>
                           )}
+                          <progress
+                            value={
+                              academyData?.moduleProgress?.[module.id] ? 100 : 0
+                            }
+                            max="100"
+                          ></progress>
                         </button>
                       </li>
                     ))}
-                  </ul>
+                  </ol>
                 ) : (
                   <p className="text-sm text-gray-500">
                     No modules available for this course.

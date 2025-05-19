@@ -1,14 +1,53 @@
 import { UserProfile } from '@/lib/models/user';
 import { Course } from '@/types';
 
-// This is a placeholder function.  It will need to be updated to use real data.
-export const getRecommendedCourses = (userProfile: UserProfile): Course[] => {
-  // In a real implementation, this function would:
-  // 1. Fetch course data from a database or CMS.
-  // 2. Analyze the user's profile (interests, experience level, completed courses).
-  // 3. Return a list of courses that are most relevant to the user.
+export const getRecommendedCourses = async (
+  userProfile: UserProfile,
+  completedCourseIds: string[],
+): Promise<Course[]> => {
+  try {
+    const response = await fetch('/api/academy-courses');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const courses: Course[] = await response.json();
 
-  // For now, return an empty array.
-  console.log(userProfile);
-  return [];
+    // Filter courses based on user profile and completed courses
+    const recommendedCourses = courses.filter((course) => {
+      // Exclude completed courses
+      if (course.slug && completedCourseIds.includes(course.slug)) {
+        return false;
+      }
+
+      // Include courses matching user interests (simple matching)
+      if (
+        userProfile.interests &&
+        userProfile.interests.length > 0 &&
+        course.metadata.tags &&
+        course.metadata.tags.length > 0
+      ) {
+        const hasMatchingInterest = userProfile.interests.some((interest) =>
+          course.metadata.tags.includes(interest),
+        );
+        if (!hasMatchingInterest) {
+          return false;
+        }
+      }
+
+      // Further filter based on experience level (example: Beginner courses only for Beginner users)
+      if (
+        userProfile.experienceLevel === 'Beginner' &&
+        course.metadata.level !== 'Beginner'
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    return recommendedCourses;
+  } catch (error) {
+    console.error('Error fetching or filtering courses:', error);
+    return [];
+  }
 };
