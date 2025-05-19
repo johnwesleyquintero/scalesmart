@@ -43,6 +43,7 @@ const openDB = (): Promise<IDBDatabase> => {
 
 const addCustomer = async (customer: Customer): Promise<void> => {
   const db = await openDB();
+  console.log('Adding customer:', customer); // Add console log here
   return new Promise((resolve, reject) => {
     const transaction = db.transaction(OBJECT_STORE_NAME, 'readwrite');
     const objectStore = transaction.objectStore(OBJECT_STORE_NAME);
