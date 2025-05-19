@@ -32,7 +32,9 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
   const [courses, setCourses] = useState<Course[]>(initialCourses);
 
   React.useEffect(() => {
-    setCourses(initialCourses);
+    if (initialCourses !== courses) {
+      setCourses(initialCourses);
+    }
   }, [initialCourses]);
 
   const startModule = (module: Module) => {

@@ -1,9 +1,8 @@
 'use client';
 
 import { Course } from '@/types';
-import { BookOpen, Lock } from 'lucide-react';
 
-import AcademyContentClient from '@/components/AcademyContentClient';
+import { AcademyContentClient } from '@/components/AcademyContentClient';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -12,11 +11,9 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { AcademyProvider } from '@/context/AcademyContext';
 import { useEffect, useState } from 'react';
-import { setItem, getItem, deleteDatabase } from '@/lib/indexeddb-service';
 import { cachedFetch } from '@/lib/api-cache';
-
+import { AcademyProvider } from '@/context/AcademyContext';
 
 const moduleItemStyle = 'text-gray-700';
 
@@ -33,30 +30,6 @@ export default function SchoolComponent() {
       setLoading(true);
       setError(null);
       console.log('Fetching courses from /api/academy-courses');
-
-      // Clear IndexedDB cache
-      try {
-        console.log('Deleting IndexedDB database');
-        await deleteDatabase();
-        console.log('IndexedDB database deleted');
-      } catch (e) {
-        console.error('Error deleting IndexedDB database:', e);
-      }
-
-      // Load data from IndexedDB
-      try {
-        console.time('Load courses from IndexedDB');
-        const cachedData = await getItem('courses', 'all');
-        if (cachedData) {
-          console.log('Courses loaded from IndexedDB:', cachedData);
-          setCourses(cachedData as Course[]);
-          setLoading(false);
-          console.timeEnd('Load courses from IndexedDB');
-          return; // Exit the function early
-        }
-      } catch (e) {
-        console.error('Error getting data from IndexedDB:', e);
-      }
 
       try {
         const response = await cachedFetch('/api/academy-courses');
@@ -75,9 +48,6 @@ export default function SchoolComponent() {
 
         if (Array.isArray(data)) {
           setCourses(data); // API returns the array directly
-          console.time('Save courses to IndexedDB');
-          await setItem('courses', 'all', data); // Store data in IndexedDB
-          console.timeEnd('Save courses to IndexedDB');
         } else {
           console.error(
             'API Error: Expected an array of courses, but received:',
@@ -176,7 +146,6 @@ export default function SchoolComponent() {
         />
       </AcademyProvider>
       <div className="mt-4 flex justify-center">
-        {' '}
         {/* Centering the button within the max-width container */}
         <Button onClick={handleExportData}>Export Academy Data</Button>
       </div>
@@ -218,61 +187,54 @@ const CourseList = ({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {filteredCourses.map((course) => (
-        <Card
-          key={course.id}
-          className={` ${
-            course.locked ? 'opacity-75 bg-gray-100' : ''
-          } border border-gray-200`}
-        >
-          <img
-            src={course.imageUrl || '/default-fallback.svg'} // Default to your SVG if imageUrl is not present
-            alt={`${course.title} course`}
-            className="h-40 w-full object-cover rounded-md"
-            onError={(e) => {
-              // If course.imageUrl was present but failed to load, set to fallback
-              e.currentTarget.src = '/default-fallback.svg';
-              e.currentTarget.onerror = null; // Prevent infinite loops if the fallback itself fails
-            }}
-          />
-          <CardHeader>
-            <div className="flex justify-between items-start">
-              <div>
-                <CardTitle>{course.title}</CardTitle>
-                <CardDescription className="mt-1">
-                  {course.description}
-                </CardDescription>
-              </div>
-              {course.locked && <Lock className="h-5 w-5 text-yellow-500" />}
-            </div>
-          </CardHeader>
-          <div className="p-4">
-            <div className="flex justify-between text-sm mb-2">
-              <span className="flex items-center">
-                <BookOpen className="h-4 w-4 mr-1" />
-                {course.duration}
-              </span>
-              <span
-                className={`px-2 py-1 rounded-full text-xs ${moduleItemStyle}`}
-              >
-                {course.level}
-              </span>
-            </div>
-          </div>
-          <CardFooter>
-            <Button
-              onClick={() => startCourse(course)}
-              disabled={course.locked}
-              className="w-full"
-              aria-label={
-                course.locked ? 'Coming Soon' : `Start ${course.title}`
-              } // Add aria-label for accessibility
+      {filteredCourses.map((course) => {
+        try {
+          return (
+            <Card
+              key={course.id}
+              className={` ${
+                course.locked ? 'opacity-75 bg-gray-100' : ''
+              } border border-gray-200`}
             >
-              {course.locked ? 'Coming Soon' : 'Start Course'}
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle>{course.title}</CardTitle>
+                    <CardDescription className="mt-1">
+                      {course.description}
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <div className="p-4">
+                <div className="flex justify-between text-sm mb-2">
+                  <span className="flex items-center">{course.duration}</span>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs ${moduleItemStyle}`}
+                  >
+                    {course.level}
+                  </span>
+                </div>
+              </div>
+              <CardFooter>
+                <Button
+                  onClick={() => startCourse(course)}
+                  disabled={course.locked}
+                  className="w-full"
+                  aria-label={
+                    course.locked ? 'Coming Soon' : `Start ${course.title}`
+                  } // Add aria-label for accessibility
+                >
+                  {course.locked ? 'Coming Soon' : 'Start Course'}
+                </Button>
+              </CardFooter>
+            </Card>
+          );
+        } catch (error) {
+          console.error('Error rendering course:', course, error);
+          return null; // Return null to prevent the error from crashing the entire component
+        }
+      })}
     </div>
   );
 };

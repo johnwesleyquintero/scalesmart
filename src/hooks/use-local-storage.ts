@@ -122,7 +122,7 @@ export function useLocalStorage<T>(
     };
 
     loadInitialValue();
-  }, [key, initialValue]);
+  }, [key]);
 
   return [storedValue, setValue, removeValue, hasAttemptedInitialLoad];
 }

@@ -55,9 +55,8 @@ async function cachedFetch(
 
     const responseClone = response.clone(); // Clone the response
     const data = await responseClone.json(); // Read the body from the clone
-    const cacheData = { url, data }; // Add the URL to the data object
     console.time(`Save ${url} to cache`);
-    await setItem(API_CACHE_STORE, url, cacheData);
+    await setItem(API_CACHE_STORE, url, { url: url, data: data });
     console.timeEnd(`Save ${url} to cache`);
     console.log(`Caching response for ${url}`);
     return response; // Return the original response

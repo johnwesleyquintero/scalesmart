@@ -79,7 +79,6 @@ function AcademyContentClient({
   // console.log('AcademyContentClient: recommendedCourses =', recommendedCourses);
 
   return (
-    // This component now takes the full width provided by its parent in SchoolComponent.
     <div className="w-full p-4 bg-gray-100 rounded-lg shadow-md">
       {/* Page Title Section */}
       <div className="text-center mb-8">
@@ -195,4 +194,4 @@ function AcademyContentClient({
   );
 }
 
-export default AcademyContentClient;
+export { AcademyContentClient };

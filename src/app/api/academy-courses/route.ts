@@ -1,39 +1,13 @@
 import { NextResponse } from 'next/server';
-import type { Course } from '@/types'; // Make sure your Course type is correctly imported
-
-// This is dummy data. Replace this with your actual data fetching logic.
-const dummyCourses: Course[] = [
-  {
-    id: '1',
-    title: 'Introduction to Amazon PPC',
-    description: 'Learn the fundamentals of Amazon Pay-Per-Click advertising.',
-    duration: '2 hours',
-    level: 'Beginner',
-    locked: false,
-    modules: [], // Add modules if needed
-    progress: 0,
-    type: '',
-  },
-  {
-    id: '2',
-    title: 'Advanced Amazon SEO',
-    description: 'Master advanced SEO techniques for Amazon listings.',
-    duration: '4 hours',
-    level: 'Advanced',
-    locked: true,
-    modules: [],
-    progress: 0,
-    type: '',
-  },
-];
+import type { Course } from '@/types';
+import path from 'path';
+import { promises as fs } from 'fs';
 
 export async function GET() {
-  // In a real application, you would fetch data from a database or CMS here.
-  // For now, we're returning the dummy data.
   try {
-    // Fetch courses from database or CMS here
-    // const courses = await fetchCourses();
-    const courses = dummyCourses; // Replace with fetched data
+    const filePath = path.join(process.cwd(), 'public', 'courses.json');
+    const fileContents = await fs.readFile(filePath, 'utf8');
+    const courses: Course[] = JSON.parse(fileContents);
     return NextResponse.json(courses);
   } catch (error) {
     console.error('Error fetching academy courses:', error);
