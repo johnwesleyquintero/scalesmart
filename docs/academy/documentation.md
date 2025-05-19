@@ -15,10 +15,9 @@ The Academy Page (`src/app/academy/page.tsx`) is the main page for the academy s
 
 ## Recent Changes
 
-- Refactored SchoolComponent to remove IndexedDB caching logic and improve course rendering.
-- Updated AcademyContentClient to be exported as a named export.
-- Modified AcademyContext to prevent unnecessary re-renders.
-- Improved error handling in CourseList component.
+- Refactored course level styling in `CourseListServer.tsx` using a `getLevelTextColor` utility function.
+- Refactored filtering and sorting logic in `SchoolComponent.tsx` into `filterCourses` and `sortCourses` utility functions.
+- Improved code organization and readability.
 
 ## Components
 

@@ -144,4 +144,17 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+import remarkGfm from 'remark-gfm';
+import rehypePrism from 'rehype-prism-plus';
+import withMDX from '@next/mdx';
+
+const config = {
+  extension: /\.mdx?$/,
+  options: {
+    remarkPlugins: [remarkGfm],
+    rehypePlugins: [rehypePrism],
+    providerImportSource: '@mdx-js/react',
+  },
+};
+
+export default withMDX(config)(nextConfig);

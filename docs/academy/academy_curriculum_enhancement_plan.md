@@ -1,83 +1,96 @@
-# ScaleSmart Academy Curriculum Enhancement Plan: Advanced PPC Strategies
+# Academy Curriculum Enhancement Plan
 
-## Overview
+## Goal
 
-The SWOT analysis and recommendations for improving the academy can be found in [academy_swot_analysis_and_recommendations.md](academy_swot_analysis_and_recommendations.md).
+Integrate interactive elements into the MDX articles within the existing Academy page structure.
 
-This plan outlines the proposed enhancements to the ScaleSmart Academy curriculum, focusing on advanced Pay-Per-Click (PPC) strategies. The goal is to provide experienced Amazon sellers with the knowledge and skills they need to optimize their PPC campaigns, maximize profitability, and scale their businesses.
+## Component Changes
 
-## Existing Courses
+*   **`AcademyArticle`**: Modified to render interactive elements within the MDX content.
+*   **`AcademyContentClient`**: Verify prop handling and handle loading/error states.
+*   **`SchoolComponent`**: Modified to pass new fields to the `AcademyContentClient`.
+*   **`Card`**: Modified to display an indicator if a module contains interactive elements.
+*   **`Quiz.tsx`**: New component for quizzes.
+*   **`ExerciseModule.tsx`**: New component for exercises.
+*   **`MdxRenderer`**: Modified to recognize and render the new interactive components.
 
-- Amazon SEO Fundamentals
-- Amazon PPC Mastery
-- Amazon FBA: Getting Started
-- Advanced Amazon Listing Optimization
-- Amazon Brand Registry and Protection
-- Amazon Product Research and Validation
+## Phase 1: Enhancements to `AcademyArticle` Component
 
-## Identified Gaps and Improvements
+*   **Goal:** Modify the `AcademyArticle` component to render interactive elements within the MDX content.
+*   **Steps:**
+    1.  **Integrate Interactive Components:**
+        *   Create new components for quizzes (`Quiz.tsx`) and exercises (`ExerciseModule.tsx`). These components will handle the logic and rendering of interactive elements.
+        *   Modify the `MdxRenderer` component to recognize and render these new components within the MDX content. This will likely involve adding these components to the `components` prop passed to `useMDXComponent`.
+    2.  **Implement Quiz Functionality:**
+        *   The `Quiz.tsx` component will display a series of questions with multiple-choice answers.
+        *   Implement logic to track user responses, provide feedback, and calculate a score.
+        *   Store quiz results in IndexedDB using the `indexeddb-service.ts` hook to persist progress.
+        *   Use the existing UI components and styling for the interactive elements.
+    3.  **Implement Exercise Functionality:**
+        *   The `ExerciseModule.tsx` component will present coding exercises or other practical tasks.
+        *   Provide a simple `textarea` for users to write code.
+        *   No testing framework will be implemented.
+        *   Use the existing UI components and styling for the interactive elements.
+    4.  **Update `AcademyArticle`:**
+        *   Ensure `AcademyArticle` passes necessary props to the interactive components, such as the MDX content and any initial data.
 
-The existing "Amazon PPC Mastery" course is listed as "Intermediate" and currently lacks detailed content. There is a need for a more advanced course that covers topics such as:
+## Phase 2: Enhancements to `AcademyContentClient` Component
 
-- PPC automation and scripting
-- Advanced targeting strategies
-- Detailed PPC metrics and optimization techniques
-- Amazon DSP (Demand-Side Platform)
-- Sponsored Display Ads
-- PPC for international markets
+*   **Goal:** Ensure the `AcademyContentClient` correctly renders the enhanced `AcademyArticle` component.
+*   **Steps:**
+    1.  **Verify Prop Handling:**
+        *   Confirm that the `AcademyContentClient` is correctly passing the `slug` prop to the `AcademyArticle` component.
+    2.  **Handle Loading and Error States:**
+        *   Ensure that the `AcademyContentClient` handles loading and error states appropriately while the MDX content and interactive components are being loaded.
 
-## Proposed New Content
+## Phase 3: Enhancements to `SchoolComponent` and `/api/academy-courses` Endpoint
 
-A new course, "Advanced Amazon PPC Strategies," will be created to address these gaps.
+*   **Goal:** Update the course data to include information about interactive elements.
+*   **Steps:**
+    1.  **Update `courses.json`:**
+        *   Add a new field to the `courses.json` file to indicate whether a module contains interactive elements (e.g., `hasQuiz: true`, `hasExercise: true`).
+    2.  **Modify `/api/academy-courses` Endpoint:**
+        *   Update the `/api/academy-courses` endpoint to read the new field from `courses.json` and pass it to the `SchoolComponent`.
+    3.  **Update `SchoolComponent`:**
+        *   Modify the `SchoolComponent` to pass the new field to the `AcademyContentClient`.
+    4.  **Update `Card` Component:**
+        *   Modify the `Card` component to display an indicator if a module contains interactive elements.
 
-## Detailed Course Plan
+## Phase 4: New Components
 
-**Course Title:** Advanced Amazon PPC Strategies
+*   **Goal:** Create new components for quizzes and exercises.
+*   **Steps:**
+    1.  **Create `Quiz.tsx`:**
+        *   This component will display a series of questions with multiple-choice answers.
+        *   Implement logic to track user responses, provide feedback, and calculate a score.
+        *   Store quiz results in IndexedDB using the `indexeddb-service.ts` hook to persist progress.
+        *   Use the existing UI components and styling for the interactive elements.
+    2.  **Create `ExerciseModule.tsx`:**
+        *   This component will present coding exercises or other practical tasks.
+        *   Provide a simple `textarea` for users to write code.
+        *   No testing framework will be implemented.
+        *   Use the existing UI components and styling for the interactive elements.
 
-**Course Description:** Take your Amazon PPC skills to the next level with this advanced course. Learn how to automate your campaigns, implement sophisticated targeting strategies, and master the art of data-driven optimization.
+## Interactive Elements
 
-**Target Audience:** Experienced Amazon sellers who have a solid understanding of PPC fundamentals and are looking to scale their campaigns and maximize profitability.
+*   **Quizzes:** Multiple-choice questions with feedback and score tracking, using existing UI components and styling, and storing progress in IndexedDB.
+*   **Exercises:** Coding exercises with a simple `textarea` for code input, using existing UI components and styling.
 
-**Course Level:** Advanced
+## Mermaid Diagram
 
-**Course Duration:** 4-5 hours
-
-**Course Modules:**
-
-1.  **Module 1: PPC Automation and Scripting (1 hour)**
-    - Introduction to the Amazon Ads API
-    - Setting up API access and authentication
-    - Creating custom rules for bid management
-    - Automated reporting and performance analysis
-    - Case studies and examples
-2.  **Module 2: Advanced Targeting Strategies (1 hour)**
-    - Deep dive into audience targeting (retargeting, in-market audiences, demographics)
-    - Product targeting: strategies for targeting competitor ASINs and categories
-    - Layered targeting: combining keyword, product, and audience targeting for maximum impact
-    - Advanced keyword research techniques
-3.  **Module 3: Data-Driven Optimization (1 hour)**
-    - In-depth analysis of ACoS, ROAS, TACoS, and other key metrics
-    - Attribution modeling and understanding the customer journey
-    - Algorithmic bidding and advanced bid optimization techniques
-    - Using data visualization to identify trends and opportunities
-4.  **Module 4: Amazon DSP (1 hour)**
-    - Introduction to Amazon DSP and its capabilities
-    - Setting up and managing DSP campaigns
-    - Targeting options and audience segmentation in DSP
-    - Measuring and optimizing DSP campaign performance
-    - Case studies and examples
-5.  **Module 5: Sponsored Display Ads (30 minutes)**
-    - Leveraging Sponsored Display ads for retargeting and product discovery
-    - Optimizing Sponsored Display campaigns for conversions
-    - Best practices for ad creative and messaging
-6.  **Module 6: PPC for International Markets (30 minutes)**
-    - Adapting PPC strategies for different languages and cultures
-    - Keyword translation and localization
-    - Managing PPC campaigns in multiple marketplaces
-    - Tax and legal considerations for international PPC
-
-## Integration with Amazon Seller Tools
-
-- The course will include practical exercises and case studies that utilize the Amazon Seller Tools components.
-- For example, students will use the "PPC Campaign Auditor" (if available) to analyze real-world campaigns and identify areas for improvement.
-- They will also use keyword research tools to discover new, high-potential keywords.
+```mermaid
+graph LR
+    A[SchoolComponent] --> B(/api/academy-courses);
+    B --> C[courses.json];
+    C --> D{Module Data};
+    D --> E(AcademyContentClient);
+    E --> F{Module Type};
+    F -- Article --> G[AcademyArticle];
+    G --> H(MdxRenderer);
+    H --> I{MDX Content};
+    I -- Quiz --> J[Quiz.tsx];
+    I -- Exercise --> K[ExerciseModule.tsx];
+    E -- CourseList --> L[CourseList];
+    L --> M[Card];
+    M --> N{Interactive Indicator};
+    J --> O[IndexedDB];
