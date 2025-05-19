@@ -10,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { AcademyProvider } from '@/context/AcademyContext';
 
 const moduleItemStyle = 'text-gray-700';
@@ -48,6 +48,11 @@ export default function SchoolComponent({ academyData }: SchoolComponentProps) {
     setSort(event.target.value);
   };
 
+  const categoryOptions = useMemo(
+    () => getCategoryOptions(academyData),
+    [academyData],
+  );
+
   return (
     <div className="container mx-auto p-4 flex flex-col items-stretch mt-4">
       <div className="flex justify-center space-x-4 mb-4">
@@ -84,9 +89,7 @@ export default function SchoolComponent({ academyData }: SchoolComponentProps) {
             courses: Course[];
             filter: string;
             sort: string;
-          }) =>
-            CourseList({ ...props, activeCourse: null })
-          }
+          }) => CourseList({ ...props, activeCourse: null })}
           filter={filter}
           sort={sort}
         />
@@ -98,8 +101,17 @@ export default function SchoolComponent({ academyData }: SchoolComponentProps) {
   );
 }
 
-const categoryOptions = ['All', 'Amazon SEO', 'Amazon PPC', 'Amazon FBA'];
-const sortOptions = ['Title', 'Duration'];
+const getCategoryOptions = (courses: Course[]) => {
+  const categories = new Set<string>(['All']);
+  courses.forEach((course) => {
+    if (course.category) {
+      categories.add(course.category);
+    }
+  });
+  return Array.from(categories);
+};
+
+const sortOptions = ['Title', 'Duration', 'Level', 'Duration (descending)'];
 
 const CourseList = ({
   startCourse,
@@ -121,14 +133,21 @@ const CourseList = ({
     .sort((a, b) => {
       if (sort === 'Title') {
         return a.title.localeCompare(b.title);
+      } else if (sort === 'Level') {
+        return a.level.localeCompare(b.level);
+      } else if (sort === 'Duration (descending)') {
+        const durationA = parseInt((a.duration || '0 minutes').split(' ')[0]);
+        const durationB = parseInt((b.duration || '0 minutes').split(' ')[0]);
+        return durationB - durationA;
+      } else {
+        const durationA = parseInt((a.duration || '0 minutes').split(' ')[0]);
+        const durationB = parseInt((b.duration || '0 minutes').split(' ')[0]);
+        return durationA - durationB;
       }
-      const durationA = parseInt(a.duration.split(' ')[0]);
-      const durationB = parseInt(b.duration.split(' ')[0]);
-      return durationA - durationB;
     });
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
       {filteredCourses.map((course, index) => {
         try {
           return (
@@ -136,7 +155,7 @@ const CourseList = ({
               key={`${course.slug}-${index}`}
               className={` ${
                 course.locked ? 'opacity-75 bg-gray-100' : ''
-              } border border-gray-200`}
+              } border border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-300`}
             >
               <CardHeader>
                 <div className="flex justify-between items-start">
@@ -157,7 +176,12 @@ const CourseList = ({
                     {course.level}
                   </span>
                 </div>
-                <p className="text-sm text-gray-500">
+                <progress
+                  className="w-full h-2 rounded-full"
+                  value={course.progress || 0}
+                  max="100"
+                />
+                <p className="text-sm text-gray-500 mt-1">
                   Progress: {course.progress || 0}%
                 </p>
               </div>

@@ -12,7 +12,7 @@ type UseLocalStorageResult<T> = [
 // Custom hook for persisting state in localStorage
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T,
+  initialValue: T | undefined,
   serverInitial: T, // Use a third argument for server-side initial value
 ): UseLocalStorageResult<T> {
   // State to hold the value in the component

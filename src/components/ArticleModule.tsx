@@ -14,15 +14,13 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
     const fetchContent = async () => {
       try {
         const response = await fetch(`/api/academy-article/${contentSlug}`);
-        const data = await response.json();
-        if (data.content) {
-          setContent(data.content);
-        } else {
-          console.error('Error fetching article:', data.error);
-          setContent(null);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const data = await response.json();
+        setContent(data.content);
       } catch (error) {
-        console.error('Error fetching article:', error);
+        console.error('Could not fetch content:', error);
         setContent(null);
       }
     };
@@ -30,7 +28,16 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
     fetchContent();
   }, [contentSlug]);
 
-  return content ? <MdxRenderer content={content} /> : <p>Loading article...</p>;
+  return (
+    <div>
+      <h2>Article</h2>
+      {content ? (
+        <MdxRenderer content={content} />
+      ) : (
+        <p>Loading article content...</p>
+      )}
+    </div>
+  );
 };
 
 export default ArticleModule;

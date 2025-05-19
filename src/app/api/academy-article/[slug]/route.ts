@@ -6,7 +6,7 @@ const academyDirectory = path.join(process.cwd(), 'src/app/content/academy');
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: { slug: string } },
 ) {
   const { slug } = params;
   const fullPath = path.join(academyDirectory, `${slug}.mdx`);
@@ -16,6 +16,9 @@ export async function GET(
     return NextResponse.json({ content: fileContents });
   } catch (error) {
     console.error('Error reading MDX file:', error);
-    return NextResponse.json({ error: 'Failed to load article' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Failed to load article' },
+      { status: 500 },
+    );
   }
 }

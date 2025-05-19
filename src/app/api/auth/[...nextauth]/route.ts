@@ -1,50 +1,35 @@
-import NextAuth, { Account, Session } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
-import GithubProvider from 'next-auth/providers/github';
-
-const handler = NextAuth({
-  providers: [
-    GithubProvider({
-      clientId: process.env.GITHUB_ID || '',
-      clientSecret: process.env.GITHUB_SECRET || '',
-    }),
-  ],
-  session: {
-    strategy: 'jwt',
-  },
-  secret: process.env.NEXTAUTH_SECRET,
-  callbacks: {
-    async jwt(params: {
-      token: JWT;
-      user: unknown;
-      account: Account | null;
-      profile?: unknown;
-      trigger?: unknown;
-      isNewUser?: boolean;
-      session?: unknown;
-    }) {
-      console.log('JWT Callback - Account:', params.account);
-      if (params.account) {
-        params.token.accessToken = params.account.access_token as string;
-      }
-      console.log('JWT Callback - Token:', params.token);
-      return params.token;
-    },
-    async session({ session, token }: { session: Session; token: JWT }) {
-      console.log('Session Callback - Token:', token);
-      if (token.accessToken) {
-        session.accessToken = token.accessToken as string;
-      } else {
-        console.log('Session Callback - accessToken is missing from token');
-      }
-      console.log('Session Callback - Session:', session);
-      return session;
-    },
-  },
-});
-
+import NextAuth, { NextAuthOptions } from 'next-auth';
 import { loadStaticData } from '@/lib/load-static-data';
+import { rateLimiter } from '@/lib/api/rate-limiter';
+import { NextRequest, NextResponse } from 'next/server';
 
 loadStaticData('prohibited-keywords');
+
+interface NextAuthRequest extends NextRequest {
+  ip?: string;
+}
+
+async function handler(
+  req: NextAuthRequest,
+  res: NextResponse,
+): Promise<NextResponse> {
+  const identifier = req.ip ?? '127.0.0.1';
+  const { success } = await rateLimiter.limit(identifier);
+
+  if (!success) {
+    return new NextResponse('Too many requests', {
+      status: 429,
+      statusText: 'Too Many Requests',
+      headers: {
+        'Content-Type': 'text/plain',
+      },
+    });
+  }
+
+  const authOptions = (await import('./options'))
+    .authOptions as NextAuthOptions;
+
+  return NextAuth(authOptions)(req, res);
+}
 
 export { handler as GET, handler as POST };

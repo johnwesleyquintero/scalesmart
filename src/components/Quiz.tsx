@@ -1,155 +1,90 @@
-'use client';
-
-import { Button } from '@/components/ui/button';
-import { ModuleType } from '@/types'; // Import ModuleType
-import { useAcademy } from '@/context/AcademyContext';
-import React, { useEffect, useState } from 'react';
-
-interface Question {
-  id: string;
-  text: string;
-  questionType: 'multipleChoice' | 'trueFalse' | 'fillInTheBlank' | 'text';
-  options?: string[]; // Only for multipleChoice
-  correctAnswer: string | string[]; // String for single answer, string[] for multiple correct answers
-  feedback?: { [key: string]: string }; // Feedback for incorrect answers, keyed by option or other identifier
-  explanation?: string; // Explanation for the correct answer
-}
+import React, { useState } from 'react';
 
 interface QuizProps {
-  questions: Question[];
+  questions: {
+    question: string;
+    options: string[];
+    correctAnswer: number;
+  }[];
+  userId: string;
+  courseId: string;
+  moduleId: string;
 }
 
-const Quiz: React.FC<QuizProps> = ({ questions }) => {
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState('');
-  const [isAnswerCorrect, setIsAnswerCorrect] = useState<boolean | null>(null);
-  const [score, setScore] = useState(0);
-  const [quizCompleted, setQuizCompleted] = useState(false);
+const Quiz: React.FC<QuizProps> = ({
+  questions,
+  userId,
+  courseId,
+  moduleId,
+}) => {
+  const [answers, setAnswers] = useState(Array(questions.length).fill(null));
 
-  const currentQuestion = questions[currentQuestionIndex];
+  const handleAnswerChange = (index: number, value: number) => {
+    const newAnswers = [...answers];
+    newAnswers[index] = value;
+    setAnswers(newAnswers);
+  };
 
-  const handleAnswerSelect = (answer: string) => {
-    setSelectedAnswer(answer);
-    let isCorrect = false;
-    if (currentQuestion.questionType !== 'text') {
-      if (Array.isArray(currentQuestion.correctAnswer)) {
-        isCorrect = currentQuestion.correctAnswer.includes(answer);
+  const handleSubmit = async () => {
+    let score = 0;
+    for (let i = 0; i < questions.length; i++) {
+      if (answers[i] === questions[i].correctAnswer) {
+        score++;
+      }
+    }
+
+    const percentage = (score / questions.length) * 100;
+
+    try {
+      const response = await fetch('/api/module-progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          courseId: courseId,
+          moduleId: moduleId,
+          progress: percentage,
+        }),
+      });
+
+      if (response.ok) {
+        alert(`Quiz completed! Your score: ${percentage}%`);
       } else {
-        isCorrect = answer === currentQuestion.correctAnswer;
+        console.error('Failed to update progress:', response.status);
+        alert('Failed to update progress. Please try again.');
       }
-    } else {
-      isCorrect =
-        answer.toLowerCase() ===
-        (currentQuestion.correctAnswer as string).toLowerCase();
-    }
-    setIsAnswerCorrect(isCorrect);
-  };
-
-  const handleNextQuestion = () => {
-    if (selectedAnswer && isAnswerCorrect) {
-      setScore(score + 1);
-    }
-    setSelectedAnswer('');
-    setIsAnswerCorrect(null);
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      setQuizCompleted(true);
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      alert('Error updating progress. Please try again.');
     }
   };
-
-  const handleRestartQuiz = () => {
-    setCurrentQuestionIndex(0);
-    setSelectedAnswer('');
-    setIsAnswerCorrect(null);
-    setScore(0);
-    setQuizCompleted(false);
-  };
-
-  const { startModule, activeModule } = useAcademy(); // Use startModule from context
-
-  useEffect(() => {
-    if (quizCompleted) {
-      // If the activeModule is this quiz, mark it as completed via context
-      // This will also update course progress and save data.
-      if (
-        activeModule &&
-        activeModule.type ===
-          ModuleType.QUIZ /* && activeModule.id === thisQuizModule.id */
-      ) {
-        // You might want to pass the actual activeModule object if it contains more than just type
-        startModule(activeModule);
-      }
-    }
-  }, [quizCompleted, activeModule, startModule, score, questions.length]); // Added score and questions.length if they are needed for quizResult logic elsewhere
-
-  if (quizCompleted) {
-    return (
-      <div className="p-4 border rounded-lg">
-        <h2 className="text-xl font-bold mb-4">Quiz Completed!</h2>
-        <p>
-          Your score: {score} / {questions.length}
-        </p>
-        <Button onClick={handleRestartQuiz}>Restart Quiz</Button>
-      </div>
-    );
-  }
 
   return (
-    <div className="p-4 border rounded-lg">
-      <h2 className="text-xl font-bold mb-4">
-        Question {currentQuestionIndex + 1} of {questions.length}
-      </h2>
-      <p className="mb-4">{currentQuestion.text}</p>
-      {currentQuestion.questionType === 'multipleChoice' && (
-        <div className="space-y-2">
-          {currentQuestion.options?.map((option) => (
-            <button
-              key={option}
-              onClick={() => handleAnswerSelect(option)}
-              className={`p-2 border rounded-md w-full text-left ${
-                selectedAnswer === option
-                  ? 'bg-blue-100 border-blue-500'
-                  : 'border-gray-300'
-              }`}
-            >
-              {option}
-            </button>
-          ))}
+    <div>
+      <h2>Quiz</h2>
+      {questions.map((question, index) => (
+        <div key={index}>
+          <p>{question.question}</p>
+          <ul>
+            {question.options.map((option, optionIndex) => (
+              <li key={optionIndex}>
+                <label>
+                  <input
+                    type="radio"
+                    name={`question-${index}`}
+                    value={optionIndex}
+                    onChange={() => handleAnswerChange(index, optionIndex)}
+                  />
+                  {option}
+                </label>
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
-      {currentQuestion.questionType === 'text' && (
-        <input
-          type="text"
-          value={selectedAnswer}
-          onChange={(e) => handleAnswerSelect(e.target.value)}
-          className="p-2 border rounded-md w-full"
-        />
-      )}
-      {isAnswerCorrect !== null && (
-        <>
-          <p
-            className={`mt-2 ${isAnswerCorrect ? 'text-green-500' : 'text-red-500'}`}
-          >
-            {isAnswerCorrect ? 'Correct!' : 'Incorrect.'}
-          </p>
-          {!isAnswerCorrect && currentQuestion.feedback && selectedAnswer && (
-            <p className="mt-1 text-sm italic">
-              {currentQuestion.feedback[selectedAnswer] || 'Incorrect'}
-            </p>
-          )}
-          {isAnswerCorrect && currentQuestion.explanation && (
-            <p className="mt-1 text-sm italic">{currentQuestion.explanation}</p>
-          )}
-        </>
-      )}
-      <Button
-        onClick={handleNextQuestion}
-        disabled={!selectedAnswer}
-        className="mt-4"
-      >
-        {currentQuestionIndex === questions.length - 1 ? 'Finish' : 'Next'}
-      </Button>
+      ))}
+      <button onClick={handleSubmit}>Submit Quiz</button>
     </div>
   );
 };

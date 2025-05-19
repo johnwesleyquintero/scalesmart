@@ -28,7 +28,10 @@ interface ModuleSpecificContentProps {
   activeModule: Module;
 }
 
-const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({ activeModule }) => {
+const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
+  activeModule,
+}) => {
+  const { activeCourse } = useAcademy();
   switch (activeModule.type) {
     case ModuleType.ARTICLE:
       return activeModule.contentSlug ? (
@@ -39,7 +42,16 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({ activeMod
     case ModuleType.VIDEO:
       return <VideoModule />;
     case ModuleType.EXERCISE:
-      return <ExerciseModule />;
+      return activeModule.exercise ? (
+        <ExerciseModule
+          exercise={activeModule.exercise}
+          userId={useUserProfile().userProfile?.id || 'defaultUserId'}
+          courseId={activeCourse?.id || 'defaultCourseId'}
+          moduleId={activeModule.id || 'defaultModuleId'}
+        />
+      ) : (
+        <p>No exercise content available for this module.</p>
+      );
     case ModuleType.CASE_STUDY:
       return <CaseStudyModule />;
     case ModuleType.QUIZ:
@@ -48,7 +60,6 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({ activeMod
       return <p>Unknown Module Type: {activeModule.type}</p>;
   }
 };
-
 
 function AcademyContentClient({
   courses: allCourses,
@@ -156,7 +167,7 @@ function AcademyContentClient({
                   Modules
                 </h3>
                 {activeCourse.modules && activeCourse.modules.length > 0 ? (
-                  <ul className="space-y-1">
+                  <ul className="space-y-1 max-h-60 overflow-y-auto">
                     {activeCourse.modules.map((module) => (
                       <li key={module.id}>
                         <button
@@ -167,6 +178,7 @@ function AcademyContentClient({
                               : 'text-gray-700'
                           }`}
                           aria-label={`Select module ${module.title}`}
+                          title={module.title || `Module ${module.id}`}
                         >
                           <span>{module.title || `Module ${module.id}`}</span>
                           {module.completed && (

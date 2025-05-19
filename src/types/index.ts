@@ -30,6 +30,7 @@ export type Module = {
   contentSlug?: string;
   link?: string;
   videoUrl?: string;
+  exercise?: string;
 };
 
 export type AppEvent = {

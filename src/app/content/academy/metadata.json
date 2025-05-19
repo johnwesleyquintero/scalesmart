@@ -1,0 +1,30 @@
+{
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The title of the academy article"
+    },
+    "description": {
+      "type": "string",
+      "description": "A brief description of the academy article"
+    },
+    "author": {
+      "type": "string",
+      "description": "The author of the academy article"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "The date the academy article was published"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Keywords related to the academy article"
+    }
+  },
+  "required": ["title", "description", "author", "date"]
+}

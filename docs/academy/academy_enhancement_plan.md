@@ -57,28 +57,23 @@ graph TD
 
 **Phase 1: Content Fetching and Metadata Standardization (Estimated Time: 1 week)**
 
-- **Step 1.1:** Implement dynamic MDX content fetching using Next.js dynamic routes. This will involve modifying the `/academy/[slug]/page.tsx` file to fetch MDX files based on the slug.
-- **Step 1.2:** Use a library like `mdx-bundler` or `gray-matter` to parse the MDX files and extract the metadata.
-- **Step 1.3:** Define a standardized metadata format for the MDX files, including title, description, duration, level, category, tags, and author.
-- **Step 1.4:** Update the existing MDX files in `src/app/content/academy` to conform to the new metadata format.
+- **Description:** This phase focuses on fetching MDX content dynamically and standardizing the metadata format. The `/api/academy-courses` endpoint fetches MDX files from the `src/app/content/academy` directory, parses the metadata using `gray-matter`, and returns the data as a JSON response. The standardized metadata format includes required fields such as title, description, and modules, as well as optional fields.
+- **Steps:**
+  1.  **Content Fetching:**
+      - Implement dynamic MDX content fetching using Next.js dynamic routes. The `/api/academy-courses` endpoint fetches MDX files from the `src/app/content/academy` directory.
+      - Use `gray-matter` to parse the MDX files and extract the metadata.
+  2.  **Metadata Standardization:**
+      - Define a standardized metadata format for the MDX files, including required fields such as title, description, and modules, as well as optional fields.
+      - Update the existing MDX files in `src/app/content/academy` to conform to the new metadata format.
 
 **Phase 2: Caching Mechanism (Estimated Time: 3 days)**
 
-- **Step 2.1:** Implement a caching mechanism for the MDX content using Next.js' built-in caching features or a dedicated caching library like `Vercel Cache`.
-- **Step 2.2:** Configure the cache to invalidate when the MDX files are updated.
+- **Description:** This phase focuses on implementing a caching mechanism for the MDX content. The `Cache-Control` header is used to implement a caching mechanism for the MDX content.
+- **Steps:**
+  - Implement a caching mechanism for the MDX content using the `Cache-Control` header in the `/api/academy-courses` endpoint.
+  - Configure the cache to invalidate when the MDX files are updated.
 
-**Phase 3: Feature Integration (Estimated Time: 2 weeks)**
-
-- **Step 3.1:** Implement search functionality using a library like `fuse.js` or `algolia`. The search index will be stored in IndexedDB.
-- **Step 3.2:** Implement filtering functionality based on category, level, and tags.
-- **Step 3.3:** Implement progress tracking using IndexedDB to store the user's progress for each module.
-- **Step 3.4:** Update the UI to display the search, filtering, and progress tracking features.
-
-**Phase 4: UI/UX Optimization (Estimated Time: 1 week)**
-
-- **Step 4.1:** Improve the course listing and module navigation using Tailwind CSS and Radix UI components.
-- **Step 4.2:** Add progress indicators and visual feedback to the UI.
-- **Step 4.3:** Ensure mobile responsiveness and accessibility by using responsive design principles and ARIA attributes.
+**Phase 3: UI/UX Optimization (Estimated Time: 1 week)**
 
 ## 4. Technologies and Libraries
 
@@ -104,8 +99,7 @@ graph TD
 
 1.  Content Fetching and Metadata Standardization
 2.  Caching Mechanism
-3.  Feature Integration
-4.  UI/UX Optimization
+3.  UI/UX Optimization
 
 ## 8. Resource Allocation
 

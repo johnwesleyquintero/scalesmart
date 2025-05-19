@@ -1,83 +1,96 @@
 // src/hooks/use-user-profile.ts
-import { UserProfile, defaultUserProfile } from '../lib/user-profile';
-import { useCallback } from 'react';
+import { UserProfile } from '../lib/models/user';
+import { useCallback, useState, useEffect } from 'react';
 import { useLocalStorage } from './use-local-storage';
+import { useSession } from 'next-auth/react';
 
 const USER_PROFILE_KEY = 'userProfile';
 
 const useUserProfile = () => {
-  const [userProfile, setUserProfile] = useLocalStorage<UserProfile>(
-    USER_PROFILE_KEY,
-    defaultUserProfile,
-    defaultUserProfile,
+  const { data: session } = useSession();
+  const [isLoading, setIsLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [localStorageProfile, setLocalStorageProfile] = useLocalStorage<
+    UserProfile | null | undefined
+  >(USER_PROFILE_KEY, undefined, undefined);
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      setIsLoading(true);
+      if (session?.user?.email) {
+        // Fetch user profile from database
+        try {
+          const response = await fetch(
+            `/api/user-profile?email=${session.user.email}`,
+          );
+          if (response.ok) {
+            const data = await response.json();
+            setUserProfile(data);
+            setLocalStorageProfile(data); // Update local storage as well
+          } else {
+            // If user profile doesn't exist, create a new one
+            if (response.status === 404) {
+              const newUserProfile: UserProfile = {
+                id: session.user.id as string,
+                name: session.user.name as string,
+                email: session.user.email as string,
+                experienceLevel: 'Beginner',
+                interests: [],
+                completedCourses: [],
+                courseProgress: {},
+                badges: [],
+              };
+              await fetch('/api/user-profile', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(newUserProfile),
+              });
+              setUserProfile(newUserProfile);
+              setLocalStorageProfile(newUserProfile); // Update local storage as well
+            } else {
+              console.error('Error fetching user profile:', response.status);
+              setUserProfile(localStorageProfile || null); // Fallback to local storage
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          setUserProfile(localStorageProfile || null); // Fallback to local storage
+        }
+      } else {
+        setUserProfile(localStorageProfile || null); // Use local storage if no session
+      }
+      setIsLoading(false);
+    };
+
+    fetchUserProfile();
+  }, [session?.user?.email, setLocalStorageProfile, localStorageProfile]);
+
+  const updateUserProfile = useCallback(
+    async (updatedProfile: UserProfile) => {
+      try {
+        await fetch('/api/user-profile', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedProfile),
+        });
+        setUserProfile(updatedProfile);
+        setLocalStorageProfile(updatedProfile); // Update local storage as well
+      } catch (error) {
+        console.error('Error updating user profile:', error);
+      }
+    },
+    [setLocalStorageProfile],
   );
 
   return {
     userProfile,
-    setUserProfile,
-    updateExperienceLevel: useCallback(
-      (level: 'Beginner' | 'Intermediate' | 'Advanced') => {
-        const updatedProfile = {
-          ...userProfile,
-          experienceLevel: level,
-        } as UserProfile;
-        setUserProfile(updatedProfile);
-      },
-      [setUserProfile, userProfile],
-    ),
-    addInterest: useCallback(
-      (interest: string) => {
-        const updatedProfile = {
-          ...userProfile,
-          interests: [...(userProfile?.interests || []), interest],
-        } as UserProfile;
-        setUserProfile(updatedProfile);
-      },
-      [setUserProfile, userProfile],
-    ),
-    removeInterest: useCallback(
-      (interest: string) => {
-        const updatedProfile = {
-          ...userProfile,
-          interests: (userProfile?.interests || []).filter(
-            (i: string) => i !== interest,
-          ),
-        } as UserProfile;
-        setUserProfile(updatedProfile);
-      },
-      [setUserProfile, userProfile],
-    ),
-    updateCourseProgress: useCallback(
-      (courseId: string, progress: number) => {
-        const updatedProfile = {
-          ...userProfile,
-          courseProgress: {
-            ...(userProfile?.courseProgress || {}),
-            [courseId]: progress,
-          },
-        } as UserProfile;
-        setUserProfile(updatedProfile);
-      },
-      [setUserProfile, userProfile],
-    ),
-    addBadge: useCallback(
-      (badge: string) => {
-        const updatedProfile = {
-          ...userProfile,
-          badges: userProfile?.badges
-            ? [...userProfile.badges, badge]
-            : [badge],
-        } as UserProfile;
-        setUserProfile(updatedProfile);
-      },
-      [setUserProfile, userProfile],
-    ),
+    isLoading,
+    updateUserProfile,
   };
 };
-
-// Consider:
-// - Security: If userProfile contains sensitive data, encrypt before storing.
-// - Performance: Debounce/throttle updates to optimize.
-// - Data Size: Consider adding validation.
 
 export default useUserProfile;

@@ -1,26 +1,12 @@
-import { Schema, model, models } from 'mongoose';
-
-export interface User {
+export interface UserProfile {
+  id: string; // User ID (e.g., from local storage)
+  name: string;
   email: string;
-  name?: string;
-  image?: string;
-  emailVerified?: Date;
-  role: 'user' | 'admin';
-  createdAt: Date;
-  updatedAt: Date;
+  learningPreferences?: string[];
+  experienceLevel: 'Beginner' | 'Intermediate' | 'Advanced';
+  interests: string[]; // Array of interest tags (e.g., "product research", "advertising")
+  completedCourses: string[]; // Array of course IDs
+  courseProgress?: { [courseId: string]: number }; // Track progress for each course (0-100)
+  badges?: string[]; // Array of badge IDs
+  // Add other relevant user data
 }
-
-const userSchema = new Schema<User>(
-  {
-    email: { type: String, required: true, unique: true },
-    name: String,
-    image: String,
-    emailVerified: Date,
-    role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  },
-  {
-    timestamps: true,
-  },
-);
-
-export const UserModel = models.User || model<User>('User', userSchema);

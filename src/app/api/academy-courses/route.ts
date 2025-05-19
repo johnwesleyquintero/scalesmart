@@ -1,19 +1,131 @@
-import { NextResponse } from 'next/server';
-import type { Course } from '@/types';
+import { NextResponse, NextRequest } from 'next/server';
+import fs from 'fs';
 import path from 'path';
-import { promises as fs } from 'fs';
+import matter from 'gray-matter';
+import { Module } from '@/types';
+
+const contentDirectory = path.join(process.cwd(), 'src/app/content/academy');
+
+interface CourseData {
+  title: string;
+  description: string;
+  modules: Module[];
+}
+
+function validateCourseData(data: CourseData) {
+  if (!data.title) {
+    throw new Error('Title is required');
+  }
+  if (!data.description) {
+    throw new Error('Description is required');
+  }
+  if (!data.modules || !Array.isArray(data.modules)) {
+    throw new Error('Modules must be an array');
+  }
+  return true;
+}
+
+async function getCourses() {
+  const fileNames = fs.readdirSync(contentDirectory).filter(fileName => fileName !== 'metadata.json');
+  const courses = fileNames.map((fileName) => {
+    try {
+      const fullPath = path.join(contentDirectory, fileName);
+      const fileContents = fs.readFileSync(fullPath, 'utf8');
+
+      // Use gray-matter to parse the post metadata section
+      const matterResult = matter(fileContents);
+
+      // Combine the data with the id
+      if (Object.keys(matterResult.data).length === 0) {
+        console.warn(`No metadata found in ${fileName}`);
+        return null;
+      }
+      return {
+        slug: fileName.replace(/\.mdx$/, ''),
+        ...matterResult.data,
+      };
+    } catch (error) {
+      console.error(`Error processing file ${fileName}:`, error);
+      return null; // Return null for files that cause errors
+    }
+  });
+  return courses.filter(course => course !== null); // Filter out null values
+}
 
 export async function GET() {
+  const courses = await getCourses();
+  return new NextResponse(JSON.stringify(courses), {
+    headers: {
+      'Content-Type': 'application/json',
+      'Cache-Control': 's-maxage=3600, stale-while-revalidate',
+    },
+  });
+}
+
+const UNEXPECTED_ERROR_MESSAGE = 'An unexpected error occurred';
+
+export async function POST(req: NextRequest) {
   try {
-    const filePath = path.join(process.cwd(), 'public', 'courses.json');
-    const fileContents = await fs.readFile(filePath, 'utf8');
-    const courses: Course[] = JSON.parse(fileContents);
-    return NextResponse.json(courses);
-  } catch (error) {
-    console.error('Error fetching academy courses:', error);
+    const body = await req.json();
+    validateCourseData(body);
+    // TODO: Save the new course data
     return NextResponse.json(
-      { message: 'Internal Server Error while fetching courses' },
-      { status: 500 },
+      { message: 'Course created successfully' },
+      { status: 201 },
     );
+  } catch (error: unknown) {
+    console.error(error);
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 400 });
+    } else {
+      return NextResponse.json(
+        { message: UNEXPECTED_ERROR_MESSAGE },
+        { status: 500 },
+      );
+    }
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();
+    validateCourseData(body);
+    // TODO: Update the course data
+    return NextResponse.json(
+      { message: 'Course updated successfully' },
+      { status: 200 },
+    );
+  } catch (error: unknown) {
+    console.error(error);
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 400 });
+    } else {
+      return NextResponse.json(
+        { message: UNEXPECTED_ERROR_MESSAGE },
+        { status: 500 },
+      );
+    }
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const body = await req.json();
+    validateCourseData(body);
+    // TODO: Delete the course data
+    return NextResponse.json(
+      { message: 'Course deleted successfully' },
+      { status: 200 },
+    );
+  } catch (error: unknown) {
+    console.error(error);
+    if (error instanceof Error) {
+      return NextResponse.json({ message: error.message }, { status: 400 });
+    } else {
+      return NextResponse.json(
+        { message: UNEXPECTED_ERROR_MESSAGE },
+        { status: 500 },
+      );
+    }
   }
 }

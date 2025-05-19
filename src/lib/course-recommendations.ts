@@ -1,38 +1,14 @@
-// src/lib/course-recommendations.ts
-import { Course } from '@/types'; // Assuming you have a Course type defined
-import coursesData from '../data/portfolio-data/courses.json'; // Assuming courses.json is in the correct path
-import { UserProfile } from './user-profile';
+import { UserProfile } from '@/lib/models/user';
+import { Course } from '@/types';
 
+// This is a placeholder function.  It will need to be updated to use real data.
 export const getRecommendedCourses = (userProfile: UserProfile): Course[] => {
-  const { experienceLevel, interests } = userProfile;
+  // In a real implementation, this function would:
+  // 1. Fetch course data from a database or CMS.
+  // 2. Analyze the user's profile (interests, experience level, completed courses).
+  // 3. Return a list of courses that are most relevant to the user.
 
-  // Filter courses based on experience level
-  const filteredByLevel = (coursesData as Course[]).filter((course: Course) => {
-    if (experienceLevel === 'Beginner' && course.level !== 'Advanced') {
-      return true;
-    }
-    if (
-      experienceLevel === 'Intermediate' &&
-      course.level !== 'Advanced' &&
-      course.level !== 'Beginner'
-    ) {
-      return true;
-    }
-    if (experienceLevel === 'Advanced') {
-      return true;
-    }
-    return false;
-  });
-
-  // Further filter courses based on interests (simple keyword matching)
-  const recommendedCourses = filteredByLevel.filter((course) => {
-    if (interests.length === 0) {
-      return true; // If no interests, recommend all courses
-    }
-    return interests.some((interest) =>
-      course.title.toLowerCase().includes(interest.toLowerCase()),
-    );
-  });
-
-  return recommendedCourses;
+  // For now, return an empty array.
+  console.log(userProfile);
+  return [];
 };

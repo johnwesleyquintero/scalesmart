@@ -66,3 +66,4 @@ The Academy Article API (`src/app/api/academy-article/[slug]/route.ts`) is respo
 {
   "content": "# Example Article Content"
 }
+```

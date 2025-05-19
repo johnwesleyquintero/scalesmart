@@ -67,7 +67,10 @@ const CourseList = ({ courses }: { courses: Course[] }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {courses.map((course) => (
-        <Card key={course.id} className={`${course.locked ? 'opacity-75' : ''} shadow-md`}>
+        <Card
+          key={course.id}
+          className={`${course.locked ? 'opacity-75' : ''} shadow-md`}
+        >
           <CardHeader>
             <div className="flex justify-between items-start">
               <div>

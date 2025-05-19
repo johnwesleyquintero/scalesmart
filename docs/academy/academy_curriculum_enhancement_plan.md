@@ -37,23 +37,22 @@ Integrate interactive elements into the MDX articles within the existing Academy
 ## Phase 2: Enhancements to `AcademyContentClient` Component
 
 - **Goal:** Ensure the `AcademyContentClient` correctly renders the enhanced `AcademyArticle` component.
+- **Description:** The `AcademyContentClient` component receives courses, CourseList, filter, and sort as props. It uses the courses prop to display the list of courses and the CourseList component to render the list. It also uses the filter and sort props to filter and sort the courses. The component relies on the individual module components (ArticleModule, VideoModule, ExerciseModule, and CaseStudyModule) to handle their own loading and error states. If there's no content available for a module, it displays a message saying "No content available for this module."
 - **Steps:**
   1.  **Verify Prop Handling:**
-      - Confirm that the `AcademyContentClient` is correctly passing the `slug` prop to the `AcademyArticle` component.
-  2.  **Handle Loading and Error States:**
-      - Ensure that the `AcademyContentClient` handles loading and error states appropriately while the MDX content and interactive components are being loaded.
+      - Confirm that the `AcademyContentClient` is correctly passing the necessary props to the child components.
+  2.  **Loading and Error States:**
+      - The component relies on the individual module components to handle their own loading and error states.
 
 ## Phase 3: Enhancements to `SchoolComponent` and `/api/academy-courses` Endpoint
 
 - **Goal:** Update the course data to include information about interactive elements.
 - **Steps:**
-  1.  **Update `courses.json`:**
-      - Add a new field to the `courses.json` file to indicate whether a module contains interactive elements (e.g., `hasQuiz: true`, `hasExercise: true`).
-  2.  **Modify `/api/academy-courses` Endpoint:**
-      - Update the `/api/academy-courses` endpoint to read the new field from `courses.json` and pass it to the `SchoolComponent`.
-  3.  **Update `SchoolComponent`:**
-      - Modify the `SchoolComponent` to pass the new field to the `AcademyContentClient`.
-  4.  **Update `Card` Component:**
+  1.  **Modify `/api/academy-courses` Endpoint:**
+      - Update the `/api/academy-courses` endpoint to read the MDX files and pass the relevant data to the `SchoolComponent`.
+  2.  **Update `SchoolComponent`:**
+      - Modify the `SchoolComponent` to pass the data to the `AcademyContentClient`.
+  3.  **Update `Card` Component:**
       - Modify the `Card` component to display an indicator if a module contains interactive elements.
 
 ## Phase 4: New Components
@@ -80,9 +79,8 @@ Integrate interactive elements into the MDX articles within the existing Academy
 
 ```mermaid
 graph LR
-    A[SchoolComponent] --> B(/api/academy-courses);
-    B --> C[courses.json];
-    C --> D{Module Data};
+    A[SchoolComponent] --> B(/api/academy-courses];
+    B --> D{Module Data};
     D --> E(AcademyContentClient);
     E --> F{Module Type};
     F -- Article --> G[AcademyArticle];
@@ -90,8 +88,6 @@ graph LR
     H --> I{MDX Content};
     I -- Quiz --> J[Quiz.tsx];
     I -- Exercise --> K[ExerciseModule.tsx];
-    E -- CourseList --> L[CourseList];
-    L --> M[Card];
-    M --> N{Interactive Indicator};
+    E -- CourseList --> L[Card];
+    L --> M{Interactive Indicator};
     J --> O[IndexedDB];
-```
