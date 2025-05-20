@@ -2,13 +2,35 @@
 
 ## Overview
 
-The `src/app/privacy-policy/page.tsx` file defines the privacy policy page. It explains to the users that their data is stored locally in their browser's local storage and that the application does not collect any personal data.
+This document outlines the privacy policy for this application. It explains how user data is handled and protected.
 
-## Functionality
+## Data Storage
 
-- **Explains Data Storage:** Explains that user data is stored locally in the browser's local storage.
-- **Explains Data Deletion:** Explains that clearing the browser's site data will delete the user's data.
-- **Encourages Data Export:** Encourages users to use the "Export" features to back up their data.
+User data is stored locally in the browser's IndexedDB. This includes data necessary for the application's functionality and user experience.
+
+## Data Usage
+
+The stored data is used to:
+
+- Provide the core functionality of the application.
+- Improve the user experience.
+
+## User Rights
+
+Users have the following rights regarding their data:
+
+- **Access:** Users can view their data within the application.
+- **Modification:** Users can modify their data through the application's interface.
+- **Deletion:** Users can delete their data by clearing the browser's site data.
+- **Export:** Users are encouraged to use the "Export" feature to back up their data.
+
+## Third-Party Services
+
+This application does not use any third-party services that collect user data.
+
+## Updates
+
+This privacy policy may be updated periodically. Users will be notified of any significant changes.
 
 ## Technical Details
 

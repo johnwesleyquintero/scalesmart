@@ -20,7 +20,7 @@ The Amazon Seller Tools page (`c:\Users\johnw\portfolio\src\app\amazon-seller-to
   - PPC & Ads
   - Competition
 - **Data Export:** Processed and aggregated dashboard data can be exported as a CSV.
-- **Sample Data:** A sample CSV file is available for download to demonstrate the expected format and functionality.
+- **Sample Data:** A sample CSV file is available to demonstrate the expected format and functionality.
 
 ## 3. How to Use the Overview Dashboard
 

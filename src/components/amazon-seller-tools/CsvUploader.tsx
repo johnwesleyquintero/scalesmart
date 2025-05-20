@@ -7,7 +7,6 @@ import { FileText, Info, Loader2 } from 'lucide-react';
 import Papa from 'papaparse';
 import { useCallback, useRef, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import SampleCsvButton from './sample-csv-button';
 
 // --- Helper Functions (Moved Outside Component) ---
 
@@ -152,7 +151,7 @@ const parseAndValidateCsv = <T extends Record<string, unknown>>(
 // --- Component ---
 
 interface CsvUploaderProps<T extends Record<string, unknown>> {
-  onUploadSuccess: (data: T[]) => void;
+  onUploadSuccessAction: (data: T[]) => void;
   onUploadError?: (error: string | undefined) => void; // Allow undefined to clear error
   allowedFileTypes?: string[];
   maxFileSize?: number; // in bytes
@@ -165,7 +164,7 @@ interface CsvUploaderProps<T extends Record<string, unknown>> {
 }
 
 export const CsvUploader = <T extends Record<string, unknown>>({
-  onUploadSuccess,
+  onUploadSuccessAction,
   onUploadError,
   allowedFileTypes = ['.csv'],
   maxFileSize = 5 * 1024 * 1024, // 5MB default
@@ -206,12 +205,12 @@ export const CsvUploader = <T extends Record<string, unknown>>({
       if (validRows.length === 0) {
         throw new Error('No valid data found in CSV file');
       }
-      onUploadSuccess(validRows);
+      onUploadSuccessAction(validRows);
       if (errors.length > 0) {
         console.warn('CSV validation warnings:', errors);
       }
     },
-    [onUploadSuccess],
+    [onUploadSuccessAction],
   );
 
   const handleProcessingError = useCallback(
@@ -346,13 +345,13 @@ export const CsvUploader = <T extends Record<string, unknown>>({
 
       {/* Buttons */}
       <div className="flex flex-col sm:flex-row gap-2 justify-center">
-        <SampleCsvButton
+        {/*  <SampleCsvButton
           // Consider making dataType and fileName props of CsvUploader if they vary
           dataType="ppc"
           fileName="sample-data.csv"
           className="w-full sm:w-auto"
           variant="secondary"
-        />
+        /> */}
         {externalHasData && (
           <Button
             variant="outline"

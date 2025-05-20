@@ -253,7 +253,7 @@ export default function ProfitMarginCalculator() {
 
         <div className="mb-8">
           <CsvUploader
-            onUploadSuccess={handleFileUpload}
+            onUploadSuccessAction={handleFileUpload}
             isLoading={isLoading}
             onClear={() => {
               setCsvData([]);

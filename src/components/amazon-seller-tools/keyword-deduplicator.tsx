@@ -25,8 +25,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { logError } from '@/lib/error-handling'; // Import logError
 import { info } from '@/lib/logger';
+// import SampleCsvButton from './sample-csv-button'; // Removed SampleCsvButton import
 import DataCard from './DataCard';
-import SampleCsvButton from './sample-csv-button';
 
 // --- Zod Schema for Validation ---
 const productNameSchema = z
@@ -419,12 +419,6 @@ export default function KeywordDeduplicator() {
                     aria-label="Upload CSV file"
                   />
                 </label>
-                <div className="flex justify-center mt-4">
-                  <SampleCsvButton
-                    dataType="keyword-dedup"
-                    fileName="sample-keyword-deduplicator.csv"
-                  />
-                </div>
               </div>
             </div>
           </CardContent>

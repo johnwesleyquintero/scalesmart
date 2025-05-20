@@ -38,7 +38,6 @@ import {
   YAxis,
 } from 'recharts';
 import { CurrencySelector } from './CurrencySelector';
-import SampleCsvButton from './sample-csv-button';
 
 // --- Interfaces & Types ---
 
@@ -485,14 +484,6 @@ export default function AcosCalculator() {
                 (Requires: campaign, adSpend, sales)
               </span>
             </div>
-            <SampleCsvButton
-              dataType="acos"
-              fileName="sample-acos-data.csv"
-              className="mt-4 w-full"
-              onClick={() =>
-                console.log('SampleCsvButton clicked in acos-calculator.tsx')
-              }
-            />
           </CardContent>
         </Card>
 

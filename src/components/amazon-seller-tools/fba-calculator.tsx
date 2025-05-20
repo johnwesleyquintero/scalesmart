@@ -26,7 +26,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import DataCard from './DataCard';
-import SampleCsvButton from './sample-csv-button';
+// import SampleCsvButton from './sample-csv-button'; // Removed SampleCsvButton import
 
 // Types
 export interface FbaCalculationInput {
@@ -400,12 +400,6 @@ export default function FbaCalculator() {
                   ref={fileInputRef}
                 />
               </label>
-              <div className="flex justify-center mt-4">
-                <SampleCsvButton
-                  dataType="fba" // Ensure this type exists in your sample data generator
-                  fileName="sample-fba-calculator.csv"
-                />
-              </div>
             </div>
           </div>
         </DataCard>

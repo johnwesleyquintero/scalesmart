@@ -33,7 +33,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import DataCard from './DataCard'; // Use consistent DataCard
-import SampleCsvButton from './sample-csv-button';
+// import SampleCsvButton from './sample-csv-button'; // Removed SampleCsvButton import
 
 // --- Types ---
 type ProductDescription = {
@@ -777,12 +777,6 @@ export default function DescriptionEditor() {
                   ref={fileInputRef}
                 />
               </label>
-              <div className="flex justify-center mt-4">
-                <SampleCsvButton
-                  dataType="keyword" // Use appropriate type
-                  fileName="sample-descriptions.csv"
-                />
-              </div>
             </div>
           </div>
         </DataCard>

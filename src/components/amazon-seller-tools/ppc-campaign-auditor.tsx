@@ -18,7 +18,6 @@ import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import CampaignCard from './CampaignCard';
 import DataCard from './DataCard'; // Import DataCard
-import SampleCsvButton from './sample-csv-button';
 
 // --- Constants for Analysis ---
 const HIGH_ACOS_THRESHOLD = 30; // %
@@ -673,10 +672,6 @@ export default function PpcCampaignAuditor() {
               />
             </label>
             <div className="mt-4 flex flex-col sm:flex-row justify-center gap-2">
-              <SampleCsvButton
-                dataType="ppc" // Corrected: Added dataType prop
-                fileName="sample-ppc-campaign.csv"
-              />
               {campaigns.length > 0 && !isLoading && (
                 <Button variant="outline" onClick={clearData}>
                   Clear Results

@@ -1,6 +1,7 @@
 import { Card, Input } from '@/components/ui';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { z } from 'zod';
 import {
   Tooltip,
   TooltipContent,
@@ -33,75 +34,45 @@ interface CsvRow {
   click_through_rate: string;
 }
 
-interface ProcessedRow {
-  asin: string;
-  price: number;
-  reviews: number;
-  rating: number;
-  conversion_rate: number;
-  click_through_rate: number;
-  niche?: string;
+const CsvRowSchema = z.object({
+  asin: z.string(),
+  price: z.string(),
+  reviews: z.string(),
+  rating: z.string().transform(Number),
+  conversion_rate: z.string(),
+  click_through_rate: z.string(),
+});
+
+// Define a Zod schema for the processed row
+const ProcessedRowSchema = z.object({
+  asin: z.string(),
+  price: z.number(),
+  reviews: z.number(),
+  rating: z.number(),
+  conversion_rate: z.number(),
+  click_through_rate: z.number(),
+  niche: z.string().optional(),
+});
+
+type ProcessedRow = z.infer<typeof ProcessedRowSchema>;
+
+// Function to process and validate a single row using the schema
+function processRow(row: CsvRow): ProcessedRow {
+  // Map the raw CsvRow to the structure expected by the schema
+  const mappedRow = {
+    ...row,
+    price: Number(row.price),
+    reviews: Number(row.reviews),
+    rating: Number(row.rating),
+    conversion_rate: Number(row.conversion_rate),
+    click_through_rate: Number(row.click_through_rate),
+  };
+
+  // Parse and validate the mapped row using the schema
+  return ProcessedRowSchema.parse(mappedRow);
 }
 
-export function validateAndProcessData(data: CsvRow[]): {
-  validData: ProcessedRow[];
-  errors: string[];
-} {
-  const validData: ProcessedRow[] = [];
-  const errors: string[] = [];
-
-  data.forEach((row, index) => {
-    const {
-      asin,
-      price,
-      reviews,
-      rating,
-      conversion_rate,
-      click_through_rate,
-    } = row;
-    if (
-      !asin ||
-      !price ||
-      !reviews ||
-      !rating ||
-      !conversion_rate ||
-      !click_through_rate
-    ) {
-      errors.push(`Row ${index + 1}: Missing required fields`);
-      return;
-    }
-
-    const parsedPrice = Number(price);
-    const parsedReviews = Number(reviews);
-    const parsedRating = Number(rating);
-    const parsedConversionRate = Number(conversion_rate);
-    const parsedClickThroughRate = Number(click_through_rate);
-
-    if (
-      isNaN(parsedPrice) ||
-      isNaN(parsedReviews) ||
-      isNaN(parsedRating) ||
-      isNaN(parsedConversionRate) ||
-      isNaN(parsedClickThroughRate)
-    ) {
-      errors.push(`Row ${index + 1}: Invalid numeric values`);
-      return;
-    }
-
-    validData.push({
-      asin,
-      price: parsedPrice,
-      reviews: parsedReviews,
-      rating: parsedRating,
-      conversion_rate: parsedConversionRate,
-      click_through_rate: parsedClickThroughRate,
-    });
-  });
-
-  return { validData, errors };
-}
-
-import { error, warn } from '@/lib/logger';
+import { error as logError, warn } from '@/lib/logger'; // Aliased 'error' to 'logError'
 import { sanitizeHtml } from '@/lib/sanitize';
 
 interface ChartDataPoint {
@@ -169,13 +140,42 @@ export function CompetitorAnalyzer() {
             header: true,
             skipEmptyLines: true,
             complete: (results) => {
-              const { validData, errors } = validateAndProcessData(
-                results.data,
-              );
-              if (errors.length > 0) {
+              let validData: ProcessedRow[] = [];
+              try {
+                // Validate each row against the CsvRowSchema
+                const parsedRows = results.data.map((row) => {
+                  const result = CsvRowSchema.safeParse(row);
+                  if (!result.success) {
+                    // Handle validation error for a single row
+                    console.error(
+                      'CSV Validation Error:',
+                      result.error.message,
+                    );
+                    const errorMessages = result.error.issues.map((issue) => {
+                      let message = `Field ${issue.path.join('.')}: ${issue.message}`;
+                      if (issue.code === 'invalid_type') {
+                        message += `, expected ${issue.expected}, but got ${issue.received}`;
+                      }
+                      return message;
+                    });
+                    toast({
+                      title: 'Error',
+                      description: `CSV Validation Error: ${errorMessages.join('; ')}`,
+                      variant: 'destructive',
+                    });
+                    throw new Error(
+                      `CSV Validation Error: ${errorMessages.join('; ')}`,
+                    );
+                  }
+                  return result.data;
+                });
+
+                validData = parsedRows.map(processRow);
+              } catch (err) {
+                console.error('Data processing error', err);
                 toast({
-                  title: 'Warning',
-                  description: `Some rows had validation errors: ${errors.join(', ')}`,
+                  title: 'Error',
+                  description: 'Failed to process uploaded data.',
                   variant: 'destructive',
                 });
               }
@@ -312,8 +312,11 @@ export function CompetitorAnalyzer() {
 
       if (!response.ok) {
         const errorText = await response.text();
-        error('API Error:', `Status: ${response.status}, Error: ${errorText}`);
-        throw new Error(`Failed to fetch competitor data: ${response.status}`);
+        logError(
+          'API Error:',
+          `Status: ${response.status}, Error: ${errorText}`,
+        );
+        throw new Error(`Failed to fetch competitor data: ${errorText}`);
       }
 
       interface ApiResponse {
@@ -325,7 +328,7 @@ export function CompetitorAnalyzer() {
       try {
         data = await response.json();
         if (!data || !data.competitors || !data.metrics) {
-          error('Invalid API response:', JSON.stringify(data));
+          logError('Invalid API response:', JSON.stringify(data));
           throw new Error('Invalid response format from server');
         }
 
@@ -372,9 +375,14 @@ export function CompetitorAnalyzer() {
 
       setIsLoading(false);
     } catch (error) {
+      // Handle error type explicitly
       const errorMessage =
         error instanceof Error ? error.message : 'An unknown error occurred';
+
       console.error('Error processing file:', errorMessage);
+      if (error instanceof Error) {
+        logError('Error processing file:', error); // Use the aliased logger
+      }
       toast({
         title: 'Error',
         description: errorMessage,
@@ -402,24 +410,48 @@ export function CompetitorAnalyzer() {
   };
 
   const isMobile = useIsMobile();
+  const [cacheDuration, setCacheDuration] = useState<number>(1); // Default cache duration in hours
   const [, setSavedAnalysis] = useState<unknown>(null);
 
   useEffect(() => {
     const loadAnalysis = async () => {
       try {
         console.time('Load competitor analysis from IndexedDB');
-        const cachedData = await getItem('competitorAnalysis', 'chartData');
+        const cachedData = (await getItem(
+          'competitorAnalysis',
+          'chartData',
+        )) as {
+          timestamp?: number;
+          id: string;
+          date: string;
+          asin: string;
+          metrics: MetricType[];
+          chartData: ChartDataPoint[];
+        } | null;
         console.timeEnd('Load competitor analysis from IndexedDB');
-        if (cachedData) {
+
+        if (
+          cachedData &&
+          typeof cachedData === 'object' &&
+          cachedData.timestamp
+        ) {
+          const now = Date.now();
+          const cacheTime = cacheDuration * 60 * 60 * 1000;
+          if (now - cachedData.timestamp > cacheTime) {
+            warn('Cached data is older than cache duration, clearing cache');
+            // Clear the specific cache entry
+            await setItem('competitorAnalysis', 'chartData', null);
+            return;
+          }
           setSavedAnalysis(cachedData);
-          setChartData(cachedData as ChartDataPoint[]);
+          setChartData(cachedData.chartData);
         }
       } catch (e) {
         console.error('Error getting data from IndexedDB:', e);
       }
     };
     loadAnalysis();
-  }, []);
+  }, [cacheDuration]);
 
   // Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
   return (
@@ -447,6 +479,7 @@ export function CompetitorAnalyzer() {
             </div>
             <Input
               id="seller-csv"
+              type="file"
               accept=".csv"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 handleFileUpload(
@@ -477,6 +510,7 @@ export function CompetitorAnalyzer() {
             </div>
             <Input
               id="competitor-csv"
+              type="file"
               accept=".csv"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 handleFileUpload(
@@ -491,13 +525,44 @@ export function CompetitorAnalyzer() {
         </div>
 
         <div>
+          <Label htmlFor="cache-duration">Cache Duration (hours)</Label>
+          <Input
+            id="cache-duration"
+            type="number"
+            value={cacheDuration}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              if (!isNaN(value) && value >= 0) {
+                setCacheDuration(value);
+              }
+            }}
+            className="w-24"
+          />
+        </div>
+
+        <div>
           <div className="space-y-2">
             <Label htmlFor="asin">Or Enter Competitor ASIN</Label>
             <Input
               id="asin"
               value={asin}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setAsin(e.target.value);
+                const value = e.target.value;
+                if (value.length <= 10 && /^[a-zA-Z0-9]+$/.test(value)) {
+                  setAsin(value);
+                } else if (value.length > 10) {
+                  toast({
+                    title: 'Error',
+                    description: 'ASIN must be 10 characters long',
+                    variant: 'destructive',
+                  });
+                } else if (!/^[a-zA-Z0-9]+$/.test(value) && value.length > 0) {
+                  toast({
+                    title: 'Error',
+                    description: 'ASIN must contain only letters and numbers',
+                    variant: 'destructive',
+                  });
+                }
               }}
               placeholder="B0XXXXXXXX"
             />
@@ -509,40 +574,68 @@ export function CompetitorAnalyzer() {
 
         <div>
           <Label htmlFor="metrics">Metrics to Compare</Label>
-          <div className="flex flex-col gap-2">
-            {(
-              [
-                'price',
-                'reviews',
-                'rating',
-                'conversion_rate',
-                'click_through_rate',
-              ] as const
-            ).map((metric) => (
-              <div key={metric} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id={metric}
-                  checked={metrics.includes(metric as MetricType)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setMetrics([...metrics, metric as MetricType]);
-                    } else {
-                      setMetrics(
-                        metrics.filter((m) => m !== (metric as MetricType)),
-                      );
-                    }
-                  }}
-                  className="h-4 w-4 rounded border-gray-300"
-                />
-                <Label htmlFor={metric}>
-                  {metric
-                    .split('_')
-                    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-                    .join(' ')}
-                </Label>
-              </div>
-            ))}
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2">
+              {(
+                [
+                  'price',
+                  'reviews',
+                  'rating',
+                  'conversion_rate',
+                  'click_through_rate',
+                ] as const
+              ).map((metric) => (
+                <div key={metric} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id={metric}
+                    checked={metrics.includes(metric as MetricType)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setMetrics([...metrics, metric as MetricType]);
+                      } else {
+                        setMetrics(
+                          metrics.filter((m) => m !== (metric as MetricType)),
+                        );
+                      }
+                    }}
+                    className="h-4 w-4 rounded border-gray-300"
+                  />
+                  <Label htmlFor={metric}>
+                    {metric
+                      .split('_')
+                      .map(
+                        (word) => word.charAt(0).toUpperCase() + word.slice(1),
+                      )
+                      .join(' ')}
+                  </Label>
+                </div>
+              ))}
+            </div>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setMetrics([
+                    'price',
+                    'reviews',
+                    'rating',
+                    'conversion_rate',
+                    'click_through_rate',
+                  ])
+                }
+              >
+                Select All
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setMetrics([])}
+              >
+                Deselect All
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -563,6 +656,7 @@ export function CompetitorAnalyzer() {
                   asin,
                   metrics,
                   chartData,
+                  timestamp: Date.now(),
                 });
                 toast({
                   title: 'Success',

@@ -34,8 +34,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+// import SampleCsvButton from './sample-csv-button'; // Removed SampleCsvButton import
 import DataCard from './DataCard';
-import SampleCsvButton from './sample-csv-button';
 
 // --- Constants ---
 const BATCH_SIZE = 50; // Process keywords in batches
@@ -257,12 +257,6 @@ const CsvUploadSection: React.FC<CsvUploadSectionProps> = ({
               ref={fileInputRef}
             />
           </label>
-          <div className="flex justify-center mt-4">
-            <SampleCsvButton
-              dataType="keyword" // Ensure this type exists
-              fileName="sample-keyword-analyzer.csv"
-            />
-          </div>
         </div>
       </div>
     </CardContent>

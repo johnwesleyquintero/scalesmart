@@ -18,7 +18,7 @@ import { cachedFetch } from '@/lib/api-cache';
 
 // Local/UI Imports
 import DataCard from '@/components/amazon-seller-tools/DataCard';
-import SampleCsvButton from '@/components/amazon-seller-tools/sample-csv-button'; // Added
+
 import { Badge } from '@/components/ui/badge'; // Added Badge import
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -789,11 +789,6 @@ export default function ListingQualityChecker() {
                     ref={fileInputRef as React.RefObject<HTMLInputElement>}
                   />
                 </label>
-                <SampleCsvButton
-                  dataType="keyword" // Changed to match SampleDataType
-                  fileName="sample-listing-quality.csv"
-                  className="mt-4"
-                />
               </div>
             </div>
           </CardContent>

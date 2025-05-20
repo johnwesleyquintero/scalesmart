@@ -27,7 +27,6 @@ import { CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { KeywordTrendService } from '@/lib/amazon-tools/keyword-trend-service';
 import DataCard from './DataCard';
-import SampleCsvButton from './sample-csv-button';
 
 // --- Constants ---
 const REQUIRED_COLUMNS = ['keyword', 'date', 'search_volume'];
@@ -288,12 +287,6 @@ export default function KeywordTrendAnalyzer() {
                   ref={fileInputRef}
                 />
               </label>
-              <div className="flex justify-center mt-4">
-                <SampleCsvButton
-                  dataType="keyword" // Or a more specific type like 'keyword-trend' if added
-                  fileName="sample-keyword-trends.csv"
-                />
-              </div>
             </div>
           </div>
         </CardContent>
@@ -384,7 +377,7 @@ export default function KeywordTrendAnalyzer() {
                       value.toLocaleString(), // Format number
                       name, // Keyword name
                     ]}
-                    labelFormatter={(label: string) => `Date: ${label}`} // Format date label
+                    labelFormatter={(label: string) => `Date: ${label}`}
                   />
                   <Legend
                     wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
