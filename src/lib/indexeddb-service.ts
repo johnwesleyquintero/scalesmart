@@ -47,8 +47,14 @@ const db = new ChatDatabase();
 export const initializeDB = async (): Promise<void> => {
   try {
     if (!db.isOpen()) {
-      await db.open();
-      console.log('ChatAppDatabase initialized and opened successfully.');
+      try {
+        await db.open();
+        console.log('ChatAppDatabase initialized and opened successfully.');
+      } catch (openError) {
+        console.error('Failed to open ChatAppDatabase:', openError);
+        // Re-throw the error so the caller can handle it
+        throw openError;
+      }
     } else {
       console.log('ChatAppDatabase is already open.');
     }
@@ -100,7 +106,7 @@ export const getChatMessagesBySession = async (chatSessionId: string): Promise<C
   }
 }
 
-function logError(error: any, message: string, component: string) {
+function logError(error: unknown, message: string, component: string) {
   console.error(`${component}: ${message}`, error);
 }
 
@@ -109,7 +115,7 @@ export async function getItem<T>(key: string): Promise<T | undefined> {
     await initializeDB();
   }
   try {
-    return await db.cache.get(key).then((item: any) => item?.value) as T | undefined;
+    return await db.cache.get(key).then((item) => item?.value) as T | undefined;
   } catch (error) {
     logError(error, `Error getting item from IndexedDB: ${key}`, 'IndexedDBService');
     return undefined;

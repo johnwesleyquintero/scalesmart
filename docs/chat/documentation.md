@@ -22,3 +22,19 @@ The `src/app/chat/page.tsx` file defines the chat page, which displays an AI cha
 2.  The component uses dynamic import to load the `chat-interface` component.
 3.  While the `chat-interface` component is loading, the component displays a skeleton loader.
 4.  Once the `chat-interface` component has loaded, it is rendered on the page.
+
+## IndexedDB Integration
+
+The `chat-interface` component now integrates with IndexedDB for persistent chat message storage.
+
+### Functionality
+
+- **Loads Messages from IndexedDB:** On component mount, the component loads chat messages from IndexedDB.
+- **Saves Messages to IndexedDB:** When messages are added or updated, the component saves them to IndexedDB.
+- **Unique Session ID:** Generates a unique session ID for each chat session.
+
+### Technical Details
+
+- Uses the `indexeddb-service` to interact with IndexedDB.
+- The component uses `useEffect` hooks to load and save messages.
+- The component maps the `Message['role']` to the sender type expected by the database.

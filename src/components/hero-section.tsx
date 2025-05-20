@@ -134,6 +134,7 @@ export default function HeroSection() {
               src="https://avatars.githubusercontent.com/u/190981914?v=4"
               alt="Wesley Quintero"
               fill
+              sizes="(max-width: 768px) 100vw, 448px"
             />
           </div>
         </div>

@@ -2,7 +2,12 @@
 import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config';
 import DOMPurify from 'dompurify';
 import React, { useCallback, useEffect, useReducer, useRef } from 'react';
-import { initializeDB, setItem } from '@/lib/indexeddb-service';
+import {
+  initializeDB,
+  setItem,
+  getChatMessagesBySession,
+  ChatMessageRecord,
+} from '@/lib/indexeddb-service';
 import { cachedFetch } from '@/lib/api-cache';
 
 // --- Style Imports ---
@@ -64,6 +69,15 @@ type ChatAction =
   | { type: 'REMOVE_MESSAGE'; payload: number };
 
 // --- Helper Functions ---
+
+// Maps the Message['role'] to the sender type expected by the database.
+ const mapMessageRoleToSender = (role: Message['role']): 'user' | 'ai' => {
+  console.log('mapMessageRoleToSender called with role:', role);
+  if (role === 'assistant') {
+   return 'ai';
+  }
+  return 'user'; // If not 'assistant', it must be 'user' based on Message['role']
+ };
 
 // Updates a specific message in the state array based on timestamp and role
 const updateMessageInState = (
@@ -150,9 +164,26 @@ export default function ChatInterface() {
   const { messages, input, isLoading, isChatOpen } = state;
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // --- Effects ---
+  // --- Helper Functions ---
 
-  // Scroll to bottom when new messages are added
+  // Maps the Message['role'] to the sender type expected by the database.
+
+  // Maps a ChatMessageRecord from the DB to the Message interface used in the UI
+  const mapDbRecordToMessage = (record: ChatMessageRecord): Message => {
+    return {
+      id: record.id?.toString(), // Dexie ID is number, UI might expect string
+      role: record.sender === 'ai' ? 'assistant' : 'user', // Map 'ai' to 'assistant', 'user' to 'user'
+      content: record.text,
+      timestamp: record.timestamp,
+      // Map other fields from record.metadata if necessary
+      // e.g., status: record.metadata?.status as Message['status'],
+    };
+  };
+
+  // --- Helper Functions ---
+
+  // Maps the Message['role'] to the sender type expected by the database.
+
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
@@ -163,45 +194,30 @@ export default function ChatInterface() {
     }
   }, [messages]); // Depend on messages
 
-  // Load messages from IndexedDB on mount
+  // Load messages from IndexedDB when the component mounts
   useEffect(() => {
     const loadMessages = async () => {
-      if (typeof window === 'undefined') return;
-
+      console.log('ChatInterface: Attempting to load messages from IndexedDB.');
       try {
-        const allMessages: Message[] = [];
-        const db = await initializeDB();
-        const transaction = db.transaction('chatMessages', 'readonly');
-        const objectStore = transaction.objectStore('chatMessages');
-        const request = objectStore.openCursor();
+        await initializeDB(); // Ensure the Dexie db instance is open and ready
+        console.log('ChatInterface: initializeDB completed.');
 
-        console.time('Load chat messages from IndexedDB');
-        request.onsuccess = (event: Event) => {
-          const cursor = (event.target as IDBRequest<IDBCursorWithValue>)
-            .result;
-          if (cursor) {
-            allMessages.push(cursor.value);
-            cursor.continue();
-          } else {
-            console.timeEnd('Load chat messages from IndexedDB');
-            dispatch({ type: 'SET_MESSAGES', payload: allMessages });
-          }
-        };
+        const dbMessages = await getChatMessagesBySession(chatSessionIdRef.current);
+        console.log('ChatInterface: Fetched messages from DB:', dbMessages);
 
-        request.onerror = (event: Event) => {
-          console.error('Error loading chat messages from IndexedDB:', event);
-        };
-      } catch (indexedDBError) {
-        console.error(
-          'Error initializing IndexedDB or loading data:',
-          indexedDBError,
-        );
+        const uiMessages = dbMessages.map(mapDbRecordToMessage);
+        dispatch({ type: 'SET_MESSAGES', payload: uiMessages });
+        console.log('Chat messages loaded from IndexedDB and mapped to UI format.');
+      } catch (error) {
+        console.error('ChatInterface: Error in loadMessages:', error);
       }
     };
-
     loadMessages();
     console.log('Chat messages loaded from IndexedDB');
   }, []); // Run only once on mount
+
+  // Generate a unique session ID for this chat session
+  const chatSessionIdRef = useRef<string>(crypto.randomUUID());
 
   // Save messages to IndexedDB when they change
   useEffect(() => {
@@ -209,14 +225,19 @@ export default function ChatInterface() {
       if (typeof window !== 'undefined') {
         console.time('Save chat messages to IndexedDB');
         for (const message of messages) {
-          await setItem('chatMessages', message.timestamp.toString(), message);
+          const recordForDB = { // Construct the object as expected by setItem
+            chatSessionId: chatSessionIdRef.current,
+            sender: mapMessageRoleToSender(message.role), // Use helper for clear typing
+            text: message.content,   // Map 'content' to 'text'
+          };
+          await setItem(recordForDB);
         }
         console.timeEnd('Save chat messages to IndexedDB');
       }
     };
     saveMessages();
     console.log('Chat messages saved to IndexedDB');
-  }, [messages, setItem]); // Run whenever messages array changes
+  }, [messages]); // Run whenever messages array changes; setItem is a stable import
 
   // Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
   // and uncomment the localStorage code.
