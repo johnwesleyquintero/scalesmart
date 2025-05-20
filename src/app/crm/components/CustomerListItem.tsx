@@ -2,12 +2,18 @@
 
 import { Button } from '@/components/ui/button';
 import { Copy } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { Options as ReactMarkdownOptions } from 'react-markdown';
 import { memo } from 'react';
 import type { Customer } from '../types';
+import remarkGfm from 'remark-gfm';
+
+interface MemoizedReactMarkdownProps {
+  children: ReactMarkdownOptions['children'];
+  options?: ReactMarkdownOptions;
+}
 
 // Memoize ReactMarkdown to prevent re-renders if props haven't changed
-const MemoizedReactMarkdown = memo(ReactMarkdown);
+const MemoizedReactMarkdown = memo<MemoizedReactMarkdownProps>(ReactMarkdown);
 
 interface CustomerListItemProps {
   customer: Customer;
@@ -16,12 +22,12 @@ interface CustomerListItemProps {
   onCopyNotes: (notes: string) => void;
 }
 
-export function CustomerListItem({
+const CustomerListItemComponent = ({
   customer,
   onEdit,
   onDelete,
   onCopyNotes,
-}: CustomerListItemProps) {
+}: CustomerListItemProps) => {
   return (
     <div className="border rounded-lg p-4">
       <div className="flex justify-between items-start">
@@ -63,10 +69,18 @@ export function CustomerListItem({
       {customer.notes && (
         <div className="mt-2">
           <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
-            <MemoizedReactMarkdown>{customer.notes}</MemoizedReactMarkdown>
+            <MemoizedReactMarkdown
+              options={{
+                remarkPlugins: [remarkGfm], // Default to GFM
+              }}
+            >
+              {customer.notes}
+            </MemoizedReactMarkdown>
           </div>
         </div>
       )}
     </div>
   );
-}
+};
+
+export const CustomerListItem = memo(CustomerListItemComponent);

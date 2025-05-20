@@ -21,6 +21,7 @@ export abstract class ErrorReportingService {
   private static report(errorContext: ErrorContext) {
     if (process.env.NODE_ENV === 'production') {
       // Add actual error reporting service integration
+      // TODO: Replace with your error reporting service (e.g., Sentry, LogRocket)
       Sentry?.captureException(errorContext.error, {
         contexts: { error: errorContext },
       });

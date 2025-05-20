@@ -31,15 +31,15 @@ Returns a list of academy courses from MDX files located in `c:\Users\johnw\port
 
 #### Query Parameters
 
--   `slug` (optional): If provided, returns only the course with the specified slug.
+- `slug` (optional): If provided, returns only the course with the specified slug.
 
 #### Success Response
 
--   **Code:** 200 OK
+- **Code:** 200 OK
 
 #### Example
 
-```json
+````json
 [
   {
     "slug": "example-course",
@@ -80,12 +80,12 @@ Creates a new academy course.
   "interactive": true,
   "content": "## Module 1: Introduction to SEO"
 }
-```
+````
 
 #### Success Response
 
--   **Code:** 201 Created
--   **Content:**
+- **Code:** 201 Created
+- **Content:**
 
 ```json
 {
@@ -116,8 +116,8 @@ Updates an existing academy course.
 
 #### Success Response
 
--   **Code:** 200 OK
--   **Content:**
+- **Code:** 200 OK
+- **Content:**
 
 ```json
 {
@@ -140,11 +140,12 @@ Deletes an academy course.
 
 #### Success Response
 
--   **Code:** 200 OK
--   **Content:**
+- **Code:** 200 OK
+- **Content:**
 
 ```json
 {
   "message": "Course deleted successfully",
   "slug": "course-to-delete"
 }
+```

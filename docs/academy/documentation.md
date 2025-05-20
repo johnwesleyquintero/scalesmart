@@ -31,9 +31,9 @@ This document outlines the process for updating content in the ScaleSmart Academ
 
 The `AcademyDataType` interface defines the structure of the academy data stored in local storage. It includes the following properties:
 
-*   `courses`: An array of `Course` objects representing the available courses.
-*   `moduleProgress`: A record of module completion status, where the key is the module ID and the value is a boolean indicating whether the module is completed.
-*   `quizResults`: A record of quiz results, where the key is the module ID and the value is a `QuizResult` object containing the quiz score, attempts, and pass status.
+- `courses`: An array of `Course` objects representing the available courses.
+- `moduleProgress`: A record of module completion status, where the key is the module ID and the value is a boolean indicating whether the module is completed.
+- `quizResults`: A record of quiz results, where the key is the module ID and the value is a `QuizResult` object containing the quiz score, attempts, and pass status.
 
 ## Components
 
@@ -41,9 +41,9 @@ The `AcademyDataType` interface defines the structure of the academy data stored
 
 The `useAcademyStorage` hook is responsible for managing the academy data in local storage. It provides functions for:
 
-*   Initializing the academy data.
-*   Retrieving the academy data.
-*   Saving updates to the academy data.
+- Initializing the academy data.
+- Retrieving the academy data.
+- Saving updates to the academy data.
 
 ### Quiz Component
 

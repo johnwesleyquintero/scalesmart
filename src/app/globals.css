@@ -1,3 +1,16 @@
+:root {
+  --primary-blue: #ff7a59;
+  --light-gray: #f9fafb;
+  --dark-gray: #6b7280;
+  --font-family: Inter, sans-serif;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -95,6 +108,42 @@
 
 .animate-blink {
   animation: blink 1.2s ease-in-out infinite;
+}
+
+.hubspot-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+  margin-top: 1rem;
+}
+
+.hubspot-pagination__link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  background-color: var(--light-gray);
+  color: var(--dark-gray);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.hubspot-pagination__link:hover {
+  background-color: var(--muted);
+}
+
+.hubspot-pagination__link--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hubspot-pagination__link--active {
+  background-color: var(--primary-blue);
+  color: white;
+  border-color: var(--primary-blue);
 }
 
 /* Premium utilities moved to premium.css */

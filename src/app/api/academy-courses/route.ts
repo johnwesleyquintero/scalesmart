@@ -31,7 +31,9 @@ async function getCourses(slug?: string) {
     .readdirSync(contentDirectory)
     .filter(
       (fileName) =>
-        fileName.endsWith('.mdx') && fileName !== 'metadata.json' && (!slug || fileName === `${slug}.mdx`),
+        fileName.endsWith('.mdx') &&
+        fileName !== 'metadata.json' &&
+        (!slug || fileName === `${slug}.mdx`),
     );
   const courses = fileNames.map((fileName) => {
     try {
@@ -135,7 +137,10 @@ export async function PUT(req: NextRequest) {
     // Check if the course exists
     const existingCourses = await getCourses(slug);
     if (!existingCourses || existingCourses.length === 0) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 },
+      );
     }
 
     // Create the MDX content
@@ -179,7 +184,10 @@ export async function DELETE(req: NextRequest) {
     const { slug } = body;
 
     if (!slug) {
-      return NextResponse.json({ message: 'Slug is required' }, { status: 400 });
+      return NextResponse.json(
+        { message: 'Slug is required' },
+        { status: 400 },
+      );
     }
 
     const fileName = `${slug}.mdx`;
@@ -188,7 +196,10 @@ export async function DELETE(req: NextRequest) {
     // Check if the course exists
     const existingCourses = await getCourses(slug);
     if (!existingCourses || existingCourses.length === 0) {
-      return NextResponse.json({ message: 'Course not found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Course not found' },
+        { status: 404 },
+      );
     }
 
     // Delete the MDX file

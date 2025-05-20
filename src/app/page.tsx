@@ -12,31 +12,37 @@ const ClientChatInterface = dynamic(
 // Enable SSR for static content sections
 const HeroSection = dynamic(() => import('@/components/hero-section'), {
   ssr: true,
+  loading: () => <div className="min-h-[400px]" />,
 });
 
 const ProjectsSection = dynamic(() => import('@/components/projects-section'), {
   ssr: true,
+  loading: () => <div className="min-h-[400px]" />,
 });
 
 const AboutSection = dynamic(() => import('@/components/about-section'), {
   ssr: true,
+  loading: () => <div className="min-h-[400px]" />,
 });
 
 const CertificationsSection = dynamic(
   () => import('@/components/certifications-section'),
-  { ssr: true },
+  { ssr: true, loading: () => <div className="min-h-[400px]" /> },
 );
 
 const BlogSection = dynamic(() => import('@/components/blog-section'), {
   ssr: true,
+  loading: () => <div className="min-h-[400px]" />,
 });
 
 const ContactSection = dynamic(() => import('@/components/contact-section'), {
   ssr: true,
+  loading: () => <div className="min-h-[400px]" />,
 });
 
 const InAppProjects = dynamic(() => import('@/components/In-App-Project'), {
   ssr: true,
+  loading: () => <div className="min-h-[400px]" />,
 });
 
 export default function Home() {
