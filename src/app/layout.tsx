@@ -1,4 +1,5 @@
 import ClientProviders from '@/components/client-providers';
+import { Analytics } from "@vercel/analytics/next";
 import Footer from '@/components/footer'; // <--- IMPORT THE FOOTER
 import Header from '@/components/header'; // <--- IMPORT THE HEADER
 import { cn } from '@/lib/utils';
@@ -80,9 +81,10 @@ export default function RootLayout({
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
             {children}
           </main>
-          <Footer /> {/* <--- FOOTER MOVED HERE */}
-        </ClientProviders>
-      </body>
-    </html>
+</ClientProviders>
+       <Analytics />
+     </body>
+     <Footer />
+   </html>
   );
 }
