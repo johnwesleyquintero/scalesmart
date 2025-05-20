@@ -20,6 +20,7 @@ The Home page (`src/app/page.tsx`) is the main landing page of the application. 
 - SSR (Server-Side Rendering) is enabled for static content sections (`HeroSection`, `ProjectsSection`, `AboutSection`, `CertificationsSection`, `BlogSection`, `ContactSection`) to improve SEO and initial page load performance.
 - The page uses a gradient background and a subtle grid pattern for visual appeal.
 - An `ErrorBoundary` component is used to handle errors gracefully.
+- Added a loading state to the `HeroSection` component.
 
 ## Components
 

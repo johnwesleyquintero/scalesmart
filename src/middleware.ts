@@ -23,8 +23,14 @@ export async function middleware(request: NextRequest) {
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error getting token:', error);
+    if ((error as Error).name === 'TokenExpiredError') {
+      // Handle token expiration
+      const url = new URL('/api/auth/signin', request.url);
+      url.searchParams.set('callbackUrl', encodeURI(request.url));
+      return NextResponse.redirect(url); // Redirect to sign-in to refresh token
+    }
     // Optionally, redirect to an error page or return a specific response
     return NextResponse.redirect(new URL('/error', request.url));
   }

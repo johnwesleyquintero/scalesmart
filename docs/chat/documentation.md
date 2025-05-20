@@ -9,6 +9,7 @@ The `src/app/chat/page.tsx` file defines the chat page, which displays an AI cha
 - **Displays AI Chat Assistant:** Displays an AI chat assistant that allows users to ask questions about the portfolio or projects.
 - **Uses Dynamic Import:** Uses dynamic import to load the `chat-interface` component, improving initial load time.
 - **Displays Skeleton Loader:** Displays a skeleton loader while the `chat-interface` component is loading.
+- **The chat interface component now displays the retry limit in the message bubble.**
 
 ## Technical Details
 

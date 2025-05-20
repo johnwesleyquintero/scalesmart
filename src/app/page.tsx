@@ -12,7 +12,11 @@ const ClientChatInterface = dynamic(
 // Enable SSR for static content sections
 const HeroSection = dynamic(() => import('@/components/hero-section'), {
   ssr: true,
-  loading: () => <div className="min-h-[400px]" />,
+  loading: () => (
+    <div className="min-h-[400px] flex items-center justify-center">
+      Loading Hero Section...
+    </div>
+  ),
 });
 
 const ProjectsSection = dynamic(() => import('@/components/projects-section'), {

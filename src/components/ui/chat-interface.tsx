@@ -654,7 +654,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               </svg>
               {message.error || 'Failed to send'}
               {message.retryCount && message.retryCount > 0
-                ? ` (Attempt ${message.retryCount})`
+                ? ` (Attempt ${message.retryCount}/${message.retryLimit ?? ConfigRetryLimit})`
                 : ''}
             </p>
             {/* Render original content slightly faded */}

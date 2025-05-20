@@ -3,7 +3,7 @@ const publicPaths = [
   /^\/api\/amazon/,
   /^\/amazon-seller-tools/,
   /^\/blog/,
-  '/',
+  /^\//,
 ];
 
 export default publicPaths;

@@ -11,6 +11,7 @@ The `src/app/api/chat/route.ts` file defines an API endpoint that handles chat r
 - **Constructs Context-Aware Prompt:** Constructs a context-aware prompt that includes portfolio information and previous conversation history.
 - **Sends Prompt to Gemini AI Model:** Sends the prompt to the Google Gemini AI model.
 - **Returns AI Response:** Returns the response from the Gemini AI model as a JSON response.
+- **Includes Improved Error Handling:** Includes improved error handling, logging detailed error information.
 
 ## Technical Details
 

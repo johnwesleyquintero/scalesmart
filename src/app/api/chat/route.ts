@@ -196,19 +196,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       response: response.text(),
     });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Chat API Error:', {
       error,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: (error as Error)?.message || 'Unknown error',
       timestamp: new Date().toISOString(),
       ...(body?.message && { lastMessage: body.message }),
     });
     const errorMessage =
-      error instanceof Error ? (error as Error).message : 'Unknown error';
+      error instanceof Error ? error.message : 'Unknown error';
     console.error('Chat API Error Details:', {
-      errorName: (error as Error).name,
+      errorName: (error as Error)?.name,
       errorMessage: errorMessage,
-      errorStack: (error as Error).stack,
+      errorStack: (error as Error)?.stack,
       body: body,
     });
     return NextResponse.json(
