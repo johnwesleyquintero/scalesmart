@@ -2,58 +2,50 @@
 
 ## Overview
 
-The `src/lib/indexeddb-service.ts` file defines a set of utility functions for interacting with IndexedDB. These functions provide a simple and consistent way to perform common IndexedDB operations, such as opening a database, creating an object store, adding data, getting data, and deleting data.
+The `src/lib/indexeddb-service.ts` file provides a service for interacting with IndexedDB using Dexie.js. It simplifies common IndexedDB operations for storing and retrieving chat messages.
 
 ## Functionality
 
-- **Initialize Database:** Initializes the IndexedDB database, creating object stores if they don't exist.
-- **Add Data:** Adds data to the object store.
-- **Get Data:** Gets data from the object store by key.
-- **Delete Data:** Deletes data from the object store by key.
+- **Initialize Database:** Initializes the IndexedDB database, ensuring it's open and ready for operations.
+- **Add Message:** Adds a new chat message to the database.
+- **Get Messages by Session:** Retrieves chat messages for a specific chat session, sorted by timestamp.
 
 ## Technical Details
 
-- The functions use the `indexedDB` API to interact with IndexedDB.
-- The functions use promises to handle asynchronous operations.
-- The functions provide error handling for common IndexedDB errors.
-- The `initializeDB` function is responsible for opening the database and creating the object stores.
-- The object stores are created with a `keyPath` that defines the primary key for the store.
+- Uses Dexie.js for a more developer-friendly API over IndexedDB.
+- The `ChatDatabase` class extends Dexie to manage the database schema.
+- The `chatMessages` table stores chat message records.
+- Includes error handling for database operations.
 
 ## Usage
 
-Assuming an object store named 'courses' with keyPath 'id':
-
 ```typescript
-import { initializeDB, setItem, getItem, removeItem } from '@/lib/indexeddb-service';
+import { initializeDB, setItem, getChatMessagesBySession, ChatMessageRecord } from '@/lib/indexeddb-service';
 
-interface Course {
-  id: string;
-  name: string;
-  description: string;
-}
-
+// Example usage:
 const MyComponent = async () => {
   // Initialize the database
   await initializeDB();
 
-  const course: Course = {
-    id: '123',
-    name: 'My Course',
-    description: 'This is a great course',
+  const newMessage: ChatMessageRecord = {
+    chatSessionId: 'session123',
+    sender: 'user',
+    text: 'Hello, world!',
   };
 
-  // Add data to the object store, using the 'id' as the key
-  await setItem('courses', course.id, course);
+  // Add a new message
+  const messageId = await setItem(newMessage);
 
-  // Get data from the object store, using the 'id' as the key
-  const value = await getItem<Course>('courses', '123');
-
-  // Delete data from the object store, using the 'id' as the key
-  await removeItem('courses', '123');
+  // Get messages for a session
+  const messages = await getChatMessagesBySession('session123');
 
   return (
     <div>
-      <p>Course Name: {value?.name}</p>
+      {messages.map((message) => (
+        <p key={message.id}>
+          {message.sender}: {message.text}
+        </p>
+      ))}
     </div>
   );
 };
@@ -61,7 +53,6 @@ const MyComponent = async () => {
 
 ## Functions
 
-- `initializeDB(): Promise<IDBDatabase>`: Initializes the IndexedDB database.
-- `setItem<T>(storeName: string, key: string, value: T): Promise<void>`: Adds or updates data in the specified object store, where `key` must match the object's keyPath property.
-- `getItem<T>(storeName: string, key: string): Promise<T | undefined>`: Retrieves data from the specified object store by its key (keyPath).
-- `removeItem(storeName: string, key: string): Promise<void>`: Deletes data from the specified object store by its key (keyPath).
+- `initializeDB(): Promise<void>`: Initializes the IndexedDB database.
+- `setItem(messageData: Omit<ChatMessageRecord, 'id' | 'timestamp'>): Promise<number | undefined>`: Adds a new chat message to the database. Returns the ID of the added message.
+- `getChatMessagesBySession(chatSessionId: string): Promise<ChatMessageRecord[]>`: Retrieves chat messages for a specific chat session, sorted by timestamp.
