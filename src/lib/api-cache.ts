@@ -31,15 +31,13 @@ interface RequestInit {
   duplex?: 'half' | 'full';
 }
 
-const API_CACHE_STORE = 'apiCache';
-
 async function cachedFetch(
   url: string,
   options?: RequestInit,
 ): Promise<Response> {
   try {
     console.time(`Load ${url} from cache`);
-    const cachedResponse = await getItem<CachedResponse>(API_CACHE_STORE, url);
+    const cachedResponse = await getItem<CachedResponse>(url);
     console.timeEnd(`Load ${url} from cache`);
     if (cachedResponse) {
       console.log(`Returning cached response for ${url}`);
@@ -56,7 +54,7 @@ async function cachedFetch(
     const responseClone = response.clone(); // Clone the response
     const data = await responseClone.json(); // Read the body from the clone
     console.time(`Save ${url} to cache`);
-    await setItem(API_CACHE_STORE, url, { url: url, data: data });
+    await setItem(url, { url: url, data: data });
     console.timeEnd(`Save ${url} to cache`);
     console.log(`Caching response for ${url}`);
     return response; // Return the original response

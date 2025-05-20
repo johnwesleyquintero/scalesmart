@@ -13,6 +13,7 @@ The `src/lib/api-cache.ts` file defines a utility function `cachedFetch` that pr
 ## Technical Details
 
 - The function uses IndexedDB for caching.
+- The function uses the URL as the key for caching.
 - The function uses the `fetch` API to make the API request.
 
 ## Usage

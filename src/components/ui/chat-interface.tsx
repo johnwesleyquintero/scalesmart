@@ -71,13 +71,13 @@ type ChatAction =
 // --- Helper Functions ---
 
 // Maps the Message['role'] to the sender type expected by the database.
- const mapMessageRoleToSender = (role: Message['role']): 'user' | 'ai' => {
+const mapMessageRoleToSender = (role: Message['role']): 'user' | 'ai' => {
   console.log('mapMessageRoleToSender called with role:', role);
   if (role === 'assistant') {
-   return 'ai';
+    return 'ai';
   }
   return 'user'; // If not 'assistant', it must be 'user' based on Message['role']
- };
+};
 
 // Updates a specific message in the state array based on timestamp and role
 const updateMessageInState = (
@@ -202,12 +202,16 @@ export default function ChatInterface() {
         await initializeDB(); // Ensure the Dexie db instance is open and ready
         console.log('ChatInterface: initializeDB completed.');
 
-        const dbMessages = await getChatMessagesBySession(chatSessionIdRef.current);
+        const dbMessages = await getChatMessagesBySession(
+          chatSessionIdRef.current,
+        );
         console.log('ChatInterface: Fetched messages from DB:', dbMessages);
 
         const uiMessages = dbMessages.map(mapDbRecordToMessage);
         dispatch({ type: 'SET_MESSAGES', payload: uiMessages });
-        console.log('Chat messages loaded from IndexedDB and mapped to UI format.');
+        console.log(
+          'Chat messages loaded from IndexedDB and mapped to UI format.',
+        );
       } catch (error) {
         console.error('ChatInterface: Error in loadMessages:', error);
       }
@@ -225,12 +229,13 @@ export default function ChatInterface() {
       if (typeof window !== 'undefined') {
         console.time('Save chat messages to IndexedDB');
         for (const message of messages) {
-          const recordForDB = { // Construct the object as expected by setItem
+          const recordForDB = {
+            // Construct the object as expected by setItem
             chatSessionId: chatSessionIdRef.current,
             sender: mapMessageRoleToSender(message.role), // Use helper for clear typing
-            text: message.content,   // Map 'content' to 'text'
+            text: message.content, // Map 'content' to 'text'
           };
-          await setItem(recordForDB);
+          await setItem(chatSessionIdRef.current, recordForDB);
         }
         console.timeEnd('Save chat messages to IndexedDB');
       }

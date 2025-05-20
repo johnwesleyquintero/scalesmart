@@ -37,4 +37,4 @@ The `chat-interface` component now integrates with IndexedDB for persistent chat
 
 - Uses the `indexeddb-service` to interact with IndexedDB.
 - The component uses `useEffect` hooks to load and save messages.
-- The component maps the `Message['role']` to the sender type expected by the database.
+- The component uses the `mapMessageRoleToSender` function to map the `Message['role']` to the sender type expected by the database.

@@ -61,6 +61,8 @@ const MyComponent = async () => {
 ## Functions
 
 - `initializeDB(): Promise<void>`: Initializes the IndexedDB database.
-- `setItem(messageData: Omit<ChatMessageRecord, 'id' | 'timestamp'>): Promise<number | undefined>`: Adds a new chat message to the database. Returns the ID of the added message.
 - `getChatMessagesBySession(chatSessionId: string): Promise<ChatMessageRecord[]>`: Retrieves chat messages for a specific chat session, sorted by timestamp.
 - `getItem<T>(key: string): Promise<T | undefined>`: Retrieves an item from the cache.
+- `setItem<T>(key: string, value: T): Promise<void>`: Sets an item in the cache.
+- `saveCalculation(data: CalculationData): Promise<void>`: Saves a calculation.
+- `getCalculations(): Promise<CalculationData[]>`: Gets all calculations.

@@ -23,7 +23,7 @@ This directory contains documentation for various aspects of the project. Below 
 - **implementation/:** Documentation about the implementation details of certain features.
 - **layout/:** Documentation for the overall layout of the application.
 - **loading/:** Documentation for loading states and components.
-- **local-storage/:** Documentation related to the *previous* usage of browser local storage. (Consider creating a new section for IndexedDB documentation if applicable.)
+- **local-storage/:** Documentation related to the _previous_ usage of browser local storage. (Consider creating a new section for IndexedDB documentation if applicable.)
 - **metadata/:** Documentation for the metadata of the application.
 - **not-found/:** Documentation for the 404 (Not Found) page.
 - **page/:** Documentation for general pages within the application.

@@ -74,7 +74,9 @@ const AcosCalculator = () => {
           // conforms to the structure of CalculationDBRecord.
           // It ensures 'record.data' is an object and not null, making it compatible
           // with 'Omit<CalculationEntry, "id">'.
-          return record && typeof record.data === 'object' && record.data !== null;
+          return (
+            record && typeof record.data === 'object' && record.data !== null
+          );
         })
         .map((validatedRecord: CalculationDBRecord): CalculationEntry => {
           // After the filter, validatedRecord is confirmed to be of type CalculationDBRecord.

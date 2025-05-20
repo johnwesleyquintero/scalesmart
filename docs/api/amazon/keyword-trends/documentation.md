@@ -9,6 +9,7 @@ The Amazon Keyword Trends API endpoint (`src/app/api/amazon/keyword-trends/route
 - **Processes CSV Data:** Processes keyword trend data from a CSV file.
 - **Stores Data in Supabase:** Stores the processed data in a Supabase database.
 - **Retrieves and Formats Data:** Retrieves and formats the data for analysis.
+- **Caches Data:** Caches the keyword trend data to improve performance.
 - **Returns JSON Response:** Returns the formatted keyword trend data as a JSON response.
 
 ## Technical Details
@@ -16,6 +17,7 @@ The Amazon Keyword Trends API endpoint (`src/app/api/amazon/keyword-trends/route
 - The endpoint uses the `createClient` function from `@supabase/supabase-js` to create a Supabase client.
 - The endpoint defines interfaces for the keyword trend data.
 - The endpoint uses the `processCSVData` function to process the CSV data.
+- The endpoint uses a caching mechanism to store and retrieve keyword trend data, improving performance.
 - The endpoint uses the `supabase` client to interact with the Supabase database.
 
 ## Data Flow

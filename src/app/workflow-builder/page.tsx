@@ -19,7 +19,6 @@ import {
 import 'reactflow/dist/style.css';
 
 import styles from './WorkflowBuilderPage.module.css';
-const workflowStoreName = 'workflows';
 
 const WorkflowBuilderPage = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState([
@@ -152,10 +151,16 @@ const WorkflowBuilderPage = () => {
   );
 
   async function saveWorkflow(currentNodes: Node[], currentEdges: Edge[]) {
+    console.log('Saving workflow:', {
+      nodes: currentNodes,
+      edges: currentEdges,
+    });
     try {
       console.time('Save workflow to IndexedDB');
       const workflow = { nodes: currentNodes, edges: currentEdges };
-      await setItem(workflowStoreName, 'currentWorkflow', workflow);
+      const stringifiedWorkflow = JSON.stringify(workflow);
+      console.log('Saving stringified workflow:', stringifiedWorkflow);
+      await setItem('currentWorkflow', stringifiedWorkflow);
       console.timeEnd('Save workflow to IndexedDB');
       // Consider using a toast notification here for better UX
       alert('Workflow saved successfully!');
@@ -172,25 +177,26 @@ const WorkflowBuilderPage = () => {
       // Load data from IndexedDB
       console.log('Loading workflow from IndexedDB');
       console.time('Load workflow from IndexedDB');
-      const workflow = await getItem(workflowStoreName, 'currentWorkflow');
-      if (
-        typeof workflow === 'object' &&
-        workflow !== null &&
-        Array.isArray((workflow as { nodes: Node[] }).nodes) &&
-        Array.isArray((workflow as { edges: Edge[] }).edges)
-      ) {
-        setNodes((workflow as { nodes: Node[] }).nodes);
-        setEdges((workflow as { edges: Edge[] }).edges);
-        console.log('Workflow loaded successfully from IndexedDB');
-        console.timeEnd('Load workflow from IndexedDB');
-        // Consider using a toast notification here
-        alert('Workflow loaded successfully!');
-      } else {
-        console.error('Invalid workflow data in IndexedDB:', workflow);
-        console.log('Workflow loading failed from IndexedDB');
-        alert(
-          'Failed to load workflow: Invalid data format. Please check the console for details.',
-        );
+      const workflow = await getItem('currentWorkflow');
+      if (typeof workflow === 'string' && workflow !== null) {
+        const parsedWorkflow = JSON.parse(workflow);
+        if (
+          Array.isArray((parsedWorkflow as { nodes: Node[] }).nodes) &&
+          Array.isArray((parsedWorkflow as { edges: Edge[] }).edges)
+        ) {
+          setNodes((parsedWorkflow as { nodes: Node[] }).nodes);
+          setEdges((parsedWorkflow as { edges: Edge[] }).edges);
+          console.log('Workflow loaded successfully from IndexedDB');
+          console.timeEnd('Load workflow from IndexedDB');
+          // Consider using a toast notification here
+          alert('Workflow loaded successfully!');
+        } else {
+          console.error('Invalid workflow data in IndexedDB:', workflow);
+          console.log('Workflow loading failed from IndexedDB');
+          alert(
+            'Failed to load workflow: Invalid data format. Please check the console for details.',
+          );
+        }
       }
     } catch (error) {
       console.error('Failed to load workflow from IndexedDB:', error);

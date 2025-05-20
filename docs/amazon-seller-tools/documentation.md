@@ -138,17 +138,11 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
 ### 5.3. Financials
 
 - FBA Calculator: To estimate FBA fees and profitability.
-  - ACoS Calculator: To calculate Advertising Cost of Sales. The ACoS calculator now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.
-  - Profit Margin Calc: To calculate profit margins.
-  - Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended). Also includes RoAS.
-  - CSV Data Upload & Mapping: The `GenericCsvDataMapper` component is used for mapping CSV columns. It now includes a preview of the CSV data and a "Download Sample CSV" button. The "Download Sample CSV" button is provided by the `SampleCsvButton` component.
-  - Sample CSV Button: The `SampleCsvButton` component provides a button to download a sample CSV file for the current tool. The button dynamically adjusts the sample CSV file name based on the tool.
   - ACoS Calculator: To calculate Advertising Cost of Sales.
   - Profit Margin Calc: To calculate profit margins.
   - Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended). Also includes RoAS.
   - CSV Data Upload & Mapping: The `GenericCsvDataMapper` component is used for mapping CSV columns. It now includes a preview of the CSV data and a "Download Sample CSV" button. The "Download Sample CSV" button is provided by the `SampleCsvButton` component.
   - Sample CSV Button: The `SampleCsvButton` component provides a button to download a sample CSV file for the current tool. The button dynamically adjusts the sample CSV file name based on the tool.
-  - ACoS Calculator: To calculate Advertising Cost of Sales.
 - Optimal Price Calc: To help determine optimal pricing strategies.
 
 ### 5.4. PPC & Ads
@@ -159,11 +153,63 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
 
 - Competitor Analyzer: To analyze competitor products and strategies.
 - Sales Estimator: To estimate sales for certain products.
-  Each of these tools is a self-contained component designed for a specific task.
+
+### 5.6. Competitor Analyzer
+
+The Competitor Analyzer is a tool for analyzing competitor products and strategies. It allows users to input competitor product information and analyze their listings, pricing, and other relevant data.
+
+Each of these tools is a self-contained component designed for a specific task.
 
 ## 6. ACoS Calculator
 
-The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales.
+The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales. It allows users to input Ad Spend and Ad Sales, and then calculates and displays the ACoS and RoAS. The calculator also saves the calculation history to IndexedDB and displays it in a table, and visualizes ACoS trends over time using a chart.
+
+## 6.1. Input Fields
+
+The ACoS Calculator includes the following input fields:
+
+-   **Ad Spend:** The amount spent on advertising.
+-   **Ad Sales:** The revenue generated from advertising.
+-   **Campaign Name (Optional):** The name of the advertising campaign.
+-   **Product Identifier (Optional):** The product identifier (e.g., ASIN, SKU).
+-   **Target ACoS:** The target Advertising Cost of Sales percentage.
+
+## 6.2. Calculation and Display
+
+The ACoS and RoAS are calculated based on the following formulas:
+
+-   **ACoS:** `(Ad Spend / Ad Sales) * 100`
+-   **RoAS:** `Ad Sales / Ad Spend`
+
+The calculated ACoS is displayed with a green background if it's less than or equal to the Target ACoS, and a red background if it's greater than the Target ACoS.
+
+## 6.3. Saving Calculations
+
+When the "Save Calculation" button is clicked, the following data is saved to IndexedDB:
+
+-   `date`: The date of the calculation.
+-   `campaignName`: The campaign name (if provided).
+-   `productIdentifier`: The product identifier (if provided).
+-   `adSpend`: The ad spend.
+-   `adSales`: The ad sales.
+-   `acos`: The calculated ACoS.
+-   `roas`: The calculated RoAS.
+
+## 6.4. Calculation History
+
+The ACoS Calculator displays a table of the calculation history, including the following columns:
+
+-   Date
+-   Campaign Name
+-   Product Identifier
+-   Ad Spend
+-   Ad Sales
+-   ACoS
+-   RoAS
+
+## 6.5. ACoS Chart
+
+The ACoS Calculator visualizes the ACoS over time using a line chart. The chart displays the ACoS values for each saved calculation, allowing users to track ACoS trends.
 
 ## 7. Technical Notes
 
@@ -173,7 +219,7 @@ The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a too
 - CSV Parsing: PapaParse library for handling CSV file uploads.
 - Date Manipulation: date-fns library for handling dates and time granularities.
 - State Management: React's useState and useRef hooks.
-- IndexedDB: IndexedDB for local data storage.
+- IndexedDB: IndexedDB for local data storage (for calculation history).
 - Supabase: Supabase for application configurations.
 
 ## 7. Button Component

@@ -50,9 +50,6 @@ export const trendDataSchema = z.object({
 
 export type TrendDataInput = z.infer<typeof trendDataSchema>;
 
-// --- Cache Implementation ---
-const API_CACHE_STORE = 'apiCache';
-
 // --- Service Implementation ---
 export class KeywordTrendService {
   private static async fetchTrendData(
@@ -129,7 +126,7 @@ export class KeywordTrendService {
       // Generate cache key from input data
       const cacheKey = this.getCacheKey(rawData as TrendDataInput[]);
       console.time(`Load keyword trends for ${cacheKey} from cache`);
-      const cached = await getItem(API_CACHE_STORE, cacheKey);
+      const cached = await getItem(cacheKey);
       console.timeEnd(`Load keyword trends for ${cacheKey} from cache`);
 
       // Return cached data if valid
@@ -179,7 +176,7 @@ export class KeywordTrendService {
 
       // Cache the results
       console.time(`Save keyword trends for ${cacheKey} to cache`);
-      await setItem(API_CACHE_STORE, cacheKey, result);
+      await setItem(cacheKey, result);
       console.timeEnd(`Save keyword trends for ${cacheKey} to cache`);
 
       return result;

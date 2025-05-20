@@ -2,6 +2,7 @@ import { Card, Input } from '@/components/ui';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { z } from 'zod';
+const CHART_DATA_KEY = 'competitorAnalysis:chartData';
 import {
   Tooltip,
   TooltipContent,
@@ -276,7 +277,16 @@ export function CompetitorAnalyzer() {
         // Check storage size before saving
         const dataSize = new Blob([JSON.stringify(formattedData)]).size;
         if (dataSize <= MAX_STORAGE_SIZE) {
-          await setItem('competitorAnalysis', 'chartData', formattedData);
+          try {
+            await setItem(CHART_DATA_KEY, formattedData);
+          } catch (error) {
+            console.error('Error saving chart data to IndexedDB:', error);
+            toast({
+              title: 'Error',
+              description: 'Failed to save chart data',
+              variant: 'destructive',
+            });
+          }
           setChartData(formattedData);
         } else {
           warn('Data exceeds storage limit, not saved to IndexedDB');
@@ -417,10 +427,7 @@ export function CompetitorAnalyzer() {
     const loadAnalysis = async () => {
       try {
         console.time('Load competitor analysis from IndexedDB');
-        const cachedData = (await getItem(
-          'competitorAnalysis',
-          'chartData',
-        )) as {
+        const cachedData = (await getItem(CHART_DATA_KEY)) as {
           timestamp?: number;
           id: string;
           date: string;
@@ -440,7 +447,7 @@ export function CompetitorAnalyzer() {
           if (now - cachedData.timestamp > cacheTime) {
             warn('Cached data is older than cache duration, clearing cache');
             // Clear the specific cache entry
-            await setItem('competitorAnalysis', 'chartData', null);
+            await setItem(CHART_DATA_KEY, null);
             return;
           }
           setSavedAnalysis(cachedData);
@@ -650,7 +657,7 @@ export function CompetitorAnalyzer() {
               // Save analysis results to IndexedDB
               const timestamp = new Date().toISOString();
               try {
-                await setItem('competitorAnalysis', timestamp, {
+                await setItem(CHART_DATA_KEY, {
                   id: timestamp,
                   date: new Date().toLocaleString(),
                   asin,
