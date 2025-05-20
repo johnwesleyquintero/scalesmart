@@ -38,6 +38,9 @@ import {
   YAxis,
 } from 'recharts';
 import { CurrencySelector } from './CurrencySelector';
+import { saveCalculation, getCalculations } from '@/lib/indexeddb-service';
+import { format } from 'date-fns';
+import { CalculationData } from '@/lib/indexeddb-service';
 
 // --- Interfaces & Types ---
 
@@ -83,8 +86,8 @@ const calculateLocalMetrics = (
   adSpend: number,
   sales: number,
   currency: { value: string; symbol: string },
-  impressions?: number,
-  clicks?: number,
+  impressions: string | undefined,
+  clicks: string | undefined,
 ): Omit<
   CampaignData,
   'campaign' | 'adSpend' | 'sales' | 'impressions' | 'clicks'
@@ -102,13 +105,13 @@ const calculateLocalMetrics = (
     const usdAdSpend = adSpend * (conversionRates[currency.value] || 1);
     const usdSales = sales * (conversionRates[currency.value] || 1);
 
-    // Validate inputs
+    // Validate inputs using the passed string parameters
     const validatedAdSpend = monetaryValueSchema.parse(usdAdSpend);
     const validatedSales = monetaryValueSchema.parse(usdSales);
     const validatedImpressions =
-      impressions !== undefined ? numberSchema.parse(impressions) : undefined;
+      impressions !== undefined ? (impressions ? numberSchema.parse(Number(impressions)) : undefined) : undefined;
     const validatedClicks =
-      clicks !== undefined ? numberSchema.parse(clicks) : undefined;
+      clicks !== undefined ? (clicks ? numberSchema.parse(Number(clicks)) : undefined) : undefined;
 
     // Handle edge cases for ACoS calculation
     const acos = (() => {
@@ -177,7 +180,10 @@ export default function AcosCalculator() {
     campaign: '',
     adSpend: '',
     sales: '',
+    impressions: '',
+    clicks: '',
   });
+  const [calculationHistory, setCalculationHistory] = useState<CalculationData[]>([]);
 
   // Cleanup effect for memory leak prevention
   useEffect(() => {
@@ -187,6 +193,20 @@ export default function AcosCalculator() {
       setError(undefined);
       setIsLoading(false);
     };
+  }, []);
+
+  // Load history on component mount
+  useEffect(() => {
+    async function loadHistory() {
+      try {
+        const history = await getCalculations();
+        setCalculationHistory(history);
+      } catch (error) {
+        console.error('Error loading calculation history:', error);
+        setError('Error loading calculation history');
+      }
+    }
+    loadHistory();
   }, []);
 
   const isManualInputValid = useMemo(() => {
@@ -232,8 +252,8 @@ export default function AcosCalculator() {
           Number(row.adSpend),
           Number(row.sales),
           selectedCurrency,
-          Number(row.impressions) || undefined,
-          Number(row.clicks) || undefined,
+          row.impressions !== undefined ? String(row.impressions) : undefined,
+          row.clicks !== undefined ? String(row.clicks) : undefined,
         );
         return { ...row, ...metrics };
       });
@@ -292,7 +312,7 @@ export default function AcosCalculator() {
     [],
   );
 
-  const handleManualCalculate = useCallback(() => {
+  const handleManualCalculate = useCallback(async () => {
     setError(undefined);
     setIsLoading(true);
     try {
@@ -309,7 +329,13 @@ export default function AcosCalculator() {
       }
       const adSpend = Number.parseFloat(manualCampaign.adSpend);
       const sales = Number.parseFloat(manualCampaign.sales);
-      const metrics = calculateLocalMetrics(adSpend, sales, selectedCurrency);
+      const metrics = calculateLocalMetrics(
+        adSpend,
+        sales,
+        selectedCurrency,
+        manualCampaign.impressions || undefined,
+        manualCampaign.clicks || undefined
+      );
       const newCampaign: CampaignData = {
         campaign: manualCampaign.campaign.trim(),
         adSpend,
@@ -317,7 +343,29 @@ export default function AcosCalculator() {
         ...metrics,
       };
       setCampaigns((prevCampaigns) => [...prevCampaigns, newCampaign]);
-      setManualCampaign({ campaign: '', adSpend: '', sales: '' });
+      setManualCampaign({ campaign: '', adSpend: '', sales: '', impressions: '', clicks: '' });
+
+      // Save to IndexedDB
+      try {
+        await saveCalculation({
+          campaignName: newCampaign.campaign,
+          adSpend: newCampaign.adSpend,
+          sales: newCampaign.sales,
+          acos: (newCampaign.acos === undefined || !isFinite(newCampaign.acos)) ? 0 : newCampaign.acos,
+          roas: (newCampaign.roas === undefined || !isFinite(newCampaign.roas)) ? 0 : newCampaign.roas,
+          date: new Date(),
+        });
+        // Fetch and update the history
+        const history = await getCalculations();
+        setCalculationHistory(history);
+      } catch (dbError) {
+        console.error('Error saving calculation to IndexedDB:', dbError);
+        setError(
+          `Error saving calculation: ${
+            dbError instanceof Error ? dbError.message : 'Unknown error'
+          }`,
+        );
+      }
     } catch (error) {
       setError(
         error instanceof Error ? error.message : 'An unknown error occurred',
@@ -372,7 +420,7 @@ export default function AcosCalculator() {
   const clearData = useCallback(() => {
     setCampaigns([]);
     setError(undefined);
-    setManualCampaign({ campaign: '', adSpend: '', sales: '' });
+    setManualCampaign({ campaign: '', adSpend: '', sales: '', impressions: '', clicks: '' });
   }, []);
 
   // --- Chart Content Logic (Fix for sonarjs/no-nested-conditional) ---
@@ -457,6 +505,7 @@ export default function AcosCalculator() {
             </li>
             <li>Visualize the distribution of a selected metric.</li>
             <li>Export the results to a new CSV file.</li>
+            <li>View calculation history.</li>
           </ul>
         </div>
       </div>
@@ -530,6 +579,32 @@ export default function AcosCalculator() {
                 value={manualCampaign.sales}
                 onChange={handleManualInputChange}
                 placeholder="e.g., 600.50"
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <Label htmlFor="manual-impressions">Impressions</Label>
+              <Input
+                id="manual-impressions"
+                name="impressions"
+                type="text"
+                inputMode="numeric"
+                value={manualCampaign.impressions}
+                onChange={handleManualInputChange}
+                placeholder="e.g., 1000"
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <Label htmlFor="manual-clicks">Clicks</Label>
+              <Input
+                id="manual-clicks"
+                name="clicks"
+                type="text"
+                inputMode="numeric"
+                value={manualCampaign.clicks}
+                onChange={handleManualInputChange}
+                placeholder="e.g., 50"
                 disabled={isLoading}
               />
             </div>
@@ -643,6 +718,55 @@ export default function AcosCalculator() {
           </p>
         </CardContent>
       </Card>
+
+      {/* Calculation History Table */}
+      {calculationHistory.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Calculation History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-200">
+                      Campaign
+                    </th>
+                    <th className="px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-200">
+                      Date
+                    </th>
+                    <th className="px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-200">
+                      Ad Spend
+                    </th>
+                    <th className="px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-200">
+                      Sales
+                    </th>
+                    <th className="px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-200">
+                      ACoS
+                    </th>
+                    <th className="px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-200">
+                      ROAS
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {calculationHistory.map((calc) => (
+                    <tr key={calc.id} className="border-b dark:border-gray-700">
+                      <td className="px-4 py-2">{calc.campaignName}</td>
+                      <td className="px-4 py-2">{format(new Date(calc.date), 'yyyy-MM-dd HH:mm')}</td>
+                      <td className="px-4 py-2 text-right">{calc.adSpend.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-right">{calc.sales.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-right">{calc.acos.toFixed(2)}</td>
+                      <td className="px-4 py-2 text-right">{calc.roas.toFixed(2)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

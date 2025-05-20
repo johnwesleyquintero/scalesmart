@@ -138,7 +138,7 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
 ### 5.3. Financials
 
 - FBA Calculator: To estimate FBA fees and profitability.
-- ACoS Calculator: To calculate Advertising Cost of Sales.
+- ACoS Calculator: To calculate Advertising Cost of Sales.  The ACoS calculator now includes manual input fields for campaign data and displays a calculation history table.
 - Profit Margin Calc: To calculate profit margins.
 - Optimal Price Calc: To help determine optimal pricing strategies.
 
@@ -161,7 +161,46 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
 - Date Manipulation: date-fns library for handling dates and time granularities.
 - State Management: React's useState and useRef hooks.
 
-## 7. Sample Data
+## 7. Button Component
+
+The `Button` component (`src/components/shared/Button.tsx`) is a reusable UI element for creating buttons with a consistent style. It uses Tailwind CSS for styling.
+
+- **Props:**
+  - `children`: The content of the button (e.g., text).
+  - `onClick`: A function to be called when the button is clicked.
+  - `className`: Optional CSS class names for additional styling.
+
+- **Usage:**
+
+```typescript
+import Button from './Button';
+
+function MyComponent() {
+  const handleClick = () => {
+    alert('Button clicked!');
+  };
+
+  return (
+    <Button onClick={handleClick} className="my-custom-class">
+      Click Me
+    </Button>
+  );
+}
+```
+
+## 8. IndexedDB Integration
+
+IndexedDB is used for local, browser-based data storage. This allows the tools to store user-specific data, such as saved calculations and preferences, improving performance and enabling offline functionality. The `indexeddb-service.ts` file provides an interface for interacting with the IndexedDB database.
+
+## 9. Supabase Integration
+
+Supabase is used for user authentication and storing application configurations. It provides a centralized place to manage settings and potentially allows for user-specific data synchronization across devices. The `supabase-service.ts` file handles interactions with the Supabase backend.
+
+## 10. Calculations Utility
+
+The `calculations.ts` file (`src/lib/utils/amazon/calculations.ts`) contains utility functions for performing calculations related to Amazon seller tools, such as ACoS calculation. This promotes code reusability and maintainability.
+
+## 11. Sample Data
 
 A sample CSV file (sample_amazon_data.csv) can be downloaded via the "Download Sample CSV" button on the initial "Overview" tab. This file demonstrates the expected data structure and can be used to test the dashboard's functionality without your own data. The sample data includes columns like:
 
@@ -177,5 +216,3 @@ A sample CSV file (sample_amazon_data.csv) can be downloaded via the "Download S
 - Sales (Ad)
 - Orders (Ad)
   This helps users understand what kind of data the tool expects and how it maps to the dashboard metrics.
-
-This documentation should give a good overview of the Amazon Seller Tools page. You can expand on specific tools or sections as needed!
