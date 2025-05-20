@@ -23,7 +23,7 @@ This directory contains documentation for various aspects of the project. Below 
 - **implementation/:** Documentation about the implementation details of certain features.
 - **layout/:** Documentation for the overall layout of the application.
 - **loading/:** Documentation for loading states and components.
-- **local-storage/:** Documentation related to the usage of local storage.
+- **local-storage/:** Documentation related to the *previous* usage of browser local storage. (Consider creating a new section for IndexedDB documentation if applicable.)
 - **metadata/:** Documentation for the metadata of the application.
 - **not-found/:** Documentation for the 404 (Not Found) page.
 - **page/:** Documentation for general pages within the application.
@@ -34,6 +34,7 @@ This directory contains documentation for various aspects of the project. Below 
 - **sitemap/:** Documentation for the sitemap.xml file.
 - **strategies/:** Documentation for different strategies used in the project.
 - **supabase/:** Documentation related to Supabase integration, including RLS (Row Level Security) policies.
+- **utils/:** Documentation for utility functions and helpers used across the project.
 - **workflow-builder/:** Documentation for the workflow builder feature.
 
 ## Subdirectories
@@ -144,8 +145,10 @@ Below is a list of subdirectories and their contents:
     - synchronization_strategy.md
 - **supabase/:** Documentation related to Supabase integration, including RLS (Row Level Security) policies.
   - Files:
-    - rls.md
-    - supabase_windows_amd64.tar.gz
+    - documentation.md
+- **utils/:** Documentation for utility functions and helpers used across the project.
+  - Files:
+    - (Add specific utils documentation files here, e.g., `documentation.md` or individual util docs)
 - **workflow-builder/:** Documentation for the workflow builder feature.
   - Files:
     - documentation.md

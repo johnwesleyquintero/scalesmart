@@ -1,6 +1,6 @@
 # Synchronization Strategy
 
-This strategy focuses on synchronizing user-generated content and chat messages between local storage and a server, targeting both web and mobile platforms.
+This strategy focuses on synchronizing user-generated content and chat messages between IndexedDB and a server, targeting both web and mobile platforms.
 
 ## 1. Data Consistency:
 
@@ -26,7 +26,7 @@ This strategy focuses on synchronizing user-generated content and chat messages 
 - **Background Synchronization:** Implement background synchronization to handle intermittent connections.
 - **Retry Mechanism:** Implement a retry mechanism with exponential backoff for failed synchronization attempts.
 - **Offline Mode:** Allow users to continue working offline. Store changes locally and synchronize them when the connection is restored.
-- **Connection Monitoring:** Monitor network connectivity and provide feedback to the user.
+- **Connection Monitoring:** Monitor network connectivity and provide feedback to the user. Store changes in IndexedDB and synchronize them when the connection is restored.
 
 ## 5. Scalability:
 
@@ -37,6 +37,7 @@ This strategy focuses on synchronizing user-generated content and chat messages 
 ## 6. Security:
 
 - **Encryption:** Encrypt data in transit and at rest. The `useLocalStorage` hook already encrypts data in local storage. Use HTTPS for all communication with the server.
+- **Encryption:** Encrypt data in transit and at rest. Data stored locally in IndexedDB should be encrypted. Use HTTPS for all communication with the server.
 - **Authentication:** Implement secure authentication to protect user data.
 - **Authorization:** Implement authorization to ensure that users can only access data that they are authorized to access.
 - **Data Sanitization:** Sanitize user input to prevent cross-site scripting (XSS) attacks.
@@ -44,7 +45,7 @@ This strategy focuses on synchronizing user-generated content and chat messages 
 ## 7. Data Compression:
 
 - **Compression Algorithms:** Use compression algorithms like Gzip or Brotli to reduce the size of data before transferring it over the network.
-- **Client-Side Compression:** Implement client-side compression to reduce the amount of data stored in local storage and sent to the server.
+- **Client-Side Compression:** Implement client-side compression to reduce the amount of data stored in IndexedDB and sent to the server.
 - **Server-Side Compression:** Configure the server to use compression for responses.
 - **Selective Compression:** Apply compression selectively based on data type and size. For example, compress large text-based content but skip already compressed data like images.
 
