@@ -51,7 +51,7 @@ Returns a list of academy courses from MDX files located in `c:\Users\johnw\port
     "tags": ["FBA", "Product Listing"],
     "author": "ScaleSmart Team",
     "interactive": false,
-    "content": "---\ntitle: Example Course Module 1\n---\n\n# Module 1 Content\n\nThis is the actual MDX content for the first module...",
+    "content": "## Module 1: Introduction to SEO",
     "modules": [
       {
         "slug": "module-1",

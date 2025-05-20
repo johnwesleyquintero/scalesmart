@@ -13,6 +13,8 @@ The `src/app/crm/page.tsx` file defines a CRM (Customer Relationship Management)
 - **Filter Customers by Category:** Allows users to filter customers by category.
 - **Export Customers to CSV:** Allows users to export the customer data to a CSV file.
 - **Copy Notes to Clipboard:** Allows users to copy the notes of a customer to the clipboard as Markdown.
+- **Exact Match Category Filter:** Allows users to filter customers by exact category match.
+- **Pagination:** Implements pagination for the customer list.
 
 ## Technical Details
 
