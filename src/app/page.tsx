@@ -10,43 +10,41 @@ const ClientChatInterface = dynamic(
 );
 
 // Enable SSR for static content sections
+const loadingComponent = () => <div className="min-h-[400px]" />;
+
 const HeroSection = dynamic(() => import('@/components/hero-section'), {
   ssr: true,
-  loading: () => (
-    <div className="min-h-[400px] flex items-center justify-center">
-      Loading Hero Section...
-    </div>
-  ),
+  loading: loadingComponent,
 });
 
 const ProjectsSection = dynamic(() => import('@/components/projects-section'), {
   ssr: true,
-  loading: () => <div className="min-h-[400px]" />,
+  loading: loadingComponent,
 });
 
 const AboutSection = dynamic(() => import('@/components/about-section'), {
   ssr: true,
-  loading: () => <div className="min-h-[400px]" />,
+  loading: loadingComponent,
 });
 
 const CertificationsSection = dynamic(
   () => import('@/components/certifications-section'),
-  { ssr: true, loading: () => <div className="min-h-[400px]" /> },
+  { ssr: true, loading: loadingComponent },
 );
 
 const BlogSection = dynamic(() => import('@/components/blog-section'), {
   ssr: true,
-  loading: () => <div className="min-h-[400px]" />,
+  loading: loadingComponent,
 });
 
 const ContactSection = dynamic(() => import('@/components/contact-section'), {
   ssr: true,
-  loading: () => <div className="min-h-[400px]" />,
+  loading: loadingComponent,
 });
 
 const InAppProjects = dynamic(() => import('@/components/In-App-Project'), {
   ssr: true,
-  loading: () => <div className="min-h-[400px]" />,
+  loading: loadingComponent,
 });
 
 export default function Home() {

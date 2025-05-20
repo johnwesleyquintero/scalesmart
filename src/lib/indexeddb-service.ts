@@ -1,4 +1,4 @@
-const DB_NAME = 'my_app_db';
+const DB_NAME = 'scalesmart_db';
 const DB_VERSION = 1; // Use a const for the version number
 
 let db: IDBDatabase | null = null;
@@ -104,6 +104,32 @@ async function setItem<T>(
     console.log(
       `Attempting to put item in store: ${storeName} with key: ${key}`,
     );
+
+    let keyPath: string | undefined;
+    switch (storeName) {
+      case 'chatMessages':
+        keyPath = 'timestamp';
+        break;
+      case 'workflows':
+        keyPath = 'workflowId';
+        break;
+      case 'courses':
+      case 'competitorAnalysis':
+        keyPath = 'id';
+        break;
+      case 'apiCache':
+        keyPath = 'url';
+        break;
+    }
+
+    if (keyPath && !(value as Record<string, unknown>)[keyPath]) {
+      console.error(
+        `Key path '${keyPath}' not found in object being saved to ${storeName}`,
+      );
+      reject(new Error(`Key path '${keyPath}' missing`));
+      return;
+    }
+
     const request = objectStore.put(value);
 
     request.onerror = () => {
@@ -150,5 +176,35 @@ async function deleteDatabase(): Promise<void> {
     };
   });
 }
+async function getAllWorkflows(): Promise<Workflow[]> {
+  const db = await initializeDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction('workflows', 'readonly');
+    const objectStore = transaction.objectStore('workflows');
+    const request = objectStore.getAll();
 
-export { initializeDB, getItem, setItem, removeItem, deleteDatabase };
+    request.onerror = () => {
+      console.error('Failed to get all workflows');
+      reject(request.error);
+    };
+
+    request.onsuccess = () => {
+      resolve(request.result as Workflow[]);
+    };
+  });
+}
+
+export interface Workflow {
+  workflowId: string;
+  nodes: unknown[];
+  edges: unknown[];
+}
+
+export {
+  initializeDB,
+  getItem,
+  setItem,
+  removeItem,
+  deleteDatabase,
+  getAllWorkflows,
+};

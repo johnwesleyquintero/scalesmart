@@ -1,5 +1,34 @@
 import { Edge, Node } from 'reactflow';
 
+interface NodeData<T = unknown> {
+  [key: string]: T;
+}
+
+interface NodeHandler<T = unknown> {
+  (
+    node: Node<NodeData<T>>,
+    edges: Edge[],
+    nodes: Node[],
+  ): Promise<{ nextNodeId?: string } | void>;
+}
+
+const nodeRegistry: { [key: string]: NodeHandler } = {
+  start: async (node, edges) => {
+    console.log('Start node executed.');
+    const edgeMap = new Map(edges.map((edge) => [edge.source, edge.target]));
+    return { nextNodeId: edgeMap.get(node.id) };
+  },
+  log: async (node, edges) => {
+    console.log('Log:', node.data);
+    const nextEdge = edges.find((edge: Edge) => edge.source === node.id);
+    return { nextNodeId: nextEdge?.target };
+  },
+  end: async () => {
+    console.log('End node reached. Workflow complete.');
+    return { nextNodeId: undefined };
+  },
+};
+
 export async function executeWorkflow(
   nodes: Node[],
   edges: Edge[],
@@ -12,13 +41,11 @@ export async function executeWorkflow(
   const startNode = nodes.find((node) => node.type === 'start');
 
   if (!startNode) {
-    console.warn('No start node found in the workflow.');
-    return;
+    throw new Error('No start node found in the workflow.');
   }
 
-  let currentNode: Node | undefined = startNode;
+  let currentNode: Node<NodeData> | undefined = startNode;
   let nextNodeId: string | undefined = undefined;
-  let message: string;
 
   while (currentNode) {
     if (!currentNode) {
@@ -27,34 +54,21 @@ export async function executeWorkflow(
 
     console.log('Executing node:', currentNode);
 
-    switch (currentNode!.type) {
-      case 'start':
-        // Start node logic
-        console.log('Start node executed.');
-        nextNodeId = edges.find(
-          (edge) => edge.source === currentNode!.id,
-        )?.target;
-        break;
-      case 'log':
-        // Log node logic
-        message = currentNode!.data?.message || 'No message provided.';
-        console.log('Log:', message);
-        nextNodeId = edges.find(
-          (edge) => edge.source === currentNode!.id,
-        )?.target;
-        break;
-      case 'end':
-        // End node logic
-        console.log('End node reached. Workflow complete.');
-        nextNodeId = undefined; // Stop the loop
-        break;
-      default:
-        console.warn('Unknown node type:', currentNode!.type);
-        nextNodeId = undefined; // Stop the loop
+    if (currentNode && currentNode.type) {
+      const handler = nodeRegistry[currentNode.type];
+
+      if (!handler) {
+        throw new Error(`Unknown node type: ${currentNode.type}`);
+      }
+
+      const result = await handler(currentNode, edges, nodes);
+      nextNodeId = result?.nextNodeId;
     }
 
     if (nextNodeId) {
-      currentNode = nodes.find((node) => node.id === nextNodeId) as Node;
+      currentNode = nodes.find(
+        (node) => node.id === nextNodeId,
+      ) as Node<NodeData>;
     } else {
       currentNode = undefined; // End of workflow
     }

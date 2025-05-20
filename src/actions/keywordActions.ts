@@ -1,22 +1,26 @@
 'use server';
-import { ProhibitedKeyword } from '@/lib/models/prohibited-keywords';
 import { supabase } from '@/lib/supabase';
 import { z } from 'zod';
 
 const keywordSchema = z.string().trim().toLowerCase().min(1).max(50);
 
-function normalizeKeyword(keyword: string): string {
-  return keyword.trim().toLowerCase();
-}
+// function normalizeKeyword(keyword: string): string {
+//   return keyword.trim().toLowerCase();
+// }
 
-export async function getAllProhibitedKeywords(): Promise<string[]> {
+export async function getAllProhibitedKeywords(): Promise<
+  { keyword: string }[]
+> {
   try {
     const { data: keywords, error } = await supabase
       .from('prohibited_keywords')
       .select('keyword');
 
-    if (error) throw error;
-    return keywords.map((k: { keyword: string }) => k.keyword);
+    if (error) {
+      console.error('Server Action Failed - getAllProhibitedKeywords:', error);
+      throw error;
+    }
+    return keywords || [];
   } catch (error: unknown) {
     console.error('Server Action Failed - getAllProhibitedKeywords:', error);
     throw error;
@@ -31,27 +35,33 @@ export async function addProhibitedKeyword(
     if (!validatedKeyword.success) {
       return { success: false, message: 'Invalid keyword provided.' };
     }
-    const normalizedKeyword = normalizeKeyword(validatedKeyword.data);
+    const normalizedKeyword = validatedKeyword.data.trim().toLowerCase();
     const { data: exists, error: queryError } = await supabase
       .from('prohibited_keywords')
-      .select('*')
+      .select('keyword')
       .eq('keyword', normalizedKeyword)
       .single();
 
     if (queryError && !queryError.message.includes('No rows found')) {
       throw queryError;
     }
+    if (queryError && queryError.code === '23505') {
+      // Unique constraint violation
+      return {
+        success: false,
+        message: `Keyword "${keyword.trim()}" already exists.`,
+      };
+    }
 
     if (!exists) {
-      const newKeyword: Omit<ProhibitedKeyword, '_id'> = {
-        keyword: normalizedKeyword,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
       try {
         const { error: insertError } = await supabase
           .from('prohibited_keywords')
-          .insert(newKeyword);
+          .insert({
+            keyword: normalizedKeyword,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
 
         if (insertError) throw insertError;
         console.log(

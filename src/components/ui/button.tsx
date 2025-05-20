@@ -36,7 +36,7 @@ const buttonVariants = cva(
 export interface ButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
-  asChild?: boolean;
+  asChild?: boolean; // Allows the button to be rendered as a different element, like a Link from react-router-dom
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
