@@ -140,6 +140,7 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
 - FBA Calculator: To estimate FBA fees and profitability.
 - ACoS Calculator: To calculate Advertising Cost of Sales.  The ACoS calculator now includes manual input fields for campaign data and displays a calculation history table.
 - Profit Margin Calc: To calculate profit margins.
+- ACoS Calculator: To calculate Advertising Cost of Sales.
 - Optimal Price Calc: To help determine optimal pricing strategies.
 
 ### 5.4. PPC & Ads
@@ -152,7 +153,11 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
 - Sales Estimator: To estimate sales for certain products.
   Each of these tools is a self-contained component designed for a specific task.
 
-## 6. Technical Notes
+## 6. ACoS Calculator
+
+The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales.
+
+## 7. Technical Notes
 
 - Frontend: Built with TypeScript and React (Next.js).
 - UI Components: Uses Shadcn UI components (Button, Card, Tabs, Select, Alert).
@@ -168,7 +173,7 @@ The `Button` component (`src/components/shared/Button.tsx`) is a reusable UI ele
 - **Props:**
   - `children`: The content of the button (e.g., text).
   - `onClick`: A function to be called when the button is clicked.
-  - `className`: Optional CSS class names for additional styling.
+  - `className`: Optional CSS class names for additional styling.  Includes focus styles.
 
 - **Usage:**
 
@@ -196,9 +201,18 @@ IndexedDB is used for local, browser-based data storage. This allows the tools t
 
 Supabase is used for user authentication and storing application configurations. It provides a centralized place to manage settings and potentially allows for user-specific data synchronization across devices. The `supabase-service.ts` file handles interactions with the Supabase backend.
 
+- **Authentication Functions:**
+  - `signUpWithEmail(email: string, password: string)`: Signs up a new user with an email and password.
+  - `signInWithEmail(email: string, password: string)`: Signs in an existing user with an email and password.
+  - `signOut()`: Signs out the current user.
+
 ## 10. Calculations Utility
 
-The `calculations.ts` file (`src/lib/utils/amazon/calculations.ts`) contains utility functions for performing calculations related to Amazon seller tools, such as ACoS calculation. This promotes code reusability and maintainability.
+The `calculations.ts` file (`src/lib/utils/amazon/calculations.ts`) contains utility functions for performing calculations related to Amazon seller tools. This promotes code reusability and maintainability.
+
+- **Functions:**
+  - `calculateAcos(adSpend: number, adSales: number): number`: Calculates the Advertising Cost of Sales (ACoS).
+  - `calculateProfitMargin(revenue: number, costOfGoodsSold: number, otherCosts: number): number`: Calculates the profit margin.
 
 ## 11. Sample Data
 

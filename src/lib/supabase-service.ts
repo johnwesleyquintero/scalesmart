@@ -1,23 +1,28 @@
-// src/lib/supabase-service.ts
-
 import { createClient } from '@supabase/supabase-js';
 
-// Replace with your Supabase project URL and anon key
-const supabaseUrl = 'YOUR_SUPABASE_URL';
-const supabaseAnonKey = 'YOUR_SUPABASE_ANON_KEY';
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// You can add functions here to interact with Supabase, e.g.:
-// export async function getConfiguration() {
-//   const { data, error } = await supabase
-//     .from('configurations')
-//     .select('*')
-//     .single();
+// Example functions for authentication (to be expanded)
+export async function signUpWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+  return { data, error };
+}
 
-//   if (error) {
-//     console.error('Error fetching configuration:', error);
-//     return null;
-//   }
-//   return data;
-// }
+export async function signInWithEmail(email: string, password: string) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+  return { data, error };
+}
+
+export async function signOut() {
+  const { error } = await supabase.auth.signOut();
+  return { error };
+}

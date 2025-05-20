@@ -1,11 +1,16 @@
-// src/lib/utils/amazon/calculations.ts
-
-// Example function:
-export function calculateACoS(spend: number, sales: number): number {
-  if (sales === 0) {
-    return 0;
+// Example ACoS calculation
+export function calculateAcos(adSpend: number, adSales: number): number {
+  if (adSales === 0) {
+    return 0; // Avoid division by zero
   }
-  return (spend / sales) * 100;
+  return (adSpend / adSales) * 100;
 }
 
-// Add more calculation functions here
+// Example Profit Margin calculation
+export function calculateProfitMargin(revenue: number, costOfGoodsSold: number, otherCosts: number): number {
+  const grossProfit = revenue - costOfGoodsSold - otherCosts;
+  if (revenue === 0) {
+    return 0;
+  }
+  return (grossProfit / revenue) * 100;
+}
