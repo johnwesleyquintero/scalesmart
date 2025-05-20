@@ -138,7 +138,7 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
 ### 5.3. Financials
 
 - FBA Calculator: To estimate FBA fees and profitability.
-  - ACoS Calculator: To calculate Advertising Cost of Sales.  The ACoS calculator now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.
+  - ACoS Calculator: To calculate Advertising Cost of Sales. The ACoS calculator now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.
   - Profit Margin Calc: To calculate profit margins.
   - Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended). Also includes RoAS.
   - CSV Data Upload & Mapping: The `GenericCsvDataMapper` component is used for mapping CSV columns. It now includes a preview of the CSV data and a "Download Sample CSV" button. The "Download Sample CSV" button is provided by the `SampleCsvButton` component.
@@ -181,9 +181,10 @@ The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a too
 The `Button` component (`src/components/shared/Button.tsx`) is a reusable UI element for creating buttons with a consistent style. It uses Tailwind CSS for styling.
 
 - **Props:**
+
   - `children`: The content of the button (e.g., text).
   - `onClick`: A function to be called when the button is clicked.
-  - `className`: Optional CSS class names for additional styling.  Includes focus styles.
+  - `className`: Optional CSS class names for additional styling. Includes focus styles.
 
 - **Usage:**
 

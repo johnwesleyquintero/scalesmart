@@ -7,7 +7,10 @@ interface SampleCsvButtonProps {
   onClick: () => void;
 }
 
-const SampleCsvButton: React.FC<SampleCsvButtonProps> = ({ toolName, onClick }) => {
+const SampleCsvButton: React.FC<SampleCsvButtonProps> = ({
+  toolName,
+  onClick,
+}) => {
   const getSampleCsvFileName = () => {
     switch (toolName) {
       case 'keyword-analyzer':

@@ -109,9 +109,17 @@ const calculateLocalMetrics = (
     const validatedAdSpend = monetaryValueSchema.parse(usdAdSpend);
     const validatedSales = monetaryValueSchema.parse(usdSales);
     const validatedImpressions =
-      impressions !== undefined ? (impressions ? numberSchema.parse(Number(impressions)) : undefined) : undefined;
+      impressions !== undefined
+        ? impressions
+          ? numberSchema.parse(Number(impressions))
+          : undefined
+        : undefined;
     const validatedClicks =
-      clicks !== undefined ? (clicks ? numberSchema.parse(Number(clicks)) : undefined) : undefined;
+      clicks !== undefined
+        ? clicks
+          ? numberSchema.parse(Number(clicks))
+          : undefined
+        : undefined;
 
     // Handle edge cases for ACoS calculation
     const acos = (() => {
@@ -183,7 +191,9 @@ export default function AcosCalculator() {
     impressions: '',
     clicks: '',
   });
-  const [calculationHistory, setCalculationHistory] = useState<CalculationData[]>([]);
+  const [calculationHistory, setCalculationHistory] = useState<
+    CalculationData[]
+  >([]);
 
   // Cleanup effect for memory leak prevention
   useEffect(() => {
@@ -334,7 +344,7 @@ export default function AcosCalculator() {
         sales,
         selectedCurrency,
         manualCampaign.impressions || undefined,
-        manualCampaign.clicks || undefined
+        manualCampaign.clicks || undefined,
       );
       const newCampaign: CampaignData = {
         campaign: manualCampaign.campaign.trim(),
@@ -343,7 +353,13 @@ export default function AcosCalculator() {
         ...metrics,
       };
       setCampaigns((prevCampaigns) => [...prevCampaigns, newCampaign]);
-      setManualCampaign({ campaign: '', adSpend: '', sales: '', impressions: '', clicks: '' });
+      setManualCampaign({
+        campaign: '',
+        adSpend: '',
+        sales: '',
+        impressions: '',
+        clicks: '',
+      });
 
       // Save to IndexedDB
       try {
@@ -351,8 +367,14 @@ export default function AcosCalculator() {
           campaignName: newCampaign.campaign,
           adSpend: newCampaign.adSpend,
           sales: newCampaign.sales,
-          acos: (newCampaign.acos === undefined || !isFinite(newCampaign.acos)) ? 0 : newCampaign.acos,
-          roas: (newCampaign.roas === undefined || !isFinite(newCampaign.roas)) ? 0 : newCampaign.roas,
+          acos:
+            newCampaign.acos === undefined || !isFinite(newCampaign.acos)
+              ? 0
+              : newCampaign.acos,
+          roas:
+            newCampaign.roas === undefined || !isFinite(newCampaign.roas)
+              ? 0
+              : newCampaign.roas,
           date: new Date(),
         });
         // Fetch and update the history
@@ -420,7 +442,13 @@ export default function AcosCalculator() {
   const clearData = useCallback(() => {
     setCampaigns([]);
     setError(undefined);
-    setManualCampaign({ campaign: '', adSpend: '', sales: '', impressions: '', clicks: '' });
+    setManualCampaign({
+      campaign: '',
+      adSpend: '',
+      sales: '',
+      impressions: '',
+      clicks: '',
+    });
   }, []);
 
   // --- Chart Content Logic (Fix for sonarjs/no-nested-conditional) ---
@@ -754,11 +782,21 @@ export default function AcosCalculator() {
                   {calculationHistory.map((calc) => (
                     <tr key={calc.id} className="border-b dark:border-gray-700">
                       <td className="px-4 py-2">{calc.campaignName}</td>
-                      <td className="px-4 py-2">{format(new Date(calc.date), 'yyyy-MM-dd HH:mm')}</td>
-                      <td className="px-4 py-2 text-right">{calc.adSpend.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-right">{calc.sales.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-right">{calc.acos.toFixed(2)}</td>
-                      <td className="px-4 py-2 text-right">{calc.roas.toFixed(2)}</td>
+                      <td className="px-4 py-2">
+                        {format(new Date(calc.date), 'yyyy-MM-dd HH:mm')}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {calc.adSpend.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {calc.sales.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {calc.acos.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        {calc.roas.toFixed(2)}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

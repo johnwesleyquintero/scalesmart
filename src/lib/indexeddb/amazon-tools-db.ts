@@ -5,7 +5,7 @@ import Dexie, { Table } from 'dexie';
 export interface SavedCalculation {
   id?: number; // Primary key. Optional as it's auto-incremented.
   calculationType: string; // e.g., 'acos', 'profitMargin'
-  data: any; // Store calculation data as JSON
+  data: unknown; // Store calculation data as JSON
   timestamp: Date;
   // Add more fields as needed, e.g., campaignName, productId
 }

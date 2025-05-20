@@ -38,7 +38,11 @@ export async function getCalculations(): Promise<CalculationData[]> {
   return db.calculations.toArray();
 }
 
-export async function setItem(storeName: string, key: string, value: unknown): Promise<void> {
+export async function setItem(
+  storeName: string,
+  key: string,
+  value: unknown,
+): Promise<void> {
   try {
     await db.transaction('rw', db.calculations, async () => {
       await db.table(storeName).put({ key, value });
@@ -49,7 +53,10 @@ export async function setItem(storeName: string, key: string, value: unknown): P
   }
 }
 
-export async function getItem(storeName: string, key: string): Promise<unknown | undefined> {
+export async function getItem(
+  storeName: string,
+  key: string,
+): Promise<unknown | undefined> {
   try {
     const result = await db.table(storeName).get(key);
     return result?.value;

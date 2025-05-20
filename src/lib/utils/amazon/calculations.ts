@@ -7,7 +7,11 @@ export function calculateAcos(adSpend: number, adSales: number): number {
 }
 
 // Example Profit Margin calculation
-export function calculateProfitMargin(revenue: number, costOfGoodsSold: number, otherCosts: number): number {
+export function calculateProfitMargin(
+  revenue: number,
+  costOfGoodsSold: number,
+  otherCosts: number,
+): number {
   const grossProfit = revenue - costOfGoodsSold - otherCosts;
   if (revenue === 0) {
     return 0;

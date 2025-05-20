@@ -60,7 +60,9 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     return map;
   });
 
-  const [previewData, setPreviewData] = useState<Record<string, string>[] | null>(null);
+  const [previewData, setPreviewData] = useState<
+    Record<string, string>[] | null
+  >(null);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // This useEffect is now for synchronizing with prop changes *after* the initial mount.
@@ -127,7 +129,8 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     if (csvHeaders && sampleDataRow) {
       // Basic preview generation
       const preview: Record<string, string>[] = [];
-      for (let i = 0; i < 3 && sampleDataRow; i++) { // Show first 3 rows
+      for (let i = 0; i < 3 && sampleDataRow; i++) {
+        // Show first 3 rows
         preview.push(sampleDataRow);
       }
       setPreviewData(preview);
@@ -258,9 +261,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
         >
           Cancel
         </Button>
-        {toolName && (
-          <SampleCsvButton toolName={toolName} onClick={() => {}} />
-        )}
+        {toolName && <SampleCsvButton toolName={toolName} onClick={() => {}} />}
       </div>
     </div>
   );
