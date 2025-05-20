@@ -17,6 +17,7 @@ class ChatDatabase extends Dexie {
   // 1. The interface for the items in the table (ChatMessageRecord)
   // 2. The type of the primary key (number, for auto-incremented id)
   public chatMessages!: Table<ChatMessageRecord, number>;
+  public cache!: Table<{ key: string; value: unknown }, string>;
 
   constructor() {
     super('ChatAppDatabase'); // Name of the IndexedDB database
@@ -27,6 +28,9 @@ class ChatDatabase extends Dexie {
       // 'timestamp': index for sorting messages by time
       // 'sender': index for filtering by sender
       chatMessages: '++id, chatSessionId, timestamp, sender',
+    });
+    this.version(2).stores({ // Add cache table in version 2
+      cache: 'key', // Primary key is 'key'
     });
   }
 }
@@ -94,7 +98,23 @@ export const getChatMessagesBySession = async (chatSessionId: string): Promise<C
     console.error(`Failed to get messages for session ${chatSessionId}:`, error);
     return []; // Return empty array on error or re-throw
   }
-};
+}
+
+function logError(error: any, message: string, component: string) {
+  console.error(`${component}: ${message}`, error);
+}
+
+export async function getItem<T>(key: string): Promise<T | undefined> {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    return await db.cache.get(key).then((item: any) => item?.value) as T | undefined;
+  } catch (error) {
+    logError(error, `Error getting item from IndexedDB: ${key}`, 'IndexedDBService');
+    return undefined;
+  }
+}
 
 // If direct access to the db instance is needed elsewhere (though usually it's better to encapsulate):
 // export { db as chatDBInstance };
