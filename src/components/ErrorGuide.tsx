@@ -6,21 +6,24 @@ import { cachedFetch } from '@/lib/api-cache';
 
 const ErrorGuide = () => {
   const [mdxContent, setMdxContent] = useState('');
+  const [keywords, setKeywords] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchMdxContent = async () => {
       const response = await cachedFetch('/error-guide');
-      const content = await response.text();
-      setMdxContent(content);
+      const data = await response.json(); // Assuming the API returns JSON with content and keywords
+      setMdxContent(data.content);
+      setKeywords(data.keywords || []);
     };
 
     fetchMdxContent();
   }, []);
 
-  return <div>{mdxContent && <MdxRenderer content={mdxContent} />}</div>;
+  return (
+    <div>
+      {mdxContent && <MdxRenderer content={mdxContent} keywords={keywords} />}
+    </div>
+  );
 };
 
 export default ErrorGuide;
-
-// Rollback strategy: To revert to the previous version, simply remove the cachedFetch import
-// and replace cachedFetch with fetch.

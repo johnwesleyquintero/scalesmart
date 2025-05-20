@@ -9,8 +9,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { AlertCircle, Check, Plus, Upload, X } from 'lucide-react';
+import { AlertCircle, Check, Upload, X } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { Alert } from '@/components/ui/alert';
+import MdxRenderer from '@/components/MdxRenderer';
 
 interface ResumeAnalysis {
   score: number;
@@ -33,60 +35,83 @@ export default function ResumeScanner() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Mock analysis function (in a real app, this would call an API)
-  const analyzeResume = () => {
+  // Analyze resume function (placeholder for API call)
+  const analyzeResume = async () => {
     if (!file) return;
 
     setIsAnalyzing(true);
+    setAnalysis(null); // Clear previous analysis
 
-    // Simulate API call delay
-    setTimeout(() => {
-      // Mock analysis results based on common resume standards
-      setAnalysis({
-        score: 78,
-        strengths: [
-          'Clear work history with measurable achievements',
-          'Good use of action verbs',
-          'Appropriate length (1-2 pages)',
-        ],
-        weaknesses: [
-          'Missing quantifiable results in 3 positions',
-          'Skills section could be more tailored to target jobs',
-          'No certifications listed',
-        ],
-        suggestions: [
-          "Add more metrics to quantify your impact (e.g., 'Increased sales by 30%')",
-          'Include relevant certifications for your industry',
-          'Tailor skills to match job descriptions more closely',
-        ],
-        keywords: {
-          present: [
-            'leadership',
-            'project management',
-            'JavaScript',
-            'team collaboration',
-          ],
-          missing: [
-            'TypeScript',
-            'Agile methodologies',
-            'CI/CD',
-            'cloud computing',
-          ],
-        },
-        sections: {
-          present: ['Experience', 'Education', 'Skills'],
-          missing: ['Certifications', 'Projects', 'Volunteer Work'],
-        },
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/resume/analyze', {
+        // Placeholder API route
+        method: 'POST',
+        body: formData,
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data: ResumeAnalysis = await response.json();
+      setAnalysis(data);
+    } catch (error: unknown) {
+      console.error('Error analyzing resume:', error);
+      // Provide user feedback on the error
+      setAnalysis({
+        score: 0,
+        strengths: [],
+        weaknesses: ['An error occurred during analysis. Please try again.'],
+        suggestions: [],
+        keywords: { present: [], missing: [] },
+        sections: { present: [], missing: [] },
+      });
+    } finally {
       setIsAnalyzing(false);
-    }, 2000);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
-      setAnalysis(null); // Reset previous analysis
+    const file = e.target.files?.[0];
+
+    if (!file) {
+      setFile(null);
+      setAnalysis(null);
+      return;
     }
+
+    const allowedTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    ];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!allowedTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload a PDF, DOC, or DOCX file.');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Clear the input
+      }
+      setFile(null);
+      setAnalysis(null);
+      return;
+    }
+
+    if (file.size > maxSize) {
+      alert('File size exceeds the limit (5MB).');
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Clear the input
+      }
+      setFile(null);
+      setAnalysis(null);
+      return;
+    }
+
+    setFile(file);
+    setAnalysis(null); // Reset previous analysis
   };
 
   const resetScanner = () => {
@@ -139,7 +164,7 @@ export default function ResumeScanner() {
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  Select File
+                  {file ? 'Change File' : 'Select File'}
                 </Button>
               </div>
             ) : (
@@ -164,36 +189,14 @@ export default function ResumeScanner() {
         <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex flex-col items-center space-y-4">
-              <div className="animate-pulse">
-                <svg
-                  className="animate-spin h-10 w-10 text-blue-500"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-              </div>
+              <Progress className="w-full" value={30} />
               <p className="text-gray-600">
-                Scanning your resume against industry standards...
+                Analyzing your resume... This may take a few seconds.
               </p>
             </div>
           </CardContent>
         </Card>
       )}
-
       {analysis && (
         <div className="space-y-6">
           <Card>
@@ -274,69 +277,28 @@ export default function ResumeScanner() {
               </CardContent>
             </Card>
           </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Optimization Suggestions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {analysis.suggestions.map((suggestion, index) => (
-                  <div key={index} className="flex items-start">
-                    <div className="bg-blue-100 p-1 rounded-full mr-3">
-                      <Plus className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <p>{suggestion}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {analysis && analysis.suggestions.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Keywords Found</CardTitle>
-                <CardDescription>
-                  {analysis.keywords.present.length} industry-relevant keywords
-                  detected
-                </CardDescription>
+                <CardTitle>Optimization Suggestions</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.keywords.present.map((keyword, index) => (
-                    <span
-                      key={index}
-                      className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
+                <MdxRenderer
+                  content={analysis.suggestions.join('\n')}
+                  keywords={analysis.keywords.missing}
+                />
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Recommended Keywords</CardTitle>
-                <CardDescription>
-                  {analysis.keywords.missing.length} keywords to consider adding
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {analysis.keywords.missing.map((keyword, index) => (
-                    <span
-                      key={index}
-                      className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          )}
+          {analysis?.weaknesses.length && (
+            <Alert variant="destructive" className="mt-4">
+              <AlertCircle className="h-4 w-4" />
+              <p>
+                There was an issue analyzing your resume. Please check the
+                weaknesses section for details.
+              </p>
+            </Alert>
+          )}
         </div>
       )}
     </div>

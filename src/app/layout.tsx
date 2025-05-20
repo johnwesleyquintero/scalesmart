@@ -1,5 +1,5 @@
 import ClientProviders from '@/components/client-providers';
-import { Analytics } from "@vercel/analytics/next";
+import { Analytics } from '@vercel/analytics/next';
 import Footer from '@/components/footer'; // <--- IMPORT THE FOOTER
 import Header from '@/components/header'; // <--- IMPORT THE HEADER
 import { cn } from '@/lib/utils';
@@ -34,57 +34,59 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={cn(
-        inter.variable,
-        'scroll-smooth',
-        'motion-safe:scroll-smooth',
-        '[color-scheme:dark_light]',
-      )}
-    >
-      <body
+    <div>
+      <html
+        lang="en"
         suppressHydrationWarning
-        style={
-          {
-            /* Add background tile effect here */
-          }
-        }
         className={cn(
-          'relative',
-          'min-h-screen',
-          'bg-gradient-to-br',
-          'from-purple-50',
-          'via-white',
-          'to-blue-50',
-          'dark:from-gray-900',
-          'dark:via-gray-900',
-          'dark:to-gray-800',
-          'min-h-screen',
-          'font-sans',
-          'antialiased',
-          'bg-background',
-          'text-foreground',
-          'flex',
-          'flex-col',
-          'selection:bg-primary/10',
-          'selection:text-primary',
-          'mx-auto',
-          'flex',
-          'justify-center',
+          inter.variable,
+          'scroll-smooth',
+          'motion-safe:scroll-smooth',
+          '[color-scheme:dark_light]',
         )}
       >
-        <ClientProviders>
-          <Header /> {/* <--- ADD THE GLOBAL HEADER HERE */}
-          <main id="main" className="flex-1">
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-            {children}
-          </main>
-</ClientProviders>
-       <Analytics />
-     </body>
-     <Footer />
-   </html>
+        <body
+          suppressHydrationWarning
+          style={
+            {
+              /* Add background tile effect here */
+            }
+          }
+          className={cn(
+            'relative',
+            'min-h-screen',
+            'bg-gradient-to-br',
+            'from-purple-50',
+            'via-white',
+            'to-blue-50',
+            'dark:from-gray-900',
+            'dark:via-gray-900',
+            'dark:to-gray-800',
+            'min-h-screen',
+            'font-sans',
+            'antialiased',
+            'bg-background',
+            'text-foreground',
+            'flex',
+            'flex-col',
+            'selection:bg-primary/10',
+            'selection:text-primary',
+            'mx-auto',
+            'flex',
+            'justify-center',
+          )}
+        >
+          <ClientProviders>
+            <Header /> {/* <--- ADD THE GLOBAL HEADER HERE */}
+            <main id="main" className="flex-1">
+              <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
+              {children}
+            </main>
+          </ClientProviders>
+          <Analytics />
+        </body>
+      </html>
+      <Footer />
+    </div>
   );
 }

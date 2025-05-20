@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, Check, Download, Plus, Trash2, X } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '../../hooks/use-local-storage';
 
 type Task = {
@@ -21,7 +21,7 @@ type Column = {
   color: string;
 };
 
-const LOCAL_STORAGE_KEY = 'projectManagementTasks_v1'; // Added a version for future-proofing
+const LOCAL_STORAGE_KEY = 'projectManagementTasks_v2';
 
 const DEFAULT_TASKS: Task[] = [
   {
@@ -58,9 +58,18 @@ export default function ProjectManagement() {
     title: '',
     description: '',
     status: 'todo',
+    dueDate: '', // Ensure all fields are initialized
   });
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<string | null>(null);
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
+  const [editTaskData, setEditTaskData] = useState<Omit<Task, 'id'>>({
+    title: '',
+    description: '',
+    status: 'todo',
+    dueDate: '', // Ensure all fields are initialized
+  });
+  const [searchTerm, setSearchTerm] = useState('');
 
   const [tasks, setTasks] = useLocalStorage<Task[]>(
     LOCAL_STORAGE_KEY,
@@ -133,7 +142,10 @@ export default function ProjectManagement() {
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTask.title) return;
+    if (!newTask.title) {
+      alert('Title is required');
+      return;
+    }
 
     const task: Task = {
       ...newTask,
@@ -144,6 +156,7 @@ export default function ProjectManagement() {
       title: '',
       description: '',
       status: 'todo',
+      dueDate: '', // Reset all fields
     });
     setShowAddForm(false);
   };
@@ -170,6 +183,31 @@ export default function ProjectManagement() {
     setTasks((tasks ?? []).filter((task: Task) => task.id !== id));
   };
 
+  const handleSaveEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask) return;
+
+    const updatedTasks = (tasks ?? []).map((task) =>
+      task.id === editingTask ? { ...task, ...editTaskData } : task,
+    );
+    setTasks(updatedTasks);
+    setEditingTask(null);
+  };
+
+  const [filteredTasks, setFilteredTasks] = useState(tasks);
+
+  useEffect(() => {
+    if (tasks) {
+      const filtered = tasks.filter(
+        (task) =>
+          task.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          (task.description &&
+            task.description.toLowerCase().includes(searchTerm.toLowerCase())),
+      );
+      setFilteredTasks(filtered);
+    }
+  }, [tasks, searchTerm]);
+
   const clearAllTasks = () => {
     if (
       window.confirm(
@@ -189,6 +227,17 @@ export default function ProjectManagement() {
           Organize your projects, track tasks, and manage deadlines effectively
           with this Kanban-style board.
         </p>
+
+        {/* Search Input */}
+        <div className="mb-4">
+          <input
+            type="text"
+            placeholder="Search tasks..."
+            className="w-full p-2 border rounded"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
 
         {/* Action Buttons - aligned to the right */}
         <div className="flex justify-end items-center mb-6">
@@ -291,9 +340,137 @@ export default function ProjectManagement() {
                     />
                   </div>
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Assignee
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded"
+                    value={newTask.assignee || ''}
+                    onChange={(e) =>
+                      setNewTask({ ...newTask, assignee: e.target.value })
+                    }
+                    placeholder="Assignee"
+                  />
+                </div>
                 <div className="flex justify-end">
                   <Button type="submit">
                     <Check className="mr-2 h-4 w-4" /> Add Task
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        )}
+
+        {editingTask && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Edit Task</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setEditingTask(null)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSaveEdit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded"
+                    value={editTaskData.title}
+                    onChange={(e) =>
+                      setEditTaskData({
+                        ...editTaskData,
+                        title: e.target.value,
+                      })
+                    }
+                    placeholder="Task title"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    className="w-full p-2 border rounded"
+                    rows={3}
+                    value={editTaskData.description}
+                    onChange={(e) =>
+                      setEditTaskData({
+                        ...editTaskData,
+                        description: e.target.value,
+                      })
+                    }
+                    placeholder="Task description"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Status
+                    </label>
+                    <select
+                      className="w-full p-2 border rounded"
+                      value={editTaskData.status}
+                      onChange={(e) =>
+                        setEditTaskData({
+                          ...editTaskData,
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          status: e.target.value as any,
+                        })
+                      }
+                    >
+                      <option value="todo">To Do</option>
+                      <option value="in-progress">In Progress</option>
+                      <option value="done">Done</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium mb-1">
+                      Due Date
+                    </label>
+                    <input
+                      type="date"
+                      className="w-full p-2 border rounded"
+                      value={editTaskData.dueDate || ''}
+                      onChange={(e) =>
+                        setEditTaskData({
+                          ...editTaskData,
+                          dueDate: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Assignee
+                  </label>
+                  <input
+                    type="text"
+                    className="w-full p-2 border rounded"
+                    value={editTaskData.assignee || ''}
+                    onChange={(e) =>
+                      setEditTaskData({
+                        ...editTaskData,
+                        assignee: e.target.value,
+                      })
+                    }
+                    placeholder="Assignee"
+                  />
+                </div>
+                <div className="flex justify-end">
+                  <Button type="submit">
+                    <Check className="mr-2 h-4 w-4" /> Save Task
                   </Button>
                 </div>
               </form>
@@ -313,14 +490,15 @@ export default function ProjectManagement() {
                 <h2 className="font-semibold text-lg">{column.title}</h2>
                 <span className="bg-white px-2 py-1 rounded-full text-sm">
                   {
-                    (tasks ?? []).filter((t: Task) => t.status === column.id)
-                      .length
+                    (filteredTasks ?? []).filter(
+                      (t: Task) => t.status === column.id,
+                    ).length
                   }
                 </span>
               </div>
 
               <div className="space-y-3">
-                {(tasks ?? [])
+                {(filteredTasks ?? [])
                   .filter((task: Task) => task.status === column.id)
                   .map((task: Task) => (
                     <Card
@@ -337,6 +515,22 @@ export default function ProjectManagement() {
                           onClick={() => deleteTask(task.id)}
                         >
                           <X className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setEditingTask(task.id);
+                            setEditTaskData({
+                              title: task.title,
+                              description: task.description,
+                              status: task.status,
+                              dueDate: task.dueDate,
+                              assignee: task.assignee,
+                            });
+                          }}
+                        >
+                          Edit
                         </Button>
                       </CardHeader>
                       <CardContent>

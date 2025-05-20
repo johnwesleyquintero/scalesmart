@@ -11,6 +11,8 @@ export default async function AcademyPage() {
     return <SchoolComponent academyData={academyData} />;
   } catch (error) {
     console.error('Failed to fetch academy data:', error);
-    return <div>Error loading academy data.</div>;
+    // Log to error tracking service (e.g., Sentry, Bugsnag)
+    // Sentry.captureException(error);
+    return <div>Error loading academy data. Please try again later.</div>;
   }
 }

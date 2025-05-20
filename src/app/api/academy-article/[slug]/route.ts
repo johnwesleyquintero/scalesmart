@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
+import matter from 'gray-matter';
 
 const academyDirectory = path.join(process.cwd(), 'src/app/content/academy');
 
@@ -13,7 +14,9 @@ export async function GET(
 
   try {
     const fileContents = fs.readFileSync(fullPath, 'utf8');
-    return NextResponse.json({ content: fileContents });
+    const { data, content } = matter(fileContents);
+    const keywords = data.keywords as string[];
+    return NextResponse.json({ content, keywords });
   } catch (error) {
     console.error('Error reading MDX file:', error);
     return NextResponse.json(

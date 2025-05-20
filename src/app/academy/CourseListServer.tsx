@@ -30,8 +30,11 @@ async function fetchCourses() {
     );
     return [];
   } catch (error) {
-    // Log the specific error
-    console.error('Error fetching courses in CourseListServer:', error);
+    // Log the specific error with more context
+    console.error(
+      'Error fetching courses in CourseListServer - fetchCourses:',
+      error,
+    );
     return [];
   }
 }

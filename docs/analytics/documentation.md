@@ -15,7 +15,7 @@ Vercel Analytics is used to track page views and other user interactions within 
     npm install @vercel/analytics --legacy-peer-deps
     ```
 
-    Note: Due to dependency conflicts, the installation used the `--legacy-peer-deps` flag.  The user should review and address any reported vulnerabilities.
+    Note: Due to dependency conflicts, the installation used the `--legacy-peer-deps` flag. The user should review and address any reported vulnerabilities.
 
 2.  **Component Integration:**
     The `<Analytics />` component from `@vercel/analytics/next` was imported and added to the `src/app/layout.tsx` file.

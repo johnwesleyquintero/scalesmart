@@ -68,25 +68,25 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
     1.  Click "Choose Report File (.csv)".
     2.  Select your CSV file.
     3.  **Column Mapping:** Use the `GenericCsvDataMapper` component to map CSV columns to the required data fields.
-        *   Select the corresponding column from your CSV using the dropdown menus.
-        *   Hints are provided for each target field to guide you.
-        *   A sample data row from your CSV is shown to help with mapping.
-        *   Required fields must be mapped.
-        *   Click "Confirm Mapping" to process the file or "Cancel" to abort.
+        - Select the corresponding column from your CSV using the dropdown menus.
+        - Hints are provided for each target field to guide you.
+        - A sample data row from your CSV is shown to help with mapping.
+        - Required fields must be mapped.
+        - Click "Confirm Mapping" to process the file or "Cancel" to abort.
 2.  **Viewing Data:**
-    *   **KPI Cards:** Display overall averages or totals for metrics like "Avg. Conversion Rate," "Total Sales," and "Avg. Clicks."
-    *   **Period-over-Period Comparison KPIs:** Shows key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
-    *   **Charts:**
-        *   Total Sales Trends: A line chart showing total sales over time.
-        *   Ad Clicks & Ad Impressions: A bar chart displaying advertising clicks and impressions.
-        *   Total Orders & Total Sessions: A bar chart showing total orders and sessions.
+    - **KPI Cards:** Display overall averages or totals for metrics like "Avg. Conversion Rate," "Total Sales," and "Avg. Clicks."
+    - **Period-over-Period Comparison KPIs:** Shows key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
+    - **Charts:**
+      - Total Sales Trends: A line chart showing total sales over time.
+      - Ad Clicks & Ad Impressions: A bar chart displaying advertising clicks and impressions.
+      - Total Orders & Total Sessions: A bar chart showing total orders and sessions.
 3.  **Time Granularity:** Use the "Select Time Granularity" dropdown to change the aggregation period (Daily, Weekly, Monthly, Quarterly, Yearly). Charts and KPI comparisons will update accordingly.
 4.  **Period-over-Period Comparison:** The dashboard displays period-over-period comparisons for key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS). Changes are indicated with icons (up/down arrows) and percentage differences.
 5.  **Interacting with the Dashboard:**
-    *   **Refresh:** Click the "Refresh" button in the header to clear current data and start over.
-    *   **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
-    *   **Docs:** Links to external documentation for the Amazon Seller Tools.
-    *   **Error Handling:** If issues occur during file upload, parsing, or mapping, an error message will be displayed. You'll often have an option to "Try uploading again."
+    - **Refresh:** Click the "Refresh" button in the header to clear current data and start over.
+    - **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
+    - **Docs:** Links to external documentation for the Amazon Seller Tools.
+    - **Error Handling:** If issues occur during file upload, parsing, or mapping, an error message will be displayed. You'll often have an option to "Try uploading again."
 
 ### CSV Data Mapper
 
@@ -97,14 +97,14 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 
 **Features**:
 
--   Generic TypeScript implementation for flexibility
--   Dynamic form generation based on target metrics
--   Comprehensive validation including:
-    -   Required field checks
-    -   Duplicate mapping detection
-    -   Input type validation
--   Error handling with user feedback
--   Responsive UI with shadcn/ui components
+- Generic TypeScript implementation for flexibility
+- Dynamic form generation based on target metrics
+- Comprehensive validation including:
+  - Required field checks
+  - Duplicate mapping detection
+  - Input type validation
+- Error handling with user feedback
+- Responsive UI with shadcn/ui components
 
 **Usage**:
 
@@ -123,15 +123,15 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 
 **Dependencies**:
 
--   React 18+
--   TypeScript 5.0+
--   shadcn/ui components
+- React 18+
+- TypeScript 5.0+
+- shadcn/ui components
 
 **Recent Updates**:
 
--   Added comprehensive validation logic
--   Improved error handling and user feedback
--   Optimized performance with React memo
+- Added comprehensive validation logic
+- Improved error handling and user feedback
+- Optimized performance with React memo
 
 **Current Notes**: Generally stable.
 
@@ -142,6 +142,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 
 🔍 **Description**: A tool for analyzing and managing keywords.
 **Features**:
+
 - Filtering
 - Column visibility
 - Sorting
@@ -157,11 +158,13 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 
 🔍 **Description**: AI-powered listing analysis and optimization tool.
 **Features**:
+
 - AI title/description/bullet optimization
 - Image validation
 - SEO recommendations
 
 **Implementation Details**:
+
 - ASIN validation using regex pattern `^[A-Z0-9]{10}$`
 - CSV processing with FileReader API and error boundaries
 - Mock data integration for ASIN lookup (see `fetchAsinDataMock`)
@@ -175,6 +178,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 - Mobile check
 
 **Recent Updates (2025-04-22)**:
+
 - Added CSV validation with error boundaries
 - Implemented toast notifications for user feedback
 - Added file input ref management
@@ -190,6 +194,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 
 🔍 **Description**: A comprehensive tool for analyzing PPC campaign performance and providing optimization recommendations.
 **Features**:
+
 - CSV import/validation
 - Performance analysis (ACoS, CTR, Conv. Rate)
 - Issue detection
@@ -199,15 +204,18 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 - Filtering/sorting
 
 **Limitations**:
+
 - Requires real API integration to fetch campaign data (currently uses mock data)
 - Performance may vary with large datasets
 
 **Recent Updates**:
+
 - Status corrected from Active v2.0.0 to Beta v0.9.0
 - Added enhanced error handling for CSV imports
 - Improved visualization performance
 
 **Roadmap**:
+
 - Real API integration (High Priority)
 - Performance optimization for large datasets
 - Additional visualization options
@@ -220,6 +228,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 🔍 **Description**: AI-enhanced rich text editor for Amazon product descriptions.
 **Features**: HTML formatting, keyword integration, char counter, AI SEO optimization, live preview, CSV export, automated score calculation, mobile preview.
 **Recent Updates (2025-04-22)**:
+
 - Added CSV validation with error boundaries
 - Implemented toast notifications for user feedback
 - Added file input ref management
@@ -236,6 +245,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 🔍 **Description**: Smart keyword management with AI-powered suggestions.
 **Features**: Bulk processing, AI duplicate detection, smart suggestions, export options, real-time metrics, benchmarking, trend analysis.
 **Recent Updates (2025-04-22)**:
+
 - Added CSV validation with error boundaries
 - Implemented toast notifications for user feedback
 - Added file input ref management
@@ -253,25 +263,25 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 
 **Features**:
 
--   Robust CSV parsing with error handling
--   Campaign tracking with manual entry option
--   Real-time metric calculations (ACoS, ROAS, CTR, CPC, RPC)
--   Data visualization with Recharts
--   CSV import/export
--   Edge case handling for calculations
--   Responsive UI with shadcn/ui components
--   ACoS calculator now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.
--   Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended).
+- Robust CSV parsing with error handling
+- Campaign tracking with manual entry option
+- Real-time metric calculations (ACoS, ROAS, CTR, CPC, RPC)
+- Data visualization with Recharts
+- CSV import/export
+- Edge case handling for calculations
+- Responsive UI with shadcn/ui components
+- ACoS calculator now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.
+- Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended).
 
 **Use Case**: Optimize bids based on real-time ACoS data to maximize profitability.
 
 **Recent Improvements**:
 
--   Fixed CSV parsing issues with malformed data
--   Added comprehensive error handling
--   Improved metric calculation accuracy
--   Enhanced data visualization
--   Added manual entry option for single campaigns
+- Fixed CSV parsing issues with malformed data
+- Added comprehensive error handling
+- Improved metric calculation accuracy
+- Enhanced data visualization
+- Added manual entry option for single campaigns
 
 ### 8. Sales Estimator
 
@@ -316,6 +326,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 **Version**: 1.0.0
 🔍 **Description**: Calculates a quality score for your Amazon product listing based on various optimization factors.
 **Features**:
+
 - Product Title
 - Bullet Points (up to 5)
 - Product Description (HTML allowed)
@@ -336,6 +347,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 **Version**: 1.0.0
 🔍 **Description**: Calculates the optimal price for a product based on cost, current price, competitor prices, and other factors.
 **Features**:
+
 - Product Cost
 - Current Price
 - Competitor Prices (comma-separated)
@@ -349,6 +361,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 - Volume
 
 **Recent Updates**:
+
 - Completed unit/integration tests
 - Added comprehensive documentation
 - Improved input validation
@@ -356,6 +369,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 - Improved error messages to be more user-friendly
 
 **Limitations**:
+
 - Competitor prices are parsed as a comma-separated string, which could be prone to errors if the input is not formatted correctly.
 - The product score is scaled to be between 0 and 1.
 
@@ -381,17 +395,17 @@ The IndexedDB integration for local data storage and Supabase integration for ap
 
 ## New Error Handling Features
 
--   **Real-time Error Monitoring:** Integrated with Sentry for production error tracking
--   **User Notifications:** Non-disruptive toast messages for operational errors
--   **Debug Mode:** Detailed error context preservation in development mode
+- **Real-time Error Monitoring:** Integrated with Sentry for production error tracking
+- **User Notifications:** Non-disruptive toast messages for operational errors
+- **Debug Mode:** Detailed error context preservation in development mode
 
 ## Resolved Issues
 
--   Fixed duplicate type definitions in error handling system
--   Optimized component re-renders in dashboard interfaces
--   Resolved production error reporting gaps
--   Implemented race condition prevention in API key management
--   Added input validation for all calculator tools
+- Fixed duplicate type definitions in error handling system
+- Optimized component re-renders in dashboard interfaces
+- Resolved production error reporting gaps
+- Implemented race condition prevention in API key management
+- Added input validation for all calculator tools
 
 This documentation will be updated periodically as significant changes, fixes, or new features are released. Thank you for your understanding as we continue to improve the Amazon Seller Tools Suite!
 

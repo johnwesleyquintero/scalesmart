@@ -168,18 +168,18 @@ The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a too
 
 The ACoS Calculator includes the following input fields:
 
--   **Ad Spend:** The amount spent on advertising.
--   **Ad Sales:** The revenue generated from advertising.
--   **Campaign Name (Optional):** The name of the advertising campaign.
--   **Product Identifier (Optional):** The product identifier (e.g., ASIN, SKU).
--   **Target ACoS:** The target Advertising Cost of Sales percentage.
+- **Ad Spend:** The amount spent on advertising.
+- **Ad Sales:** The revenue generated from advertising.
+- **Campaign Name (Optional):** The name of the advertising campaign.
+- **Product Identifier (Optional):** The product identifier (e.g., ASIN, SKU).
+- **Target ACoS:** The target Advertising Cost of Sales percentage.
 
 ## 6.2. Calculation and Display
 
 The ACoS and RoAS are calculated based on the following formulas:
 
--   **ACoS:** `(Ad Spend / Ad Sales) * 100`
--   **RoAS:** `Ad Sales / Ad Spend`
+- **ACoS:** `(Ad Spend / Ad Sales) * 100`
+- **RoAS:** `Ad Sales / Ad Spend`
 
 The calculated ACoS is displayed with a green background if it's less than or equal to the Target ACoS, and a red background if it's greater than the Target ACoS.
 
@@ -187,25 +187,25 @@ The calculated ACoS is displayed with a green background if it's less than or eq
 
 When the "Save Calculation" button is clicked, the following data is saved to IndexedDB:
 
--   `date`: The date of the calculation.
--   `campaignName`: The campaign name (if provided).
--   `productIdentifier`: The product identifier (if provided).
--   `adSpend`: The ad spend.
--   `adSales`: The ad sales.
--   `acos`: The calculated ACoS.
--   `roas`: The calculated RoAS.
+- `date`: The date of the calculation.
+- `campaignName`: The campaign name (if provided).
+- `productIdentifier`: The product identifier (if provided).
+- `adSpend`: The ad spend.
+- `adSales`: The ad sales.
+- `acos`: The calculated ACoS.
+- `roas`: The calculated RoAS.
 
 ## 6.4. Calculation History
 
 The ACoS Calculator displays a table of the calculation history, including the following columns:
 
--   Date
--   Campaign Name
--   Product Identifier
--   Ad Spend
--   Ad Sales
--   ACoS
--   RoAS
+- Date
+- Campaign Name
+- Product Identifier
+- Ad Spend
+- Ad Sales
+- ACoS
+- RoAS
 
 ## 6.5. ACoS Chart
 

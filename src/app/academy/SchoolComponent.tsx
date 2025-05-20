@@ -23,10 +23,17 @@ export default function SchoolComponent({ academyData }: SchoolComponentProps) {
   const [filter, setFilter] = useState('All');
   const [sort, setSort] = useState('Title');
 
-  const handleExportData = () => {
-    const data = localStorage.getItem('academyData');
-    if (data) {
-      const blob = new Blob([data], { type: 'application/json' });
+  const handleExportData = async () => {
+    try {
+      const baseUrl =
+        process.env.NODE_ENV === 'development'
+          ? 'http://localhost:3000'
+          : 'https://wescode.vercel.app';
+      const res = await fetch(`${baseUrl}/api/academy-courses`);
+      const academyData = await res.json();
+
+      const jsonString = JSON.stringify(academyData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -35,8 +42,9 @@ export default function SchoolComponent({ academyData }: SchoolComponentProps) {
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
-    } else {
-      alert('No academy data found in local storage.');
+    } catch (error) {
+      console.error('Error exporting academy data:', error);
+      alert('Failed to export academy data.');
     }
   };
 
@@ -182,7 +190,8 @@ const CourseList = ({
                   max="100"
                 />
                 <p className="text-sm text-gray-500 mt-1">
-                  Progress: {course.progress || 0}%
+                  Progress:{' '}
+                  {course.progress !== undefined ? course.progress : 0}%
                 </p>
               </div>
               <CardFooter>
