@@ -125,7 +125,7 @@
     "react-resizable-panels": "^2.1.7",
     "react-to-pdf": "^2.0.0",
     "reactflow": "^11.11.4",
-    "recharts": "^2.15.0",
+    "recharts": "^2.15.3",
     "redis": "^5.0.1",
     "rehype-katex": "^7.0.1",
     "rehype-prism-plus": "^2.0.1",

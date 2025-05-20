@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { calculateAcos } from '@/lib/utils/amazon/calculations';
 import { db } from '@/lib/indexeddb/amazon-tools-db';
 import Button from '@/components/shared/Button';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface CalculationEntry {
   id?: number;
@@ -34,7 +35,7 @@ const AcosCalculator = () => {
       .equals('acos')
       .reverse()
       .sortBy('timestamp');
-    setCalculationHistory(history as unknown as CalculationEntry[]);
+    setCalculationHistory(history.map(h => ({...h.data, id: h.id, date: h.data.date} as CalculationEntry)));
   };
 
   const handleCalculate = () => {
@@ -61,10 +62,10 @@ const AcosCalculator = () => {
 
     await db.calculations.add({
       calculationType: 'acos',
-      calculationData: newEntry,
+      data: newEntry,
       timestamp: new Date(),
     });
-    loadHistory();
+    await loadHistory();
     setCampaignName('');
     setProductIdentifier('');
   };
@@ -75,6 +76,11 @@ const AcosCalculator = () => {
       : targetAcos > 0 && acos <= targetAcos
       ? 'text-green-500'
       : '';
+
+  const chartData = calculationHistory.map(entry => ({
+    date: entry.date,
+    acos: entry.acos,
+  }));
 
   return (
     <div className="p-4">
@@ -189,6 +195,21 @@ const AcosCalculator = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {chartData.length > 0 && (
+        <div className="mt-4" style={{ width: '100%', height: 300 }}>
+          <ResponsiveContainer>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="acos" stroke="#8884d8" activeDot={{ r: 8 }} />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
       )}
     </div>

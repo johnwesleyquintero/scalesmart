@@ -14,6 +14,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import styles from './GenericCsvDataMapper.module.css';
+import SampleCsvButton from './sample-csv-button';
 
 interface GenericCsvDataMapperProps {
   csvHeaders: string[];
@@ -31,6 +32,7 @@ interface GenericCsvDataMapperProps {
   sampleDataRow?: Record<string, string>; // To show sample values
   title: string;
   description: string;
+  toolName: string; // Add toolName prop
 }
 
 // Define a stable empty object for the default initialMapping
@@ -46,6 +48,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
   sampleDataRow,
   title,
   description,
+  toolName, // Destructure toolName
 }) => {
   // Initialize state with a function to ensure it only runs once for initialization
   // based on the initial props.
@@ -56,6 +59,9 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     });
     return map;
   });
+
+  const [previewData, setPreviewData] = useState<Record<string, string>[] | null>(null);
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // This useEffect is now for synchronizing with prop changes *after* the initial mount.
   useEffect(() => {
@@ -99,14 +105,34 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
   };
 
   const handleSubmit = () => {
-    for (const field of targetMetrics) {
-      if (field.required && !currentMapping[field.key]) {
-        alert('Please map the required field: ' + field.label);
-        return;
-      }
+    // Validation moved to a separate function
+    if (!validateMapping()) {
+      return;
     }
     onMappingComplete(currentMapping);
   };
+
+  const validateMapping = () => {
+    const errors: string[] = [];
+    for (const field of targetMetrics) {
+      if (field.required && !currentMapping[field.key]) {
+        errors.push(`Please map the required field: ${field.label}`);
+      }
+    }
+    setValidationErrors(errors);
+    return errors.length === 0;
+  };
+
+  useEffect(() => {
+    if (csvHeaders && sampleDataRow) {
+      // Basic preview generation
+      const preview: Record<string, string>[] = [];
+      for (let i = 0; i < 3 && sampleDataRow; i++) { // Show first 3 rows
+        preview.push(sampleDataRow);
+      }
+      setPreviewData(preview);
+    }
+  }, [csvHeaders, sampleDataRow]);
 
   if (isLoading) {
     return <div className={styles.loading}>Loading CSV headers...</div>;
@@ -124,6 +150,17 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     <div className={styles.mapperContainer}>
       <h3 className={styles.title}>{title}</h3>
       <p>{description}</p>
+      {validationErrors.length > 0 && (
+        <div className={styles.validationErrors}>
+          <ul>
+            {validationErrors.map((error, index) => (
+              <li key={index} className={styles.validationErrorItem}>
+                {error}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <div className={styles.mappingTable}>
         <div className={`${styles.mappingRow} ${styles.mappingHeaderRow}`}>
           <div className={styles.targetMetricHeader}>Dashboard Field</div>
@@ -183,6 +220,33 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
           </div>
         ))}
       </div>
+      {previewData && (
+        <div className={styles.previewContainer}>
+          <h4 className={styles.previewTitle}>CSV Preview (First 3 Rows)</h4>
+          <table className={styles.previewTable}>
+            <thead>
+              <tr>
+                {csvHeaders.map((header) => (
+                  <th key={header} className={styles.previewHeader}>
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {previewData.map((row, rowIndex) => (
+                <tr key={rowIndex} className={styles.previewRow}>
+                  {csvHeaders.map((header) => (
+                    <td key={header} className={styles.previewCell}>
+                      {row[header]}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
       <div className={styles.actionButtons}>
         <Button onClick={handleSubmit} className={styles.submitButton}>
           Confirm Mapping
@@ -194,6 +258,9 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
         >
           Cancel
         </Button>
+        {toolName && (
+          <SampleCsvButton toolName={toolName} onClick={() => {}} />
+        )}
       </div>
     </div>
   );

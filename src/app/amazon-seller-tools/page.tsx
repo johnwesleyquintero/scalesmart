@@ -957,6 +957,7 @@ export default function UnifiedDashboard() {
       onCancel={onCancel}
       title="Map Report Columns"
       description="Match the columns from your uploaded Report CSV to the required dashboard fields. Required fields are needed for calculations."
+      toolName="overview-dashboard"
     />
   );
 

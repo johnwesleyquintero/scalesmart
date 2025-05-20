@@ -138,9 +138,17 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
 ### 5.3. Financials
 
 - FBA Calculator: To estimate FBA fees and profitability.
-- ACoS Calculator: To calculate Advertising Cost of Sales.  The ACoS calculator now includes manual input fields for campaign data and displays a calculation history table.
-- Profit Margin Calc: To calculate profit margins.
-- ACoS Calculator: To calculate Advertising Cost of Sales.
+  - ACoS Calculator: To calculate Advertising Cost of Sales.  The ACoS calculator now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.
+  - Profit Margin Calc: To calculate profit margins.
+  - Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended). Also includes RoAS.
+  - CSV Data Upload & Mapping: The `GenericCsvDataMapper` component is used for mapping CSV columns. It now includes a preview of the CSV data and a "Download Sample CSV" button. The "Download Sample CSV" button is provided by the `SampleCsvButton` component.
+  - Sample CSV Button: The `SampleCsvButton` component provides a button to download a sample CSV file for the current tool. The button dynamically adjusts the sample CSV file name based on the tool.
+  - ACoS Calculator: To calculate Advertising Cost of Sales.
+  - Profit Margin Calc: To calculate profit margins.
+  - Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended). Also includes RoAS.
+  - CSV Data Upload & Mapping: The `GenericCsvDataMapper` component is used for mapping CSV columns. It now includes a preview of the CSV data and a "Download Sample CSV" button. The "Download Sample CSV" button is provided by the `SampleCsvButton` component.
+  - Sample CSV Button: The `SampleCsvButton` component provides a button to download a sample CSV file for the current tool. The button dynamically adjusts the sample CSV file name based on the tool.
+  - ACoS Calculator: To calculate Advertising Cost of Sales.
 - Optimal Price Calc: To help determine optimal pricing strategies.
 
 ### 5.4. PPC & Ads
@@ -165,6 +173,8 @@ The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a too
 - CSV Parsing: PapaParse library for handling CSV file uploads.
 - Date Manipulation: date-fns library for handling dates and time granularities.
 - State Management: React's useState and useRef hooks.
+- IndexedDB: IndexedDB for local data storage.
+- Supabase: Supabase for application configurations.
 
 ## 7. Button Component
 
@@ -195,16 +205,11 @@ function MyComponent() {
 
 ## 8. IndexedDB Integration
 
-IndexedDB is used for local, browser-based data storage. This allows the tools to store user-specific data, such as saved calculations and preferences, improving performance and enabling offline functionality. The `indexeddb-service.ts` file provides an interface for interacting with the IndexedDB database.
+IndexedDB is used for local, browser-based data storage. This allows the tools to store user-specific data, such as saved calculations and preferences, improving performance and enabling offline functionality. The ACoS calculator now stores calculation history in IndexedDB. The `indexeddb-service.ts` file provides an interface for interacting with the IndexedDB database.
 
 ## 9. Supabase Integration
 
-Supabase is used for user authentication and storing application configurations. It provides a centralized place to manage settings and potentially allows for user-specific data synchronization across devices. The `supabase-service.ts` file handles interactions with the Supabase backend.
-
-- **Authentication Functions:**
-  - `signUpWithEmail(email: string, password: string)`: Signs up a new user with an email and password.
-  - `signInWithEmail(email: string, password: string)`: Signs in an existing user with an email and password.
-  - `signOut()`: Signs out the current user.
+Supabase is used for storing application configurations. Authentication implementation (user accounts) will be deferred to a later phase to prioritize core tool functionality. Supabase will initially be leveraged for global configurations and tool-specific settings. The `supabase-service.ts` file handles interactions with the Supabase backend.
 
 ## 10. Calculations Utility
 

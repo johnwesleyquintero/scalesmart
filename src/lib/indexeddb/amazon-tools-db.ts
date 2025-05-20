@@ -1,15 +1,18 @@
+// src/lib/indexeddb/amazon-tools-db.ts
+
 import Dexie, { Table } from 'dexie';
 
 export interface SavedCalculation {
-  id?: number; // Primary key. Optional as it's auto-incremented
-  calculationType: string; // e.g., 'acos', 'fba'
-  calculationData: unknown; // Store the calculation data as JSON
+  id?: number; // Primary key. Optional as it's auto-incremented.
+  calculationType: string; // e.g., 'acos', 'profitMargin'
+  data: any; // Store calculation data as JSON
   timestamp: Date;
+  // Add more fields as needed, e.g., campaignName, productId
 }
 
 export class AmazonToolsDB extends Dexie {
-  // 'calculations' is added by dexie when the database is opened
-  calculations!: Table<SavedCalculation>;
+  // 'calculations' is added by dexie when declaring the Table
+  calculations!: Table<SavedCalculation, number>; // number = type of the primkey
 
   constructor() {
     super('AmazonToolsDB');

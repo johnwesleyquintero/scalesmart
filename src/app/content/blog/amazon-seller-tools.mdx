@@ -2,7 +2,7 @@
 title: 'Amazon Seller Tools Suite: Current Status & Roadmap'
 date: '2025-04-21' # Updated date
 description: 'An up-to-date guide on the status, features, and known issues of our React-based tools for Amazon sellers.'
-category: ['Amazon SEO', 'Amazon PPC', 'Amazon FBA', 'Software Development'] # Added category
+category: ['Amazon SEO', 'Amazon PPC', 'Amazon FBA', 'Software Development']
 tags: [
     'amazon-fba',
     'amazon-ppc',
@@ -10,8 +10,8 @@ tags: [
     'amazon-seo',
     'data-visualization',
     'csv-processing',
-    'tool-status', # Added tag
-    'known-issues', # Added tag
+    'tool-status',
+    'known-issues',
   ]
 image: '/images/blog/amazon-seller-tools.svg'
 ---
@@ -20,7 +20,7 @@ image: '/images/blog/amazon-seller-tools.svg'
 
 ## 🌟 Introduction
 
-Welcome to the Amazon Seller Tools Suite! This collection of React-based tools helps Amazon sellers optimize listings and analyze performance. Built with TypeScript and modern React practices, they feature data processing and visualization capabilities.
+Welcome to the Amazon Seller Tools Suite! This collection of React-based tools helps Amazon sellers optimize listings and analyze performance, including the Overview Dashboard for analyzing key business metrics. Built with TypeScript and modern React practices, they feature data processing and visualization capabilities.
 
 **Please Note:** This suite is under active development. While many tools are functional, some have known issues or limitations, and others are still being built. This document reflects the current status as of the date above. Refer to the `PRIORITY.txt` list for our current development focus.
 
@@ -36,7 +36,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 | PPC Campaign Auditor     | ⚠️ Beta / Stability Review | 0.9.0       | A comprehensive tool for analyzing PPC campaign performance and providing optimization recommendations. |
 | Description Editor       | ✅ Active                  | 1.5.0       | AI-enhanced rich text editor for Amazon product descriptions. Implemented Server Actions to resolve "mongodb is not defined" error |
 | Keyword Deduplicator     | ✅ Active                  | 1.5.0       | Smart keyword management with AI-powered suggestions.           |
-| ACoS Calculator          | ✅ Active                  | 2.0.0       | Comprehensive advertising analysis with predictive metrics and historical trend analysis.                    |
+| ACoS Calculator          | ✅ Active                  | 2.0.0       | Comprehensive advertising analysis with predictive metrics and historical trend analysis.  Now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.                  |
 | Sales Estimator          | ✅ Active                  | 1.0.0       | This tool currently uses mock data for sales estimation.                                    |
 | Competitor Analyzer      | ✅ Active                  | 1.0.0       | Analyzes competitor data to identify opportunities and improve product positioning.                                    |
 | Keyword Trend Analyzer   | ✅ Active                  | 1.0.0       | Analyzes keyword trends to identify popular and emerging keywords.                                    |
@@ -56,6 +56,10 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 **Version**: 2.0.0
 
 🔍 **Description**: Advanced profitability calculator for FBA products with real-time ROI analysis and market trend integration.
+
+### Overview Dashboard
+
+The Overview Dashboard is a central hub for analyzing key business metrics. A key component of the dashboard is the CSV Data Mapper.
 
 ### CSV Data Mapper
 
@@ -239,6 +243,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 **Version**: 2.0.0
 
 🔍 **Description**: Comprehensive advertising analysis with predictive metrics and historical trend analysis.
+
 **Features**:
 
 - Robust CSV parsing with error handling
@@ -248,6 +253,8 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 - CSV import/export
 - Edge case handling for calculations
 - Responsive UI with shadcn/ui components
+- ACoS calculator now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.
+- Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended).
 
 **Use Case**: Optimize bids based on real-time ACoS data to maximize profitability.
 
@@ -385,9 +392,9 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 
 ## 📈 Roadmap & Future Updates
 
-Our team has completed several high-priority tasks including error reporting implementation, CSV parsing fixes, and state management optimizations. We're currently focused on API integrations and PPC Campaign Auditor stabilization (see PROJECT_TRACKER.md for details). The `check-quality.cjs` script now features parallel execution and improved config validation.
+Our team has completed several high-priority tasks including error reporting implementation, CSV parsing fixes, and state management optimizations. We're currently focused on API integrations and PPC Campaign Auditor stabilization (see PROJECT_TRACKER.md for details).
 
-The API key management system has been updated to include input validation, prevent race conditions, and implement rate limiting.
+The IndexedDB integration for local data storage and Supabase integration for application configurations are now complete. The `check-quality.cjs` script now features parallel execution and improved config validation.
 
 ## New Error Handling Features
 

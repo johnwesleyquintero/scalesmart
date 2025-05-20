@@ -2,13 +2,24 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import type { CampaignData } from './ppc-campaign-auditor';
+// import type { CampaignData } from './ppc-campaign-auditor';
 
 export interface Identifier {
   asin: string;
   sku: string;
   upc: string;
   keyword: string;
+}
+
+export interface CampaignData {
+  name: string;
+  type: string;
+  acos?: number;
+  ctr?: number;
+  conversionRate?: number;
+  spend: number;
+  sales: number;
+  status?: 'Active' | 'Paused' | 'Out of Budget' | 'Ended';
 }
 
 interface CampaignCardProps {
@@ -28,11 +39,27 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
             ACoS: {campaign.acos?.toFixed(2)}% • CTR: {campaign.ctr?.toFixed(2)}
             % • Conversion Rate: {campaign.conversionRate?.toFixed(2)}%
           </div>
+          {campaign.status && (
+            <div className="mt-2">
+              {campaign.status === 'Active' && (
+                <Badge variant="default">Active</Badge>
+              )}
+              {campaign.status === 'Paused' && (
+                <Badge variant="secondary">Paused</Badge>
+              )}
+              {campaign.status === 'Out of Budget' && (
+                <Badge variant="destructive">Out of Budget</Badge>
+              )}
+              {campaign.status === 'Ended' && (
+                <Badge variant="secondary">Ended</Badge>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="mb-4 grid gap-4 md:grid-cols-2">
           <div className="space-y-3">
-            <h4 className="text-sm font-medium">Performance Metrics</h4>
+            <h4 className="text-sm font-medium">Key Metrics</h4>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-lg border p-3">
                 <div className="text-sm text-muted-foreground">Spend</div>
@@ -44,6 +71,18 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
                 <div className="text-sm text-muted-foreground">Sales</div>
                 <div className="text-xl font-semibold">
                   ${campaign.sales.toFixed(2)}
+                </div>
+              </div>
+              <div className="rounded-lg border p-3">
+                <div className="text-sm text-muted-foreground">ACoS</div>
+                <div className="text-xl font-semibold">
+                  {campaign.acos?.toFixed(2)}%
+                </div>
+              </div>
+              <div className="rounded-lg border p-3">
+                <div className="text-sm text-muted-foreground">RoAS</div>
+                <div className="text-xl font-semibold">
+                  {(campaign.sales / campaign.spend || 0).toFixed(2)}
                 </div>
               </div>
             </div>
