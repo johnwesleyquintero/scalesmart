@@ -10,7 +10,7 @@ The Amazon Seller Tools page (`c:\Users\johnw\portfolio\src\app\amazon-seller-to
 - **CSV Data Upload & Mapping:** Users can upload their Amazon Business Report CSVs. A dynamic mapping interface using the `GenericCsvDataMapper` component helps match CSV columns to the required data fields.
 - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons.
-  - Charts: Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions).
+  - Charts: Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the ReusableChart component.
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
 - **Period-over-Period Comparison:** Displays key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one.
 - **Specialized Tool Suite:** Organized into tabs for:
@@ -52,11 +52,7 @@ Once mapping is complete and the data is processed:
   - **Summary KPIs:** Cards at the top display overall averages or totals for metrics like "Avg. Conversion Rate," "Total Sales," and "Avg. Clicks."
   - **Period-over-Period Comparison KPIs:** This section shows key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
 
-- **Charts:**
-
-  - **Total Sales Trends:** A line chart showing total sales over time.
-  - **Ad Clicks & Ad Impressions:** A bar chart displaying advertising clicks and impressions.
-  - **Total Orders & Total Sessions:** A bar chart showing total orders and sessions.
+- **Charts:** Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
 
 - **Time Granularity:**
 
@@ -221,7 +217,24 @@ The ACoS Calculator visualizes the ACoS over time using a line chart. The chart 
 - IndexedDB: IndexedDB for local data storage (for calculation history).
 - Supabase: Supabase for application configurations.
 
-## 7. Button Component
+## 8. ReusableChart Component
+
+The `ReusableChart` component (`src/components/amazon-seller-tools/charts/ReusableChart.tsx`) is a versatile component for rendering various types of charts, including line and bar charts. It leverages the Recharts library for data visualization.
+
+- **Props:**
+
+  - `sortedMetrics`: An array of `DashboardMetrics` objects containing the data to be displayed in the chart.
+  - `granularity`: A string that specifies the granularity of the data (e.g., 'daily', 'weekly', 'monthly', 'quarterly', 'yearly').
+  - `chartType`: A string that specifies the type of chart to render ('line' or 'bar').
+  - `xAxisDataKey`: A string that specifies the data key to use for the x-axis (e.g., 'date').
+  - `yAxisDataKeys`: An array of strings that specifies the data keys to use for the y-axis (e.g., ['total_sales'], ['ad_clicks', 'ad_impressions']).
+  - `colors`: An array of strings that specifies the colors to use for the chart lines/bars (e.g., ['#8884d8'], ['#8884d8', '#82ca9d']).
+  - `labels`: An array of strings that specifies the labels to use for the chart lines/bars (e.g., ['Sales'], ['Clicks', 'Impressions']).
+  - `title`: A string that specifies the title of the chart (e.g., 'Total Sales Trends').
+  - `yAxisFormatter`: An optional function that formats the y-axis values (e.g., (value) => `$${value.toLocaleString()}`).
+  - `tooltipFormatter`: An optional function that formats the tooltip values (e.g., (value, name) => [`$${value.toLocaleString()}`, name]).
+
+## 9. Button Component
 
 The `Button` component (`src/components/shared/Button.tsx`) is a reusable UI element for creating buttons with a consistent style. It uses Tailwind CSS for styling.
 
@@ -265,7 +278,101 @@ The `calculations.ts` file (`src/lib/utils/amazon/calculations.ts`) contains uti
   - `calculateAcos(adSpend: number, adSales: number): number`: Calculates the Advertising Cost of Sales (ACoS).
   - `calculateProfitMargin(revenue: number, costOfGoodsSold: number, otherCosts: number): number`: Calculates the profit margin.
 
-## 11. Sample Data
+## 11. Key Areas for Improvement
+
+This section outlines the key areas for improvement for the Amazon Seller Tools Dashboard.
+
+### A. User Interface (UI) & User Experience (UX) Enhancements
+
+1.  **Global UI/UX Refinement (The "Helium 10" Polish):**
+    *   **Consistency:** Implement consistent styling, spacing (margins/padding), and typography across the entire dashboard for a cohesive look.
+    *   **Branding & Navigation:** Ensure a prominent header, clear titles, and consider incorporating a logo or branding element.
+    *   **Layout:** Evaluate a sidebar navigation structure, especially as the number of tools grows, to maximize content area (a common Helium 10 pattern).
+    *   **Accessibility:** Proactively integrate ARIA attributes and ensure robust keyboard navigation.
+
+2.  **Data Upload & Mapping (`GenericCsvDataMapper` / `OverviewDataMapper`):**
+    *   **Intuitive Mapping UI:**
+        *   Real-time data preview during mapping.
+        *   Automatic column detection and intelligent suggestions.
+        *   Clear visual indicators for required fields and mapping errors.
+    *   **User Feedback:** Implement more informative progress indicators during file parsing and data processing. Provide user-friendly error messages with actionable guidance.
+    *   **Mapping Persistence & Flexibility:**
+        *   Save and load mapping preferences (IndexedDB).
+        *   Allow users to save and manage multiple mapping configurations.
+        *   Offer tool-specific CSV templates to guide users.
+
+3.  **Data Visualization:**
+    *   **KPI Cards (`OverviewDataView`):**
+        *   **Dynamic Content:** Allow users to select which key metrics are displayed on the cards.
+        *   **Visual Richness:** Incorporate sparklines or trend indicators within cards. Use color-coding to highlight positive/negative changes. Add informative tooltips.
+    *   **Charts (General - leading to Reusable Chart Component):**
+        *   **Modern Charting Library:** Evaluate current library (Recharts). Consider alternatives like Victory, Chart.js, or ApexCharts if they offer better customization, aesthetics, and interactivity for a Helium 10 feel.
+        *   **Enhanced Customization:**
+            *   Visually appealing and consistent color palettes.
+            *   Customizable grid lines, axis labels (font, formatting).
+            *   Interactive tooltips displaying comprehensive data.
+            *   Features like zoom, pan, and the ability to show/hide data series.
+        *   **Responsiveness:** Ensure charts are fully responsive across all devices.
+    *   **Period-over-Period Comparison (`OverviewDataView`):**
+        *   **Clear Visuals:** Improve presentation with icons (up/down arrows) and percentage differences.
+        *   **Context:** Clearly display the date ranges being compared.
+        *   **Customization:** Allow users to select which metrics are included in the comparison.
+
+4.  **Data Table (`MetricsDataTable`):**
+    *   **Advanced Interaction:**
+        *   **Filtering:** Column-specific filters, date range filters, multi-criteria (AND/OR) filtering.
+        *   **Sorting:** Improved visual indicators for sort direction, multi-column sorting.
+    *   **Feature Richness:**
+        *   Pagination for large datasets.
+        *   Column selection/visibility.
+        *   Column resizing.
+        *   Row highlighting on hover/selection.
+        *   Direct CSV export from the table.
+    *   **Clarity:** Consistent and clear data formatting (currency, percentages, dates).
+
+5.  **Navigation (Tabs on `page.tsx`):**
+    *   **Scalability:** For a growing number of tools, consider a more advanced tab system (e.g., nested tabs, scrollable tabs, reorderable tabs).
+    *   **Visuals:** Enhance the visual appearance of tabs for better prominence and ease of use.
+
+6.  **Specialized Tool Integration (`page.tsx` & individual tool components):**
+    *   **UI/UX Consistency:** Ensure all specialized tools adhere to the dashboard's overall design language.
+    *   **Targeted Enhancements:** Implement tool-specific improvements (e.g., adding a trend chart to the ACoS calculator as noted in `documentation.md`).
+    *   **Guidance:** Provide tooltips and help text within each tool.
+
+### B. Functionality Enhancements
+
+1.  **Data Handling & Flexibility:**
+    *   **Dynamic Charting:** Allow charts to display various metrics by using dynamic data keys.
+    *   **Robustness:** Implement comprehensive error handling for missing or invalid data in visualizations and calculations.
+    *   **Validation:** Include data type validation within the `GenericCsvDataMapper`.
+2.  **Dashboard-Level Data Interaction:**
+    *   Introduce global filtering and segmentation capabilities for the displayed data (e.g., by product, custom date ranges).
+
+### C. Performance Optimization
+
+1.  **Global Application Performance:**
+    *   **Memoization:** Strategically use `React.memo` and `useMemo` for expensive component renders and calculations.
+    *   **Load Times:** Implement code splitting to reduce initial dashboard load time.
+    *   **Data Fetching:** Optimize data fetching strategies to minimize data transfer and improve responsiveness.
+    *   **Profiling:** Regularly use browser developer tools to profile performance and identify bottlenecks across components.
+
+### D. Code Quality & Maintainability
+
+1.  **Key Refactoring: Reusable Chart Component:**
+    *   **Address Repetition:** Abstract the common logic from `SalesTrendsChart`, `ClicksImpressionsChart`, `OrdersSessionsChart`, `AdSpendSalesChart`, and `ProfitTrendChart` into a single, highly configurable chart component.
+    *   **Props:** This component should accept props for data, x/y data keys, chart type, color schemes, axis formatters, tooltip formatters, etc.
+    *   **Benefit:** Significantly reduces code duplication, simplifies maintenance, and ensures consistency across all charts.
+2.  **General Component Reusability:**
+    *   Identify and refactor other UI elements or logic into reusable components to reduce duplication.
+3.  **Code Clarity & Documentation:**
+    *   Enhance code with more comprehensive comments, especially for complex logic.
+    *   Extract complex logic into well-named helper functions.
+4.  **Error Handling:**
+    *   Implement robust and user-friendly error handling mechanisms throughout the application.
+5.  **Prop Contracts:**
+    *   Ensure clear prop validation (e.g., using PropTypes or TypeScript interfaces effectively) for all components.
+
+## 12. Sample Data
 
 A sample CSV file (sample_amazon_data.csv) can be downloaded via the "Download Sample CSV" button on the initial "Overview" tab. This file demonstrates the expected data structure and can be used to test the dashboard's functionality without your own data. The sample data includes columns like:
 
