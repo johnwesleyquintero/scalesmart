@@ -2,12 +2,14 @@
 
 ## 1. Overview
 
-The Amazon Seller Tools page (`c:\Users\johnw\portfolio\src\app\amazon-seller-tools\page.tsx`) is a comprehensive dashboard and toolkit designed for Amazon sellers. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools for keyword research, listing optimization, financial calculations, PPC analysis, and competitor research.
+The Amazon Seller Tools page (`src/app/amazon-seller-tools/page.tsx`) is a comprehensive dashboard and toolkit designed for Amazon sellers. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools for keyword research, listing optimization, financial calculations, PPC analysis, and competitor research.
+
+The dashboard is structured with a `DashboardHeader` component for refresh, export, and documentation links, and an `OverviewTab` component for data upload, mapping, and visualization.
 
 ## 2. Main Features
 
 - **Unified Dashboard:** Provides an overview of key business metrics once data is uploaded.
-- **CSV Data Upload & Mapping:** Users can upload their Amazon Business Report CSVs. A dynamic mapping interface using the `GenericCsvDataMapper` component helps match CSV columns to the required data fields.
+- **CSV Data Upload & Mapping:** Users can upload their Amazon Business Report CSVs. A dynamic mapping interface using the `OverviewDataMapper` component helps match CSV columns to the required data fields.
 - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons.
   - Charts: Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the ReusableChart component.
@@ -28,11 +30,11 @@ The "Overview" tab is the primary landing spot for data analysis.
 
 ### 3.1. Uploading Data
 
-1.  **Click "Choose Report File (.csv)":** This button is located in the initial view of the "Overview" tab.
+1.  **Click "Choose Report File (.csv)":** This button is located in the initial view of the "Overview" tab, within the `OverviewTab` component.
 2.  **Select your CSV file:** Choose an Amazon Business Report (or a similarly structured CSV) from your computer.
 3.  **Column Mapping:**
 
-    - After selecting a file, a "Map Report Columns" interface powered by the `GenericCsvDataMapper` component will appear.
+    - After selecting a file, a "Map Report Columns" interface powered by the `OverviewDataMapper` component will appear.
     - This interface displays headers from your CSV file and target fields required by the dashboard (e.g., 'Date', 'Total Sales', 'Ad Spend').
     - For each target field, select the corresponding column from your CSV using the dropdown menus.
     - Hints are provided for each target field to guide you.
@@ -41,7 +43,7 @@ The "Overview" tab is the primary landing spot for data analysis.
     - Click "Apply Mapping" to process the file and save the mapping preferences, or "Cancel" to abort. You can also click "Reset" to reset the mapping to the default values.
 
     !Data Mapper UI Placeholder
-    _(Ideally, replace this with an actual screenshot of the GenericCsvDataMapper component in action)_
+    _(Ideally, replace this with an actual screenshot of the OverviewDataMapper component in action)_
 
 ### 3.2. Viewing Data
 
@@ -70,10 +72,10 @@ Once mapping is complete and the data is processed:
 
 - The dashboard now displays sample data when no CSV file is uploaded.
 
-- **Refresh:** Click the "Refresh" button in the header to clear current data and start over (e.g., to upload a new file).
-- **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
-- **Docs:** Links to external documentation for the Amazon Seller Tools.
-- **Error Handling:** If issues occur during file upload, parsing, or mapping, an error message will be displayed. You'll often have an option to "Try uploading again."
+- **Refresh:** Click the "Refresh" button in the `DashboardHeader` to clear current data and start over (e.g., to upload a new file).
+- **Export:** Click the "Export" button in the `DashboardHeader` to download the currently processed and aggregated dashboard metrics as a CSV file.
+- **Docs:** Links to external documentation for the Amazon Seller Tools, located in the `DashboardHeader`.
+- **Error Handling:** If issues occur during file upload, parsing, or mapping, an error message will be displayed in the `DashboardHeader` or `OverviewTab`. You'll often have an option to "Try uploading again."
 
 ## 4. Data Structure (`DashboardMetrics` Interface)
 
@@ -212,7 +214,7 @@ The ACoS Calculator visualizes the ACoS over time using a line chart. The chart 
 - Frontend: Built with TypeScript and React (Next.js).
 - UI Components: Uses Shadcn UI components (Button, Card, Tabs, Select, Alert).
 - Charting: Recharts library for data visualization.
-- CSV Parsing: PapaParse library for handling CSV file uploads.
+- CSV Parsing: PapaParse library for handling CSV file uploads, primarily within the `OverviewTab` component.
 - Date Manipulation: date-fns library for handling dates and time granularities.
 - State Management: React's useState and useRef hooks.
 - IndexedDB: IndexedDB for local data storage (for calculation history).
@@ -236,9 +238,38 @@ The `ReusableChart` component (`src/components/amazon-seller-tools/charts/Reusab
   - `yAxisFormatter`: An optional function that formats the y-axis values (e.g., (value) => `$${value.toLocaleString()}`).
   - `tooltipFormatter`: An optional function that formats the tooltip values (e.g., (value, name) => [`$${value.toLocaleString()}`, name]).
 
-## 9. Button Component
+## 9. DashboardHeader Component
 
-The `Button` component (`src/components/shared/Button.tsx`) is a reusable UI element for creating buttons with a consistent style. It uses Tailwind CSS for styling.
+The `DashboardHeader` component (`src/components/amazon-seller-tools/DashboardHeader.tsx`) is a reusable component that displays the dashboard header, including the refresh button, export button, and documentation link.
+
+- **Props:**
+
+  - `isLoading`: A boolean indicating whether the dashboard is loading.
+  - `isParsing`: A boolean indicating whether the dashboard is parsing data.
+  - `error`: A string or null indicating whether there is an error.
+  - `metricsLength`: A number indicating the number of metrics loaded.
+  - `handleRefresh`: A function to be called when the refresh button is clicked.
+  - `handleExport`: A function to be called when the export button is clicked.
+
+## 10. OverviewTab Component
+
+The `OverviewTab` component (`src/components/amazon-seller-tools/OverviewTab.tsx`) is a reusable component that displays the overview tab, including the data upload, mapping, and visualization.
+
+- **Props:**
+
+  - `metrics`: An array of `DashboardMetrics` objects containing the data to be displayed.
+  - `setMetrics`: A function to set the metrics.
+  - `isLoading`: A boolean indicating whether the dashboard is loading.
+  - `setIsLoading`: A function to set the loading state.
+  - `isParsing`: A boolean indicating whether the dashboard is parsing data.
+  - `setIsParsing`: A function to set the parsing state.
+  - `error`: A string or null indicating whether there is an error.
+  - `setError`: A function to set the error state.
+  - `TARGET_METRICS_CONFIG`: An array of `TargetMetricConfig` objects containing the target metrics configuration.
+
+## 11. Button Component
+
+The `Button` component (`src/components/ui/Button.tsx`) is a reusable UI element for creating buttons with a consistent style. It uses Tailwind CSS for styling.
 
 - **Props:**
 
@@ -264,15 +295,15 @@ function MyComponent() {
 }
 ```
 
-## 8. IndexedDB Integration
+## 12. IndexedDB Integration
 
 IndexedDB is used for local, browser-based data storage. This allows the tools to store user-specific data, such as saved calculations and preferences, improving performance and enabling offline functionality. The ACoS calculator now stores calculation history in IndexedDB. The `indexeddb-service.ts` file provides an interface for interacting with the IndexedDB database.
 
-## 9. Supabase Integration
+## 13. Supabase Integration
 
 Supabase is used for storing application configurations. Authentication implementation (user accounts) will be deferred to a later phase to prioritize core tool functionality. Supabase will initially be leveraged for global configurations and tool-specific settings. The `supabase-service.ts` file handles interactions with the Supabase backend.
 
-## 10. Calculations Utility
+## 14. Calculations Utility
 
 The `calculations.ts` file (`src/lib/utils/amazon/calculations.ts`) contains utility functions for performing calculations related to Amazon seller tools. This promotes code reusability and maintainability.
 
@@ -280,12 +311,13 @@ The `calculations.ts` file (`src/lib/utils/amazon/calculations.ts`) contains uti
   - `calculateAcos(adSpend: number, adSales: number): number`: Calculates the Advertising Cost of Sales (ACoS).
   - `calculateProfitMargin(revenue: number, costOfGoodsSold: number, otherCosts: number): number`: Calculates the profit margin.
 
-## 11. Key Areas for Improvement
+## 15. Key Areas for Improvement
 
 The following improvements have been implemented:
 
 - The dashboard now loads sample data from `src/data/sample-data.json` when no CSV file is uploaded.
 - The average clicks KPI is now calculated correctly in the `OverviewDataView` component.
+- The `DashboardHeader` and `OverviewTab` components have been extracted into separate files.
 
 This section outlines the key areas for improvement for the Amazon Seller Tools Dashboard.
 
@@ -381,7 +413,7 @@ This section outlines the key areas for improvement for the Amazon Seller Tools 
 5.  **Prop Contracts:**
     *   Ensure clear prop validation (e.g., using PropTypes or TypeScript interfaces effectively) for all components.
 
-## 12. Sample Data
+## 16. Sample Data
 
 A sample CSV file (sample_amazon_data.csv) can be downloaded via the "Download Sample CSV" button on the initial "Overview" tab. This file demonstrates the expected data structure and can be used to test the dashboard's functionality without your own data. The sample data includes columns like:
 
