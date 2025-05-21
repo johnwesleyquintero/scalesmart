@@ -1,14 +1,6 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-export function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .replace(/ /g, '-')
-    .replace(/[^a-z0-9-]+/g, '')
-    .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
+  return twMerge(clsx(inputs))
 }
