@@ -263,8 +263,9 @@ export default function UnifiedDashboard() {
   };
 
   const handleDownloadSampleCsv = async () => {
-    const fileName = 'amazon_overview_dashboard_template.csv'; // Specific template for overview
+    const fileName = 'sample_amazon_data.csv';
     const filePath = `/samples/${fileName}`;
+    console.log('Attempting to download file from:', filePath); // Log the file path
 
     try {
       const link = document.createElement('a');
@@ -273,13 +274,15 @@ export default function UnifiedDashboard() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      console.log('Download initiated successfully.'); // Log success
     } catch (error: unknown) {
-      console.error('Error downloading sample CSV:', error);
+      console.error('Error downloading sample CSV:', error); // Log the error
       setError(
         `Download failed: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   };
+  
 
   const handleUploadClick = () => {
     setMetrics([]);

@@ -12,7 +12,7 @@ The Amazon Seller Tools page (`c:\Users\johnw\portfolio\src\app\amazon-seller-to
   - KPI Cards: Displaying current metrics and period-over-period comparisons.
   - Charts: Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the ReusableChart component.
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
-- **Period-over-Period Comparison:** Displays key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one.
+- **Period-over-Period Comparison:** Displays key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
 - **Specialized Tool Suite:** Organized into tabs for:
   - Keywords
   - Listing Optimization
@@ -137,7 +137,6 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
   - ACoS Calculator: To calculate Advertising Cost of Sales.
   - Profit Margin Calc: To calculate profit margins.
   - Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended). Also includes RoAS.
-  - CSV Data Upload & Mapping: The `GenericCsvDataMapper` component is used for mapping CSV columns. It now includes a preview of the CSV data and a "Download Sample CSV" button.
   - Optimal Price Calc: To help determine optimal pricing strategies.
 
 ### 5.4. PPC & Ads
@@ -216,6 +215,7 @@ The ACoS Calculator visualizes the ACoS over time using a line chart. The chart 
 - State Management: React's useState and useRef hooks.
 - IndexedDB: IndexedDB for local data storage (for calculation history).
 - Supabase: Supabase for application configurations.
+- Logging: Added logging to the `handleDownloadSampleCsv` function in `src/app/amazon-seller-tools/page.tsx` and `src/components/shared/GenericCsvDataMapper.tsx`.
 
 ## 8. ReusableChart Component
 
@@ -299,7 +299,7 @@ This section outlines the key areas for improvement for the Amazon Seller Tools 
     *   **Mapping Persistence & Flexibility:**
         *   Save and load mapping preferences (IndexedDB).
         *   Allow users to save and manage multiple mapping configurations.
-        *   Offer tool-specific CSV templates to guide users.
+    *   **Offer tool-specific CSV templates to guide users.**
 
 3.  **Data Visualization:**
     *   **KPI Cards (`OverviewDataView`):**
@@ -387,4 +387,3 @@ A sample CSV file (sample_amazon_data.csv) can be downloaded via the "Download S
 - Spend (Ad)
 - Sales (Ad)
 - Orders (Ad)
-  This helps users understand what kind of data the tool expects and how it maps to the dashboard metrics.

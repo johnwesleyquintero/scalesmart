@@ -274,6 +274,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     // Assumes sample CSVs are in the public/samples directory.
     // Adjust the path according to your project structure.
     const filePath = `/samples/${fileName}`;
+    console.log('Attempting to download sample CSV from:', filePath); // Log the file path
 
     const link = document.createElement('a');
     link.href = filePath;
@@ -281,12 +282,14 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    console.log('Sample CSV download initiated successfully.'); // Log success
   };
 
   // Function to determine the sample CSV filename based on the toolName
   const getActualSampleCsvFileName = (
     currentToolName: string,
   ): string | null => {
+    console.log('getActualSampleCsvFileName called with toolName:', currentToolName); // Log the toolName
     switch (currentToolName) {
       case 'keyword-analyzer':
         return 'keyword_list_sample.csv';
@@ -460,19 +463,6 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
           >
             Cancel
           </Button>
-          {(() => {
-            const actualSampleFileName = getActualSampleCsvFileName(toolName);
-            if (actualSampleFileName) {
-              return (
-                <SampleCsvButton
-                  fileName={actualSampleFileName}
-                  onClick={handleDownloadSampleCsv}
-                  buttonText={`Download Template for ${toolName}`}
-                />
-              );
-            }
-            return null;
-          })()}
         </div>
       </div>
     </TooltipProvider>
