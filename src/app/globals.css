@@ -1,8 +1,8 @@
 :root {
-  --primary-blue: #a8b2ff;
-  --light-gray: #f9fafb;
-  --dark-gray: #6b7280;
-  --font-family: Inter, sans-serif;
+  --primary-blue: #c8a2c8; /* Light Purple */
+  --light-gray: #f2f2f2; /* HubSpot-like Light Gray */
+  --dark-gray: #4a5568; /* HubSpot-like Dark Blue/Gray */
+  --font-family: 'Open Sans', sans-serif;
 }
 
 body {
@@ -25,7 +25,7 @@ body {
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 250 80% 70%;
+    --primary: 270 80% 70%; /* Light Purple */
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -37,7 +37,7 @@ body {
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --ring: 270 80% 70%; /* Light Purple */
     --radius: 0.75rem;
     /* Import premium design system */
     @import '../styles/premium.css';

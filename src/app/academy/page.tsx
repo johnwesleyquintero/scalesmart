@@ -1,4 +1,5 @@
 import SchoolComponent from './SchoolComponent';
+import ErrorBoundary from '@/components/error-boundary';
 
 export default async function AcademyPage() {
   const baseUrl =
@@ -8,7 +9,11 @@ export default async function AcademyPage() {
   try {
     const res = await fetch(`${baseUrl}/api/academy-courses`);
     const academyData = await res.json();
-    return <SchoolComponent academyData={academyData} />;
+    return (
+      <ErrorBoundary>
+        <SchoolComponent academyData={academyData} />
+      </ErrorBoundary>
+    );
   } catch (error) {
     console.error('Failed to fetch academy data:', error);
     // Log to error tracking service (e.g., Sentry, Bugsnag)

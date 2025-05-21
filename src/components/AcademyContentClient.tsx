@@ -13,15 +13,10 @@ import VideoModule from './VideoModule';
 import ExerciseModule from './ExerciseModule';
 import CaseStudyModule from './CaseStudyModule';
 import Quiz from './Quiz';
+import ClientCourseList from '@/app/academy/ClientCourseList';
 
 interface AcademyContentProps {
   courses: Course[];
-  CourseList: React.ComponentType<{
-    startCourse: (course: Course) => void;
-    courses: Course[];
-    filter: string;
-    sort: string;
-  }>;
   filter: string;
   sort: string;
 }
@@ -97,7 +92,6 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
 
 function AcademyContentClient({
   courses: allCourses,
-  CourseList,
   filter,
   sort,
 }: AcademyContentProps) {
@@ -166,8 +160,7 @@ function AcademyContentClient({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <CourseList
-            startCourse={startCourse}
+          <ClientCourseList
             courses={courses
               .filter((course) =>
                 course.title
@@ -181,7 +174,8 @@ function AcademyContentClient({
                         course.slug === recommendedCourse.slug,
                     )
                   : true,
-              )}
+              )
+            }
             filter={filter}
             sort={sort}
           />
@@ -189,8 +183,7 @@ function AcademyContentClient({
       ) : (
         <>
           <div>
-            <Button
-              onClick={handleBackToCourses}
+            <Button onClick={handleBackToCourses}
               variant="outline"
               className="mb-4"
               aria-label="Back to Courses"

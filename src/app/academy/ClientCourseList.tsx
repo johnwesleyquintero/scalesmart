@@ -30,13 +30,13 @@ export default function ClientCourseList({
   const filteredCourses = courses
     .filter((course) => {
       if (filter === 'All') return true;
-      return course.category === filter;
+      return course.metadata?.category === filter;
     })
     .sort((a, b) => {
       if (sort === 'Title') {
-        return a.title.localeCompare(b.title);
+        return (a.title || '').localeCompare(b.title || '');
       } else if (sort === 'Level') {
-        return a.level.localeCompare(b.level);
+        return (a.level || '').localeCompare(b.level || '');
       } else if (sort === 'Duration (descending)') {
         const durationA = parseInt((a.duration || '0 minutes').split(' ')[0]);
         const durationB = parseInt((b.duration || '0 minutes').split(' ')[0]);
@@ -72,7 +72,7 @@ export default function ClientCourseList({
               key={course.id || course.slug} // Prefer course.id if available and unique, otherwise slug.
               className={` ${
                 course.locked ? 'opacity-75 bg-gray-100' : ''
-              } border border-gray-200 shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col`}
+              } border border-gray-200 shadow-md premium-shadow hover:shadow-lg transition-shadow duration-300 flex flex-col`}
             >
               <CardHeader className="flex-grow">
                 <div className="flex justify-between items-start">

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Course } from '@/types';
 import { BookOpen, Lock } from 'lucide-react';
+import ErrorBoundary from '@/components/error-boundary';
 import { cachedFetch } from '@/lib/api-cache';
 
 async function fetchCourses() {
@@ -62,7 +63,11 @@ const CourseListServer = async () => {
     return <div>Failed to load courses. Please try again later.</div>;
   }
 
-  return <CourseList courses={courses} />;
+  return (
+    <ErrorBoundary>
+      <CourseList courses={courses} />
+    </ErrorBoundary>
+  );
 };
 
 const CourseList = ({ courses }: { courses: Course[] }) => {

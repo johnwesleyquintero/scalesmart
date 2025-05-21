@@ -2,19 +2,19 @@
 
 /* Base Variables */
 :root {
-  --premium-accent-1: 230 85% 95%;
-  --premium-accent-2: 260 85% 95%;
-  --premium-gradient-1: 250 80% 70%;
-  --premium-gradient-2: 270 60% 70%;
-  --premium-shadow: 220 60% 50%;
+  --premium-accent-1: 270 80% 95%; /* Light Purple */
+  --premium-accent-2: 270 80% 90%; /* Light Purple */
+  --premium-gradient-1: 270 80% 70%; /* Light Purple */
+  --premium-gradient-2: 270 60% 70%; /* Light Purple */
+  --premium-shadow: 270 60% 50%; /* Light Purple */
 }
 
 .dark {
-  --premium-accent-1: 230 50% 15%;
-  --premium-accent-2: 260 50% 15%;
-  --premium-gradient-1: 221.2 83.2% 53.3%;
-  --premium-gradient-2: 265 84% 61%;
-  --premium-shadow: 220 40% 2%;
+  --premium-accent-1: 270 50% 15%; /* Light Purple */
+  --premium-accent-2: 270 50% 10%; /* Light Purple */
+  --premium-gradient-1: 270 80% 70%; /* Light Purple */
+  --premium-gradient-2: 270 60% 70%; /* Light Purple */
+  --premium-shadow: 270 40% 2%; /* Light Purple */
 }
 
 /* Premium Background Utilities */
@@ -32,6 +32,7 @@
 
 /* Premium Effects */
 .premium-shadow {
+  @apply rounded-md;
   box-shadow: 0 8px 32px -8px hsla(var(--premium-shadow) / 0.24);
 }
 

@@ -4,6 +4,7 @@ import { AcademyContentClient } from '@/components/AcademyContentClient';
 import { Button } from '@/components/ui/button';
 import { Course } from '@/types';
 import { useState, useMemo } from 'react';
+import ErrorBoundary from '@/components/error-boundary';
 import { AcademyProvider } from '@/context/AcademyContext';
 import ClientCourseList from './ClientCourseList'; // Import the new component
 
@@ -12,6 +13,7 @@ interface SchoolComponentProps {
 }
 
 export default function SchoolComponent({ academyData }: SchoolComponentProps) {
+  console.log('academyData:', JSON.stringify(academyData));
   const [filter, setFilter] = useState('All');
   const [sort, setSort] = useState('Title');
 
@@ -82,12 +84,13 @@ export default function SchoolComponent({ academyData }: SchoolComponentProps) {
         </select>
       </div>
       <AcademyProvider initialCourses={academyData || []}>
-        <AcademyContentClient
-          courses={academyData || []}
-          CourseList={ClientCourseList} // Pass the component reference
-          filter={filter}
-          sort={sort}
-        />
+        <ErrorBoundary>
+          <AcademyContentClient
+            courses={academyData || []}
+            filter={filter}
+            sort={sort}
+          />
+        </ErrorBoundary>
       </AcademyProvider>
       <div className="mt-4 flex justify-center">
         <Button onClick={handleExportData}>Export Academy Data</Button>
@@ -99,8 +102,8 @@ export default function SchoolComponent({ academyData }: SchoolComponentProps) {
 const getCategoryOptions = (courses: Course[]) => {
   const categories = new Set<string>(['All']);
   courses.forEach((course) => {
-    if (course.category) {
-      categories.add(course.category);
+    if (course.metadata?.category) {
+      categories.add(course.metadata.category);
     }
   });
   return Array.from(categories);

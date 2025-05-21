@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `SchoolComponent` (`src/app/academy/SchoolComponent.tsx`) fetches and displays a list of courses from an API endpoint. It uses the `AcademyProvider` to provide context to the `AcademyContentClient` component, which then renders the list of courses.
+The `SchoolComponent` (`src/app/academy/SchoolComponent.tsx`) fetches and displays a list of courses from an API endpoint. It uses the `AcademyProvider` to provide context to the `AcademyContentClient` component, which renders the list of courses within an `ErrorBoundary`.
 
 ## Functionality
 
@@ -10,8 +10,8 @@ The `SchoolComponent` (`src/app/academy/SchoolComponent.tsx`) fetches and displa
 - **Displays Loading State:** Shows a loading message while the courses are being fetched.
 - **Displays Error State:** Shows an error message if there is an error fetching the courses.
 - **Provides Academy Context:** Uses the `AcademyProvider` to provide the list of courses to the `AcademyContentClient` component.
-- **Renders Course List:** Renders a list of courses using the `CourseList` component.
-- **Exports Academy Data:** Provides a button to export academy data from local storage.
+- **Renders Course List:** Renders a list of courses using the `AcademyContentClient` component, which in turn renders the `ClientCourseList` component.
+- **Exports Academy Data:** Provides a button to export academy data from the API endpoint.
 
 ## Technical Details
 
@@ -35,7 +35,7 @@ The `SchoolComponent` (`src/app/academy/SchoolComponent.tsx`) fetches and displa
 5.  Once the courses have been fetched successfully, the component updates the state with the list of courses.
 6.  The component then renders the `AcademyProvider`, passing the list of courses as the `initialCourses` prop.
 7.  The `AcademyProvider` provides the list of courses to the `AcademyContentClient` component.
-8.  The `AcademyContentClient` component renders the `CourseList` component, passing the list of courses as the `courses` prop.
-9.  The `CourseList` component renders a list of courses, displaying the title, description, duration, and level of each course.
-10. Provides a button to export academy data from local storage.
-11. When the button is clicked, the `handleExportData` function is called, which retrieves the academy data from local storage and triggers a download.
+8.  The `AcademyContentClient` component renders the `ClientCourseList` component, passing the list of courses as the `courses` prop.
+9.  The `ClientCourseList` component renders a list of courses, displaying the title, description, duration, and level of each course.
+10. Provides a button to export academy data from the API endpoint.
+11. When the button is clicked, the `handleExportData` function is called, which fetches the academy data from the API endpoint and triggers a download.

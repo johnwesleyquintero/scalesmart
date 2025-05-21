@@ -25,6 +25,7 @@ export type Course = {
   metadata: {
     level: string;
     tags: string[];
+    category: string;
   };
 };
 
