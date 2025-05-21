@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react'; // useMemo was missing here, but it's a React hook
 import { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
 // import { useLocalStorage } from '../../hooks/use-local-storage';
@@ -20,7 +20,7 @@ import useDebounce from '@/hooks/use-debounce';
 import { CustomerForm } from './components/CustomerForm'; // Import new component
 import { CustomerListItem } from './components/CustomerListItem'; // Import new component
 import CategoryManager from './components/CategoryManager';
-import type { Customer, Category } from './types'; // Import Category type
+import type { Customer, Category } from './types';
 import {
   addCustomer,
   updateCustomer,
@@ -30,7 +30,8 @@ import {
 } from '@/lib/indexeddb';
 
 import Papa from 'papaparse';
-import Fuse from 'fuse.js';
+import Fuse from 'fuse.js'; // It's good practice to keep imports grouped
+import { useMemo } from 'react'; // Import useMemo from React
 
 const fuseOptions = {
   keys: ['name', 'email', 'phone', 'notes', 'category'],
@@ -161,11 +162,7 @@ export default function CRMComponent() {
   const [allAvailableCategories, setAllAvailableCategories] = useState<
     Category[]
   >([]);
-  const [isCategoryFilterExact, setIsCategoryFilterExact] = useState(true);
-
-  useEffect(() => {
-    console.log('isCategoryFilterExact changed:', isCategoryFilterExact);
-  }, [isCategoryFilterExact]);
+  const [isCategoryFilterExact, setIsCategoryFilterExact] = useState(true); // Keep state, remove console.log effect
 
   const handlePageClick = (selectedObject: { selected: number }) => {
     setCurrentPage(selectedObject.selected);
@@ -257,8 +254,8 @@ export default function CRMComponent() {
       // Add new customer
       const newCustomer: Customer = {
         ...formData,
-        id: Date.now().toString(),
-        category: formData.category === '' ? null : formData.category,
+        id: crypto.randomUUID(),
+        category: formData.category, // formData.category is already string | null
       };
       try {
         await addCustomer(newCustomer);
@@ -272,10 +269,7 @@ export default function CRMComponent() {
   };
 
   const handleEdit = (customer: Customer) => {
-    setEditingCustomer({
-      ...customer,
-      category: customer.category === 'null' ? '' : customer.category || '',
-    } as Customer);
+    setEditingCustomer({ ...customer }); // Store customer as is, category will be string | null
     // Scroll to form for better UX, optional
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -427,6 +421,16 @@ export default function CRMComponent() {
     }
   };
 
+  // Calculate counts for each category and uncategorized customers
+  const customerCategoryCounts = useMemo(() => {
+    const counts = new Map<string | null, number>();
+    (customers ?? []).forEach((customer) => {
+      const categoryKey = customer.category || null; // Treat empty or undefined as null (Uncategorized)
+      counts.set(categoryKey, (counts.get(categoryKey) || 0) + 1);
+    });
+    return counts;
+  }, [customers]);
+
   return (
     <>
       <Toaster position="top-right" richColors />
@@ -453,7 +457,7 @@ export default function CRMComponent() {
                         email: editingCustomer.email,
                         phone: editingCustomer.phone,
                         notes: editingCustomer.notes,
-                        category: editingCustomer.category || '',
+                        category: editingCustomer.category, // Pass string | null directly
                       }
                     : null
                 }
@@ -467,9 +471,9 @@ export default function CRMComponent() {
           <CategoryManager
             onCategoriesUpdate={handleCategoriesUpdated}
             initialCategories={allAvailableCategories}
-            key={allAvailableCategories.length}
             onCategorySuccessfullyDeleted={handleCategorySuccessfullyDeleted}
             onCategoryRenamed={handleCategoryRenamed}
+            customerCounts={customerCategoryCounts} // Pass the calculated counts
           />
 
           <div className="card flex-1">

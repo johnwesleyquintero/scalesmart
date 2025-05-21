@@ -48,3 +48,11 @@ The `useAcademyStorage` hook is responsible for managing the academy data in loc
 ### Quiz Component
 
 The `Quiz` component is used to create interactive quizzes within academy modules. It allows users to test their knowledge and track their progress. The quiz results are stored in the `quizResults` property of the `AcademyDataType` in local storage.
+
+### ClientCourseList Component
+
+The `ClientCourseList` component is responsible for rendering the list of courses. It receives `courses`, `filter`, and `sort` props and displays the courses accordingly.
+
+### startCourseAction Function
+
+The `startCourseAction` function is used to initiate the process of starting a course. It is available through the `AcademyContext` and is used to set the active course.

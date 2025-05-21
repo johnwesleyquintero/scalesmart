@@ -1,8 +1,22 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays, Check, Download, Plus, Trash2, X } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
+import {
+  CalendarDays,
+  Check,
+  Download,
+  Plus,
+  Trash2,
+  X,
+  Edit,
+} from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useLocalStorage } from '../../hooks/use-local-storage';
 
@@ -20,6 +34,12 @@ type Column = {
   title: string;
   color: string;
 };
+
+const COLUMNS: Column[] = [
+  { id: 'todo', title: 'To Do', color: 'bg-blue-100' },
+  { id: 'in-progress', title: 'In Progress', color: 'bg-yellow-100' },
+  { id: 'done', title: 'Done', color: 'bg-green-100' },
+];
 
 const LOCAL_STORAGE_KEY = 'projectManagementTasks_v2';
 
@@ -74,7 +94,7 @@ export default function ProjectManagement() {
   const [tasks, setTasks] = useLocalStorage<Task[]>(
     LOCAL_STORAGE_KEY,
     DEFAULT_TASKS,
-    DEFAULT_TASKS,
+    DEFAULT_TASKS, // Provide the third argument for serverInitial
   );
 
   const escapeCSVField = (field: string | undefined | null): string => {
@@ -134,12 +154,6 @@ export default function ProjectManagement() {
     }
   };
 
-  const columns: Column[] = [
-    { id: 'todo', title: 'To Do', color: 'bg-blue-100' },
-    { id: 'in-progress', title: 'In Progress', color: 'bg-yellow-100' },
-    { id: 'done', title: 'Done', color: 'bg-green-100' },
-  ];
-
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTask.title) {
@@ -149,7 +163,7 @@ export default function ProjectManagement() {
 
     const task: Task = {
       ...newTask,
-      id: typeof window !== 'undefined' ? Date.now().toString() : 'temp_id', // Generate ID only on client
+      id: crypto.randomUUID(),
     };
     setTasks([...(tasks ?? []), task]);
     setNewTask({
@@ -264,12 +278,13 @@ export default function ProjectManagement() {
 
         {showAddForm && (
           <Card className="mb-6">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Add New Task</CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setShowAddForm(false)}
+                aria-label="Close add task form"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -316,8 +331,7 @@ export default function ProjectManagement() {
                       onChange={(e) =>
                         setNewTask({
                           ...newTask,
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          status: e.target.value as any,
+                          status: e.target.value as Task['status'],
                         })
                       }
                     >
@@ -366,12 +380,13 @@ export default function ProjectManagement() {
 
         {editingTask && (
           <Card className="mb-6">
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Edit Task</CardTitle>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={() => setEditingTask(null)}
+                aria-label="Close edit task form"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -424,8 +439,7 @@ export default function ProjectManagement() {
                       onChange={(e) =>
                         setEditTaskData({
                           ...editTaskData,
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          status: e.target.value as any,
+                          status: e.target.value as Task['status'],
                         })
                       }
                     >
@@ -479,7 +493,7 @@ export default function ProjectManagement() {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {columns.map((column) => (
+          {COLUMNS.map((column) => (
             <div
               key={column.id}
               className={`rounded-lg p-4 ${column.color}`}
@@ -507,54 +521,74 @@ export default function ProjectManagement() {
                       onDragStart={() => handleDragStart(task)}
                       className="cursor-move hover:shadow-md transition-shadow"
                     >
-                      <CardHeader>
-                        <CardTitle>{task.title}</CardTitle>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteTask(task.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => {
-                            setEditingTask(task.id);
-                            setEditTaskData({
-                              title: task.title,
-                              description: task.description,
-                              status: task.status,
-                              dueDate: task.dueDate,
-                              assignee: task.assignee,
-                            });
-                          }}
-                        >
-                          Edit
-                        </Button>
+                      <CardHeader className="p-3 pb-2">
+                        {' '}
+                        {/* Adjusted padding */}
+                        <div className="flex justify-between items-start">
+                          <CardTitle className="text-base font-semibold">
+                            {' '}
+                            {/* Adjusted font size */}
+                            {task.title}
+                          </CardTitle>
+                          <div className="flex items-center -mt-1 -mr-1">
+                            {' '}
+                            {/* Adjusted margins for icon buttons */}
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7" // Smaller icon buttons
+                              onClick={() => {
+                                setEditingTask(task.id);
+                                setEditTaskData({
+                                  title: task.title,
+                                  description: task.description,
+                                  status: task.status,
+                                  dueDate: task.dueDate,
+                                  assignee: task.assignee,
+                                });
+                              }}
+                              aria-label="Edit task"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7" // Smaller icon buttons
+                              onClick={() => deleteTask(task.id)}
+                              aria-label="Delete task"
+                            >
+                              <X className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        </div>
                       </CardHeader>
-                      <CardContent>
+                      <CardContent className="p-3 pt-0 pb-2 text-sm">
+                        {' '}
+                        {/* Adjusted padding */}
                         {task.description && (
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-muted-foreground mb-2 break-words">
                             {task.description}
                           </p>
                         )}
                         {task.dueDate && (
-                          <div className="flex justify-between items-center text-sm">
-                            <span className="inline-flex items-center">
-                              <CalendarDays className="h-4 w-4 mr-1" />
+                          <div className="flex items-center text-xs text-muted-foreground">
+                            <CalendarDays className="h-3.5 w-3.5 mr-1" />
+                            <span>
                               {new Date(task.dueDate).toLocaleDateString(
                                 'en-US',
                               )}
                             </span>
-                            {task.assignee && (
-                              <span className="bg-gray-200 px-2 py-1 rounded-full">
-                                {task.assignee}
-                              </span>
-                            )}
                           </div>
                         )}
                       </CardContent>
+                      {task.assignee && (
+                        <CardFooter className="p-3 pt-0 text-xs">
+                          <span className="bg-gray-200 px-1.5 py-0.5 rounded-full text-gray-700">
+                            {task.assignee}
+                          </span>
+                        </CardFooter>
+                      )}
                     </Card>
                   ))}
               </div>

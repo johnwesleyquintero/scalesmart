@@ -27,6 +27,7 @@ interface CategoryManagerProps {
   initialCategories: Category[];
   onCategorySuccessfullyDeleted: (deletedCategoryName: string) => void;
   onCategoryRenamed: (oldName: string, newName: string) => void; // New prop
+  customerCounts: Map<string | null, number>; // New prop for customer counts
 }
 
 const CategoryManager = ({
@@ -34,6 +35,7 @@ const CategoryManager = ({
   initialCategories,
   onCategorySuccessfullyDeleted,
   onCategoryRenamed,
+  customerCounts, // Destructure the new prop
 }: CategoryManagerProps) => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -185,6 +187,7 @@ const CategoryManager = ({
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
+                <TableHead className="text-center">Customers</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -192,6 +195,11 @@ const CategoryManager = ({
               {categories.map((category) => (
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
+                  <TableCell className="text-center">
+                    <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
+                      {customerCounts.get(category.name) || 0}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button
                       variant="outline"
@@ -212,6 +220,19 @@ const CategoryManager = ({
                   </TableCell>
                 </TableRow>
               ))}
+              {/* Row for Uncategorized customers count */}
+              <TableRow>
+                <TableCell className="font-medium italic text-muted-foreground">
+                  Uncategorized
+                </TableCell>
+                <TableCell className="text-center">
+                  <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
+                    {customerCounts.get(null) || 0}
+                  </span>
+                </TableCell>
+                <TableCell className="text-right"></TableCell>{' '}
+                {/* Empty cell for actions */}
+              </TableRow>
             </TableBody>
           </Table>
         </div>

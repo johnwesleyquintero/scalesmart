@@ -95,10 +95,10 @@ export function CustomerForm({
     const category = data.category === 'null' ? null : data.category;
     onSubmitSuccessAction({
       name: data.name,
-      email: data.email || '',
-      phone: data.phone || '',
-      notes: data.notes || '',
-      category: category ?? null,
+      email: data.email ?? '', // Coerce undefined to empty string for Omit<Customer, 'id'>
+      phone: data.phone ?? '', // Coerce undefined to empty string for Omit<Customer, 'id'>
+      notes: data.notes || '', // Coerce null or undefined to empty string, as Customer['notes'] is string
+      category: category ?? null, // Coerce undefined to null, as Customer['category'] is string | null
     });
     if (!isEditing) {
       reset(defaultFormData); // Reset form to defaults after adding
@@ -161,9 +161,7 @@ export function CustomerForm({
         <Select
           // currentCategoryValue is typed as string | null | undefined from Zod.
           // Select's value prop expects string | undefined.
-          value={
-            currentCategoryValue === null ? undefined : currentCategoryValue
-          }
+          value={currentCategoryValue ?? undefined} // Coerce null to undefined for Select value prop
           onValueChange={handleCategoryChange}
         >
           <SelectTrigger>

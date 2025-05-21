@@ -1,7 +1,8 @@
 // c:\\Users\\johnw\\portfolio\\src\\components\\shared\\GenericCsvDataMapper.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { toast } from 'sonner';
 import type { CsvColumnMapping } from '@/types/data-mapping';
 import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 import {
@@ -18,6 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import styles from './GenericCsvDataMapper.module.css';
 import SampleCsvButton from './sample-csv-button';
@@ -32,9 +34,9 @@ interface GenericCsvDataMapperProps {
     expectedType: 'string' | 'number' | 'date' | 'boolean';
     hint?: string;
   }[];
-  onMappingComplete: (mapping: CsvColumnMapping) => void;
+  onApplyMapping?: (mapping: CsvColumnMapping) => void; // Make prop optional
   initialMapping?: CsvColumnMapping;
-  isLoading?: boolean;
+  isLoading?: boolean; // This prop is for parent indicating CSV data is loading
   onCancel: () => void;
   sampleDataRow?: Record<string, string>; // To show sample values
   title: string;
@@ -48,9 +50,9 @@ const DEFAULT_INITIAL_MAPPING: CsvColumnMapping = Object.freeze({}); // Make it 
 const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
   csvHeaders,
   targetMetrics,
-  onMappingComplete,
+  onApplyMapping, // No default, will be undefined if not passed or explicitly set to undefined
   initialMapping = DEFAULT_INITIAL_MAPPING, // Use the stable default
-  isLoading = false,
+  isLoading = false, // Prop for CSV header loading state
   onCancel,
   sampleDataRow,
   title,
@@ -60,39 +62,32 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
   const [currentMapping, setCurrentMapping] = useState<CsvColumnMapping | null>(
     null,
   );
-  const [isMappingLoading, setIsMappingLoading] = useState<boolean>(true);
+  const [isMappingConfigLoading, setIsMappingConfigLoading] =
+    useState<boolean>(true); // For loading mapping from DB
   const [previewData, setPreviewData] = useState<
     Record<string, string>[] | null
   >(null);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
   // Effect to load saved mapping from IndexedDB or initialize from props
   useEffect(() => {
     const loadMapping = async () => {
-      setIsMappingLoading(true);
-      let finalMapping: CsvColumnMapping = {};
+      setIsMappingConfigLoading(true);
+      let loadedDbMapping: CsvColumnMapping | undefined;
 
       if (toolName) {
         try {
           const savedRecord = await db.userCsvMappings
             .where('toolName')
             .equals(toolName)
-            .last(); // Get the most recent mapping for this tool
+            .last();
 
-          if (savedRecord && savedRecord.mapping) {
-            finalMapping = savedRecord.mapping;
+          if (savedRecord?.mapping) {
+            loadedDbMapping = savedRecord.mapping;
             console.log(
               `Loaded mapping from IndexedDB for ${toolName}:`,
-              finalMapping,
-            );
-          } else {
-            // No saved mapping, construct from initialMapping prop or default
-            targetMetrics.forEach((field) => {
-              finalMapping[field.key] = initialMapping[field.key] || null;
-            });
-            console.log(
-              `No saved mapping for ${toolName}, using initial/default:`,
-              finalMapping,
+              loadedDbMapping,
             );
           }
         } catch (error) {
@@ -100,38 +95,38 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
             `Error loading mapping from IndexedDB for ${toolName}:`,
             error,
           );
-          // Fallback to initialMapping on error
-          targetMetrics.forEach((field) => {
-            finalMapping[field.key] = initialMapping[field.key] || null;
-          });
+          toast.error(
+            `Error loading saved mapping for ${toolName}. Using defaults.`,
+          );
+          // Proceed without a saved mapping, will use initialMapping or defaults
         }
-      } else {
-        // No toolName, construct from initialMapping prop or default
-        targetMetrics.forEach((field) => {
-          finalMapping[field.key] = initialMapping[field.key] || null;
-        });
+      }
+
+      const newMapping: CsvColumnMapping = {};
+      targetMetrics.forEach((metric) => {
+        // Priority: 1. Loaded DB mapping, 2. initialMapping prop, 3. null
+        if (loadedDbMapping && loadedDbMapping[metric.key] !== undefined) {
+          newMapping[metric.key] = loadedDbMapping[metric.key];
+        } else if (initialMapping[metric.key] !== undefined) {
+          newMapping[metric.key] = initialMapping[metric.key];
+        } else {
+          newMapping[metric.key] = null;
+        }
+      });
+
+      if (!loadedDbMapping) {
         console.log(
-          'No toolName provided, using initial/default mapping:',
-          finalMapping,
+          `No saved mapping found for ${toolName || 'current tool'} (or toolName not provided). Initialized from props/defaults.`,
+          newMapping,
         );
       }
 
-      // Ensure all targetMetric keys are present in the finalMapping,
-      // especially if targetMetrics changed since last save.
-      const completeFinalMapping: CsvColumnMapping = {};
-      targetMetrics.forEach((field) => {
-        completeFinalMapping[field.key] =
-          finalMapping[field.key] !== undefined
-            ? finalMapping[field.key]
-            : null;
-      });
-
-      setCurrentMapping(completeFinalMapping);
-      setIsMappingLoading(false);
+      setCurrentMapping(newMapping);
+      setIsMappingConfigLoading(false);
     };
 
     loadMapping();
-  }, [toolName, targetMetrics, initialMapping]); // Rerun if these key identifiers change
+  }, [toolName, targetMetrics, initialMapping, db.userCsvMappings]); // Rerun if these key identifiers change
 
   const handleSelectChange = (
     targetFieldId: keyof DashboardMetrics,
@@ -143,48 +138,96 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     }));
   };
 
-  const handleSubmit = async () => {
-    // Validation moved to a separate function
+  const handleApplyAndSavePrefs = async () => {
     if (!currentMapping || !validateMapping()) {
+      toast.error('Please fix mapping errors before applying.');
       return;
     }
+
+    setIsSaving(true);
 
     // Save to IndexedDB
     if (toolName) {
       try {
-        const existingRecord = await db.userCsvMappings
-          .where('toolName')
-          .equals(toolName)
-          .first();
-
-        if (existingRecord && typeof existingRecord.id === 'number') {
-          await db.userCsvMappings.update(existingRecord.id, {
-            mapping: currentMapping,
-            timestamp: new Date(),
-          });
-          console.log(`Updated mapping in IndexedDB for ${toolName}`);
-        } else {
-          await db.userCsvMappings.add({
-            toolName,
-            mapping: currentMapping,
-            timestamp: new Date(),
-          });
-          console.log(`Added new mapping to IndexedDB for ${toolName}`);
-        }
+        // Using put for simplicity (upsert)
+        await db.userCsvMappings.put({
+          toolName,
+          mapping: currentMapping,
+          timestamp: new Date(), // Keep timestamp if your schema uses it
+        });
+        console.log(
+          `Mapping preferences saved to DB for ${toolName}:`,
+          currentMapping,
+        );
+        toast.success('Mapping preferences saved!');
       } catch (error) {
         console.error(
-          `Error saving mapping to IndexedDB for ${toolName}:`,
+          `Error saving mapping preferences to DB for ${toolName}:`,
           error,
+        );
+        toast.error('Failed to save mapping preferences.');
+      }
+    }
+
+    if (typeof onApplyMapping === 'function') {
+      onApplyMapping(currentMapping); // Call the parent's callback
+    } else {
+      // Handle cases where onApplyMapping is not a function
+      if (onApplyMapping === undefined) {
+        // This is the new "fallback" behavior if the prop is omitted or explicitly undefined
+        console.info(
+          "GenericCsvDataMapper: 'onApplyMapping' callback was not provided or was undefined. " +
+            'Mapping preferences have been saved, but the mapping was not applied to the parent component.',
+        );
+        toast.info(
+          'Mapping preferences saved. To apply changes externally, ensure the integration is correctly configured.',
+        );
+      } else {
+        // This case handles if onApplyMapping is something else (null, number, string etc.) which is a true type error
+        console.error(
+          "GenericCsvDataMapper Error: Invalid 'onApplyMapping' prop. Expected a function but received:",
+          typeof onApplyMapping,
+          onApplyMapping,
+        );
+        toast.error(
+          'Configuration error: Cannot apply mapping due to an invalid callback. Please contact support.',
         );
       }
     }
-    onMappingComplete(currentMapping);
+    setIsSaving(false);
   };
+
+  const handleResetMapping = useCallback(() => {
+    if (targetMetrics.length === 0) {
+      setCurrentMapping({});
+      toast.info('Mapping reset (no target metrics).');
+      return;
+    }
+
+    const newMapping: CsvColumnMapping = {};
+    targetMetrics.forEach((metric) => {
+      // Use initialMapping from props (which defaults to DEFAULT_INITIAL_MAPPING)
+      if (initialMapping[metric.key] !== undefined) {
+        newMapping[metric.key] = initialMapping[metric.key];
+      } else {
+        newMapping[metric.key] = null;
+      }
+    });
+    setCurrentMapping(newMapping);
+    setValidationErrors([]); // Clear any previous validation errors
+    toast.info('Mapping has been reset to defaults.');
+  }, [targetMetrics, initialMapping, setCurrentMapping, setValidationErrors]);
 
   const validateMapping = () => {
     const errors: string[] = [];
+    if (!currentMapping) {
+      // Should not happen if initialized correctly
+      errors.push('Mapping is not initialized.');
+      setValidationErrors(errors);
+      return false;
+    }
     for (const field of targetMetrics) {
-      if (field.required && (!currentMapping || !currentMapping[field.key])) {
+      if (field.required && !currentMapping[field.key]) {
         errors.push(`Please map the required field: ${field.label}`);
       }
     }
@@ -194,13 +237,11 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
 
   useEffect(() => {
     if (csvHeaders && sampleDataRow) {
-      // Basic preview generation
-      const preview: Record<string, string>[] = [];
-      for (let i = 0; i < 3 && sampleDataRow; i++) {
-        // Show first 3 rows
-        preview.push(sampleDataRow);
-      }
-      setPreviewData(preview);
+      // If sampleDataRow is provided, use it as the single row for preview
+      setPreviewData([sampleDataRow]);
+    } else {
+      // Clear preview if no sampleDataRow or csvHeaders
+      setPreviewData(null);
     }
   }, [csvHeaders, sampleDataRow]);
 
@@ -208,7 +249,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     return <div className={styles.loading}>Loading CSV headers...</div>;
   }
 
-  if (isMappingLoading) {
+  if (isMappingConfigLoading) {
     return (
       <div className={styles.loading}>Loading mapping configuration...</div>
     );
@@ -228,6 +269,37 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
       </div>
     );
   }
+
+  const handleDownloadSampleCsv = (fileName: string) => {
+    // Assumes sample CSVs are in the public/samples directory.
+    // Adjust the path according to your project structure.
+    const filePath = `/samples/${fileName}`;
+
+    const link = document.createElement('a');
+    link.href = filePath;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Function to determine the sample CSV filename based on the toolName
+  const getActualSampleCsvFileName = (
+    currentToolName: string,
+  ): string | null => {
+    switch (currentToolName) {
+      case 'keyword-analyzer':
+        return 'keyword_list_sample.csv';
+      case 'fba-calculator':
+        return 'fba_fees_sample.csv';
+      case 'ppc-campaign-auditor':
+        return 'ppc_campaign_report_sample.csv';
+      case 'amazon-overview-dashboard': // From previous request
+        return 'amazon_overview_dashboard_template.csv';
+      default:
+        return null; // No specific template for other tools
+    }
+  };
 
   return (
     <TooltipProvider>
@@ -330,7 +402,9 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
         </div>
         {previewData && (
           <div className={styles.previewContainer}>
-            <h4 className={styles.previewTitle}>CSV Preview (First 3 Rows)</h4>
+            <h4 className={styles.previewTitle}>
+              CSV Row Preview (Using First Data Row)
+            </h4>
             <table className={styles.previewTable}>
               <thead>
                 <tr>
@@ -356,19 +430,49 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
           </div>
         )}
         <div className={styles.actionButtons}>
-          <Button onClick={handleSubmit} className={styles.submitButton}>
-            Confirm Mapping
+          <Button
+            onClick={handleApplyAndSavePrefs}
+            className={styles.submitButton}
+            disabled={
+              isSaving ||
+              isMappingConfigLoading ||
+              (targetMetrics.length > 0 &&
+                (!currentMapping ||
+                  Object.values(currentMapping).every((val) => val === null)))
+            }
+          >
+            {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Apply Mapping
+          </Button>
+          <Button
+            onClick={handleResetMapping}
+            variant="outline"
+            className={styles.resetButton} // Add a class if you want specific styling
+            disabled={isSaving || isMappingConfigLoading}
+          >
+            Reset
           </Button>
           <Button
             onClick={onCancel}
             variant="outline"
             className={styles.cancelButton}
+            disabled={isSaving || isMappingConfigLoading}
           >
             Cancel
           </Button>
-          {toolName && (
-            <SampleCsvButton toolName={toolName} onClick={() => {}} />
-          )}
+          {(() => {
+            const actualSampleFileName = getActualSampleCsvFileName(toolName);
+            if (actualSampleFileName) {
+              return (
+                <SampleCsvButton
+                  fileName={actualSampleFileName}
+                  onClick={handleDownloadSampleCsv}
+                  buttonText={`Download Template for ${toolName}`}
+                />
+              );
+            }
+            return null;
+          })()}
         </div>
       </div>
     </TooltipProvider>

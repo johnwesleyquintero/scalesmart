@@ -38,7 +38,7 @@ The "Overview" tab is the primary landing spot for data analysis.
     - Hints are provided for each target field to guide you.
     - A sample data row from your CSV is shown to help with mapping.
     - Required fields (like 'Date') must be mapped.
-    - Click "Confirm Mapping" to process the file or "Cancel" to abort.
+    - Click "Apply Mapping" to process the file and save the mapping preferences, or "Cancel" to abort. You can also click "Reset" to reset the mapping to the default values.
 
     !Data Mapper UI Placeholder
     _(Ideally, replace this with an actual screenshot of the GenericCsvDataMapper component in action)_
@@ -141,9 +141,8 @@ Beyond the overview dashboard, the page provides several tabs, each containing a
   - ACoS Calculator: To calculate Advertising Cost of Sales.
   - Profit Margin Calc: To calculate profit margins.
   - Campaign Card: Displays key campaign metrics, including ACoS, CTR, Conversion Rate, and campaign status (Active, Paused, Out of Budget, Ended). Also includes RoAS.
-  - CSV Data Upload & Mapping: The `GenericCsvDataMapper` component is used for mapping CSV columns. It now includes a preview of the CSV data and a "Download Sample CSV" button. The "Download Sample CSV" button is provided by the `SampleCsvButton` component.
-  - Sample CSV Button: The `SampleCsvButton` component provides a button to download a sample CSV file for the current tool. The button dynamically adjusts the sample CSV file name based on the tool.
-- Optimal Price Calc: To help determine optimal pricing strategies.
+  - CSV Data Upload & Mapping: The `GenericCsvDataMapper` component is used for mapping CSV columns. It now includes a preview of the CSV data and a "Download Sample CSV" button.
+  - Optimal Price Calc: To help determine optimal pricing strategies.
 
 ### 5.4. PPC & Ads
 

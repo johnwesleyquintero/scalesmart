@@ -2,7 +2,7 @@ import { QuizResult } from '@/types';
 import { Course, Module } from '@/types';
 import React, { createContext, Dispatch, useContext, useState } from 'react';
 import useAcademyStorage from '../hooks/use-academy-storage';
-type AcademyContextType = {
+export type AcademyContextType = {
   activeCourse: Course | null;
   setActiveCourse: Dispatch<React.SetStateAction<Course | null>>;
   activeModule: Module | null;
@@ -15,9 +15,12 @@ type AcademyContextType = {
     courses: Course[];
     quizResults: Record<string, QuizResult>;
   }) => void;
+  startCourseAction: (course: Course) => void;
 };
 
-const AcademyContext = createContext<AcademyContextType | undefined>(undefined);
+export const AcademyContext = createContext<AcademyContextType | undefined>(
+  undefined,
+);
 
 type AcademyProviderProps = {
   children: React.ReactNode;
@@ -88,6 +91,13 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
     setActiveModule(module);
   };
 
+  const startCourseAction = (course: Course) => {
+    // Implement the logic to start the course here.
+    console.log('Starting course:', course.title);
+    // You might want to set the active course, navigate to the course page, etc.
+    setActiveCourse(course);
+  };
+
   const value: AcademyContextType = {
     activeCourse,
     setActiveCourse,
@@ -98,6 +108,7 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
     startModule,
     academyData: academyData ?? { courses: [], quizResults: {} },
     saveData,
+    startCourseAction,
   };
 
   return (

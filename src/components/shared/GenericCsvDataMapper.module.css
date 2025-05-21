@@ -11,6 +11,7 @@
 .title {
   font-size: 1.75rem; /* HubSpot uses larger titles */
   margin-bottom: 0.75rem;
+  font-weight: 600; /* Slightly less heavy than default browser bold for h1-h3 */
   color: #1a202c; /* Gray-900 */
 }
 
@@ -43,13 +44,7 @@
   font-weight: 600; /* Semi-bold */
   color: #2d3748; /* Gray-800 */
   border-bottom: 2px solid #e2e8f0;
-}
-
-.targetMetricHeader,
-.expectedTypeHeader,
-.csvColumnHeader,
-.sampleValueHeader {
-  padding: 0.5rem 0;
+  padding: 0.75rem; /* Consistent padding with mappingRow */
 }
 
 .targetMetricCell,
@@ -122,6 +117,19 @@
   justify-content: flex-end;
   gap: 0.75rem;
   margin-top: 1.5rem;
+}
+
+.previewContainer {
+  /* Assuming this class is used in your TSX for the preview section */
+  margin-top: 2rem; /* Add some space above the preview */
+}
+
+.previewTitle {
+  /* Style for the "CSV Preview" heading */
+  font-size: 1.25rem; /* Consistent with a sub-section title */
+  font-weight: 600;
+  color: #2d3748; /* Gray-800 */
+  margin-bottom: 1rem;
 }
 
 .selectError {

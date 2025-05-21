@@ -3,32 +3,19 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 
 interface SampleCsvButtonProps {
-  toolName: string; // e.g., 'keyword-analyzer', 'fba-calculator'
-  onClick: () => void;
+  onClick: (fileName: string) => void;
+  fileName: string; // The actual filename to download
+  buttonText: string; // The text to display on the button
 }
 
 const SampleCsvButton: React.FC<SampleCsvButtonProps> = ({
-  toolName,
   onClick,
+  fileName,
+  buttonText,
 }) => {
-  const getSampleCsvFileName = () => {
-    switch (toolName) {
-      case 'keyword-analyzer':
-        return 'keyword_list_sample.csv';
-      case 'fba-calculator':
-        return 'fba_fees_sample.csv';
-      case 'ppc-campaign-auditor':
-        return 'ppc_campaign_report_sample.csv';
-      default:
-        return 'sample.csv';
-    }
-  };
-
-  const sampleCsvFileName = getSampleCsvFileName();
-
   return (
-    <Button onClick={onClick} variant="outline">
-      Download Sample CSV for {toolName} ({sampleCsvFileName})
+    <Button onClick={() => onClick(fileName)} variant="outline">
+      {buttonText}
     </Button>
   );
 };

@@ -2,18 +2,15 @@
 
 import { Button } from '@/components/ui/button';
 import { Copy } from 'lucide-react';
-import ReactMarkdown, { Options as ReactMarkdownOptions } from 'react-markdown';
+import ReactMarkdown from 'react-markdown';
 import { memo } from 'react';
 import type { Customer } from '../types';
 import remarkGfm from 'remark-gfm';
 
-interface MemoizedReactMarkdownProps {
-  children: ReactMarkdownOptions['children'];
-  options?: ReactMarkdownOptions;
-}
-
-// Memoize ReactMarkdown to prevent re-renders if props haven't changed
-const MemoizedReactMarkdown = memo<MemoizedReactMarkdownProps>(ReactMarkdown);
+// Define the remark plugins array outside the component for stable reference.
+// This ensures that ReactMarkdown receives the same prop reference across re-renders (if its other props haven't changed),
+// which is good for performance and works well with memoization.
+const markdownPlugins = [remarkGfm];
 
 interface CustomerListItemProps {
   customer: Customer;
@@ -69,13 +66,9 @@ const CustomerListItemComponent = ({
       {customer.notes && (
         <div className="mt-2">
           <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
-            <MemoizedReactMarkdown
-              options={{
-                remarkPlugins: [remarkGfm], // Default to GFM
-              }}
-            >
+            <ReactMarkdown remarkPlugins={markdownPlugins}>
               {customer.notes}
-            </MemoizedReactMarkdown>
+            </ReactMarkdown>
           </div>
         </div>
       )}
