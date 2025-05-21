@@ -7,7 +7,7 @@ import { BlogPost } from '@/types';
 const matterDataSchema = z.object({
   title: z.string(),
   description: z.string().optional().default(''),
-  date: z.union([z.string(), z.date()]),
+  date: z.union([z.string(), z.date()]).optional(),
   image: z.string().optional(),
   tags: z.array(z.string()).optional(),
   readingTime: z.string().optional(),
@@ -40,6 +40,7 @@ export async function getAllPosts(): Promise<BlogPost[]> {
         const fullPath = path.join(postsDirectory, fileName);
         const fileContents = fs.readFileSync(fullPath, 'utf8');
         const parsed = matter(fileContents);
+        console.log(`Date value before parsing: ${parsed.data.date}`);
         const data = matterDataSchema.parse(parsed.data);
 
         return {
@@ -47,7 +48,7 @@ export async function getAllPosts(): Promise<BlogPost[]> {
           slug: slug,
           title: data.title,
           description: data.description,
-          date: normalizeDate(data.date),
+          date: normalizeDate(data.date || new Date()),
           image: data.image || `/images/blog/${slug}.svg`,
           tags: data.tags || [],
           readingTime: data.readingTime || '5 min read',
@@ -129,7 +130,7 @@ export async function getPostBySlug(
       slug,
       title: data.title,
       description: data.description,
-      date: normalizeDate(data.date),
+      date: normalizeDate(data.date || new Date()),
       image: data.image || `/images/blog/${slug}.svg`,
       tags: data.tags || [],
       readingTime: data.readingTime || '5 min read',
