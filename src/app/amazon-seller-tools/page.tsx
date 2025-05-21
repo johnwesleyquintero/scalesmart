@@ -61,9 +61,7 @@ export interface TargetMetricConfig {
   group?: string;
 }
 
-import {
-  TARGET_METRICS_CONFIG_RAW,
-} from '@/config/amazon-tools-config';
+import { TARGET_METRICS_CONFIG_RAW } from '@/config/amazon-tools-config';
 
 const TARGET_METRICS_CONFIG = TARGET_METRICS_CONFIG_RAW;
 

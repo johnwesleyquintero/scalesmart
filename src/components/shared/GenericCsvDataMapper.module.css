@@ -63,7 +63,7 @@
 }
 
 .required {
-  color: #e53e3e; /* Red-500 */
+  color: #e0bbe4; /* Light purple */
   margin-left: 0.25rem;
 }
 .hint {
@@ -76,8 +76,8 @@
 }
 
 .typeBadge {
-  background-color: #ebf8ff; /* Blue-100 */
-  color: #2b6cb0; /* Blue-700 */
+  background-color: #f2e6f5; /* Light purple background */
+  color: #e0bbe4; /* Light purple */
   padding: 0.25rem 0.5rem;
   border-radius: 0.75rem;
   font-size: 0.75rem;
@@ -133,11 +133,11 @@
 }
 
 .selectError {
-  border-color: #e53e3e; /* Red-500 */
+  border-color: #e0bbe4; /* Light purple */
 }
 
 .errorText {
-  color: #e53e3e; /* Red-500 */
+  color: #e0bbe4; /* Light purple */
   font-size: 0.8rem;
   margin-top: 0.125rem;
 }

@@ -289,7 +289,10 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
   const getActualSampleCsvFileName = (
     currentToolName: string,
   ): string | null => {
-    console.log('getActualSampleCsvFileName called with toolName:', currentToolName); // Log the toolName
+    console.log(
+      'getActualSampleCsvFileName called with toolName:',
+      currentToolName,
+    ); // Log the toolName
     switch (currentToolName) {
       case 'keyword-analyzer':
         return 'keyword_list_sample.csv';

@@ -10,11 +10,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Papa from 'papaparse';
-import React, {
-  useState,
-  useCallback,
-  useRef,
-} from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Download } from 'lucide-react';
 
 // Import newly extracted components
@@ -37,7 +33,10 @@ import {
 } from '@/config/amazon-tools-config';
 
 import type { CsvColumnMapping } from '@/types/data-mapping';
-import { DashboardMetrics, TargetMetricConfig } from '@/app/amazon-seller-tools/page';
+import {
+  DashboardMetrics,
+  TargetMetricConfig,
+} from '@/app/amazon-seller-tools/page';
 
 interface OverviewTabProps {
   metrics: DashboardMetrics[];
@@ -88,7 +87,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     console.log('Refresh clicked - clearing status.');
     await new Promise((resolve) => setTimeout(resolve, 500));
     setIsLoading(false);
-  }, [setIsLoading, setError, setShowMapper, setCsvHeaders, setSelectedFile, setFirstCsvDataRow, setMetrics, setOverviewDataMapperKey]);
+  }, [
+    setIsLoading,
+    setError,
+    setShowMapper,
+    setCsvHeaders,
+    setSelectedFile,
+    setFirstCsvDataRow,
+    setMetrics,
+    setOverviewDataMapperKey,
+  ]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -252,8 +260,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       <div className="mb-4 p-4 border rounded-md bg-muted/40">
         <h4 className="text-lg font-medium mb-2">Load Overview Data</h4>
         <p className="text-sm text-muted-foreground mb-3">
-          Upload an Amazon Reports CSV to visualize your key metrics.
-          You'll be asked to map the columns after uploading.
+          Upload an Amazon Reports CSV to visualize your key metrics. You'll be
+          asked to map the columns after uploading.
         </p>
         <input
           type="file"
@@ -300,14 +308,14 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
             <PlaceholderCard
               title="Avg. Conversion Rate"
-              value={(SAMPLE_CARD_DATA.total_conversion_rate).toFixed(2)}
+              value={SAMPLE_CARD_DATA.total_conversion_rate.toFixed(2)}
               unit="%"
               description={DESC_SAMPLE_DATA}
               colorClass="text-blue-400"
             />
             <PlaceholderCard
               title="Total Sales"
-              value={(SAMPLE_CARD_DATA.total_sales_sample).toLocaleString(
+              value={SAMPLE_CARD_DATA.total_sales_sample.toLocaleString(
                 undefined,
                 { style: 'currency', currency: 'USD' },
               )}
@@ -316,7 +324,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             />
             <PlaceholderCard
               title="Avg. Clicks"
-              value={(SAMPLE_CARD_DATA.avg_clicks).toFixed(1)}
+              value={SAMPLE_CARD_DATA.avg_clicks.toFixed(1)}
               description={DESC_SAMPLE_DATA}
               colorClass="text-yellow-400"
             />
@@ -360,8 +368,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       <Card className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30">
         <CardContent className="p-6 text-center">
           <p className="text-lg font-medium text-primary dark:text-blue-300">
-            While you're here, feel free to explore the other specialized
-            tools available in the tabs above!
+            While you're here, feel free to explore the other specialized tools
+            available in the tabs above!
           </p>
         </CardContent>
       </Card>

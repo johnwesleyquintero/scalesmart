@@ -109,7 +109,9 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
 
   const isDataAvailable =
     sortedMetrics.length > 0 &&
-    sortedMetrics.every((m) => m.date && yAxisDataKeys.every((key) => typeof m[key] === 'number'));
+    sortedMetrics.every(
+      (m) => m.date && yAxisDataKeys.every((key) => typeof m[key] === 'number'),
+    );
 
   return (
     <Card>
