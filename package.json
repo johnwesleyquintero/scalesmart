@@ -17,8 +17,7 @@
     "deploy": "npx vercel deploy",
     "lint": "eslint --config eslint.config.mjs .",
     "clean": "rimraf .next",
-    "check": "npm run format && npm run lint && npm run typecheck",
-    "ats": "bash c:/Users/johnw/portfolio/bash_scripts/ats_scanner.sh C:/Users/johnw/portfolio/bash_scripts/Resume.pdf"
+    "check": "npm run format && npm run lint && npm run typecheck"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.9.1",

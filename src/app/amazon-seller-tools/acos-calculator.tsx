@@ -13,7 +13,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-interface CalculationEntry {
+export interface CalculationEntry {
   id?: number;
   date: string;
   campaignName?: string;
@@ -67,17 +67,13 @@ const AcosCalculator = () => {
       .reverse()
       .sortBy('timestamp');
 
+    console.log('rawHistoryFromDB', rawHistoryFromDB);
     setCalculationHistory(
       rawHistoryFromDB
-        .filter((record): record is CalculationDBRecord => {
-          // This type guard validates that the record, and specifically its 'data' property,
-          // conforms to the structure of CalculationDBRecord.
-          // It ensures 'record.data' is an object and not null, making it compatible
-          // with 'Omit<CalculationEntry, "id">'.
-          return (
-            record && typeof record.data === 'object' && record.data !== null
-          );
-        })
+        .filter(
+          (record): record is CalculationDBRecord =>
+            record && typeof record.data === 'object' && record.data !== null,
+        )
         .map((validatedRecord: CalculationDBRecord): CalculationEntry => {
           // After the filter, validatedRecord is confirmed to be of type CalculationDBRecord.
           // Thus, validatedRecord.data is correctly typed as Omit<CalculationEntry, "id">.

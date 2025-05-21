@@ -29,7 +29,7 @@ import {
 } from 'date-fns';
 
 // Tool Components
-import GenericCsvDataMapper from '@/components/shared/GenericCsvDataMapper'; // <--- IMPORT GenericCsvDataMapper
+import GenericCsvDataMapper from '@/components/shared/GenericCsvDataMapper';
 import AcosCalculator from '@/components/amazon-seller-tools/acos-calculator';
 import { CompetitorAnalyzer } from '@/components/amazon-seller-tools/competitor-analyzer';
 import DescriptionEditor from '@/components/amazon-seller-tools/description-editor';
@@ -794,6 +794,19 @@ export default function UnifiedDashboard() {
     }
   }, [metrics]);
 
+  const onDeleteMetric = useCallback(
+    (metricDate: string, metricIdentifier?: string) => {
+      setMetrics((prevMetrics) =>
+        prevMetrics.filter(
+          (metric) =>
+            metric.date !== metricDate ||
+            (metricIdentifier && metric.unique_identifier !== metricIdentifier),
+        ),
+      );
+      // Optionally, you might want to add a success message or further actions here
+    },
+    [],
+  );
   // Define an intermediate type for aggregation to make properties non-optional
 
   // --- Data Aggregation for Time Drill-Down ---
@@ -1096,9 +1109,11 @@ export default function UnifiedDashboard() {
     );
   };
 
-  const OverviewDataView: React.FC<{ metrics: DashboardMetrics[] }> = ({
-    metrics,
-  }) => {
+  const OverviewDataView: React.FC<{
+    metrics: DashboardMetrics[];
+    targetMetricsConfig: TargetMetricConfig[];
+    onDeleteMetric: (metricDate: string, metricIdentifier?: string) => void;
+  }> = ({ metrics, targetMetricsConfig, onDeleteMetric }) => {
     // Initial sort for raw daily data if needed, then aggregate
     const dailySortedMetrics = [...metrics].sort(
       (a, b) =>
@@ -1328,7 +1343,13 @@ export default function UnifiedDashboard() {
     }
 
     if (metrics.length > 0) {
-      return <OverviewDataView metrics={metrics} />;
+      return (
+        <OverviewDataView
+          metrics={metrics}
+          targetMetricsConfig={TARGET_METRICS_CONFIG}
+          onDeleteMetric={onDeleteMetric}
+        />
+      );
     }
     // --- Placeholder Content (Default) ---
     return (

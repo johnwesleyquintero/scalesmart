@@ -12,3 +12,12 @@ export interface ToolInput {
   label: string;
   value: string;
 }
+
+// Placeholder for UserCsvMappingRecord - to be implemented
+export interface UserCsvMappingRecord {
+  id?: number;
+  toolName: string;
+  mapping: CsvColumnMapping;
+  timestamp: Date;
+  // Add actual properties here based on the data mapping requirements
+}
