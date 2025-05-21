@@ -34,6 +34,7 @@ import {
   Loader2,
   RefreshCw,
 } from 'lucide-react';
+import sampleData from '@/data/sample-data.json';
 
 // Import newly extracted components
 import { OverviewLoadingIndicator } from '@/components/amazon-seller-tools/overview/OverviewLoadingIndicator';
@@ -117,7 +118,7 @@ const TARGET_METRICS_CONFIG = TARGET_METRICS_CONFIG_RAW;
 // --- Helper Functions for Data Processing ---
 export default function UnifiedDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
-  const [metrics, setMetrics] = useState<DashboardMetrics[]>([]);
+  const [metrics, setMetrics] = useState<DashboardMetrics[]>(sampleData as DashboardMetrics[] || []);
   const [isLoading, setIsLoading] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -348,7 +349,7 @@ export default function UnifiedDashboard() {
         />
       );
     }
-    if (error && !isLoading)
+    if (error && !isLoading && metrics.length === 0)
       return (
         <OverviewErrorDisplay error={error} onRetryUpload={handleUploadClick} />
       );
@@ -369,7 +370,7 @@ export default function UnifiedDashboard() {
           <h4 className="text-lg font-medium mb-2">Load Overview Data</h4>
           <p className="text-sm text-muted-foreground mb-3">
             Upload an Amazon Reports CSV to visualize your key metrics.
-            You&apos;ll be asked to map the columns after uploading.
+            You'll be asked to map the columns after uploading.
           </p>
           <input
             type="file"
@@ -393,14 +394,14 @@ export default function UnifiedDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
           <PlaceholderCard
             title="Avg. Conversion Rate"
-            value={SAMPLE_CARD_DATA.total_conversion_rate}
+            value={(SAMPLE_CARD_DATA.total_conversion_rate).toFixed(2)}
             unit="%"
             description={DESC_SAMPLE_DATA}
             colorClass="text-blue-400"
           />
           <PlaceholderCard
             title="Total Sales"
-            value={SAMPLE_CARD_DATA.total_sales_sample.toLocaleString(
+            value={(SAMPLE_CARD_DATA.total_sales_sample).toLocaleString(
               undefined,
               { style: 'currency', currency: 'USD' },
             )}
@@ -409,7 +410,7 @@ export default function UnifiedDashboard() {
           />
           <PlaceholderCard
             title="Avg. Clicks"
-            value={SAMPLE_CARD_DATA.avg_clicks}
+            value={(SAMPLE_CARD_DATA.avg_clicks).toFixed(1)}
             description={DESC_SAMPLE_DATA}
             colorClass="text-yellow-400"
           />
@@ -417,25 +418,25 @@ export default function UnifiedDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <PlaceholderChartContainer title="Sales Trends">
             <SalesTrendsChart
-              sortedMetrics={SAMPLE_CHART_DATA}
+              sortedMetrics={sampleData as DashboardMetrics[]}
               granularity="daily"
             />
           </PlaceholderChartContainer>
           <PlaceholderChartContainer title="Clicks & Impressions">
             <ClicksImpressionsChart
-              sortedMetrics={SAMPLE_CHART_DATA}
+              sortedMetrics={sampleData as DashboardMetrics[]}
               granularity="daily"
             />
           </PlaceholderChartContainer>
           <PlaceholderChartContainer title="Orders & Sessions">
             <OrdersSessionsChart
-              sortedMetrics={SAMPLE_CHART_DATA}
+              sortedMetrics={sampleData as DashboardMetrics[]}
               granularity="daily"
             />
           </PlaceholderChartContainer>
           <PlaceholderChartContainer title="Ad Spend vs. Ad Sales">
             <AdSpendSalesChart
-              sortedMetrics={SAMPLE_CHART_DATA}
+              sortedMetrics={sampleData as DashboardMetrics[]}
               granularity="daily"
             />
           </PlaceholderChartContainer>
@@ -443,7 +444,7 @@ export default function UnifiedDashboard() {
           {/* For a 2-column layout, 5 charts might be uneven, consider placement or if all are essential for placeholder */}
           <PlaceholderChartContainer title="Profit Trend">
             <ProfitTrendChart
-              sortedMetrics={SAMPLE_CHART_DATA}
+              sortedMetrics={sampleData as DashboardMetrics[]}
               granularity="daily"
             />
           </PlaceholderChartContainer>
@@ -451,7 +452,7 @@ export default function UnifiedDashboard() {
         <Card className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30">
           <CardContent className="p-6 text-center">
             <p className="text-lg font-medium text-primary dark:text-blue-300">
-              While you&apos;re here, feel free to explore the other specialized
+              While you're here, feel free to explore the other specialized
               tools available in the tabs above!
             </p>
           </CardContent>

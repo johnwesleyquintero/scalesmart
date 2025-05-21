@@ -116,16 +116,14 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
           <CardContent className="p-4">
             <h3 className="text-lg font-semibold mb-2">Avg. Clicks</h3>
             <div className="text-3xl font-bold text-yellow-600">
-              {(aggregatedAndSortedMetrics.length > 0 &&
-              aggregatedAndSortedMetrics.every(
-                (m) => typeof m.ad_clicks === 'number',
-              )
-                ? aggregatedAndSortedMetrics.reduce(
-                    (sum, m) => sum + (m.ad_clicks || 0),
-                    0,
-                  ) / aggregatedAndSortedMetrics.length
-                : 0
-              ).toFixed(1)}
+              {aggregatedAndSortedMetrics.length > 0
+                ? (
+                    aggregatedAndSortedMetrics.reduce(
+                      (sum, m) => sum + (m.ad_clicks || 0),
+                      0,
+                    ) / aggregatedAndSortedMetrics.length
+                  ).toFixed(1)
+                : 0}
             </div>
             <div className="text-sm text-gray-500 mt-1">
               Average from Report

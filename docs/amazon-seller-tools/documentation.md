@@ -20,7 +20,7 @@ The Amazon Seller Tools page (`c:\Users\johnw\portfolio\src\app\amazon-seller-to
   - PPC & Ads
   - Competition
 - **Data Export:** Processed and aggregated dashboard data can be exported as a CSV.
-- **Sample Data:** A sample CSV file is available to demonstrate the expected format and functionality.
+- **Sample Data:** The dashboard now loads sample data from `src/data/sample-data.json` when no CSV file is uploaded. This allows users to explore the dashboard's functionality without uploading their own data.
 
 ## 3. How to Use the Overview Dashboard
 
@@ -67,6 +67,8 @@ Once mapping is complete and the data is processed:
 - Changes are indicated with icons (up/down arrows) and percentage differences.
 
 ### 3.4. Interacting with the Dashboard
+
+- The dashboard now displays sample data when no CSV file is uploaded.
 
 - **Refresh:** Click the "Refresh" button in the header to clear current data and start over (e.g., to upload a new file).
 - **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
@@ -279,6 +281,13 @@ The `calculations.ts` file (`src/lib/utils/amazon/calculations.ts`) contains uti
   - `calculateProfitMargin(revenue: number, costOfGoodsSold: number, otherCosts: number): number`: Calculates the profit margin.
 
 ## 11. Key Areas for Improvement
+
+The following improvements have been implemented:
+
+- The dashboard now loads sample data from `src/data/sample-data.json` when no CSV file is uploaded.
+- The average clicks KPI is now calculated correctly in the `OverviewDataView` component.
+
+This section outlines the key areas for improvement for the Amazon Seller Tools Dashboard.
 
 This section outlines the key areas for improvement for the Amazon Seller Tools Dashboard.
 
