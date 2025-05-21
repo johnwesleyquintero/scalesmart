@@ -380,60 +380,29 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 
 ---
 
-## 📈 Roadmap & Future Updates
+## Frequently Asked Questions
 
-Our team has completed several high-priority tasks including error reporting implementation, CSV parsing fixes, and state management optimizations. We're currently focused on API integrations and PPC Campaign Auditor stabilization.
+**Q: How does the Overview Dashboard handle data from CSV files with varying column lengths?**
 
-The IndexedDB integration for local data storage and Supabase integration for application configurations are now complete.
+A: The Overview Dashboard is designed to handle CSV files where columns might not have the same number of rows. The data transformation process extracts data from each row independently, and missing values are treated as either `undefined` or 0. The data aggregation logic then aggregates the available data for each time period, ensuring that calculations are accurate even with missing data.
 
-## New Error Handling Features
+**Q: What types of data sources are supported by the Overview Dashboard?**
 
-- **Real-time Error Monitoring:** Integrated with Sentry for production error tracking
-- **User Notifications:** Non-disruptive toast messages for operational errors
-- **Debug Mode:** Detailed error context preservation in development mode
+A: The Overview Dashboard primarily supports data from Amazon Business Reports in CSV format.
 
-## Resolved Issues
+**Q: How accurate are the calculations in the Overview Dashboard?**
 
-- Fixed duplicate type definitions in error handling system
-- Optimized component re-renders in dashboard interfaces
-- Resolved production error reporting gaps
-- Implemented race condition prevention in API key management
-- Added input validation for all calculator tools
+A: The calculations in the Overview Dashboard are based on the data provided in the uploaded CSV file. We strive to ensure accuracy by using well-tested algorithms and providing clear documentation.
 
-This documentation will be updated periodically as significant changes, fixes, or new features are released. Thank you for your understanding as we continue to improve the Amazon Seller Tools Suite!
+**Q: Can I trust the data displayed in the Overview Dashboard?**
+
+A: Yes, you can trust the data displayed in the Overview Dashboard. We have implemented robust error handling and validation mechanisms to ensure data integrity. However, it's important to ensure that the uploaded CSV file is accurate and properly mapped to the corresponding data fields.
+
+**Q: What if some data is missing in my CSV file?**
+
+A: The Overview Dashboard is designed to handle missing data gracefully. Missing values will be treated as either `undefined` or 0, and the calculations will be adjusted accordingly.
 
 ---
-
-## Key Areas for Improvement
-
-The Amazon Seller Tools Dashboard is continuously being improved. Here are some key areas of focus:
-
-### A. User Interface (UI) & User Experience (UX) Enhancements
-
-1.  **Global UI/UX Refinement:** Aiming for a professional, clean, and efficient user interface, drawing inspiration from platforms like Helium 10.
-2.  **Data Upload & Mapping:** Focusing on creating an intuitive mapping UI with real-time data preview, automatic column detection, and mapping persistence.
-3.  **Data Visualization:** Enhancing charts with modern charting libraries, customizable grid lines, and interactive tooltips.
-4.  **Data Table:** Improving data table interaction with advanced filtering and sorting options.
-5.  **Navigation:** Considering a more scalable navigation system for a growing number of tools.
-6.  **Specialized Tool Integration:** Ensuring all specialized tools adhere to the dashboard's overall design language.
-
-### B. Functionality Enhancements
-
-1.  **Data Handling & Flexibility:** Implementing dynamic charting and robust error handling for missing or invalid data.
-2.  **Dashboard-Level Data Interaction:** Introducing global filtering and segmentation capabilities.
-
-### C. Performance Optimization
-
-1.  **Global Application Performance:** Focusing on memoization, load times, data fetching, and profiling.
-
-### D. Code Quality & Maintainability
-
-1.  **Key Refactoring: Reusable Chart Component:** Abstracting common logic into a single, highly configurable chart component.
-2.  **General Component Reusability:** Identifying and refactoring other UI elements or logic into reusable components.
-3.  **Code Clarity & Documentation:** Enhancing code with more comprehensive comments and extracting complex logic into well-named helper functions.
-4.  **Error Handling:** Implementing robust and user-friendly error handling mechanisms.
-5.  **Prop Contracts:** Ensuring clear prop validation for all components.
-
 ## 📚 Detailed Documentation
 
 For a comprehensive guide on how to use the Amazon Seller Tools Suite, please refer to the [documentation](/docs/amazon-seller-tools/documentation).
