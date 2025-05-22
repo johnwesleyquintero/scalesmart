@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { ReusableChart } from './ReusableChart';
 import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 
@@ -11,6 +11,8 @@ export const ProfitTrendChart: React.FC<ProfitTrendChartProps> = ({
   sortedMetrics,
   granularity,
 }) => {
+  const [timeRange, setTimeRange] = useState<string>('all');
+
   const yAxisFormatter = (value: number) => `$${value.toLocaleString()}`;
 
   const tooltipFormatter = (value: number): [string, string] => [
@@ -21,9 +23,32 @@ export const ProfitTrendChart: React.FC<ProfitTrendChartProps> = ({
     'Profit',
   ];
 
+  const filteredMetrics = useMemo(() => {
+    let filtered = sortedMetrics;
+
+    if (timeRange === '7') {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 7);
+      filtered = filtered.filter((metric) => new Date(metric.date as string) >= cutoff);
+    } else if (timeRange === '30') {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 30);
+      filtered = filtered.filter((metric) => new Date(metric.date as string) >= cutoff);
+    } else if (timeRange === '90') {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - 90);
+      filtered = filtered.filter((metric) => new Date(metric.date as string) >= cutoff);
+    } else if (timeRange === 'ytd') {
+      const cutoff = new Date(new Date().getFullYear(), 0, 1);
+      filtered = filtered.filter((metric) => new Date(metric.date as string) >= cutoff);
+    }
+
+    return filtered;
+  }, [sortedMetrics, timeRange]);
+
   return (
     <ReusableChart
-      sortedMetrics={sortedMetrics}
+      sortedMetrics={filteredMetrics}
       granularity={granularity}
       chartType="line"
       xAxisDataKey="date"
@@ -33,6 +58,8 @@ export const ProfitTrendChart: React.FC<ProfitTrendChartProps> = ({
       title="Profit Trend"
       yAxisFormatter={yAxisFormatter}
       tooltipFormatter={tooltipFormatter}
+      timeRange={timeRange}
+      setTimeRange={setTimeRange}
     />
   );
 };

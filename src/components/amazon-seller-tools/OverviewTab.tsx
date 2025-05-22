@@ -7,10 +7,10 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  // SelectValue, // No longer directly used here, but OverviewDataView uses it
 } from '@/components/ui/select';
 import Papa from 'papaparse';
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 import { Download } from 'lucide-react';
 
 // Import newly extracted components
@@ -26,6 +26,8 @@ import { OrdersSessionsChart } from '@/components/amazon-seller-tools/charts/Ord
 import { AdSpendSalesChart } from '@/components/amazon-seller-tools/charts/AdSpendSalesChart';
 import { ProfitTrendChart } from '@/components/amazon-seller-tools/charts/ProfitTrendChart';
 import { OverviewDataView } from '@/components/amazon-seller-tools/overview/OverviewDataView';
+import { OverviewDataTable } from '@/components/amazon-seller-tools/overview/OverviewDataTable'; // Import the new OverviewDataTable
+import { aggregateMetricsByTime } from '@/lib/utils/amazon/data-aggregation'; // Import aggregation utility
 import { transformCsvRow } from '@/lib/utils/amazon/data-transformation'; // Import data transformation utilities
 import {
   SAMPLE_CARD_DATA,
@@ -76,6 +78,17 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRefresh = useCallback(async () => {
+    // Resetting metrics and related states
+    setMetrics([]); // Clear existing metrics
+    setShowMapper(false); // Hide mapper
+    setCsvHeaders([]); // Clear CSV headers
+    setSelectedFile(null); // Clear selected file
+    setFirstCsvDataRow(undefined); // Clear first data row
+    setError(null); // Clear any errors
+    // Reset timeGranularity to default if needed, or keep current
+    // setTimeGranularity('daily');
+    setOverviewDataMapperKey((prev) => prev + 1); // Force re-render of mapper if it was open
+
     setIsLoading(true);
     setError(null);
     setShowMapper(false);
@@ -83,7 +96,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
     setMetrics([]);
-    setOverviewDataMapperKey((prev) => prev + 1);
+    // setOverviewDataMapperKey((prev) => prev + 1); // Already called above
     console.log('Refresh clicked - clearing status.');
     await new Promise((resolve) => setTimeout(resolve, 500));
     setIsLoading(false);
@@ -96,7 +109,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setFirstCsvDataRow,
     setMetrics,
     setOverviewDataMapperKey,
-  ]);
+  ]); // Added setMetrics to dependency array
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -255,6 +268,34 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     [setMetrics],
   );
 
+  // Calculate aggregatedAndSortedMetrics in OverviewTab
+  const dailySortedMetrics = React.useMemo(() => [...metrics].sort(
+    (a, b) =>
+      new Date(a.date as string).getTime() -
+      new Date(b.date as string).getTime(),
+  ), [metrics]);
+
+  const aggregatedAndSortedMetrics = React.useMemo(() => aggregateMetricsByTime(
+    dailySortedMetrics,
+    timeGranularity,
+  ), [dailySortedMetrics, timeGranularity]);
+
+  // Define a focused configuration for the OverviewDataTable based on likely aggregated fields
+  // Adjust this list based on what your `aggregateMetricsByTime` function actually produces
+  const aggregatedTableMetricsConfig: TargetMetricConfig[] = useMemo(() => {
+    const aggregatedKeys: (keyof DashboardMetrics)[] = [
+      'date', 'total_sales', 'total_orders', 'total_sessions',
+      'ad_spend', 'ad_sales', 'acos', 'roas', 'profit',
+      'ad_impressions', 'ad_clicks', 'total_conversion_rate' // Add other keys present in aggregated data
+    ];
+    return TARGET_METRICS_CONFIG.filter(config => aggregatedKeys.includes(config.key));
+  }, [TARGET_METRICS_CONFIG]);
+
+  // For debugging the new config
+  useEffect(() => {
+    console.log("OverviewTab - aggregatedTableMetricsConfig:", JSON.stringify(aggregatedTableMetricsConfig, null, 2));
+  }, [aggregatedTableMetricsConfig]);
+
   return (
     <div className="space-y-4">
       <div className="mb-4 p-4 border rounded-md bg-muted/40">
@@ -296,13 +337,25 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       ) : error && !isLoading && metrics.length === 0 ? (
         <OverviewErrorDisplay error={error} onRetryUpload={handleUploadClick} />
       ) : metrics.length > 0 ? (
-        <OverviewDataView
-          metrics={metrics}
-          targetMetricsConfig={TARGET_METRICS_CONFIG}
-          timeGranularity={timeGranularity}
-          setTimeGranularity={setTimeGranularity}
-          onDeleteMetric={onDeleteMetric}
-        />
+        <>
+          <OverviewDataView
+            metrics={metrics}
+            aggregatedAndSortedMetrics={aggregatedAndSortedMetrics}
+            targetMetricsConfig={TARGET_METRICS_CONFIG}
+            timeGranularity={timeGranularity}
+            setTimeGranularity={setTimeGranularity}
+            onDeleteMetric={onDeleteMetric}
+          />
+          {/* Console logs to inspect props */}
+          {console.log("OverviewTab - metrics:", JSON.stringify(metrics, null, 2))}
+          {console.log("OverviewTab - targetMetricsConfig:", JSON.stringify(TARGET_METRICS_CONFIG, null, 2))}
+          {/* Replace KeywordPerformanceTable with OverviewDataTable */}
+          <OverviewDataTable
+            metrics={aggregatedAndSortedMetrics}
+            targetMetricsConfig={aggregatedTableMetricsConfig}
+            isLoading={isLoading || isParsing} // Pass loading state
+          />
+        </>
       ) : (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
@@ -332,34 +385,34 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <PlaceholderChartContainer title="Sales Trends">
               <SalesTrendsChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
+              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+              granularity="daily"
               />
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Clicks & Impressions">
               <ClicksImpressionsChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
+              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+              granularity="daily"
               />
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Orders & Sessions">
               <OrdersSessionsChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
+              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+              granularity="daily"
               />
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Ad Spend vs. Ad Sales">
               <AdSpendSalesChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
+              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+              granularity="daily"
               />
             </PlaceholderChartContainer>
             {/* ProfitTrendChart can be added here if SAMPLE_CHART_DATA includes profit and it fits the layout */}
             {/* For a 2-column layout, 5 charts might be uneven, consider placement or if all are essential for placeholder */}
             <PlaceholderChartContainer title="Profit Trend">
               <ProfitTrendChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
+              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+              granularity="daily"
               />
             </PlaceholderChartContainer>
           </div>

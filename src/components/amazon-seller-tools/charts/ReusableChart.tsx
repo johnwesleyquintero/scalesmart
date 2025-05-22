@@ -2,6 +2,13 @@ import React from 'react';
 import { JSX } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   LineChart,
   Line,
   BarChart,
@@ -30,6 +37,8 @@ interface ReusableChartProps {
   title: string;
   yAxisFormatter?: (value: number) => string;
   tooltipFormatter?: (value: number, name: string) => [string, string];
+  timeRange?: string;
+  setTimeRange?: (timeRange: string) => void | undefined;
 }
 
 export const ReusableChart: React.FC<ReusableChartProps> = ({
@@ -43,6 +52,8 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
   title,
   yAxisFormatter,
   tooltipFormatter,
+  timeRange,
+  setTimeRange,
 }) => {
   const DATA_NOT_AVAILABLE = 'Data not available for chart.';
 
@@ -118,14 +129,38 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
   return (
     <Card>
       <CardContent className="p-4 h-[350px]">
-        <h3 className="text-lg font-semibold mb-4">{title}</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">{title}</h3>
+          {/* Time Range Selector - Render only if setTimeRange is provided */}
+          {setTimeRange && (
+            <div>
+              <Select
+                value={timeRange}
+                onValueChange={(value) => {
+                  setTimeRange(value);
+                }}
+              >
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Select Time Range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">Last 7 Days</SelectItem>
+                  <SelectItem value="30">Last 30 Days</SelectItem>
+                  <SelectItem value="90">Last 90 Days</SelectItem>
+                  <SelectItem value="ytd">Year to Date</SelectItem>
+                  <SelectItem value="all">All Time</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </div>
         {isDataAvailable ? (
           chartType === 'line' || chartType === 'bar' ? (
             <ResponsiveContainer width="100%" height="100%">
               {renderChart()}
             </ResponsiveContainer>
           ) : (
-            <div />
+            <div></div>
           )
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground p-4 text-center">

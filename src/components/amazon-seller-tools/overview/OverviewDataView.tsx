@@ -29,25 +29,19 @@ interface OverviewDataViewProps {
   setTimeGranularity: (
     granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
   ) => void;
+  aggregatedAndSortedMetrics: DashboardMetrics[];
 }
 
 export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
   metrics,
   // targetMetricsConfig, // Uncomment if used
   // onDeleteMetric, // Uncomment if used
-  timeGranularity,
-  setTimeGranularity,
+  timeGranularity, // Keep for the Select component
+  setTimeGranularity, // Keep for the Select component
+  aggregatedAndSortedMetrics, // Use this prop directly
 }) => {
-  // Initial sort for raw daily data if needed, then aggregate
-  const dailySortedMetrics = [...metrics].sort(
-    (a, b) =>
-      new Date(a.date as string).getTime() -
-      new Date(b.date as string).getTime(),
-  );
-  const aggregatedAndSortedMetrics = aggregateMetricsByTime(
-    dailySortedMetrics,
-    timeGranularity,
-  );
+  // The aggregatedAndSortedMetrics are now passed as a prop.
+  // No need to calculate it internally here.
 
   return (
     <>

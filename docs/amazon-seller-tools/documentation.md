@@ -12,8 +12,10 @@ The dashboard is structured with a `DashboardHeader` component for refresh, expo
 - **CSV Data Upload & Mapping:** Users can upload their Amazon Business Report CSVs. A dynamic mapping interface using the `OverviewDataMapper` component helps match CSV columns to the required data fields.
 - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons.
-  - Charts: Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the ReusableChart component.
+  - Charts: Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
+  - Data Table: Displaying the data in a sortable and filterable table using the `MetricsDataTable` component.
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
+- **Time Range Filtering:** Data in charts can be filtered by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
 - **Period-over-Period Comparison:** Displays key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
 - **Specialized Tool Suite:** Organized into tabs for:
   - Keywords
@@ -56,9 +58,15 @@ Once mapping is complete and the data is processed:
 
 - **Charts:** Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
 
+- **Data Table:** Displaying the data in a sortable and filterable table using the `MetricsDataTable` component.
+
 - **Time Granularity:**
 
   - Use the "Select Time Granularity" dropdown to change the aggregation period (Daily, Weekly, Monthly, Quarterly, Yearly). Charts and KPI comparisons will update accordingly.
+
+- **Time Range Filtering:**
+
+  - Use the time range selector in the top right corner of each chart to filter the data by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
 
   !Dashboard View Placeholder
   _(Ideally, replace this with an actual screenshot of the dashboard with data loaded)_
@@ -107,6 +115,14 @@ export interface DashboardMetrics {
   ctr?: number;
   ad_conversion_rate?: number;
 
+  // Keyword Metrics
+  targeted_keyword?: string;
+  keyword_ad_impressions?: number;
+  keyword_ad_clicks?: number;
+  keyword_ad_spend?: number;
+  keyword_ad_sales_7_day?: number;
+  keyword_ad_orders_7_day?: number;
+
   // Other potential metrics
   profit?: number;
   inventory_level?: number;
@@ -117,7 +133,7 @@ export interface DashboardMetrics {
 }
 ```
 
-The TARGET_METRICS_CONFIG array defines the labels, requirements, and expected types for the data mapping process. The `GenericCsvDataMapper` component also accepts `toolId` prop, which can be used to identify the tool associated with the data mapper.
+The `TARGET_METRICS_CONFIG` array defines the labels, requirements, and expected types for the data mapping process. The `GenericCsvDataMapper` component also accepts `toolId` prop, which can be used to identify the tool associated with the data mapper.
 
 ## 5. Specialized Tool Tabs
 
@@ -237,6 +253,8 @@ The `ReusableChart` component (`src/components/amazon-seller-tools/charts/Reusab
   - `title`: A string that specifies the title of the chart (e.g., 'Total Sales Trends').
   - `yAxisFormatter`: An optional function that formats the y-axis values (e.g., (value) => `$${value.toLocaleString()}`).
   - `tooltipFormatter`: An optional function that formats the tooltip values (e.g., (value, name) => [`$${value.toLocaleString()}`, name]).
+  - `timeRange`: A string that specifies the time range to filter the data by (e.g., '7', '30', '90', 'ytd', 'all').
+  - `setTimeRange`: A function to set the time range.
 
 ## 9. DashboardHeader Component
 
@@ -318,6 +336,8 @@ The following improvements have been implemented:
 - The dashboard now loads sample data from `src/data/sample-data.json` when no CSV file is uploaded.
 - The average clicks KPI is now calculated correctly in the `OverviewDataView` component.
 - The `DashboardHeader` and `OverviewTab` components have been extracted into separate files.
+- Added time range filtering to charts.
+- Added column filtering to the data table.
 
 This section outlines the key areas for improvement for the Amazon Seller Tools Dashboard.
 
@@ -433,3 +453,29 @@ A sample CSV file (sample_amazon_data.csv) can be downloaded via the "Download S
 - Spend (Ad)
 - Sales (Ad)
 - Orders (Ad)
+- Targeted Keyword
+- Keyword Ad Impressions
+- Keyword Ad Clicks
+- Keyword Ad Spend
+- Keyword Ad Sales (7-day)
+- Keyword Ad Orders (7-day)
+
+## 17. OverviewDataTable Component
+
+The `OverviewDataTable` component (`src/components/amazon-seller-tools/overview/OverviewDataTable.tsx`) is a reusable component that displays the aggregated data in a sortable and filterable table.
+
+- **Props:**
+
+  - `metrics`: An array of `DashboardMetrics` objects containing the aggregated data to be displayed.
+  - `targetMetricsConfig`: An array of `TargetMetricConfig` objects containing the target metrics configuration.
+  - `isLoading`: A boolean indicating whether the dashboard is loading.
+
+## 18. KeywordPerformanceTable Component
+
+The `KeywordPerformanceTable` component (`src/components/amazon-seller-tools/KeywordPerformanceTable.tsx`) is a reusable component that displays keyword performance data in a sortable and filterable table.
+
+- **Props:**
+
+  - `metrics`: An array of `DashboardMetrics` objects containing the keyword performance data to be displayed.
+  - `targetMetricsConfig`: An array of `TargetMetricConfig` objects containing the target metrics configuration.
+  - `isLoading`: A boolean indicating whether the dashboard is loading.
