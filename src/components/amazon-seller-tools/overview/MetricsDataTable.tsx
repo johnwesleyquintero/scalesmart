@@ -29,7 +29,8 @@ export const MetricsDataTable: React.FC<MetricsDataTableProps> = ({
   const [totalSalesFilter, setTotalSalesFilter] = useState('');
   const [totalOrdersFilter, setTotalOrdersFilter] = useState('');
   const [totalSessionsFilter, setTotalSessionsFilter] = useState('');
-  const [totalConversionRateFilter, setTotalConversionRateFilter] = useState('');
+  const [totalConversionRateFilter, setTotalConversionRateFilter] =
+    useState('');
   const [adSpendFilter, setAdSpendFilter] = useState('');
   const [adSalesFilter, setAdSalesFilter] = useState('');
   const [acosFilter, setAcosFilter] = useState('');
@@ -63,7 +64,12 @@ export const MetricsDataTable: React.FC<MetricsDataTableProps> = ({
 
     const applyColumnFilters = (item: DashboardMetrics) => {
       for (const key in filters) {
-        if (filters[key as keyof typeof filters] && !String(item[key as keyof DashboardMetrics]).toLowerCase().includes(filters[key as keyof typeof filters].toLowerCase())) {
+        if (
+          filters[key as keyof typeof filters] &&
+          !String(item[key as keyof DashboardMetrics])
+            .toLowerCase()
+            .includes(filters[key as keyof typeof filters].toLowerCase())
+        ) {
           return false;
         }
       }
@@ -112,7 +118,22 @@ export const MetricsDataTable: React.FC<MetricsDataTableProps> = ({
       });
     }
     return filtered;
-  }, [data, filter, sortKey, sortOrder, dateFilter, totalSalesFilter, totalOrdersFilter, totalSessionsFilter, totalConversionRateFilter, adSpendFilter, adSalesFilter, acosFilter, roasFilter, profitFilter]);
+  }, [
+    data,
+    filter,
+    sortKey,
+    sortOrder,
+    dateFilter,
+    totalSalesFilter,
+    totalOrdersFilter,
+    totalSessionsFilter,
+    totalConversionRateFilter,
+    adSpendFilter,
+    adSalesFilter,
+    acosFilter,
+    roasFilter,
+    profitFilter,
+  ]);
 
   const columns: {
     key: keyof DashboardMetrics;
@@ -198,7 +219,9 @@ export const MetricsDataTable: React.FC<MetricsDataTableProps> = ({
                       placeholder={`Filter ${col.label}`}
                       className="max-w-[100px] mt-1"
                       value={totalConversionRateFilter}
-                      onChange={(e) => setTotalConversionRateFilter(e.target.value)}
+                      onChange={(e) =>
+                        setTotalConversionRateFilter(e.target.value)
+                      }
                     />
                   )}
                   {col.filterable && col.key === 'ad_spend' && (

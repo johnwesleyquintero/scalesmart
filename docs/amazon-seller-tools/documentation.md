@@ -460,6 +460,24 @@ A sample CSV file (sample_amazon_data.csv) can be downloaded via the "Download S
 - Keyword Ad Sales (7-day)
 - Keyword Ad Orders (7-day)
 
+* - Date
+* - ASIN
+* - Targeted Keyword
+* - Ordered product sales
+* - Total order items
+* - Sessions
+* - Page Views
+* - Impressions (Ad)
+* - Clicks (Ad)
+* - Spend (Ad)
+* - Sales (Ad)
+* - Orders (Ad)
+* - Keyword Ad Impressions
+* - Keyword Ad Clicks
+* - Keyword Ad Spend
+* - Keyword Ad Sales (7-day)
+* - Keyword Ad Orders (7-day)
+
 ## 17. OverviewDataTable Component
 
 The `OverviewDataTable` component (`src/components/amazon-seller-tools/overview/OverviewDataTable.tsx`) is a reusable component that displays the aggregated data in a sortable and filterable table.
@@ -472,7 +490,7 @@ The `OverviewDataTable` component (`src/components/amazon-seller-tools/overview/
 
 ## 18. KeywordPerformanceTable Component
 
-The `KeywordPerformanceTable` component (`src/components/amazon-seller-tools/KeywordPerformanceTable.tsx`) is a reusable component that displays keyword performance data in a sortable and filterable table.
+The `KeywordPerformanceTable` component (`src/components/amazon-seller-tools/KeywordPerformanceTable.tsx`) is a reusable component that displays keyword performance data in a sortable and filterable table. It now includes filtering based on ASIN and keyword, and the table headers have been updated.
 
 - **Props:**
 

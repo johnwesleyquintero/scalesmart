@@ -38,19 +38,22 @@ interface SortConfig {
   direction: 'ascending' | 'descending';
 }
 
-export const KeywordPerformanceTable: React.FC<KeywordPerformanceTableProps> = ({
-  metrics,
-  isLoading = false,
-}) => {
+export const KeywordPerformanceTable: React.FC<
+  KeywordPerformanceTableProps
+> = ({ metrics, isLoading = false }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [asinFilter, setAsinFilter] = useState('');
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'descending' });
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: 'date',
+    direction: 'descending',
+  });
 
   const processedMetrics = useMemo(() => {
     return metrics
       .filter(
         (metric) =>
-          metric.targeted_keyword && // Only include rows with keyword data
+          metric.targeted_keyword &&
+          metric.unique_identifier && // Ensure ASIN is also present
           (searchTerm === '' ||
             metric.targeted_keyword
               ?.toLowerCase()
@@ -88,15 +91,21 @@ export const KeywordPerformanceTable: React.FC<KeywordPerformanceTableProps> = (
         if (valB === undefined || valB === null) return -1;
 
         if (typeof valA === 'string' && typeof valB === 'string') {
-          return sortConfig.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          return sortConfig.direction === 'ascending'
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
         }
         if (typeof valA === 'number' && typeof valB === 'number') {
-          return sortConfig.direction === 'ascending' ? valA - valB : valB - valA;
+          return sortConfig.direction === 'ascending'
+            ? valA - valB
+            : valB - valA;
         }
         // Fallback for date strings or other types
         const strA = String(valA);
         const strB = String(valB);
-        return sortConfig.direction === 'ascending' ? strA.localeCompare(strB) : strB.localeCompare(strA);
+        return sortConfig.direction === 'ascending'
+          ? strA.localeCompare(strB)
+          : strB.localeCompare(strA);
       });
     }
     return sortableItems;
@@ -104,10 +113,7 @@ export const KeywordPerformanceTable: React.FC<KeywordPerformanceTableProps> = (
 
   const requestSort = (key: SortableKey) => {
     let direction: 'ascending' | 'descending' = 'ascending';
-    if (
-      sortConfig.key === key &&
-      sortConfig.direction === 'ascending'
-    ) {
+    if (sortConfig.key === key && sortConfig.direction === 'ascending') {
       direction = 'descending';
     }
     setSortConfig({ key, direction });
@@ -124,31 +130,41 @@ export const KeywordPerformanceTable: React.FC<KeywordPerformanceTableProps> = (
     );
   };
 
-  const tableHeaders: { key: SortableKey; label: string; isNumeric?: boolean }[] = [
+  const tableHeaders: {
+    key: SortableKey;
+    label: string;
+    isNumeric?: boolean;
+  }[] = [
     { key: 'date', label: 'Date' },
     { key: 'unique_identifier', label: 'ASIN' },
     { key: 'targeted_keyword', label: 'Keyword' },
-    { key: 'keyword_ad_impressions', label: 'KW Impr.', isNumeric: true },
-    { key: 'keyword_ad_clicks', label: 'KW Clicks', isNumeric: true },
-    { key: 'keyword_ctr', label: 'KW CTR', isNumeric: true },
-    { key: 'keyword_cpc', label: 'KW CPC', isNumeric: true },
-    { key: 'keyword_ad_spend', label: 'KW Spend', isNumeric: true },
-    { key: 'keyword_ad_orders_7_day', label: 'KW Orders', isNumeric: true },
-    { key: 'keyword_ad_sales_7_day', label: 'KW Sales', isNumeric: true },
-    { key: 'keyword_cvr', label: 'KW CVR', isNumeric: true },
-    { key: 'keyword_acos', label: 'KW ACoS', isNumeric: true },
+    { key: 'keyword_ad_impressions', label: 'Impressions', isNumeric: true },
+    { key: 'keyword_ad_clicks', label: 'Clicks', isNumeric: true },
+    { key: 'keyword_ad_spend', label: 'Spend', isNumeric: true },
+    { key: 'keyword_ad_sales_7_day', label: 'Sales', isNumeric: true },
+    { key: 'keyword_ad_orders_7_day', label: 'Orders', isNumeric: true },
+    { key: 'keyword_ctr', label: 'CTR', isNumeric: true },
+    { key: 'keyword_cpc', label: 'CPC', isNumeric: true },
+    { key: 'keyword_cvr', label: 'CVR', isNumeric: true },
+    { key: 'keyword_acos', label: 'ACoS', isNumeric: true },
   ];
 
   if (isLoading) {
-    return <div className="p-4 text-center">Loading keyword performance data...</div>;
+    return (
+      <div className="p-4 text-center">Loading keyword performance data...</div>
+    );
   }
 
   if (!metrics || metrics.length === 0) {
-    return <div className="p-4 text-center">No data available to display. Please upload or process your CSV.</div>;
+    return (
+      <div className="p-4 text-center">
+        No data available to display. Please upload or process your CSV.
+      </div>
+    );
   }
-  
+
   if (sortedMetrics.length === 0 && (searchTerm || asinFilter)) {
-     return (
+    return (
       <div className="p-4">
         <div className="flex space-x-4 mb-4">
           <Input
@@ -164,15 +180,18 @@ export const KeywordPerformanceTable: React.FC<KeywordPerformanceTableProps> = (
             className="max-w-xs"
           />
         </div>
-        <div className="p-4 text-center text-muted-foreground">No matching keyword data found for your filters.</div>
+        <div className="p-4 text-center text-muted-foreground">
+          No matching keyword data found for your filters.
+        </div>
       </div>
     );
   }
 
-
   return (
-    <div className="p-4">
-      <h3 className="text-xl font-semibold mb-4">Keyword Performance Analysis</h3>
+    <div className="p-4 looker-studio-table-container">
+      <h3 className="text-xl font-semibold mb-4">
+        Keyword Performance Analysis
+      </h3>
       <div className="flex space-x-4 mb-4">
         <Input
           placeholder="Filter by ASIN (e.g., B00EXAMPLE)..."
@@ -207,26 +226,49 @@ export const KeywordPerformanceTable: React.FC<KeywordPerformanceTableProps> = (
           </TableHeader>
           <TableBody>
             {sortedMetrics.map((metric, index) => (
-              <TableRow key={`${metric.date}-${metric.unique_identifier}-${metric.targeted_keyword}-${index}`}>
+              <TableRow
+                key={`${metric.date}-${metric.unique_identifier}-${metric.targeted_keyword}-${index}`}
+              >
                 <TableCell>{metric.date}</TableCell>
                 <TableCell>{metric.unique_identifier}</TableCell>
                 <TableCell>{metric.targeted_keyword}</TableCell>
-                <TableCell className="text-right">{metric.keyword_ad_impressions?.toLocaleString() ?? 'N/A'}</TableCell>
-                <TableCell className="text-right">{metric.keyword_ad_clicks?.toLocaleString() ?? 'N/A'}</TableCell>
-                <TableCell className="text-right">{metric.keyword_ctr?.toFixed(2) ?? 'N/A'}%</TableCell>
-                <TableCell className="text-right">${metric.keyword_cpc?.toFixed(2) ?? 'N/A'}</TableCell>
-                <TableCell className="text-right">${metric.keyword_ad_spend?.toFixed(2) ?? 'N/A'}</TableCell>
-                <TableCell className="text-right">{metric.keyword_ad_orders_7_day?.toLocaleString() ?? 'N/A'}</TableCell>
-                <TableCell className="text-right">${metric.keyword_ad_sales_7_day?.toFixed(2) ?? 'N/A'}</TableCell>
-                <TableCell className="text-right">{metric.keyword_cvr?.toFixed(2) ?? 'N/A'}%</TableCell>
-                <TableCell className="text-right">{metric.keyword_acos?.toFixed(2) ?? 'N/A'}%</TableCell>
+                <TableCell className="text-right">
+                  {metric.keyword_ad_impressions?.toLocaleString() ?? 'N/A'}
+                </TableCell>
+                <TableCell className="text-right">
+                  {metric.keyword_ad_clicks?.toLocaleString() ?? 'N/A'}
+                </TableCell>
+                <TableCell className="text-right">
+                  {metric.keyword_ctr?.toFixed(2) ?? 'N/A'}%
+                </TableCell>
+                <TableCell className="text-right">
+                  ${metric.keyword_cpc?.toFixed(2) ?? 'N/A'}
+                </TableCell>
+                <TableCell className="text-right">
+                  ${metric.keyword_ad_spend?.toFixed(2) ?? 'N/A'}
+                </TableCell>
+                <TableCell className="text-right">
+                  {metric.keyword_ad_orders_7_day?.toLocaleString() ?? 'N/A'}
+                </TableCell>
+                <TableCell className="text-right">
+                  ${metric.keyword_ad_sales_7_day?.toFixed(2) ?? 'N/A'}
+                </TableCell>
+                <TableCell className="text-right">
+                  {metric.keyword_cvr?.toFixed(2) ?? 'N/A'}%
+                </TableCell>
+                <TableCell className="text-right">
+                  {metric.keyword_acos?.toFixed(2) ?? 'N/A'}%
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
-       {sortedMetrics.length === 0 && !searchTerm && !asinFilter && (
-        <div className="p-4 text-center text-muted-foreground">No keyword-specific data found in the uploaded file. Ensure your CSV includes keyword columns.</div>
+      {sortedMetrics.length === 0 && !searchTerm && !asinFilter && (
+        <div className="p-4 text-center text-muted-foreground">
+          No keyword-specific data found in the uploaded file. Ensure your CSV
+          includes keyword columns.
+        </div>
       )}
     </div>
   );

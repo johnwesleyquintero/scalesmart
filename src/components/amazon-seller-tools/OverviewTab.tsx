@@ -10,7 +10,13 @@ import {
   // SelectValue, // No longer directly used here, but OverviewDataView uses it
 } from '@/components/ui/select';
 import Papa from 'papaparse';
-import React, { useState, useCallback, useRef, useMemo, useEffect } from 'react';
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useMemo,
+  useEffect,
+} from 'react';
 import { Download } from 'lucide-react';
 
 // Import newly extracted components
@@ -269,31 +275,49 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   );
 
   // Calculate aggregatedAndSortedMetrics in OverviewTab
-  const dailySortedMetrics = React.useMemo(() => [...metrics].sort(
-    (a, b) =>
-      new Date(a.date as string).getTime() -
-      new Date(b.date as string).getTime(),
-  ), [metrics]);
+  const dailySortedMetrics = React.useMemo(
+    () =>
+      [...metrics].sort(
+        (a, b) =>
+          new Date(a.date as string).getTime() -
+          new Date(b.date as string).getTime(),
+      ),
+    [metrics],
+  );
 
-  const aggregatedAndSortedMetrics = React.useMemo(() => aggregateMetricsByTime(
-    dailySortedMetrics,
-    timeGranularity,
-  ), [dailySortedMetrics, timeGranularity]);
+  const aggregatedAndSortedMetrics = React.useMemo(
+    () => aggregateMetricsByTime(dailySortedMetrics, timeGranularity),
+    [dailySortedMetrics, timeGranularity],
+  );
 
   // Define a focused configuration for the OverviewDataTable based on likely aggregated fields
   // Adjust this list based on what your `aggregateMetricsByTime` function actually produces
   const aggregatedTableMetricsConfig: TargetMetricConfig[] = useMemo(() => {
     const aggregatedKeys: (keyof DashboardMetrics)[] = [
-      'date', 'total_sales', 'total_orders', 'total_sessions',
-      'ad_spend', 'ad_sales', 'acos', 'roas', 'profit',
-      'ad_impressions', 'ad_clicks', 'total_conversion_rate' // Add other keys present in aggregated data
+      'date',
+      'total_sales',
+      'total_orders',
+      'total_sessions',
+      'ad_spend',
+      'ad_sales',
+      'acos',
+      'roas',
+      'profit',
+      'ad_impressions',
+      'ad_clicks',
+      'total_conversion_rate', // Add other keys present in aggregated data
     ];
-    return TARGET_METRICS_CONFIG.filter(config => aggregatedKeys.includes(config.key));
+    return TARGET_METRICS_CONFIG.filter((config) =>
+      aggregatedKeys.includes(config.key),
+    );
   }, [TARGET_METRICS_CONFIG]);
 
   // For debugging the new config
   useEffect(() => {
-    console.log("OverviewTab - aggregatedTableMetricsConfig:", JSON.stringify(aggregatedTableMetricsConfig, null, 2));
+    console.log(
+      'OverviewTab - aggregatedTableMetricsConfig:',
+      JSON.stringify(aggregatedTableMetricsConfig, null, 2),
+    );
   }, [aggregatedTableMetricsConfig]);
 
   return (
@@ -347,8 +371,14 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             onDeleteMetric={onDeleteMetric}
           />
           {/* Console logs to inspect props */}
-          {console.log("OverviewTab - metrics:", JSON.stringify(metrics, null, 2))}
-          {console.log("OverviewTab - targetMetricsConfig:", JSON.stringify(TARGET_METRICS_CONFIG, null, 2))}
+          {console.log(
+            'OverviewTab - metrics:',
+            JSON.stringify(metrics, null, 2),
+          )}
+          {console.log(
+            'OverviewTab - targetMetricsConfig:',
+            JSON.stringify(TARGET_METRICS_CONFIG, null, 2),
+          )}
           {/* Replace KeywordPerformanceTable with OverviewDataTable */}
           <OverviewDataTable
             metrics={aggregatedAndSortedMetrics}
@@ -385,34 +415,34 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <PlaceholderChartContainer title="Sales Trends">
               <SalesTrendsChart
-              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-              granularity="daily"
+                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                granularity="daily"
               />
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Clicks & Impressions">
               <ClicksImpressionsChart
-              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-              granularity="daily"
+                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                granularity="daily"
               />
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Orders & Sessions">
               <OrdersSessionsChart
-              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-              granularity="daily"
+                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                granularity="daily"
               />
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Ad Spend vs. Ad Sales">
               <AdSpendSalesChart
-              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-              granularity="daily"
+                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                granularity="daily"
               />
             </PlaceholderChartContainer>
             {/* ProfitTrendChart can be added here if SAMPLE_CHART_DATA includes profit and it fits the layout */}
             {/* For a 2-column layout, 5 charts might be uneven, consider placement or if all are essential for placeholder */}
             <PlaceholderChartContainer title="Profit Trend">
               <ProfitTrendChart
-              sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-              granularity="daily"
+                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                granularity="daily"
               />
             </PlaceholderChartContainer>
           </div>

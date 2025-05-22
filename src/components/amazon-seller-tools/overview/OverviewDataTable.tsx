@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import type { DashboardMetrics, TargetMetricConfig } from '@/app/amazon-seller-tools/page';
+import type {
+  DashboardMetrics,
+  TargetMetricConfig,
+} from '@/app/amazon-seller-tools/page';
 import {
   Table,
   TableHeader,
@@ -11,7 +14,13 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface OverviewDataTableProps {
@@ -33,7 +42,10 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
   isLoading = false,
 }) => {
   const [currentPage, setCurrentPage] = useState(1);
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'date', direction: 'descending' });
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    key: 'date',
+    direction: 'descending',
+  });
 
   const sortedMetrics = useMemo(() => {
     let sortableItems = [...metrics];
@@ -46,14 +58,20 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
         if (valB === undefined || valB === null) return -1;
 
         if (typeof valA === 'string' && typeof valB === 'string') {
-          return sortConfig.direction === 'ascending' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          return sortConfig.direction === 'ascending'
+            ? valA.localeCompare(valB)
+            : valB.localeCompare(valA);
         }
         if (typeof valA === 'number' && typeof valB === 'number') {
-          return sortConfig.direction === 'ascending' ? valA - valB : valB - valA;
+          return sortConfig.direction === 'ascending'
+            ? valA - valB
+            : valB - valA;
         }
         const strA = String(valA);
         const strB = String(valB);
-        return sortConfig.direction === 'ascending' ? strA.localeCompare(strB) : strB.localeCompare(strA);
+        return sortConfig.direction === 'ascending'
+          ? strA.localeCompare(strB)
+          : strB.localeCompare(strA);
       });
     }
     return sortableItems;
@@ -79,40 +97,64 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
     if (sortConfig.key !== key) {
       return <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />;
     }
-    return sortConfig.direction === 'ascending' ? <ArrowUp className="ml-2 h-4 w-4" /> : <ArrowDown className="ml-2 h-4 w-4" />;
+    return sortConfig.direction === 'ascending' ? (
+      <ArrowUp className="ml-2 h-4 w-4" />
+    ) : (
+      <ArrowDown className="ml-2 h-4 w-4" />
+    );
   };
 
-  const formatNumberCell = (value: number, currentCellKey: keyof DashboardMetrics): string => {
+  const formatNumberCell = (
+    value: number,
+    currentCellKey: keyof DashboardMetrics,
+  ): string => {
     const currencyKeys: (keyof DashboardMetrics)[] = [
- 'ordered_product_sales', 'ad_spend', 'ad_sales_7_day', 'profit',
- 'customer_acquisition_cost', 'keyword_ad_spend', 'keyword_ad_sales_7_day',
- 'lifetime_value_estimate', 'keyword_cpc'
- ];
+      'ordered_product_sales',
+      'ad_spend',
+      'ad_sales_7_day',
+      'profit',
+      'customer_acquisition_cost',
+      'keyword_ad_spend',
+      'keyword_ad_sales_7_day',
+      'lifetime_value_estimate',
+      'keyword_cpc',
+    ];
     const directPercentageKeys: (keyof DashboardMetrics)[] = [
- 'acos', 'ctr', 'keyword_ctr', 'keyword_cvr', 'keyword_acos',
- ];
+      'acos',
+      'ctr',
+      'keyword_ctr',
+      'keyword_cvr',
+      'keyword_acos',
+    ];
     const wholeNumberKeys: (keyof DashboardMetrics)[] = [
- 'sessions_total', 'page_views_total', 'ad_impressions', 'ad_clicks',
- 'total_order_items', 'ad_orders_7_day', 'keyword_ad_impressions',
- 'keyword_ad_clicks', 'keyword_ad_orders_7_day', 'current_inventory'
- ];
+      'sessions_total',
+      'page_views_total',
+      'ad_impressions',
+      'ad_clicks',
+      'total_order_items',
+      'ad_orders_7_day',
+      'keyword_ad_impressions',
+      'keyword_ad_clicks',
+      'keyword_ad_orders_7_day',
+      'current_inventory',
+    ];
 
     if (currencyKeys.includes(currentCellKey)) {
- return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     }
     if (directPercentageKeys.includes(currentCellKey)) {
- return `${value.toFixed(2)}%`;
+      return `${value.toFixed(2)}%`;
     }
     if (currentCellKey === 'roas') {
- return value.toFixed(2);
+      return value.toFixed(2);
     }
     if (currentCellKey === 'average_review_score') {
- return value.toFixed(1);
+      return value.toFixed(1);
     }
     if (wholeNumberKeys.includes(currentCellKey)) {
- return value.toLocaleString();
+      return value.toLocaleString();
     }
- return value.toLocaleString();
+    return value.toLocaleString();
   };
 
   const formatCell = (value: unknown, config: TargetMetricConfig): string => {
@@ -121,13 +163,16 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
 
     if (expectedType === 'number') {
       if (typeof value === 'number') {
- return formatNumberCell(value, currentCellKey);
+        return formatNumberCell(value, currentCellKey);
       }
       // If expectedType is 'number' but value isn't, just stringify.
       // Ideally, data transformation ensures numbers are numbers by this point.
       return String(value);
     }
-    if (expectedType === 'date' && (typeof value === 'string' || value instanceof Date)) {
+    if (
+      expectedType === 'date' &&
+      (typeof value === 'string' || value instanceof Date)
+    ) {
       const date = value instanceof Date ? value : new Date(value);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString();
@@ -137,7 +182,9 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
   };
 
   if (isLoading) {
-    return <div className="p-4 text-center">Loading detailed metrics data...</div>;
+    return (
+      <div className="p-4 text-center">Loading detailed metrics data...</div>
+    );
   }
 
   if (metrics.length === 0) {
@@ -147,7 +194,9 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
           <CardTitle>Detailed Metrics</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="p-4 text-center text-muted-foreground">No data loaded to display in the table.</div>
+          <div className="p-4 text-center text-muted-foreground">
+            No data loaded to display in the table.
+          </div>
         </CardContent>
       </Card>
     );
@@ -161,19 +210,28 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
           <CardTitle>Detailed Metrics Data</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="p-4 text-center text-destructive">Error: Table column configuration (targetMetricsConfig) is missing or empty. Please check OverviewTab.tsx.</div>
+          <div className="p-4 text-center text-destructive">
+            Error: Table column configuration (targetMetricsConfig) is missing
+            or empty. Please check OverviewTab.tsx.
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   // Console logs for deeper inspection
-  console.log("OverviewDataTable rendering. targetMetricsConfig:", JSON.stringify(targetMetricsConfig, null, 2));
+  console.log(
+    'OverviewDataTable rendering. targetMetricsConfig:',
+    JSON.stringify(targetMetricsConfig, null, 2),
+  );
   if (paginatedMetrics.length > 0) {
-    console.log("First paginated metric:", JSON.stringify(paginatedMetrics[0], null, 2));
+    console.log(
+      'First paginated metric:',
+      JSON.stringify(paginatedMetrics[0], null, 2),
+    );
   }
-  console.log("Paginated metrics length:", paginatedMetrics.length);
-  console.log("Total pages:", totalPages);
+  console.log('Paginated metrics length:', paginatedMetrics.length);
+  console.log('Total pages:', totalPages);
 
   return (
     <Card className="mt-4">
@@ -194,7 +252,8 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
                       className="cursor-pointer hover:bg-muted/50"
                     >
                       <div className="flex items-center">
-                        {config.label || `[Header ${idx + 1}]`} {/* Fallback for missing label */}
+                        {config.label || `[Header ${idx + 1}]`}{' '}
+                        {/* Fallback for missing label */}
                         {renderSortIcon(config.key)}
                       </div>
                     </TableHead>
@@ -204,14 +263,22 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
             </TableHeader>
             <TableBody>
               {paginatedMetrics.map((metric, rowIndex) => (
-                <TableRow key={`${metric.date}-${metric.unique_identifier || rowIndex}`}>
+                <TableRow
+                  key={`${metric.date}-${metric.unique_identifier || rowIndex}`}
+                >
                   {targetMetricsConfig.map((config, colIndex) => {
                     const cellValue = metric[config.key];
                     const formattedCell = formatCell(cellValue, config);
                     // console.log(`Cell[${rowIndex},${colIndex}] Key='${String(config.key)}', Value='${cellValue}', Formatted='${formattedCell}'`);
                     return (
-                      <TableCell key={`${String(config.key)}-${colIndex}-${rowIndex}`}>
-                        {formattedCell || (cellValue === undefined || cellValue === null ? 'N/A' : `[Empty Cell: ${String(config.key)}]`)} {/* Fallback for empty formatted cell */}
+                      <TableCell
+                        key={`${String(config.key)}-${colIndex}-${rowIndex}`}
+                      >
+                        {formattedCell ||
+                          (cellValue === undefined || cellValue === null
+                            ? 'N/A'
+                            : `[Empty Cell: ${String(config.key)}]`)}{' '}
+                        {/* Fallback for empty formatted cell */}
                       </TableCell>
                     );
                   })}
@@ -219,7 +286,10 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
               ))}
               {paginatedMetrics.length === 0 && metrics.length > 0 && (
                 <TableRow>
-                  <TableCell colSpan={targetMetricsConfig.length || 1} className="text-center text-muted-foreground">
+                  <TableCell
+                    colSpan={targetMetricsConfig.length || 1}
+                    className="text-center text-muted-foreground"
+                  >
                     No data to display for the current page.
                   </TableCell>
                 </TableRow>
@@ -243,7 +313,9 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
               disabled={currentPage === totalPages}
             >
               Next <ChevronRight className="h-4 w-4 ml-1" />

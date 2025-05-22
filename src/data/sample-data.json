@@ -1,6 +1,8 @@
 [
   {
     "date": "2024-01-01",
+    "unique_identifier": "B001234567",
+    "targeted_keyword": "eco water bottle",
     "total_sales": 1000,
     "total_orders": 100,
     "total_sessions": 500,
@@ -16,10 +18,17 @@
     "cpc": 1,
     "ctr": 1,
     "ad_conversion_rate": 20,
-    "profit": 100
+    "profit": 100,
+    "keyword_ad_impressions": 5000,
+    "keyword_ad_clicks": 50,
+    "keyword_ad_spend": 50,
+    "keyword_ad_sales_7_day": 100,
+    "keyword_ad_orders_7_day": 10
   },
   {
     "date": "2024-01-02",
+    "unique_identifier": "B002345678",
+    "targeted_keyword": "stainless steel bottle",
     "total_sales": 1200,
     "total_orders": 120,
     "total_sessions": 600,
@@ -35,10 +44,17 @@
     "cpc": 1,
     "ctr": 1,
     "ad_conversion_rate": 20,
-    "profit": 120
+    "profit": 120,
+    "keyword_ad_impressions": 6000,
+    "keyword_ad_clicks": 60,
+    "keyword_ad_spend": 60,
+    "keyword_ad_sales_7_day": 120,
+    "keyword_ad_orders_7_day": 12
   },
   {
     "date": "2024-01-03",
+    "unique_identifier": "B003456789",
+    "targeted_keyword": "insulated water bottle",
     "total_sales": 1400,
     "total_orders": 140,
     "total_sessions": 700,
@@ -54,6 +70,11 @@
     "cpc": 1,
     "ctr": 1,
     "ad_conversion_rate": 20,
-    "profit": 140
+    "profit": 140,
+    "keyword_ad_impressions": 7000,
+    "keyword_ad_clicks": 70,
+    "keyword_ad_spend": 70,
+    "keyword_ad_sales_7_day": 140,
+    "keyword_ad_orders_7_day": 14
   }
 ]

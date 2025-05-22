@@ -23,9 +23,12 @@ export const getDateFromRow = (
     'Day',
     'Week',
     'Month',
+    'Report Date',
   ].filter(Boolean) as string[];
   for (const header of potentialHeaders) {
-    if (row[header]) return row[header];
+    if (row[header]) {
+      return row[header];
+    }
   }
   return 'Unknown';
 };
