@@ -20,16 +20,18 @@ export const OrdersSessionsChart: React.FC<OrdersSessionsChartProps> = ({
   };
 
   return (
-    <ReusableChart
-      sortedMetrics={sortedMetrics}
-      granularity={granularity}
-      chartType="bar"
-      xAxisDataKey="date"
-      yAxisDataKeys={['total_orders', 'total_sessions']}
-      colors={['#ffc658', '#fb8c00']}
-      labels={['Total Orders', 'Total Sessions']}
-      title="Total Orders & Total Sessions Over Time"
-      tooltipFormatter={tooltipFormatter}
-    />
+    
+      <ReusableChart
+        sortedMetrics={sortedMetrics}
+        granularity={granularity}
+        chartType="bar"
+        xAxisDataKey="date"
+        yAxisDataKeys={['total_orders', 'total_sessions']}
+        colors={['#ffc658', '#fb8c00']}
+        labels={['Total Orders', 'Total Sessions']}
+        title="Total Orders & Total Sessions Over Time"
+        tooltipFormatter={tooltipFormatter}
+      />
+    
   );
 };

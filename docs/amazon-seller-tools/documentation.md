@@ -405,9 +405,9 @@ This section outlines the key areas for improvement for the Amazon Seller Tools 
 ### D. Code Quality & Maintainability
 
 1.  **Key Refactoring: Reusable Chart Component:**
-    - **Address Repetition:** Abstract the common logic from `SalesTrendsChart`, `ClicksImpressionsChart`, `OrdersSessionsChart`, `AdSpendSalesChart`, and `ProfitTrendChart` into a single, highly configurable chart component.
-    - **Props:** This component should accept props for data, x/y data keys, chart type, color schemes, axis formatters, tooltip formatters, etc.
-    - **Benefit:** Significantly reduces code duplication, simplifies maintenance, and ensures consistency across all charts.
+    - **Address Repetition:** The common logic from `SalesTrendsChart`, `ClicksImpressionsChart`, `OrdersSessionsChart`, `AdSpendSalesChart`, and `ProfitTrendChart` has been abstracted into a single, highly configurable `ReusableChart` component.
+    - **Props:** The `ReusableChart` component now accepts a `chartType` prop to specify the type of chart to render (`line` or `bar`).
+    - **Benefit:** This refactoring significantly reduces code duplication, simplifies maintenance, and ensures consistency across all charts.
 2.  **General Component Reusability:**
     - Identify and refactor other UI elements or logic into reusable components to reduce duplication.
 3.  **Code Clarity & Documentation:**

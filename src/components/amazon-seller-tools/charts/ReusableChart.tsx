@@ -46,65 +46,67 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
 }) => {
   const DATA_NOT_AVAILABLE = 'Data not available for chart.';
 
-  const renderChart = () => {
-    if (chartType === 'line') {
-      return (
-        <LineChart
-          data={sortedMetrics}
-          margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey={xAxisDataKey}
-            tickFormatter={(tick) => formatTick(tick, granularity)}
-          />
-          <YAxis tickFormatter={yAxisFormatter} />
-          <Tooltip
-            formatter={tooltipFormatter}
-            labelFormatter={(label) => formatTooltipLabel(label, granularity)}
-          />
-          <Legend />
-          {yAxisDataKeys.map((key, index) => (
-            <Line
-              key={key}
-              type="monotone"
-              dataKey={key}
-              stroke={colors[index % colors.length]}
-              name={labels[index % labels.length]}
-              activeDot={{ r: 6 }}
+  const renderChart = (): JSX.Element => {
+    switch (chartType) {
+      case 'line':
+        return (
+          <LineChart
+            data={sortedMetrics}
+            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey={xAxisDataKey}
+              tickFormatter={(tick) => formatTick(tick, granularity)}
             />
-          ))}
-        </LineChart>
-      );
-    } else if (chartType === 'bar') {
-      return (
-        <BarChart
-          data={sortedMetrics}
-          margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey={xAxisDataKey}
-            tickFormatter={(tick) => formatTick(tick, granularity)}
-          />
-          <YAxis />
-          <Tooltip
-            formatter={tooltipFormatter}
-            labelFormatter={(label) => formatTooltipLabel(label, granularity)}
-          />
-          <Legend />
-          {yAxisDataKeys.map((key, index) => (
-            <Bar
-              key={key}
-              dataKey={key}
-              fill={colors[index % colors.length]}
-              name={labels[index % labels.length]}
+            <YAxis tickFormatter={yAxisFormatter} />
+            <Tooltip
+              formatter={tooltipFormatter}
+              labelFormatter={(label) => formatTooltipLabel(label, granularity)}
             />
-          ))}
-        </BarChart>
-      );
+            <Legend />
+            {yAxisDataKeys.map((key, index) => (
+              <Line
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={colors[index % colors.length]}
+                name={labels[index % labels.length]}
+                activeDot={{ r: 6 }}
+              />
+            ))}
+          </LineChart>
+        );
+      case 'bar':
+        return (
+          <BarChart
+            data={sortedMetrics}
+            margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis
+              dataKey={xAxisDataKey}
+              tickFormatter={(tick) => formatTick(tick, granularity)}
+            />
+            <YAxis />
+            <Tooltip
+              formatter={tooltipFormatter}
+              labelFormatter={(label) => formatTooltipLabel(label, granularity)}
+            />
+            <Legend />
+            {yAxisDataKeys.map((key, index) => (
+              <Bar
+                key={key}
+                dataKey={key}
+                fill={colors[index % colors.length]}
+                name={labels[index % labels.length]}
+              />
+            ))}
+          </BarChart>
+        );
+      default:
+        return <div />;
     }
-    return <div />;
   };
 
   const isDataAvailable =

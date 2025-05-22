@@ -22,17 +22,19 @@ export const ProfitTrendChart: React.FC<ProfitTrendChartProps> = ({
   ];
 
   return (
-    <ReusableChart
-      sortedMetrics={sortedMetrics}
-      granularity={granularity}
-      chartType="line"
-      xAxisDataKey="date"
-      yAxisDataKeys={['profit']}
-      colors={['#32cd32']}
-      labels={['Profit']}
-      title="Profit Trend"
-      yAxisFormatter={yAxisFormatter}
-      tooltipFormatter={tooltipFormatter}
-    />
+    
+      <ReusableChart
+        sortedMetrics={sortedMetrics}
+        granularity={granularity}
+        chartType="line"
+        xAxisDataKey="date"
+        yAxisDataKeys={['profit']}
+        colors={['#32cd32']}
+        labels={['Profit']}
+        title="Profit Trend"
+        yAxisFormatter={yAxisFormatter}
+        tooltipFormatter={tooltipFormatter}
+      />
+    
   );
 };
