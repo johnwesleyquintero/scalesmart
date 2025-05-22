@@ -38,7 +38,7 @@ The "Overview" tab is the primary landing spot for data analysis.
     - This interface displays headers from your CSV file and target fields required by the dashboard (e.g., 'Date', 'Total Sales', 'Ad Spend').
     - For each target field, select the corresponding column from your CSV using the dropdown menus.
     - Hints are provided for each target field to guide you.
-    - A sample data row from your CSV is shown to help with mapping.
+    - A sample data row from your CSV is shown to help with mapping and validation.
     - Required fields (like 'Date') must be mapped.
     - Click "Apply Mapping" to process the file and save the mapping preferences, or "Cancel" to abort. You can also click "Reset" to reset the mapping to the default values.
 
@@ -117,7 +117,7 @@ export interface DashboardMetrics {
 }
 ```
 
-The TARGET_METRICS_CONFIG array defines the labels, requirements, and expected types for the data mapping process.
+The TARGET_METRICS_CONFIG array defines the labels, requirements, and expected types for the data mapping process. The `GenericCsvDataMapper` component also accepts `toolId` prop, which can be used to identify the tool associated with the data mapper.
 
 ## 5. Specialized Tool Tabs
 
@@ -390,7 +390,7 @@ This section outlines the key areas for improvement for the Amazon Seller Tools 
 1.  **Data Handling & Flexibility:**
     - **Dynamic Charting:** Allow charts to display various metrics by using dynamic data keys.
     - **Robustness:** Implement comprehensive error handling for missing or invalid data in visualizations and calculations.
-    - **Validation:** Include data type validation within the `GenericCsvDataMapper`.
+    - **Validation:** Include data type validation within the `GenericCsvDataMapper`. The component validates the data type of the mapped values based on the `expectedType` property of the target metrics. The supported data types are `number`, `date`, and `boolean`.
 2.  **Dashboard-Level Data Interaction:**
     - Introduce global filtering and segmentation capabilities for the displayed data (e.g., by product, custom date ranges).
 

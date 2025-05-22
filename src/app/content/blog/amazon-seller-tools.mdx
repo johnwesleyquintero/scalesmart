@@ -31,7 +31,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 | Tool                     | Status                     | Version     | Notes                              |
 | :----------------------- | :------------------------- | :---------- | :--------------------------------- |
 | FBA Calculator           | ✅ Active                  | 2.0.0       | Advanced profitability calculator for FBA products with real-time ROI analysis and market trend integration.                                   |
-| Overview Dashboard       | ✅ Active                  | 1.1.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper and Sample CSV download. |
+| Overview Dashboard       | ✅ Active                  | 1.1.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download. |
 | Keyword Analyzer         | ✅ Active                  | 2.0.0       | A tool for analyzing and managing keywords.                                    |
 | Listing Quality Checker  | ✅ Active                  | 1.5.0       | AI-powered listing analysis and optimization tool.           |
 | PPC Campaign Auditor     | ⚠️ Beta / Stability Review | 0.9.0       | A comprehensive tool for analyzing PPC campaign performance and providing optimization recommendations. |
@@ -44,7 +44,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 | Profit Margin Calculator | ✅ Active                  | 1.0.0       | Calculates profit margins to determine profitability and optimize pricing strategies.                                    |
 | Product Score Calc.      | ✅ Active                  | 1.0.0       | Calculates a quality score for your Amazon product listing based on various optimization factors.                  |
 | Optimal Price Calc.      | ✅ Active                  | 1.2.0       | AI-powered pricing suggestions with market trend analysis |
-| CSV Data Mapper          | ✅ Active                  | 1.0.0       | A reusable React component for mapping CSV headers to target metrics with validation.  Includes a "Download Sample CSV" button.                |
+| CSV Data Mapper          | ✅ Active                  | 1.0.0       | A reusable React component for mapping CSV headers to target metrics with validation.  Includes a `toolId` prop and a "Download Sample CSV" button.                |
 | ReusableChart            | ✅ Active                  | 1.0.0       | A versatile component for rendering various types of charts, including line and bar charts.                                    |
 ```
 
@@ -64,8 +64,8 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 **Status**: ✅ Active
 **Version**: 1.1.0
 
-🔍 **Description**: Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper and Sample CSV download.
-The Overview Dashboard is a central hub for analyzing key business metrics. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools. Charts are now rendered using the ReusableChart component for improved consistency and maintainability.
+🔍 **Description**: Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download.
+The Overview Dashboard is a central hub for analyzing key business metrics. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools. The CSV Data Mapper now includes data validation to ensure data integrity. Charts are now rendered using the ReusableChart component for improved consistency and maintainability.
 
 **How to Use the Overview Dashboard:**
 
@@ -330,7 +330,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 **Status**: ✅ Active
 **Version**: 1.0.0
 
-🔍 **Description**: A reusable React component for mapping CSV headers to target metrics with validation. Includes a "Download Sample CSV" button.
+🔍 **Description**: A reusable React component for mapping CSV headers to target metrics with validation. Includes a `toolId` prop and a "Download Sample CSV" button.
 
 **Features**:
 
@@ -339,7 +339,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 - Comprehensive validation including:
   - Required field checks
   - Duplicate mapping detection
-  - Input type validation
+  - Input type validation (number, date, boolean)
 - Error handling with user feedback
 - Responsive UI with shadcn/ui components
 
@@ -370,7 +370,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 - Improved error handling and user feedback
 - Optimized performance with React memo
 
-**Current Notes**: Generally stable.
+**Current Notes**: Generally stable. Includes validation for number, date, and boolean types.
 
 ### ReusableChart
 

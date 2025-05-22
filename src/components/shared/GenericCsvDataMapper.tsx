@@ -42,6 +42,7 @@ interface GenericCsvDataMapperProps {
   title: string;
   description: string;
   toolName: string; // Add toolName prop
+  toolId?: string;
 }
 
 // Define a stable empty object for the default initialMapping
@@ -218,6 +219,56 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     toast.info('Mapping has been reset to defaults.');
   }, [targetMetrics, initialMapping, setCurrentMapping, setValidationErrors]);
 
+  const isValidNumber = (value: string): boolean => {
+    return !isNaN(Number(value));
+  };
+
+  const isValidDate = (value: string): boolean => {
+    return !isNaN(new Date(value).getTime());
+  };
+
+  const isValidBoolean = (value: string): boolean => {
+    const lowerCaseValue = value.toLowerCase();
+    return lowerCaseValue === 'true' || lowerCaseValue === 'false';
+  };
+
+  const validateValue = (
+    value: string,
+    expectedType: string,
+    label: string,
+    errors: string[],
+    header: string | null | undefined,
+  ) => {
+    if (!header) {
+      errors.push(`The field "${label}" is not mapped to any CSV column.`);
+      return;
+    }
+    switch (expectedType) {
+      case 'number':
+        if (!isValidNumber(value)) {
+          errors.push(
+            `The field "${label}" (column "${header}") should be a number. The value "${value}" is not a valid number.`,
+          );
+        }
+        break;
+      case 'date':
+        if (!isValidDate(value)) {
+          errors.push(
+            `The field "${label}" (column "${header}") should be a date. The value "${value}" is not a valid date.`,
+          );
+        }
+        break;
+      case 'boolean':
+        if (!isValidBoolean(value)) {
+          errors.push(
+            `The field "${label}" (column "${header}") should be a boolean. The value "${value}" is not a valid boolean.`,
+          );
+        }
+        break;
+      // string type doesn't need validation
+    }
+  };
+
   const validateMapping = () => {
     const errors: string[] = [];
     if (!currentMapping) {
@@ -229,6 +280,17 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     for (const field of targetMetrics) {
       if (field.required && !currentMapping[field.key]) {
         errors.push(`Please map the required field: ${field.label}`);
+      } else if (currentMapping[field.key] && sampleDataRow) {
+        const mappedValue = sampleDataRow[currentMapping[field.key] as string];
+        if (mappedValue) {
+          validateValue(
+            mappedValue,
+            field.expectedType,
+            field.label,
+            errors,
+            currentMapping[field.key] as string | null | undefined,
+          );
+        }
       }
     }
     setValidationErrors(errors);
