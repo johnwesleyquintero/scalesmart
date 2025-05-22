@@ -1,9 +1,12 @@
 // c:\\Users\\johnw\\portfolio\\src\\components\\shared\\GenericCsvDataMapper.tsx
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import fuzzysort from 'fuzzysort';
+
+import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
 import type { CsvColumnMapping } from '@/types/data-mapping';
+import stringSimilarity from 'string-similarity';
 import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 import {
   Tooltip,
@@ -19,11 +22,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Edit2 } from 'lucide-react'; // Import Edit2 icon
 import { Button } from '@/components/ui/button';
 import styles from './GenericCsvDataMapper.module.css';
 import SampleCsvButton from './sample-csv-button';
 import { db } from '@/lib/indexeddb/amazon-tools-db'; // Import the IndexedDB instance
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  // DialogClose, // We can use a button with onOpenChange
+} from '@/components/ui/dialog'; // Import Dialog components
 
 interface GenericCsvDataMapperProps {
   csvHeaders: string[];
@@ -34,6 +45,7 @@ interface GenericCsvDataMapperProps {
     expectedType: 'string' | 'number' | 'date' | 'boolean';
     hint?: string;
   }[];
+  userCsvSynonyms?: { [key: string]: string[] }; // Add userCsvSynonyms prop
   onApplyMapping?: (mapping: CsvColumnMapping) => void; // Make prop optional
   initialMapping?: CsvColumnMapping;
   isLoading?: boolean; // This prop is for parent indicating CSV data is loading
@@ -43,7 +55,42 @@ interface GenericCsvDataMapperProps {
   description: string;
   toolName: string; // Add toolName prop
   toolId?: string;
+  transformations?: {
+    trim?: boolean;
+    case?: 'upper' | 'lower' | 'title';
+    findReplace?: { find: string; replace: string }[];
+  };
 }
+
+  const calculateSimilarity = (
+    header: string,
+    targetLabel: string,
+    userSynonyms: { [key: string]: string[] } = {}
+  ): number => {
+    const headerLower = header.toLowerCase();
+    const targetLabelLower = targetLabel.toLowerCase();
+    let baseSimilarity = stringSimilarity.compareTwoStrings(
+      headerLower,
+      targetLabelLower,
+    );
+
+    // Check for synonyms
+    const synonymsForTarget = userSynonyms[targetLabel];
+    if (synonymsForTarget && synonymsForTarget.length > 0) {
+      for (const synonym of synonymsForTarget) {
+        const synonymLower = synonym.toLowerCase();
+        const synonymSimilarity = stringSimilarity.compareTwoStrings(
+          headerLower,
+          synonymLower,
+        );
+        if (synonymSimilarity > baseSimilarity) {
+          baseSimilarity = synonymSimilarity; // Prioritize synonym matches
+        }
+      }
+    }
+
+    return baseSimilarity;
+  };
 
 // Define a stable empty object for the default initialMapping
 const DEFAULT_INITIAL_MAPPING: CsvColumnMapping = Object.freeze({}); // Make it immutable too
@@ -59,6 +106,9 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
   title,
   description,
   toolName, // Destructure toolName
+  toolId,
+  userCsvSynonyms,
+  transformations,
 }) => {
   const [currentMapping, setCurrentMapping] = useState<CsvColumnMapping | null>(
     null,
@@ -70,6 +120,16 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
   >(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [synonyms, setSynonyms] = useState<{ [key: string]: string[] }>(
+    userCsvSynonyms || {},
+  );
+  // State for the transformation configuration modal
+  const [isTransformModalOpen, setIsTransformModalOpen] =
+    useState<boolean>(false);
+  const [currentTransformField, setCurrentTransformField] = useState<{
+    key: keyof DashboardMetrics;
+    label: string;
+  } | null>(null);
 
   // Effect to load saved mapping from IndexedDB or initialize from props
   useEffect(() => {
@@ -127,7 +187,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     };
 
     loadMapping();
-  }, [toolName, targetMetrics, initialMapping, db.userCsvMappings]); // Rerun if these key identifiers change
+  }, [toolName, targetMetrics, initialMapping, db.userCsvMappings, userCsvSynonyms]); // Rerun if these key identifiers change
 
   const handleSelectChange = (
     targetFieldId: keyof DashboardMetrics,
@@ -137,6 +197,95 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
       ...prev,
       [targetFieldId]: csvHeader === 'none' ? null : csvHeader,
     }));
+  };
+
+  const applyTransformations = (
+    value: string,
+    transformations?: {
+      trim?: boolean;
+      case?: 'upper' | 'lower' | 'title';
+      findReplace?: { find: string; replace: string }[];
+    },
+  ): string => {
+    let transformedValue = value;
+
+    if (transformations) {
+      if (transformations.trim) {
+        transformedValue = transformedValue.trim();
+      }
+      if (transformations.case) {
+        switch (transformations.case) {
+          case 'upper':
+            transformedValue = transformedValue.toUpperCase();
+            break;
+          case 'lower':
+            transformedValue = transformedValue.toLowerCase();
+            break;
+          case 'title':
+            transformedValue = transformedValue.replace(
+              /\w\S*/g,
+              (txt) =>
+                txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase(),
+            );
+            break;
+        }
+      }
+      if (transformations.findReplace) {
+        for (const rule of transformations.findReplace) {
+          transformedValue = transformedValue.replace(
+            new RegExp(rule.find, 'g'),
+            rule.replace,
+          );
+        }
+      }
+    }
+
+    return transformedValue;
+  };
+
+  const validateValue = (
+    value: string,
+    expectedType: string,
+    label: string,
+    errors: string[],
+    header: string | null | undefined,
+    transformations?: {
+      trim?: boolean;
+      case?: 'upper' | 'lower' | 'title';
+      findReplace?: { find: string; replace: string }[];
+    },
+  ) => {
+    if (!header) {
+      errors.push(`The field "${label}" is not mapped to any CSV column.`);
+      return;
+    }
+
+    const transformedValue = applyTransformations(value, transformations);
+
+    switch (expectedType) {
+      case 'number':
+        if (!isValidNumber(transformedValue)) {
+          errors.push(
+            `The field "${label}" (column "${header}") should be a number. The value "${value}" is not a valid number.`,
+          );
+        }
+        break;
+      case 'date':
+        if (!isValidDate(transformedValue)) {
+          errors.push(
+            `The field "${label}" (column "${header}") should be a date. The value "${value}" is not a valid date.`,
+          );
+        }
+        break;
+      case 'boolean':
+        if (!isValidBoolean(transformedValue)) {
+          errors.push(
+            `The field "${label}" (column "${header}") should be a boolean. The value "${value}" is not a valid boolean.`,
+          );
+        }
+        break;
+      // string type doesn't need validation
+    }
   };
 
   const handleApplyAndSavePrefs = async () => {
@@ -232,43 +381,6 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     return lowerCaseValue === 'true' || lowerCaseValue === 'false';
   };
 
-  const validateValue = (
-    value: string,
-    expectedType: string,
-    label: string,
-    errors: string[],
-    header: string | null | undefined,
-  ) => {
-    if (!header) {
-      errors.push(`The field "${label}" is not mapped to any CSV column.`);
-      return;
-    }
-    switch (expectedType) {
-      case 'number':
-        if (!isValidNumber(value)) {
-          errors.push(
-            `The field "${label}" (column "${header}") should be a number. The value "${value}" is not a valid number.`,
-          );
-        }
-        break;
-      case 'date':
-        if (!isValidDate(value)) {
-          errors.push(
-            `The field "${label}" (column "${header}") should be a date. The value "${value}" is not a valid date.`,
-          );
-        }
-        break;
-      case 'boolean':
-        if (!isValidBoolean(value)) {
-          errors.push(
-            `The field "${label}" (column "${header}") should be a boolean. The value "${value}" is not a valid boolean.`,
-          );
-        }
-        break;
-      // string type doesn't need validation
-    }
-  };
-
   const validateMapping = () => {
     const errors: string[] = [];
     if (!currentMapping) {
@@ -289,6 +401,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
             field.label,
             errors,
             currentMapping[field.key] as string | null | undefined,
+            transformations,
           );
         }
       }
@@ -305,7 +418,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
       // Clear preview if no sampleDataRow or csvHeaders
       setPreviewData(null);
     }
-  }, [csvHeaders, sampleDataRow]);
+  }, [csvHeaders, sampleDataRow, currentMapping, transformations, synonyms]);
 
   if (isLoading) {
     return <div className={styles.loading}>Loading CSV headers...</div>;
@@ -367,6 +480,15 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
       default:
         return null; // No specific template for other tools
     }
+  };
+
+  const getSuggestedCsvFields = (targetMetric: { key: keyof DashboardMetrics; label: string; required: boolean; expectedType: 'string' | 'number' | 'date' | 'boolean'; hint?: string; }) => {
+    const targetMetricKey = typeof targetMetric.key === 'string' ? targetMetric.key.toLowerCase() : '';
+    const results = fuzzysort.go(targetMetricKey, csvHeaders, {
+      key: (header: string) => header.toLowerCase(),
+      limit: 5, // Limit to top 5 results
+    });
+    return results.map((result) => result.obj);
   };
 
   return (
@@ -439,13 +561,41 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">-- Not Mapped --</SelectItem>
-                    {csvHeaders.map((header) => (
-                      <SelectItem key={header} value={header}>
-                        {header}
-                      </SelectItem>
-                    ))}
+                    {csvHeaders.map((header) => {
+                      const similarity = calculateSimilarity(
+                        header,
+                        field.label,
+                        synonyms, // Use the synonyms prop
+                      );
+                      const confidence = (similarity * 100).toFixed(0);
+                      return (
+                        <SelectItem key={header} value={header}>
+                          {header}{' '}
+                          {similarity > 0 && (
+                            <span className={styles.confidence}>
+                              ({confidence}%)
+                            </span>
+                          )}
+                        </SelectItem>
+                      );
+                    })}
                   </SelectContent>
                 </Select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={styles.transformButton}
+                  onClick={() => {
+                    setCurrentTransformField({
+                      key: field.key,
+                      label: field.label,
+                    });
+                    setIsTransformModalOpen(true);
+                  }}
+                  aria-label={`Configure transformations for ${field.label}`}
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
                 {validationErrors.some((error) =>
                   error.includes(field.label),
                 ) && (
@@ -529,6 +679,29 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
             Cancel
           </Button>
         </div>
+        {/* Transformation Configuration Modal */}
+        <Dialog
+          open={isTransformModalOpen}
+          onOpenChange={setIsTransformModalOpen}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                Configure Transformations for "{currentTransformField?.label}"
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p>
+                Transformation settings UI (e.g., trim, case change,
+                find/replace) for the "{currentTransformField?.label}" field
+                will be implemented here.
+              </p>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsTransformModalOpen(false)}>Close</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </TooltipProvider>
   );

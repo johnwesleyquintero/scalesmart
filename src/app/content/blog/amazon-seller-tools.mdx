@@ -1,6 +1,6 @@
 ---
 title: 'Amazon Seller Tools Suite: Current Status & Roadmap'
-date: '2025-04-21' # Updated date
+date: '2025-05-23' # Updated date
 description: 'An up-to-date guide on the status, features, and known issues of our React-based tools for Amazon sellers.'
 category: ['Amazon SEO', 'Amazon PPC', 'Amazon FBA', 'Software Development']
 tags:
@@ -17,7 +17,7 @@ tags:
 image: '/images/blog/amazon-seller-tools.svg'
 ---
 
-# 🛠 Amazon Seller Tools Suite (Updated: May 22, 2025)
+# 🛠 Amazon Seller Tools Suite (Updated: May 23, 2025)
 
 ## 🌟 Introduction
 
@@ -78,13 +78,17 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
         - A sample data row from your CSV is shown to help with mapping.
         - Required fields must be mapped.
         - Click "Apply Mapping" to process the file and save the mapping preferences, or "Cancel" to abort. You can also click "Reset" to reset the mapping to the default values.
+        - Added a transformation configuration modal to allow users to configure transformations for each mapped field.
 2.  **Viewing Data:**
     - **KPI Cards:** Display overall averages or totals for metrics like "Avg. Conversion Rate," "Total Sales," and "Avg. Clicks."
     - **Period-over-Period Comparison KPIs:** Shows key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
     - **Charts:** Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the ReusableChart component.
+    - **Data Table:** Displaying the data in a sortable and filterable table using the `MetricsDataTable` component.
 3.  **Time Granularity:** Use the "Select Time Granularity" dropdown to change the aggregation period (Daily, Weekly, Monthly, Quarterly, Yearly). Charts and KPI comparisons will update accordingly.
-4.  **Period-over-Period Comparison:** The dashboard displays period-over-period comparisons for key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS). Changes are indicated with icons (up/down arrows) and percentage differences.
-5.  **Interacting with the Dashboard:**
+4.  **Time Range Filtering:** Use the time range selector in the top right corner of each chart to filter the data by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
+5.  **Period-over-Period Comparison:** The dashboard displays period-over-period comparisons for key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS). Changes are indicated with icons (up/down arrows) and percentage differences.
+6.  **Interacting with the Dashboard:**
+    - The dashboard now displays sample data when no CSV file is uploaded.
     - **Refresh:** Click the "Refresh" button in the header to clear current data and start over.
     - **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
     - **Docs:** Links to external documentation for the Amazon Seller Tools.
@@ -378,6 +382,54 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 **Version**: 1.0.0
 
 🔍 **Description**: A versatile component for rendering various types of charts, including line and bar charts.
+
+---
+
+## ACoS Calculator
+
+The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales. It allows users to input campaign data either via CSV upload or manual entry, and then calculates and displays the ACoS and RoAS. The calculator also saves the calculation history to IndexedDB and displays it in a table, and visualizes ACoS trends over time using a chart.
+
+### Input Methods
+
+The ACoS Calculator provides two methods for inputting campaign data:
+
+-------
+- **CSV Upload:** Users can upload a CSV file containing campaign data. The CSV file should have columns for `Campaign`, `AdSpend`, and `Sales`. Optional columns include `Impressions` and `Clicks`.
+- **Manual Entry:** Users can manually enter data for a single campaign using the `ManualCalculationForm` component.
+
+### Manual Calculation Form
+
+The `ManualCalculationForm` component (`src/components/amazon-seller-tools/ManualCalculationForm.tsx`) allows users to manually enter data for a single campaign. The form includes the following fields:
+
+- **Campaign Name:** The name of the campaign.
+- **Ad Spend ($):** The amount spent on advertising.
+- **Sales ($):** The revenue generated from advertising.
+- **Impressions:** The number of impressions.
+- **Clicks:** The number of clicks.
+
+### ACoS Rating Guide
+
+The `AcosRatingGuide` component (`src/components/amazon-seller-tools/AcosRatingGuide.tsx`) displays a guide for interpreting ACoS values. The guide includes the following ratings:
+
+- **Excellent:** ACoS is less than 15%.
+- **Good:** ACoS is between 15% and 25%.
+- **Okay:** ACoS is between 25% and 35%.
+- **Poor:** ACoS is greater than 35%.
+
+### Calculation History Table
+
+The `CalculationHistoryTable` component (`src/components/amazon-seller-tools/CalculationHistoryTable.tsx`) displays a table of the calculation history, including the following columns:
+
+- Campaign
+- Date
+- Ad Spend
+- Sales
+- ACoS
+- RoAS
+
+### ACoS Trend Chart
+
+The `AcosTrendChart` component (`src/components/amazon-seller-tools/AcosTrendChart.tsx`) visualizes the ACoS over time using a line chart. The chart displays the ACoS values for each saved calculation, allowing users to track ACoS trends.
 
 ---
 

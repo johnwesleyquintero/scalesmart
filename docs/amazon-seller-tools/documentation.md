@@ -36,16 +36,16 @@ The "Overview" tab is the primary landing spot for data analysis.
 2.  **Select your CSV file:** Choose an Amazon Business Report (or a similarly structured CSV) from your computer.
 3.  **Column Mapping:**
 
-    - After selecting a file, a "Map Report Columns" interface powered by the `OverviewDataMapper` component will appear.
-    - This interface displays headers from your CSV file and target fields required by the dashboard (e.g., 'Date', 'Total Sales', 'Ad Spend').
-    - For each target field, select the corresponding column from your CSV using the dropdown menus.
-    - Hints are provided for each target field to guide you.
-    - A sample data row from your CSV is shown to help with mapping and validation.
-    - Required fields (like 'Date') must be mapped.
-    - Click "Apply Mapping" to process the file and save the mapping preferences, or "Cancel" to abort. You can also click "Reset" to reset the mapping to the default values.
+    - After selecting a file, the "CSV Format Requirements" section will display the required columns for the report.
+    - Each required column is listed with a brief description to help you understand the expected data.
+    - Ensure that your CSV file contains columns that correspond to the required columns.
+    - The column names in your CSV file do not need to match the required column names exactly, but the data in those columns must be consistent with the descriptions provided.
+    - Once you have verified that your CSV file contains the required data, you can proceed with uploading the file.
 
-    !Data Mapper UI Placeholder
-    _(Ideally, replace this with an actual screenshot of the OverviewDataMapper component in action)_
+    !Data Mapper UI Placeholder - UPDATE THIS WITH A SCREENSHOT OF THE UPDATED CSVUPLOADER COMPONENT
+    _(Ideally, replace this with an actual screenshot of the CsvUploader component in action)_
+
+- Added a transformation configuration modal to allow users to configure transformations for each mapped field.
 
 ### 3.2. Viewing Data
 
@@ -176,16 +176,15 @@ Each of these tools is a self-contained component designed for a specific task.
 
 ## 6. ACoS Calculator
 
-:start_line:177
+
 -------
- 
+
 The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales. It allows users to input campaign data either via CSV upload or manual entry, and then calculates and displays the ACoS and RoAS. The calculator also saves the calculation history to IndexedDB and displays it in a table, and visualizes ACoS trends over time using a chart.
 
 ### 6.1. Input Methods
 
 The ACoS Calculator provides two methods for inputting campaign data:
 
-:start_line:184
 -------
 - **CSV Upload:** Users can upload a CSV file containing campaign data. The CSV file should have columns for `Campaign`, `AdSpend`, and `Sales`. Optional columns include `Impressions` and `Clicks`.
 - **Manual Entry:** Users can manually enter data for a single campaign using the `ManualCalculationForm` component.
@@ -235,7 +234,7 @@ The `AcosTrendChart` component (`src/components/amazon-seller-tools/AcosTrendCha
 - IndexedDB: IndexedDB for local data storage (for calculation history).
 - Supabase: Supabase for application configurations.
 - Logging: Added logging to the `handleDownloadSampleCsv` function in `src/app/amazon-seller-tools/page.tsx` and `src/components/shared/GenericCsvDataMapper.tsx`.
-:start_line:232
+
 -------
 - New Components: `AcosRatingGuide`, `CalculationHistoryTable`, `ManualCalculationForm`, and `AcosTrendChart`.
 - Utility Files: `src/lib/amazon-tools/acos-calculator-utils.ts` and `src/lib/amazon-tools/metrics.ts`.
@@ -249,8 +248,6 @@ export interface CampaignData {
   campaign: string;
   adSpend: number;
   sales: number;
-  impressions?: number;
-  clicks?: number;
   acos: number;
   roas: number;
   date: string;
@@ -333,7 +330,6 @@ function MyComponent() {
 }
 ```
 
-:start_line:311
 -------
 ## 12. IndexedDB Integration
 
@@ -507,4 +503,3 @@ export interface CampaignData {
   roas: number;
   date: string;
 }
-```
