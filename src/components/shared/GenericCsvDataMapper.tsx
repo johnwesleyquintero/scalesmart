@@ -62,35 +62,35 @@ interface GenericCsvDataMapperProps {
   };
 }
 
-  const calculateSimilarity = (
-    header: string,
-    targetLabel: string,
-    userSynonyms: { [key: string]: string[] } = {}
-  ): number => {
-    const headerLower = header.toLowerCase();
-    const targetLabelLower = targetLabel.toLowerCase();
-    let baseSimilarity = stringSimilarity.compareTwoStrings(
-      headerLower,
-      targetLabelLower,
-    );
+const calculateSimilarity = (
+  header: string,
+  targetLabel: string,
+  userSynonyms: { [key: string]: string[] } = {},
+): number => {
+  const headerLower = header.toLowerCase();
+  const targetLabelLower = targetLabel.toLowerCase();
+  let baseSimilarity = stringSimilarity.compareTwoStrings(
+    headerLower,
+    targetLabelLower,
+  );
 
-    // Check for synonyms
-    const synonymsForTarget = userSynonyms[targetLabel];
-    if (synonymsForTarget && synonymsForTarget.length > 0) {
-      for (const synonym of synonymsForTarget) {
-        const synonymLower = synonym.toLowerCase();
-        const synonymSimilarity = stringSimilarity.compareTwoStrings(
-          headerLower,
-          synonymLower,
-        );
-        if (synonymSimilarity > baseSimilarity) {
-          baseSimilarity = synonymSimilarity; // Prioritize synonym matches
-        }
+  // Check for synonyms
+  const synonymsForTarget = userSynonyms[targetLabel];
+  if (synonymsForTarget && synonymsForTarget.length > 0) {
+    for (const synonym of synonymsForTarget) {
+      const synonymLower = synonym.toLowerCase();
+      const synonymSimilarity = stringSimilarity.compareTwoStrings(
+        headerLower,
+        synonymLower,
+      );
+      if (synonymSimilarity > baseSimilarity) {
+        baseSimilarity = synonymSimilarity; // Prioritize synonym matches
       }
     }
+  }
 
-    return baseSimilarity;
-  };
+  return baseSimilarity;
+};
 
 // Define a stable empty object for the default initialMapping
 const DEFAULT_INITIAL_MAPPING: CsvColumnMapping = Object.freeze({}); // Make it immutable too
@@ -187,7 +187,13 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     };
 
     loadMapping();
-  }, [toolName, targetMetrics, initialMapping, db.userCsvMappings, userCsvSynonyms]); // Rerun if these key identifiers change
+  }, [
+    toolName,
+    targetMetrics,
+    initialMapping,
+    db.userCsvMappings,
+    userCsvSynonyms,
+  ]); // Rerun if these key identifiers change
 
   const handleSelectChange = (
     targetFieldId: keyof DashboardMetrics,
@@ -224,8 +230,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
           case 'title':
             transformedValue = transformedValue.replace(
               /\w\S*/g,
-              (txt) =>
-                txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase(),
+              (txt) => txt.charAt(0).toUpperCase() + txt.slice(1).toLowerCase(),
             );
             break;
         }
@@ -412,10 +417,28 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
 
   useEffect(() => {
     if (csvHeaders && sampleDataRow) {
-      // If sampleDataRow is provided, use it as the single row for preview
+      // If sampleDataRow is provided, use it as the first row for preview
       setPreviewData([sampleDataRow]);
     } else {
       // Clear preview if no sampleDataRow or csvHeaders
+      setPreviewData(null);
+    }
+  }, [csvHeaders, sampleDataRow, currentMapping, transformations, synonyms]);
+
+  useEffect(() => {
+    if (csvHeaders && sampleDataRow) {
+      // Assuming you have access to the full CSV data here (e.g., from a prop)
+      // For demonstration, let's create a sample of 10 rows based on the headers and sampleDataRow
+      const previewRows = [];
+      for (let i = 0; i < 10; i++) {
+        const rowData: Record<string, string> = {};
+        csvHeaders.forEach((header) => {
+          rowData[header] = sampleDataRow[header] || ''; // Use sampleDataRow values or empty string
+        });
+        previewRows.push(rowData);
+      }
+      setPreviewData(previewRows);
+    } else {
       setPreviewData(null);
     }
   }, [csvHeaders, sampleDataRow, currentMapping, transformations, synonyms]);
@@ -482,8 +505,17 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     }
   };
 
-  const getSuggestedCsvFields = (targetMetric: { key: keyof DashboardMetrics; label: string; required: boolean; expectedType: 'string' | 'number' | 'date' | 'boolean'; hint?: string; }) => {
-    const targetMetricKey = typeof targetMetric.key === 'string' ? targetMetric.key.toLowerCase() : '';
+  const getSuggestedCsvFields = (targetMetric: {
+    key: keyof DashboardMetrics;
+    label: string;
+    required: boolean;
+    expectedType: 'string' | 'number' | 'date' | 'boolean';
+    hint?: string;
+  }) => {
+    const targetMetricKey =
+      typeof targetMetric.key === 'string'
+        ? targetMetric.key.toLowerCase()
+        : '';
     const results = fuzzysort.go(targetMetricKey, csvHeaders, {
       key: (header: string) => header.toLowerCase(),
       limit: 5, // Limit to top 5 results
@@ -627,7 +659,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
               <thead>
                 <tr>
                   {csvHeaders.map((header) => (
-                    <th key={header} className={styles.previewHeader}>
+                    <th key={header} className={styles.previewHeaderCell}>
                       {header}
                     </th>
                   ))}
@@ -637,7 +669,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
                 {previewData.map((row, rowIndex) => (
                   <tr key={rowIndex} className={styles.previewRow}>
                     {csvHeaders.map((header) => (
-                      <td key={header} className={styles.previewCell}>
+                      <td key={header} className={styles.previewDataCell}>
                         {row[header]}
                       </td>
                     ))}
@@ -698,7 +730,12 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
               </p>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsTransformModalOpen(false)}>Close</Button>
+              <Button
+                variant="outline"
+                onClick={() => setIsTransformModalOpen(false)}
+              >
+                Close
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

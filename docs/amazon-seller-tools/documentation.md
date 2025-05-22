@@ -82,6 +82,8 @@ Once mapping is complete and the data is processed:
 
 - **Refresh:** Click the "Refresh" button in the `DashboardHeader` to clear current data and start over (e.g., to upload a new file).
 - **Export:** Click the "Export" button in the `DashboardHeader` to download the currently processed and aggregated dashboard metrics as a CSV file.
+- **Print:** Click the "Print" button in the `DashboardHeader` to print the dashboard report.
+- **Download PDF:** Click the "Download PDF" button in the `DashboardHeader` to download the dashboard report as a PDF file.
 - **Docs:** Links to external documentation for the Amazon Seller Tools, located in the `DashboardHeader`.
 - **Error Handling:** If issues occur during file upload, parsing, or mapping, an error message will be displayed in the `DashboardHeader` or `OverviewTab`. You'll often have an option to "Try uploading again."
 
@@ -175,9 +177,9 @@ The Competitor Analyzer is a tool for analyzing competitor products and strategi
 Each of these tools is a self-contained component designed for a specific task.
 
 ## 6. ACoS Calculator
+---
 
-
--------
+---
 
 The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales. It allows users to input campaign data either via CSV upload or manual entry, and then calculates and displays the ACoS and RoAS. The calculator also saves the calculation history to IndexedDB and displays it in a table, and visualizes ACoS trends over time using a chart.
 
@@ -185,9 +187,45 @@ The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a too
 
 The ACoS Calculator provides two methods for inputting campaign data:
 
--------
+---
+
 - **CSV Upload:** Users can upload a CSV file containing campaign data. The CSV file should have columns for `Campaign`, `AdSpend`, and `Sales`. Optional columns include `Impressions` and `Clicks`.
 - **Manual Entry:** Users can manually enter data for a single campaign using the `ManualCalculationForm` component.
+
+### 6.2. Manual Calculation Form
+
+The `ManualCalculationForm` component (`src/components/amazon-seller-tools/ManualCalculationForm.tsx`) allows users to manually enter data for a single campaign. The form includes the following fields:
+
+- **Campaign Name:** The name of the campaign.
+- **Ad Spend ($):** The amount spent on advertising.
+- **Sales ($):** The revenue generated from advertising.
+- **Impressions:** The number of impressions.
+- **Clicks:** The number of clicks.
+- **Clear History:** A button to clear the calculation history.
+
+### 6.3. ACoS Rating Guide
+
+The `AcosRatingGuide` component (`src/components/amazon-seller-tools/AcosRatingGuide.tsx`) displays a guide for interpreting ACoS values. The guide includes the following ratings:
+
+- **Excellent:** ACoS is less than 15%.
+- **Good:** ACoS is between 15% and 25%.
+- **Okay:** ACoS is between 25% and 35%.
+- **Poor:** ACoS is greater than 35%.
+
+### 6.4. Calculation History Table
+
+The `CalculationHistoryTable` component (`src/components/amazon-seller-tools/CalculationHistoryTable.tsx`) displays a table of the calculation history, including the following columns:
+
+- Campaign
+- Date
+- Ad Spend
+- Sales
+- ACoS
+- RoAS
+
+### 6.5. ACoS Trend Chart
+
+The `AcosTrendChart` component (`src/components/amazon-seller-tools/AcosTrendChart.tsx`) visualizes the ACoS over time using a line chart. The chart displays the ACoS values for each saved calculation, allowing users to track ACoS trends.
 
 ### 6.2. Manual Calculation Form
 
@@ -235,7 +273,25 @@ The `AcosTrendChart` component (`src/components/amazon-seller-tools/AcosTrendCha
 - Supabase: Supabase for application configurations.
 - Logging: Added logging to the `handleDownloadSampleCsv` function in `src/app/amazon-seller-tools/page.tsx` and `src/components/shared/GenericCsvDataMapper.tsx`.
 
--------
+---
+
+- New Components: `AcosRatingGuide`, `CalculationHistoryTable`, `ManualCalculationForm`, and `AcosTrendChart`.
+- Utility Files: `src/lib/amazon-tools/acos-calculator-utils.ts` and `src/lib/amazon-tools/metrics.ts`.
+
+## 7. Technical Notes
+
+- Frontend: Built with TypeScript and React (Next.js).
+- UI Components: Uses Shadcn UI components (Button, Card, Tabs, Select, Alert).
+- Charting: Recharts library for data visualization.
+- CSV Parsing: PapaParse library for handling CSV file uploads, primarily within the `OverviewTab` component.
+- Date Manipulation: date-fns library for handling dates and time granularities.
+- State Management: React's useState and useRef hooks.
+- IndexedDB: IndexedDB for local data storage (for calculation history).
+- Supabase: Supabase for application configurations.
+- Logging: Added logging to the `handleDownloadSampleCsv` function in `src/app/amazon-seller-tools/page.tsx` and `src/components/shared/GenericCsvDataMapper.tsx`.
+
+---
+
 - New Components: `AcosRatingGuide`, `CalculationHistoryTable`, `ManualCalculationForm`, and `AcosTrendChart`.
 - Utility Files: `src/lib/amazon-tools/acos-calculator-utils.ts` and `src/lib/amazon-tools/metrics.ts`.
 
@@ -330,7 +386,8 @@ function MyComponent() {
 }
 ```
 
--------
+---
+
 ## 12. IndexedDB Integration
 
 IndexedDB is used for local, browser-based data storage. This allows the tools to store user-specific data, such as saved calculations and preferences, improving performance and enabling offline functionality. The ACoS calculator now stores calculation history in IndexedDB. See [IndexedDB Integration Documentation](data-storage/indexeddb_integration.md) for more details. The `indexeddb-service.ts` file provides an interface for interacting with the IndexedDB database.
@@ -503,3 +560,4 @@ export interface CampaignData {
   roas: number;
   date: string;
 }
+```

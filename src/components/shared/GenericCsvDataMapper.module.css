@@ -121,6 +121,7 @@
 
 .previewContainer {
   /* Assuming this class is used in your TSX for the preview section */
+  overflow-x: auto; /* Allows horizontal scrolling for wide tables */
   margin-top: 2rem; /* Add some space above the preview */
 }
 
@@ -130,6 +131,51 @@
   font-weight: 600;
   color: #2d3748; /* Gray-800 */
   margin-bottom: 1rem;
+}
+
+.previewTable {
+  width: 100%; /* Makes the table try to fill the container width */
+  border-collapse: collapse; /* Ensures borders are neat and single-lined */
+  font-size: 0.875rem; /* 14px if base is 16px, good for data tables */
+  margin-top: 0.5rem; /* Adds a bit of space between the title and the table */
+}
+
+.previewHeaderCell,
+.previewDataCell {
+  border: 1px solid #e2e8f0; /* Gray-200, consistent with other borders */
+  padding: 0.5rem 0.75rem; /* Consistent padding: 8px 12px */
+  text-align: left; /* Standard for table data */
+  white-space: nowrap; /* Prevents text from wrapping, relies on horizontal scroll for long content */
+  vertical-align: top; /* Aligns content to the top of the cell */
+}
+
+.previewHeaderCell {
+  background-color: #f7fafc; /* Gray-100, for a light header background */
+  font-weight: 600; /* Semi-bold, consistent with .mappingHeaderRow */
+  color: #2d3748; /* Gray-800, for header text */
+}
+
+.previewDataCell {
+  color: #4a5568; /* Gray-700, for data cell text */
+}
+
+.previewHeaderCell,
+.previewDataCell {
+  border: 1px solid #e2e8f0; /* Gray-200, consistent with other borders */
+  padding: 0.5rem 0.75rem; /* Consistent padding: 8px 12px */
+  text-align: left; /* Standard for table data */
+  white-space: nowrap; /* Prevents text from wrapping, relies on horizontal scroll for long content */
+  vertical-align: top; /* Aligns content to the top of the cell */
+}
+
+.previewHeaderCell {
+  background-color: #f7fafc; /* Gray-100, for a light header background */
+  font-weight: 600; /* Semi-bold, consistent with .mappingHeaderRow */
+  color: #2d3748; /* Gray-800, for header text */
+}
+
+.previewDataCell {
+  color: #4a5568; /* Gray-700, for data cell text */
 }
 
 .selectError {

@@ -2,7 +2,10 @@
 
 import { Button } from '@/components/ui/button';
 import { BookOpen, Download, Loader2, RefreshCw } from 'lucide-react';
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
+import { PDFDownloadLink } from '@react-pdf/renderer';
+import DashboardPdf from './DashboardPdf';
+import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 
 interface DashboardHeaderProps {
   isLoading: boolean;
@@ -11,6 +14,7 @@ interface DashboardHeaderProps {
   metricsLength: number;
   handleRefresh: () => void;
   handleExport: () => void;
+  metrics: DashboardMetrics[];
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -20,7 +24,20 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   metricsLength,
   handleRefresh,
   handleExport,
+  metrics,
 }) => {
+  const [pdfData, setPdfData] = useState<{
+    title: string;
+    content: string;
+  } | null>(null);
+
+  const handlePrint = useCallback(() => {
+    // Prepare data for the PDF
+    const title = 'Dashboard Report';
+    const content = JSON.stringify(metrics, null, 2); // Convert metrics to string for PDF
+    setPdfData({ title, content });
+  }, [metrics]);
+
   return (
     <div className="mb-12" aria-live="polite">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -56,6 +73,36 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           >
             <Download className="w-4 h-4 mr-2" /> Export
           </Button>
+          <Button
+            variant="outline"
+            onClick={handlePrint}
+            aria-label="Print Report"
+            disabled={metricsLength === 0 || isLoading || isParsing}
+          >
+            Print
+          </Button>
+          {pdfData && (
+            <PDFDownloadLink
+              document={
+                <DashboardPdf title={pdfData.title} content={pdfData.content} />
+              }
+              fileName="dashboard.pdf"
+            >
+              {({ loading }) =>
+                loading ? (
+                  'Loading document...'
+                ) : (
+                  <Button
+                    variant="outline"
+                    aria-label="Download PDF"
+                    disabled={loading}
+                  >
+                    <Download className="w-4 h-4 mr-2" /> Download PDF
+                  </Button>
+                )
+              }
+            </PDFDownloadLink>
+          )}
           <Button variant="outline" asChild aria-label="View Documentation">
             <a
               href="https://wescode.vercel.app/blog/amazon-seller-tools"

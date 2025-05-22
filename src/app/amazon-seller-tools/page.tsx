@@ -255,6 +255,7 @@ export default function UnifiedDashboard() {
         metricsLength={metrics.length}
         handleRefresh={handleRefresh}
         handleExport={() => setError('No data to export.')}
+        metrics={metrics}
       />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-4 flex flex-wrap h-auto justify-start">

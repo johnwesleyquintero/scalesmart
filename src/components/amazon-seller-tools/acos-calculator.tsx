@@ -134,6 +134,16 @@ export default function AcosCalculator() {
           if (isNaN(sales) || sales <= 0) {
             throw new Error('Sales must be a valid positive number');
           }
+          const impressions = Number(row.impressions);
+          const clicks = Number(row.clicks);
+
+          if (isNaN(impressions) || impressions < 0) {
+            throw new Error('Impressions must be a non-negative number');
+          }
+
+          if (isNaN(clicks) || clicks < 0) {
+            throw new Error('Clicks must be a non-negative number');
+          }
           return result as CampaignData;
         } catch (error) {
           throw new Error(
@@ -487,6 +497,7 @@ export default function AcosCalculator() {
           availableMetrics={availableMetrics}
         />
       </div>
+      <Button onClick={clearData}>Clear History</Button>
     </div>
   );
 }
