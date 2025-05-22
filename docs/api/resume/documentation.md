@@ -27,9 +27,21 @@ The `src/app/api/resume/analyze/route.ts` file defines an API endpoint that anal
 ```json
 {
   "score": 75,
-  "strengths": ["Strong work experience", "Good skills section", "Clear communication skills"],
-  "weaknesses": ["Missing keywords", "Poor formatting", "Lack of quantifiable results"],
-  "suggestions": ["Add more keywords related to the job description", "Improve formatting to be more ATS-friendly", "Quantify your achievements with numbers and data"],
+  "strengths": [
+    "Strong work experience",
+    "Good skills section",
+    "Clear communication skills"
+  ],
+  "weaknesses": [
+    "Missing keywords",
+    "Poor formatting",
+    "Lack of quantifiable results"
+  ],
+  "suggestions": [
+    "Add more keywords related to the job description",
+    "Improve formatting to be more ATS-friendly",
+    "Quantify your achievements with numbers and data"
+  ],
   "keywords": {
     "present": ["JavaScript", "React", "Node.js", "HTML", "CSS"],
     "missing": ["TypeScript", "Next.js", "Redux", "GraphQL"]
@@ -39,3 +51,4 @@ The `src/app/api/resume/analyze/route.ts` file defines an API endpoint that anal
     "missing": ["Projects", "Awards", "Certifications"]
   }
 }
+```

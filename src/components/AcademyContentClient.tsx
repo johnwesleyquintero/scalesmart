@@ -174,8 +174,7 @@ function AcademyContentClient({
                         course.slug === recommendedCourse.slug,
                     )
                   : true,
-              )
-            }
+              )}
             filter={filter}
             sort={sort}
           />
@@ -183,7 +182,8 @@ function AcademyContentClient({
       ) : (
         <>
           <div>
-            <Button onClick={handleBackToCourses}
+            <Button
+              onClick={handleBackToCourses}
               variant="outline"
               className="mb-4"
               aria-label="Back to Courses"

@@ -21,19 +21,17 @@ export const SalesTrendsChart: React.FC<SalesTrendsChartProps> = ({
   ];
 
   return (
-    
-      <ReusableChart
-        sortedMetrics={sortedMetrics}
-        granularity={granularity}
-        chartType="line"
-        xAxisDataKey="date"
-        yAxisDataKeys={['total_sales']}
-        colors={['#8884d8']}
-        labels={[SALES_LABEL]}
-        title="Total Sales Trends"
-        yAxisFormatter={yAxisFormatter}
-        tooltipFormatter={tooltipFormatter}
-      />
-    
+    <ReusableChart
+      sortedMetrics={sortedMetrics}
+      granularity={granularity}
+      chartType="line"
+      xAxisDataKey="date"
+      yAxisDataKeys={['total_sales']}
+      colors={['#8884d8']}
+      labels={[SALES_LABEL]}
+      title="Total Sales Trends"
+      yAxisFormatter={yAxisFormatter}
+      tooltipFormatter={tooltipFormatter}
+    />
   );
 };

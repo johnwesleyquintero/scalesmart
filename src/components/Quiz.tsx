@@ -65,6 +65,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
           metadata: {
             level: 'Beginner',
             tags: [],
+            category: 'Quiz',
           },
         },
       ],
