@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/select';
 import { useState } from 'react';
 
-interface Currency {
+export interface Currency {
   label: string;
   value: string;
   symbol: string;

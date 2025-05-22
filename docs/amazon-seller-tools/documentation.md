@@ -176,54 +176,53 @@ Each of these tools is a self-contained component designed for a specific task.
 
 ## 6. ACoS Calculator
 
-The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales. It allows users to input Ad Spend and Ad Sales, and then calculates and displays the ACoS and RoAS. The calculator also saves the calculation history to IndexedDB and displays it in a table, and visualizes ACoS trends over time using a chart.
+:start_line:177
+-------
+ 
+The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales. It allows users to input campaign data either via CSV upload or manual entry, and then calculates and displays the ACoS and RoAS. The calculator also saves the calculation history to IndexedDB and displays it in a table, and visualizes ACoS trends over time using a chart.
 
-## 6.1. Input Fields
+### 6.1. Input Methods
 
-The ACoS Calculator includes the following input fields:
+The ACoS Calculator provides two methods for inputting campaign data:
 
-- **Ad Spend:** The amount spent on advertising.
-- **Ad Sales:** The revenue generated from advertising.
-- **Campaign Name (Optional):** The name of the advertising campaign.
-- **Product Identifier (Optional):** The product identifier (e.g., ASIN, SKU).
-- **Target ACoS:** The target Advertising Cost of Sales percentage.
+:start_line:184
+-------
+- **CSV Upload:** Users can upload a CSV file containing campaign data. The CSV file should have columns for `Campaign`, `AdSpend`, and `Sales`. Optional columns include `Impressions` and `Clicks`.
+- **Manual Entry:** Users can manually enter data for a single campaign using the `ManualCalculationForm` component.
 
-## 6.2. Calculation and Display
+### 6.2. Manual Calculation Form
 
-The ACoS and RoAS are calculated based on the following formulas:
+The `ManualCalculationForm` component (`src/components/amazon-seller-tools/ManualCalculationForm.tsx`) allows users to manually enter data for a single campaign. The form includes the following fields:
 
-- **ACoS:** `(Ad Spend / Ad Sales) * 100`
-- **RoAS:** `Ad Sales / Ad Spend`
+- **Campaign Name:** The name of the campaign.
+- **Ad Spend ($):** The amount spent on advertising.
+- **Sales ($):** The revenue generated from advertising.
+- **Impressions:** The number of impressions.
+- **Clicks:** The number of clicks.
 
-The calculated ACoS is displayed with a green background if it's less than or equal to the Target ACoS, and a red background if it's greater than the Target ACoS.
+### 6.3. ACoS Rating Guide
 
-## 6.3. Saving Calculations
+The `AcosRatingGuide` component (`src/components/amazon-seller-tools/AcosRatingGuide.tsx`) displays a guide for interpreting ACoS values. The guide includes the following ratings:
 
-When the "Save Calculation" button is clicked, the following data is saved to IndexedDB:
+- **Excellent:** ACoS is less than 15%.
+- **Good:** ACoS is between 15% and 25%.
+- **Okay:** ACoS is between 25% and 35%.
+- **Poor:** ACoS is greater than 35%.
 
-- `date`: The date of the calculation.
-- `campaignName`: The campaign name (if provided).
-- `productIdentifier`: The product identifier (if provided).
-- `adSpend`: The ad spend.
-- `adSales`: The ad sales.
-- `acos`: The calculated ACoS.
-- `roas`: The calculated RoAS.
+### 6.4. Calculation History Table
 
-## 6.4. Calculation History
+The `CalculationHistoryTable` component (`src/components/amazon-seller-tools/CalculationHistoryTable.tsx`) displays a table of the calculation history, including the following columns:
 
-The ACoS Calculator displays a table of the calculation history, including the following columns:
-
+- Campaign
 - Date
-- Campaign Name
-- Product Identifier
 - Ad Spend
-- Ad Sales
+- Sales
 - ACoS
 - RoAS
 
-## 6.5. ACoS Chart
+### 6.5. ACoS Trend Chart
 
-The ACoS Calculator visualizes the ACoS over time using a line chart. The chart displays the ACoS values for each saved calculation, allowing users to track ACoS trends.
+The `AcosTrendChart` component (`src/components/amazon-seller-tools/AcosTrendChart.tsx`) visualizes the ACoS over time using a line chart. The chart displays the ACoS values for each saved calculation, allowing users to track ACoS trends.
 
 ## 7. Technical Notes
 
@@ -236,6 +235,27 @@ The ACoS Calculator visualizes the ACoS over time using a line chart. The chart 
 - IndexedDB: IndexedDB for local data storage (for calculation history).
 - Supabase: Supabase for application configurations.
 - Logging: Added logging to the `handleDownloadSampleCsv` function in `src/app/amazon-seller-tools/page.tsx` and `src/components/shared/GenericCsvDataMapper.tsx`.
+:start_line:232
+-------
+- New Components: `AcosRatingGuide`, `CalculationHistoryTable`, `ManualCalculationForm`, and `AcosTrendChart`.
+- Utility Files: `src/lib/amazon-tools/acos-calculator-utils.ts` and `src/lib/amazon-tools/metrics.ts`.
+
+## 7. Data Structure (`CampaignData` Interface)
+
+The dashboard processes uploaded data and manual input into a standardized `CampaignData` object. Key fields include:
+
+```typescript
+export interface CampaignData {
+  campaign: string;
+  adSpend: number;
+  sales: number;
+  impressions?: number;
+  clicks?: number;
+  acos: number;
+  roas: number;
+  date: string;
+}
+```
 
 ## 8. ReusableChart Component
 
@@ -313,9 +333,11 @@ function MyComponent() {
 }
 ```
 
+:start_line:311
+-------
 ## 12. IndexedDB Integration
 
-IndexedDB is used for local, browser-based data storage. This allows the tools to store user-specific data, such as saved calculations and preferences, improving performance and enabling offline functionality. The ACoS calculator now stores calculation history in IndexedDB. The `indexeddb-service.ts` file provides an interface for interacting with the IndexedDB database.
+IndexedDB is used for local, browser-based data storage. This allows the tools to store user-specific data, such as saved calculations and preferences, improving performance and enabling offline functionality. The ACoS calculator now stores calculation history in IndexedDB. See [IndexedDB Integration Documentation](data-storage/indexeddb_integration.md) for more details. The `indexeddb-service.ts` file provides an interface for interacting with the IndexedDB database.
 
 ## 13. Supabase Integration
 
@@ -442,41 +464,23 @@ This section outlines the key areas for improvement for the Amazon Seller Tools 
 
 A sample CSV file (sample_amazon_data.csv) can be downloaded via the "Download Sample CSV" button on the initial "Overview" tab. This file demonstrates the expected data structure and can be used to test the dashboard's functionality without your own data. The sample data includes columns like:
 
-- Date
-- ASIN
-- Ordered product sales
-- Total order items
-- Sessions
-- Page Views
-- Impressions (Ad)
-- Clicks (Ad)
-- Spend (Ad)
-- Sales (Ad)
-- Orders (Ad)
-- Targeted Keyword
-- Keyword Ad Impressions
-- Keyword Ad Clicks
-- Keyword Ad Spend
-- Keyword Ad Sales (7-day)
-- Keyword Ad Orders (7-day)
-
-* - Date
-* - ASIN
-* - Targeted Keyword
-* - Ordered product sales
-* - Total order items
-* - Sessions
-* - Page Views
-* - Impressions (Ad)
-* - Clicks (Ad)
-* - Spend (Ad)
-* - Sales (Ad)
-* - Orders (Ad)
-* - Keyword Ad Impressions
-* - Keyword Ad Clicks
-* - Keyword Ad Spend
-* - Keyword Ad Sales (7-day)
-* - Keyword Ad Orders (7-day)
+- - Date
+- - ASIN
+- - Targeted Keyword
+- - Ordered product sales
+- - Total order items
+- - Sessions
+- - Page Views
+- - Impressions (Ad)
+- - Clicks (Ad)
+- - Spend (Ad)
+- - Sales (Ad)
+- - Orders (Ad)
+- - Keyword Ad Impressions
+- - Keyword Ad Clicks
+- - Keyword Ad Spend
+- - Keyword Ad Sales (7-day)
+- - Keyword Ad Orders (7-day)
 
 ## 17. OverviewDataTable Component
 
@@ -492,8 +496,15 @@ The `OverviewDataTable` component (`src/components/amazon-seller-tools/overview/
 
 The `KeywordPerformanceTable` component (`src/components/amazon-seller-tools/KeywordPerformanceTable.tsx`) is a reusable component that displays keyword performance data in a sortable and filterable table. It now includes filtering based on ASIN and keyword, and the table headers have been updated.
 
-- **Props:**
+## 19. CampaignData Interface
 
-  - `metrics`: An array of `DashboardMetrics` objects containing the keyword performance data to be displayed.
-  - `targetMetricsConfig`: An array of `TargetMetricConfig` objects containing the target metrics configuration.
-  - `isLoading`: A boolean indicating whether the dashboard is loading.
+```typescript
+export interface CampaignData {
+  campaign: string;
+  adSpend: number;
+  sales: number;
+  acos: number;
+  roas: number;
+  date: string;
+}
+```

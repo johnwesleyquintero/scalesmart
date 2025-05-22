@@ -118,8 +118,25 @@ export async function getItem<T>(key: string): Promise<T | undefined> {
 }
 
 export async function saveCalculation(data: CalculationData): Promise<void> {
-  // TODO: Implement saveCalculation
-  console.log('saveCalculation called with:', data);
+  if (!db) {
+    await initializeDB();
+  }
+
+  try {
+    await db.transaction('rw', db.cache, async () => {
+      await db.cache.put({
+        key: `calculation-${data.campaignName}-${data.date}`,
+        value: data,
+      });
+      console.log('Calculation saved to IndexedDB:', data);
+    });
+  } catch (error) {
+    logError(
+      error,
+      `Error saving calculation to IndexedDB: ${data.campaignName}`,
+      'IndexedDBService',
+    );
+  }
 }
 
 export async function setItem<T>(key: string, value: T): Promise<void> {
@@ -138,9 +155,27 @@ export async function setItem<T>(key: string, value: T): Promise<void> {
 }
 
 export async function getCalculations(): Promise<CalculationData[]> {
-  // TODO: Implement getCalculations
-  console.log('getCalculations called');
-  return [];
+  if (!db) {
+    await initializeDB();
+  }
+
+  try {
+    const calculations: CalculationData[] = [];
+    await db.cache.each((item) => {
+      if (item.key.startsWith('calculation-')) {
+        calculations.push(item.value as CalculationData);
+      }
+    });
+    console.log('getCalculations returning:', calculations);
+    return calculations;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting calculations from IndexedDB`,
+      'IndexedDBService',
+    );
+    return [];
+  }
 }
 
 export interface CalculationData {

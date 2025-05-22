@@ -15,6 +15,7 @@ import {
   Progress,
 } from '@/components/ui';
 import { type MetricKey } from '@/lib/amazon-tools/types';
+import { CampaignData } from '@/lib/amazon-tools/metrics';
 import { logError } from '@/lib/error-handling';
 import {
   campaignHeaders,
@@ -23,9 +24,10 @@ import {
 import { useCsvParser } from '@/lib/hooks/use-csv-parser';
 import { monetaryValueSchema, numberSchema } from '@/lib/input-validation';
 import { AlertCircle, Download, Info, Upload, X, XCircle } from 'lucide-react';
+import AcosTrendChart from './AcosTrendChart';
 import Papa from 'papaparse';
-import type { ChangeEvent } from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
   Bar,
@@ -41,30 +43,14 @@ import { CurrencySelector } from './CurrencySelector';
 import { saveCalculation, getCalculations } from '@/lib/indexeddb-service';
 import { format } from 'date-fns';
 import { CalculationData } from '@/lib/indexeddb-service';
+import { ManualCalculationForm } from './ManualCalculationForm';
+import { AcosRatingGuide } from './AcosRatingGuide';
+import { calculateLocalMetrics } from '@/lib/amazon-tools/acos-calculator-utils';
+import { CalculationHistoryTable } from './CalculationHistoryTable';
 
 // --- Interfaces & Types ---
 
-export interface CampaignData {
-  campaign: string;
-  adSpend: number;
-  sales: number;
-  impressions?: number;
-  clicks?: number;
-  acos?: number;
-  roas?: number;
-  ctr?: number;
-  cpc?: number;
-  revenuePerClickRate?: number;
-}
-
 // --- Constants ---
-
-const acosRatingGuide = [
-  { label: 'Excellent', range: '< 15%', color: 'text-green-500' },
-  { label: 'Good', range: '15-25%', color: 'text-blue-500' },
-  { label: 'Fair', range: '25-35%', color: 'text-yellow-500' },
-  { label: 'Poor', range: '> 35%', color: 'text-red-500' },
-];
 
 const chartConfig = {
   acos: { label: 'ACoS (%)', theme: { light: '#8884d8', dark: '#8884d8' } },
@@ -82,95 +68,6 @@ const chartConfig = {
   };
 };
 
-const calculateLocalMetrics = (
-  adSpend: number,
-  sales: number,
-  currency: { value: string; symbol: string },
-  impressions: string | undefined,
-  clicks: string | undefined,
-): Omit<
-  CampaignData,
-  'campaign' | 'adSpend' | 'sales' | 'impressions' | 'clicks'
-> => {
-  try {
-    // Currency conversion (replace with a real API if available)
-    const conversionRates: { [key: string]: number } = {
-      USD: 1,
-      EUR: 1.1,
-      GBP: 1.3,
-      JPY: 0.0072,
-      CAD: 0.73,
-    };
-
-    const usdAdSpend = adSpend * (conversionRates[currency.value] || 1);
-    const usdSales = sales * (conversionRates[currency.value] || 1);
-
-    // Validate inputs using the passed string parameters
-    const validatedAdSpend = monetaryValueSchema.parse(usdAdSpend);
-    const validatedSales = monetaryValueSchema.parse(usdSales);
-    const validatedImpressions =
-      impressions !== undefined
-        ? impressions
-          ? numberSchema.parse(Number(impressions))
-          : undefined
-        : undefined;
-    const validatedClicks =
-      clicks !== undefined
-        ? clicks
-          ? numberSchema.parse(Number(clicks))
-          : undefined
-        : undefined;
-
-    // Handle edge cases for ACoS calculation
-    const acos = (() => {
-      if (validatedSales === 0 && validatedAdSpend === 0) return 0;
-      if (validatedSales === 0) return Infinity;
-      return (validatedAdSpend / validatedSales) * 100;
-    })();
-
-    // Handle edge cases for ROAS calculation
-    const roas = (() => {
-      if (validatedAdSpend === 0 && validatedSales === 0) return 0;
-      if (validatedAdSpend === 0) return Infinity;
-      return validatedSales / validatedAdSpend;
-    })();
-
-    // Safe handling of optional metrics
-    const safeImpressions = validatedImpressions ?? 0;
-    const safeClicks = validatedClicks ?? 0;
-
-    // CTR calculation with proper edge case handling
-    const ctr = safeImpressions > 0 ? (safeClicks / safeImpressions) * 100 : 0;
-
-    // CPC calculation with proper edge case handling
-    let cpc = 0;
-    if (safeClicks > 0) {
-      cpc = validatedAdSpend / safeClicks;
-    } else if (validatedAdSpend > 0) {
-      cpc = Infinity;
-    }
-
-    // Revenue per click rate with proper edge case handling
-    let revenuePerClickRate = 0;
-    if (safeClicks > 0) {
-      revenuePerClickRate = (validatedSales / safeClicks) * 100;
-    } else if (validatedSales > 0) {
-      revenuePerClickRate = Infinity;
-    }
-
-    return { acos, roas, ctr, cpc, revenuePerClickRate };
-  } catch (error) {
-    logError({
-      message: 'Error calculating metrics',
-      component: 'AcosCalculator',
-      severity: 'medium',
-      error: error as Error,
-      context: { adSpend, sales, impressions, clicks },
-    });
-    return { acos: 0, roas: 0, ctr: 0, cpc: 0, revenuePerClickRate: 0 };
-  }
-};
-
 // --- Component ---
 
 export default function AcosCalculator() {
@@ -184,16 +81,17 @@ export default function AcosCalculator() {
   });
   const [selectedMetric, setSelectedMetric] =
     useState<keyof typeof chartConfig>('acos');
-  const [manualCampaign, setManualCampaign] = useState({
-    campaign: '',
-    adSpend: '',
-    sales: '',
-    impressions: '',
-    clicks: '',
-  });
   const [calculationHistory, setCalculationHistory] = useState<
     CalculationData[]
   >([]);
+
+  // Add availableMetrics state
+  const availableMetrics: (keyof CampaignData)[] = useMemo(() => {
+    if (campaigns.length === 0) return [];
+    return Object.keys(campaigns[0]).filter(
+      (key) => key !== 'campaign' && key !== 'date',
+    ) as (keyof CampaignData)[];
+  }, [campaigns]);
 
   // Cleanup effect for memory leak prevention
   useEffect(() => {
@@ -219,18 +117,6 @@ export default function AcosCalculator() {
     loadHistory();
   }, []);
 
-  const isManualInputValid = useMemo(() => {
-    const adSpendNum = Number.parseFloat(manualCampaign.adSpend);
-    const salesNum = Number.parseFloat(manualCampaign.sales);
-    return (
-      manualCampaign.campaign.trim() !== '' &&
-      !isNaN(adSpendNum) &&
-      adSpendNum >= 0 &&
-      !isNaN(salesNum) &&
-      salesNum >= 0
-    );
-  }, [manualCampaign]);
-
   const csvParser = useCsvParser<CampaignData>(
     {
       requiredHeaders: campaignHeaders.required,
@@ -238,8 +124,15 @@ export default function AcosCalculator() {
         try {
           const result = validateCampaignRow(row, 0);
           // Additional validation for numeric fields
-          if (isNaN(Number(row.adSpend)) || isNaN(Number(row.sales))) {
-            throw new Error('Ad spend and sales must be valid numbers');
+          const adSpend = Number(row.adSpend);
+          const sales = Number(row.sales);
+
+          if (isNaN(adSpend) || adSpend <= 0) {
+            throw new Error('Ad spend must be a valid positive number');
+          }
+
+          if (isNaN(sales) || sales <= 0) {
+            throw new Error('Sales must be a valid positive number');
           }
           return result as CampaignData;
         } catch (error) {
@@ -258,14 +151,28 @@ export default function AcosCalculator() {
       skippedRows: Array<{ index: number; reason: string }>;
     }) => {
       const dataWithMetrics = result.data.map((row) => {
+        let acos: number | undefined;
+        let roas: number | undefined;
+        const adSpend = Number(row.adSpend);
+        const sales = Number(row.sales);
+        const date = new Date().toISOString();
+
+        if (sales === 0) {
+          acos = Infinity;
+          roas = 0;
+        } else {
+          acos = (adSpend / sales) * 100;
+          roas = sales / adSpend;
+        }
+
         const metrics = calculateLocalMetrics(
-          Number(row.adSpend),
-          Number(row.sales),
+          adSpend,
+          sales,
           selectedCurrency,
           row.impressions !== undefined ? String(row.impressions) : undefined,
           row.clicks !== undefined ? String(row.clicks) : undefined,
         );
-        return { ...row, ...metrics };
+        return { ...row, ...metrics, acos, roas, date };
       });
       setCampaigns(dataWithMetrics);
       setIsLoading(false);
@@ -302,100 +209,6 @@ export default function AcosCalculator() {
     multiple: false,
     disabled: isLoading,
   });
-
-  const handleManualInputChange = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      let sanitizedValue = value;
-      if (name === 'adSpend' || name === 'sales') {
-        sanitizedValue = value
-          .replace(/[^\d.]/g, '')
-          .replace(/(\..*)\./g, '$1')
-          .replace(/^\./, '0.')
-          .replace(/^0+(?=\d)/, '');
-      } else if (name === 'campaign') {
-        sanitizedValue = value.trimStart().slice(0, 100);
-      }
-      setManualCampaign((prev) => ({ ...prev, [name]: sanitizedValue }));
-      setError(undefined);
-    },
-    [],
-  );
-
-  const handleManualCalculate = useCallback(async () => {
-    setError(undefined);
-    setIsLoading(true);
-    try {
-      if (!isManualInputValid) {
-        if (!manualCampaign.campaign.trim())
-          throw new Error('Please enter a campaign name.');
-        const adSpend = Number.parseFloat(manualCampaign.adSpend);
-        if (isNaN(adSpend) || adSpend < 0)
-          throw new Error('Ad Spend must be a valid non-negative number.');
-        const sales = Number.parseFloat(manualCampaign.sales);
-        if (isNaN(sales) || sales < 0)
-          throw new Error('Sales amount must be a valid non-negative number.');
-        throw new Error('Invalid input. Please check values.');
-      }
-      const adSpend = Number.parseFloat(manualCampaign.adSpend);
-      const sales = Number.parseFloat(manualCampaign.sales);
-      const metrics = calculateLocalMetrics(
-        adSpend,
-        sales,
-        selectedCurrency,
-        manualCampaign.impressions || undefined,
-        manualCampaign.clicks || undefined,
-      );
-      const newCampaign: CampaignData = {
-        campaign: manualCampaign.campaign.trim(),
-        adSpend,
-        sales,
-        ...metrics,
-      };
-      setCampaigns((prevCampaigns) => [...prevCampaigns, newCampaign]);
-      setManualCampaign({
-        campaign: '',
-        adSpend: '',
-        sales: '',
-        impressions: '',
-        clicks: '',
-      });
-
-      // Save to IndexedDB
-      try {
-        await saveCalculation({
-          campaignName: newCampaign.campaign,
-          adSpend: newCampaign.adSpend,
-          sales: newCampaign.sales,
-          acos:
-            newCampaign.acos === undefined || !isFinite(newCampaign.acos)
-              ? 0
-              : newCampaign.acos,
-          roas:
-            newCampaign.roas === undefined || !isFinite(newCampaign.roas)
-              ? 0
-              : newCampaign.roas,
-          date: new Date(),
-        });
-        // Fetch and update the history
-        const history = await getCalculations();
-        setCalculationHistory(history);
-      } catch (dbError) {
-        console.error('Error saving calculation to IndexedDB:', dbError);
-        setError(
-          `Error saving calculation: ${
-            dbError instanceof Error ? dbError.message : 'Unknown error'
-          }`,
-        );
-      }
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : 'An unknown error occurred',
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [manualCampaign, isManualInputValid, selectedCurrency]);
 
   const handleExport = useCallback(() => {
     if (campaigns.length === 0) {
@@ -442,13 +255,6 @@ export default function AcosCalculator() {
   const clearData = useCallback(() => {
     setCampaigns([]);
     setError(undefined);
-    setManualCampaign({
-      campaign: '',
-      adSpend: '',
-      sales: '',
-      impressions: '',
-      clicks: '',
-    });
   }, []);
 
   // --- Chart Content Logic (Fix for sonarjs/no-nested-conditional) ---
@@ -512,6 +318,92 @@ export default function AcosCalculator() {
     );
   }
 
+  const [manualCampaign, setManualCampaign] = useState({
+    campaign: '',
+    adSpend: '',
+    sales: '',
+    impressions: '',
+    clicks: '',
+  });
+
+  const isManualInputValid = useMemo(() => {
+    const adSpendNum = Number.parseFloat(manualCampaign.adSpend);
+    const salesNum = Number.parseFloat(manualCampaign.sales);
+    return (
+      manualCampaign.campaign.trim() !== '' &&
+      !isNaN(adSpendNum) &&
+      adSpendNum > 0 &&
+      !isNaN(salesNum) &&
+      salesNum > 0
+    );
+  }, [manualCampaign]);
+
+  const handleManualInputChange = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setManualCampaign((prev) => ({ ...prev, [name]: value }));
+    },
+    [],
+  );
+
+  const handleManualCalculate = useCallback(async () => {
+    setError(undefined);
+    setIsLoading(true);
+    try {
+      const adSpend = Number.parseFloat(manualCampaign.adSpend);
+      const sales = Number.parseFloat(manualCampaign.sales);
+
+      if (sales === 0) {
+        setError('Sales cannot be zero to calculate ACoS and ROAS.');
+        setIsLoading(false);
+        return;
+      }
+
+      const metrics = calculateLocalMetrics(
+        adSpend,
+        sales,
+        selectedCurrency,
+        manualCampaign.impressions || undefined,
+        manualCampaign.clicks || undefined,
+      );
+
+      const newCampaign: CampaignData = {
+        campaign: manualCampaign.campaign.trim(),
+        adSpend,
+        sales,
+        ...metrics,
+        date: new Date().toISOString(),
+      };
+
+      setCampaigns((prevCampaigns) => [...prevCampaigns, newCampaign]);
+      setManualCampaign({
+        campaign: '',
+        adSpend: '',
+        sales: '',
+        impressions: '',
+        clicks: '',
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError('An unknown error occurred');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  }, [
+    selectedCurrency,
+    manualCampaign,
+    isManualInputValid,
+    handleManualInputChange,
+    setManualCampaign,
+    setError,
+    setIsLoading,
+    setCampaigns,
+    calculateLocalMetrics,
+  ]);
+
   // --- Render ---
   return (
     <div className="space-y-6">
@@ -523,8 +415,8 @@ export default function AcosCalculator() {
           <ul className="list-disc list-inside ml-4">
             <li>
               Upload a CSV with columns: <code>campaign</code>,{' '}
-              <code>adSpend</code>, <code>sales</code>. Optional:{' '}
-              <code>impressions</code>, <code>clicks</code>.
+              <code>AdSpend</code>, <code>Sales</code>. Optional:{' '}
+              <code>Impressions</code>, <code>Clicks</code>.
             </li>
             <li>Or, manually enter data for a single campaign.</li>
             <li>
@@ -569,242 +461,33 @@ export default function AcosCalculator() {
           <CardHeader>
             <CardTitle>Manual Calculation</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <CurrencySelector
-              onCurrencyChange={(currency) => setSelectedCurrency(currency)}
-            />
-            <div>
-              <Label htmlFor="manual-campaign">Campaign Name*</Label>
-              <Input
-                id="manual-campaign"
-                name="campaign"
-                value={manualCampaign.campaign}
-                onChange={handleManualInputChange}
-                placeholder="e.g., SP - Auto - Product A"
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <Label htmlFor="manual-adSpend">Ad Spend ($)*</Label>
-              <Input
-                id="manual-adSpend"
-                name="adSpend"
-                type="text"
-                inputMode="decimal"
-                value={manualCampaign.adSpend}
-                onChange={handleManualInputChange}
-                placeholder="e.g., 150.75"
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <Label htmlFor="manual-sales">Sales ($)*</Label>
-              <Input
-                id="manual-sales"
-                name="sales"
-                type="text"
-                inputMode="decimal"
-                value={manualCampaign.sales}
-                onChange={handleManualInputChange}
-                placeholder="e.g., 600.50"
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <Label htmlFor="manual-impressions">Impressions</Label>
-              <Input
-                id="manual-impressions"
-                name="impressions"
-                type="text"
-                inputMode="numeric"
-                value={manualCampaign.impressions}
-                onChange={handleManualInputChange}
-                placeholder="e.g., 1000"
-                disabled={isLoading}
-              />
-            </div>
-            <div>
-              <Label htmlFor="manual-clicks">Clicks</Label>
-              <Input
-                id="manual-clicks"
-                name="clicks"
-                type="text"
-                inputMode="numeric"
-                value={manualCampaign.clicks}
-                onChange={handleManualInputChange}
-                placeholder="e.g., 50"
-                disabled={isLoading}
-              />
-            </div>
-            <Button
-              onClick={handleManualCalculate}
-              disabled={!isManualInputValid || isLoading}
-              className="w-full"
-            >
-              {isLoading ? 'Calculating...' : 'Calculate & Add'}
-            </Button>
-          </CardContent>
+          <ManualCalculationForm
+            selectedCurrency={selectedCurrency}
+            setSelectedCurrency={setSelectedCurrency}
+            manualCampaign={manualCampaign}
+            setManualCampaign={setManualCampaign}
+            handleManualCalculate={handleManualCalculate}
+            isManualInputValid={isLoading}
+            isLoading={isLoading}
+          />
         </Card>
       </div>
 
-      {/* Error Alert */}
-      {error && (
-        <Alert variant={error.includes('warnings') ? 'default' : 'destructive'}>
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>
-            {error.includes('warnings') ? 'default' : 'Error'}
-          </AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-2 top-2"
-            // Corrected: Use undefined instead of null
-            onClick={() => setError(undefined)}
-          >
-            <XCircle className="h-4 w-4" />
-          </Button>
-        </Alert>
-      )}
-
-      {/* Action Buttons Row */}
-      <div className="flex justify-end gap-2">
-        <Button
-          variant="outline"
-          onClick={handleExport}
-          disabled={campaigns.length === 0 || isLoading}
-        >
-          <Download className="mr-2 h-4 w-4" />
-          Export Data
-        </Button>
-        {campaigns.length > 0 && (
-          <Button
-            variant="destructive"
-            onClick={clearData}
-            disabled={isLoading}
-          >
-            <X className="mr-2 h-4 w-4" />
-            Clear Data
-          </Button>
-        )}
-      </div>
-
-      {/* Metric Selection Buttons */}
-      <div className="flex flex-wrap items-center gap-2 rounded-md bg-muted p-2">
-        <span className="text-sm font-medium mr-2">View Metric:</span>
-        {Object.entries(chartConfig).map(([key, config]) => (
-          <Button
-            key={key}
-            variant={selectedMetric === key ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedMetric(key as keyof typeof chartConfig)}
-          >
-            {config.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Charts Row */}
-      {(campaigns.length > 0 || isLoading) && (
-        <div className="grid grid-cols-1 gap-6">
-          {/* Bar Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>
-                {chartConfig[selectedMetric].label} Distribution
-              </CardTitle>
-            </CardHeader>
-            {/* --- Use the chartContent variable here --- */}
-            <CardContent>{chartContent}</CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* ACoS Rating Guide */}
-      <Card>
-        <CardHeader>
-          <CardTitle>ACoS Rating Guide</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ul className="space-y-1 text-sm">
-            {acosRatingGuide.map((item) => (
-              <li key={item.label} className="flex items-center gap-2">
-                <span
-                  className={`inline-block h-3 w-3 rounded-full ${item.color.replace('text-', 'bg-')}`}
-                />
-                <span className="font-medium">{item.label}:</span>
-                <span className={`font-semibold ${item.color}`}>
-                  {item.range}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="mt-3 text-xs text-muted-foreground">
-            Note: Ideal ACoS varies by product, category, and campaign goals.
-            Lower ACoS generally indicates higher profitability from ads.
-            Infinity ACoS means no sales were generated from ad spend.
-          </p>
-        </CardContent>
-      </Card>
+      <AcosRatingGuide />
 
       {/* Calculation History Table */}
       {calculationHistory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Calculation History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-200">
-                      Campaign
-                    </th>
-                    <th className="px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-200">
-                      Date
-                    </th>
-                    <th className="px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-200">
-                      Ad Spend
-                    </th>
-                    <th className="px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-200">
-                      Sales
-                    </th>
-                    <th className="px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-200">
-                      ACoS
-                    </th>
-                    <th className="px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-200">
-                      ROAS
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {calculationHistory.map((calc) => (
-                    <tr key={calc.id} className="border-b dark:border-gray-700">
-                      <td className="px-4 py-2">{calc.campaignName}</td>
-                      <td className="px-4 py-2">
-                        {format(new Date(calc.date), 'yyyy-MM-dd HH:mm')}
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        {calc.adSpend.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        {calc.sales.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        {calc.acos.toFixed(2)}
-                      </td>
-                      <td className="px-4 py-2 text-right">
-                        {calc.roas.toFixed(2)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        <CalculationHistoryTable calculationHistory={calculationHistory} />
       )}
+      <div className="w-full overflow-x-auto">
+        <AcosTrendChart
+          data={campaigns}
+          metrics={availableMetrics}
+          availableMetrics={availableMetrics}
+        />
+      </div>
     </div>
   );
 }
+// --- End of Component ---

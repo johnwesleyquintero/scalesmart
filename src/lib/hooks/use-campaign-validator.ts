@@ -1,6 +1,6 @@
 'use client';
 
-import { CampaignData } from '@/components/amazon-seller-tools/acos-calculator';
+import { CampaignData } from '@/lib/amazon-tools/metrics';
 
 interface ValidationError {
   field: string;
