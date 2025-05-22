@@ -47,7 +47,6 @@ export default function ResumeScanner() {
       formData.append('file', file);
 
       const response = await fetch('/api/resume/analyze', {
-        // Placeholder API route
         method: 'POST',
         body: formData,
       });

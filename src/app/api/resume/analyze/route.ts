@@ -1,73 +1,37 @@
 import { NextResponse } from 'next/server';
 
-interface ResumeAnalysis {
-  score: number;
-  strengths: string[];
-  weaknesses: string[];
-  suggestions: string[];
-  keywords: {
-    present: string[];
-    missing: string[];
-  };
-  sections: {
-    present: string[];
-    missing: string[];
-  };
-}
-
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as File | null;
+    const file = formData.get('file') as Blob | null;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
     }
 
-    // Simulate analysis (replace with actual analysis logic)
-    const analysis: ResumeAnalysis = {
-      score: 78,
-      strengths: [
-        'Clear work history with measurable achievements',
-        'Good use of action verbs',
-        'Appropriate length (1-2 pages)',
-      ],
-      weaknesses: [
-        'Missing quantifiable results in 3 positions',
-        'Skills section could be more tailored to target jobs',
-        'No certifications listed',
-      ],
-      suggestions: [
-        "Add more metrics to quantify your impact (e.g., 'Increased sales by 30%')",
-        'Include relevant certifications for your industry',
-        'Tailor skills to match job descriptions more closely',
-      ],
+    // Simulate resume analysis with a 2-second delay
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Implement resume analysis logic here
+    // This is a placeholder, replace with actual implementation
+    const analysisResults = {
+      score: Math.floor(Math.random() * (90 - 60 + 1)) + 60, // Random score between 60 and 90
+      strengths: ['Strong work experience', 'Good skills section', 'Clear communication skills'],
+      weaknesses: ['Missing keywords', 'Poor formatting', 'Lack of quantifiable results'],
+      suggestions: ['Add more keywords related to the job description', 'Improve formatting to be more ATS-friendly', 'Quantify your achievements with numbers and data'],
       keywords: {
-        present: [
-          'leadership',
-          'project management',
-          'JavaScript',
-          'team collaboration',
-        ],
-        missing: [
-          'TypeScript',
-          'Agile methodologies',
-          'CI/CD',
-          'cloud computing',
-        ],
+        present: ['JavaScript', 'React', 'Node.js', 'HTML', 'CSS'],
+        missing: ['TypeScript', 'Next.js', 'Redux', 'GraphQL'],
       },
       sections: {
-        present: ['Experience', 'Education', 'Skills'],
-        missing: ['Certifications', 'Projects', 'Volunteer Work'],
+        present: ['Experience', 'Skills', 'Education', 'Summary'],
+        missing: ['Projects', 'Awards', 'Certifications'],
       },
     };
 
-    return NextResponse.json(analysis);
-  } catch (error: unknown) {
-    console.error('API route error:', error);
-    return NextResponse.json(
-      { error: 'An error occurred during analysis.' },
-      { status: 500 },
-    );
+    return NextResponse.json(analysisResults);
+  } catch (error) {
+    console.error('Error analyzing resume:', error);
+    return NextResponse.json({ error: 'Failed to analyze resume' }, { status: 500 });
   }
 }

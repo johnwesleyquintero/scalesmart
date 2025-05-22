@@ -20,7 +20,7 @@ The `src/app/ats/page.tsx` file defines a resume scanner and ATS optimizer page.
 - The page uses the `lucide-react` library for icons.
 - The page uses the `ui/button`, `ui/card`, and `ui/progress` components from the `@/components/ui` library.
 - The page uses the `useState` and `useRef` hooks to manage the state and references.
-- The page simulates an API call to analyze the resume.
+- The page makes an API call to `/api/resume/analyze` to analyze the resume.
 
 ## Data Flow
 
@@ -28,6 +28,6 @@ The `src/app/ats/page.tsx` file defines a resume scanner and ATS optimizer page.
 2.  The user uploads their resume.
 3.  The `handleFileChange` function updates the `file` state with the uploaded file.
 4.  The user clicks the "Analyze Resume" button.
-5.  The `analyzeResume` function is called, which simulates an API call to analyze the resume.
-6.  The `analyzeResume` function updates the `analysis` state with the mock analysis results.
+5.  The `analyzeResume` function is called, which makes an API call to `/api/resume/analyze` to analyze the resume.
+6.  The `analyzeResume` function updates the `analysis` state with the analysis results from the API.
 7.  The component renders the analysis results, including the resume score, strengths, weaknesses, suggestions, keywords, and sections.
