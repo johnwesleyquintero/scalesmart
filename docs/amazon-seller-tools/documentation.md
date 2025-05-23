@@ -9,10 +9,10 @@ The dashboard is structured with a `DashboardHeader` component for refresh, expo
 ## 2. Main Features
 
 - **Unified Dashboard:** Provides an overview of key business metrics once data is uploaded.
-- **CSV Data Upload & Mapping:** Users can upload their Amazon Business Report CSVs. A dynamic mapping interface using the `OverviewDataMapper` component helps match CSV columns to the required data fields.
+- **Enhanced Data Visualization:** We've upgraded our charts and added new ones to visualize your sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
+- **Improved CSV Data Mapping:** We've made it easier than ever to upload and map your Amazon Business Report data with our new CSV Data Mapper, including data validation.
 - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons.
-  - Charts: Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
   - Data Table: Displaying the data in a sortable and filterable table using the `MetricsDataTable` component.
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
 - **Time Range Filtering:** Data in charts can be filtered by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
@@ -24,6 +24,7 @@ The dashboard is structured with a `DashboardHeader` component for refresh, expo
   - PPC & Ads
   - Competition
 - **Data Export:** Processed and aggregated dashboard data can be exported as a CSV.
+- **Print and Download PDF:** Easily share your dashboard insights with the new print and download PDF options.
 - **Sample Data:** The dashboard now loads sample data from `src/data/sample-data.json` when no CSV file is uploaded. This allows users to explore the dashboard's functionality without uploading their own data.
 
 ## 3. How to Use the Overview Dashboard
@@ -340,7 +341,8 @@ The `DashboardHeader` component (`src/components/amazon-seller-tools/DashboardHe
   - `error`: A string or null indicating whether there is an error.
   - `metricsLength`: A number indicating the number of metrics loaded.
   - `handleRefresh`: A function to be called when the refresh button is clicked.
-  - `handleExport`: A function to be called when the export button is clicked.
+  - `handleExportData`: A function to be called when the export button is clicked.
+  - `handlePrint`: A function to be called when the print button is clicked.
 
 ## 10. OverviewTab Component
 

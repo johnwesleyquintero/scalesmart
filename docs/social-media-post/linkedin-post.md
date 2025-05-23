@@ -1,19 +1,35 @@
-## 🚀 Preview Your Amazon Report Data in 3 Simple Steps! 🚀
+# LinkedIn Post: Announcing the Enhanced Amazon Seller Tools Overview Dashboard!
 
-Tired of sifting through endless spreadsheets to understand your Amazon sales data? Our Amazon Tools Overview offers a streamlined solution to visualize your reports in a flash! ✨
+## Headline
 
-Here's how you can unlock valuable insights:
+🚀 Boost Your Amazon Sales with Our Revamped Overview Dashboard! 🚀
 
-1️⃣ **Upload Your Weekly Report or Download a CSV:** Easily import your data by uploading your weekly report or downloading a CSV file. 📤
+## Body
 
-2️⃣ **Map the Report Data:** Our intuitive interface allows you to effortlessly map your report data, ensuring accurate and insightful visualizations. 🗺️
+Hey #AmazonSellers! 👋
 
-3️⃣ **Preview Your Report Data:** Instantly visualize your key metrics and trends with our interactive preview feature. Get a clear understanding of your performance at a glance! 📊
+We're thrilled to announce a major update to our Amazon Seller Tools Overview Dashboard, designed to give you a crystal-clear view of your business performance and help you make data-driven decisions.
 
-Bonus: 🎁 Export your data to Google Sheets or Excel for further analysis and collaboration.
+**What's New?**
 
-Ready to transform your Amazon data into actionable insights? Explore our Amazon Tools Overview today!
+*   **Enhanced Data Visualization:** We've upgraded our charts and added new ones to visualize your sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the ReusableChart component.
+*   **Improved CSV Data Mapping:** We've made it easier than ever to upload and map your Amazon Business Report data with our new CSV Data Mapper, including data validation.
+*   **Key Metrics at a Glance:** Quickly see your most important KPIs with our updated KPI cards, including period-over-period comparisons.
+*   **Print and Download PDF:** Easily share your dashboard insights with the new print and download PDF options.
 
-[Link to your Amazon Tools Overview] #Amazon #AmazonSeller #DataAnalysis #Report #Sales #Ecommerce #BusinessIntelligence
+**Why This Matters:**
 
----
+*   **Make Data-Driven Decisions:** Understand your key metrics at a glance.
+*   **Track Performance:** Monitor trends and identify areas for improvement.
+*   **Optimize Your Strategy:** Use the insights to refine your Amazon selling strategy.
+
+**Ready to take your Amazon business to the next level?**
+
+Check out the updated Overview Dashboard and explore all the features: https://wescode.vercel.app/amazon-seller-tools
+
+\#Amazon \#AmazonSeller \#eCommerce \#DataAnalytics \#Dashboard \#BusinessIntelligence \#SaaS \#PPC \#SEO
+
+## Optional:
+
+*   Include a screenshot or short video of the dashboard.
+*   Tag relevant people or companies.

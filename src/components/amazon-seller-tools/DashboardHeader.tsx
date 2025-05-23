@@ -6,6 +6,7 @@ import React, { useCallback, useState } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import DashboardPdf from './DashboardPdf';
 import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import { saveAs } from 'file-saver';
 
 interface DashboardHeaderProps {
   isLoading: boolean;
@@ -38,6 +39,22 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
     setPdfData({ title, content });
   }, [metrics]);
 
+  const handleExportData = () => {
+    if (metrics && metrics.length > 0) {
+      const csv = convertToCSV(metrics);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      saveAs(blob, 'dashboard_data.csv');
+    } else {
+      alert('No data to export.');
+    }
+  };
+
+  const convertToCSV = (data: DashboardMetrics[]) => {
+    const headers = Object.keys(data[0] || {}).join(',');
+    const rows = data.map((obj) => Object.values(obj).join(','));
+    return `${headers}\n${rows.join('\n')}`;
+  };
+
   return (
     <div className="mb-12" aria-live="polite">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -67,7 +84,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </Button>
           <Button
             variant="outline"
-            onClick={handleExport}
+            onClick={handleExportData}
             aria-label="Export Data"
             disabled={metricsLength === 0 || isLoading || isParsing}
           >
