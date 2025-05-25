@@ -72,7 +72,12 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
             />
             <YAxis tickFormatter={yAxisFormatter} />
             <Tooltip
-              formatter={tooltipFormatter}
+              formatter={(value: number | string, name: string) => {
+                if (tooltipFormatter) {
+                  return tooltipFormatter(value as number, name);
+                }
+                return [`${value}`, name];
+              }}
               labelFormatter={(label) => formatTooltipLabel(label, granularity)}
             />
             <Legend />

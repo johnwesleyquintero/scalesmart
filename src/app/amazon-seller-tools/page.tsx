@@ -66,6 +66,7 @@ export interface TargetMetricConfig {
   expectedType: 'string' | 'number' | 'date' | 'boolean';
   hint?: string;
   group?: string;
+  description?: string;
 }
 
 const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
@@ -75,6 +76,7 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: true,
     expectedType: 'date',
     hint: 'The date of the report entry.',
+    description: 'The date of the report entry',
   },
   {
     key: 'unique_identifier',
@@ -82,100 +84,116 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: true,
     expectedType: 'string',
     hint: 'Amazon Standard Identification Number.',
+    description: 'Amazon Standard Identification Number',
   },
   {
     key: 'total_sales',
     label: 'Ordered Product Sales',
     required: false,
     expectedType: 'number',
+    description: 'The sum of all sales for a given product',
   },
   {
     key: 'total_orders',
     label: 'Total Order Items',
     required: false,
     expectedType: 'number',
+    description: 'The total number of items ordered',
   },
   {
     key: 'total_sessions',
     label: 'Sessions - Total',
     required: false,
     expectedType: 'number',
+    description: 'The total number of sessions',
   },
   {
     key: 'total_page_views',
     label: 'Page Views - Total',
     required: false,
     expectedType: 'number',
+    description: 'The total number of page views',
   },
   {
     key: 'ad_impressions',
     label: 'Ad Impressions',
     required: false,
     expectedType: 'number',
+    description: 'The number of times an ad was displayed',
   },
   {
     key: 'ad_clicks',
     label: 'Ad Clicks',
     required: false,
     expectedType: 'number',
+    description: 'The number of times an ad was clicked',
   },
   {
     key: 'ad_spend',
     label: 'Ad Spend',
     required: false,
     expectedType: 'number',
+    description: 'The amount spent on advertising',
   },
   {
     key: 'ad_sales',
     label: 'Ad Sales (7-day)',
     required: false,
     expectedType: 'number',
+    description: 'The sales attributed to advertising within a 7-day window',
   },
   {
     key: 'ad_orders',
     label: 'Ad Orders (7-day)',
     required: false,
     expectedType: 'number',
+    description: 'The orders attributed to advertising within a 7-day window',
   },
-  { key: 'acos', label: 'ACoS', required: false, expectedType: 'number' },
-  { key: 'roas', label: 'ROAS', required: false, expectedType: 'number' },
-  { key: 'cpc', label: 'CPC', required: false, expectedType: 'number' },
-  { key: 'ctr', label: 'CTR', required: false, expectedType: 'number' },
+  { key: 'acos', label: 'ACoS', required: false, expectedType: 'number', description: 'Advertising Cost of Sales' },
+  { key: 'roas', label: 'ROAS', required: false, expectedType: 'number', description: 'Return on Ad Spend' },
+  { key: 'cpc', label: 'CPC', required: false, expectedType: 'number', description: 'Cost per Click' },
+  { key: 'ctr', label: 'CTR', required: false, expectedType: 'number', description: 'Click-Through Rate' },
   {
     key: 'ad_conversion_rate',
     label: 'Ad Conversion Rate',
     required: false,
     expectedType: 'number',
+    description: 'The conversion rate for advertising',
   },
   {
     key: 'profit',
     label: 'Estimated Profit',
     required: false,
     expectedType: 'number',
+    description: 'The estimated profit',
   },
   {
     key: 'inventory_level',
     label: 'Current Inventory',
     required: false,
     expectedType: 'number',
+    description: 'The current inventory level',
   },
   {
     key: 'review_rating',
     label: 'Average Review Score',
     required: false,
     expectedType: 'number',
+    description: 'The average review score',
   },
   {
     key: 'cac',
     label: 'Customer Acquisition Cost',
     required: false,
     expectedType: 'number',
+    description: 'The cost to acquire a customer',
   },
   {
     key: 'ltv',
     label: 'Lifetime Value Estimate',
     required: false,
     expectedType: 'number',
+    description: 'The estimated lifetime value of a customer',
   },
   {
     key: 'targeted_keyword',
@@ -183,6 +201,7 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: false,
     expectedType: 'string',
     hint: 'The specific keyword targeted by an ad.',
+    description: 'The specific keyword targeted by an ad',
   },
   {
     key: 'keyword_ad_impressions',
@@ -190,6 +209,7 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: false,
     expectedType: 'number',
     hint: 'Impressions for the specific targeted keyword.',
+    description: 'Impressions for the specific targeted keyword',
   },
   {
     key: 'keyword_ad_clicks',
@@ -197,6 +217,7 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: false,
     expectedType: 'number',
     hint: 'Clicks for the specific targeted keyword.',
+    description: 'Clicks for the specific targeted keyword',
   },
   {
     key: 'keyword_ad_spend',
@@ -204,6 +225,7 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: false,
     expectedType: 'number',
     hint: 'Ad spend for the specific targeted keyword.',
+    description: 'Ad spend for the specific targeted keyword',
   },
   {
     key: 'keyword_ad_sales_7_day',
@@ -211,6 +233,7 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: false,
     expectedType: 'number',
     hint: 'Sales attributed to the specific targeted keyword (7-day window).',
+    description: 'Sales attributed to the specific targeted keyword (7-day window)',
   },
   {
     key: 'keyword_ad_orders_7_day',
@@ -218,6 +241,7 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: false,
     expectedType: 'number',
     hint: 'Orders attributed to the specific targeted keyword (7-day window).',
+    description: 'Orders attributed to the specific targeted keyword (7-day window)',
   },
 ];
 
@@ -230,6 +254,10 @@ export default function UnifiedDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Add state for isUploading, isMapping, isProcessing
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isMapping, setIsMapping] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const handleRefresh = useCallback(async () => {
     setIsLoading(true);
@@ -276,6 +304,12 @@ export default function UnifiedDashboard() {
             setIsLoading={setIsLoading}
             isParsing={isParsing}
             setIsParsing={setIsParsing}
+            isUploading={isUploading} // Pass the new state
+            setIsUploading={setIsUploading} // Pass the setter
+            isMapping={isMapping} // Pass the new state
+            setIsMapping={setIsMapping} // Pass the setter
+            isProcessing={isProcessing} // Pass the new state
+            setIsProcessing={setIsProcessing} // Pass the setter
             error={error}
             setError={setError}
             TARGET_METRICS_CONFIG={TARGET_METRICS_CONFIG}

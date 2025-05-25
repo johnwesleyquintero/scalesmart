@@ -53,6 +53,12 @@ interface OverviewTabProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isParsing: boolean;
   setIsParsing: React.Dispatch<React.SetStateAction<boolean>>;
+  isUploading: boolean; // Prop indicating if parent considers it uploading
+  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>; // Setter from parent
+  isMapping: boolean;   // Prop indicating if parent considers it mapping
+  setIsMapping: React.Dispatch<React.SetStateAction<boolean>>;   // Setter from parent
+  isProcessing: boolean; // Prop indicating if parent considers it processing
+  setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>; // Setter from parent
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   TARGET_METRICS_CONFIG: TargetMetricConfig[];
@@ -70,6 +76,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   error,
   setError,
   TARGET_METRICS_CONFIG,
+  // Destructure isUploading, isMapping, isProcessing and their setters from props
+  isUploading,
+  setIsUploading,
+  isMapping,
+  setIsMapping,
+  isProcessing,
+  setIsProcessing,
 }) => {
   const [showMapper, setShowMapper] = useState(false);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
@@ -121,6 +134,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setIsUploading(true);
     setIsParsing(true);
     setError(null);
     setMetrics([]);
@@ -128,17 +142,20 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setCsvHeaders([]);
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
+    setIsMapping(false);   // Reset mapping state
+    setIsProcessing(false); // Reset processing state
 
-    Papa.parse(file, {
+    Papa.parse<Record<string, string>>(file, { // Single Papa.parse call for pre-parsing. Specify generic type.
       header: true,
       preview: 2,
       skipEmptyLines: true,
-      complete: (results) => {
+      complete: (results: Papa.ParseResult<Record<string, string>>) => { // Add type for results
         const headers = results.meta.fields;
         const sampleRow = results.data[0] as Record<string, string> | undefined;
         if (!headers || headers.length === 0) {
           setError('Could not read headers from the CSV file. Is it valid?');
           setIsParsing(false);
+          setIsUploading(false); // Reset uploading state on error
           if (fileInputRef.current) fileInputRef.current.value = '';
           return;
         }
@@ -147,11 +164,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         setSelectedFile(file);
         setShowMapper(true);
         setIsParsing(false);
+        setIsUploading(false); // "Uploading" to browser/initial parse is done
       },
       error: (error: Error) => {
         console.error('Error pre-parsing CSV:', error);
         setError(`Failed to read file headers: ${error.message}`);
         setIsParsing(false);
+        setIsUploading(false); // Reset uploading state on error
         if (fileInputRef.current) fileInputRef.current.value = '';
       },
     });

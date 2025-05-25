@@ -115,7 +115,7 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
       'profit',
       'customer_acquisition_cost',
       'keyword_ad_spend',
-      'keyword_ad_sales_7_day',
+      'keyword_ad_sales_7-day',
       'lifetime_value_estimate',
       'keyword_cpc',
     ];
@@ -132,10 +132,10 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
       'ad_impressions',
       'ad_clicks',
       'total_order_items',
-      'ad_orders_7_day',
+      'ad_orders_7-day',
       'keyword_ad_impressions',
       'keyword_ad_clicks',
-      'keyword_ad_orders_7_day',
+      'keyword_ad_orders_7-day',
       'current_inventory',
     ];
 
@@ -250,10 +250,10 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
                       key={String(config.key) || `header-${idx}`}
                       onClick={() => requestSort(config.key)}
                       className="cursor-pointer hover:bg-muted/50"
+                      title={config.description}
                     >
                       <div className="flex items-center">
-                        {config.label || `[Header ${idx + 1}]`}{' '}
-                        {/* Fallback for missing label */}
+                        {config.label || `[Header ${idx + 1}]`}
                         {renderSortIcon(config.key)}
                       </div>
                     </TableHead>
@@ -325,4 +325,4 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
       </CardContent>
     </Card>
   );
-};
+}

@@ -24,7 +24,7 @@ import { aggregateMetricsByTime } from '@/lib/utils/amazon/data-aggregation'; //
 interface OverviewDataViewProps {
   metrics: DashboardMetrics[];
   targetMetricsConfig: TargetMetricConfig[]; // Keep this if needed for future, or remove if not used by OverviewDataView directly
-  onDeleteMetric: (metricDate: string, metricIdentifier?: string) => void; // Keep if delete functionality is part of this view
+  onDeleteMetric: (metricDate: string, metricIdentifier?: string) => void; // Keep if this delete functionality is part of this view
   timeGranularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
   setTimeGranularity: (
     granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
@@ -68,7 +68,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <Card>
+        <Card title="Average Conversion Rate: (Total Orders / Total Sessions) * 100.">
           <CardContent className="p-4">
             <h3 className="text-lg font-semibold mb-2">Avg. Conversion Rate</h3>
             <div className="text-3xl font-bold text-blue-600">
@@ -89,7 +89,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card title="Total Sales: Sum of all sales from the report period.">
           <CardContent className="p-4">
             <h3 className="text-lg font-semibold mb-2">Total Sales</h3>
             <div className="text-3xl font-bold text-green-600">
@@ -106,7 +106,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card title="Average Clicks: Average number of ad clicks from the report.">
           <CardContent className="p-4">
             <h3 className="text-lg font-semibold mb-2">Avg. Clicks</h3>
             <div className="text-3xl font-bold text-yellow-600">
@@ -161,6 +161,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
                   aggregatedAndSortedMetrics.length - 2
                 ]?.total_orders
               }
+              unit="$"
             />
             <ComparisonKpiCard
               title="Conversion Rate"
@@ -244,4 +245,4 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
       </div>
     </>
   );
-};
+}
