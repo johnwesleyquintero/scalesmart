@@ -68,7 +68,9 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <Card title="Average Conversion Rate: (Total Orders / Total Sessions) * 100.">
+        <Card
+          title="Average Conversion Rate: (Total Orders / Total Sessions) * 100. This metric represents the percentage of sessions that resulted in an order."
+        >
           <CardContent className="p-4">
             <h3 className="text-lg font-semibold mb-2">Avg. Conversion Rate</h3>
             <div className="text-3xl font-bold text-blue-600">
@@ -89,7 +91,9 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
             </div>
           </CardContent>
         </Card>
-        <Card title="Total Sales: Sum of all sales from the report period.">
+        <Card
+          title="Total Sales: The sum of all sales from the report period, representing the total revenue generated."
+        >
           <CardContent className="p-4">
             <h3 className="text-lg font-semibold mb-2">Total Sales</h3>
             <div className="text-3xl font-bold text-green-600">
@@ -106,7 +110,9 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
             </div>
           </CardContent>
         </Card>
-        <Card title="Average Clicks: Average number of ad clicks from the report.">
+        <Card
+          title="Average Clicks: The average number of ad clicks from the report period."
+        >
           <CardContent className="p-4">
             <h3 className="text-lg font-semibold mb-2">Avg. Clicks</h3>
             <div className="text-3xl font-bold text-yellow-600">
