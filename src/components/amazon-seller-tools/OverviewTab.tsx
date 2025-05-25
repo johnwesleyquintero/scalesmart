@@ -55,8 +55,8 @@ interface OverviewTabProps {
   setIsParsing: React.Dispatch<React.SetStateAction<boolean>>;
   isUploading: boolean; // Prop indicating if parent considers it uploading
   setIsUploading: React.Dispatch<React.SetStateAction<boolean>>; // Setter from parent
-  isMapping: boolean;   // Prop indicating if parent considers it mapping
-  setIsMapping: React.Dispatch<React.SetStateAction<boolean>>;   // Setter from parent
+  isMapping: boolean; // Prop indicating if parent considers it mapping
+  setIsMapping: React.Dispatch<React.SetStateAction<boolean>>; // Setter from parent
   isProcessing: boolean; // Prop indicating if parent considers it processing
   setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>; // Setter from parent
   error: string | null;
@@ -142,14 +142,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setCsvHeaders([]);
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
-    setIsMapping(false);   // Reset mapping state
+    setIsMapping(false); // Reset mapping state
     setIsProcessing(false); // Reset processing state
 
-    Papa.parse<Record<string, string>>(file, { // Single Papa.parse call for pre-parsing. Specify generic type.
+    Papa.parse<Record<string, string>>(file, {
+      // Single Papa.parse call for pre-parsing. Specify generic type.
       header: true,
       preview: 2,
       skipEmptyLines: true,
-      complete: (results: Papa.ParseResult<Record<string, string>>) => { // Add type for results
+      complete: (results: Papa.ParseResult<Record<string, string>>) => {
+        // Add type for results
         const headers = results.meta.fields;
         const sampleRow = results.data[0] as Record<string, string> | undefined;
         if (!headers || headers.length === 0) {

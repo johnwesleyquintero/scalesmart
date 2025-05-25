@@ -149,10 +149,34 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     expectedType: 'number',
     description: 'The orders attributed to advertising within a 7-day window',
   },
-  { key: 'acos', label: 'ACoS', required: false, expectedType: 'number', description: 'Advertising Cost of Sales' },
-  { key: 'roas', label: 'ROAS', required: false, expectedType: 'number', description: 'Return on Ad Spend' },
-  { key: 'cpc', label: 'CPC', required: false, expectedType: 'number', description: 'Cost per Click' },
-  { key: 'ctr', label: 'CTR', required: false, expectedType: 'number', description: 'Click-Through Rate' },
+  {
+    key: 'acos',
+    label: 'ACoS',
+    required: false,
+    expectedType: 'number',
+    description: 'Advertising Cost of Sales',
+  },
+  {
+    key: 'roas',
+    label: 'ROAS',
+    required: false,
+    expectedType: 'number',
+    description: 'Return on Ad Spend',
+  },
+  {
+    key: 'cpc',
+    label: 'CPC',
+    required: false,
+    expectedType: 'number',
+    description: 'Cost per Click',
+  },
+  {
+    key: 'ctr',
+    label: 'CTR',
+    required: false,
+    expectedType: 'number',
+    description: 'Click-Through Rate',
+  },
   {
     key: 'ad_conversion_rate',
     label: 'Ad Conversion Rate',
@@ -233,7 +257,8 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: false,
     expectedType: 'number',
     hint: 'Sales attributed to the specific targeted keyword (7-day window).',
-    description: 'Sales attributed to the specific targeted keyword (7-day window)',
+    description:
+      'Sales attributed to the specific targeted keyword (7-day window)',
   },
   {
     key: 'keyword_ad_orders_7_day',
@@ -241,7 +266,8 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     required: false,
     expectedType: 'number',
     hint: 'Orders attributed to the specific targeted keyword (7-day window).',
-    description: 'Orders attributed to the specific targeted keyword (7-day window)',
+    description:
+      'Orders attributed to the specific targeted keyword (7-day window)',
   },
 ];
 

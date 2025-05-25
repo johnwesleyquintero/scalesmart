@@ -325,4 +325,4 @@ export const OverviewDataTable: React.FC<OverviewDataTableProps> = ({
       </CardContent>
     </Card>
   );
-}
+};

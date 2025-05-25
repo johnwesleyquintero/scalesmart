@@ -245,4 +245,4 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
       </div>
     </>
   );
-}
+};
