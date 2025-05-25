@@ -368,8 +368,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <Download className="mr-2 h-4 w-4" /> Download Sample CSV
         </Button>
       </div>
-      {isParsing ? (
-        <OverviewLoadingIndicator showMapperText={showMapper} />
+      {isUploading || isParsing || isProcessing ? (
+        <OverviewLoadingIndicator
+          isUploading={isUploading}
+          isParsing={isParsing}
+          isProcessing={isProcessing}
+          showMapperText={showMapper}
+        />
       ) : showMapper && csvHeaders.length > 0 ? (
         <OverviewDataMapper
           key={overviewDataMapperKey}

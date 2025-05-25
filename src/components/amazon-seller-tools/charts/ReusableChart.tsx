@@ -36,7 +36,12 @@ interface ReusableChartProps {
   labels: string[];
   title: string;
   yAxisFormatter?: (value: number) => string;
-  tooltipFormatter?: (value: number, name: string) => [string, string];
+  tooltipFormatter?: (
+    value: number, // The value of the data point for this series
+    name: string, // The dataKey of this series (e.g., 'total_sales', 'ad_spend')
+    dataPoint: DashboardMetrics, // The entire data object for this x-axis tick
+    granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+  ) => [React.ReactNode, React.ReactNode]; // Should return [formattedValue, formattedName]
   timeRange?: string;
   setTimeRange?: (timeRange: string) => void | undefined;
 }
@@ -72,25 +77,35 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
             />
             <YAxis tickFormatter={yAxisFormatter} />
             <Tooltip
-              formatter={(value: number | string, name: string) => {
+              formatter={(
+                value: number, // raw value for this line
+                name: string, // dataKey for this line
+                entry: any, // Use any for TooltipPayload type issue
+              ) => {
                 if (tooltipFormatter) {
-                  return tooltipFormatter(value as number, name);
+                  const dataPoint = entry.payload as DashboardMetrics; // entry.payload is the original data object
+                  return tooltipFormatter(value, name, dataPoint, granularity);
                 }
-                return [`${value}`, name];
+                const labelIndex = yAxisDataKeys.indexOf(name);
+                const displayName = labelIndex !== -1 ? labels[labelIndex] : name;
+                return [value.toString(), displayName];
               }}
               labelFormatter={(label) => formatTooltipLabel(label, granularity)}
             />
             <Legend />
-            {yAxisDataKeys.map((key, index) => (
-              <Line
-                key={key}
-                type="monotone"
-                dataKey={key}
-                stroke={colors[index % colors.length]}
-                name={labels[index % labels.length]}
-                activeDot={{ r: 6 }}
-              />
-            ))}
+            {yAxisDataKeys.map((key, index) => {
+              const colorIndex = index % colors.length;
+              return (
+                <Line
+                  key={key}
+                  type="monotone"
+                  dataKey={key}
+                  stroke={colors[colorIndex]}
+                  name={labels[index % labels.length]}
+                  activeDot={{ r: 6 }}
+                />
+              );
+            })}
           </LineChart>
         );
       case 'bar':
@@ -106,7 +121,19 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
             />
             <YAxis />
             <Tooltip
-              formatter={tooltipFormatter}
+              formatter={(
+                value: number,
+                name: string, // dataKey for this bar
+                entry: any, // Use any for TooltipPayload type issue
+              ) => {
+                if (tooltipFormatter) {
+                  const dataPoint = entry.payload as DashboardMetrics; // entry.payload is the original data object
+                  return tooltipFormatter(value, name, dataPoint, granularity);
+                }
+                const labelIndex = yAxisDataKeys.indexOf(name);
+                const displayName = labelIndex !== -1 ? labels[labelIndex] : name;
+                return [value.toString(), displayName];
+              }}
               labelFormatter={(label) => formatTooltipLabel(label, granularity)}
             />
             <Legend />

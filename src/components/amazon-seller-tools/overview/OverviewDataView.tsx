@@ -2,6 +2,12 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -68,68 +74,95 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-        <Card
-          title="Average Conversion Rate: (Total Orders / Total Sessions) * 100. This metric represents the percentage of sessions that resulted in an order."
-        >
-          <CardContent className="p-4">
-            <h3 className="text-lg font-semibold mb-2">Avg. Conversion Rate</h3>
-            <div className="text-3xl font-bold text-blue-600">
-              {(aggregatedAndSortedMetrics.length > 0 &&
-              aggregatedAndSortedMetrics.every(
-                (m) => typeof m.total_conversion_rate === 'number',
-              )
-                ? aggregatedAndSortedMetrics.reduce(
-                    (sum, m) => sum + (m.total_conversion_rate || 0),
-                    0,
-                  ) / aggregatedAndSortedMetrics.length
-                : 0
-              ).toFixed(2)}
-              %
-            </div>
-            <div className="text-sm text-gray-500 mt-1">
-              Avg. (Orders/Sessions) from Report
-            </div>
-          </CardContent>
-        </Card>
-        <Card
-          title="Total Sales: The sum of all sales from the report period, representing the total revenue generated."
-        >
-          <CardContent className="p-4">
-            <h3 className="text-lg font-semibold mb-2">Total Sales</h3>
-            <div className="text-3xl font-bold text-green-600">
-              $
-              {aggregatedAndSortedMetrics
-                .reduce((sum, m) => sum + (m.total_sales || 0), 0)
-                .toLocaleString(undefined, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                })}
-            </div>
-            <div className="text-sm text-gray-500 mt-1">
-              Sum from Report Period
-            </div>
-          </CardContent>
-        </Card>
-        <Card
-          title="Average Clicks: The average number of ad clicks from the report period."
-        >
-          <CardContent className="p-4">
-            <h3 className="text-lg font-semibold mb-2">Avg. Clicks</h3>
-            <div className="text-3xl font-bold text-yellow-600">
-              {aggregatedAndSortedMetrics.length > 0
-                ? (
-                    aggregatedAndSortedMetrics.reduce(
-                      (sum, m) => sum + (m.ad_clicks || 0),
-                      0,
-                    ) / aggregatedAndSortedMetrics.length
-                  ).toFixed(1)
-                : 0}
-            </div>
-            <div className="text-sm text-gray-500 mt-1">
-              Average from Report
-            </div>
-          </CardContent>
-        </Card>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Card title="Average Conversion Rate: (Total Orders / Total Sessions) * 100. This metric represents the percentage of sessions that resulted in an order.">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold mb-2">
+                    Avg. Conversion Rate
+                  </h3>
+                  <div className="text-3xl font-bold text-blue-600">
+                    {(aggregatedAndSortedMetrics.length > 0 &&
+                    aggregatedAndSortedMetrics.every(
+                      (m) => typeof m.total_conversion_rate === 'number',
+                    )
+                      ? aggregatedAndSortedMetrics.reduce(
+                          (sum, m) => sum + (m.total_conversion_rate || 0),
+                          0,
+                        ) / aggregatedAndSortedMetrics.length
+                      : 0
+                    ).toFixed(2)}
+                    %
+                  </div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Avg. (Orders/Sessions) from Report
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              Average Conversion Rate: (Total Orders / Total Sessions) * 100.
+              This metric represents the percentage of sessions that resulted in
+              an order.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Card title="Total Sales: The sum of all sales from the report period, representing the total revenue generated.">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold mb-2">Total Sales</h3>
+                  <div className="text-3xl font-bold text-green-600">
+                    $
+                    {aggregatedAndSortedMetrics
+                      .reduce((sum, m) => sum + (m.total_sales || 0), 0)
+                      .toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
+                  </div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Sum from Report Period
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              Total Sales: The sum of all sales from the report period,
+              representing the total revenue generated.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger>
+              <Card title="Average Clicks: The average number of ad clicks from the report period.">
+                <CardContent className="p-4">
+                  <h3 className="text-lg font-semibold mb-2">Avg. Clicks</h3>
+                  <div className="text-3xl font-bold text-yellow-600">
+                    {aggregatedAndSortedMetrics.length > 0
+                      ? (
+                          aggregatedAndSortedMetrics.reduce(
+                            (sum, m) => sum + (m.ad_clicks || 0),
+                            0,
+                          ) / aggregatedAndSortedMetrics.length
+                        ).toFixed(1)
+                      : 0}
+                  </div>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Average from Report
+                  </div>
+                </CardContent>
+              </Card>
+            </TooltipTrigger>
+            <TooltipContent>
+              Average Clicks: The average number of ad clicks from the report
+              period.
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       {/* Period-over-Period Comparison Section */}

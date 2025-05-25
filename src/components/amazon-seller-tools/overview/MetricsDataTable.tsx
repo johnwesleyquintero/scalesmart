@@ -179,7 +179,13 @@ export const MetricsDataTable: React.FC<MetricsDataTableProps> = ({
                   >
                     {col.label}
                     {col.sortable && sortKey === col.key && (
-                      <ArrowUpDown className="ml-2 h-4 w-4" />
+                      <ArrowUpDown
+                        className={`ml-2 h-4 w-4 ${
+                          sortOrder === 'asc'
+                            ? 'text-green-500'
+                            : 'text-red-500'
+                        }`}
+                      />
                     )}
                   </Button>
                   {col.filterable && col.key === 'date' && (
