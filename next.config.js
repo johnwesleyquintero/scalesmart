@@ -22,7 +22,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'wesleyquintero.vercel.app',
+        hostname: 'wescode.vercel.app',
         pathname: '/**',
       },
       {

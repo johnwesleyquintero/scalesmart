@@ -178,6 +178,7 @@ The Competitor Analyzer is a tool for analyzing competitor products and strategi
 Each of these tools is a self-contained component designed for a specific task.
 
 ## 6. ACoS Calculator
+
 ---
 
 ---

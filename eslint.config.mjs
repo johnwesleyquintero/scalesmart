@@ -4,7 +4,6 @@ import tseslint from '@typescript-eslint/eslint-plugin';
 import parser from '@typescript-eslint/parser';
 import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
-
 export default [
   eslint.configs.recommended,
   {
@@ -92,6 +91,8 @@ export default [
         ecmaVersion: 'latest',
         sourceType: 'module',
         warnOnUnsupportedTypeScriptVersion: false,
+        project: ['./tsconfig.eslint.json'],
+        tsconfigRootDir: import.meta.dirname,
       },
     },
     plugins: {
@@ -105,6 +106,14 @@ export default [
       'sonarjs/no-duplicate-string': 'error',
       'sonarjs/no-identical-functions': 'error',
       'sonarjs/cognitive-complexity': ['error', 15],
+    },
+  },
+  {
+    files: ['src/hooks/use-toast.tsx', 'src/types/index.d.ts'],
+    languageOptions: {
+      parserOptions: {
+        project: null, // Disable project for these specific files
+      },
     },
   },
 ];
