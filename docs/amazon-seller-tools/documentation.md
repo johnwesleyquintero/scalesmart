@@ -8,10 +8,9 @@ The dashboard is structured with a `DashboardHeader` component for refresh, expo
 
 ## 2. Main Features
 
-- **Unified Dashboard:** Provides an overview of key business metrics once data is uploaded.
 - **Enhanced Data Visualization:** We've upgraded our charts and added new ones to visualize your sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
 - **Improved CSV Data Mapping:** We've made it easier than ever to upload and map your Amazon Business Report data with our new CSV Data Mapper, including data validation.
-- **Data Visualization:**
+ - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons.
   - Data Table: Displaying the data in a sortable and filterable table using the `MetricsDataTable` component.
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
@@ -563,4 +562,3 @@ export interface CampaignData {
   roas: number;
   date: string;
 }
-```

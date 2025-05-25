@@ -12,16 +12,16 @@ We're thrilled to announce a major update to our Amazon Seller Tools Overview Da
 
 **What's New?**
 
-- **Enhanced Data Visualization:** We've upgraded our charts and added new ones to visualize your sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the ReusableChart component.
-- **Improved CSV Data Mapping:** We've made it easier than ever to upload and map your Amazon Business Report data with our new CSV Data Mapper, including data validation.
-- **Key Metrics at a Glance:** Quickly see your most important KPIs with our updated KPI cards, including period-over-period comparisons.
-- **Print and Download PDF:** Easily share your dashboard insights with the new print and download PDF options.
+*   **Enhanced Data Visualization:** We've upgraded our charts and added new ones to visualize your sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the ReusableChart component.
+*   **Improved CSV Data Mapping:** We've made it easier than ever to upload and map your Amazon Business Report data with our new CSV Data Mapper, including data validation.
+*   **Key Metrics at a Glance:** Quickly see your most important KPIs with our updated KPI cards, including period-over-period comparisons.
+*   **Print and Download PDF:** Easily share your dashboard insights with the new print and download PDF options.
 
 **Why This Matters:**
 
-- **Make Data-Driven Decisions:** Understand your key metrics at a glance.
-- **Track Performance:** Monitor trends and identify areas for improvement.
-- **Optimize Your Strategy:** Use the insights to refine your Amazon selling strategy.
+*   **Make Data-Driven Decisions:** Understand your key metrics at a glance.
+*   **Track Performance:** Monitor trends and identify areas for improvement.
+*   **Optimize Your Strategy:** Use the insights to refine your Amazon selling strategy.
 
 **Ready to take your Amazon business to the next level?**
 
@@ -31,5 +31,5 @@ Check out the updated Overview Dashboard and explore all the features: https://w
 
 ## Optional:
 
-- Include a screenshot or short video of the dashboard.
-- Tag relevant people or companies.
+*   Include a screenshot or short video of the dashboard.
+*   Tag relevant people or companies.
