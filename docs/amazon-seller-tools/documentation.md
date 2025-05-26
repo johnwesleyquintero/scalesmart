@@ -12,7 +12,7 @@ The dashboard is structured with a `DashboardHeader` component for refresh, expo
 - **Improved CSV Data Mapping:** We've made it easier than ever to upload and map your Amazon Business Report data with our new CSV Data Mapper, including data validation.
 - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons with informative tooltips.
-  - Data Table: Displaying the data in a sortable and filterable table using the `MetricsDataTable` component.
+  - Data Table: Displaying the data in a sortable and filterable table using the `TableChart` component.
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
 - **Time Range Filtering:** Data in charts can be filtered by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
 - **Period-over-Period Comparison:** Displays key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
@@ -58,7 +58,7 @@ Once mapping is complete and the data is processed:
 
 - **Charts:** Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
 
-- **Data Table:** Displaying the data in a sortable and filterable table using the `MetricsDataTable` component.
+- **Data Table:** Displaying the data in a sortable and filterable table using the `TableChart` component.
 
 - **Time Granularity:**
 

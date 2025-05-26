@@ -1,5 +1,5 @@
 // src/components/amazon-seller-tools/overview/OverviewDataView.tsx
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Tooltip,
@@ -14,22 +14,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import TableChart, { ColumnDef } from '@/components/ui/TableChart';
 import type {
   DashboardMetrics,
   TargetMetricConfig,
-} from '@/app/amazon-seller-tools/page'; // Adjust path if types are moved
+} from '@/app/amazon-seller-tools/page';
 import { ComparisonKpiCard } from './ComparisonKpiCard';
 import { SalesTrendsChart } from '../charts/SalesTrendsChart';
 import { ClicksImpressionsChart } from '../charts/ClicksImpressionsChart';
 import { OrdersSessionsChart } from '../charts/OrdersSessionsChart';
-import { AdSpendSalesChart } from '../charts/AdSpendSalesChart'; // New import
-import { ProfitTrendChart } from '../charts/ProfitTrendChart'; // New import
-import { aggregateMetricsByTime } from '@/lib/utils/amazon/data-aggregation'; // Assuming aggregation logic is moved
+import { AdSpendSalesChart } from '../charts/AdSpendSalesChart';
+import { ProfitTrendChart } from '../charts/ProfitTrendChart';
 
 interface OverviewDataViewProps {
   metrics: DashboardMetrics[];
-  targetMetricsConfig: TargetMetricConfig[]; // Keep this if needed for future, or remove if not used by OverviewDataView directly
-  onDeleteMetric: (metricDate: string, metricIdentifier?: string) => void; // Keep if this delete functionality is part of this view
+  targetMetricsConfig: TargetMetricConfig[];
+  onDeleteMetric: (metricDate: string, metricIdentifier?: string) => void;
   timeGranularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
   setTimeGranularity: (
     granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
@@ -39,14 +39,64 @@ interface OverviewDataViewProps {
 
 export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
   metrics,
-  // targetMetricsConfig, // Uncomment if used
-  // onDeleteMetric, // Uncomment if used
-  timeGranularity, // Keep for the Select component
-  setTimeGranularity, // Keep for the Select component
-  aggregatedAndSortedMetrics, // Use this prop directly
+  targetMetricsConfig,
+  timeGranularity,
+  setTimeGranularity,
+  aggregatedAndSortedMetrics,
 }) => {
-  // The aggregatedAndSortedMetrics are now passed as a prop.
-  // No need to calculate it internally here.
+  const tableColumns: ColumnDef<DashboardMetrics>[] = useMemo(() => {
+    // Define which metrics to show in the table and their display properties
+    const displayKeys: (keyof DashboardMetrics)[] = [
+      'date',
+      'total_sales',
+      'total_orders',
+      'total_sessions',
+      'total_conversion_rate',
+      'ad_impressions',
+      'ad_clicks',
+      'ad_spend',
+      'ad_sales',
+      'acos',
+      'roas',
+      'profit',
+    ];
+
+    return displayKeys
+      .map((key): ColumnDef<DashboardMetrics> | null => {
+        const config = targetMetricsConfig.find((t) => t.key === key);
+        if (!config) return null;
+
+        let cellRenderer: ((value: any, row: DashboardMetrics) => React.ReactNode) | undefined;
+        if (key === 'total_sales' || key === 'ad_spend' || key === 'ad_sales' || key === 'profit') {
+          cellRenderer = (value: number) =>
+            value !== undefined && value !== null
+              ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : 'N/A';
+        } else if (key === 'total_conversion_rate' || key === 'acos' || key === 'roas') {
+          cellRenderer = (value: number) =>
+            value !== undefined && value !== null ? `${value.toFixed(2)}%` : 'N/A';
+        } else if (typeof config.key === 'string' && config.key.includes('date')) {
+          cellRenderer = (value: string) => {
+            try {
+              const date = new Date(value);
+              return date.toLocaleDateString(); // Format date nicely
+            } catch {
+              return value;
+            }
+          };
+        } else {
+          cellRenderer = (value: any) => (value !== undefined && value !== null ? String(value) : 'N/A');
+        }
+
+        return {
+          accessorKey: key,
+          header: config.label,
+          sortable: true, // Enable sorting for all displayed columns
+          cell: cellRenderer,
+        };
+      })
+      .filter((column): column is ColumnDef<DashboardMetrics> => column !== null);
+  }, [targetMetricsConfig]);
 
   return (
     <>
@@ -273,6 +323,18 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
         <ProfitTrendChart
           sortedMetrics={aggregatedAndSortedMetrics}
           granularity={timeGranularity}
+        />
+      </div>
+
+      {/* Data Table */}
+      <div className="mb-6">
+        <h3 className="text-xl font-semibold mb-3">Detailed Metrics Table</h3>
+        <TableChart
+          data={aggregatedAndSortedMetrics}
+          columns={tableColumns}
+          stripedRows
+          enablePagination
+          initialPageSize={10}
         />
       </div>
     </>

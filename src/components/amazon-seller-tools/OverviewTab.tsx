@@ -391,16 +391,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             setTimeGranularity={setTimeGranularity}
             onDeleteMetric={onDeleteMetric}
           />
-          {/* Console logs to inspect props */}
-          {console.log(
-            'OverviewTab - metrics:',
-            JSON.stringify(metrics, null, 2),
-          )}
-          {console.log(
-            'OverviewTab - targetMetricsConfig:',
-            JSON.stringify(TARGET_METRICS_CONFIG, null, 2),
-          )}
-          {/* Replace KeywordPerformanceTable with OverviewDataTable */}
         </>
       ) : (
         <>
