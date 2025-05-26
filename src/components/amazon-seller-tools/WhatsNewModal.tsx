@@ -30,45 +30,24 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-3">
-          <h4 className="font-semibold text-lg">
-            Enhanced Data Interaction & Filtering
-          </h4>
+          <h4 className="font-semibold text-lg">Enhanced Data Visualization</h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
-            <li>
-              **Advanced Filtering for Data Tables:** You can now filter data
-              tables by multiple criteria, allowing for more precise data
-              exploration.
-            </li>
-            <li>
-              **"Clear All Filters" Button:** A new button has been added to
-              quickly reset all active filters in data tables.
-            </li>
+            <li>New charts visualizing sales and advertising performance.</li>
           </ul>
 
-          <h4 className="font-semibold text-lg">
-            Streamlined Specialized Tool Workflows
-          </h4>
+          <h4 className="font-semibold text-lg">Improved CSV Data Mapping</h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
-            <li>
-              **"Copy to Clipboard" for Tool Outputs:** Easily copy results from
-              specialized tools to your clipboard for quick transfer.
-            </li>
-            <li>
-              **"Save/Load Preset" for Manual Calculation Forms:** Save and load
-              frequently used input values for manual calculation forms,
-              accelerating repetitive tasks.
-            </li>
+            <li>Easier upload and mapping with the new CSV Data Mapper, including data validation and transformation configuration.</li>
           </ul>
 
-          <h4 className="font-semibold text-lg">
-            Improved User Guidance & Feedback
-          </h4>
+          <h4 className="font-semibold text-lg">Print and Download PDF</h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
-            <li>
-              **Contextual Empty State Messages:** Charts and tables now display
-              more informative messages when no data is available, guiding you
-              on how to populate them.
-            </li>
+            <li>Options to share dashboards easily.</li>
+          </ul>
+
+          <h4 className="font-semibold text-lg">Sample Data</h4>
+          <ul className="list-disc list-inside text-sm text-muted-foreground">
+            <li>Dashboard loads sample data when no CSV is uploaded.</li>
           </ul>
         </div>
         <DialogFooter>
