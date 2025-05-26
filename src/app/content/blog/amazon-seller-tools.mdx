@@ -30,7 +30,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 ```
 | Tool                     | Status                     | Version     | Notes                              |
 | :----------------------- | :------------------------- | :---------- | :--------------------------------- |
-| Overview Dashboard       | ✅ Active                  | 1.2.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, basic mapping persistence, and a data table using the TableChart component. |
+| Overview Dashboard       | ✅ Active                  | 1.2.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, basic mapping persistence, and a data table using the TableChart component, with enhanced stability due to resolved hook order issues. |
 | FBA Calculator           | ✅ Active                  | 2.0.0       | Advanced profitability calculator for FBA products with real-time ROI analysis and market trend integration.                                   |
 | Keyword Analyzer         | ✅ Active                  | 2.0.0       | A tool for analyzing and managing keywords.                                    |
 | Listing Quality Checker  | ✅ Active                  | 1.5.0       | AI-powered listing analysis and optimization tool.           |
@@ -45,7 +45,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 | Product Score Calc.      | ✅ Active                  | 1.0.0       | Calculates a quality score for your Amazon product listing based on various optimization factors.                  |
 | Optimal Price Calc.      | ✅ Active                  | 1.2.0       | AI-powered pricing suggestions with market trend analysis |
 | CSV Data Mapper          | ✅ Active                  | 1.0.0       | A reusable React component for mapping CSV headers to target metrics with validation.  Includes a `toolId` prop and a "Download Sample CSV" button.                |
-| ReusableChart            | ✅ Active                  | 1.0.0       | A versatile component for rendering various types of charts, including line and bar charts.                                    |
+| ReusableChart            | ✅ Active                  | 1.0.0       | A versatile component for rendering various types of charts, including line and bar charts, with enhanced rendering logic for `ResponsiveContainer` interaction and proper event integration.                                    |
 | KeywordVsAdSalesDonutChart | ✅ Active                  | 1.0.0       | A component for rendering a donut chart of keyword vs ad sales.                                    |
 ```
 
@@ -58,7 +58,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 **Status**: ✅ Active
 **Version**: 1.2.0
 
-🔍 **Description**: Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, and basic mapping persistence.
+🔍 **Description**: Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, and basic mapping persistence. **Stability improvements have been implemented for data visualization consistency and performance, specifically addressing React Hook order issues.**
 
 The Overview Dashboard is a central hub for analyzing key business metrics. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools. The CSV Data Mapper now includes data validation to ensure data integrity. Charts are now rendered using the ReusableChart component for improved consistency and maintainability. The dashboard now includes Print and Download PDF options.
 
@@ -86,7 +86,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 5.  **Period-over-Period Comparison:** The dashboard displays period-over-period comparisons for key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS). Changes are indicated with icons (up/down arrows) and percentage differences.
 6.  **Interacting with the Dashboard:**
     - The dashboard now displays sample data when no CSV file is uploaded.
-    - **Refresh:** Click the "Refresh" button in the header to clear current data and start over.
+    - **Refresh:** Click the "Refresh" button in the DashboardHeader to clear current data and start over.
 
 - **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
 - **Print:** Click the "Print" button to print the dashboard report.
@@ -388,7 +388,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 **Status**: ✅ Active
 **Version**: 1.0.0
 
-🔍 **Description**: A versatile component for rendering various types of charts, including line and bar charts.
+🔍 **Description**: A versatile component for rendering various types of charts, including line and bar charts. Its rendering logic has been updated for improved stability and consistent hook calls in `ResponsiveContainer` and proper integration of event annotations.
 
 ### KeywordVsAdSalesDonutChart
 

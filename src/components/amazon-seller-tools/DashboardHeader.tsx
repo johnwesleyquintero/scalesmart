@@ -1,12 +1,14 @@
-'use client';
-
+import React, { useCallback, useState, useEffect } from 'react';
+import useDebounce from '@/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Download, Loader2, RefreshCw } from 'lucide-react';
-import React, { useCallback, useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { BookOpen, Download, Loader2, RefreshCw, Settings } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import DashboardPdf from './DashboardPdf';
 import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 import { saveAs } from 'file-saver';
+import KpiCustomizationModal from './KpiCustomizationModal';
+import { getItem } from '@/lib/indexeddb-service';
 
 interface DashboardHeaderProps {
   isLoading: boolean;
@@ -16,6 +18,7 @@ interface DashboardHeaderProps {
   handleRefresh: () => void;
   handleExport: () => void;
   metrics: DashboardMetrics[];
+  onSearch: (searchTerm: string) => void;
 }
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({
@@ -26,11 +29,29 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   handleRefresh,
   handleExport,
   metrics,
+  onSearch,
 }) => {
   const [pdfData, setPdfData] = useState<{
     title: string;
     content: string;
   } | null>(null);
+
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
+
+  useEffect(() => {
+    const getStoredMetrics = async () => {
+      const storedMetrics = await getItem<string[]>('selectedMetrics');
+      if (storedMetrics) {
+        setSelectedMetrics(storedMetrics);
+      }
+    };
+
+    getStoredMetrics();
+  }, []);
+
+  const handleSaveKpiModal = (newSelectedMetrics: string[]) => {
+    setSelectedMetrics(newSelectedMetrics);
+  };
 
   const handlePrint = useCallback(() => {
     // Prepare data for the PDF
@@ -129,6 +150,29 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <BookOpen className="w-4 h-4 mr-2" /> Docs
             </a>
           </Button>
+          <div className="relative flex items-center">
+            <Input
+              className="w-64 px-4 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              type="search"
+              placeholder="Search ASIN, Identifier, Keyword..."
+              id="global-search"
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onSearch(e.target.value)
+              }
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'Tab') {
+                  // Logic to move focus to suggestions or the table
+                }
+              }}
+            />
+            <span className="absolute right-3 text-gray-400">
+              <Settings className="w-4 h-4 mr-2" />
+            </span>
+          </div>
+          <KpiCustomizationModal
+            defaultMetrics={selectedMetrics}
+            onSave={handleSaveKpiModal}
+          />
         </div>
       </div>
     </div>

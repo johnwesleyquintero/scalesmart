@@ -2,6 +2,14 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { Info } from 'lucide-react'; // Import the Info icon
+import AcosRatingHelper from '@/components/amazon-seller-tools/AcosRatingHelper';
 // import type { CampaignData } from './ppc-campaign-auditor';
 
 export interface Identifier {
@@ -77,6 +85,18 @@ export default function CampaignCard({ campaign }: CampaignCardProps) {
                 <div className="text-sm text-muted-foreground">ACoS</div>
                 <div className="text-xl font-semibold">
                   {campaign.acos?.toFixed(2)}%
+                  {campaign.acos !== null && campaign.acos !== undefined && (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="h-4 w-4 ml-1 inline-block cursor-pointer" />
+                        </TooltipTrigger>
+                        <TooltipContent className="text-sm">
+                          <AcosRatingHelper acos={campaign.acos * 100} />
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  )}
                 </div>
               </div>
               <div className="rounded-lg border p-3">

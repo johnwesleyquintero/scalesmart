@@ -8,11 +8,11 @@ The dashboard is structured with a `DashboardHeader` component for refresh, expo
 
 ## 2. Main Features
 
-- **Enhanced Data Visualization:** We've upgraded our charts and added new ones to visualize your sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
+- **Enhanced Data Visualization:** We've upgraded our charts and added new ones to visualize your sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component, now with improved stability for consistent rendering within `ResponsiveContainer` and proper event annotations.
 - **Improved CSV Data Mapping:** We've made it easier than ever to upload and map your Amazon Business Report data with our new CSV Data Mapper, including data validation.
 - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons with informative tooltips.
-  - Data Table: Displaying the data in a sortable and filterable table using the `TableChart` component, which now supports customizable empty state content and improved column spanning.
+  - Data Table: Displaying the data in a sortable and filterable table using the `TableChart` component, which now supports customizable empty state content and improved column spanning, with its data supply stabilized to prevent hook order issues.
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
 - **Time Range Filtering:** Data in charts can be filtered by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
 - **Period-over-Period Comparison:** Displays key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
@@ -81,11 +81,12 @@ Once mapping is complete and the data is processed:
 - The dashboard now displays sample data when no CSV file is uploaded.
 
 - **Refresh:** Click the "Refresh" button in the `DashboardHeader` to clear current data and start over (e.g., to upload a new file).
-- **Export:** Click the "Export" button in the `DashboardHeader` to download the currently processed and aggregated dashboard metrics as a CSV file.
-- **Print:** Click the "Print" button in the `DashboardHeader` to print the dashboard report.
-- **Download PDF:** Click the "Download PDF" button in the `DashboardHeader` to download the dashboard report as a PDF file.
-- **Docs:** Links to external documentation for the Amazon Seller Tools, located in the `DashboardHeader`.
-- **Error Handling:** If issues occur during file upload, parsing, or mapping, an error message will be displayed in the `DashboardHeader` or `OverviewTab`. You'll often have an option to "Try uploading again."
+
+- **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
+- **Print:** Click the "Print" button to print the dashboard report.
+- **Download PDF:** Click the "Download PDF" button to download the dashboard report as a PDF file.
+- **Docs:** Links to external documentation for the Amazon Seller Tools.
+- **Error Handling:** If issues occur during file upload, parsing, or mapping, an error message will be displayed. You'll often have an option to "Try uploading again."
 
 ## 4. Data Structure (`DashboardMetrics` Interface)
 
@@ -265,7 +266,7 @@ export interface CampaignData {
 
 ## 8. ReusableChart Component
 
-The `ReusableChart` component (`src/components/amazon-seller-tools/charts/ReusableChart.tsx`) is a versatile component for rendering various types of charts, including line and bar charts. It leverages the Recharts library for data visualization.
+The `ReusableChart` component (`src/components/amazon-seller-tools/charts/ReusableChart.tsx`) is a versatile component for rendering various types of charts, including line and bar charts. It leverages the Recharts library for data visualization. Its rendering logic has been updated for improved stability and consistent hook calls.
 
 - **Props:**
 
@@ -298,7 +299,7 @@ The `DashboardHeader` component (`src/components/amazon-seller-tools/DashboardHe
 
 ## 10. OverviewTab Component
 
-The `OverviewTab` component (`src/components/amazon-seller-tools/OverviewTab.tsx`) is a reusable component that displays the overview tab, including the data upload, mapping, and visualization.
+The `OverviewTab` component (`src/components/amazon-seller-tools/OverviewTab.tsx`) is a reusable component that displays the overview tab, including the data upload, mapping, and visualization. Its internal structure has been refactored to ensure consistent React Hook calls across different render paths, resolving "Rendered more hooks" errors.
 
 - **Props:**
 

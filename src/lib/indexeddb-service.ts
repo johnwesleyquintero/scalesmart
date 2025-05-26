@@ -18,6 +18,7 @@ class ChatDatabase extends Dexie {
   // 2. The type of the primary key (number, for auto-incremented id)
   public chatMessages!: Table<ChatMessageRecord, number>;
   public cache!: Table<{ key: string; value: unknown }, string>;
+  public events!: Table<Event, number>;
 
   constructor() {
     super('ChatAppDatabase'); // Name of the IndexedDB database
@@ -33,11 +34,21 @@ class ChatDatabase extends Dexie {
       // Add cache table in version 2
       cache: 'key', // Primary key is 'key'
     });
+    this.version(3).stores({
+      events: '++id, date', // Primary key is 'id', index on 'date'
+    });
   }
 }
 
 // Create a singleton instance of the database
 export const db = new ChatDatabase();
+
+export interface Event {
+  id?: number;
+  date: string;
+  title: string;
+  description?: string;
+}
 
 /**
  * Initializes the IndexedDB database.
@@ -153,6 +164,24 @@ export async function setItem<T>(key: string, value: T): Promise<void> {
     );
   }
 }
+
+export const addEvent = async (event: Event): Promise<number | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const id = await db.events.add(event);
+    console.log('Event added to IndexedDB:', event);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error adding event to IndexedDB: ${event.title}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
 
 export async function getCalculations(): Promise<CalculationData[]> {
   if (!db) {

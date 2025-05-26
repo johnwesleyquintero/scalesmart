@@ -33,11 +33,15 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           <h4 className="font-semibold text-lg">Enhanced Data Visualization</h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>New charts visualizing sales and advertising performance.</li>
+            <li>Improved chart stability and consistent data rendering for all chart types.</li>
           </ul>
 
           <h4 className="font-semibold text-lg">Improved CSV Data Mapping</h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
-            <li>Easier upload and mapping with the new CSV Data Mapper, including data validation and transformation configuration.</li>
+            <li>
+              Easier upload and mapping with the new CSV Data Mapper, including
+              data validation and transformation configuration.
+            </li>
           </ul>
 
           <h4 className="font-semibold text-lg">Print and Download PDF</h4>

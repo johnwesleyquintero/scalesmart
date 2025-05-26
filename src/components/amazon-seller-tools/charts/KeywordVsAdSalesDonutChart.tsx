@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface DashboardMetric {
-  keyword?: string;
+  targeted_keyword?: string; // Change keyword to targeted_keyword
   ad_sales?: number; // Allow ad_sales to be optional to match input prop
   // Add other properties as needed
 }
@@ -19,21 +19,21 @@ const KeywordVsAdSalesDonutChart: React.FC<KeywordVsAdSalesDonutChartProps> = ({
     const aggregatedData: { keyword: string; adSales: number }[] = [];
 
     sortedMetrics.forEach((metric) => {
-      // Ensure keyword is present and is a string, and ad_sales is a number
+      // Ensure targeted_keyword is present and is a string, and ad_sales is a number
       if (
-        metric.keyword &&
-        typeof metric.keyword === 'string' &&
+        metric.targeted_keyword && // Change metric.keyword to metric.targeted_keyword
+        typeof metric.targeted_keyword === 'string' && // Change metric.keyword to metric.targeted_keyword
         typeof metric.ad_sales === 'number'
       ) {
         const existingKeyword = aggregatedData.find(
-          (item) => item.keyword === metric.keyword,
+          (item) => item.keyword === metric.targeted_keyword, // Change metric.keyword to metric.targeted_keyword
         );
         if (existingKeyword) {
           existingKeyword.adSales += metric.ad_sales;
         } else {
-          // At this point, metric.keyword is guaranteed to be a string
+          // At this point, metric.targeted_keyword is guaranteed to be a string
           aggregatedData.push({
-            keyword: metric.keyword,
+            keyword: metric.targeted_keyword, // Change keyword to targeted_keyword
             adSales: metric.ad_sales,
           });
         }

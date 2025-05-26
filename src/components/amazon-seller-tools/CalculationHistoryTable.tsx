@@ -8,6 +8,13 @@ import {
 import { format } from 'date-fns';
 import { CalculationData } from '@/lib/indexeddb-service';
 import { copyToClipboard } from '@/lib/utils/clipboard';
+import AcosRatingHelper from '@/components/amazon-seller-tools/AcosRatingHelper';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { Copy } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -65,7 +72,26 @@ export function CalculationHistoryTable({
                     {calc.sales.toFixed(2)}
                   </td>
                   <td className="px-4 py-2 text-right">
-                    {calc.acos.toFixed(2)}
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'right',
+                            }}
+                          >
+                            <span>{calc.acos.toFixed(2)}</span>
+                            <span>%</span>
+                            <AcosRatingHelper acos={calc.acos * 100} />
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent className="text-sm">
+                          <AcosRatingHelper acos={calc.acos * 100} />
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </td>
                   <td className="px-4 py-2 text-right">
                     {calc.roas.toFixed(2)}

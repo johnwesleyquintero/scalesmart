@@ -25,23 +25,43 @@ export interface OverviewMetricsDBRecord {
   timestamp: Date; // Timestamp of the last update
 }
 
+export interface KpiConfigDBRecord {
+  id?: number;
+  configName: string; // e.g., 'default-kpis' or a user-defined name
+  selectedMetrics: string[];
+  timestamp: Date;
+}
+// Schema definition constant for stores indexed by toolName and timestamp
+const TOOL_NAME_TIMESTAMP_INDEX_SCHEMA = '++id, toolName, timestamp';
+
 export class AmazonToolsDB extends Dexie {
   calculations!: Table<CalculationDBRecord>;
   userCsvMappings!: Table<UserCsvMappingRecord>;
   overviewMetricsData!: Table<OverviewMetricsDBRecord>;
+  kpiConfigs!: Table<KpiConfigDBRecord>;
 
   constructor() {
     super('AmazonToolsDB'); // Database name
-    const userCsvMappingsIndex = '++id, toolName, timestamp';
-    this.version(2).stores({
-      calculations: '++id, calculationType, timestamp',
-      userCsvMappings: userCsvMappingsIndex,
-    });
+    // Use the new constant for relevant store schemas
+    const userCsvMappingsStore = TOOL_NAME_TIMESTAMP_INDEX_SCHEMA;
+    const calculationsStore = '++id, calculationType, timestamp';
+    const overviewMetricsStore = TOOL_NAME_TIMESTAMP_INDEX_SCHEMA;
+    const kpiConfigsStore = '++id, configName';
 
+    this.version(2).stores({
+      calculations: calculationsStore,
+      userCsvMappings: userCsvMappingsStore,
+    });
     this.version(3).stores({
-      calculations: '++id, calculationType, timestamp',
-      userCsvMappings: userCsvMappingsIndex,
-      overviewMetricsData: '++id, toolName, timestamp', // 'toolName' can be an index for querying
+      calculations: calculationsStore,
+      userCsvMappings: userCsvMappingsStore,
+      overviewMetricsData: overviewMetricsStore, // 'toolName' can be an index for querying
+    });
+    this.version(4).stores({
+      calculations: calculationsStore,
+      userCsvMappings: userCsvMappingsStore,
+      overviewMetricsData: overviewMetricsStore,
+      kpiConfigs: kpiConfigsStore, // 'configName' will be unique for KPI configs
     });
   }
 }

@@ -296,6 +296,7 @@ export default function UnifiedDashboard() {
   const [isMapping, setIsMapping] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
     const hasSeenWhatsNew = localStorage.getItem('hasSeenWhatsNew_v1.0'); // Use a versioned key
@@ -334,6 +335,7 @@ export default function UnifiedDashboard() {
         handleRefresh={handleRefresh}
         handleExport={() => setError('No data to export.')}
         metrics={metrics}
+        onSearch={setSearchTerm}
       />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-4 flex flex-wrap h-auto justify-start">
@@ -363,6 +365,7 @@ export default function UnifiedDashboard() {
             error={error}
             setError={setError}
             TARGET_METRICS_CONFIG={TARGET_METRICS_CONFIG}
+            searchTerm={searchTerm}
           />
         </TabsContent>
         <TabsContent value="keywords">

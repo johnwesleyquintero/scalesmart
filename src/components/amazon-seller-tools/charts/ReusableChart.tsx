@@ -25,6 +25,7 @@ interface ReusableChartProps {
   tooltipFormatter?: (value: number, name: string) => [string, string];
   timeRange?: string;
   setTimeRange?: React.Dispatch<React.SetStateAction<string>>;
+  events?: Array<{ date: string; title: string; description?: string }>;
 }
 
 export const ReusableChart: React.FC<ReusableChartProps> = ({
@@ -40,6 +41,7 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
   tooltipFormatter = (value, name) => [value.toLocaleString(), name],
   timeRange = 'all',
   setTimeRange,
+  events,
 }) => {
   const data = useMemo(() => {
     return sortedMetrics.map((metric) => {
@@ -65,8 +67,8 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
   return (
     <div className="bg-white shadow-md rounded-lg overflow-hidden">
       <div className="bg-gray-100 p-3 font-bold text-xl">{title}</div>
-      <ResponsiveContainer width="100%" height={300}>
-        {chartType === 'line' ? (
+      {chartType === 'line' ? (
+        <ResponsiveContainer width="100%" height={300}>
           <LineChart
             width={500}
             height={300}
@@ -76,7 +78,11 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey={xAxisDataKey} />
             <YAxis type="number" tickFormatter={yAxisFormatter} />
-            <Tooltip content={<CustomTooltip formatter={tooltipFormatter} />} />
+            <Tooltip
+              content={
+                <CustomTooltip formatter={tooltipFormatter} events={events} />
+              }
+            />
             <Legend />
             {yAxisDataKeys.map((key, index) => (
               <Line
@@ -87,11 +93,21 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
                 strokeWidth={2}
               />
             ))}
+            {events && 
+              events.map((event, index) => (
+                <g key={index}>
+                  <line
+                    x={0}
+                    y1={0}
+                    y2={300}
+                    stroke="rgba(0,0,0,0.2)"
+                    strokeWidth={1}
+                  />
+                </g>
+              ))}
           </LineChart>
-        ) : (
-          <></>
-        )}
-      </ResponsiveContainer>
+        </ResponsiveContainer>
+      ) : null}
     </div>
   );
 };
@@ -99,6 +115,7 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
 interface CustomTooltipProps extends RechartsTooltipProps<number, string> {
   // TValue is number, TName is string
   formatter?: (value: number, name: string) => [string, string];
+  events?: Array<{ date: string; title: string; description?: string }>;
 }
 
 const CustomTooltip: React.FC<CustomTooltipProps> = ({
@@ -106,6 +123,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   payload,
   active,
   label, // label for the X-axis value
+  events,
 }) => {
   if (active && payload && payload.length && formatter) {
     return (
