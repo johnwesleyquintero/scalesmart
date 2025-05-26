@@ -38,6 +38,68 @@ interface OverviewDataViewProps {
   aggregatedAndSortedMetrics: DashboardMetrics[];
 }
 
+// --- Helper Formatting Functions (can be moved to a utils file if preferred) ---
+const formatCurrencyValue = (value: unknown): React.ReactNode => {
+  if (typeof value === 'number') {
+    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  return 'N/A';
+};
+
+const formatPercentageValue = (value: unknown): React.ReactNode => {
+  if (typeof value === 'number') {
+    return `${value.toFixed(2)}%`;
+  }
+  return 'N/A';
+};
+
+const formatDateValue = (value: unknown): React.ReactNode => {
+  if (typeof value === 'string') {
+    try {
+      const date = new Date(value);
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        return value; // Return original string if date is invalid
+      }
+      return date.toLocaleDateString();
+    } catch {
+      return value; // Return original string on error
+    }
+  }
+  // Fallback for non-string date values, or return 'N/A'
+  return value != null ? String(value) : 'N/A';
+};
+
+const formatDefaultValue = (value: unknown): React.ReactNode => {
+  return value != null ? String(value) : 'N/A'; // Handles undefined and null
+};
+
+// Function to get the appropriate formatter based on the metric key
+const getCellFormatter = (
+  metricKey: keyof DashboardMetrics,
+): ((val: unknown) => React.ReactNode) => {
+  switch (metricKey) {
+    case 'total_sales':
+    case 'ad_spend':
+    case 'ad_sales':
+    case 'profit':
+      return formatCurrencyValue;
+    case 'total_conversion_rate':
+    case 'acos':
+    case 'roas':
+      return formatPercentageValue;
+    case 'date': // Handles the primary date key
+      return formatDateValue;
+    default:
+      // For other keys that might be dates by convention (e.g., 'creation_date')
+      if (typeof metricKey === 'string' && metricKey.includes('date')) {
+        return formatDateValue;
+      }
+      return formatDefaultValue;
+  }
+};
+// --- End Helper Formatting Functions ---
+
 export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
   metrics,
   targetMetricsConfig,
@@ -69,50 +131,24 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
         const config = targetMetricsConfig.find((t) => t.key === key);
         if (!config) return null;
 
-        let cellRenderer:
-          | ((value: number | string, row: DashboardMetrics) => React.ReactNode)
-          | undefined;
-        if (
-          key === 'total_sales' ||
-          key === 'ad_spend' ||
-          key === 'ad_sales' ||
-          key === 'profit'
-        ) {
-          cellRenderer = (value: number) =>
-            value !== undefined && value !== null
-              ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-              : 'N/A';
-        } else if (
-          key === 'total_conversion_rate' ||
-          key === 'acos' ||
-          key === 'roas'
-        ) {
-          cellRenderer = (value: number) =>
-            value !== undefined && value !== null
-              ? `${value.toFixed(2)}%`
-              : 'N/A';
-        } else if (
-          typeof config.key === 'string' &&
-          config.key.includes('date')
-        ) {
-          cellRenderer = (value: string) => {
-            try {
-              const date = new Date(value);
-              return date.toLocaleDateString(); // Format date nicely
-            } catch {
-              return value;
-            }
-          };
-        } else {
-          cellRenderer = (value: string) =>
-            value !== undefined && value !== null ? String(value) : 'N/A';
-        }
+        // Get the specific formatter for this key
+        const formatterForThisCell = getCellFormatter(key);
 
         return {
           accessorKey: key,
           header: config.label,
           sortable: true, // Enable sorting for all displayed columns
-          cell: cellRenderer,
+          cell: (
+            value: unknown,
+            _row: DashboardMetrics,
+            _column: ColumnDef<DashboardMetrics>,
+          ) => {
+            // Handle undefined or null values directly in the cell function
+            if (value == null) {
+              return 'N/A';
+            }
+            return formatterForThisCell(value);
+          },
         };
       })
       .filter(

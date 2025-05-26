@@ -24,9 +24,9 @@ export function transformCsvData<T extends Record<string, unknown>>(
     .map((row) => {
       const standardizedRow: Partial<T> = {};
       mappingConfig.forEach((fieldConfig: CsvTransformerFieldConfig) => {
-        const csvHeader = mapping[fieldConfig.id];
+        const csvHeader = mapping[fieldConfig.id as keyof CsvColumnMapping];
         if (csvHeader && Object.prototype.hasOwnProperty.call(row, csvHeader)) {
-          let value = row[csvHeader];
+          let value = row[csvHeader as string];
           if (fieldConfig.transform) {
             value = fieldConfig.transform(value);
           }

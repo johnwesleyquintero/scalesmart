@@ -41,7 +41,7 @@ export const getDateFromRow = (
  */
 export const getStringValueFromRow = (
   row: Record<string, string>,
-  mappedHeader: keyof DashboardMetrics | null,
+  mappedHeader: keyof DashboardMetrics | null | undefined,
 ): string => {
   return (mappedHeader && row[mappedHeader as string]?.trim()) || '';
 };
@@ -56,12 +56,10 @@ export const getStringValueFromRow = (
  */
 export const getNumericValueFromRow = (
   row: Record<string, string>,
-  mappedHeader: keyof DashboardMetrics | null,
+  mappedHeader: keyof DashboardMetrics | null | undefined,
   fallbackHeaders: string[] = [],
 ): number => {
-  const headersToCheck = [mappedHeader, ...fallbackHeaders].filter(
-    Boolean,
-  );
+  const headersToCheck = [mappedHeader, ...fallbackHeaders].filter(Boolean);
   for (const header of headersToCheck) {
     if (!header) continue;
     const rawValue = row[header as string];
@@ -82,7 +80,7 @@ export const getNumericValueFromRow = (
  */
 export const transformCsvRow = (
   row: Record<string, string>,
-  mapping: Record<string, keyof DashboardMetrics | null>
+  mapping: CsvColumnMapping,
 ): DashboardMetrics | null => {
   const dateHeader = mapping.date;
   const date = getDateFromRow(row, dateHeader);

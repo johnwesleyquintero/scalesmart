@@ -9,7 +9,6 @@ import {
   Legend,
   ResponsiveContainer,
   TooltipProps as RechartsTooltipProps,
-  TooltipPayload as RechartsTooltipPayload,
 } from 'recharts';
 import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 
@@ -44,10 +43,20 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
 }) => {
   const data = useMemo(() => {
     return sortedMetrics.map((metric) => {
-      const entry: { [key: string]: number | string | undefined } = {};
-      entry[xAxisDataKey] = metric[xAxisDataKey];
+      const xValue = metric[xAxisDataKey];
+      // Initialize entry with the x-axis value, ensuring it's a string or number.
+      // Dates are typically passed as strings to recharts.
+      const entry: { [key: string]: string | number | undefined } = {
+        [xAxisDataKey as string]:
+          typeof xValue === 'string' || typeof xValue === 'number'
+            ? xValue
+            : String(xValue ?? ''), // Ensure xValue is string or number
+      };
+
       yAxisDataKeys.forEach((key) => {
-        entry[key] = metric[key];
+        const yValue = metric[key];
+        // Ensure y-axis values are numbers or undefined for charting.
+        entry[key as string] = typeof yValue === 'number' ? yValue : undefined;
       });
       return entry;
     });
@@ -87,8 +96,8 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
   );
 };
 
-interface CustomTooltipProps
-  extends RechartsTooltipProps<{ value: number; name: string }> {
+interface CustomTooltipProps extends RechartsTooltipProps<number, string> {
+  // TValue is number, TName is string
   formatter?: (value: number, name: string) => [string, string];
 }
 
@@ -96,21 +105,30 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   formatter,
   payload,
   active,
+  label, // label for the X-axis value
 }) => {
-  if (active && payload && formatter) {
+  if (active && payload && payload.length && formatter) {
     return (
       <div className="bg-gray-100 p-2 rounded shadow">
-        {payload.map(
-          (
-            item: RechartsTooltipPayload<{ value: number; name: string }>,
-            i: number,
-          ) => (
-            <div key={i}>
-              <span>{formatter(item.value, item.name)[0]}</span>{' '}
-              <span>{formatter(item.value, item.name)[1]}</span>
+        {/* Display the X-axis label (e.g., date) */}
+        {label && <p className="label font-semibold mb-1">{`${label}`}</p>}
+        {payload.map((entry, index) => {
+          // entry.value is TValue (number), entry.name is TName (string)
+          // The formatter expects (value: number, name: string)
+          const [formattedValue, formattedName] = formatter(
+            entry.value as number,
+            entry.name as string,
+          );
+          return (
+            <div
+              key={`tooltip-item-${index}`}
+              style={{ color: entry.color }}
+              className="text-sm"
+            >
+              {`${formattedName}: ${formattedValue}`}
             </div>
-          ),
-        )}
+          );
+        })}
       </div>
     );
   }

@@ -2,8 +2,8 @@ import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 
 interface DashboardMetric {
-  keyword: string;
-  ad_sales: number;
+  keyword?: string;
+  ad_sales?: number; // Allow ad_sales to be optional to match input prop
   // Add other properties as needed
 }
 
@@ -14,20 +14,24 @@ interface KeywordVsAdSalesDonutChartProps {
 
 const KeywordVsAdSalesDonutChart: React.FC<KeywordVsAdSalesDonutChartProps> = ({
   sortedMetrics,
-
-
 }) => {
   const chartData = useMemo(() => {
     const aggregatedData: { keyword: string; adSales: number }[] = [];
 
     sortedMetrics.forEach((metric) => {
-      if (metric.keyword && typeof metric.ad_sales === 'number') {
+      // Ensure keyword is present and is a string, and ad_sales is a number
+      if (
+        metric.keyword &&
+        typeof metric.keyword === 'string' &&
+        typeof metric.ad_sales === 'number'
+      ) {
         const existingKeyword = aggregatedData.find(
           (item) => item.keyword === metric.keyword,
         );
         if (existingKeyword) {
           existingKeyword.adSales += metric.ad_sales;
         } else {
+          // At this point, metric.keyword is guaranteed to be a string
           aggregatedData.push({
             keyword: metric.keyword,
             adSales: metric.ad_sales,

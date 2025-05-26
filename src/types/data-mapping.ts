@@ -26,6 +26,7 @@ export interface CsvColumnMapping {
   asin: keyof DashboardMetrics | null;
   keyword: keyof DashboardMetrics | null;
   targeted_keyword: keyof DashboardMetrics | null;
+  [key: string]: keyof DashboardMetrics | null | undefined;
 }
 
 export interface ToolMappingConfig {

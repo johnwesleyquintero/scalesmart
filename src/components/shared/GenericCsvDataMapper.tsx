@@ -93,7 +93,32 @@ const calculateSimilarity = (
 };
 
 // Define a stable empty object for the default initialMapping
-const DEFAULT_INITIAL_MAPPING: CsvColumnMapping = Object.freeze({}); // Make it immutable too
+const DEFAULT_INITIAL_MAPPING: CsvColumnMapping = Object.freeze({
+  date: null,
+  unique_identifier: null,
+  total_sales: null,
+  total_orders: null,
+  total_sessions: null,
+  total_conversion_rate: null,
+  ad_impressions: null,
+  ad_clicks: null,
+  ad_spend: null,
+  ad_sales: null,
+  ad_orders: null,
+  acos: null,
+  roas: null,
+  cpc: null,
+  ctr: null,
+  ad_conversion_rate: null,
+  profit: null,
+  inventory_level: null,
+  review_rating: null,
+  cac: null,
+  ltv: null,
+  asin: null,
+  keyword: null,
+  targeted_keyword: null,
+}); // Make it immutable too
 
 const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
   csvHeaders,
@@ -163,15 +188,48 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
         }
       }
 
-      const newMapping: CsvColumnMapping = {};
+      const newMapping: CsvColumnMapping = {
+        date: null,
+        unique_identifier: null,
+        total_sales: null,
+        total_orders: null,
+        total_sessions: null,
+        total_conversion_rate: null,
+        ad_impressions: null,
+        ad_clicks: null,
+        ad_spend: null,
+        ad_sales: null,
+        ad_orders: null,
+        acos: null,
+        roas: null,
+        cpc: null,
+        ctr: null,
+        ad_conversion_rate: null,
+        profit: null,
+        inventory_level: null,
+        review_rating: null,
+        cac: null,
+        ltv: null,
+        asin: null,
+        keyword: null,
+        targeted_keyword: null,
+      };
       targetMetrics.forEach((metric) => {
-        // Priority: 1. Loaded DB mapping, 2. initialMapping prop, 3. null
-        if (loadedDbMapping && loadedDbMapping[metric.key] !== undefined) {
-          newMapping[metric.key] = loadedDbMapping[metric.key];
-        } else if (initialMapping[metric.key] !== undefined) {
-          newMapping[metric.key] = initialMapping[metric.key];
+        // Priority: 1. Loaded DB mapping, 2. initialMapping prop
+        if (
+          loadedDbMapping &&
+          loadedDbMapping[metric.key as keyof CsvColumnMapping] !== undefined
+        ) {
+          newMapping[metric.key as keyof CsvColumnMapping] =
+            loadedDbMapping[metric.key as keyof CsvColumnMapping];
+        } else if (
+          initialMapping &&
+          initialMapping[metric.key as keyof CsvColumnMapping] !== undefined
+        ) {
+          newMapping[metric.key as keyof CsvColumnMapping] =
+            initialMapping[metric.key as keyof CsvColumnMapping];
         } else {
-          newMapping[metric.key] = null;
+          newMapping[metric.key as keyof CsvColumnMapping] = null;
         }
       });
 
@@ -199,10 +257,12 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     targetFieldId: keyof DashboardMetrics,
     csvHeader: string,
   ) => {
-    setCurrentMapping((prev) => ({
-      ...prev,
-      [targetFieldId]: csvHeader === 'none' ? null : csvHeader,
-    }));
+    setCurrentMapping((prev) => {
+      const newMapping = { ...prev } as CsvColumnMapping;
+      newMapping[targetFieldId as keyof CsvColumnMapping] =
+        csvHeader === 'none' ? null : csvHeader;
+      return newMapping;
+    });
   };
 
   const applyTransformations = (
@@ -354,15 +414,15 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
 
   const handleResetMapping = useCallback(() => {
     if (targetMetrics.length === 0) {
-      setCurrentMapping({});
+      setCurrentMapping(null);
       toast.info('Mapping reset (no target metrics).');
       return;
     }
 
-    const newMapping: CsvColumnMapping = {};
+    const newMapping: CsvColumnMapping = { ...DEFAULT_INITIAL_MAPPING };
     targetMetrics.forEach((metric) => {
       // Use initialMapping from props (which defaults to DEFAULT_INITIAL_MAPPING)
-      if (initialMapping[metric.key] !== undefined) {
+      if (initialMapping[metric.key as keyof CsvColumnMapping] !== undefined) {
         newMapping[metric.key] = initialMapping[metric.key];
       } else {
         newMapping[metric.key] = null;
@@ -574,7 +634,11 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
               </div>
               <div className={styles.csvColumnCell}>
                 <Select
-                  value={(currentMapping?.[field.key] as string) || 'none'}
+                  value={
+                    (currentMapping?.[
+                      field.key as keyof CsvColumnMapping
+                    ] as string) || 'none'
+                  }
                   onValueChange={(value) =>
                     handleSelectChange(field.key, value)
                   }

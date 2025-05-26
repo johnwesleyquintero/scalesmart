@@ -209,10 +209,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         });
       });
       const transformedMetrics = data.map((row) =>
-        transformCsvRow(row, mapping),
+        transformCsvRow(row, mapping as CsvColumnMapping),
       );
       const validMetrics = transformedMetrics.filter(
-        (metric): metric is DashboardMetrics => metric !== null,
+        (metric): metric is DashboardMetrics =>
+          metric !== null && typeof metric === 'object',
       );
       const errorText =
         validMetrics.length === 0 && data.length > 0
