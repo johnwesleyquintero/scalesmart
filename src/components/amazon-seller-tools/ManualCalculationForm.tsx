@@ -6,7 +6,10 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { CurrencySelector } from './CurrencySelector';
-import React, { ChangeEvent, useCallback } from 'react';
+import React, { ChangeEvent, useCallback, useEffect, useState } from 'react';
+import { getItem, setItem } from '@/lib/indexeddb-service';
+import { toast } from 'sonner';
+import { Save, FolderOpen } from 'lucide-react';
 
 interface ManualCalculationFormProps {
   selectedCurrency: {
@@ -49,6 +52,44 @@ export function ManualCalculationForm({
   isManualInputValid,
   isLoading,
 }: ManualCalculationFormProps) {
+  const [presetName, setPresetName] = useState('');
+  const [savedPresets, setSavedPresets] = useState<
+    Record<
+      string,
+      {
+        campaign: string;
+        adSpend: string;
+        sales: string;
+        impressions: string;
+        clicks: string;
+      }
+    >
+  >({});
+
+  useEffect(() => {
+    const loadPresets = async () => {
+      try {
+        const presets = await getItem<
+          Record<
+            string,
+            {
+              campaign: string;
+              adSpend: string;
+              sales: string;
+              impressions: string;
+              clicks: string;
+            }
+          >
+        >('acos_manual_presets');
+        setSavedPresets(presets || {});
+      } catch (error) {
+        console.error('Failed to load presets:', error);
+        toast.error('Failed to load saved presets.');
+      }
+    };
+    loadPresets();
+  }, []);
+
   const handleInputChange = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -74,6 +115,33 @@ export function ManualCalculationForm({
     },
     [setManualCampaign],
   );
+
+  const handleSavePreset = async () => {
+    if (!presetName.trim()) {
+      toast.error('Please enter a name for the preset.');
+      return;
+    }
+    const newPresets = { ...savedPresets, [presetName.trim()]: manualCampaign };
+    try {
+      await setItem('acos_manual_presets', newPresets);
+      setSavedPresets(newPresets);
+      toast.success(`Preset "${presetName.trim()}" saved!`);
+      setPresetName(''); // Clear preset name input
+    } catch (error) {
+      console.error('Failed to save preset:', error);
+      toast.error('Failed to save preset.');
+    }
+  };
+
+  const handleLoadPreset = (name: string) => {
+    const preset = savedPresets[name];
+    if (preset) {
+      setManualCampaign(preset);
+      toast.success(`Preset "${name}" loaded!`);
+    } else {
+      toast.error('Preset not found.');
+    }
+  };
 
   return (
     <CardContent className="space-y-4">
@@ -193,6 +261,48 @@ export function ManualCalculationForm({
       >
         {isLoading ? 'Calculating...' : 'Calculate & Add'}
       </Button>
+
+      <div className="border-t pt-4 mt-4 space-y-3">
+        <h4 className="text-md font-semibold">Save/Load Presets</h4>
+        <div>
+          <Label htmlFor="preset-name">Preset Name</Label>
+          <Input
+            id="preset-name"
+            value={presetName}
+            onChange={(e) => setPresetName(e.target.value)}
+            placeholder="e.g., My Default Campaign"
+            disabled={isLoading}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleSavePreset}
+            disabled={isLoading || !presetName.trim()}
+            className="flex-1"
+          >
+            <Save className="mr-2 h-4 w-4" /> Save Current as Preset
+          </Button>
+        </div>
+        {Object.keys(savedPresets).length > 0 && (
+          <div className="space-y-2">
+            <Label>Load Existing Preset</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {Object.keys(savedPresets).map((name) => (
+                <Button
+                  key={name}
+                  variant="secondary"
+                  onClick={() => handleLoadPreset(name)}
+                  disabled={isLoading}
+                  className="flex items-center justify-center"
+                >
+                  <FolderOpen className="mr-2 h-4 w-4" /> {name}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </CardContent>
   );
 }

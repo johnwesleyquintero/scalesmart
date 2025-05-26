@@ -64,8 +64,6 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
   timeRange,
   setTimeRange,
 }) => {
-  const DATA_NOT_AVAILABLE = 'Data not available for chart.';
-
   const renderChart = (): JSX.Element => {
     switch (chartType) {
       case 'line':
@@ -186,6 +184,19 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
       (m) => m.date && yAxisDataKeys.every((key) => typeof m[key] === 'number'),
     );
 
+  const getEmptyStateMessage = () => {
+    if (sortedMetrics.length === 0) {
+      return (
+        <>
+          No data available for this chart.
+          <br />
+          Please upload a CSV file or adjust your time range/filters.
+        </>
+      );
+    }
+    return 'Data not available for chart.';
+  };
+
   return (
     <Card>
       <CardContent className="p-4 h-[350px]">
@@ -223,7 +234,7 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
           )
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground p-4 text-center">
-            {DATA_NOT_AVAILABLE}
+            {getEmptyStateMessage()}
           </div>
         )}
       </CardContent>

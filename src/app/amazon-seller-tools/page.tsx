@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import AcosCalculator from '@/components/amazon-seller-tools/acos-calculator';
 import { CompetitorAnalyzer } from '@/components/amazon-seller-tools/competitor-analyzer';
 import DescriptionEditor from '@/components/amazon-seller-tools/description-editor';
@@ -21,6 +21,7 @@ import DashboardHeader from '@/components/amazon-seller-tools/DashboardHeader';
 import OverviewTab from '@/components/amazon-seller-tools/OverviewTab';
 import { KeywordPerformanceTable } from '@/components/amazon-seller-tools/KeywordPerformanceTable'; // Import the new table
 import sampleData from '@/data/sample-data.json';
+import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
 
 // --- Interface ---
 // Define DashboardMetrics interface ONCE
@@ -280,10 +281,22 @@ export default function UnifiedDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isParsing, setIsParsing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Add state for isUploading, isMapping, isProcessing
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isMapping, setIsMapping] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [showWhatsNew, setShowWhatsNew] = useState(false);
+
+  useEffect(() => {
+    const hasSeenWhatsNew = localStorage.getItem('hasSeenWhatsNew_v1.0'); // Use a versioned key
+    if (!hasSeenWhatsNew) {
+      setShowWhatsNew(true);
+    }
+  }, []);
+
+  const handleCloseWhatsNew = () => {
+    setShowWhatsNew(false);
+    localStorage.setItem('hasSeenWhatsNew_v1.0', 'true'); // Mark as seen
+  };
 
   const handleRefresh = useCallback(async () => {
     setIsLoading(true);
@@ -330,12 +343,12 @@ export default function UnifiedDashboard() {
             setIsLoading={setIsLoading}
             isParsing={isParsing}
             setIsParsing={setIsParsing}
-            isUploading={isUploading} // Pass the new state
-            setIsUploading={setIsUploading} // Pass the setter
-            isMapping={isMapping} // Pass the new state
-            setIsMapping={setIsMapping} // Pass the setter
-            isProcessing={isProcessing} // Pass the new state
-            setIsProcessing={setIsProcessing} // Pass the setter
+            isUploading={isUploading}
+            setIsUploading={setIsUploading}
+            isMapping={isMapping}
+            setIsMapping={setIsMapping}
+            isProcessing={isProcessing}
+            setIsProcessing={setIsProcessing}
             error={error}
             setError={setError}
             TARGET_METRICS_CONFIG={TARGET_METRICS_CONFIG}
@@ -453,6 +466,10 @@ export default function UnifiedDashboard() {
           </Card>
         </TabsContent>
       </Tabs>
+      <WhatsNewModal
+        isOpen={showWhatsNew}
+        onCloseAction={handleCloseWhatsNew}
+      />
     </div>
   );
 }

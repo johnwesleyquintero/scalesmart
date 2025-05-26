@@ -120,14 +120,11 @@ export const enhancedTooltipFormatter = (
     <div className="flex flex-col text-sm">
       <div className="font-bold">{name}</div>
       <div>Current: {formattedValue}</div>
-      {previousDataPoint && (
-        <div>
-          Previous: {formattedPreviousValue}
-        </div>
-      )}
+      {previousDataPoint && <div>Previous: {formattedPreviousValue}</div>}
       {previousDataPoint && (
         <div className={changeColor}>
-          Change: {changeIndicator} {formattedDifference} ({formattedPercentage}%)
+          Change: {changeIndicator} {formattedDifference} ({formattedPercentage}
+          %)
         </div>
       )}
     </div>

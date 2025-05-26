@@ -30,7 +30,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 ```
 | Tool                     | Status                     | Version     | Notes                              |
 | :----------------------- | :------------------------- | :---------- | :--------------------------------- |
-| Overview Dashboard       | ✅ Active                  | 1.1.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, and basic mapping persistence. |
+| Overview Dashboard       | ✅ Active                  | 1.2.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, and basic mapping persistence. Also includes advanced filtering, a "Clear All Filters" button, contextual empty state messages for charts/tables, and a "What's New" modal on first visit. |
 | FBA Calculator           | ✅ Active                  | 2.0.0       | Advanced profitability calculator for FBA products with real-time ROI analysis and market trend integration.                                   |
 | Keyword Analyzer         | ✅ Active                  | 2.0.0       | A tool for analyzing and managing keywords.                                    |
 | Listing Quality Checker  | ✅ Active                  | 1.5.0       | AI-powered listing analysis and optimization tool.           |
@@ -55,11 +55,18 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 ### Overview Dashboard
 
 **Status**: ✅ Active
-**Version**: 1.1.0
+**Version**: 1.2.0
 
 🔍 **Description**: Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, and basic mapping persistence.
 
 The Overview Dashboard is a central hub for analyzing key business metrics. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools. The CSV Data Mapper now includes data validation to ensure data integrity. Charts are now rendered using the ReusableChart component for improved consistency and maintainability. The dashboard now includes Print and Download PDF options.
+
+**Recent Improvements (Version 1.2.0):**
+
+- **Advanced Filtering for Data Tables:** Implemented multi-criteria filtering for `MetricsDataTable`.
+- **"Clear All Filters" Button:** Added a button to reset all filters in data tables.
+- **Contextual Empty State Messages:** Enhanced messages in `ReusableChart` and `MetricsDataTable` when no data is present.
+- **"What's New" / Feature Tour:** Introduced a modal on first visit to highlight new features.
 
 **How to Use the Overview Dashboard:**
 
@@ -220,7 +227,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 ### ACoS Calculator
 
 **Status**: ✅ Active
-**Version**: 2.0.0
+**Version**: 2.1.0
 
 🔍 **Description**: Comprehensive advertising analysis with predictive metrics and historical trend analysis.
 
@@ -245,6 +252,8 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 - Improved metric calculation accuracy
 - Enhanced data visualization
 - Added manual entry option for single campaigns
+- **Integrated "Copy to Clipboard" for Tool Outputs:** Added a "Copy to Clipboard" button to the calculation history table.
+- **Added "Save/Load Preset" for Manual Calculation Forms:** Implemented saving and loading of input presets for manual calculations.
 
 ### Sales Estimator
 
