@@ -54,6 +54,8 @@ export interface DashboardMetrics {
   keyword_ad_spend?: number; // From 'Keyword Ad Spend'
   keyword_ad_sales_7_day?: number; // From 'Keyword Ad Sales (7-day)' (keyword specific)
   keyword_ad_orders_7_day?: number; // From 'Keyword Ad Orders (7-day)' (keyword specific)
+  asin?: string;
+  keyword?: string;
   [key: string]: unknown;
 }
 
@@ -269,6 +271,15 @@ const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
     hint: 'Orders attributed to the specific targeted keyword (7-day window).',
     description:
       'Orders attributed to the specific targeted keyword (7-day window)',
+  },
+  {
+    key: 'keyword',
+    label: 'Keyword (General)',
+    required: false,
+    expectedType: 'string',
+    hint: 'General keyword associated with the product or data entry, if not a targeted ad keyword.',
+    description:
+      'A general keyword identifier, often used for organic tracking or broader categorization.',
   },
 ];
 

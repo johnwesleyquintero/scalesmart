@@ -4,6 +4,7 @@ import type {
   TargetMetricConfig,
 } from '@/app/amazon-seller-tools/page'; // Adjust path if types are moved
 import type { CsvColumnMapping } from '@/types/data-mapping';
+import type { CsvTransformerFieldType } from '@/types/csv-transformer-config';
 
 /**
  * Attempts to extract a date string from a CSV row based on a mapped header or common date headers.
@@ -15,19 +16,18 @@ export const getDateFromRow = (
   row: Record<string, string>,
   mappedHeader: keyof DashboardMetrics | null,
 ): string => {
-  const mappedHeaderString = mappedHeader as string | null;
   const potentialHeaders = [
-    mappedHeaderString,
+    mappedHeader,
     'Date',
     'Settlement end date',
     'Day',
     'Week',
     'Month',
     'Report Date',
-  ].filter(Boolean) as string[];
+  ].filter(Boolean);
   for (const header of potentialHeaders) {
-    if (row[header]) {
-      return row[header];
+    if (header && row[header as string]) {
+      return row[header as string];
     }
   }
   return 'Unknown';
@@ -42,11 +42,8 @@ export const getDateFromRow = (
 export const getStringValueFromRow = (
   row: Record<string, string>,
   mappedHeader: keyof DashboardMetrics | null,
-): string | undefined => {
-  const mappedHeaderString = mappedHeader as string | null;
-  return mappedHeaderString && row[mappedHeaderString]
-    ? String(row[mappedHeaderString]).trim()
-    : undefined;
+): string => {
+  return (mappedHeader && row[mappedHeader as string]?.trim()) || '';
 };
 
 /**
@@ -62,12 +59,12 @@ export const getNumericValueFromRow = (
   mappedHeader: keyof DashboardMetrics | null,
   fallbackHeaders: string[] = [],
 ): number => {
-  const mappedHeaderString = mappedHeader as string | null;
-  const headersToCheck = [mappedHeaderString, ...fallbackHeaders].filter(
+  const headersToCheck = [mappedHeader, ...fallbackHeaders].filter(
     Boolean,
-  ) as string[];
+  );
   for (const header of headersToCheck) {
-    const rawValue = row[header];
+    if (!header) continue;
+    const rawValue = row[header as string];
     if (rawValue !== undefined && rawValue !== null) {
       const cleanedValue = String(rawValue).replace(/[^0-9.-]+/g, '');
       const num = parseFloat(cleanedValue);
@@ -85,7 +82,7 @@ export const getNumericValueFromRow = (
  */
 export const transformCsvRow = (
   row: Record<string, string>,
-  mapping: CsvColumnMapping,
+  mapping: Record<string, keyof DashboardMetrics | null>
 ): DashboardMetrics | null => {
   const dateHeader = mapping.date;
   const date = getDateFromRow(row, dateHeader);
@@ -134,6 +131,9 @@ export const transformCsvRow = (
   const review_rating = getNumericValueFromRow(row, mapping.review_rating);
   const cac = getNumericValueFromRow(row, mapping.cac);
   const ltv = getNumericValueFromRow(row, mapping.ltv);
+  const asin = getStringValueFromRow(row, mapping.asin);
+  const keyword = getStringValueFromRow(row, mapping.keyword);
+  const targeted_keyword = getStringValueFromRow(row, mapping.targeted_keyword);
 
   // Calculate derived metrics (ACoS, RoAS, etc.) after extracting base values
   const rawTotalConversionRate =
@@ -154,14 +154,14 @@ export const transformCsvRow = (
 
   return {
     date,
-    unique_identifier,
+    unique_identifier: unique_identifier || '',
     total_sales,
     total_orders,
     total_sessions,
     total_page_views,
     total_conversion_rate: isNaN(total_conversion_rate)
       ? 0
-      : total_conversion_rate, // Ensure conversion rate is a number
+      : total_conversion_rate,
     ad_impressions,
     ad_clicks,
     ad_spend,
@@ -177,6 +177,8 @@ export const transformCsvRow = (
     review_rating,
     cac,
     ltv,
-    // Add other metrics as needed
+    asin: asin || '',
+    keyword: keyword || '',
+    targeted_keyword: targeted_keyword || '',
   };
 };

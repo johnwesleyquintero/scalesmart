@@ -29,6 +29,7 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.tsx",
+    "src/app/amazon-seller-tools/page.tsx",
     "lib/**/*.ts",
     "lib/**/*.tsx",
     "vitest.config.ts",

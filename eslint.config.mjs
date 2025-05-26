@@ -88,14 +88,6 @@ export default [
         info: 'readonly',
       },
       parser: parser,
-      parserOptions: {
-        ecmaFeatures: { jsx: true },
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-        warnOnUnsupportedTypeScriptVersion: false,
-        project: ['./tsconfig.eslint.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
     },
     plugins: {
       '@typescript-eslint': tseslint,

@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-The Amazon Seller Tools page (`src/app/amazon-seller-tools/page.tsx`) is a comprehensive dashboard and toolkit designed for Amazon sellers. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools for keyword research, listing optimization, financial calculations, PPC analysis, and competitor research.
+The Amazon Seller Tools page (`src/app/amazon-seller-tools/page.ts`) is a comprehensive dashboard and toolkit designed for Amazon sellers. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools for keyword research, listing optimization, financial calculations, PPC analysis, and competitor research.
 
 The dashboard is structured with a `DashboardHeader` component for refresh, export, and documentation links, and an `OverviewTab` component for data upload, mapping, and visualization.
 
@@ -12,7 +12,7 @@ The dashboard is structured with a `DashboardHeader` component for refresh, expo
 - **Improved CSV Data Mapping:** We've made it easier than ever to upload and map your Amazon Business Report data with our new CSV Data Mapper, including data validation.
 - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons with informative tooltips.
-  - Data Table: Displaying the data in a sortable and filterable table using the `TableChart` component.
+  - Data Table: Displaying the data in a sortable and filterable table using the `TableChart` component, which now supports customizable empty state content and improved column spanning.
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
 - **Time Range Filtering:** Data in charts can be filtered by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
 - **Period-over-Period Comparison:** Displays key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
@@ -58,7 +58,7 @@ Once mapping is complete and the data is processed:
 
 - **Charts:** Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
 
-- **Data Table:** Displaying the data in a sortable and filterable table using the `TableChart` component.
+- **Data Table:** Displaying the data in a sortable and filterable table using the `TableChart` component. The table now supports customizable empty state content and improved column spanning.
 
 - **Time Granularity:**
 
@@ -132,6 +132,8 @@ export interface DashboardMetrics {
   cac?: number;
   ltv?: number;
   [key: string]: unknown; // Index signature
+  asin?: string;
+  keyword?: string;
 }
 ```
 
@@ -242,8 +244,9 @@ The `AcosTrendChart` component (`src/components/amazon-seller-tools/AcosTrendCha
 
 ---
 
-- New Components: `AcosRatingGuide`, `CalculationHistoryTable`, `ManualCalculationForm`, and `AcosTrendChart`.
+- New Components: `AcosRatingGuide`, `CalculationHistoryTable`, `ManualCalculationForm`, `AcosTrendChart`, and `KeywordVsAdSalesDonutChart`.
 - Utility Files: `src/lib/amazon-tools/acos-calculator-utils.ts` and `src/lib/amazon-tools/metrics.ts`.
+- Modified Files: `src/types/csv-transformer-config.ts`, `src/types/data-mapping.ts`, `src/lib/utils/amazon/data-transformation.ts`, and `src/config/amazon-tools-config.ts`.
 
 ## 7. Data Structure (`CampaignData` Interface)
 

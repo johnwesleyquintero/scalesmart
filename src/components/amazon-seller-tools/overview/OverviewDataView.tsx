@@ -25,6 +25,7 @@ import { ClicksImpressionsChart } from '../charts/ClicksImpressionsChart';
 import { OrdersSessionsChart } from '../charts/OrdersSessionsChart';
 import { AdSpendSalesChart } from '../charts/AdSpendSalesChart';
 import { ProfitTrendChart } from '../charts/ProfitTrendChart';
+import KeywordVsAdSalesDonutChart from '../charts/KeywordVsAdSalesDonutChart';
 
 interface OverviewDataViewProps {
   metrics: DashboardMetrics[];
@@ -48,6 +49,8 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
     // Define which metrics to show in the table and their display properties
     const displayKeys: (keyof DashboardMetrics)[] = [
       'date',
+      'unique_identifier',
+      'keyword',
       'total_sales',
       'total_orders',
       'total_sessions',
@@ -66,16 +69,32 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
         const config = targetMetricsConfig.find((t) => t.key === key);
         if (!config) return null;
 
-        let cellRenderer: ((value: any, row: DashboardMetrics) => React.ReactNode) | undefined;
-        if (key === 'total_sales' || key === 'ad_spend' || key === 'ad_sales' || key === 'profit') {
+        let cellRenderer:
+          | ((value: number | string, row: DashboardMetrics) => React.ReactNode)
+          | undefined;
+        if (
+          key === 'total_sales' ||
+          key === 'ad_spend' ||
+          key === 'ad_sales' ||
+          key === 'profit'
+        ) {
           cellRenderer = (value: number) =>
             value !== undefined && value !== null
               ? `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : 'N/A';
-        } else if (key === 'total_conversion_rate' || key === 'acos' || key === 'roas') {
+        } else if (
+          key === 'total_conversion_rate' ||
+          key === 'acos' ||
+          key === 'roas'
+        ) {
           cellRenderer = (value: number) =>
-            value !== undefined && value !== null ? `${value.toFixed(2)}%` : 'N/A';
-        } else if (typeof config.key === 'string' && config.key.includes('date')) {
+            value !== undefined && value !== null
+              ? `${value.toFixed(2)}%`
+              : 'N/A';
+        } else if (
+          typeof config.key === 'string' &&
+          config.key.includes('date')
+        ) {
           cellRenderer = (value: string) => {
             try {
               const date = new Date(value);
@@ -85,7 +104,8 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
             }
           };
         } else {
-          cellRenderer = (value: any) => (value !== undefined && value !== null ? String(value) : 'N/A');
+          cellRenderer = (value: string) =>
+            value !== undefined && value !== null ? String(value) : 'N/A';
         }
 
         return {
@@ -95,7 +115,9 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
           cell: cellRenderer,
         };
       })
-      .filter((column): column is ColumnDef<DashboardMetrics> => column !== null);
+      .filter(
+        (column): column is ColumnDef<DashboardMetrics> => column !== null,
+      );
   }, [targetMetricsConfig]);
 
   return (
@@ -323,6 +345,9 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
         <ProfitTrendChart
           sortedMetrics={aggregatedAndSortedMetrics}
           granularity={timeGranularity}
+        />
+        <KeywordVsAdSalesDonutChart
+          sortedMetrics={aggregatedAndSortedMetrics}
         />
       </div>
 
