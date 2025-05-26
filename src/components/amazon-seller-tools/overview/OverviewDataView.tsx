@@ -102,9 +102,9 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
               </Card>
             </TooltipTrigger>
             <TooltipContent>
-              Average Conversion Rate: (Total Orders / Total Sessions) * 100.
-              This metric represents the percentage of sessions that resulted in
-              an order.
+              Average Conversion Rate: Calculated as (Total Orders / Total Sessions) * 100.
+              This represents the percentage of website visits that resulted in a purchase.
+              A higher percentage indicates better website performance and customer engagement.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -130,8 +130,8 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
               </Card>
             </TooltipTrigger>
             <TooltipContent>
-              Total Sales: The sum of all sales from the report period,
-              representing the total revenue generated.
+              Total Sales: The sum of all sales recorded during the selected period.
+              This represents your total revenue generated from sales.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -158,8 +158,8 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
               </Card>
             </TooltipTrigger>
             <TooltipContent>
-              Average Clicks: The average number of ad clicks from the report
-              period.
+              Average Clicks: The average number of clicks on your advertisements during the selected period.
+              This metric reflects the effectiveness of your ad campaigns in attracting customer attention.
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

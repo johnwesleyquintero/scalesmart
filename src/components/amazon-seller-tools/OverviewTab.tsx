@@ -45,6 +45,7 @@ import {
   DashboardMetrics,
   TargetMetricConfig,
 } from '@/app/amazon-seller-tools/page';
+import { getItem, setItem } from '@/lib/indexeddb-service'; // Import IndexedDB service
 
 interface OverviewTabProps {
   metrics: DashboardMetrics[];
@@ -94,7 +95,21 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
   >('daily');
   const [overviewDataMapperKey, setOverviewDataMapperKey] = useState(0);
+  const [savedMapping, setSavedMapping] = useState<CsvColumnMapping | null>(
+    null,
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const loadSavedMapping = async () => {
+      const storedMapping = await getItem<CsvColumnMapping>('last_csv_mapping');
+      if (storedMapping) {
+        setSavedMapping(storedMapping);
+        console.log('Loaded saved mapping:', storedMapping);
+      }
+    };
+    loadSavedMapping();
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     setMetrics([]);
@@ -108,6 +123,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     console.log('Refresh clicked - clearing status.');
     await new Promise((resolve) => setTimeout(resolve, 500));
     setIsLoading(false);
+    // Clear saved mapping on refresh
+    await setItem('last_csv_mapping', null);
+    setSavedMapping(null); // Also clear from state
   }, [
     setIsLoading,
     setError,
@@ -123,16 +141,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     const file = event.target.files?.[0];
     if (!file) return;
 
-    setIsUploading(true);
-    setIsParsing(true);
+    setIsUploading(true); // Start uploading indicator
+    setIsParsing(true); // Start parsing indicator
     setError(null);
     setMetrics([]);
-    setShowMapper(false);
+    setShowMapper(false); // Hide mapper initially
     setCsvHeaders([]);
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
-    setIsMapping(false);
-    setIsProcessing(false);
+    setIsMapping(false); // Ensure mapping is false
+    setIsProcessing(false); // Ensure processing is false
 
     Papa.parse<Record<string, string>>(file, {
       header: true,
@@ -151,14 +169,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         setCsvHeaders(headers);
         setFirstCsvDataRow(sampleRow);
         setSelectedFile(file);
-        setShowMapper(true);
-        setIsParsing(false);
-        setIsUploading(false);
+        setShowMapper(true); // Show mapper after parsing headers
+        setIsParsing(false); // Parsing headers is complete
+        setIsUploading(false); // Uploading is complete
+        setIsMapping(true); // Now user is in mapping stage
       },
       error: (error: Error) => {
         setError(`Failed to read file headers: ${error.message}`);
         setIsParsing(false);
         setIsUploading(false);
+        setIsMapping(false); // Ensure mapping is false on error
         if (fileInputRef.current) fileInputRef.current.value = '';
       },
     });
@@ -168,11 +188,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     if (!selectedFile) {
       setError('No file selected for processing.');
       setShowMapper(false);
+      setIsMapping(false); // Ensure mapping is false
       return;
     }
 
-    setShowMapper(false);
-    setIsParsing(true);
+    setShowMapper(false); // Hide mapper
+    setIsMapping(false); // Mapping is complete
+    setIsProcessing(true); // Start processing indicator
     setError(null);
     setMetrics([]);
 
@@ -202,12 +224,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       setMetrics(validMetrics);
       setError(errorText);
       console.log('Valid Metrics:', validMetrics);
+
+      // Save the successful mapping to IndexedDB
+      await setItem('last_csv_mapping', mapping);
+      console.log('Mapping saved to IndexedDB.');
     } catch (error) {
       setError(
         `Failed to parse file: ${error instanceof Error ? error.message : String(error)}`,
       );
     } finally {
-      setIsParsing(false);
+      setIsProcessing(false); // Processing is complete
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
@@ -352,6 +378,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           onApplyMapping={handleMappingComplete}
           sampleDataRow={firstCsvDataRow}
           onCancel={handleMappingCancel}
+          initialMapping={savedMapping || undefined} // Pass saved mapping
         />
       ) : error && !isLoading && metrics.length === 0 ? (
         <OverviewErrorDisplay error={error} onRetryUpload={handleUploadClick} />

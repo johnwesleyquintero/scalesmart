@@ -349,9 +349,6 @@ export default function UnifiedDashboard() {
                 <TabsList className="mb-4">
                   <TabsTrigger value="analyzer">Analyzer</TabsTrigger>
                   <TabsTrigger value="deduplicator">Deduplicator</TabsTrigger>
-                  <TabsTrigger value="performance-table">
-                    Performance Table
-                  </TabsTrigger>
                   <TabsTrigger value="trend">Trend Analyzer</TabsTrigger>
                 </TabsList>
                 <TabsContent value="analyzer">
@@ -359,12 +356,6 @@ export default function UnifiedDashboard() {
                 </TabsContent>
                 <TabsContent value="deduplicator">
                   <KeywordDeduplicator />
-                </TabsContent>
-                <TabsContent value="performance-table">
-                  <KeywordPerformanceTable
-                    metrics={metrics}
-                    isLoading={isLoading || isParsing}
-                  />
                 </TabsContent>
                 <TabsContent value="trend">
                   <KeywordTrendAnalyzer />

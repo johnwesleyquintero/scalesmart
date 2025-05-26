@@ -178,15 +178,15 @@ export const MetricsDataTable: React.FC<MetricsDataTableProps> = ({
                     disabled={!col.sortable}
                   >
                     {col.label}
-                    {col.sortable && sortKey === col.key && (
+                    {col.sortable && (
                       <ArrowUpDown
-                        className={`ml-2 h-4 w-4 ${
-                          sortOrder === 'asc'
-                            ? 'text-green-600'
-                            : 'text-red-600'
+                        className={`ml-2 h-5 w-5 ${
+                          sortKey === col.key
+                            ? sortOrder === 'asc'
+                              ? 'text-green-600'
+                              : 'text-red-600'
+                            : 'text-gray-400' // Less prominent when not sorted
                         }`}
-                        h-5
-                        w-5
                       />
                     )}
                   </Button>

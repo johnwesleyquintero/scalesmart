@@ -228,57 +228,6 @@ The `CalculationHistoryTable` component (`src/components/amazon-seller-tools/Cal
 
 The `AcosTrendChart` component (`src/components/amazon-seller-tools/AcosTrendChart.tsx`) visualizes the ACoS over time using a line chart. The chart displays the ACoS values for each saved calculation, allowing users to track ACoS trends.
 
-### 6.2. Manual Calculation Form
-
-The `ManualCalculationForm` component (`src/components/amazon-seller-tools/ManualCalculationForm.tsx`) allows users to manually enter data for a single campaign. The form includes the following fields:
-
-- **Campaign Name:** The name of the campaign.
-- **Ad Spend ($):** The amount spent on advertising.
-- **Sales ($):** The revenue generated from advertising.
-- **Impressions:** The number of impressions.
-- **Clicks:** The number of clicks.
-
-### 6.3. ACoS Rating Guide
-
-The `AcosRatingGuide` component (`src/components/amazon-seller-tools/AcosRatingGuide.tsx`) displays a guide for interpreting ACoS values. The guide includes the following ratings:
-
-- **Excellent:** ACoS is less than 15%.
-- **Good:** ACoS is between 15% and 25%.
-- **Okay:** ACoS is between 25% and 35%.
-- **Poor:** ACoS is greater than 35%.
-
-### 6.4. Calculation History Table
-
-The `CalculationHistoryTable` component (`src/components/amazon-seller-tools/CalculationHistoryTable.tsx`) displays a table of the calculation history, including the following columns:
-
-- Campaign
-- Date
-- Ad Spend
-- Sales
-- ACoS
-- RoAS
-
-### 6.5. ACoS Trend Chart
-
-The `AcosTrendChart` component (`src/components/amazon-seller-tools/AcosTrendChart.tsx`) visualizes the ACoS over time using a line chart. The chart displays the ACoS values for each saved calculation, allowing users to track ACoS trends.
-
-## 7. Technical Notes
-
-- Frontend: Built with TypeScript and React (Next.js).
-- UI Components: Uses Shadcn UI components (Button, Card, Tabs, Select, Alert).
-- Charting: Recharts library for data visualization.
-- CSV Parsing: PapaParse library for handling CSV file uploads, primarily within the `OverviewTab` component.
-- Date Manipulation: date-fns library for handling dates and time granularities.
-- State Management: React's useState and useRef hooks.
-- IndexedDB: IndexedDB for local data storage (for calculation history).
-- Supabase: Supabase for application configurations.
-- Logging: Added logging to the `handleDownloadSampleCsv` function in `src/app/amazon-seller-tools/page.tsx` and `src/components/shared/GenericCsvDataMapper.tsx`.
-
----
-
-- New Components: `AcosRatingGuide`, `CalculationHistoryTable`, `ManualCalculationForm`, and `AcosTrendChart`.
-- Utility Files: `src/lib/amazon-tools/acos-calculator-utils.ts` and `src/lib/amazon-tools/metrics.ts`.
-
 ## 7. Technical Notes
 
 - Frontend: Built with TypeScript and React (Next.js).
@@ -419,22 +368,10 @@ The following improvements have been implemented:
 - Updated tooltips for KPI cards in the `OverviewDataView` component to provide clearer context and definitions for the metrics.
 - Enhanced the `tooltipFormatter` prop in the `ReusableChart` component to display more detailed information in chart tooltips, including exact values, date ranges, and period-over-period comparisons. The `enhancedTooltipFormatter` function now calculates and displays percentage changes compared to the previous period.
 - Improved the visual indicators for sorting in the `MetricsDataTable` component, making it clearer which columns are sorted and in what direction. More prominent arrow icons now indicate the sort direction.
-
-The following improvements have been implemented:
-
-- Updated tooltips for KPI cards in the `OverviewDataView` component to provide clearer context and definitions for the metrics.
-- Enhanced the `tooltipFormatter` prop in the `ReusableChart` component to display more detailed information in chart tooltips, including exact values, date ranges, and period-over-period comparisons.
-- Improved the visual indicators for sorting in the `MetricsDataTable` component, making it clearer which columns are sorted and in what direction.
 - Implemented more detailed progress messages and a progress bar in the `GenericCsvDataMapper` and `OverviewTab` components to provide more granular feedback during CSV file parsing and data processing.
 - Added a loading indicator to the `OverviewTab` component to show the status of the upload, parsing, and processing stages.
-
-The following improvements have been implemented:
-
-- The dashboard now loads sample data from `src/data/sample-data.json` when no CSV file is uploaded.
-- The average clicks KPI is now calculated correctly in the `OverviewDataView` component.
-- The `DashboardHeader` and `OverviewTab` components have been extracted into separate files.
-- Added time range filtering to charts.
-- Added column filtering to the data table.
+- Implemented basic mapping persistence using IndexedDB to save the user's last-used column mapping preferences. On subsequent uploads, the mapping suggestions are pre-populated based on the saved configuration.
+- Added tooltips and help text to specialized tools to provide in-context guidance for each tool's purpose, key inputs, and expected outputs.
 
 ---
 

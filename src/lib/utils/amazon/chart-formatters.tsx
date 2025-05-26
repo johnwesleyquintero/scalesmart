@@ -1,3 +1,4 @@
+import React from 'react'; // React import is necessary for JSX
 import { format, formatDistanceToNow } from 'date-fns';
 import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 
@@ -87,9 +88,11 @@ export const enhancedTooltipFormatter = (
   dataPoint: DashboardMetrics,
   granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
   sortedMetrics: DashboardMetrics[],
-): [string, string] => {
-  const formattedValue = (value ?? 0).toLocaleString();
-  let formattedName = name;
+): React.ReactNode => {
+  const formattedValue = (value ?? 0).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 
   const previousDataPoint = findPreviousDataPoint(
     dataPoint,
@@ -100,14 +103,35 @@ export const enhancedTooltipFormatter = (
   const difference = (value ?? 0) - previousValue;
   const percentageChange =
     previousValue === 0 ? 0 : (difference / previousValue) * 100;
-  const formattedPercentageChange = ` (${percentageChange.toFixed(1)}%)`;
-  const changeIndicator = difference >= 0 ? '+' : '-';
+  const changeIndicator = difference >= 0 ? '▲' : '▼'; // Up/down arrow
+  const changeColor = difference >= 0 ? 'text-green-500' : 'text-red-500'; // Color for change
 
-  formattedName = `${name} (${previousValue.toLocaleString()} ${changeIndicator}${Math.abs(difference).toLocaleString()}${formattedPercentageChange})`;
+  const formattedPreviousValue = previousValue.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const formattedDifference = Math.abs(difference).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  const formattedPercentage = percentageChange.toFixed(1);
 
-  const date = dataPoint.date;
-  const formattedDate = formatTooltipLabel(date, granularity);
-  return [formattedValue, `${formattedName} (${formattedDate})`];
+  return (
+    <div className="flex flex-col text-sm">
+      <div className="font-bold">{name}</div>
+      <div>Current: {formattedValue}</div>
+      {previousDataPoint && (
+        <div>
+          Previous: {formattedPreviousValue}
+        </div>
+      )}
+      {previousDataPoint && (
+        <div className={changeColor}>
+          Change: {changeIndicator} {formattedDifference} ({formattedPercentage}%)
+        </div>
+      )}
+    </div>
+  );
 };
 
 const findPreviousDataPoint = (

@@ -10,6 +10,7 @@ interface OverviewDataMapperProps {
   onApplyMapping: (mapping: CsvColumnMapping) => void;
   sampleDataRow?: Record<string, string>;
   onCancel: () => void;
+  initialMapping?: CsvColumnMapping; // Add this prop
 }
 
 export const OverviewDataMapper: React.FC<OverviewDataMapperProps> = ({
@@ -18,6 +19,7 @@ export const OverviewDataMapper: React.FC<OverviewDataMapperProps> = ({
   onApplyMapping,
   sampleDataRow,
   onCancel,
+  initialMapping, // Destructure the new prop
 }) => (
   <GenericCsvDataMapper
     csvHeaders={csvHeaders}
@@ -28,5 +30,6 @@ export const OverviewDataMapper: React.FC<OverviewDataMapperProps> = ({
     title="Map Report Columns"
     description="Match the columns from your uploaded Report CSV to the required dashboard fields. Required fields are needed for calculations."
     toolName="amazon-overview-dashboard"
+    initialMapping={initialMapping} // Pass the new prop to GenericCsvDataMapper
   />
 );
