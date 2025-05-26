@@ -16,7 +16,8 @@ export const AdSpendSalesChart: React.FC<AdSpendSalesChartProps> = ({
   const yAxisFormatter = (value: number) => `$${value.toLocaleString()}`;
 
   const tooltipFormatter = (value: number, name: string): [string, string] => {
-    if (name === 'ad_spend') {
+    // `name` is the display label, e.g., "Ad Spend" or "Ad Sales"
+    if (name === 'Ad Spend') {
       return [
         `$${value.toLocaleString(undefined, {
           minimumFractionDigits: 2,
@@ -24,7 +25,7 @@ export const AdSpendSalesChart: React.FC<AdSpendSalesChartProps> = ({
         })}`,
         'Ad Spend',
       ];
-    } else {
+    } else if (name === 'Ad Sales') {
       return [
         `$${value.toLocaleString(undefined, {
           minimumFractionDigits: 2,
@@ -33,6 +34,11 @@ export const AdSpendSalesChart: React.FC<AdSpendSalesChartProps> = ({
         'Ad Sales',
       ];
     }
+    // Fallback
+    return [
+      `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      name,
+    ];
   };
 
   const filteredMetrics = useMemo(() => {

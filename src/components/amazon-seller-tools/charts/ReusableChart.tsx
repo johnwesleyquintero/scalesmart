@@ -20,10 +20,13 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import type { Payload } from 'recharts/types/component/DefaultTooltipContent'; // Correct import path for Payload
+
 import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 import {
   formatTick,
   formatTooltipLabel,
+  enhancedTooltipFormatter,
 } from '@/lib/utils/amazon/chart-formatters';
 
 interface ReusableChartProps {
@@ -37,11 +40,12 @@ interface ReusableChartProps {
   title: string;
   yAxisFormatter?: (value: number) => string;
   tooltipFormatter?: (
-    value: number, // The value of the data point for this series
-    name: string, // The dataKey of this series (e.g., 'total_sales', 'ad_spend')
-    dataPoint: DashboardMetrics, // The entire data object for this x-axis tick
+    value: number,
+    name: string,
+    dataPoint: DashboardMetrics,
     granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
-  ) => [React.ReactNode, React.ReactNode]; // Should return [formattedValue, formattedName]
+    sortedMetrics: DashboardMetrics[],
+  ) => [React.ReactNode, React.ReactNode];
   timeRange?: string;
   setTimeRange?: (timeRange: string) => void | undefined;
 }
@@ -78,19 +82,31 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
             <YAxis tickFormatter={yAxisFormatter} />
             <Tooltip
               formatter={(
-                value: number, // raw value for this line
-                name: string, // dataKey for this line
-                entry: any, // Use any for TooltipPayload type issue
-              ) => {
-                if (tooltipFormatter) {
-                  const dataPoint = entry.payload as DashboardMetrics; // entry.payload is the original data object
-                  return tooltipFormatter(value, name, dataPoint, granularity);
+                value: number,
+                name: string,
+                entry: Payload<number, string>,
+              ): [React.ReactNode, React.ReactNode] | React.ReactNode => {
+                // Check if entry.payload exists and tooltipFormatter is provided
+                if (tooltipFormatter && entry.payload) {
+                  // Assuming entry.payload is compatible with DashboardMetrics
+                  const dataPoint =
+                    entry.payload as unknown as DashboardMetrics;
+                  return tooltipFormatter(
+                    value,
+                    name,
+                    dataPoint,
+                    granularity,
+                    sortedMetrics,
+                  );
                 }
                 const labelIndex = yAxisDataKeys.indexOf(name);
-                const displayName = labelIndex !== -1 ? labels[labelIndex] : name;
+                const displayName =
+                  labelIndex !== -1 ? labels[labelIndex] : name;
                 return [value.toString(), displayName];
               }}
-              labelFormatter={(label) => formatTooltipLabel(label, granularity)}
+              labelFormatter={(label: string | number | Date) =>
+                formatTooltipLabel(label, granularity)
+              }
             />
             <Legend />
             {yAxisDataKeys.map((key, index) => {
@@ -123,18 +139,30 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
             <Tooltip
               formatter={(
                 value: number,
-                name: string, // dataKey for this bar
-                entry: any, // Use any for TooltipPayload type issue
-              ) => {
-                if (tooltipFormatter) {
-                  const dataPoint = entry.payload as DashboardMetrics; // entry.payload is the original data object
-                  return tooltipFormatter(value, name, dataPoint, granularity);
+                name: string,
+                entry: Payload<number, string>,
+              ): [React.ReactNode, React.ReactNode] | React.ReactNode => {
+                // Check if entry.payload exists and tooltipFormatter is provided
+                if (tooltipFormatter && entry.payload) {
+                  // Assuming entry.payload is compatible with DashboardMetrics
+                  const dataPoint =
+                    entry.payload as unknown as DashboardMetrics;
+                  return tooltipFormatter(
+                    value,
+                    name,
+                    dataPoint,
+                    granularity,
+                    sortedMetrics,
+                  );
                 }
                 const labelIndex = yAxisDataKeys.indexOf(name);
-                const displayName = labelIndex !== -1 ? labels[labelIndex] : name;
+                const displayName =
+                  labelIndex !== -1 ? labels[labelIndex] : name;
                 return [value.toString(), displayName];
               }}
-              labelFormatter={(label) => formatTooltipLabel(label, granularity)}
+              labelFormatter={(label: string | number | Date) =>
+                formatTooltipLabel(label, granularity)
+              }
             />
             <Legend />
             {yAxisDataKeys.map((key, index) => (
@@ -163,7 +191,6 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
       <CardContent className="p-4 h-[350px]">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">{title}</h3>
-          {/* Time Range Selector - Render only if setTimeRange is provided */}
           {setTimeRange && (
             <div>
               <Select

@@ -12,13 +12,17 @@ export const ClicksImpressionsChart: React.FC<ClicksImpressionsChartProps> = ({
   granularity,
 }) => {
   const [timeRange, setTimeRange] = useState<string>('all');
+  const AD_IMPRESSIONS_LABEL = 'Ad Impressions';
+  const AD_CLICKS_LABEL = 'Ad Clicks';
 
   const tooltipFormatter = (value: number, name: string): [string, string] => {
-    if (name === 'ad_impressions') {
-      return [`${value.toLocaleString()}`, 'Ad Impressions'];
-    } else {
-      return [`${value.toLocaleString()}`, 'Ad Clicks'];
+    // `name` is the display label, e.g., "Ad Impressions" or "Ad Clicks"
+    if (name === AD_IMPRESSIONS_LABEL) {
+      return [`${value.toLocaleString()}`, AD_IMPRESSIONS_LABEL];
+    } else if (name === AD_CLICKS_LABEL) {
+      return [`${value.toLocaleString()}`, AD_CLICKS_LABEL];
     }
+    return [`${value.toLocaleString()}`, name]; // Fallback
   };
 
   const filteredMetrics = useMemo(() => {
@@ -60,7 +64,7 @@ export const ClicksImpressionsChart: React.FC<ClicksImpressionsChartProps> = ({
       xAxisDataKey="date"
       yAxisDataKeys={['ad_impressions', 'ad_clicks']}
       colors={['#8884d8', '#82ca9d']}
-      labels={['Ad Impressions', 'Ad Clicks']}
+      labels={[AD_IMPRESSIONS_LABEL, AD_CLICKS_LABEL]}
       title="Ad Clicks & Ad Impressions"
       tooltipFormatter={tooltipFormatter}
       timeRange={timeRange}

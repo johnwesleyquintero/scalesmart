@@ -417,12 +417,16 @@ The `calculations.ts` file (`src/lib/utils/amazon/calculations.ts`) contains uti
 The following improvements have been implemented:
 
 - Updated tooltips for KPI cards in the `OverviewDataView` component to provide clearer context and definitions for the metrics.
+- Enhanced the `tooltipFormatter` prop in the `ReusableChart` component to display more detailed information in chart tooltips, including exact values, date ranges, and period-over-period comparisons. The `enhancedTooltipFormatter` function now calculates and displays percentage changes compared to the previous period.
+- Improved the visual indicators for sorting in the `MetricsDataTable` component, making it clearer which columns are sorted and in what direction. More prominent arrow icons now indicate the sort direction.
+
+The following improvements have been implemented:
+
+- Updated tooltips for KPI cards in the `OverviewDataView` component to provide clearer context and definitions for the metrics.
 - Enhanced the `tooltipFormatter` prop in the `ReusableChart` component to display more detailed information in chart tooltips, including exact values, date ranges, and period-over-period comparisons.
 - Improved the visual indicators for sorting in the `MetricsDataTable` component, making it clearer which columns are sorted and in what direction.
 - Implemented more detailed progress messages and a progress bar in the `GenericCsvDataMapper` and `OverviewTab` components to provide more granular feedback during CSV file parsing and data processing.
 - Added a loading indicator to the `OverviewTab` component to show the status of the upload, parsing, and processing stages.
-
-
 
 The following improvements have been implemented:
 
@@ -432,8 +436,6 @@ The following improvements have been implemented:
 - Added time range filtering to charts.
 - Added column filtering to the data table.
 
-This section outlines the key areas for improvement for the Amazon Seller Tools Dashboard.
+---
 
-This section outlines the key areas for improvement for the Amazon Seller Tools Dashboard.
-
-## 15. Key Areas for Improvement
+**_This section outlines the key areas for improvement for the Amazon Seller Tools Dashboard._**

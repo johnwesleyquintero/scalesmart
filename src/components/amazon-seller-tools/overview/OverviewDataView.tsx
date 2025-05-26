@@ -77,7 +77,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Card title="Average Conversion Rate: (Total Orders / Total Sessions) * 100. This metric represents the percentage of sessions that resulted in an order.">
+              <Card title="Average Conversion Rate: Calculated as (Total Orders / Total Sessions) * 100.  This represents the percentage of website visits that resulted in a purchase.  A higher percentage indicates better website performance and customer engagement.">
                 <CardContent className="p-4">
                   <h3 className="text-lg font-semibold mb-2">
                     Avg. Conversion Rate
@@ -111,7 +111,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Card title="Total Sales: The sum of all sales from the report period, representing the total revenue generated.">
+              <Card title="Total Sales: The sum of all sales recorded during the selected period. This represents your total revenue generated from sales.">
                 <CardContent className="p-4">
                   <h3 className="text-lg font-semibold mb-2">Total Sales</h3>
                   <div className="text-3xl font-bold text-green-600">
@@ -138,7 +138,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger>
-              <Card title="Average Clicks: The average number of ad clicks from the report period.">
+              <Card title="Average Clicks: The average number of clicks on your advertisements during the selected period. This metric reflects the effectiveness of your ad campaigns in attracting customer attention.">
                 <CardContent className="p-4">
                   <h3 className="text-lg font-semibold mb-2">Avg. Clicks</h3>
                   <div className="text-3xl font-bold text-yellow-600">

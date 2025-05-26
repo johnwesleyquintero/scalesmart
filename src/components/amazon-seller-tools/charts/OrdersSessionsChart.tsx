@@ -12,13 +12,17 @@ export const OrdersSessionsChart: React.FC<OrdersSessionsChartProps> = ({
   granularity,
 }) => {
   const [timeRange, setTimeRange] = useState<string>('all');
+  const TOTAL_ORDERS_LABEL = 'Total Orders';
+  const TOTAL_SESSIONS_LABEL = 'Total Sessions';
 
   const tooltipFormatter = (value: number, name: string): [string, string] => {
-    if (name === 'total_orders') {
-      return [`${value.toLocaleString()}`, 'Total Orders'];
-    } else {
-      return [`${value.toLocaleString()}`, 'Total Sessions'];
+    // `name` is the display label, e.g., "Total Orders" or "Total Sessions"
+    if (name === TOTAL_ORDERS_LABEL) {
+      return [`${value.toLocaleString()}`, TOTAL_ORDERS_LABEL];
+    } else if (name === TOTAL_SESSIONS_LABEL) {
+      return [`${value.toLocaleString()}`, TOTAL_SESSIONS_LABEL];
     }
+    return [`${value.toLocaleString()}`, name]; // Fallback
   };
 
   const filteredMetrics = useMemo(() => {
@@ -60,7 +64,7 @@ export const OrdersSessionsChart: React.FC<OrdersSessionsChartProps> = ({
       xAxisDataKey="date"
       yAxisDataKeys={['total_orders', 'total_sessions']}
       colors={['#ffc658', '#fb8c00']}
-      labels={['Total Orders', 'Total Sessions']}
+      labels={[TOTAL_ORDERS_LABEL, TOTAL_SESSIONS_LABEL]}
       title="Total Orders & Total Sessions Over Time"
       tooltipFormatter={tooltipFormatter}
       timeRange={timeRange}

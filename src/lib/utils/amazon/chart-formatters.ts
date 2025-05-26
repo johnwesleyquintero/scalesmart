@@ -1,37 +1,145 @@
-// src/lib/utils/amazon/chart-formatters.ts
-import { format, addDays } from 'date-fns';
-
-type TimeGranularity = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+import { format, formatDistanceToNow } from 'date-fns';
+import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 
 export const formatTick = (
-  tick: string,
-  granularity: TimeGranularity,
-): string => {
-  const date = new Date(tick);
-  if (isNaN(date.getTime())) return tick; // Return original if date is invalid
-
-  if (granularity === 'daily') return format(date, 'MMM d');
-  if (granularity === 'weekly') return `W/o ${format(date, 'MMM d')}`;
-  if (granularity === 'monthly') return format(date, 'MMM yyyy');
-  if (granularity === 'quarterly') {
-    const quarter = Math.ceil((date.getMonth() + 1) / 3);
-    return `Q${quarter} ${format(date, 'yyyy')}`;
+  tick: string | number | Date,
+  granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+) => {
+  if (typeof tick === 'number') {
+    return tick.toString();
   }
-  if (granularity === 'yearly') return format(date, 'yyyy');
-  return tick;
+
+  let dateObj: Date;
+  if (typeof tick === 'string') {
+    dateObj = new Date(tick);
+  } else {
+    // tick is a Date object
+    dateObj = tick;
+  }
+
+  if (isNaN(dateObj.getTime())) {
+    return typeof tick === 'string' ? tick : 'Invalid Date';
+  }
+
+  const dailyDateFormat = 'MMM dd';
+  const monthlyDateFormat = 'MMM yyyy';
+  const quarterlyDateFormat = 'QQQ yyyy';
+  const yearlyDateFormat = 'yyyy';
+
+  switch (granularity) {
+    case 'daily':
+      return format(dateObj, dailyDateFormat);
+    case 'weekly':
+      return format(dateObj, dailyDateFormat);
+    case 'monthly':
+      return format(dateObj, monthlyDateFormat);
+    case 'quarterly':
+      return format(dateObj, quarterlyDateFormat);
+    case 'yearly':
+      return format(dateObj, yearlyDateFormat);
+    default:
+      // Fallback for a valid date with an unexpected granularity
+      return format(dateObj, dailyDateFormat);
+  }
 };
 
 export const formatTooltipLabel = (
-  label: string,
-  granularity: TimeGranularity,
-): string => {
-  const DATE_FORMAT_TOOLTIP_DEFAULT = 'MMM d, yyyy';
-  const date = new Date(label);
-  if (isNaN(date.getTime())) return label; // Return original if date is invalid
-
-  if (granularity === 'weekly') {
-    const endDate = addDays(date, 6);
-    return `${format(date, DATE_FORMAT_TOOLTIP_DEFAULT)} - ${format(endDate, DATE_FORMAT_TOOLTIP_DEFAULT)}`;
+  label: string | number | Date,
+  granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+) => {
+  if (typeof label === 'number') {
+    return label.toString();
   }
-  return format(date, DATE_FORMAT_TOOLTIP_DEFAULT);
+
+  let dateObj: Date;
+  if (typeof label === 'string') {
+    dateObj = new Date(label);
+  } else {
+    // label is a Date object
+    dateObj = label;
+  }
+
+  if (isNaN(dateObj.getTime())) {
+    return typeof label === 'string' ? label : 'Invalid Date';
+  }
+
+  const dailyDateFormat = 'MMM dd, yyyy';
+  switch (granularity) {
+    case 'daily':
+      return format(dateObj, dailyDateFormat);
+    case 'weekly':
+      return `Week of ${format(dateObj, dailyDateFormat)}`;
+    case 'monthly':
+      return format(dateObj, 'MMMM yyyy');
+    case 'quarterly':
+      return format(dateObj, 'QQQ yyyy'); // QQQ is e.g. Q1, Q2
+    case 'yearly':
+      return format(dateObj, 'yyyy');
+    default:
+      // Fallback for a valid date with an unexpected granularity
+      return format(dateObj, dailyDateFormat);
+  }
+};
+
+export const enhancedTooltipFormatter = (
+  value: number | undefined,
+  name: string,
+  dataPoint: DashboardMetrics,
+  granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+  sortedMetrics: DashboardMetrics[],
+): [string, string] => {
+  const formattedValue = (value ?? 0).toLocaleString();
+  let formattedName = name;
+
+  const previousDataPoint = findPreviousDataPoint(
+    dataPoint,
+    granularity,
+    sortedMetrics,
+  );
+  const previousValue = Number(previousDataPoint?.[name] ?? 0);
+  const difference = (value ?? 0) - previousValue;
+  const percentageChange =
+    previousValue === 0 ? 0 : (difference / previousValue) * 100;
+  const formattedPercentageChange = ` (${percentageChange.toFixed(1)}%)`;
+  const changeIndicator = difference >= 0 ? '+' : '-';
+
+  formattedName = `${name} (${previousValue.toLocaleString()} ${changeIndicator}${Math.abs(difference).toLocaleString()}${formattedPercentageChange})`;
+
+  const date = dataPoint.date;
+  const formattedDate = formatTooltipLabel(date, granularity);
+  return [formattedValue, `${formattedName} (${formattedDate})`];
+};
+
+const findPreviousDataPoint = (
+  dataPoint: DashboardMetrics,
+  granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
+  sortedMetrics: DashboardMetrics[],
+): DashboardMetrics | undefined => {
+  const currentDataPointDate = new Date(dataPoint.date);
+  if (isNaN(currentDataPointDate.getTime())) {
+    return undefined; // Cannot find previous if current date is invalid
+  }
+  const currentDataPointTime = currentDataPointDate.getTime();
+
+  let foundIndex = -1;
+  for (let i = 0; i < sortedMetrics.length; i++) {
+    const metric = sortedMetrics[i];
+    if (metric && metric.date) {
+      const metricDate = new Date(metric.date);
+      if (
+        !isNaN(metricDate.getTime()) &&
+        metricDate.getTime() === currentDataPointTime
+      ) {
+        foundIndex = i;
+        break;
+      }
+    }
+  }
+
+  if (foundIndex > 0) {
+    return sortedMetrics[foundIndex - 1];
+  }
+
+  return undefined;
+  // Note: The 'granularity' parameter is currently unused in this function.
 };

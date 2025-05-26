@@ -182,9 +182,11 @@ export const MetricsDataTable: React.FC<MetricsDataTableProps> = ({
                       <ArrowUpDown
                         className={`ml-2 h-4 w-4 ${
                           sortOrder === 'asc'
-                            ? 'text-green-500'
-                            : 'text-red-500'
+                            ? 'text-green-600'
+                            : 'text-red-600'
                         }`}
+                        h-5
+                        w-5
                       />
                     )}
                   </Button>

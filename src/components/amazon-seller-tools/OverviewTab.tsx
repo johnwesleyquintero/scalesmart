@@ -97,25 +97,14 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleRefresh = useCallback(async () => {
-    // Resetting metrics and related states
-    setMetrics([]); // Clear existing metrics
-    setShowMapper(false); // Hide mapper
-    setCsvHeaders([]); // Clear CSV headers
-    setSelectedFile(null); // Clear selected file
-    setFirstCsvDataRow(undefined); // Clear first data row
-    setError(null); // Clear any errors
-    // Reset timeGranularity to default if needed, or keep current
-    // setTimeGranularity('daily');
-    setOverviewDataMapperKey((prev) => prev + 1); // Force re-render of mapper if it was open
-
-    setIsLoading(true);
-    setError(null);
+    setMetrics([]);
     setShowMapper(false);
     setCsvHeaders([]);
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
-    setMetrics([]);
-    // setOverviewDataMapperKey((prev) => prev + 1); // Already called above
+    setError(null);
+    setOverviewDataMapperKey((prev) => prev + 1);
+    setIsLoading(true);
     console.log('Refresh clicked - clearing status.');
     await new Promise((resolve) => setTimeout(resolve, 500));
     setIsLoading(false);
@@ -128,7 +117,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setFirstCsvDataRow,
     setMetrics,
     setOverviewDataMapperKey,
-  ]); // Added setMetrics to dependency array
+  ]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -142,22 +131,20 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setCsvHeaders([]);
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
-    setIsMapping(false); // Reset mapping state
-    setIsProcessing(false); // Reset processing state
+    setIsMapping(false);
+    setIsProcessing(false);
 
     Papa.parse<Record<string, string>>(file, {
-      // Single Papa.parse call for pre-parsing. Specify generic type.
       header: true,
       preview: 2,
       skipEmptyLines: true,
       complete: (results: Papa.ParseResult<Record<string, string>>) => {
-        // Add type for results
         const headers = results.meta.fields;
         const sampleRow = results.data[0] as Record<string, string> | undefined;
         if (!headers || headers.length === 0) {
           setError('Could not read headers from the CSV file. Is it valid?');
           setIsParsing(false);
-          setIsUploading(false); // Reset uploading state on error
+          setIsUploading(false);
           if (fileInputRef.current) fileInputRef.current.value = '';
           return;
         }
@@ -166,20 +153,18 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         setSelectedFile(file);
         setShowMapper(true);
         setIsParsing(false);
-        setIsUploading(false); // "Uploading" to browser/initial parse is done
+        setIsUploading(false);
       },
       error: (error: Error) => {
-        console.error('Error pre-parsing CSV:', error);
         setError(`Failed to read file headers: ${error.message}`);
         setIsParsing(false);
-        setIsUploading(false); // Reset uploading state on error
+        setIsUploading(false);
         if (fileInputRef.current) fileInputRef.current.value = '';
       },
     });
   };
 
-  const handleMappingComplete = (mapping: CsvColumnMapping) => {
-    console.log('Mapping confirmed:', mapping);
+  const handleMappingComplete = async (mapping: CsvColumnMapping) => {
     if (!selectedFile) {
       setError('No file selected for processing.');
       setShowMapper(false);
@@ -191,51 +176,41 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setError(null);
     setMetrics([]);
 
-    Papa.parse<Record<string, string>>(selectedFile, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        console.log('Parsed Full CSV Data:', results.data);
-        try {
-          const transformedMetrics = results.data
-            .map((row) => transformCsvRow(row, mapping))
-            .filter((metric): metric is DashboardMetrics => metric !== null);
-          console.log('Transformed Metrics:', transformedMetrics);
-          if (transformedMetrics.length === 0 && results.data.length > 0) {
-            setError(
-              'Could not extract valid data using the provided mapping. Check mapping and report format/headers.',
-            );
-            setMetrics([]);
-          } else if (transformedMetrics.length === 0) {
-            setError(
-              'No data rows found or processed successfully in the file.',
-            );
-            setMetrics([]);
-          } else {
-            setMetrics(transformedMetrics);
-            setError(null);
-          }
-        } catch (transformError: unknown) {
-          console.error('Error transforming data:', transformError);
-          setError(
-            `Error processing report data: ${(transformError as Error).message}`,
-          );
-          setMetrics([]);
-        } finally {
-          setIsParsing(false);
-          if (fileInputRef.current) fileInputRef.current.value = '';
-          setSelectedFile(null);
-        }
-      },
-      error: (error: Error) => {
-        console.error('Error parsing full CSV:', error);
-        setError(`Failed to parse file: ${error.message}`);
-        setMetrics([]);
-        setIsParsing(false);
-        if (fileInputRef.current) fileInputRef.current.value = '';
-        setSelectedFile(null);
-      },
-    });
+    try {
+      const { data } = await new Promise<
+        Papa.ParseResult<Record<string, string>>
+      >((resolve, reject) => {
+        Papa.parse<Record<string, string>>(selectedFile, {
+          header: true,
+          skipEmptyLines: true,
+          complete: resolve,
+          error: reject,
+        });
+      });
+      const transformedMetrics = data.map((row) =>
+        transformCsvRow(row, mapping),
+      );
+      const validMetrics = transformedMetrics.filter(
+        (metric): metric is DashboardMetrics => metric !== null,
+      );
+      const errorText =
+        validMetrics.length === 0 && data.length > 0
+          ? 'Could not extract valid data using the provided mapping. Check mapping and report format/headers.'
+          : validMetrics.length === 0
+            ? 'No valid data found in the CSV file.'
+            : null;
+      setMetrics(validMetrics);
+      setError(errorText);
+      console.log('Valid Metrics:', validMetrics);
+    } catch (error) {
+      setError(
+        `Failed to parse file: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    } finally {
+      setIsParsing(false);
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
   };
 
   const handleMappingCancel = () => {
@@ -253,7 +228,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   const handleDownloadSampleCsv = async () => {
     const fileName = 'sample_amazon_data.csv';
     const filePath = `/samples/${fileName}`;
-    console.log('Attempting to download file from:', filePath); // Log the file path
+    console.log('Attempting to download file from:', filePath);
 
     try {
       const link = document.createElement('a');
@@ -262,9 +237,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      console.log('Download initiated successfully.'); // Log success
+      console.log('Download initiated successfully.');
     } catch (error: unknown) {
-      console.error('Error downloading sample CSV:', error); // Log the error
+      console.error('Error downloading sample CSV:', error);
       setError(
         `Download failed: ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -295,24 +270,19 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     [setMetrics],
   );
 
-  // Calculate aggregatedAndSortedMetrics in OverviewTab
-  const dailySortedMetrics = React.useMemo(
+  const dailySortedMetrics = useMemo(
     () =>
       [...metrics].sort(
-        (a, b) =>
-          new Date(a.date as string).getTime() -
-          new Date(b.date as string).getTime(),
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
       ),
     [metrics],
   );
 
-  const aggregatedAndSortedMetrics = React.useMemo(
+  const aggregatedAndSortedMetrics = useMemo(
     () => aggregateMetricsByTime(dailySortedMetrics, timeGranularity),
     [dailySortedMetrics, timeGranularity],
   );
 
-  // Define a focused configuration for the OverviewDataTable based on likely aggregated fields
-  // Adjust this list based on what your `aggregateMetricsByTime` function actually produces
   const aggregatedTableMetricsConfig: TargetMetricConfig[] = useMemo(() => {
     const aggregatedKeys: (keyof DashboardMetrics)[] = [
       'date',
@@ -326,14 +296,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       'profit',
       'ad_impressions',
       'ad_clicks',
-      'total_conversion_rate', // Add other keys present in aggregated data
+      'total_conversion_rate',
     ];
     return TARGET_METRICS_CONFIG.filter((config) =>
       aggregatedKeys.includes(config.key),
     );
   }, [TARGET_METRICS_CONFIG]);
 
-  // For debugging the new config
   useEffect(() => {
     console.log(
       'OverviewTab - aggregatedTableMetricsConfig:',
