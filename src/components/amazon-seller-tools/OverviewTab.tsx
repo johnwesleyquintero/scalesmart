@@ -32,7 +32,6 @@ import { OrdersSessionsChart } from '@/components/amazon-seller-tools/charts/Ord
 import { AdSpendSalesChart } from '@/components/amazon-seller-tools/charts/AdSpendSalesChart';
 import { ProfitTrendChart } from '@/components/amazon-seller-tools/charts/ProfitTrendChart';
 import { OverviewDataView } from '@/components/amazon-seller-tools/overview/OverviewDataView';
-import { OverviewDataTable } from '@/components/amazon-seller-tools/overview/OverviewDataTable'; // Import the new OverviewDataTable
 import { aggregateMetricsByTime } from '@/lib/utils/amazon/data-aggregation'; // Import aggregation utility
 import { transformCsvRow } from '@/lib/utils/amazon/data-transformation'; // Import data transformation utilities
 import {
@@ -402,11 +401,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             JSON.stringify(TARGET_METRICS_CONFIG, null, 2),
           )}
           {/* Replace KeywordPerformanceTable with OverviewDataTable */}
-          <OverviewDataTable
-            metrics={aggregatedAndSortedMetrics}
-            targetMetricsConfig={aggregatedTableMetricsConfig}
-            isLoading={isLoading || isParsing} // Pass loading state
-          />
         </>
       ) : (
         <>

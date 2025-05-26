@@ -372,12 +372,6 @@ The following improvements have been implemented:
 - Added a loading indicator to the `OverviewTab` component to show the status of the upload, parsing, and processing stages.
 - Implemented basic mapping persistence using IndexedDB to save the user's last-used column mapping preferences. On subsequent uploads, the mapping suggestions are pre-populated based on the saved configuration.
 - Added tooltips and help text to specialized tools to provide in-context guidance for each tool's purpose, key inputs, and expected outputs.
-- **Implemented Advanced Filtering for Data Tables:** The `MetricsDataTable` component now supports more advanced filtering capabilities, including column-specific input filters.
-- **Added "Clear All Filters" Button:** A dedicated "Clear All Filters" button has been added to `MetricsDataTable` to easily reset all active filters.
-- **Integrated "Copy to Clipboard" for Tool Outputs:** A "Copy to Clipboard" button has been added to the `CalculationHistoryTable` for quick data transfer.
-- **Added "Save/Load Preset" for Manual Calculation Forms:** The `ManualCalculationForm` now allows users to save and load input presets using IndexedDB.
-- **Enhanced Contextual Empty State Messages:** `ReusableChart` and `MetricsDataTable` now display more informative messages when no data is available, guiding users on how to populate them.
-- **Added "What's New" / Feature Tour on First Visit:** A "What's New" modal is displayed on the user's first visit to highlight new features.
 
 ---
 

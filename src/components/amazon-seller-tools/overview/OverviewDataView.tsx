@@ -24,7 +24,6 @@ import { ClicksImpressionsChart } from '../charts/ClicksImpressionsChart';
 import { OrdersSessionsChart } from '../charts/OrdersSessionsChart';
 import { AdSpendSalesChart } from '../charts/AdSpendSalesChart'; // New import
 import { ProfitTrendChart } from '../charts/ProfitTrendChart'; // New import
-import { MetricsDataTable } from './MetricsDataTable'; // New import
 import { aggregateMetricsByTime } from '@/lib/utils/amazon/data-aggregation'; // Assuming aggregation logic is moved
 
 interface OverviewDataViewProps {
@@ -273,15 +272,6 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
         />
         <ProfitTrendChart
           sortedMetrics={aggregatedAndSortedMetrics}
-          granularity={timeGranularity}
-        />
-      </div>
-
-      {/* Data Table Section */}
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold mb-4">Detailed Metrics Data</h3>
-        <MetricsDataTable
-          data={aggregatedAndSortedMetrics}
           granularity={timeGranularity}
         />
       </div>
