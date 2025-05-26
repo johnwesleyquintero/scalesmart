@@ -81,6 +81,11 @@ export interface TableChartProps<TData> {
    */
   enableFiltering?: boolean;
   /**
+   * Optional array of column keys to enable filtering on. If not provided, filtering is enabled for all columns.
+   * @default undefined
+   */
+  filterColumns?: string[];
+  /**
    * If true, enables row selection functionality with checkboxes.
    * @default false
    */
@@ -144,6 +149,7 @@ const TableChart = <TData extends Record<string, unknown>>({
   renderSubComponent,
   isLoading = false,
   emptyStateContent = 'No data available.',
+  filterColumns,
 }: TableChartProps<TData>) => {
   const [sortConfig, setSortConfig] = useState<{
     key: keyof TData | string;
@@ -181,17 +187,24 @@ const TableChart = <TData extends Record<string, unknown>>({
     if (!enableFiltering || !globalFilter) {
       return data;
     }
+
     const filterLower = globalFilter.toLowerCase();
-    return data.filter((row) =>
-      columns.some((column) => {
+
+    const columnsToFilter = filterColumns
+      ? columns.filter((column) =>
+          filterColumns.includes(column.accessorKey as string),
+        )
+      : columns;
+
+    return data.filter((row) => {
+      return columnsToFilter.some((column) => {
         const value = row[column.accessorKey as keyof TData];
-        // Handle potential null/undefined values gracefully
         return String(value ?? '')
           .toLowerCase()
           .includes(filterLower);
-      }),
-    );
-  }, [data, columns, globalFilter, enableFiltering]);
+      });
+    });
+  }, [data, columns, globalFilter, enableFiltering, filterColumns]);
 
   const sortedData = useMemo(() => {
     let sortableItems = [...filteredData]; // Sort filtered data
@@ -511,7 +524,11 @@ const TableChart = <TData extends Record<string, unknown>>({
                           role="gridcell"
                         >
                           {column.cell
-                            ? column.cell(value, row, column)
+                            ? column.cell(
+                                value,
+                                row,
+                                column as ColumnDef<TData>,
+                              )
                             : String(value)}
                         </td>
                       );

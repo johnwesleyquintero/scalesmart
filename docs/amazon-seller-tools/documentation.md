@@ -186,7 +186,7 @@ Each of these tools is a self-contained component designed for a specific task.
 
 The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales. It allows users to input campaign data either via CSV upload or manual entry, and then calculates and displays the ACoS and RoAS. The calculator also saves the calculation history to IndexedDB and displays it in a table, and visualizes ACoS trends over time using a chart.
 
-### 6.1. Input Methods
+### Input Methods
 
 The ACoS Calculator provides two methods for inputting campaign data:
 
@@ -195,7 +195,7 @@ The ACoS Calculator provides two methods for inputting campaign data:
 - **CSV Upload:** Users can upload a CSV file containing campaign data. The CSV file should have columns for `Campaign`, `AdSpend`, and `Sales`. Optional columns include `Impressions` and `Clicks`.
 - **Manual Entry:** Users can manually enter data for a single campaign using the `ManualCalculationForm` component.
 
-### 6.2. Manual Calculation Form
+### Manual Calculation Form
 
 The `ManualCalculationForm` component (`src/components/amazon-seller-tools/ManualCalculationForm.tsx`) allows users to manually enter data for a single campaign. The form includes the following fields:
 
