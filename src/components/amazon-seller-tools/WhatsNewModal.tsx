@@ -36,9 +36,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
               New charts visualizing sales and advertising performance with
               filter control data set!
             </li>
-            <li>
-              Enhanced CSV Data-Table feature with per-column settings.
-            </li>
+            <li>Enhanced CSV Data-Table feature with per-column settings.</li>
           </ul>
 
           <h4 className="font-semibold text-lg">

@@ -27,7 +27,7 @@ import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
 // Define DashboardMetrics interface ONCE
 export interface DashboardMetrics {
   date: string; // YYYY-MM-DD
-  unique_identifier?: string; // ASIN, SKU, etc.
+  unique_identifier: string; // ASIN, SKU, etc.
   total_sales?: number;
   total_orders?: number;
   total_sessions?: number;

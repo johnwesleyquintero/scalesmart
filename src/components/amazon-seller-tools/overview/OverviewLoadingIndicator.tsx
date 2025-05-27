@@ -32,7 +32,7 @@ export const OverviewLoadingIndicator: React.FC<
     message = 'Uploading file...';
     progress = 10; // Initial arbitrary progress for upload
   } else if (isParsing) {
-    message = 'Reading and parsing file headers...';
+    message = 'Parsing CSV headers and sample data...';
     progress = 20; // After headers are read, but before full data parse
   } else if (showMapperText) {
     message = 'Loading data mapping interface...';
@@ -44,7 +44,7 @@ export const OverviewLoadingIndicator: React.FC<
       progress = (processedRows / totalRows) * 100;
     }
     if (parsingErrorCount > 0) {
-      message += ` (Found ${parsingErrorCount} issues)`;
+      message += ` (Found ${parsingErrorCount} data issues)`;
     }
   }
 

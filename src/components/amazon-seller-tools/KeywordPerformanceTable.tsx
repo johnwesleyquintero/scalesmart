@@ -48,6 +48,11 @@ export const KeywordPerformanceTable: React.FC<
     direction: 'descending',
   });
 
+  console.log(
+    'KeywordPerformanceTable: Raw metrics unique_identifiers:',
+    metrics.map((m) => m.unique_identifier),
+  );
+
   const processedMetrics = useMemo(() => {
     return metrics
       .filter(
@@ -80,6 +85,10 @@ export const KeywordPerformanceTable: React.FC<
       });
   }, [metrics, searchTerm, asinFilter]);
 
+  console.log(
+    'KeywordPerformanceTable: Processed metrics unique_identifiers (after useMemo):',
+    processedMetrics.map((m) => m.unique_identifier),
+  );
   const sortedMetrics = useMemo(() => {
     let sortableItems = [...processedMetrics];
     if (sortConfig.key !== null) {
@@ -229,6 +238,7 @@ export const KeywordPerformanceTable: React.FC<
               <TableRow
                 key={`${metric.date}-${metric.unique_identifier}-${metric.targeted_keyword}-${index}`}
               >
+                {' '}
                 <TableCell>{metric.date}</TableCell>
                 <TableCell>{metric.unique_identifier}</TableCell>
                 <TableCell>{metric.targeted_keyword}</TableCell>

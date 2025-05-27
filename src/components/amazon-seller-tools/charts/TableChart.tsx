@@ -1,7 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown, Filter } from 'lucide-react';
-import { setItem, getItem, deleteItem } from '../../../lib/indexeddb-service';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'; // Assuming Popover component path
+import {
+  setItem,
+  getItem,
+  deleteItem,
+} from '../../../../lib/indexeddb-service';
+import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
 
 /**
  * Defines the structure for a column in the TableChart component.
@@ -36,17 +40,9 @@ export interface ColumnDef<TData> {
    * Clicking the header will toggle sorting direction.
    */
   sortable?: boolean;
-  /**
-   * If true, enables client-side filtering for this specific column.
-   * A filter UI will be displayed in the header.
-   */
   enableColumnFilter?: boolean;
-  /**
-   * Specifies the type of filter UI to render for this column.
-   * 'text' for text input, 'number' | 'select' | 'dateRange'.
-   * If not specified, defaults to 'text'.
-   */
   filterType?: 'text' | 'number' | 'select' | 'dateRange';
+  defaultFilterOperator?: FilterOperator;
   /**
    * An optional custom sort function for this column.
    * Overrides default sorting if provided.
@@ -58,6 +54,17 @@ export interface ColumnDef<TData> {
    */
   sortType?: 'string' | 'number' | 'date' | 'alphanumeric' | 'currency';
 }
+
+export type FilterOperator =
+  | 'contains'
+  | 'equals'
+  | 'startsWith'
+  | 'endsWith'
+  | 'greaterThan'
+  | 'lessThan'
+  | 'between'
+  | 'isEmpty'
+  | 'isNotEmpty';
 
 /**
  * Props for the reusable TableChart component.
@@ -86,7 +93,10 @@ interface PersistedTableState {
   sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
   itemsPerPage: number;
   globalFilter: string;
-  columnFilters: Record<string, { value: unknown; type: string }>;
+  columnFilters: Record<
+    string,
+    { value: unknown; type: string; operator: FilterOperator }
+  >;
 }
 
 /**
@@ -105,7 +115,7 @@ const TableChart = <TData extends Record<string, unknown>>({
   enableRowSelection = false,
   rowIdAccessor,
   onRowSelectionChange,
-  renderSubComponent, // Re-add this here
+  renderSubComponent,
   isLoading = false,
   emptyStateContent = 'No data available.',
   persistenceKey,
@@ -120,7 +130,7 @@ const TableChart = <TData extends Record<string, unknown>>({
   const [itemsPerPage, setItemsPerPage] = useState(initialPageSize);
   const [globalFilter, setGlobalFilter] = useState<string>('');
   const [columnFilters, setColumnFilters] = useState<
-    Record<string, { value: unknown; type: string }>
+    Record<string, { value: unknown; type: string; operator: FilterOperator }>
   >({});
   const [selectedRowIds, setSelectedRowIds] = useState<Set<string | number>>(
     new Set(),
@@ -128,6 +138,21 @@ const TableChart = <TData extends Record<string, unknown>>({
   const [expandedRowIds, setExpandedRowIds] = useState<Set<string | number>>(
     new Set(),
   );
+
+  // Memoize unique values for select filters to improve performance
+  const memoizedSelectOptions = useMemo(() => {
+    const options: Record<string, string[]> = {};
+    columns.forEach((col) => {
+      if (col.filterType === 'select') {
+        options[col.accessorKey as string] = Array.from(
+          new Set(
+            data.map((row) => String(row[col.accessorKey as keyof TData])),
+          ),
+        ).sort(); // Sort options for better UX
+      }
+    });
+    return options;
+  }, [data, columns]);
 
   const resetTablePreferences = () => {
     setSortConfig(null);
@@ -139,8 +164,9 @@ const TableChart = <TData extends Record<string, unknown>>({
     setExpandedRowIds(new Set());
 
     if (persistenceKey) {
-      deleteItem(`tableState_${persistenceKey}`).catch((error) =>
-        console.error('Failed to remove table state from IndexedDB:', error),
+      deleteItem(`tableState_${persistenceKey}`).catch(
+        (error: IDBRequest['error']) =>
+          console.error('Failed to remove table state from IndexedDB:', error),
       );
     }
     onResetPreferences && onResetPreferences();
@@ -226,6 +252,10 @@ const TableChart = <TData extends Record<string, unknown>>({
 
   // Effect to call onRowSelectionChange when selectedRowIds or data changes
   useEffect(() => {
+    console.log(
+      'useEffect: onRowSelectionChange triggered, rowIdAccessor status:',
+      rowIdAccessor ? 'defined' : 'undefined',
+    );
     if (onRowSelectionChange) {
       const currentlySelectedRows = data.filter((row) => {
         if (rowIdAccessor) {
@@ -248,11 +278,11 @@ const TableChart = <TData extends Record<string, unknown>>({
     // Apply global filter
     if (enableFiltering && globalFilter) {
       const filterLower = globalFilter.toLowerCase();
-      const columnsToFilter = filterColumns
-        ? columns.filter((column) =>
-            filterColumns.includes(column.accessorKey as string),
-          )
-        : columns;
+      const columnsToFilter = columns.filter((column) =>
+        filterColumns
+          ? filterColumns.includes(column.accessorKey as string)
+          : true,
+      );
 
       currentFilteredData = currentFilteredData.filter((row) => {
         return columnsToFilter.some((column) => {
@@ -264,33 +294,101 @@ const TableChart = <TData extends Record<string, unknown>>({
       });
     }
 
-    // Apply per-column filters
+    const applyColumnFilter = (
+      row: TData,
+      columnId: string,
+      filter: { value: unknown; type: string; operator: FilterOperator },
+    ) => {
+      const value = row[columnId as keyof TData];
+      const filterValue = String(filter.value).toLowerCase();
+      const cellValue = String(value ?? '').toLowerCase();
+      const operator = filter.operator;
+
+      // Handle isEmpty and isNotEmpty for all types
+      if (operator === 'isEmpty') {
+        return (
+          value === null || value === undefined || String(value).trim() === ''
+        );
+      }
+      if (operator === 'isNotEmpty') {
+        return (
+          value !== null && value !== undefined && String(value).trim() !== ''
+        );
+      }
+
+      // For other operators, value must be present
+      if (value === null || value === undefined) {
+        return false;
+      }
+
+      switch (filter.type) {
+        case 'number': {
+          const numValue = Number(value);
+          const numFilterValue = Number(filter.value);
+          if (isNaN(numValue) || isNaN(numFilterValue)) return false;
+
+          switch (operator) {
+            case 'equals':
+              return numValue === numFilterValue;
+            case 'greaterThan':
+              return numValue > numFilterValue;
+            case 'lessThan':
+              return numValue < numFilterValue;
+            // case 'between': // @todo: Implement 'between' for numbers
+            //   return numValue >= numFilterValue[0] && numValue <= numFilterValue[1];
+            default:
+              return false;
+          }
+        }
+        case 'select':
+          return cellValue === filterValue;
+        case 'dateRange': {
+          const dateValue = new Date(value as string);
+          const dateFilterValue = new Date(filter.value as string);
+
+          if (isNaN(dateValue.getTime()) || isNaN(dateFilterValue.getTime()))
+            return false;
+
+          switch (operator) {
+            case 'equals':
+              return (
+                dateValue.toDateString() === dateFilterValue.toDateString()
+              );
+            case 'greaterThan':
+              return dateValue.getTime() > dateFilterValue.getTime();
+            case 'lessThan':
+              return dateValue.getTime() < dateFilterValue.getTime();
+            // case 'between': // @todo: Implement 'between' for dates
+            //   return dateValue >= dateFilterValue[0] && dateValue <= dateFilterValue[1];
+            default:
+              return false;
+          }
+        }
+        case 'text':
+        default: {
+          switch (operator) {
+            case 'contains':
+              return cellValue.includes(filterValue);
+            case 'equals':
+              return cellValue === filterValue;
+            case 'startsWith':
+              return cellValue.startsWith(filterValue);
+            case 'endsWith':
+              return cellValue.endsWith(filterValue);
+            default:
+              return false;
+          }
+        }
+      }
+    };
+
     currentFilteredData = currentFilteredData.filter((row) => {
       return Object.entries(columnFilters).every(([columnId, filter]) => {
-        if (!filter || !filter.value) {
-          return true;
-        }
         const column = columns.find((col) => col.accessorKey === columnId);
         if (!column || !column.enableColumnFilter) {
           return true;
         }
-
-        const value = row[columnId as keyof TData];
-        const filterValue = String(filter.value).toLowerCase();
-        const cellValue = String(value ?? '').toLowerCase();
-
-        switch (filter.type) {
-          case 'number':
-            return Number(value) === Number(filter.value);
-          case 'select':
-            return cellValue === filterValue;
-          case 'dateRange':
-            // @todo: Implement date range filtering
-            return true;
-          case 'text':
-          default:
-            return cellValue.includes(filterValue);
-        }
+        return applyColumnFilter(row, columnId, filter);
       });
     });
 
@@ -321,35 +419,38 @@ const TableChart = <TData extends Record<string, unknown>>({
         const valA = a[sortConfig.key as keyof TData];
         const valB = b[sortConfig.key as keyof TData];
 
-        const aValue = valA ?? ''; // Default to empty string for null/undefined
-        const bValue = valB ?? ''; // Default to empty string for null/undefined
-
         const compareNumbers = (v1: unknown, v2: unknown): number => {
-          return Number(v1) - Number(v2);
+          const numA = Number(v1);
+          const numB = Number(v2);
+          if (isNaN(numA) && isNaN(numB)) return 0;
+          if (isNaN(numA)) return sortConfig.direction === 'asc' ? 1 : -1;
+          if (isNaN(numB)) return sortConfig.direction === 'asc' ? -1 : 1;
+          return numA - numB;
         };
 
         const compareDates = (v1: unknown, v2: unknown): number => {
-          const dateA = v1 ? new Date(v1 as string).getTime() : 0;
-          const dateB = v2 ? new Date(v2 as string).getTime() : 0;
+          const dateA = v1 ? new Date(v1 as string).getTime() : NaN;
+          const dateB = v2 ? new Date(v2 as string).getTime() : NaN;
+          if (isNaN(dateA) && isNaN(dateB)) return 0;
+          if (isNaN(dateA)) return sortConfig.direction === 'asc' ? 1 : -1;
+          if (isNaN(dateB)) return sortConfig.direction === 'asc' ? -1 : 1;
           return dateA - dateB;
         };
 
-        const compareCurrencies = (
-          v1: unknown,
-          v2: unknown,
-          sortDirection: 'asc' | 'desc',
-        ): number => {
-          const numA = parseFloat(String(v1).replace(/[^0-9.-]+/g, ''));
-          const numB = parseFloat(String(v2).replace(/[^0-9.-]+/g, ''));
+        const compareCurrencies = (v1: unknown, v2: unknown): number => {
+          const numA = parseFloat(String(v1).replace(/[^0-9.-]+/g, '')) || NaN;
+          const numB = parseFloat(String(v2).replace(/[^0-9.-]+/g, '')) || NaN;
 
           if (isNaN(numA) && isNaN(numB)) return 0;
-          if (isNaN(numA)) return sortDirection === 'asc' ? 1 : -1;
-          if (isNaN(numB)) return sortDirection === 'asc' ? -1 : 1;
+          if (isNaN(numA)) return sortConfig.direction === 'asc' ? 1 : -1;
+          if (isNaN(numB)) return sortConfig.direction === 'asc' ? -1 : 1;
           return numA - numB;
         };
 
         const compareAlphanumeric = (v1: unknown, v2: unknown): number => {
-          return String(v1).localeCompare(String(v2), undefined, {
+          const strA = String(v1 ?? '');
+          const strB = String(v2 ?? '');
+          return strA.localeCompare(strB, undefined, {
             numeric: true,
             sensitivity: 'base',
           });
@@ -360,7 +461,6 @@ const TableChart = <TData extends Record<string, unknown>>({
           v1: unknown,
           v2: unknown,
           type: ColumnDef<TData>['sortType'],
-          sortDirection: 'asc' | 'desc',
         ): number => {
           switch (type) {
             case 'number':
@@ -368,20 +468,16 @@ const TableChart = <TData extends Record<string, unknown>>({
             case 'date':
               return compareDates(v1, v2);
             case 'currency':
-              return compareCurrencies(v1, v2, sortDirection);
+              return compareCurrencies(v1, v2);
             case 'alphanumeric':
               return compareAlphanumeric(v1, v2);
-            default: // Handles 'string' or undefined sortType
-              return String(v1).localeCompare(String(v2));
+            case 'string':
+            default:
+              return String(v1 ?? '').localeCompare(String(v2 ?? ''));
           }
         };
 
-        const result = compareValues(
-          aValue,
-          bValue,
-          column?.sortType,
-          sortConfig.direction,
-        );
+        const result = compareValues(valA, valB, column?.sortType);
         return sortConfig.direction === 'asc' ? result : -result;
       });
     }
@@ -424,11 +520,12 @@ const TableChart = <TData extends Record<string, unknown>>({
     columnId: string,
     value: unknown,
     type: string = 'text',
+    operator: FilterOperator = 'contains', // Default operator
   ) => {
     setColumnFilters((prev) => {
       const newFilters = { ...prev };
-      if (value) {
-        newFilters[columnId] = { value, type };
+      if (value || operator === 'isEmpty' || operator === 'isNotEmpty') {
+        newFilters[columnId] = { value, type, operator };
       } else {
         delete newFilters[columnId];
       }
@@ -440,89 +537,154 @@ const TableChart = <TData extends Record<string, unknown>>({
   const renderFilterInput = (column: ColumnDef<TData>) => {
     if (!column.enableColumnFilter) return null;
 
-    const columnFilterValue =
-      columnFilters[column.accessorKey as string]?.value;
+    const columnFilter = columnFilters[column.accessorKey as string];
+    const columnFilterValue = columnFilter?.value;
+    const columnFilterOperator =
+      columnFilter?.operator || column.defaultFilterOperator || 'contains';
+
+    const commonInputClasses =
+      'w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500';
+    const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
+
+    const renderOperatorSelect = (currentType: string) => (
+      <select
+        value={columnFilterOperator}
+        onChange={(e) =>
+          handleColumnFilterChange(
+            column.accessorKey as string,
+            columnFilterValue,
+            currentType,
+            e.target.value as FilterOperator,
+          )
+        }
+        className={`${commonInputClasses} mb-1`}
+        onClick={stopPropagation}
+      >
+        {column.filterType === 'number' || column.filterType === 'dateRange' ? (
+          <>
+            <option value="equals">Equals</option>
+            <option value="greaterThan">Greater Than</option>
+            <option value="lessThan">Less Than</option>
+            {/* <option value="between">Between</option> */}
+          </>
+        ) : (
+          <>
+            <option value="contains">Contains</option>
+            <option value="equals">Equals</option>
+            <option value="startsWith">Starts With</option>
+            <option value="endsWith">Ends With</option>
+          </>
+        )}
+        <option value="isEmpty">Is Empty</option>
+        <option value="isNotEmpty">Is Not Empty</option>
+      </select>
+    );
 
     switch (column.filterType) {
       case 'number':
         return (
-          <input
-            type="number"
-            placeholder="Filter..."
-            value={String(columnFilterValue ?? '')}
-            onChange={(e) =>
-              handleColumnFilterChange(
-                column.accessorKey as string,
-                e.target.value,
-                'number',
-              )
-            }
-            className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="flex flex-col">
+            {renderOperatorSelect('number')}
+            {columnFilterOperator !== 'isEmpty' &&
+              columnFilterOperator !== 'isNotEmpty' && (
+                <input
+                  type="number"
+                  placeholder="Filter..."
+                  value={String(columnFilterValue ?? '')}
+                  onChange={(e) =>
+                    handleColumnFilterChange(
+                      column.accessorKey as string,
+                      e.target.value,
+                      'number',
+                      columnFilterOperator,
+                    )
+                  }
+                  className={commonInputClasses}
+                  onClick={stopPropagation}
+                />
+              )}
+          </div>
         );
       case 'select': {
-        const uniqueValues = Array.from(
-          new Set(
-            data.map((row) => String(row[column.accessorKey as keyof TData])),
-          ),
-        );
+        const uniqueValues =
+          memoizedSelectOptions[column.accessorKey as string] || [];
         return (
-          <select
-            value={String(columnFilterValue ?? '')}
-            onChange={(e) =>
-              handleColumnFilterChange(
-                column.accessorKey as string,
-                e.target.value,
-                'select',
-              )
-            }
-            className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <option value="">All</option>
-            {uniqueValues.map((value) => (
-              <option key={value} value={value}>
-                {value}
-              </option>
-            ))}
-          </select>
+          <div className="flex flex-col">
+            {renderOperatorSelect('select')}
+            {columnFilterOperator !== 'isEmpty' &&
+              columnFilterOperator !== 'isNotEmpty' && (
+                <select
+                  value={String(columnFilterValue ?? '')}
+                  onChange={(e) =>
+                    handleColumnFilterChange(
+                      column.accessorKey as string,
+                      e.target.value,
+                      'select',
+                      columnFilterOperator,
+                    )
+                  }
+                  className={commonInputClasses}
+                  onClick={stopPropagation}
+                >
+                  <option value="">All</option>
+                  {uniqueValues.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              )}
+          </div>
         );
       }
       case 'dateRange':
         return (
-          <input
-            type="text"
-            placeholder="Date Range..."
-            value={String(columnFilterValue ?? '')}
-            onChange={(e) =>
-              handleColumnFilterChange(
-                column.accessorKey as string,
-                e.target.value,
-                'dateRange',
-              )
-            }
-            className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="flex flex-col">
+            {renderOperatorSelect('dateRange')}
+            {columnFilterOperator !== 'isEmpty' &&
+              columnFilterOperator !== 'isNotEmpty' && (
+                <input
+                  type="text"
+                  placeholder="Filter Date (YYYY-MM-DD)"
+                  value={String(columnFilterValue ?? '')}
+                  onChange={(e) =>
+                    handleColumnFilterChange(
+                      column.accessorKey as string,
+                      e.target.value,
+                      'dateRange',
+                      columnFilterOperator,
+                    )
+                  }
+                  className={commonInputClasses}
+                  onClick={stopPropagation}
+                />
+              )}
+          </div>
         );
       case 'text':
       default:
         return (
-          <input
-            type="text"
-            placeholder="Filter..."
-            value={String(columnFilterValue ?? '')}
-            onChange={(e) =>
-              handleColumnFilterChange(
-                column.accessorKey as string,
-                e.target.value,
-                'text',
-              )
-            }
-            className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <div className="flex flex-col">
+            {renderOperatorSelect('text')}
+            {columnFilterOperator !== 'isEmpty' &&
+              columnFilterOperator !== 'isNotEmpty' && (
+                <input
+                  type="text"
+                  placeholder="Filter..."
+                  value={String(columnFilterValue ?? '')}
+                  onChange={(e) =>
+                    handleColumnFilterChange(
+                      column.accessorKey as string,
+                      e.target.value,
+                      'text',
+                      columnFilterOperator,
+                    )
+                  }
+                  className={commonInputClasses}
+                  onClick={stopPropagation}
+                />
+              )}
+          </div>
         );
     }
   };
@@ -535,6 +697,10 @@ const TableChart = <TData extends Record<string, unknown>>({
   const cellPadding = compact ? 'px-4 py-2' : 'px-6 py-4';
 
   const toggleRowExpansion = (rowId: string | number) => {
+    console.log(
+      'toggleRowExpansion: rowIdAccessor status:',
+      rowIdAccessor ? 'defined' : 'undefined',
+    );
     setExpandedRowIds((prev) => {
       const newExpanded = new Set(prev);
       if (newExpanded.has(rowId)) {
@@ -547,6 +713,14 @@ const TableChart = <TData extends Record<string, unknown>>({
   };
 
   const handleRowSelect = (rowId: string | number, isSelected: boolean) => {
+    console.log(
+      'handleRowSelect: rowIdAccessor status:',
+      rowIdAccessor ? 'defined' : 'undefined',
+      'rowId:',
+      rowId,
+      'isSelected:',
+      isSelected,
+    );
     setSelectedRowIds((prev) => {
       const newSelection = new Set(prev);
       if (isSelected) {
@@ -559,6 +733,12 @@ const TableChart = <TData extends Record<string, unknown>>({
   };
 
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(
+      'handleSelectAll: rowIdAccessor status:',
+      rowIdAccessor ? 'defined' : 'undefined',
+      'isChecked:',
+      event.target.checked,
+    );
     const isChecked = event.target.checked;
     setSelectedRowIds((prev) => {
       const newSelection = new Set(prev);
@@ -614,7 +794,7 @@ const TableChart = <TData extends Record<string, unknown>>({
       )}
 
       {enableFiltering && (
-        <div className="mb-4 p-2 border border-gray-200 rounded-t-lg bg-white">
+        <div className="mb-4 p-2 border border-gray-200 rounded-t-lg bg-white flex items-center space-x-2">
           <input
             type="text"
             placeholder="Search all columns..."
@@ -623,9 +803,18 @@ const TableChart = <TData extends Record<string, unknown>>({
               setGlobalFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             aria-label="Global filter search input"
           />
+          {persistenceKey && (
+            <button
+              onClick={resetTablePreferences}
+              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              aria-label="Reset table preferences"
+            >
+              Reset
+            </button>
+          )}
         </div>
       )}
       <table className={tableClasses} role="grid">
@@ -711,12 +900,23 @@ const TableChart = <TData extends Record<string, unknown>>({
                       </>
                     )}
                     {column.enableColumnFilter && (
-                      <div
-                        className="relative ml-2"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {renderFilterInput(column)}
-                      </div>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            className="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                            aria-label={`Filter column ${column.header}`}
+                          >
+                            <Filter className="h-4 w-4 text-gray-600" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent
+                          className="w-48 p-2"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {renderFilterInput(column)}
+                        </PopoverContent>
+                      </Popover>
                     )}
                   </div>
                 </div>

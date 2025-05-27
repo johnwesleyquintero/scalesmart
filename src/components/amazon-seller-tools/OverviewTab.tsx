@@ -1,5 +1,5 @@
 'use client';
-import useDebounce from '@/hooks/use-debounce';
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -15,6 +15,8 @@ import React, {
   useRef,
   useMemo,
   useEffect,
+  lazy,
+  Suspense, // Import Suspense
 } from 'react';
 import { Download } from 'lucide-react';
 
@@ -24,14 +26,47 @@ import { OverviewErrorDisplay } from '@/components/amazon-seller-tools/overview/
 import { OverviewDataMapper } from '@/components/amazon-seller-tools/overview/OverviewDataMapper';
 import { PlaceholderCard } from '@/components/amazon-seller-tools/overview/PlaceholderCard';
 import { PlaceholderChartContainer } from '@/components/amazon-seller-tools/overview/PlaceholderChartContainer';
+import { OverviewDataView } from '@/components/amazon-seller-tools/overview/OverviewDataView'; // Moved to top with other imports
+
 // Import newly extracted chart components and OverviewDataView
-import { SalesTrendsChart } from '@/components/amazon-seller-tools/charts/SalesTrendsChart';
-import { ClicksImpressionsChart } from '@/components/amazon-seller-tools/charts/ClicksImpressionsChart';
-import { OrdersSessionsChart } from '@/components/amazon-seller-tools/charts/OrdersSessionsChart';
-import { AdSpendSalesChart } from '@/components/amazon-seller-tools/charts/AdSpendSalesChart';
-import { ProfitTrendChart } from '@/components/amazon-seller-tools/charts/ProfitTrendChart';
-import { OverviewDataView } from '@/components/amazon-seller-tools/overview/OverviewDataView';
-import KeywordVsAdSalesDonutChart from '@/components/amazon-seller-tools/charts/KeywordVsAdSalesDonutChart';
+// Convert chart imports to lazy imports with named export handling
+const SalesTrendsChart = lazy(() =>
+  import('@/components/amazon-seller-tools/charts/SalesTrendsChart').then(
+    (module) => ({ default: module.SalesTrendsChart }),
+  ),
+);
+const ClicksImpressionsChart = lazy(() =>
+  import('@/components/amazon-seller-tools/charts/ClicksImpressionsChart').then(
+    (module) => ({ default: module.ClicksImpressionsChart }),
+  ),
+);
+const OrdersSessionsChart = lazy(() =>
+  import('@/components/amazon-seller-tools/charts/OrdersSessionsChart').then(
+    (module) => ({ default: module.OrdersSessionsChart }),
+  ),
+);
+const AdSpendSalesChart = lazy(() =>
+  import('@/components/amazon-seller-tools/charts/AdSpendSalesChart').then(
+    (module) => ({ default: module.AdSpendSalesChart }),
+  ),
+);
+const ProfitTrendChart = lazy(() =>
+  import('@/components/amazon-seller-tools/charts/ProfitTrendChart').then(
+    (module) => ({ default: module.ProfitTrendChart }),
+  ),
+);
+const KeywordVsAdSalesDonutChart = lazy(
+  () =>
+    import(
+      '@/components/amazon-seller-tools/charts/KeywordVsAdSalesDonutChart'
+    ),
+);
+const TableChart = lazy(
+  () => import('@/components/amazon-seller-tools/charts/TableChart'),
+) as React.LazyExoticComponent<
+  React.FC<TableChartProps<AggregatedProductMetrics>>
+>; // Lazy load TableChart with explicit type
+
 import {
   SAMPLE_CARD_DATA,
   SAMPLE_CHART_DATA,
@@ -63,13 +98,13 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 
 import type { CsvColumnMapping } from '@/types/data-mapping';
+import type { TableChartProps } from '@/components/amazon-seller-tools/charts/TableChart'; // Import TableChartProps
 import {
   DashboardMetrics,
   TargetMetricConfig,
 } from '@/app/amazon-seller-tools/page';
 import { getItem, setItem } from '@/lib/indexeddb-service'; // Import IndexedDB service
 import DataCard from './DataCard';
-import TableChart from '@/components/ui/TableChart';
 
 // Define a new interface for aggregated product metrics
 interface AggregatedProductMetrics {
@@ -529,10 +564,30 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     );
   }, [metrics, searchTerm]);
 
+  // Memoize rowIdAccessor for Product Performance TableChart
+  const productPerformanceRowIdAccessor = useCallback(
+    (row: AggregatedProductMetrics) => row.unique_identifier,
+    [],
+  );
+
+  // Memoize columns for Product Performance TableChart
+  const productPerformanceTableColumns = useMemo(
+    () => [
+      { accessorKey: 'unique_identifier', header: 'ASIN/SKU' },
+      { accessorKey: 'total_sales', header: 'Total Sales' },
+      { accessorKey: 'ad_sales', header: 'Ad Sales' },
+      { accessorKey: 'acos', header: 'ACoS' },
+      { accessorKey: 'profit', header: 'Profit' },
+      { accessorKey: 'inventory_level', header: 'Inventory Level' },
+    ],
+    [],
+  );
+
   return (
     <div className="space-y-4">
       <div className="mb-4 p-4 border rounded-md bg-muted/40">
-        <h4 className="text-lg font-medium mb-2">Load Overview Data</h4>
+        <h3 className="text-lg font-semibold mb-2">Load Overview Data</h3>{' '}
+        {/* Changed h4 to h3 */}
         <p className="text-sm text-muted-foreground mb-3">
           Upload an Amazon Reports CSV to visualize your key metrics. You'll be
           asked to map the columns after uploading.
@@ -635,34 +690,44 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <PlaceholderChartContainer title="Sales Trends">
-              <SalesTrendsChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
-              />
+              <Suspense fallback={<div>Loading chart...</div>}>
+                <SalesTrendsChart
+                  sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                  granularity="daily"
+                />
+              </Suspense>
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Clicks & Impressions">
-              <ClicksImpressionsChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
-              />
+              <Suspense fallback={<div>Loading chart...</div>}>
+                <ClicksImpressionsChart
+                  sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                  granularity="daily"
+                />
+              </Suspense>
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Orders & Sessions">
-              <OrdersSessionsChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
-              />
+              <Suspense fallback={<div>Loading chart...</div>}>
+                <OrdersSessionsChart
+                  sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                  granularity="daily"
+                />
+              </Suspense>
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Ad Spend vs. Ad Sales">
-              <AdSpendSalesChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
-              />
+              <Suspense fallback={<div>Loading chart...</div>}>
+                <AdSpendSalesChart
+                  sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                  granularity="daily"
+                />
+              </Suspense>
             </PlaceholderChartContainer>
             <PlaceholderChartContainer title="Profit Trend">
-              <ProfitTrendChart
-                sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
-                granularity="daily"
-              />
+              <Suspense fallback={<div>Loading chart...</div>}>
+                <ProfitTrendChart
+                  sortedMetrics={SAMPLE_CHART_DATA as DashboardMetrics[]}
+                  granularity="daily"
+                />
+              </Suspense>
             </PlaceholderChartContainer>
           </div>
           {/* Placeholder KPI Cards now above */}
@@ -695,20 +760,20 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
       {/* Product Performance Overview Table (Always rendered, data conditional) */}
       <div className="mb-4 p-4 border rounded-md bg-muted/40">
-        <h4 className="text-lg font-medium mb-2">
+        <h3 className="text-lg font-semibold mb-2">
+          {' '}
+          {/* Changed h4 to h3 */}
           Product Performance Overview
-        </h4>
-        <TableChart
-          columns={[
-            { accessorKey: 'unique_identifier', header: 'ASIN/SKU' },
-            { accessorKey: 'total_sales', header: 'Total Sales' },
-            { accessorKey: 'ad_sales', header: 'Ad Sales' },
-            { accessorKey: 'acos', header: 'ACoS' },
-            { accessorKey: 'profit', header: 'Profit' },
-            { accessorKey: 'inventory_level', header: 'Inventory Level' },
-          ]}
-          data={productPerformanceData}
-        />
+        </h3>
+        <Suspense
+          fallback={<div className="p-4 text-center">Loading table...</div>}
+        >
+          <TableChart
+            columns={productPerformanceTableColumns}
+            data={productPerformanceData}
+            rowIdAccessor={productPerformanceRowIdAccessor}
+          />
+        </Suspense>
       </div>
 
       {/* Existing card below */}

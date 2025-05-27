@@ -141,7 +141,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               }
             </PDFDownloadLink>
           )}
-          <Button variant="outline" asChild aria-label="View Documentation">
+          <Button
+            variant="outline"
+            asChild
+            aria-label="View Documentation for Amazon Seller Tools"
+          >
             <a
               href="https://wescode.vercel.app/blog/amazon-seller-tools"
               target="_blank"

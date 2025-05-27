@@ -210,7 +210,7 @@ export default function Header() {
           <Link
             href="/"
             className="flex items-center gap-2"
-            aria-label="Homepage"
+            aria-label={`${SITE_TITLE} Homepage`}
           >
             {/* Replaced Image with your Logo component */}
             {/* Using h-8 w-8 for a size similar to the previous 32x32px */}
