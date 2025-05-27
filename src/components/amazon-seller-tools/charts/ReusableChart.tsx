@@ -12,13 +12,17 @@ import {
 } from 'recharts';
 import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
 
+import { BRAND_CHART_COLORS } from '@/lib/constants/chart-colors';
+
+const defaultColors = BRAND_CHART_COLORS;
+
 interface ReusableChartProps {
   sortedMetrics: DashboardMetrics[];
   granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
   chartType: 'line' | 'bar';
   xAxisDataKey: keyof DashboardMetrics;
   yAxisDataKeys: (keyof DashboardMetrics)[];
-  colors: string[];
+  colors?: string[];
   labels: string[];
   title: string;
   yAxisFormatter?: (value: number) => string;
@@ -89,11 +93,15 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
                 key={key}
                 type="monotone"
                 dataKey={key}
-                stroke={colors[index]}
+                stroke={
+                  colors
+                    ? colors[index % colors.length]
+                    : defaultColors[index % defaultColors.length]
+                }
                 strokeWidth={2}
               />
             ))}
-            {events && 
+            {events &&
               events.map((event, index) => (
                 <g key={index}>
                   <line

@@ -29,7 +29,10 @@ export function initializeDB(): Promise<void> {
     };
 
     request.onerror = (event) => {
-      console.error('IndexedDB initialization failed:', (event.target as IDBOpenDBRequest).error);
+      console.error(
+        'IndexedDB initialization failed:',
+        (event.target as IDBOpenDBRequest).error,
+      );
       reject((event.target as IDBOpenDBRequest).error);
     };
   });
@@ -58,7 +61,10 @@ export function setItem(key: string, value: unknown): Promise<void> {
         };
 
         request.onerror = (event) => {
-          console.error(`Error setting item ${key}:`, (event.target as IDBRequest).error);
+          console.error(
+            `Error setting item ${key}:`,
+            (event.target as IDBRequest).error,
+          );
           reject((event.target as IDBRequest).error);
         };
       })
@@ -79,7 +85,10 @@ export function getItem<T>(key: string): Promise<T | undefined> {
         };
 
         request.onerror = (event) => {
-          console.error(`Error getting item ${key}:`, (event.target as IDBRequest).error);
+          console.error(
+            `Error getting item ${key}:`,
+            (event.target as IDBRequest).error,
+          );
           reject((event.target as IDBRequest).error);
         };
       })
@@ -100,7 +109,10 @@ export function deleteItem(key: string): Promise<void> {
         };
 
         request.onerror = (event) => {
-          console.error(`Error deleting item ${key}:`, (event.target as IDBRequest).error);
+          console.error(
+            `Error deleting item ${key}:`,
+            (event.target as IDBRequest).error,
+          );
           reject((event.target as IDBRequest).error);
         };
       })

@@ -79,7 +79,6 @@ export const AdSpendSalesChart: React.FC<AdSpendSalesChartProps> = ({
       chartType="line"
       xAxisDataKey="date"
       yAxisDataKeys={['ad_spend', 'ad_sales']}
-      colors={['#fa8072', '#20b2aa']}
       labels={['Ad Spend', 'Ad Sales']}
       title="Ad Spend vs. Ad Sales"
       yAxisFormatter={yAxisFormatter}

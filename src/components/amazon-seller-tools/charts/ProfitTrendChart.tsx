@@ -28,7 +28,6 @@ export const ProfitTrendChart: React.FC<ProfitTrendChartProps> = ({
       chartType="line"
       xAxisDataKey="date"
       yAxisDataKeys={['profit']}
-      colors={['#8e44ad']}
       labels={['Profit']}
       title="Profit Trend"
       yAxisFormatter={yAxisFormatter}

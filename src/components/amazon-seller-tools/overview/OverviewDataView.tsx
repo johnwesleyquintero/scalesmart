@@ -384,6 +384,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
         />
         <KeywordVsAdSalesDonutChart
           sortedMetrics={aggregatedAndSortedMetrics}
+          title="Keyword vs. Ad Sales"
         />
       </div>
 

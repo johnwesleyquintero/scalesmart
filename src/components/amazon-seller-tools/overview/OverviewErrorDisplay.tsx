@@ -37,8 +37,8 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
     return null;
   }
 
-  const criticalErrors = parsingErrors.filter(err => err.type === 'error');
-  const warnings = parsingErrors.filter(err => err.type === 'warning');
+  const criticalErrors = parsingErrors.filter((err) => err.type === 'error');
+  const warnings = parsingErrors.filter((err) => err.type === 'warning');
 
   return (
     <Card className="border-red-400 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300">
@@ -53,7 +53,9 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
 
         {parsingErrors.length > 0 && (
           <div className="mt-4 border-t pt-4 border-red-200 dark:border-red-700">
-            <h5 className="font-semibold mb-2">Detailed Report ({parsingErrors.length} issues)</h5>
+            <h5 className="font-semibold mb-2">
+              Detailed Report ({parsingErrors.length} issues)
+            </h5>
             <Dialog>
               <DialogTrigger asChild>
                 <Button variant="outline" size="sm" className="mb-4">
@@ -64,7 +66,8 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                 <DialogHeader>
                   <DialogTitle>Detailed Data Transformation Report</DialogTitle>
                   <DialogDescription>
-                    Review specific errors and warnings encountered during CSV processing.
+                    Review specific errors and warnings encountered during CSV
+                    processing.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-2">
@@ -80,8 +83,15 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                         <AccordionContent>
                           <ul className="list-disc pl-5 space-y-1">
                             {criticalErrors.map((err, index) => (
-                              <li key={`crit-err-${index}`} className="text-red-700">
-                                <strong>Row {err.rowNumber + 1}, Column '{err.column}':</strong> {err.message}
+                              <li
+                                key={`crit-err-${index}`}
+                                className="text-red-700"
+                              >
+                                <strong>
+                                  Row {err.rowNumber + 1}, Column '{err.column}
+                                  ':
+                                </strong>{' '}
+                                {err.message}
                               </li>
                             ))}
                           </ul>
@@ -102,8 +112,15 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                         <AccordionContent>
                           <ul className="list-disc pl-5 space-y-1">
                             {warnings.map((warn, index) => (
-                              <li key={`warn-${index}`} className="text-yellow-700">
-                                <strong>Row {warn.rowNumber + 1}, Column '{warn.column}':</strong> {warn.message}
+                              <li
+                                key={`warn-${index}`}
+                                className="text-yellow-700"
+                              >
+                                <strong>
+                                  Row {warn.rowNumber + 1}, Column '
+                                  {warn.column}':
+                                </strong>{' '}
+                                {warn.message}
                               </li>
                             ))}
                           </ul>
@@ -115,7 +132,8 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                   {parsingErrors.length > 0 && (
                     <div className="mt-4 p-3 border rounded-md bg-muted/40">
                       <p className="text-sm text-muted-foreground">
-                        Please review these details and adjust your CSV file or mapping as needed for best results.
+                        Please review these details and adjust your CSV file or
+                        mapping as needed for best results.
                       </p>
                     </div>
                   )}

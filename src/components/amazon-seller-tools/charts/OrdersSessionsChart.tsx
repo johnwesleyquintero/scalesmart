@@ -25,7 +25,6 @@ export const OrdersSessionsChart: React.FC<OrdersSessionsChartProps> = ({
       chartType="line"
       xAxisDataKey="date"
       yAxisDataKeys={['total_orders', 'total_sessions']}
-      colors={['#1abc9c', '#f1c40f']}
       labels={['Orders', 'Sessions']}
       title="Orders vs. Sessions"
       yAxisFormatter={yAxisFormatter}

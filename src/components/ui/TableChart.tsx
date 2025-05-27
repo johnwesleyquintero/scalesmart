@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { ChevronUp, ChevronDown } from 'lucide-react';
-import { setItem, getItem } from '../../../lib/indexeddb-service'; // Correct import path
+import { ChevronUp, ChevronDown, Filter } from 'lucide-react';
+import { setItem, getItem, deleteItem } from '../../../lib/indexeddb-service';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover'; // Assuming Popover component path
 
 /**
  * Defines the structure for a column in the TableChart component.
@@ -78,6 +79,7 @@ export interface TableChartProps<TData> {
   isLoading?: boolean;
   emptyStateContent?: React.ReactNode;
   persistenceKey?: string;
+  onResetPreferences?: () => void; // Callback for resetting preferences
 }
 
 interface PersistedTableState {
@@ -103,11 +105,13 @@ const TableChart = <TData extends Record<string, unknown>>({
   enableRowSelection = false,
   rowIdAccessor,
   onRowSelectionChange,
-  renderSubComponent,
+  renderSubComponent, // Re-add this here
   isLoading = false,
   emptyStateContent = 'No data available.',
   persistenceKey,
+  onResetPreferences,
 }: TableChartProps<TData>) => {
+  // Ensure all states are within the component's scope
   const [sortConfig, setSortConfig] = useState<{
     key: keyof TData | string;
     direction: 'asc' | 'desc';
@@ -119,22 +123,39 @@ const TableChart = <TData extends Record<string, unknown>>({
     Record<string, { value: unknown; type: string }>
   >({});
   const [selectedRowIds, setSelectedRowIds] = useState<Set<string | number>>(
-    new Set()
+    new Set(),
   );
   const [expandedRowIds, setExpandedRowIds] = useState<Set<string | number>>(
-    new Set()
+    new Set(),
   );
+
+  const resetTablePreferences = () => {
+    setSortConfig(null);
+    setCurrentPage(1);
+    setItemsPerPage(initialPageSize);
+    setGlobalFilter('');
+    setColumnFilters({});
+    setSelectedRowIds(new Set());
+    setExpandedRowIds(new Set());
+
+    if (persistenceKey) {
+      deleteItem(`tableState_${persistenceKey}`).catch((error) =>
+        console.error('Failed to remove table state from IndexedDB:', error),
+      );
+    }
+    onResetPreferences && onResetPreferences();
+  };
 
   const saveTimer = useRef<number | null>(null);
 
   useEffect(() => {
     if (
       process.env.NODE_ENV === 'development' &&
-      (enableRowSelection || renderSubComponent)
+      (enableRowSelection || renderSubComponent) // Referencing destructured props
     ) {
       if (!rowIdAccessor) {
         console.warn(
-          'TableChart: rowIdAccessor is required when enableRowSelection or renderSubComponent is true.'
+          'TableChart: rowIdAccessor is required when enableRowSelection or renderSubComponent is true.',
         );
       } else {
         const ids = new Set();
@@ -149,9 +170,9 @@ const TableChart = <TData extends Record<string, unknown>>({
         });
         if (duplicates.length > 0) {
           console.warn(
-            `TableChart: Duplicate rowIdAccessor values found. Duplicates: ${[...new Set(duplicates)].join(
-              ', '
-            )}`
+            `TableChart: Duplicate rowIdAccessor values found. Duplicates: ${[
+              ...new Set(duplicates),
+            ].join(', ')}`,
           );
         }
       }
@@ -172,7 +193,7 @@ const TableChart = <TData extends Record<string, unknown>>({
         }
       })
       .catch((error) =>
-        console.error('Failed to load table state from IndexedDB:', error)
+        console.error('Failed to load table state from IndexedDB:', error),
       );
   }, [persistenceKey]);
 
@@ -186,15 +207,15 @@ const TableChart = <TData extends Record<string, unknown>>({
 
     saveTimer.current = window.setTimeout(() => {
       const stateToSave: PersistedTableState = {
-        sortConfig: sortConfig as PersistedTableState['sortConfig'], // Cast to allow null
+        sortConfig: sortConfig as PersistedTableState['sortConfig'],
         itemsPerPage,
         globalFilter,
         columnFilters,
       };
       setItem(`tableState_${persistenceKey}`, stateToSave).catch((error) =>
-        console.error('Failed to save table state to IndexedDB:', error)
+        console.error('Failed to save table state to IndexedDB:', error),
       );
-    }, 500); // Debounce by 500ms
+    }, 500);
 
     return () => {
       if (saveTimer.current) {
@@ -229,14 +250,16 @@ const TableChart = <TData extends Record<string, unknown>>({
       const filterLower = globalFilter.toLowerCase();
       const columnsToFilter = filterColumns
         ? columns.filter((column) =>
-            filterColumns.includes(column.accessorKey as string)
+            filterColumns.includes(column.accessorKey as string),
           )
         : columns;
 
       currentFilteredData = currentFilteredData.filter((row) => {
         return columnsToFilter.some((column) => {
           const value = row[column.accessorKey as keyof TData];
-          return String(value ?? '').toLowerCase().includes(filterLower);
+          return String(value ?? '')
+            .toLowerCase()
+            .includes(filterLower);
         });
       });
     }
@@ -272,13 +295,22 @@ const TableChart = <TData extends Record<string, unknown>>({
     });
 
     return currentFilteredData;
-  }, [data, columns, globalFilter, enableFiltering, filterColumns, columnFilters]);
+  }, [
+    data,
+    columns,
+    globalFilter,
+    enableFiltering,
+    filterColumns,
+    columnFilters,
+  ]);
 
   const sortedData = useMemo(() => {
     let sortableItems = [...filteredData];
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
-        const column = columns.find((col) => col.accessorKey === sortConfig.key);
+        const column = columns.find(
+          (col) => col.accessorKey === sortConfig.key,
+        );
 
         if (column?.sortFn) {
           return sortConfig.direction === 'asc'
@@ -286,26 +318,71 @@ const TableChart = <TData extends Record<string, unknown>>({
             : -column.sortFn(a, b, sortConfig.key as string);
         }
 
-        const aValue = a[sortConfig.key as keyof TData];
-        const bValue = b[sortConfig.key as keyof TData];
+        const valA = a[sortConfig.key as keyof TData];
+        const valB = b[sortConfig.key as keyof TData];
 
-        if (
-          column?.sortType === 'number' ||
-          (typeof aValue === 'number' && typeof bValue === 'number')
-        ) {
-          return sortConfig.direction === 'asc'
-            ? Number(aValue) - Number(bValue)
-            : Number(bValue) - Number(aValue);
-        }
-        if (column?.sortType === 'date') {
-          const dateA = aValue ? new Date(aValue as string).getTime() : 0;
-          const dateB = bValue ? new Date(bValue as string).getTime() : 0;
-          return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
-        }
-        // Fallback for string and other types
-        return sortConfig.direction === 'asc'
-          ? String(aValue ?? '').localeCompare(String(bValue ?? ''))
-          : String(bValue ?? '').localeCompare(String(aValue ?? ''));
+        const aValue = valA ?? ''; // Default to empty string for null/undefined
+        const bValue = valB ?? ''; // Default to empty string for null/undefined
+
+        const compareNumbers = (v1: unknown, v2: unknown): number => {
+          return Number(v1) - Number(v2);
+        };
+
+        const compareDates = (v1: unknown, v2: unknown): number => {
+          const dateA = v1 ? new Date(v1 as string).getTime() : 0;
+          const dateB = v2 ? new Date(v2 as string).getTime() : 0;
+          return dateA - dateB;
+        };
+
+        const compareCurrencies = (
+          v1: unknown,
+          v2: unknown,
+          sortDirection: 'asc' | 'desc',
+        ): number => {
+          const numA = parseFloat(String(v1).replace(/[^0-9.-]+/g, ''));
+          const numB = parseFloat(String(v2).replace(/[^0-9.-]+/g, ''));
+
+          if (isNaN(numA) && isNaN(numB)) return 0;
+          if (isNaN(numA)) return sortDirection === 'asc' ? 1 : -1;
+          if (isNaN(numB)) return sortDirection === 'asc' ? -1 : 1;
+          return numA - numB;
+        };
+
+        const compareAlphanumeric = (v1: unknown, v2: unknown): number => {
+          return String(v1).localeCompare(String(v2), undefined, {
+            numeric: true,
+            sensitivity: 'base',
+          });
+        };
+
+        // Main compare function acting as a dispatcher
+        const compareValues = (
+          v1: unknown,
+          v2: unknown,
+          type: ColumnDef<TData>['sortType'],
+          sortDirection: 'asc' | 'desc',
+        ): number => {
+          switch (type) {
+            case 'number':
+              return compareNumbers(v1, v2);
+            case 'date':
+              return compareDates(v1, v2);
+            case 'currency':
+              return compareCurrencies(v1, v2, sortDirection);
+            case 'alphanumeric':
+              return compareAlphanumeric(v1, v2);
+            default: // Handles 'string' or undefined sortType
+              return String(v1).localeCompare(String(v2));
+          }
+        };
+
+        const result = compareValues(
+          aValue,
+          bValue,
+          column?.sortType,
+          sortConfig.direction,
+        );
+        return sortConfig.direction === 'asc' ? result : -result;
       });
     }
     return sortableItems;
@@ -346,7 +423,7 @@ const TableChart = <TData extends Record<string, unknown>>({
   const handleColumnFilterChange = (
     columnId: string,
     value: unknown,
-    type: string = 'text'
+    type: string = 'text',
   ) => {
     setColumnFilters((prev) => {
       const newFilters = { ...prev };
@@ -363,9 +440,8 @@ const TableChart = <TData extends Record<string, unknown>>({
   const renderFilterInput = (column: ColumnDef<TData>) => {
     if (!column.enableColumnFilter) return null;
 
-    const columnFilterValue = columnFilters[
-      column.accessorKey as string
-    ]?.value;
+    const columnFilterValue =
+      columnFilters[column.accessorKey as string]?.value;
 
     switch (column.filterType) {
       case 'number':
@@ -378,7 +454,7 @@ const TableChart = <TData extends Record<string, unknown>>({
               handleColumnFilterChange(
                 column.accessorKey as string,
                 e.target.value,
-                'number'
+                'number',
               )
             }
             className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -387,7 +463,9 @@ const TableChart = <TData extends Record<string, unknown>>({
         );
       case 'select': {
         const uniqueValues = Array.from(
-          new Set(data.map((row) => String(row[column.accessorKey as keyof TData])))
+          new Set(
+            data.map((row) => String(row[column.accessorKey as keyof TData])),
+          ),
         );
         return (
           <select
@@ -396,7 +474,7 @@ const TableChart = <TData extends Record<string, unknown>>({
               handleColumnFilterChange(
                 column.accessorKey as string,
                 e.target.value,
-                'select'
+                'select',
               )
             }
             className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -421,7 +499,7 @@ const TableChart = <TData extends Record<string, unknown>>({
               handleColumnFilterChange(
                 column.accessorKey as string,
                 e.target.value,
-                'dateRange'
+                'dateRange',
               )
             }
             className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -439,7 +517,7 @@ const TableChart = <TData extends Record<string, unknown>>({
               handleColumnFilterChange(
                 column.accessorKey as string,
                 e.target.value,
-                'text'
+                'text',
               )
             }
             className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
@@ -490,7 +568,9 @@ const TableChart = <TData extends Record<string, unknown>>({
         }
       } else {
         if (rowIdAccessor) {
-          paginatedData.forEach((row) => newSelection.delete(rowIdAccessor(row)));
+          paginatedData.forEach((row) =>
+            newSelection.delete(rowIdAccessor(row)),
+          );
         }
       }
       return newSelection;
@@ -598,7 +678,11 @@ const TableChart = <TData extends Record<string, unknown>>({
                 tabIndex={column.sortable ? 0 : -1}
               >
                 <div className="flex items-center justify-between">
-                  <span onClick={column.sortable ? undefined : (e) => e.stopPropagation()}>
+                  <span
+                    onClick={
+                      column.sortable ? undefined : (e) => e.stopPropagation()
+                    }
+                  >
                     {column.header}
                   </span>
                   <div className="flex items-center ml-1">
@@ -624,7 +708,7 @@ const TableChart = <TData extends Record<string, unknown>>({
                             aria-hidden="true"
                           />
                         )}
-                          </> 
+                      </>
                     )}
                     {column.enableColumnFilter && (
                       <div
@@ -720,7 +804,7 @@ const TableChart = <TData extends Record<string, unknown>>({
                             ? column.cell(
                                 value,
                                 row,
-                                column as ColumnDef<TData>
+                                column as ColumnDef<TData>,
                               )
                             : String(value)}
                         </td>

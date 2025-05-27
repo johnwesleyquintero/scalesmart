@@ -60,7 +60,6 @@ export const SalesTrendsChart: React.FC<SalesTrendsChartProps> = ({
       chartType="line"
       xAxisDataKey="date"
       yAxisDataKeys={['total_sales']}
-      colors={['#8884d8']}
       labels={[SALES_LABEL]}
       title="Total Sales Trends"
       yAxisFormatter={yAxisFormatter}

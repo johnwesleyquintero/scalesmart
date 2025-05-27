@@ -31,6 +31,7 @@ import { OrdersSessionsChart } from '@/components/amazon-seller-tools/charts/Ord
 import { AdSpendSalesChart } from '@/components/amazon-seller-tools/charts/AdSpendSalesChart';
 import { ProfitTrendChart } from '@/components/amazon-seller-tools/charts/ProfitTrendChart';
 import { OverviewDataView } from '@/components/amazon-seller-tools/overview/OverviewDataView';
+import KeywordVsAdSalesDonutChart from '@/components/amazon-seller-tools/charts/KeywordVsAdSalesDonutChart';
 import {
   SAMPLE_CARD_DATA,
   SAMPLE_CHART_DATA,
@@ -233,7 +234,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         setIsUploading(false); // Uploading is complete
         setIsMapping(true); // Now user is in mapping stage
       },
-      error: (error: Error, file: File) => { // Corrected type signature
+      error: (error: Error, file: File) => {
+        // Corrected type signature
         setError(`Failed to read file headers: ${error.message}`);
         setIsParsing(false);
         setIsUploading(false); // Fixed: Should be false after file error
@@ -304,8 +306,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     processedRowsRef.current = 0; // Reset for actual processing parse
 
     try {
-      const { validMetrics, collectedErrors, totalRows } =
-        await processCsvData(selectedFile, mapping);
+      const { validMetrics, collectedErrors, totalRows } = await processCsvData(
+        selectedFile,
+        mapping,
+      );
 
       setMetrics(validMetrics);
       setParsingErrors(collectedErrors);
@@ -323,10 +327,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         statusMessage += ` ${skippedRows} row(s) were skipped due to critical errors.`;
       }
       if (collectedErrors.length > 0) {
-        const errorCount = collectedErrors.filter(e => e.type === 'error').length;
-        const warningCount = collectedErrors.filter(e => e.type === 'warning').length;
-        if (errorCount > 0) statusMessage += ` Found ${errorCount} transformation error(s).`;
-        if (warningCount > 0) statusMessage += ` Found ${warningCount} warning(s).`;
+        const errorCount = collectedErrors.filter(
+          (e) => e.type === 'error',
+        ).length;
+        const warningCount = collectedErrors.filter(
+          (e) => e.type === 'warning',
+        ).length;
+        if (errorCount > 0)
+          statusMessage += ` Found ${errorCount} transformation error(s).`;
+        if (warningCount > 0)
+          statusMessage += ` Found ${warningCount} warning(s).`;
       }
       setError(statusMessage || null); // Display overall status/summary message
 
@@ -338,8 +348,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       console.log('Mapping saved to IndexedDB.');
     } catch (err) {
       // General file parsing error before row-by-row transformation
-      const errorMessage =
-        err instanceof Error ? err.message : String(err);
+      const errorMessage = err instanceof Error ? err.message : String(err);
       setError(`Failed to parse file: ${errorMessage}`);
       setParsingErrors([
         {
@@ -464,7 +473,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     if (metrics.length === 0) {
       return []; // Return empty array if no metrics
     }
-    const aggregatedData: { [key: string]: AggregatedProductMetrics; } = {};
+    const aggregatedData: { [key: string]: AggregatedProductMetrics } = {};
 
     const filteredMetrics = metrics.filter((metric) => {
       const searchTermLower = searchTerm?.toLowerCase() || '';
@@ -515,8 +524,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           item.total_ad_sales > 0
             ? (item.total_ad_spend / item.total_ad_sales) * 100
             : 0,
-        inventory_level:
-          item.count > 0 ? item.inventory_level / item.count : 0,
+        inventory_level: item.count > 0 ? item.inventory_level / item.count : 0,
       }),
     );
   }, [metrics, searchTerm]);
@@ -568,7 +576,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           onCancel={handleMappingCancel}
           initialMapping={savedMapping || undefined}
         />
-      ) : (error || parsingErrors.length > 0) && !isLoading && metrics.length === 0 ? (
+      ) : (error || parsingErrors.length > 0) &&
+        !isLoading &&
+        metrics.length === 0 ? (
         <OverviewErrorDisplay
           error={error}
           onRetryUpload={handleUploadClick}
@@ -617,9 +627,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             setTimeGranularity={setTimeGranularity}
             onDeleteMetric={onDeleteMetric}
           />
-          <AddEventModal /> {/* AddEventModal moved inside this conditional block */}
+          <AddEventModal />{' '}
+          {/* AddEventModal moved inside this conditional block */}
         </>
-      ) : ( // Default to placeholders if no metrics
+      ) : (
+        // Default to placeholders if no metrics
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <PlaceholderChartContainer title="Sales Trends">

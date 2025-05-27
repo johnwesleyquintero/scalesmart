@@ -25,7 +25,6 @@ export const ClicksImpressionsChart: React.FC<ClicksImpressionsChartProps> = ({
       chartType="line"
       xAxisDataKey="date"
       yAxisDataKeys={['ad_impressions', 'ad_clicks']}
-      colors={['#e67e22', '#3498db']}
       labels={['Impressions', 'Clicks']}
       title="Impressions vs. Clicks"
       yAxisFormatter={yAxisFormatter}

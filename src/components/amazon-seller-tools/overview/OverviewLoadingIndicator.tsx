@@ -52,7 +52,9 @@ export const OverviewLoadingIndicator: React.FC<
     <Card>
       <CardContent className="p-6 flex flex-col items-center justify-center min-h-[300px]">
         <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-lg text-muted-foreground text-center mb-2">{message}</p>
+        <p className="text-lg text-muted-foreground text-center mb-2">
+          {message}
+        </p>
         {isProcessing && totalRows > 0 && (
           <Progress value={progress} className="w-[80%] max-w-sm h-2" />
         )}

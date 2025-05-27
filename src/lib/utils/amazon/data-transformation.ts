@@ -89,7 +89,6 @@ export const getDateFromRow = (
   return { value: undefined, errors };
 };
 
-
 /**
  * Extracts a string value from a CSV row based on a mapped header.
  * @param row The raw CSV row data.
@@ -111,7 +110,9 @@ export const getStringValueFromRow = (
     value = row[mappedHeader as string]?.trim();
   }
 
-  const metricConfig = targetMetricsConfig.find(config => config.key === mappedHeader);
+  const metricConfig = targetMetricsConfig.find(
+    (config) => config.key === mappedHeader,
+  );
   if (metricConfig?.required && (!value || value.length === 0)) {
     errors.push({
       rowNumber,
@@ -123,7 +124,6 @@ export const getStringValueFromRow = (
 
   return { value, errors };
 };
-
 
 /**
  * Extracts and parses a numeric value from a CSV row based on a mapped header or fallback headers.
@@ -168,7 +168,9 @@ export const getNumericValueFromRow = (
     }
   }
 
-  const metricConfig = targetMetricsConfig.find(config => config.key === mappedHeader);
+  const metricConfig = targetMetricsConfig.find(
+    (config) => config.key === mappedHeader,
+  );
   if (metricConfig?.required && (!foundValue || numericValue === undefined)) {
     errors.push({
       rowNumber,
@@ -180,7 +182,6 @@ export const getNumericValueFromRow = (
 
   return { value: numericValue, errors };
 };
-
 
 /**
  * Transforms a single raw CSV row into a DashboardMetrics object, collecting detailed errors.
@@ -221,61 +222,156 @@ export const transformCsvRow = (
   allErrors.push(...idErrors);
 
   // Process other numeric metrics
-  const total_sales_result = getNumericValueFromRow(row, mapping.total_sales, rowNumber, targetMetricsConfig, ['Ordered product sales', 'Gross Sales']);
+  const total_sales_result = getNumericValueFromRow(
+    row,
+    mapping.total_sales,
+    rowNumber,
+    targetMetricsConfig,
+    ['Ordered product sales', 'Gross Sales'],
+  );
   allErrors.push(...total_sales_result.errors);
 
-  const total_orders_result = getNumericValueFromRow(row, mapping.total_orders, rowNumber, targetMetricsConfig, ['Total order items', 'Units Ordered']);
+  const total_orders_result = getNumericValueFromRow(
+    row,
+    mapping.total_orders,
+    rowNumber,
+    targetMetricsConfig,
+    ['Total order items', 'Units Ordered'],
+  );
   allErrors.push(...total_orders_result.errors);
 
-  const total_sessions_result = getNumericValueFromRow(row, mapping.total_sessions, rowNumber, targetMetricsConfig, ['Sessions', '(Parent ASIN) Sessions']);
+  const total_sessions_result = getNumericValueFromRow(
+    row,
+    mapping.total_sessions,
+    rowNumber,
+    targetMetricsConfig,
+    ['Sessions', '(Parent ASIN) Sessions'],
+  );
   allErrors.push(...total_sessions_result.errors);
 
-  const total_page_views_result = getNumericValueFromRow(row, mapping.total_page_views, rowNumber, targetMetricsConfig, ['Page Views', '(Parent ASIN) Page Views']);
+  const total_page_views_result = getNumericValueFromRow(
+    row,
+    mapping.total_page_views,
+    rowNumber,
+    targetMetricsConfig,
+    ['Page Views', '(Parent ASIN) Page Views'],
+  );
   allErrors.push(...total_page_views_result.errors);
 
-  const ad_impressions_result = getNumericValueFromRow(row, mapping.ad_impressions, rowNumber, targetMetricsConfig, ['Impressions']);
+  const ad_impressions_result = getNumericValueFromRow(
+    row,
+    mapping.ad_impressions,
+    rowNumber,
+    targetMetricsConfig,
+    ['Impressions'],
+  );
   allErrors.push(...ad_impressions_result.errors);
 
-  const ad_clicks_result = getNumericValueFromRow(row, mapping.ad_clicks, rowNumber, targetMetricsConfig, ['Clicks']);
+  const ad_clicks_result = getNumericValueFromRow(
+    row,
+    mapping.ad_clicks,
+    rowNumber,
+    targetMetricsConfig,
+    ['Clicks'],
+  );
   allErrors.push(...ad_clicks_result.errors);
 
-  const ad_spend_result = getNumericValueFromRow(row, mapping.ad_spend, rowNumber, targetMetricsConfig, ['Spend', 'Cost']);
+  const ad_spend_result = getNumericValueFromRow(
+    row,
+    mapping.ad_spend,
+    rowNumber,
+    targetMetricsConfig,
+    ['Spend', 'Cost'],
+  );
   allErrors.push(...ad_spend_result.errors);
 
-  const ad_sales_result = getNumericValueFromRow(row, mapping.ad_sales, rowNumber, targetMetricsConfig, ['Sales', '7 Day Total Sales ']);
+  const ad_sales_result = getNumericValueFromRow(
+    row,
+    mapping.ad_sales,
+    rowNumber,
+    targetMetricsConfig,
+    ['Sales', '7 Day Total Sales '],
+  );
   allErrors.push(...ad_sales_result.errors);
 
-  const ad_orders_result = getNumericValueFromRow(row, mapping.ad_orders, rowNumber, targetMetricsConfig, ['Orders', '7 Day Total Orders ']);
+  const ad_orders_result = getNumericValueFromRow(
+    row,
+    mapping.ad_orders,
+    rowNumber,
+    targetMetricsConfig,
+    ['Orders', '7 Day Total Orders '],
+  );
   allErrors.push(...ad_orders_result.errors);
 
-  const profit_result = getNumericValueFromRow(row, mapping.profit, rowNumber, targetMetricsConfig);
+  const profit_result = getNumericValueFromRow(
+    row,
+    mapping.profit,
+    rowNumber,
+    targetMetricsConfig,
+  );
   allErrors.push(...profit_result.errors);
 
-  const inventory_level_result = getNumericValueFromRow(row, mapping.inventory_level, rowNumber, targetMetricsConfig);
+  const inventory_level_result = getNumericValueFromRow(
+    row,
+    mapping.inventory_level,
+    rowNumber,
+    targetMetricsConfig,
+  );
   allErrors.push(...inventory_level_result.errors);
 
-  const review_rating_result = getNumericValueFromRow(row, mapping.review_rating, rowNumber, targetMetricsConfig);
+  const review_rating_result = getNumericValueFromRow(
+    row,
+    mapping.review_rating,
+    rowNumber,
+    targetMetricsConfig,
+  );
   allErrors.push(...review_rating_result.errors);
 
-  const cac_result = getNumericValueFromRow(row, mapping.cac, rowNumber, targetMetricsConfig);
+  const cac_result = getNumericValueFromRow(
+    row,
+    mapping.cac,
+    rowNumber,
+    targetMetricsConfig,
+  );
   allErrors.push(...cac_result.errors);
 
-  const ltv_result = getNumericValueFromRow(row, mapping.ltv, rowNumber, targetMetricsConfig);
+  const ltv_result = getNumericValueFromRow(
+    row,
+    mapping.ltv,
+    rowNumber,
+    targetMetricsConfig,
+  );
   allErrors.push(...ltv_result.errors);
 
-  const asin_result = getStringValueFromRow(row, mapping.asin, rowNumber, targetMetricsConfig);
+  const asin_result = getStringValueFromRow(
+    row,
+    mapping.asin,
+    rowNumber,
+    targetMetricsConfig,
+  );
   allErrors.push(...asin_result.errors);
 
-  const keyword_result = getStringValueFromRow(row, mapping.keyword, rowNumber, targetMetricsConfig);
+  const keyword_result = getStringValueFromRow(
+    row,
+    mapping.keyword,
+    rowNumber,
+    targetMetricsConfig,
+  );
   allErrors.push(...keyword_result.errors);
 
-  const targeted_keyword_result = getStringValueFromRow(row, mapping.targeted_keyword, rowNumber, targetMetricsConfig);
+  const targeted_keyword_result = getStringValueFromRow(
+    row,
+    mapping.targeted_keyword,
+    rowNumber,
+    targetMetricsConfig,
+  );
   allErrors.push(...targeted_keyword_result.errors);
-
 
   // Calculate derived metrics
   const rawTotalConversionRate =
-    total_sessions_result.value && total_sessions_result.value > 0 && total_orders_result.value
+    total_sessions_result.value &&
+    total_sessions_result.value > 0 &&
+    total_orders_result.value
       ? (total_orders_result.value / total_sessions_result.value) * 100
       : 0;
   const total_conversion_rate = parseFloat(rawTotalConversionRate.toFixed(2));
@@ -289,15 +385,21 @@ export const transformCsvRow = (
       ? ad_sales_result.value / ad_spend_result.value
       : 0;
   const cpc =
-    ad_spend_result.value && ad_clicks_result.value && ad_clicks_result.value > 0
+    ad_spend_result.value &&
+    ad_clicks_result.value &&
+    ad_clicks_result.value > 0
       ? ad_spend_result.value / ad_clicks_result.value
       : 0;
   const ctr =
-    ad_impressions_result.value && ad_impressions_result.value > 0 && ad_clicks_result.value
+    ad_impressions_result.value &&
+    ad_impressions_result.value > 0 &&
+    ad_clicks_result.value
       ? (ad_clicks_result.value / ad_impressions_result.value) * 100
       : 0;
   const ad_conversion_rate =
-    ad_clicks_result.value && ad_clicks_result.value > 0 && ad_orders_result.value
+    ad_clicks_result.value &&
+    ad_clicks_result.value > 0 &&
+    ad_orders_result.value
       ? (ad_orders_result.value / ad_clicks_result.value) * 100
       : 0;
 
@@ -308,7 +410,9 @@ export const transformCsvRow = (
     total_orders: total_orders_result.value,
     total_sessions: total_sessions_result.value,
     total_page_views: total_page_views_result.value,
-    total_conversion_rate: isNaN(total_conversion_rate) ? 0 : total_conversion_rate,
+    total_conversion_rate: isNaN(total_conversion_rate)
+      ? 0
+      : total_conversion_rate,
     ad_impressions: ad_impressions_result.value,
     ad_clicks: ad_clicks_result.value,
     ad_spend: ad_spend_result.value,

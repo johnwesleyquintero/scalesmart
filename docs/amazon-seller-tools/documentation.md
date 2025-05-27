@@ -60,7 +60,7 @@ Once mapping is complete and the data is processed:
 
 - **Charts:** Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
 
-- **Data Table:** Displaying the data in a sortable and filterable table using the `TableChart` component. The table now supports customizable empty state content and improved column spanning.
+- **Data Table:** Displaying the data in a sortable and filterable table using the `TableChart` component. The table now supports customizable empty state content, improved column spanning, per-column filtering, custom sort functions, and persistent table state.
 
 - **Time Granularity:**
 
