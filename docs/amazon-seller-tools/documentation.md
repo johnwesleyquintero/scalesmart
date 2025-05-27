@@ -25,6 +25,7 @@ The dashboard is structured with a `DashboardHeader` component for refresh, expo
 - **Data Export:** Processed and aggregated dashboard data can be exported as a CSV.
 - **Print and Download PDF:** Easily share your dashboard insights with the new print and download PDF options.
 - **Sample Data:** The dashboard now loads sample data from `src/data/sample-data.json` when no CSV file is uploaded. This allows users to explore the dashboard's functionality without uploading their own data.
+- **Keyword Performance Overview Table:** A new toggleable table in the `OverviewTab` for a dedicated view of keyword performance metrics, offering more granular insights.
 
 ## 3. How to Use the Overview Dashboard
 
@@ -47,7 +48,7 @@ The "Overview" tab is the primary landing spot for data analysis.
 
 - Added a transformation configuration modal to allow users to configure transformations for each mapped field.
 
-- **Enhanced CSV Data Processing Feedback:** The system now provides detailed, row-level error information to help users troubleshoot issues with their uploaded CSV files. Valid rows are still processed, with clear indications of any skipped rows or rows with issues. Enhanced loading indicators provide more context during parsing and mapping.
+- **Enhanced CSV Data Processing Feedback:** The system now provides detailed, row-level error information to help users troubleshoot issues with their uploaded CSV files. Valid rows are still processed, with clear indications of any skipped rows or rows with issues. Enhanced loading indicators (`isParsing`, `isMapping`, `isLoading`) provide more context during parsing, mapping, and general processing, including robust date sorting to gracefully handle invalid date values.
 
 ### 3.2. Viewing Data
 
@@ -61,6 +62,8 @@ Once mapping is complete and the data is processed:
 - **Charts:** Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
 
 - **Data Table:** Displaying the data in a sortable and filterable table using the `TableChart` component. The table now supports customizable empty state content, improved column spanning, per-column filtering, custom sort functions, and persistent table state.
+
+- **Keyword Performance Overview Table:** Accessible via a toggle button, this table provides granular insights into keyword-specific metrics.
 
 - **Time Granularity:**
 
@@ -247,7 +250,7 @@ The `AcosTrendChart` component (`src/components/amazon-seller-tools/AcosTrendCha
 
 ---
 
-- New Components: `AcosRatingGuide`, `CalculationHistoryTable`, `ManualCalculationForm`, `AcosTrendChart`, and `KeywordVsAdSalesDonutChart`.
+- New Components: `AcosRatingGuide`, `CalculationHistoryTable`, `ManualCalculationForm`, `AcosTrendChart`, `KeywordVsAdSalesDonutChart`, and `KeywordPerformanceOverviewTable`.
 - Utility Files: `src/lib/amazon-tools/acos-calculator-utils.ts` and `src/lib/amazon-tools/metrics.ts`.
 - Modified Files: `src/types/csv-transformer-config.ts`, `src/types/data-mapping.ts`, `src/lib/utils/amazon/data-transformation.ts`, and `src/config/amazon-tools-config.ts`.
 

@@ -25,7 +25,9 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>What's New in Amazon Seller Tools!</DialogTitle>
-          <DialogDescription>Enhanced Table Filters</DialogDescription>
+          <DialogDescription>
+            Enhanced Table Filters and Keyword Performance Overview
+          </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-3">
           <h4 className="font-semibold text-lg">
@@ -36,7 +38,11 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
               New charts visualizing sales and advertising performance with
               filter control data set!
             </li>
-            <li>Enhanced CSV Data-Table feature with per-column settings.</li>
+            <li>
+              Enhanced CSV Data-Table feature with per-column settings and
+              persistent state.
+            </li>
+            <li>New toggleable Keyword Performance Overview Table.</li>
           </ul>
 
           <h4 className="font-semibold text-lg">
@@ -47,7 +53,11 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
               Easier upload and mapping with the new CSV Data Mapper, including
               data validation and transformation configuration.
             </li>
-            <li>Detailed, row-level error information for CSV uploads.</li>
+            <li>
+              Detailed, row-level error information for CSV uploads and improved
+              loading indicators.
+            </li>
+            <li>Robust date sorting for CSV data.</li>
           </ul>
 
           <h4 className="font-semibold text-lg">Print and Download PDF</h4>

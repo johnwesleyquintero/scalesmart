@@ -81,6 +81,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -96,6 +97,7 @@ import {
 } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+import KeywordPerformanceOverviewTable from './KeywordPerformanceOverviewTable';
 
 import type { CsvColumnMapping } from '@/types/data-mapping';
 import type { TableChartProps } from '@/components/amazon-seller-tools/charts/TableChart'; // Import TableChartProps
@@ -139,6 +141,7 @@ interface OverviewTabProps {
 }
 
 const DESC_SAMPLE_DATA = 'Sample Data';
+const SHOW_KEYWORD_TABLE_DEFAULT = false;
 
 const OverviewTab: React.FC<OverviewTabProps> = ({
   metrics,
@@ -147,19 +150,20 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   setIsLoading,
   isParsing,
   setIsParsing,
-  error,
-  setError,
-  TARGET_METRICS_CONFIG,
-  searchTerm, // Destructure searchTerm from props
-  // Destructure isUploading, isMapping, isProcessing and their setters from props
   isUploading,
   setIsUploading,
   isMapping,
   setIsMapping,
   isProcessing,
   setIsProcessing,
+  error,
+  setError,
+  TARGET_METRICS_CONFIG,
+  searchTerm,
 }) => {
   const [showMapper, setShowMapper] = useState(false);
+  const [showKeywordPerformanceTable, setShowKeywordPerformanceTable] =
+    useState(SHOW_KEYWORD_TABLE_DEFAULT);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [firstCsvDataRow, setFirstCsvDataRow] = useState<
@@ -235,6 +239,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
     setIsUploading(true); // Start uploading indicator
     setIsParsing(true); // Start parsing indicator
+    setIsLoading(true); // Set isLoading to true when starting file processing
     setError(null);
     setParsingErrors([]); // Clear previous errors
     setMetrics([]);
@@ -257,7 +262,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         if (!headers || headers.length === 0) {
           setError('Could not read headers from the CSV file. Is it valid?');
           setIsParsing(false);
-          setIsUploading(false); // Fixed: Should be false after header parsing failure
+          setIsUploading(false);
+          setIsLoading(false); // Set isLoading to false on error
           if (fileInputRef.current) fileInputRef.current.value = '';
           return;
         }
@@ -267,13 +273,15 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         setShowMapper(true); // Show mapper after parsing headers
         setIsParsing(false); // Parsing headers is complete
         setIsUploading(false); // Uploading is complete
+        setIsLoading(false); // Set isLoading to false after successful header parsing
         setIsMapping(true); // Now user is in mapping stage
       },
       error: (error: Error, file: File) => {
         // Corrected type signature
         setError(`Failed to read file headers: ${error.message}`);
         setIsParsing(false);
-        setIsUploading(false); // Fixed: Should be false after file error
+        setIsUploading(false);
+        setIsLoading(false); // Set isLoading to false on error
         setIsMapping(false); // Ensure mapping is false on error
         if (fileInputRef.current) fileInputRef.current.value = '';
       },
@@ -411,6 +419,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setParsingErrors([]); // Clear errors on cancel
     setOverviewDataMapperKey((prev) => prev + 1);
     setIsParsing(false);
+    setIsLoading(false); // Set isLoading to false on cancel
     if (fileInputRef.current) fileInputRef.current.value = '';
     console.log('Mapping cancelled.');
   };
@@ -440,6 +449,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setMetrics([]);
     setError(null);
     setParsingErrors([]); // Clear errors on new upload
+    setShowKeywordPerformanceTable(SHOW_KEYWORD_TABLE_DEFAULT); // Hide table on new upload
     setShowMapper(false);
     setCsvHeaders([]);
     setSelectedFile(null);
@@ -465,9 +475,19 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const dailySortedMetrics = useMemo(
     () =>
-      [...metrics].sort(
-        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
-      ),
+      [...metrics].sort((a, b) => {
+        const dateA = new Date(a.date);
+        const dateB = new Date(b.date);
+
+        // Handle invalid dates gracefully
+        if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
+          // You might want a more sophisticated error handling or default behavior here
+          // For now, treat invalid dates as equal for sorting purposes or push them to the end
+          return 0; // Or return 1 or -1 to push them to end/beginning
+        }
+
+        return dateA.getTime() - dateB.getTime();
+      }),
     [metrics],
   );
 
@@ -510,8 +530,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     }
     const aggregatedData: { [key: string]: AggregatedProductMetrics } = {};
 
+    const searchTermLower = searchTerm?.toLowerCase() || ''; // Cache lowercase searchTerm
+
     const filteredMetrics = metrics.filter((metric) => {
-      const searchTermLower = searchTerm?.toLowerCase() || '';
       const asin = metric.asin?.toLowerCase() || '';
       const uniqueIdentifier = metric.unique_identifier?.toLowerCase() || '';
       const targetedKeyword = metric.targeted_keyword?.toLowerCase() || '';
@@ -583,6 +604,14 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     [],
   );
 
+  const handleAddEvent = () => {
+    // Implement save logic here
+    console.log('Event saved!');
+    // You would typically send this data to a parent component or a global state management system
+    // For now, just close the modal
+    // setOpen(false); // This would be called from the modal's internal state
+  };
+
   return (
     <div className="space-y-4">
       <div className="mb-4 p-4 border rounded-md bg-muted/40">
@@ -602,6 +631,15 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         />
         <Button onClick={handleUploadClick} disabled={isParsing || isLoading}>
           {isParsing ? 'Reading File...' : 'Choose Report File (.csv)'}
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() =>
+            setShowKeywordPerformanceTable(!showKeywordPerformanceTable)
+          }
+          className="ml-2"
+        >
+          {showKeywordPerformanceTable ? 'Hide' : 'Show'} Keyword Table
         </Button>
         <Button
           variant="outline"
@@ -682,8 +720,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             setTimeGranularity={setTimeGranularity}
             onDeleteMetric={onDeleteMetric}
           />
-          <AddEventModal />{' '}
-          {/* AddEventModal moved inside this conditional block */}
         </>
       ) : (
         // Default to placeholders if no metrics
@@ -758,11 +794,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </>
       )}
 
+      {/* AddEventModal moved outside conditional block */}
+      <AddEventModal onSave={handleAddEvent} />
+
       {/* Product Performance Overview Table (Always rendered, data conditional) */}
       <div className="mb-4 p-4 border rounded-md bg-muted/40">
         <h3 className="text-lg font-semibold mb-2">
-          {' '}
-          {/* Changed h4 to h3 */}
           Product Performance Overview
         </h3>
         <Suspense
@@ -775,6 +812,19 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           />
         </Suspense>
       </div>
+
+      {/* Keyword Performance Overview Table (Conditionally rendered) */}
+      {showKeywordPerformanceTable && metrics.length > 0 && (
+        <div className="mb-4 p-4 border rounded-md bg-muted/40">
+          <h3 className="text-lg font-semibold mb-2">
+            Keyword Performance Overview
+          </h3>
+          <KeywordPerformanceOverviewTable
+            metrics={metrics}
+            searchTerm={searchTerm}
+          />
+        </div>
+      )}
 
       {/* Existing card below */}
       <Card className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30">
@@ -789,12 +839,23 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   );
 };
 
-interface AddEventModalProps {}
-const AddEventModal: React.FC<AddEventModalProps> = () => {
+interface AddEventModalProps {
+  onSave: (date: Date | undefined, title: string, description: string) => void;
+}
+const AddEventModal: React.FC<AddEventModalProps> = ({ onSave }) => {
   const [open, setOpen] = useState(false);
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [title, setTitle] = useState<string>('');
   const [description, setDescription] = useState<string>('');
+
+  const handleSubmit = () => {
+    onSave(date, title, description);
+    setOpen(false); // Close modal after saving
+    // Optionally reset form fields
+    setDate(new Date());
+    setTitle('');
+    setDescription('');
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -859,9 +920,11 @@ const AddEventModal: React.FC<AddEventModalProps> = () => {
             />
           </div>
         </div>
-        {/* <DialogFooter>
-          <Button type="submit">Save</Button>
-        </DialogFooter> */}
+        <DialogFooter>
+          <Button type="submit" onClick={handleSubmit}>
+            Save
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
