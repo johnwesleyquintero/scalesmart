@@ -30,7 +30,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 ```
 | Tool                     | Status                     | Version     | Notes                              |
 | :----------------------- | :------------------------- | :---------- | :--------------------------------- |
-| Overview Dashboard       | ✅ Active                  | 1.2.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, basic mapping persistence, and a data table using the TableChart component, with enhanced stability due to resolved hook order issues. |
+| Overview Dashboard       | ✅ Active                  | 1.2.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features enhanced CSV data processing feedback, per-column filtering, custom sort functions, persistent table state using IndexedDB, rowIdAccessor validation in the TableChart, improved data type inference, performance improvements for data merging, basic mapping persistence, and a data table using the TableChart component with enhanced stability due to resolved hook order issues. |
 | FBA Calculator           | ✅ Active                  | 2.0.0       | Advanced profitability calculator for FBA products with real-time ROI analysis and market trend integration.                                   |
 | Keyword Analyzer         | ✅ Active                  | 2.0.0       | A tool for analyzing and managing keywords.                                    |
 | Listing Quality Checker  | ✅ Active                  | 1.5.0       | AI-powered listing analysis and optimization tool.           |
@@ -399,48 +399,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 
 ---
 
-## ACoS Calculator
 
-The ACoS Calculator (`src/app/amazon-seller-tools/acos-calculator.tsx`) is a tool for calculating the Advertising Cost of Sales. It allows users to input campaign data either via CSV upload or manual entry, and then calculates and displays the ACoS and RoAS. The calculator also saves the calculation history to IndexedDB and displays it in a table, and visualizes ACoS trends over time using a chart.
-
-### Input Methods
-
-The ACoS Calculator provides two methods for inputting campaign data:
-
----
-
-- **CSV Upload:** Users can upload a CSV file containing campaign data. The CSV file should have columns for `Campaign`, `AdSpend`, and `Sales`. Optional columns include `Impressions` and `Clicks`.
-- **Manual Entry:** Users can manually enter data for a single campaign using the `ManualCalculationForm` component.
-
-### Manual Calculation Form
-
-The `ManualCalculationForm` component (`src/components/amazon-seller-tools/ManualCalculationForm.tsx`) allows users to manually enter data for a single campaign. The form includes the following fields:
-
-- **Campaign Name:** The name of the campaign.
-- **Ad Spend ($):** The amount spent on advertising.
-- **Sales ($):** The revenue generated from advertising.
-- **Impressions:** The number of impressions.
-- **Clicks:** The number of clicks.
-
-### ACoS Rating Guide
-
-The `AcosRatingGuide` component (`src/components/amazon-seller-tools/AcosRatingGuide.tsx`) displays a guide for interpreting ACoS values. The guide includes the following ratings:
-
-- **Excellent:** ACoS is less than 15%.
-- **Good:** ACoS is between 15% and 25%.
-- **Okay:** ACoS is between 25% and 35%.
-- **Poor:** ACoS is greater than 35%.
-
-### Calculation History Table
-
-The `CalculationHistoryTable` component (`src/components/amazon-seller-tools/CalculationHistoryTable.tsx`) displays a table of the calculation history, including the following columns:
-
-- Campaign
-- Date
-- Ad Spend
-- Sales
-- ACoS
-- RoAS
 
 ### ACoS Trend Chart
 

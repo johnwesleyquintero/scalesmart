@@ -12,7 +12,7 @@ The dashboard is structured with a `DashboardHeader` component for refresh, expo
 - **Improved CSV Data Mapping:** We've made it easier than ever to upload and map your Amazon Business Report data with our new CSV Data Mapper, including data validation.
 - **Data Visualization:**
   - KPI Cards: Displaying current metrics and period-over-period comparisons with informative tooltips.
-  - Data Table: Displaying the data in a sortable and filterable table using the `TableChart` component, which now supports customizable empty state content and improved column spanning, with its data supply stabilized to prevent hook order issues.
+  - Data Table: Displaying the data in a sortable and filterable table using the `TableChart` component, which now supports customizable empty state content, improved column spanning, per-column filtering, custom sort functions, persistent table state, and validation for the `rowIdAccessor` prop.
 - **Time Granularity Control:** Data can be aggregated and viewed daily, weekly, monthly, quarterly, or yearly.
 - **Time Range Filtering:** Data in charts can be filtered by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
 - **Period-over-Period Comparison:** Displays key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
@@ -46,6 +46,8 @@ The "Overview" tab is the primary landing spot for data analysis.
     _(Ideally, replace this with an actual screenshot of the CsvUploader component in action)_
 
 - Added a transformation configuration modal to allow users to configure transformations for each mapped field.
+
+- **Enhanced CSV Data Processing Feedback:** The system now provides detailed, row-level error information to help users troubleshoot issues with their uploaded CSV files. Valid rows are still processed, with clear indications of any skipped rows or rows with issues. Enhanced loading indicators provide more context during parsing and mapping.
 
 ### 3.2. Viewing Data
 
@@ -299,7 +301,7 @@ The `DashboardHeader` component (`src/components/amazon-seller-tools/DashboardHe
 
 ## 10. OverviewTab Component
 
-The `OverviewTab` component (`src/components/amazon-seller-tools/OverviewTab.tsx`) is a reusable component that displays the overview tab, including the data upload, mapping, and visualization. Its internal structure has been refactored to ensure consistent React Hook calls across different render paths, resolving "Rendered more hooks" errors.
+The `OverviewTab` component (`src/components/amazon-seller-tools/OverviewTab.tsx`) is a reusable component that displays the overview tab, including the data upload, mapping, and visualization. It utilizes `isUploading`, `isMapping`, and `isProcessing` props to indicate the state of these processes, offering granular control and feedback. Its internal structure has been refactored to ensure consistent React Hook calls across different render paths, resolving "Rendered more hooks" errors.
 
 - **Props:**
 

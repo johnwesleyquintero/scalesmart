@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { ChevronUp, ChevronDown } from 'lucide-react';
+import { setItem, getItem } from '../../../lib/indexeddb-service'; // Correct import path
 
 /**
  * Defines the structure for a column in the TableChart component.
@@ -34,105 +35,60 @@ export interface ColumnDef<TData> {
    * Clicking the header will toggle sorting direction.
    */
   sortable?: boolean;
+  /**
+   * If true, enables client-side filtering for this specific column.
+   * A filter UI will be displayed in the header.
+   */
+  enableColumnFilter?: boolean;
+  /**
+   * Specifies the type of filter UI to render for this column.
+   * 'text' for text input, 'number' | 'select' | 'dateRange'.
+   * If not specified, defaults to 'text'.
+   */
+  filterType?: 'text' | 'number' | 'select' | 'dateRange';
+  /**
+   * An optional custom sort function for this column.
+   * Overrides default sorting if provided.
+   */
+  sortFn?: (a: TData, b: TData, columnId: string) => number;
+  /**
+   * Specifies a predefined sort type for the column.
+   * Used if `sortFn` is not provided.
+   */
+  sortType?: 'string' | 'number' | 'date' | 'alphanumeric' | 'currency';
 }
 
 /**
  * Props for the reusable TableChart component.
- * @template TData The type of the data objects in the table.
  */
 export interface TableChartProps<TData> {
-  /**
-   * An array of data objects to display in the table.
-   * Each object represents a row.
-   */
   data: TData[];
-  /**
-   * An array of column definitions, specifying how each column should be rendered and behave.
-   */
   columns: ColumnDef<TData>[];
-  /**
-   * If true, applies a striped background to alternate rows for better readability.
-   * @default false
-   */
   stripedRows?: boolean;
-  /**
-   * If true, reduces padding and font sizes for a more compact table layout.
-   * @default false
-   */
   compact?: boolean;
-  /**
-   * Optional CSS class names to apply to the main table container div.
-   */
   className?: string;
-  /**
-   * If true, enables client-side pagination for the table.
-   * @default false
-   */
   enablePagination?: boolean;
-  /**
-   * The number of items to display per page when pagination is enabled.
-   * @default 10
-   */
   initialPageSize?: number;
-  /**
-   * If true, enables client-side global filtering for the table.
-   * A search input will be displayed above the table.
-   * @default false
-   */
   enableFiltering?: boolean;
-  /**
-   * Optional array of column keys to enable filtering on. If not provided, filtering is enabled for all columns.
-   * @default undefined
-   */
   filterColumns?: string[];
-  /**
-   * If true, enables row selection functionality with checkboxes.
-   * @default false
-   */
   enableRowSelection?: boolean;
-  /**
-   * A function to extract a unique ID for each row. Required if `enableRowSelection` is true.
-   * @param row The data object for the current row.
-   * @returns A unique identifier (string or number) for the row.
-   */
   rowIdAccessor?: (row: TData) => string | number;
-  /**
-   * Callback function triggered when the row selection changes.
-   * Provides an array of the currently selected data objects.
-   * @param selectedRows An array of the selected data objects.
-   */
   onRowSelectionChange?: (selectedRows: TData[]) => void;
-  /**
-   * An optional render function to display detailed content when a row is expanded.
-   * If provided, an expand/collapse button will appear in each row.
-   * @param row The data object for the current row being expanded.
-   * @returns A ReactNode to render as the sub-component.
-   */
   renderSubComponent?: (row: TData) => React.ReactNode;
-  /**
-   * If true, displays a loading indicator over the table.
-   * @default false
-   */
   isLoading?: boolean;
-  /**
-   * Optional content to display when the table has no data.
-   * Can be a string or a ReactNode for custom rendering.
-   * @default "No data available."
-   */
   emptyStateContent?: React.ReactNode;
+  persistenceKey?: string;
+}
+
+interface PersistedTableState {
+  sortConfig: { key: string; direction: 'asc' | 'desc' } | null;
+  itemsPerPage: number;
+  globalFilter: string;
+  columnFilters: Record<string, { value: unknown; type: string }>;
 }
 
 /**
- * A versatile and reusable Table Chart component built with React and Tailwind CSS.
- * It supports dynamic data rendering, custom cell rendering, basic styling options,
- * client-side sorting, pagination, global client-side filtering, row selection,
- * expandable rows with sub-components, a loading state indicator, and customizable empty state.
- *
- * @template TData The type of the data objects that will be displayed in the table.
- *                 Must extend `Record<string, unknown>` to allow flexible data access.
- *
- * @param {TableChartProps<TData>} props The props for the TableChart component.
- * @returns {JSX.Element} The rendered TableChart component.
+ * A versatile Table Chart component with sorting, pagination, filtering, and more.
  */
 const TableChart = <TData extends Record<string, unknown>>({
   data,
@@ -143,13 +99,14 @@ const TableChart = <TData extends Record<string, unknown>>({
   enablePagination = false,
   initialPageSize = 10,
   enableFiltering = false,
+  filterColumns,
   enableRowSelection = false,
   rowIdAccessor,
   onRowSelectionChange,
   renderSubComponent,
   isLoading = false,
   emptyStateContent = 'No data available.',
-  filterColumns,
+  persistenceKey,
 }: TableChartProps<TData>) => {
   const [sortConfig, setSortConfig] = useState<{
     key: keyof TData | string;
@@ -158,15 +115,96 @@ const TableChart = <TData extends Record<string, unknown>>({
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(initialPageSize);
   const [globalFilter, setGlobalFilter] = useState<string>('');
+  const [columnFilters, setColumnFilters] = useState<
+    Record<string, { value: unknown; type: string }>
+  >({});
   const [selectedRowIds, setSelectedRowIds] = useState<Set<string | number>>(
-    new Set(),
+    new Set()
   );
   const [expandedRowIds, setExpandedRowIds] = useState<Set<string | number>>(
-    new Set(),
+    new Set()
   );
 
+  const saveTimer = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV === 'development' &&
+      (enableRowSelection || renderSubComponent)
+    ) {
+      if (!rowIdAccessor) {
+        console.warn(
+          'TableChart: rowIdAccessor is required when enableRowSelection or renderSubComponent is true.'
+        );
+      } else {
+        const ids = new Set();
+        const duplicates: (string | number)[] = [];
+        data.forEach((row) => {
+          const id = rowIdAccessor(row);
+          if (ids.has(id)) {
+            duplicates.push(id);
+          } else {
+            ids.add(id);
+          }
+        });
+        if (duplicates.length > 0) {
+          console.warn(
+            `TableChart: Duplicate rowIdAccessor values found. Duplicates: ${[...new Set(duplicates)].join(
+              ', '
+            )}`
+          );
+        }
+      }
+    }
+  }, [enableRowSelection, renderSubComponent, rowIdAccessor, data]);
+
+  // Load state from IndexedDB on mount
+  useEffect(() => {
+    if (!persistenceKey) return;
+
+    getItem<PersistedTableState>(`tableState_${persistenceKey}`)
+      .then((savedState) => {
+        if (savedState) {
+          setSortConfig(savedState.sortConfig);
+          setItemsPerPage(savedState.itemsPerPage);
+          setGlobalFilter(savedState.globalFilter);
+          setColumnFilters(savedState.columnFilters);
+        }
+      })
+      .catch((error) =>
+        console.error('Failed to load table state from IndexedDB:', error)
+      );
+  }, [persistenceKey]);
+
+  // Save state to IndexedDB when relevant state changes
+  useEffect(() => {
+    if (!persistenceKey) return;
+
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+    }
+
+    saveTimer.current = window.setTimeout(() => {
+      const stateToSave: PersistedTableState = {
+        sortConfig: sortConfig as PersistedTableState['sortConfig'], // Cast to allow null
+        itemsPerPage,
+        globalFilter,
+        columnFilters,
+      };
+      setItem(`tableState_${persistenceKey}`, stateToSave).catch((error) =>
+        console.error('Failed to save table state to IndexedDB:', error)
+      );
+    }, 500); // Debounce by 500ms
+
+    return () => {
+      if (saveTimer.current) {
+        window.clearTimeout(saveTimer.current);
+      }
+    };
+  }, [sortConfig, itemsPerPage, globalFilter, columnFilters, persistenceKey]);
+
   // Effect to call onRowSelectionChange when selectedRowIds or data changes
-  React.useEffect(() => {
+  useEffect(() => {
     if (onRowSelectionChange) {
       const currentlySelectedRows = data.filter((row) => {
         if (rowIdAccessor) {
@@ -179,62 +217,99 @@ const TableChart = <TData extends Record<string, unknown>>({
   }, [selectedRowIds, data, onRowSelectionChange, rowIdAccessor]);
 
   // Clear expanded rows if data changes significantly (e.g., filter/sort changes)
-  React.useEffect(() => {
+  useEffect(() => {
     setExpandedRowIds(new Set());
-  }, [data, globalFilter, sortConfig]);
+  }, [data, globalFilter, sortConfig, columnFilters]);
 
   const filteredData = useMemo(() => {
-    if (!enableFiltering || !globalFilter) {
-      return data;
+    let currentFilteredData = data;
+
+    // Apply global filter
+    if (enableFiltering && globalFilter) {
+      const filterLower = globalFilter.toLowerCase();
+      const columnsToFilter = filterColumns
+        ? columns.filter((column) =>
+            filterColumns.includes(column.accessorKey as string)
+          )
+        : columns;
+
+      currentFilteredData = currentFilteredData.filter((row) => {
+        return columnsToFilter.some((column) => {
+          const value = row[column.accessorKey as keyof TData];
+          return String(value ?? '').toLowerCase().includes(filterLower);
+        });
+      });
     }
 
-    const filterLower = globalFilter.toLowerCase();
+    // Apply per-column filters
+    currentFilteredData = currentFilteredData.filter((row) => {
+      return Object.entries(columnFilters).every(([columnId, filter]) => {
+        if (!filter || !filter.value) {
+          return true;
+        }
+        const column = columns.find((col) => col.accessorKey === columnId);
+        if (!column || !column.enableColumnFilter) {
+          return true;
+        }
 
-    const columnsToFilter = filterColumns
-      ? columns.filter((column) =>
-          filterColumns.includes(column.accessorKey as string),
-        )
-      : columns;
+        const value = row[columnId as keyof TData];
+        const filterValue = String(filter.value).toLowerCase();
+        const cellValue = String(value ?? '').toLowerCase();
 
-    return data.filter((row) => {
-      return columnsToFilter.some((column) => {
-        const value = row[column.accessorKey as keyof TData];
-        return String(value ?? '')
-          .toLowerCase()
-          .includes(filterLower);
+        switch (filter.type) {
+          case 'number':
+            return Number(value) === Number(filter.value);
+          case 'select':
+            return cellValue === filterValue;
+          case 'dateRange':
+            // @todo: Implement date range filtering
+            return true;
+          case 'text':
+          default:
+            return cellValue.includes(filterValue);
+        }
       });
     });
-  }, [data, columns, globalFilter, enableFiltering, filterColumns]);
+
+    return currentFilteredData;
+  }, [data, columns, globalFilter, enableFiltering, filterColumns, columnFilters]);
 
   const sortedData = useMemo(() => {
-    let sortableItems = [...filteredData]; // Sort filtered data
+    let sortableItems = [...filteredData];
     if (sortConfig !== null) {
       sortableItems.sort((a, b) => {
+        const column = columns.find((col) => col.accessorKey === sortConfig.key);
+
+        if (column?.sortFn) {
+          return sortConfig.direction === 'asc'
+            ? column.sortFn(a, b, sortConfig.key as string)
+            : -column.sortFn(a, b, sortConfig.key as string);
+        }
+
         const aValue = a[sortConfig.key as keyof TData];
         const bValue = b[sortConfig.key as keyof TData];
 
-        if (typeof aValue === 'string' && typeof bValue === 'string') {
+        if (
+          column?.sortType === 'number' ||
+          (typeof aValue === 'number' && typeof bValue === 'number')
+        ) {
           return sortConfig.direction === 'asc'
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
+            ? Number(aValue) - Number(bValue)
+            : Number(bValue) - Number(aValue);
         }
-        if (typeof aValue === 'number' && typeof bValue === 'number') {
-          return sortConfig.direction === 'asc'
-            ? aValue - bValue
-            : bValue - aValue;
+        if (column?.sortType === 'date') {
+          const dateA = aValue ? new Date(aValue as string).getTime() : 0;
+          const dateB = bValue ? new Date(bValue as string).getTime() : 0;
+          return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
         }
-        // Fallback for other types or mixed types
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
+        // Fallback for string and other types
+        return sortConfig.direction === 'asc'
+          ? String(aValue ?? '').localeCompare(String(bValue ?? ''))
+          : String(bValue ?? '').localeCompare(String(aValue ?? ''));
       });
     }
     return sortableItems;
-  }, [filteredData, sortConfig]); // Depend on filteredData
+  }, [filteredData, sortConfig, columns]);
 
   const paginatedData = useMemo(() => {
     if (!enablePagination) {
@@ -259,12 +334,118 @@ const TableChart = <TData extends Record<string, unknown>>({
       direction = 'desc';
     }
     setSortConfig({ key, direction });
-    setCurrentPage(1); // Reset to first page on sort
+    setCurrentPage(1);
   };
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+    }
+  };
+
+  const handleColumnFilterChange = (
+    columnId: string,
+    value: unknown,
+    type: string = 'text'
+  ) => {
+    setColumnFilters((prev) => {
+      const newFilters = { ...prev };
+      if (value) {
+        newFilters[columnId] = { value, type };
+      } else {
+        delete newFilters[columnId];
+      }
+      return newFilters;
+    });
+    setCurrentPage(1);
+  };
+
+  const renderFilterInput = (column: ColumnDef<TData>) => {
+    if (!column.enableColumnFilter) return null;
+
+    const columnFilterValue = columnFilters[
+      column.accessorKey as string
+    ]?.value;
+
+    switch (column.filterType) {
+      case 'number':
+        return (
+          <input
+            type="number"
+            placeholder="Filter..."
+            value={String(columnFilterValue ?? '')}
+            onChange={(e) =>
+              handleColumnFilterChange(
+                column.accessorKey as string,
+                e.target.value,
+                'number'
+              )
+            }
+            className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+            onClick={(e) => e.stopPropagation()}
+          />
+        );
+      case 'select': {
+        const uniqueValues = Array.from(
+          new Set(data.map((row) => String(row[column.accessorKey as keyof TData])))
+        );
+        return (
+          <select
+            value={String(columnFilterValue ?? '')}
+            onChange={(e) =>
+              handleColumnFilterChange(
+                column.accessorKey as string,
+                e.target.value,
+                'select'
+              )
+            }
+            className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <option value="">All</option>
+            {uniqueValues.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        );
+      }
+      case 'dateRange':
+        return (
+          <input
+            type="text"
+            placeholder="Date Range..."
+            value={String(columnFilterValue ?? '')}
+            onChange={(e) =>
+              handleColumnFilterChange(
+                column.accessorKey as string,
+                e.target.value,
+                'dateRange'
+              )
+            }
+            className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+            onClick={(e) => e.stopPropagation()}
+          />
+        );
+      case 'text':
+      default:
+        return (
+          <input
+            type="text"
+            placeholder="Filter..."
+            value={String(columnFilterValue ?? '')}
+            onChange={(e) =>
+              handleColumnFilterChange(
+                column.accessorKey as string,
+                e.target.value,
+                'text'
+              )
+            }
+            className="w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+            onClick={(e) => e.stopPropagation()}
+          />
+        );
     }
   };
 
@@ -309,9 +490,7 @@ const TableChart = <TData extends Record<string, unknown>>({
         }
       } else {
         if (rowIdAccessor) {
-          paginatedData.forEach((row) =>
-            newSelection.delete(rowIdAccessor(row)),
-          );
+          paginatedData.forEach((row) => newSelection.delete(rowIdAccessor(row)));
         }
       }
       return newSelection;
@@ -343,7 +522,9 @@ const TableChart = <TData extends Record<string, unknown>>({
 
   return (
     <div
-      className={`overflow-x-auto shadow-sm rounded-lg relative ${isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+      className={`overflow-x-auto shadow-sm rounded-lg relative ${
+        isLoading ? 'opacity-50 pointer-events-none' : ''
+      }`}
     >
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10 rounded-lg">
@@ -360,7 +541,7 @@ const TableChart = <TData extends Record<string, unknown>>({
             value={globalFilter}
             onChange={(e) => {
               setGlobalFilter(e.target.value);
-              setCurrentPage(1); // Reset to first page on filter change
+              setCurrentPage(1);
             }}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             aria-label="Global filter search input"
@@ -416,32 +597,44 @@ const TableChart = <TData extends Record<string, unknown>>({
                 }
                 tabIndex={column.sortable ? 0 : -1}
               >
-                <div className="flex items-center">
-                  {column.header}
-                  {column.sortable && (
-                    <span className="ml-1">
-                      {sortConfig?.key === column.accessorKey &&
-                        sortConfig.direction === 'asc' && (
+                <div className="flex items-center justify-between">
+                  <span onClick={column.sortable ? undefined : (e) => e.stopPropagation()}>
+                    {column.header}
+                  </span>
+                  <div className="flex items-center ml-1">
+                    {column.sortable && (
+                      <>
+                        {sortConfig?.key === column.accessorKey &&
+                          sortConfig.direction === 'asc' && (
+                            <ChevronUp
+                              className="h-4 w-4 text-gray-700"
+                              aria-hidden="true"
+                            />
+                          )}
+                        {sortConfig?.key === column.accessorKey &&
+                          sortConfig.direction === 'desc' && (
+                            <ChevronDown
+                              className="h-4 w-4 text-gray-700"
+                              aria-hidden="true"
+                            />
+                          )}
+                        {sortConfig?.key !== column.accessorKey && (
                           <ChevronUp
-                            className="h-4 w-4 text-gray-700"
+                            className="h-4 w-4 text-gray-300"
                             aria-hidden="true"
                           />
                         )}
-                      {sortConfig?.key === column.accessorKey &&
-                        sortConfig.direction === 'desc' && (
-                          <ChevronDown
-                            className="h-4 w-4 text-gray-700"
-                            aria-hidden="true"
-                          />
-                        )}
-                      {sortConfig?.key !== column.accessorKey && (
-                        <ChevronUp
-                          className="h-4 w-4 text-gray-300"
-                          aria-hidden="true"
-                        />
-                      )}
-                    </span>
-                  )}
+                          </> 
+                    )}
+                    {column.enableColumnFilter && (
+                      <div
+                        className="relative ml-2"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {renderFilterInput(column)}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </th>
             ))}
@@ -527,7 +720,7 @@ const TableChart = <TData extends Record<string, unknown>>({
                             ? column.cell(
                                 value,
                                 row,
-                                column as ColumnDef<TData>,
+                                column as ColumnDef<TData>
                               )
                             : String(value)}
                         </td>

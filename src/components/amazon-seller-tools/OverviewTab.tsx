@@ -36,7 +36,11 @@ import {
   SAMPLE_CHART_DATA,
 } from '@/config/amazon-tools-config';
 import { aggregateMetricsByTime } from '@/lib/utils/amazon/data-aggregation'; // Import aggregation utility
-import { transformCsvRow } from '@/lib/utils/amazon/data-transformation'; // Import data transformation utilities
+import {
+  transformCsvRow,
+  TransformationError, // Import TransformationError
+  CsvRowTransformationResult, // Import CsvRowTransformationResult
+} from '@/lib/utils/amazon/data-transformation'; // Import data transformation utilities
 import {
   Dialog,
   DialogContent,
@@ -133,7 +137,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     null,
   );
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
+  const [parsingErrors, setParsingErrors] = useState<TransformationError[]>([]); // New state for parsing errors
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const totalRowsRef = useRef(0); // Ref to store total rows from CSV
+  const processedRowsRef = useRef(0); // Ref to store count of rows processed
 
   useEffect(() => {
     const loadSavedMapping = async () => {
@@ -164,8 +171,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
     setError(null);
+    setParsingErrors([]); // Clear parsing errors on refresh
     setOverviewDataMapperKey((prev) => prev + 1);
     setIsLoading(true);
+    totalRowsRef.current = 0; // Reset row counts
+    processedRowsRef.current = 0; // Reset row counts
     console.log('Refresh clicked - clearing status.');
     await new Promise((resolve) => setTimeout(resolve, 500));
     setIsLoading(false);
@@ -190,6 +200,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setIsUploading(true); // Start uploading indicator
     setIsParsing(true); // Start parsing indicator
     setError(null);
+    setParsingErrors([]); // Clear previous errors
     setMetrics([]);
     setShowMapper(false); // Hide mapper initially
     setCsvHeaders([]);
@@ -197,6 +208,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setFirstCsvDataRow(undefined);
     setIsMapping(false); // Ensure mapping is false
     setIsProcessing(false); // Ensure processing is false
+    totalRowsRef.current = 0; // Reset on new file selection
+    processedRowsRef.current = 0; // Reset on new file selection
 
     Papa.parse<Record<string, string>>(file, {
       header: true,
@@ -208,7 +221,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         if (!headers || headers.length === 0) {
           setError('Could not read headers from the CSV file. Is it valid?');
           setIsParsing(false);
-          setIsUploading(true);
+          setIsUploading(false); // Fixed: Should be false after header parsing failure
           if (fileInputRef.current) fileInputRef.current.value = '';
           return;
         }
@@ -220,13 +233,56 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         setIsUploading(false); // Uploading is complete
         setIsMapping(true); // Now user is in mapping stage
       },
-      error: (error: Error) => {
+      error: (error: Error, file: File) => { // Corrected type signature
         setError(`Failed to read file headers: ${error.message}`);
         setIsParsing(false);
-        setIsUploading(true);
+        setIsUploading(false); // Fixed: Should be false after file error
         setIsMapping(false); // Ensure mapping is false on error
         if (fileInputRef.current) fileInputRef.current.value = '';
       },
+    });
+  };
+
+  const processCsvData = async (
+    file: File,
+    mapping: CsvColumnMapping,
+  ): Promise<{
+    validMetrics: DashboardMetrics[];
+    collectedErrors: TransformationError[];
+    totalRows: number;
+  }> => {
+    const allRows: Record<string, string>[] = [];
+    return new Promise((resolve, reject) => {
+      Papa.parse<Record<string, string>>(file, {
+        header: true,
+        skipEmptyLines: true,
+        step: (rowParseResult, parser) => {
+          if (rowParseResult.data) {
+            allRows.push(rowParseResult.data);
+          }
+          processedRowsRef.current = allRows.length; // Live update during step
+        },
+        complete: () => {
+          totalRowsRef.current = allRows.length; // Final total rows count
+          const validMetrics: DashboardMetrics[] = [];
+          const collectedErrors: TransformationError[] = [];
+
+          allRows.forEach((row, i) => {
+            const result: CsvRowTransformationResult = transformCsvRow(
+              row,
+              mapping,
+              i, // row number
+              TARGET_METRICS_CONFIG,
+            );
+            if (result.data) {
+              validMetrics.push(result.data);
+            }
+            collectedErrors.push(...result.errors);
+          });
+          resolve({ validMetrics, collectedErrors, totalRows: allRows.length });
+        },
+        error: (error: Error, file: File) => reject(error), // Corrected type signature
+      });
     });
   };
 
@@ -242,47 +298,63 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setIsMapping(false); // Mapping is complete
     setIsProcessing(true); // Start processing indicator
     setError(null);
+    setParsingErrors([]); // Clear previous errors
     setMetrics([]);
+    totalRowsRef.current = 0; // Reset for actual processing parse
+    processedRowsRef.current = 0; // Reset for actual processing parse
 
     try {
-      const { data } = await new Promise<
-        Papa.ParseResult<Record<string, string>>
-      >((resolve, reject) => {
-        Papa.parse<Record<string, string>>(selectedFile, {
-          header: true,
-          skipEmptyLines: true,
-          complete: resolve,
-          error: reject,
-        });
-      });
-      const transformedMetrics = data.map((row) =>
-        transformCsvRow(row, mapping as CsvColumnMapping),
-      );
-      const validMetrics = transformedMetrics.filter(
-        (metric): metric is DashboardMetrics =>
-          metric !== null && typeof metric === 'object',
-      );
-      const errorText =
-        validMetrics.length === 0 && data.length > 0
-          ? 'Could not extract valid data using the provided mapping. Check mapping and report format/headers.'
-          : validMetrics.length === 0
-            ? 'No valid data found in the CSV file.'
-            : null;
+      const { validMetrics, collectedErrors, totalRows } =
+        await processCsvData(selectedFile, mapping);
+
       setMetrics(validMetrics);
-      setError(errorText);
+      setParsingErrors(collectedErrors);
+      totalRowsRef.current = totalRows; // Ensure ref is updated after complete parse
+
+      let statusMessage = '';
+      if (validMetrics.length > 0) {
+        statusMessage = `Successfully processed ${validMetrics.length} of ${totalRows} rows.`;
+      } else {
+        statusMessage = `No valid data extracted from ${totalRows} rows.`;
+      }
+
+      const skippedRows = totalRows - validMetrics.length;
+      if (skippedRows > 0) {
+        statusMessage += ` ${skippedRows} row(s) were skipped due to critical errors.`;
+      }
+      if (collectedErrors.length > 0) {
+        const errorCount = collectedErrors.filter(e => e.type === 'error').length;
+        const warningCount = collectedErrors.filter(e => e.type === 'warning').length;
+        if (errorCount > 0) statusMessage += ` Found ${errorCount} transformation error(s).`;
+        if (warningCount > 0) statusMessage += ` Found ${warningCount} warning(s).`;
+      }
+      setError(statusMessage || null); // Display overall status/summary message
+
       console.log('Valid Metrics:', validMetrics);
+      console.log('Collected Errors/Warnings:', collectedErrors);
 
       // Save the successful mapping to IndexedDB
       await setItem('last_csv_mapping', mapping);
       console.log('Mapping saved to IndexedDB.');
-    } catch (error) {
-      setError(
-        `Failed to parse file: ${error instanceof Error ? error.message : String(error)}`,
-      );
+    } catch (err) {
+      // General file parsing error before row-by-row transformation
+      const errorMessage =
+        err instanceof Error ? err.message : String(err);
+      setError(`Failed to parse file: ${errorMessage}`);
+      setParsingErrors([
+        {
+          rowNumber: -1, // Indicates file-level error
+          column: 'File',
+          message: `General CSV parsing error: ${errorMessage}`,
+          type: 'error',
+        },
+      ]);
     } finally {
       setIsProcessing(false); // Processing is complete
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
+      totalRowsRef.current = 0; // Clear after processing
+      processedRowsRef.current = 0; // Clear after processing
     }
   };
 
@@ -292,6 +364,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
     setError(null);
+    setParsingErrors([]); // Clear errors on cancel
     setOverviewDataMapperKey((prev) => prev + 1);
     setIsParsing(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
@@ -311,10 +384,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       link.click();
       document.body.removeChild(link);
       console.log('Download initiated successfully.');
-    } catch (error: unknown) {
-      console.error('Error downloading sample CSV:', error);
+    } catch (err: unknown) {
+      console.error('Error downloading sample CSV:', err);
       setError(
-        `Download failed: ${error instanceof Error ? error.message : String(error)}`,
+        `Download failed: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
   };
@@ -322,10 +395,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   const handleUploadClick = () => {
     setMetrics([]);
     setError(null);
+    setParsingErrors([]); // Clear errors on new upload
     setShowMapper(false);
     setCsvHeaders([]);
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
+    totalRowsRef.current = 0; // Reset on new upload
+    processedRowsRef.current = 0; // Reset on new upload
     if (fileInputRef.current) fileInputRef.current.value = '';
     fileInputRef.current?.click();
   };
@@ -478,6 +554,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           isParsing={isParsing}
           isProcessing={isProcessing}
           showMapperText={showMapper}
+          totalRows={totalRowsRef.current}
+          processedRows={processedRowsRef.current}
+          parsingErrorCount={parsingErrors.length}
         />
       ) : showMapper && csvHeaders.length > 0 ? (
         <OverviewDataMapper
@@ -489,8 +568,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           onCancel={handleMappingCancel}
           initialMapping={savedMapping || undefined}
         />
-      ) : error && !isLoading && metrics.length === 0 ? (
-        <OverviewErrorDisplay error={error} onRetryUpload={handleUploadClick} />
+      ) : (error || parsingErrors.length > 0) && !isLoading && metrics.length === 0 ? (
+        <OverviewErrorDisplay
+          error={error}
+          onRetryUpload={handleUploadClick}
+          parsingErrors={parsingErrors} // Pass detailed parsing errors
+        />
       ) : metrics.length > 0 ? (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
@@ -534,33 +617,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             setTimeGranularity={setTimeGranularity}
             onDeleteMetric={onDeleteMetric}
           />
+          <AddEventModal /> {/* AddEventModal moved inside this conditional block */}
         </>
       ) : ( // Default to placeholders if no metrics
         <>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <PlaceholderCard
-              title="Avg. Conversion Rate"
-              value={SAMPLE_CARD_DATA.total_conversion_rate.toFixed(2)}
-              unit="%"
-              description={DESC_SAMPLE_DATA}
-              colorClass="text-blue-400"
-            />
-            <PlaceholderCard
-              title="Total Sales"
-              value={SAMPLE_CARD_DATA.total_sales_sample.toLocaleString(
-                undefined,
-                { style: 'currency', currency: 'USD' },
-              )}
-              description={DESC_SAMPLE_DATA}
-              colorClass="text-green-400"
-            />
-            <PlaceholderCard
-              title="Avg. Clicks"
-              value={SAMPLE_CARD_DATA.avg_clicks.toFixed(1)}
-              description={DESC_SAMPLE_DATA}
-              colorClass="text-yellow-400"
-            />
-          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <PlaceholderChartContainer title="Sales Trends">
               <SalesTrendsChart
@@ -593,6 +653,31 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               />
             </PlaceholderChartContainer>
           </div>
+          {/* Placeholder KPI Cards now above */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+            <PlaceholderCard
+              title="Avg. Conversion Rate"
+              value={SAMPLE_CARD_DATA.total_conversion_rate.toFixed(2)}
+              unit="%"
+              description={DESC_SAMPLE_DATA}
+              colorClass="text-blue-400"
+            />
+            <PlaceholderCard
+              title="Total Sales"
+              value={SAMPLE_CARD_DATA.total_sales_sample.toLocaleString(
+                undefined,
+                { style: 'currency', currency: 'USD' },
+              )}
+              description={DESC_SAMPLE_DATA}
+              colorClass="text-green-400"
+            />
+            <PlaceholderCard
+              title="Avg. Clicks"
+              value={SAMPLE_CARD_DATA.avg_clicks.toFixed(1)}
+              description={DESC_SAMPLE_DATA}
+              colorClass="text-yellow-400"
+            />
+          </div>
         </>
       )}
 
@@ -613,8 +698,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           data={productPerformanceData}
         />
       </div>
-
-      <AddEventModal /> {/* AddEventModal also always rendered, its internal hooks always run */}
 
       {/* Existing card below */}
       <Card className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30">
