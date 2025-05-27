@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast.ts';
 import {
   AlertCircle,
   Download,
@@ -196,8 +196,9 @@ export default function SalesEstimator() {
 
       setProducts(processedData);
       toast({
-        title: 'Success',
-        description: `Processed ${processedData.length} products`,
+        title: 'CSV Processed',
+        description: `Successfully processed ${processedData.length} products.`,
+        variant: 'success',
       });
     } catch (error: unknown) {
       const errorMessage =
@@ -207,8 +208,9 @@ export default function SalesEstimator() {
 
       setError(errorMessage);
       toast({
-        title: 'Error',
+        title: 'CSV Processing Error',
         description: errorMessage,
+        variant: 'destructive',
       });
       console.error('CSV parsing error', {
         error,
@@ -251,8 +253,9 @@ export default function SalesEstimator() {
       setError(null);
 
       toast({
-        title: 'Success',
-        description: 'Added new product estimate',
+        title: 'Product Added',
+        description: 'New product estimate added successfully.',
+        variant: 'success',
       });
     } catch (error) {
       const errorMessage =
@@ -262,8 +265,9 @@ export default function SalesEstimator() {
 
       setError(errorMessage);
       toast({
-        title: 'Error',
+        title: 'Input Error',
         description: errorMessage,
+        variant: 'destructive',
       });
       console.error('Manual estimate error', {
         error,
@@ -300,8 +304,9 @@ export default function SalesEstimator() {
       setExportProgress(0);
 
       toast({
-        title: 'Success',
-        description: 'Sales estimates exported successfully',
+        title: 'Export Complete',
+        description: 'Sales estimates exported successfully.',
+        variant: 'success',
       });
     } catch (error) {
       console.error('Export error', {

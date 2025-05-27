@@ -26,7 +26,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
         <DialogHeader>
           <DialogTitle>What's New in Amazon Seller Tools!</DialogTitle>
           <DialogDescription>
-            Enhanced Table Filters and Keyword Performance Overview
+            Exciting Updates for Enhanced Analysis and Experience!
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-3">
@@ -36,13 +36,16 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>
               New charts visualizing sales and advertising performance with
-              filter control data set!
+              flexible filter control data set!
             </li>
             <li>
-              Enhanced CSV Data-Table feature with per-column settings and
-              persistent state.
+              Enhanced CSV Data-Table feature with per-column settings, custom
+              sort functions, and persistent state for user preferences.
             </li>
-            <li>New toggleable Keyword Performance Overview Table.</li>
+            <li>
+              New toggleable Keyword Performance Overview Table for granular
+              insights.
+            </li>
           </ul>
 
           <h4 className="font-semibold text-lg">
@@ -51,23 +54,38 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>
               Easier upload and mapping with the new CSV Data Mapper, including
-              data validation and transformation configuration.
+              robust data validation and transformation configuration.
             </li>
             <li>
               Detailed, row-level error information for CSV uploads and improved
-              loading indicators.
+              loading indicators, offering clearer user feedback.
             </li>
-            <li>Robust date sorting for CSV data.</li>
+            <li>
+              Robust date sorting for CSV data to handle invalid date values
+              gracefully.
+            </li>
           </ul>
 
-          <h4 className="font-semibold text-lg">Print and Download PDF</h4>
+          <h4 className="font-semibold text-lg">
+            General UI & UX Enhancements
+          </h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
-            <li>Options to share dashboards easily.</li>
-          </ul>
-
-          <h4 className="font-semibold text-lg">Sample Data</h4>
-          <ul className="list-disc list-inside text-sm text-muted-foreground">
-            <li>Dashboard loads sample data when no CSV is uploaded.</li>
+            <li>
+              Standardized application-wide status notifications using the
+              `use-toast` hook for consistent and informative feedback.
+            </li>
+            <li>
+              Print and Download PDF options for easily sharing dashboard
+              insights.
+            </li>
+            <li>
+              Listing Quality Checker now uses `shadcn/ui` Card components for
+              consistent and improved visual presentation.
+            </li>
+            <li>
+              Dashboard now loads sample data when no CSV is uploaded, allowing
+              immediate exploration.
+            </li>
           </ul>
         </div>
         <DialogFooter>

@@ -17,13 +17,13 @@ import { z } from 'zod'; // Import Zod
 // Local/UI Imports
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { logError } from '@/lib/error-handling'; // Import logError
+import { useToast } from '@/hooks/use-toast.ts';
+import { logError } from '@/lib/error-handling.ts'; // Import logError
 import { info } from '@/lib/logger';
 // import SampleCsvButton from './sample-csv-button'; // Removed SampleCsvButton import
 import DataCard from './DataCard';
@@ -209,6 +209,7 @@ export default function KeywordDeduplicator() {
         toast({
           title: 'CSV Processed',
           description: `Successfully processed ${processedData.length} products.`,
+          variant: 'success',
         });
         info('CSV processing completed successfully', {
           processedCount: processedData.length,
@@ -220,7 +221,11 @@ export default function KeywordDeduplicator() {
           err instanceof Error ? err.message : 'An unknown error occurred.';
         setError(message);
         setProducts([]);
-        toast({ title: 'Processing Failed', description: message });
+        toast({
+          title: 'Processing Failed',
+          description: message,
+          variant: 'destructive',
+        });
         logError({
           message: 'CSV processing failed',
           component: 'KeywordDeduplicator/handleFileUpload',
@@ -268,6 +273,7 @@ export default function KeywordDeduplicator() {
         toast({
           title: 'Keywords Processed',
           description: `Deduplicated keywords for "${productName}". ${result.duplicatesRemoved} duplicates removed.`,
+          variant: 'success',
         });
       } else {
         // This case should ideally be caught by processKeywordData's internal logging/return undefined
@@ -278,7 +284,11 @@ export default function KeywordDeduplicator() {
       const message =
         err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(message);
-      toast({ title: 'Processing Error', description: message });
+      toast({
+        title: 'Processing Error',
+        description: message,
+        variant: 'destructive',
+      });
       logError({
         message: 'Manual processing failed',
         component: 'KeywordDeduplicator/handleManualProcess',
@@ -293,7 +303,7 @@ export default function KeywordDeduplicator() {
     if (products.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast({ title: 'Export Error', description: msg });
+      toast({ title: 'Export Error', description: msg, variant: 'warning' });
       return;
     }
     setError(undefined);
@@ -319,6 +329,7 @@ export default function KeywordDeduplicator() {
       toast({
         title: 'Export Successful',
         description: 'Cleaned keywords exported to CSV.',
+        variant: 'success',
       });
     } catch (err) {
       const message =
@@ -326,7 +337,11 @@ export default function KeywordDeduplicator() {
           ? err.message
           : 'An unknown error occurred during export.';
       setError(`Failed to export data: ${message}`);
-      toast({ title: 'Export Failed', description: message });
+      toast({
+        title: 'Export Failed',
+        description: message,
+        variant: 'destructive',
+      });
       logError({
         message: 'CSV export failed',
         component: 'KeywordDeduplicator/handleExport',
@@ -348,6 +363,7 @@ export default function KeywordDeduplicator() {
     toast({
       title: 'Data Cleared',
       description: 'All keyword data has been removed.',
+      variant: 'info',
     });
   }, [toast]);
 
@@ -384,17 +400,19 @@ export default function KeywordDeduplicator() {
       {/* Input Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* CSV Upload Card */}
-        <DataCard>
-          <CardContent className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Upload Keywords CSV
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Bulk deduplicate keywords from a CSV file
+            </p>
+          </CardHeader>
+          <CardContent>
             <div className="flex flex-col items-center justify-center gap-4 text-center">
               <div className="rounded-full bg-primary/10 p-3">
                 <Upload className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium">Upload Keywords CSV</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Bulk deduplicate keywords from a CSV file
-                </p>
               </div>
               <div className="w-full">
                 <label className="relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5">
@@ -409,12 +427,10 @@ export default function KeywordDeduplicator() {
                     type="file"
                     accept=".csv, text/csv"
                     className="hidden"
-                    // Wrap async function call
                     onChange={(e) => {
                       void handleFileUpload(e);
                     }}
                     disabled={isLoading}
-                    // FIX: Pass the ref correctly
                     ref={fileInputRef}
                     aria-label="Upload CSV file"
                   />
@@ -422,14 +438,17 @@ export default function KeywordDeduplicator() {
               </div>
             </div>
           </CardContent>
-        </DataCard>
+        </Card>
 
         {/* Manual Entry Card */}
-        <DataCard>
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4 text-center sm:text-left">
-              Manual Entry
-            </h3>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Manual Entry</CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Deduplicate keywords manually
+            </p>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="manual-product" className="text-sm font-medium">
@@ -471,14 +490,14 @@ export default function KeywordDeduplicator() {
                 onClick={handleManualProcess}
                 className="w-full"
                 disabled={isLoading || !manualKeywords.trim()}
-                aria-live="polite" // Announce loading state changes
+                aria-live="polite"
               >
                 <Filter className="mr-2 h-4 w-4" />
                 {isLoading ? 'Processing...' : 'Remove Duplicates'}
               </Button>
             </div>
           </CardContent>
-        </DataCard>
+        </Card>
       </div>
 
       {/* Action Buttons */}
@@ -531,11 +550,16 @@ export default function KeywordDeduplicator() {
 
       {/* Results Section */}
       {products.length > 0 && !isLoading && (
-        <DataCard>
-          <CardContent className="p-4 space-y-6">
-            <h2 className="text-xl font-semibold border-b pb-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
               Deduplication Results ({products.length} Products)
-            </h2>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Cleaned keyword lists for your products
+            </p>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
               {products.map((product, index) => (
                 <Card key={`${product.product}-${index}`}>
@@ -614,7 +638,7 @@ export default function KeywordDeduplicator() {
               ))}
             </div>
           </CardContent>
-        </DataCard>
+        </Card>
       )}
     </div>
   );

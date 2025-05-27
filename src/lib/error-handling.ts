@@ -1,4 +1,4 @@
-import { toast } from '@/app/hooks/use-toast';
+import { toast } from '@/app/hooks/use-toast.tsx';
 import * as Sentry from '@sentry/react';
 
 type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';

@@ -1,6 +1,6 @@
 'use client';
 
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast.ts';
 import {
   AlertCircle,
   Download,
@@ -15,7 +15,7 @@ import ManualFbaForm from './ManualFbaForm';
 
 // Local/UI Imports
 import { Button } from '@/components/ui/button';
-import { CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import {
   Table,
@@ -248,6 +248,7 @@ export default function FbaCalculator() {
             toast({
               title: 'CSV Processed',
               description: `${processedMessage}.${skippedMessage}`,
+              variant: 'success',
             });
           } catch (err: unknown) {
             const message =
@@ -256,7 +257,11 @@ export default function FbaCalculator() {
                 : 'An unknown error occurred during processing.';
             setError(message);
             setResults([]);
-            toast({ title: 'Processing Failed', description: message });
+            toast({
+              title: 'Processing Failed',
+              description: message,
+              variant: 'destructive',
+            });
           } finally {
             setIsLoading(false);
 
@@ -272,6 +277,7 @@ export default function FbaCalculator() {
           toast({
             title: 'Upload Failed',
             description: `Error reading CSV file: ${err.message}`,
+            variant: 'destructive',
           });
 
           if (event.target) {
@@ -287,7 +293,7 @@ export default function FbaCalculator() {
     if (results.length === 0) {
       const msg = 'No data to export.';
       setError(msg);
-      toast({ title: 'Export Error', description: msg });
+      toast({ title: 'Export Error', description: msg, variant: 'warning' });
       return;
     }
     setError(null);
@@ -319,6 +325,7 @@ export default function FbaCalculator() {
       toast({
         title: 'Export Successful',
         description: 'FBA calculation results exported to CSV.',
+        variant: 'success',
       });
     } catch (err: unknown) {
       const message =
@@ -326,7 +333,11 @@ export default function FbaCalculator() {
           ? err.message
           : 'An unknown error occurred during export.';
       setError(`Failed to export data: ${message}`);
-      toast({ title: 'Export Failed', description: message });
+      toast({
+        title: 'Export Failed',
+        description: message,
+        variant: 'destructive',
+      });
     }
   }, [results, toast]); // Added dependencies
 
@@ -340,6 +351,7 @@ export default function FbaCalculator() {
     toast({
       title: 'Data Cleared',
       description: 'All calculation results have been removed.',
+      variant: 'info',
     });
   }, [toast]); // Added dependency
 
@@ -370,47 +382,54 @@ export default function FbaCalculator() {
       {/* Input Section */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* CSV Upload Card */}
-        <DataCard>
-          {/* CardContent is implicitly handled by DataCard, adjust padding via className if needed */}
-          <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
-            <div className="rounded-full bg-primary/10 p-3">
-              <Upload className="h-6 w-6 text-primary" />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Upload FBA Data CSV
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Bulk calculate profit metrics from a CSV file
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center gap-4 text-center">
+              <div className="rounded-full bg-primary/10 p-3">
+                <Upload className="h-6 w-6 text-primary" />
+              </div>
+              <div className="w-full">
+                <label className="relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5">
+                  <FileText className="mb-2 h-8 w-8 text-primary/60" />
+                  <span className="text-sm font-medium">
+                    Click or drag CSV file here
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    (Requires: product, cost, price, fees)
+                  </span>
+                  <input
+                    type="file"
+                    accept=".csv, text/csv"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={isLoading}
+                    ref={fileInputRef}
+                  />
+                </label>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-medium">Upload FBA Data CSV</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Bulk calculate profit metrics from a CSV file
-              </p>
-            </div>
-            <div className="w-full">
-              <label className="relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5">
-                <FileText className="mb-2 h-8 w-8 text-primary/60" />
-                <span className="text-sm font-medium">
-                  Click or drag CSV file here
-                </span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  (Requires: product, cost, price, fees)
-                </span>
-                <input
-                  type="file"
-                  accept=".csv, text/csv"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  disabled={isLoading}
-                  ref={fileInputRef}
-                />
-              </label>
-            </div>
-          </div>
-        </DataCard>
+          </CardContent>
+        </Card>
 
         {/* Manual Entry Card */}
-        <DataCard>
-          <CardContent className="p-6">
-            {/* Explicit CardContent for padding control */}
-            <h3 className="text-lg font-medium mb-4 text-center sm:text-left">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
               Manual Calculation
-            </h3>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Enter details for a single product
+            </p>
+          </CardHeader>
+          <CardContent>
             <ManualFbaForm
               initialValues={manualInput}
               onSubmit={async (values) => {
@@ -420,6 +439,7 @@ export default function FbaCalculator() {
                   toast({
                     title: 'Calculation Complete',
                     description: `Calculated metrics for ${values.product}`,
+                    variant: 'success',
                   });
                 } catch (error: unknown) {
                   toast({
@@ -428,6 +448,7 @@ export default function FbaCalculator() {
                       error instanceof Error
                         ? error.message
                         : 'Failed to calculate metrics',
+                    variant: 'destructive',
                   });
                 }
               }}
@@ -445,7 +466,7 @@ export default function FbaCalculator() {
               <li>View calculated profit, ROI, and profit margin</li>
             </ol>
           </div>
-        </DataCard>
+        </Card>
       </div>
 
       {/* Action Buttons (Export/Clear) */}
@@ -494,12 +515,16 @@ export default function FbaCalculator() {
 
       {/* Results Table */}
       {results.length > 0 && !isLoading && (
-        <DataCard>
-          <CardContent className="p-0">
-            {/* Remove default padding for table */}
-            <h3 className="text-lg font-semibold p-4 border-b">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
               Calculation Results ({results.length} Products)
-            </h3>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Detailed FBA profitability analysis
+            </p>
+          </CardHeader>
+          <CardContent className="p-0">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
@@ -587,7 +612,7 @@ export default function FbaCalculator() {
               </Table>
             </div>
           </CardContent>
-        </DataCard>
+        </Card>
       )}
     </div>
   );

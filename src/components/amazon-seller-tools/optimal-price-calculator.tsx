@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast.ts';
 import { AmazonAlgorithms } from '@/lib/amazon-tools/amazon-algorithms';
 import {
   validateOptimalPriceInputs,
@@ -196,6 +196,7 @@ export default function OptimalPriceCalculator() {
       toast({
         title: 'Calculation Complete',
         description: `Optimal price calculated: $${optimalPrice.toFixed(2)}`,
+        variant: 'success',
       });
     } catch (error: unknown) {
       let errorMessages: string;

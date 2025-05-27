@@ -1,6 +1,6 @@
 ---
 title: 'Amazon Seller Tools Suite: Current Status & Roadmap'
-date: '2025-05-26'
+date: '2025-05-28'
 description: 'An up-to-date guide on the status, features, and known issues of our React-based tools for Amazon sellers.'
 category: ['Amazon SEO', 'Amazon PPC', 'Amazon FBA', 'Software Development']
 tags:
@@ -17,7 +17,7 @@ tags:
 image: '/images/blog/amazon-seller-tools.svg'
 ---
 
-# 🛠 Amazon Seller Tools Suite (Updated: May 26, 2025)
+# 🛠 Amazon Seller Tools Suite (Updated: May 28, 2025)
 
 ## 🌟 Introduction
 
@@ -30,21 +30,21 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 ```
 | Tool                     | Status                     | Version     | Notes                              |
 | :----------------------- | :------------------------- | :---------- | :--------------------------------- |
-| Overview Dashboard       | ✅ Active                  | 1.3.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features enhanced CSV data processing feedback with row-level error information and robust date sorting, per-column filtering, custom sort functions, persistent table state using IndexedDB, <code>rowIdAccessor</code> validation in the TableChart, improved data type inference, performance improvements for data merging, basic mapping persistence, new granular loading indicators for processing states (uploading, parsing, mapping), and a data table using the TableChart component with enhanced stability due to resolved hook order issues. A new toggleable Keyword Performance Overview Table has been added. |
+| Overview Dashboard       | ✅ Active                  | 1.3.1       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features enhanced CSV data processing feedback with row-level error information and robust date sorting, per-column filtering, custom sort functions, persistent table state using IndexedDB, <code>rowIdAccessor</code> validation in the TableChart, improved data type inference, performance improvements for data merging, basic mapping persistence, new granular loading indicators for processing states (uploading, parsing, mapping), and a data table using the TableChart component with enhanced stability due to resolved hook order issues. A new toggleable Keyword Performance Overview Table has been added. Integrated standardized application-wide status notifications using the `use-toast` hook. |
 | FBA Calculator           | ✅ Active                  | 2.0.0       | Advanced profitability calculator for FBA products with real-time ROI analysis and market trend integration.                       |
 | Keyword Analyzer         | ✅ Active                  | 2.0.0       | A tool for analyzing and managing keywords.                                    |
-| Listing Quality Checker  | ✅ Active                  | 1.5.0       | AI-powered listing analysis and optimization tool.           |
+| Listing Quality Checker  | ✅ Active                  | 1.6.0       | AI-powered listing analysis and optimization tool. Updated to use standard Shadcn/ui `Card` components for consistent UI and improved clarity. |
 | PPC Campaign Auditor     | ⚠️ Beta / Stability Review | 0.9.0       | A comprehensive tool for analyzing PPC campaign performance and providing optimization recommendations. |
 | Description Editor       | ✅ Active                  | 1.5.0       | AI-enhanced rich text editor for Amazon product descriptions. Implemented Server Actions to resolve "mongodb is not defined" error |
 | Keyword Deduplicator     | ✅ Active                  | 1.5.0       | Smart keyword management with AI-powered suggestions.           |
-| ACoS Calculator          | ✅ Active                  | 2.1.0       | Comprehensive advertising analysis with predictive metrics and historical trend analysis.  Now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.                  |
+| ACoS Calculator          | ✅ Active                  | 2.1.0       | Comprehensive advertising analysis with predictive metrics and historical trend analysis. Now includes manual input fields for campaign data, displays a calculation history table, and visualizes ACoS trends over time using a chart.                  |
 | Sales Estimator          | ✅ Active                  | 1.0.0       | This tool currently uses mock data for sales estimation.                                    |
 | Competitor Analyzer      | ✅ Active                  | 1.0.0       | Analyzes competitor data to identify opportunities and improve product positioning.                                    |
 | Keyword Trend Analyzer   | ✅ Active                  | 1.0.0       | Analyzes keyword trends to identify popular and emerging keywords.                                    |
 | Profit Margin Calculator | ✅ Active                  | 1.0.0       | Calculates profit margins to determine profitability and optimize pricing strategies.                                    |
 | Product Score Calc.      | ✅ Active                  | 1.0.0       | Calculates a quality score for your Amazon product listing based on various optimization factors.                  |
 | Optimal Price Calc.      | ✅ Active                  | 1.2.0       | AI-powered pricing suggestions with market trend analysis |
-| CSV Data Mapper          | ✅ Active                  | 1.0.0       | A reusable React component for mapping CSV headers to target metrics with validation.  Includes a `toolId` prop and a "Download Sample CSV" button.                |
+| CSV Data Mapper          | ✅ Active                  | 1.0.0       | A reusable React component for mapping CSV headers to target metrics with validation. Includes a `toolId` prop and a "Download Sample CSV" button.                |
 | ReusableChart            | ✅ Active                  | 1.0.0       | A versatile component for rendering various types of charts, including line and bar charts, with enhanced rendering logic for `ResponsiveContainer` interaction and proper event integration.                                    |
 | KeywordVsAdSalesDonutChart | ✅ Active                  | 1.0.0       | A component for rendering a donut chart of keyword vs ad sales.                                    |
 ```
@@ -56,13 +56,15 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 ### Overview Dashboard
 
 **Status**: ✅ Active
-**Version**: 1.2.0
+**Version**: 1.3.1
 
-🔍 **Description**: Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, and basic mapping persistence. **Stability improvements have been implemented for data visualization consistency and performance, specifically addressing React Hook order issues.** The dashboard now also features enhanced CSV data processing feedback with row-level error information and robust date sorting, per-column filtering, custom sort functions, persistent table state using IndexedDB, and new granular loading indicators for processing states (uploading, parsing, mapping). A new toggleable `Keyword Performance Overview Table` has been added.
+🔍 **Description**: Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, and basic mapping persistence. **Stability improvements have been implemented for data visualization consistency and performance, specifically addressing React Hook order issues.** The dashboard now also features enhanced CSV data processing feedback with row-level error information and robust date sorting, per-column filtering, custom sort functions, persistent table state using IndexedDB, and new granular loading indicators for processing states (uploading, parsing, mapping). A new toggleable `Keyword Performance Overview Table` has been added. Standardized application-wide status notifications have been integrated using the `use-toast` hook for consistent feedback.
 
 The Overview Dashboard is a central hub for analyzing key business metrics. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools. The CSV Data Mapper now includes data validation to ensure data integrity. Charts are now rendered using the ReusableChart component for improved consistency and maintainability. The dashboard now includes Print and Download PDF options.
 
-**Recent Improvements (Version 1.2.0):**
+**Recent Improvements (Version 1.3.1):**
+
+- Integrated standardized application-wide status notifications using the `use-toast` hook.
 
 **How to Use the Overview Dashboard:**
 
@@ -120,7 +122,7 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 ### Listing Quality Checker
 
 **Status**: ✅ Active
-**Version**: 1.5.0
+**Version**: 1.6.0
 
 🔍 **Description**: AI-powered listing analysis and optimization tool.
 **Features**:
@@ -128,28 +130,30 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
 - AI title/description/bullet optimization
 - Image validation
 - SEO recommendations
+- ASIN analysis
+- Quality scoring
+- Mobile check
 
 **Implementation Details**:
 
 - ASIN validation using regex pattern `^[A-Z0-9]{10}$`
 - CSV processing with FileReader API and error boundaries
 - Mock data integration for ASIN lookup (see `fetchAsinDataMock`)
-  **Limitations**:
+- Updated to use standard Shadcn/ui `Card` components for consistent UI.
+
+**Limitations**:
+
 - Requires real Amazon Product API integration for live ASIN checks
 - Bulk processing limited to 1000 rows per CSV
 - Lacks input sanitization for HTML descriptions
 
-- ASIN analysis
-- Quality scoring
-- Mobile check
+**Recent Updates (2025-05-28)**:
 
-**Recent Updates (2025-04-22)**:
+- Adopted `Card` components from `shadcn/ui` for improved UI consistency.
+- Standardized toast notifications for user feedback with improved messaging.
 
-- Added CSV validation with error boundaries
-- Implemented toast notifications for user feedback
-- Added file input ref management
-- Created mock API endpoint structure
-  **Pending Tasks**:
+**Pending Tasks**:
+
 - Real API integration (High Priority)
 - Performance optimization for large files
 

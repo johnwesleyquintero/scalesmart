@@ -1,10 +1,12 @@
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast.ts';
 import { type TrendDataPoint } from '@/lib/amazon-tools/keyword-trend-service';
 import {
   AlertCircle,
   Download,
   FileText,
   Info as InfoIcon,
+  Loader2,
+  Search,
   Upload,
   XCircle,
 } from 'lucide-react';
@@ -23,7 +25,9 @@ import {
 
 // Local/UI Imports (Consistent with other tools)
 import { Button } from '@/components/ui/button';
-import { CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { KeywordTrendService } from '@/lib/amazon-tools/keyword-trend-service';
 import DataCard from './DataCard';
@@ -52,6 +56,66 @@ export default function KeywordTrendAnalyzer() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // State for manual input
+  const [keyword, setKeyword] = useState<string>('');
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+
+  const handleAnalyze = useCallback(async () => {
+    if (!keyword || !startDate || !endDate) {
+      toast({
+        title: 'Input Required',
+        description: 'Please enter a keyword, start date, and end date.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    setError(undefined);
+    setChartData([]);
+    setKeywords([]);
+
+    try {
+      // Mock data for demonstration
+      const mockData: TrendDataPoint[] = [
+        { date: '2023-01-01', [keyword]: 100 },
+        { date: '2023-01-02', [keyword]: 120 },
+        { date: '2023-01-03', [keyword]: 110 },
+        { date: '2023-01-04', [keyword]: 130 },
+        { date: '2023-01-05', [keyword]: 150 },
+      ];
+
+      const { chartData: processedData, keywords: foundKeywords } =
+        await KeywordTrendService.analyzeTrends(mockData);
+
+      setChartData(processedData);
+      setKeywords(foundKeywords);
+      setError(undefined);
+
+      toast({
+        title: 'Analysis Complete',
+        description: `Successfully analyzed trend for "${keyword}".`,
+        variant: 'success',
+      });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : 'An unknown error occurred during analysis.';
+      setError(message);
+      setChartData([]);
+      setKeywords([]);
+      toast({
+        title: 'Analysis Failed',
+        description: message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [keyword, startDate, endDate, toast]);
 
   const handleFileUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,6 +193,7 @@ export default function KeywordTrendAnalyzer() {
             toast({
               title: 'Analysis Complete',
               description: `Successfully analyzed trends for ${foundKeywords.length} keywords over ${processedData.length} dates.`,
+              variant: 'success',
             });
 
             console.info('Trend analysis completed successfully', {
@@ -147,6 +212,7 @@ export default function KeywordTrendAnalyzer() {
             toast({
               title: 'Processing Failed',
               description: message,
+              variant: 'destructive',
             });
           } finally {
             setIsLoading(false);
@@ -164,6 +230,7 @@ export default function KeywordTrendAnalyzer() {
           toast({
             title: 'Upload Failed',
             description: `Error reading CSV file: ${err.message}`,
+            variant: 'destructive',
           });
           // Reset file input on read error too
           if (event.target) {
@@ -182,6 +249,7 @@ export default function KeywordTrendAnalyzer() {
       toast({
         title: 'Export Error',
         description: msg,
+        variant: 'warning',
       });
       return;
     }
@@ -202,6 +270,7 @@ export default function KeywordTrendAnalyzer() {
       toast({
         title: 'Export Successful',
         description: 'Keyword trend analysis exported to CSV.',
+        variant: 'success',
       });
     } catch (err: unknown) {
       const message =
@@ -210,6 +279,7 @@ export default function KeywordTrendAnalyzer() {
       toast({
         title: 'Export Failed',
         description: message,
+        variant: 'destructive',
       });
     }
   }, [chartData, toast]);
@@ -224,6 +294,7 @@ export default function KeywordTrendAnalyzer() {
     toast({
       title: 'Data Cleared',
       description: 'All trend analysis results have been removed.',
+      variant: 'info',
     });
   }, [toast]);
 
@@ -254,43 +325,125 @@ export default function KeywordTrendAnalyzer() {
         </div>
       </div>
 
-      {/* Input Card */}
-      <DataCard>
-        <CardContent className="p-6">
-          {' '}
-          {/* Explicit padding control */}
-          <div className="flex flex-col items-center justify-center gap-4 text-center">
-            <div className="rounded-full bg-primary/10 p-3">
-              <Upload className="h-6 w-6 text-primary" />
+      {/* Input Section */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* CSV Upload Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Upload Keyword Trend Data
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Analyze search volume trends from a CSV file
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center gap-4 text-center">
+              <div className="rounded-full bg-primary/10 p-3">
+                <Upload className="h-6 w-6 text-primary" />
+              </div>
+              <div className="w-full max-w-md">
+                <label className="relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5">
+                  <FileText className="mb-2 h-8 w-8 text-primary/60" />
+                  <span className="text-sm font-medium">
+                    Click or drag CSV file here
+                  </span>
+                  <span className="text-xs text-muted-foreground mt-1">
+                    (Requires: {REQUIRED_COLUMNS.join(', ')})
+                  </span>
+                  <input
+                    type="file"
+                    accept=".csv, text/csv"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    disabled={isLoading}
+                    ref={fileInputRef}
+                  />
+                </label>
+              </div>
             </div>
-            <div>
-              <h3 className="text-lg font-medium">Upload Keyword Trend Data</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Analyze search volume trends from a CSV file
-              </p>
-            </div>
-            <div className="w-full max-w-md">
-              <label className="relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5">
-                <FileText className="mb-2 h-8 w-8 text-primary/60" />
-                <span className="text-sm font-medium">
-                  Click or drag CSV file here
-                </span>
-                <span className="text-xs text-muted-foreground mt-1">
-                  (Requires: {REQUIRED_COLUMNS.join(', ')})
-                </span>
-                <input
-                  type="file"
-                  accept=".csv, text/csv"
-                  className="hidden"
-                  onChange={handleFileUpload}
+          </CardContent>
+        </Card>
+
+        {/* Manual Input Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Manual Keyword Trend Analysis
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Enter a keyword to analyze its search trend over time.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col items-center justify-center gap-4 text-center">
+              <div className="rounded-full bg-primary/10 p-3">
+                <Search className="h-6 w-6 text-primary" />
+              </div>
+              <div className="w-full space-y-4">
+                <div>
+                  <Label
+                    htmlFor="keyword-input"
+                    className="text-sm font-medium"
+                  >
+                    Keyword
+                  </Label>
+                  <Input
+                    id="keyword-input"
+                    type="text"
+                    placeholder="e.g., 'garlic press'"
+                    value={keyword}
+                    onChange={(e) => setKeyword(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="start-date" className="text-sm font-medium">
+                    Start Date
+                  </Label>
+                  <Input
+                    id="start-date"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="end-date" className="text-sm font-medium">
+                    End Date
+                  </Label>
+                  <Input
+                    id="end-date"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <Button
+                  onClick={handleAnalyze}
+                  className="w-full"
                   disabled={isLoading}
-                  ref={fileInputRef}
-                />
-              </label>
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    'Analyze Trend'
+                  )}
+                </Button>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Uses mock data for demonstration. Replace with actual API
+                  call.
+                </p>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </DataCard>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Action Buttons (Export/Clear) */}
       {chartData.length > 0 && !isLoading && (
@@ -337,11 +490,16 @@ export default function KeywordTrendAnalyzer() {
 
       {/* Results Section */}
       {chartData.length > 0 && !isLoading && (
-        <DataCard>
-          <CardContent className="p-4 space-y-4">
-            <h2 className="text-xl font-semibold border-b pb-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
               Keyword Trend Analysis ({keywords.length} Keywords)
-            </h2>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Visualizing search volume trends over time.
+            </p>
+          </CardHeader>
+          <CardContent>
             <div className="h-[450px] w-full">
               {' '}
               {/* Ensure container has height */}
@@ -397,7 +555,7 @@ export default function KeywordTrendAnalyzer() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </DataCard>
+        </Card>
       )}
     </div>
   );

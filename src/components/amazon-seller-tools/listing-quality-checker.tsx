@@ -17,15 +17,14 @@ import React, { useCallback, useRef, useState } from 'react'; // Added React imp
 import { cachedFetch } from '@/lib/api-cache';
 
 // Local/UI Imports
-import DataCard from '@/components/amazon-seller-tools/DataCard';
 
 import { Badge } from '@/components/ui/badge'; // Added Badge import
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label'; // Added
 import { Progress } from '@/components/ui/progress';
-import { useToast } from '@/hooks/use-toast'; // Keep one useToast import
+import { useToast } from '@/hooks/use-toast.ts'; // Keep one useToast import
 
 // Lib/Logic Imports (Assuming KeywordIntelligence exists and works as expected)
 // NOTE: KeywordIntelligence logic is simplified/mocked in processCSVRow
@@ -509,8 +508,9 @@ export default function ListingQualityChecker() {
           setListings(processedData);
           setError(undefined);
           toast({
-            title: 'Success',
+            title: 'CSV Processed',
             description: `${file.name} processed successfully with ${processedData.length} listings.`,
+            variant: 'success',
           });
         } catch (uploadError) {
           const errorMessage =
@@ -520,8 +520,9 @@ export default function ListingQualityChecker() {
           setError(`An error occurred: ${errorMessage}`);
           setListings([]); // Clear listings on error
           toast({
-            title: 'Error Processing CSV',
+            title: 'CSV Processing Error',
             description: errorMessage,
+            variant: 'destructive',
           });
         } finally {
           setIsLoading(false);
@@ -534,8 +535,9 @@ export default function ListingQualityChecker() {
       reader.onerror = () => {
         setError('Failed to read the file.');
         toast({
-          title: 'Error Reading File',
+          title: 'File Read Error',
           description: 'Could not read the selected file.',
+          variant: 'destructive',
         });
         setIsLoading(false);
         if (fileInputRef.current) {
@@ -605,6 +607,7 @@ export default function ListingQualityChecker() {
       toast({
         title: 'Input Required',
         description: 'Please enter an ASIN to check.',
+        variant: 'warning',
       });
       return;
     }
@@ -615,6 +618,7 @@ export default function ListingQualityChecker() {
       toast({
         title: 'Invalid Format',
         description: 'ASIN should be 10 letters/numbers.',
+        variant: 'warning',
       });
       return;
     }
@@ -631,12 +635,14 @@ export default function ListingQualityChecker() {
         toast({
           title: 'ASIN Already Added',
           description: `Analysis for ASIN ${trimmedAsin} is already displayed.`,
+          variant: 'info',
         });
       } else {
         setListings((prevListings) => [...prevListings, newListing]);
         toast({
           title: 'ASIN Check Complete',
           description: `Analysis for ${trimmedAsin} added.`,
+          variant: 'success',
         });
       }
       setAsin(''); // Clear input after successful check
@@ -650,6 +656,7 @@ export default function ListingQualityChecker() {
       toast({
         title: 'ASIN Check Failed',
         description: errorMessage,
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -666,6 +673,7 @@ export default function ListingQualityChecker() {
     toast({
       title: 'Data Cleared',
       description: 'All listing analysis results have been removed.',
+      variant: 'info',
     });
   }, [toast]);
 
@@ -675,6 +683,7 @@ export default function ListingQualityChecker() {
       toast({
         title: 'Export Error',
         description: 'No analysis results to export.',
+        variant: 'warning',
       });
       return;
     }
@@ -712,6 +721,7 @@ export default function ListingQualityChecker() {
       toast({
         title: 'Export Successful',
         description: 'Analysis results exported to CSV.',
+        variant: 'success',
       });
     } catch (err) {
       const message =
@@ -758,18 +768,19 @@ export default function ListingQualityChecker() {
       {/* Input Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* CSV Upload Card */}
-        <DataCard>
-          {/* Using CardContent directly for padding control */}
-          <CardContent className="p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
+              Upload Listings CSV
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Bulk analyze listings from a CSV file
+            </p>
+          </CardHeader>
+          <CardContent>
             <div className="flex flex-col items-center justify-center gap-4 text-center">
               <div className="rounded-full bg-primary/10 p-3">
                 <Upload className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-lg font-medium">Upload Listings CSV</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Bulk analyze listings from a CSV file
-                </p>
               </div>
               <div className="w-full">
                 <label className="relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5">
@@ -792,14 +803,19 @@ export default function ListingQualityChecker() {
               </div>
             </div>
           </CardContent>
-        </DataCard>
+        </Card>
 
         {/* ASIN Check Card */}
-        <DataCard>
-          <CardContent className="p-6">
-            <h3 className="text-lg font-medium mb-4 text-center sm:text-left">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
               Check Single Listing by ASIN
-            </h3>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Analyze a single listing by its ASIN
+            </p>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
               <div>
                 <Label htmlFor="asin-input" className="text-sm font-medium">
@@ -830,21 +846,21 @@ export default function ListingQualityChecker() {
                   call.
                 </p>
               </div>
+              {/* Display error specific to ASIN check if needed */}
+              {error && asin && (
+                <Card className="mt-4 bg-destructive/10 text-destructive">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-5 w-5" />
+                      <h3 className="font-semibold">ASIN Check Error</h3>
+                    </div>
+                    <div className="mt-3 text-sm">{error}</div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
-            {/* Display error specific to ASIN check if needed */}
-            {error && asin && (
-              <Card className="mt-4 bg-destructive/10 text-destructive">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <AlertCircle className="h-5 w-5" />
-                    <h3 className="font-semibold">ASIN Check Error</h3>
-                  </div>
-                  <div className="mt-3 text-sm">{error}</div>
-                </CardContent>
-              </Card>
-            )}
           </CardContent>
-        </DataCard>
+        </Card>
       </div>
 
       {/* Action Buttons */}
@@ -859,7 +875,7 @@ export default function ListingQualityChecker() {
             onClick={clearData}
             disabled={isLoading}
           >
-            <X className="mr-2 h-4 w-4" />
+            <XCircle className="mr-2 h-4 w-4" />
             Clear Results
           </Button>
         </div>
@@ -895,11 +911,16 @@ export default function ListingQualityChecker() {
 
       {/* Results Section */}
       {listings.length > 0 && !isLoading && (
-        <DataCard>
-          <CardContent className="p-4 space-y-6">
-            <h2 className="text-xl font-semibold border-b pb-3">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">
               Analysis Results ({listings.length} Listings)
-            </h2>
+            </CardTitle>
+            <p className="text-xs text-muted-foreground">
+              Detailed quality analysis for your listings
+            </p>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-4">
               {listings.map((listing, index) => (
                 <Card key={`${listing.product}-${index}`}>
@@ -994,53 +1015,55 @@ export default function ListingQualityChecker() {
                             </span>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Issues & Suggestions */}
-                      <div>
-                        <h4 className="mb-2 text-sm font-medium text-muted-foreground">
-                          Analysis
-                        </h4>
-                        <div className="space-y-3 rounded-lg border p-3 min-h-[180px]">
-                          {listing.issues.length > 0 ? (
-                            <div className="space-y-1">
-                              <h5 className="text-xs font-semibold text-red-600 dark:text-red-400">
-                                Detected Issues ({listing.issues.length}):
-                              </h5>
-                              <ul className="list-inside list-disc space-y-1 text-sm text-red-700 dark:text-red-300">
-                                {listing.issues.map(
-                                  (issue: string, i: number) => (
-                                    <li key={`issue-${index}-${i}`}>{issue}</li>
-                                  ),
-                                )}
-                              </ul>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-green-600 dark:text-green-400 flex items-center">
-                              <CheckCircle className="mr-1 h-4 w-4 flex-shrink-0" />{' '}
-                              No major issues found.
-                            </p>
-                          )}
-                          {listing.suggestions.length > 0 ? (
-                            <div className="space-y-1 pt-3 border-t border-dashed mt-3">
-                              <h5 className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                                Suggestions ({listing.suggestions.length}):
-                              </h5>
-                              <ul className="list-inside list-disc space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                                {listing.suggestions.map(
-                                  (suggestion: string, i: number) => (
-                                    <li key={`suggestion-${index}-${i}`}>
-                                      {suggestion}
-                                    </li>
-                                  ),
-                                )}
-                              </ul>
-                            </div>
-                          ) : (
-                            <p className="text-sm text-muted-foreground pt-3 border-t border-dashed mt-3">
-                              No specific suggestions at this time.
-                            </p>
-                          )}
+                        {/* Issues & Suggestions */}
+                        <div>
+                          <h4 className="mb-2 text-sm font-medium text-muted-foreground">
+                            Analysis
+                          </h4>
+                          <div className="space-y-3 rounded-lg border p-3 min-h-[180px]">
+                            {listing.issues.length > 0 ? (
+                              <div className="space-y-1">
+                                <h5 className="text-xs font-semibold text-red-600 dark:text-red-400">
+                                  Detected Issues ({listing.issues.length}):
+                                </h5>
+                                <ul className="list-inside list-disc space-y-1 text-sm text-red-700 dark:text-red-300">
+                                  {listing.issues.map(
+                                    (issue: string, i: number) => (
+                                      <li key={`issue-${index}-${i}`}>
+                                        {issue}
+                                      </li>
+                                    ),
+                                  )}
+                                </ul>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-green-600 dark:text-green-400 flex items-center">
+                                <CheckCircle className="mr-1 h-4 w-4 flex-shrink-0" />{' '}
+                                No major issues found.
+                              </p>
+                            )}
+                            {listing.suggestions.length > 0 ? (
+                              <div className="space-y-1 pt-3 border-t border-dashed mt-3">
+                                <h5 className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                                  Suggestions ({listing.suggestions.length}):
+                                </h5>
+                                <ul className="list-inside list-disc space-y-1 text-sm text-blue-700 dark:text-blue-300">
+                                  {listing.suggestions.map(
+                                    (suggestion: string, i: number) => (
+                                      <li key={`suggestion-${index}-${i}`}>
+                                        {suggestion}
+                                      </li>
+                                    ),
+                                  )}
+                                </ul>
+                              </div>
+                            ) : (
+                              <p className="text-sm text-muted-foreground pt-3 border-t border-dashed mt-3">
+                                No specific suggestions at this time.
+                              </p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -1049,11 +1072,8 @@ export default function ListingQualityChecker() {
               ))}
             </div>
           </CardContent>
-        </DataCard>
+        </Card>
       )}
     </div>
   );
 }
-
-// Rollback strategy: To revert to the previous version, simply remove the cachedFetch import
-// and replace cachedFetch with fetch.

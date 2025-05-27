@@ -1,7 +1,7 @@
 'use client';
 // Move 'use client' directive to the top of the file
 
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import CardHeader, CardTitle
 import {
   AlertCircle,
   Download,
@@ -642,8 +642,11 @@ export default function PpcCampaignAuditor() {
       </div>
 
       {/* Upload Card */}
-      <DataCard>
-        <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
+      <Card className="flex-1">
+        <CardHeader>
+          <CardTitle>Upload Campaign Report</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center justify-center gap-4 p-6 text-center">
           <div className="rounded-full bg-primary/10 p-3">
             <Upload className="h-6 w-6 text-primary" />
           </div>
@@ -679,8 +682,8 @@ export default function PpcCampaignAuditor() {
               )}
             </div>
           </div>
-        </div>
-      </DataCard>
+        </CardContent>
+      </Card>
 
       {/* Error Display */}
       <ErrorDisplay />
@@ -700,7 +703,10 @@ export default function PpcCampaignAuditor() {
 
       {/* Results Section */}
       {campaigns.length > 0 && !isLoading && (
-        <DataCard>
+        <Card>
+          <CardHeader>
+            <CardTitle>Audit Results ({campaigns.length} Campaigns)</CardTitle>
+          </CardHeader>
           <CardContent className="p-4 space-y-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2 border-b pb-3">
               <h2 className="text-xl font-semibold">
@@ -719,7 +725,7 @@ export default function PpcCampaignAuditor() {
               ))}
             </div>
           </CardContent>
-        </DataCard>
+        </Card>
       )}
     </div>
   );

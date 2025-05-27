@@ -1,20 +1,25 @@
-import { useToast as useToastUI } from '@/app/hooks/use-toast';
+import {
+  useToast as useToastUI,
+  ToasterToast,
+} from '@/app/hooks/use-toast.tsx';
 
 export function useToast() {
-  const { toast: toastUI, dismiss } = useToastUI();
+  const { toast: toastUI } = useToastUI();
   return {
     toast: ({
       title,
       description,
-    }: {
-      title: string;
-      description?: string;
-    }) => {
+      variant,
+      duration,
+      action,
+    }: Omit<ToasterToast, 'id'>) => {
       toastUI({
         title,
         description,
+        variant,
+        duration,
+        action,
       });
     },
-    dismiss,
   };
 }

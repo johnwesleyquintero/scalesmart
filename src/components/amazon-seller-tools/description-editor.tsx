@@ -27,7 +27,7 @@ import { z } from 'zod';
 // UI Imports
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import CardHeader, CardTitle
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -748,17 +748,17 @@ export default function DescriptionEditor() {
       {/* Input Section */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* CSV Upload Card */}
-        <DataCard>
-          <div className="flex flex-col items-center justify-center gap-4 p-6 text-center">
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle>Upload Descriptions CSV</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col items-center justify-center gap-4 p-6 text-center">
             <div className="rounded-full bg-primary/10 p-3">
               <Upload className="h-6 w-6 text-primary" />
             </div>
-            <div>
-              <h3 className="text-lg font-medium">Upload Descriptions CSV</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Bulk upload product details
-              </p>
-            </div>
+            <p className="text-sm text-muted-foreground mb-4">
+              Bulk upload product details
+            </p>
             <div className="w-full">
               <label className="relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5">
                 <FileText className="mb-2 h-8 w-8 text-primary/60" />
@@ -778,16 +778,21 @@ export default function DescriptionEditor() {
                 />
               </label>
             </div>
-          </div>
-        </DataCard>
+          </CardContent>
+        </Card>
 
         {/* Manual Add Product Card */}
-        <DataCard>
-          <ManualAddProductForm
-            onSubmit={handleManualSubmit}
-            isLoading={isLoading}
-          />
-        </DataCard>
+        <Card className="flex-1">
+          <CardHeader>
+            <CardTitle>Add Product Manually</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ManualAddProductForm
+              onSubmit={handleManualSubmit}
+              isLoading={isLoading}
+            />
+          </CardContent>
+        </Card>
       </div>
 
       {/* Action Buttons */}

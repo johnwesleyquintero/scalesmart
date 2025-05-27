@@ -47,28 +47,21 @@ The "Overview" tab is the primary landing spot for data analysis.
     _(Ideally, replace this with an actual screenshot of the CsvUploader component in action)_
 
 - Added a transformation configuration modal to allow users to configure transformations for each mapped field.
-
 - **Enhanced CSV Data Processing Feedback:** The system now provides detailed, row-level error information to help users troubleshoot issues with their uploaded CSV files. Valid rows are still processed, with clear indications of any skipped rows or rows with issues. Enhanced loading indicators (`isParsing`, `isMapping`, `isLoading`) provide more context during parsing, mapping, and general processing, including robust date sorting to gracefully handle invalid date values.
+- **Standardized Application-Wide Status Notifications:** Implemented `use-toast` for consistent notifications across the application, confirming successful operations, issuing warnings, and confirming state persistence.
 
 ### 3.2. Viewing Data
 
 Once mapping is complete and the data is processed:
 
 - **KPI Cards:**
-
   - **Summary KPIs:** Cards at the top display overall averages or totals for metrics like "Avg. Conversion Rate," "Total Sales," and "Avg. Clicks."
   - **Period-over-Period Comparison KPIs:** This section shows key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
-
 - **Charts:** Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the `ReusableChart` component.
-
 - **Data Table:** Displaying the data in a sortable and filterable table using the `TableChart` component. The table now supports customizable empty state content, improved column spanning, per-column filtering, custom sort functions, and persistent table state.
-
 - **Keyword Performance Overview Table:** Accessible via a toggle button, this table provides granular insights into keyword-specific metrics.
-
 - **Time Granularity:**
-
   - Use the "Select Time Granularity" dropdown to change the aggregation period (Daily, Weekly, Monthly, Quarterly, Yearly). Charts and KPI comparisons will update accordingly.
-
 - **Time Range Filtering:**
 
   - Use the time range selector in the top right corner of each chart to filter the data by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
@@ -84,9 +77,7 @@ Once mapping is complete and the data is processed:
 ### 3.4. Interacting with the Dashboard
 
 - The dashboard now displays sample data when no CSV file is uploaded.
-
 - **Refresh:** Click the "Refresh" button in the `DashboardHeader` to clear current data and start over (e.g., to upload a new file).
-
 - **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
 - **Print:** Click the "Print" button to print the dashboard report.
 - **Download PDF:** Click the "Download PDF" button to download the dashboard report as a PDF file.
@@ -352,8 +343,6 @@ function MyComponent() {
 }
 ```
 
----
-
 ## 12. IndexedDB Integration
 
 IndexedDB is used for local, browser-based data storage. This allows the tools to store user-specific data, such as saved calculations and preferences, improving performance and enabling offline functionality. The ACoS calculator now stores calculation history in IndexedDB. See [IndexedDB Integration Documentation](data-storage/indexeddb_integration.md) for more details. The `indexeddb-service.ts` file provides an interface for interacting with the IndexedDB database.
@@ -381,6 +370,7 @@ The following improvements have been implemented:
 - Added a loading indicator to the `OverviewTab` component to show the status of the upload, parsing, and processing stages.
 - Implemented basic mapping persistence using IndexedDB to save the user's last-used column mapping preferences. On subsequent uploads, the mapping suggestions are pre-populated based on the saved configuration.
 - Added tooltips and help text to specialized tools to provide in-context guidance for each tool's purpose, key inputs, and expected outputs.
+- Updated styling in `listing-quality-checker.tsx` to use `Card` and its sub-components (`CardHeader`, `CardTitle`, `CardContent`) for consistent UI with `shadcn/ui` conventions, replacing custom `DataCard` usage in relevant sections, specifically around ASIN input and results display, to adhere to standard patterns for enhanced clarity and maintainability.
 
 ---
 

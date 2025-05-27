@@ -1,4 +1,4 @@
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast.ts';
 import { Course, QuizResult } from '@/types';
 import { useCallback } from 'react';
 import useAcademyStorageService from '@/lib/academy-storage-service';

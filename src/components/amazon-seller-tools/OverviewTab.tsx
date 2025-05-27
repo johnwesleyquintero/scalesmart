@@ -98,6 +98,7 @@ import {
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import KeywordPerformanceOverviewTable from './KeywordPerformanceOverviewTable';
+import { useToast } from '@/hooks/use-toast.ts'; // Import useToast hook
 
 import type { CsvColumnMapping } from '@/types/data-mapping';
 import type { TableChartProps } from '@/components/amazon-seller-tools/charts/TableChart'; // Import TableChartProps
@@ -181,6 +182,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const totalRowsRef = useRef(0); // Ref to store total rows from CSV
   const processedRowsRef = useRef(0); // Ref to store count of rows processed
+  const { toast } = useToast(); // Initialize useToast hook
 
   useEffect(() => {
     const loadSavedMapping = async () => {
@@ -235,7 +237,14 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      toast({
+        title: 'No file selected',
+        description: 'Please choose a CSV file to upload.',
+        variant: 'warning',
+      });
+      return;
+    }
 
     setIsUploading(true); // Start uploading indicator
     setIsParsing(true); // Start parsing indicator
@@ -252,6 +261,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     totalRowsRef.current = 0; // Reset on new file selection
     processedRowsRef.current = 0; // Reset on new file selection
 
+    toast({
+      title: 'CSV Upload Started',
+      description: 'Uploading and parsing your CSV file...',
+      variant: 'info',
+      duration: 3000,
+    });
+
     Papa.parse<Record<string, string>>(file, {
       header: true,
       preview: 2,
@@ -261,6 +277,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         const sampleRow = results.data[0] as Record<string, string> | undefined;
         if (!headers || headers.length === 0) {
           setError('Could not read headers from the CSV file. Is it valid?');
+          toast({
+            title: 'Upload Failed',
+            description:
+              'Could not read headers from the CSV file. Is it valid?',
+            variant: 'destructive',
+          });
           setIsParsing(false);
           setIsUploading(false);
           setIsLoading(false); // Set isLoading to false on error
@@ -275,10 +297,21 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         setIsUploading(false); // Uploading is complete
         setIsLoading(false); // Set isLoading to false after successful header parsing
         setIsMapping(true); // Now user is in mapping stage
+        toast({
+          title: 'CSV Uploaded Successfully',
+          description: 'Now mapping your data columns.',
+          variant: 'success',
+          duration: 3000,
+        });
       },
       error: (error: Error, file: File) => {
         // Corrected type signature
         setError(`Failed to read file headers: ${error.message}`);
+        toast({
+          title: 'Upload Error',
+          description: `Failed to read file headers: ${error.message}`,
+          variant: 'destructive',
+        });
         setIsParsing(false);
         setIsUploading(false);
         setIsLoading(false); // Set isLoading to false on error
@@ -331,22 +364,71 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     });
   };
 
+  // Add these helper functions before handleMappingComplete
+  const generateProcessingStatus = (
+    validMetrics: DashboardMetrics[],
+    totalRows: number,
+    collectedErrors: TransformationError[],
+  ): {
+    message: string;
+    variant: 'success' | 'warning' | 'destructive' | 'info';
+    title: string;
+  } => {
+    let statusMessage = '';
+    let toastVariant: 'success' | 'warning' | 'destructive' | 'info' = 'info';
+    let toastTitle = 'Data Processing Complete';
+
+    if (validMetrics.length > 0) {
+      statusMessage = `Successfully processed ${validMetrics.length} of ${totalRows} rows.`;
+      toastVariant = 'success';
+    } else {
+      statusMessage = `No valid data extracted from ${totalRows} rows.`;
+      toastVariant = 'warning';
+    }
+
+    const skippedRows = totalRows - validMetrics.length;
+    if (skippedRows > 0) {
+      statusMessage += ` ${skippedRows} row(s) were skipped due to critical errors.`;
+      toastVariant = 'warning';
+    }
+
+    const errorCount = collectedErrors.filter((e) => e.type === 'error').length;
+    const warningCount = collectedErrors.filter(
+      (e) => e.type === 'warning',
+    ).length;
+
+    if (errorCount > 0) {
+      statusMessage += ` Found ${errorCount} transformation error(s).`;
+      toastVariant = 'destructive';
+      toastTitle = 'Data Processing with Errors';
+    }
+    if (warningCount > 0) {
+      statusMessage += ` Found ${warningCount} warning(s).`;
+      if (toastVariant !== 'destructive') {
+        toastVariant = 'warning';
+        toastTitle = 'Data Processing with Warnings';
+      }
+    }
+
+    return { message: statusMessage, variant: toastVariant, title: toastTitle };
+  };
+
   const handleMappingComplete = async (mapping: CsvColumnMapping) => {
     if (!selectedFile) {
       setError('No file selected for processing.');
       setShowMapper(false);
-      setIsMapping(false); // Ensure mapping is false
+      setIsMapping(false);
       return;
     }
 
-    setShowMapper(false); // Hide mapper
-    setIsMapping(false); // Mapping is complete
-    setIsProcessing(true); // Start processing indicator
+    setShowMapper(false);
+    setIsMapping(false);
+    setIsProcessing(true);
     setError(null);
-    setParsingErrors([]); // Clear previous errors
+    setParsingErrors([]);
     setMetrics([]);
-    totalRowsRef.current = 0; // Reset for actual processing parse
-    processedRowsRef.current = 0; // Reset for actual processing parse
+    totalRowsRef.current = 0;
+    processedRowsRef.current = 0;
 
     try {
       const { validMetrics, collectedErrors, totalRows } = await processCsvData(
@@ -356,57 +438,48 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
       setMetrics(validMetrics);
       setParsingErrors(collectedErrors);
-      totalRowsRef.current = totalRows; // Ensure ref is updated after complete parse
+      totalRowsRef.current = totalRows;
 
-      let statusMessage = '';
-      if (validMetrics.length > 0) {
-        statusMessage = `Successfully processed ${validMetrics.length} of ${totalRows} rows.`;
-      } else {
-        statusMessage = `No valid data extracted from ${totalRows} rows.`;
-      }
+      const { message, variant, title } = generateProcessingStatus(
+        validMetrics,
+        totalRows,
+        collectedErrors,
+      );
 
-      const skippedRows = totalRows - validMetrics.length;
-      if (skippedRows > 0) {
-        statusMessage += ` ${skippedRows} row(s) were skipped due to critical errors.`;
-      }
-      if (collectedErrors.length > 0) {
-        const errorCount = collectedErrors.filter(
-          (e) => e.type === 'error',
-        ).length;
-        const warningCount = collectedErrors.filter(
-          (e) => e.type === 'warning',
-        ).length;
-        if (errorCount > 0)
-          statusMessage += ` Found ${errorCount} transformation error(s).`;
-        if (warningCount > 0)
-          statusMessage += ` Found ${warningCount} warning(s).`;
-      }
-      setError(statusMessage || null); // Display overall status/summary message
+      setError(message || null);
+      toast({
+        title,
+        description: message,
+        variant,
+        duration: 5000,
+      });
 
+      await setItem('last_csv_mapping', mapping);
       console.log('Valid Metrics:', validMetrics);
       console.log('Collected Errors/Warnings:', collectedErrors);
-
-      // Save the successful mapping to IndexedDB
-      await setItem('last_csv_mapping', mapping);
       console.log('Mapping saved to IndexedDB.');
     } catch (err) {
-      // General file parsing error before row-by-row transformation
       const errorMessage = err instanceof Error ? err.message : String(err);
       setError(`Failed to parse file: ${errorMessage}`);
       setParsingErrors([
         {
-          rowNumber: -1, // Indicates file-level error
+          rowNumber: -1,
           column: 'File',
           message: `General CSV parsing error: ${errorMessage}`,
           type: 'error',
         },
       ]);
+      toast({
+        title: 'Processing Error',
+        description: `Failed to process CSV data: ${errorMessage}`,
+        variant: 'destructive',
+      });
     } finally {
-      setIsProcessing(false); // Processing is complete
+      setIsProcessing(false);
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
-      totalRowsRef.current = 0; // Clear after processing
-      processedRowsRef.current = 0; // Clear after processing
+      totalRowsRef.current = 0;
+      processedRowsRef.current = 0;
     }
   };
 
@@ -523,67 +596,91 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     );
   }, [aggregatedTableMetricsConfig]);
 
-  // Extracted useMemo for product performance data to ensure consistent hook call order
+  // Helper function to filter metrics based on search term
+  const filterMetricsBySearchTerm = useCallback(
+    (allMetrics: DashboardMetrics[], term: string) => {
+      const searchTermLower = term.toLowerCase();
+      if (!searchTermLower) {
+        return allMetrics;
+      }
+      return allMetrics.filter((metric) => {
+        const fieldsToSearch = [
+          metric.asin,
+          metric.unique_identifier,
+          metric.targeted_keyword,
+          metric.keyword,
+        ];
+        return fieldsToSearch.some((fieldValue) =>
+          (fieldValue || '').toLowerCase().includes(searchTermLower),
+        );
+      });
+    },
+    [],
+  );
+
+  // Helper function to initialize an aggregated product metric
+  const initializeAggregatedMetric = (
+    id: string,
+  ): AggregatedProductMetrics => ({
+    unique_identifier: id,
+    total_sales: 0,
+    ad_sales: 0,
+    acos: 0,
+    profit: 0,
+    inventory_level: 0,
+    count: 0,
+    total_ad_spend: 0,
+    total_ad_sales: 0,
+  });
+
+  // Helper function to calculate final product metrics (e.g., ACoS, average inventory)
+  const calculateFinalProductMetrics = (
+    item: AggregatedProductMetrics,
+  ): AggregatedProductMetrics => ({
+    ...item,
+    acos:
+      item.total_ad_sales > 0
+        ? (item.total_ad_spend / item.total_ad_sales) * 100
+        : 0,
+    inventory_level: item.count > 0 ? item.inventory_level / item.count : 0,
+  });
+
+  // Helper function to aggregate product metrics
+  const aggregateProductMetrics = useCallback(
+    (filteredMetrics: DashboardMetrics[]) => {
+      const aggregatedData: { [key: string]: AggregatedProductMetrics } = {};
+
+      filteredMetrics.forEach((metric) => {
+        const id = metric.unique_identifier;
+        if (!id) return;
+
+        if (!aggregatedData[id]) {
+          aggregatedData[id] = initializeAggregatedMetric(id);
+        }
+
+        const currentAgg = aggregatedData[id];
+        currentAgg.total_sales += metric.total_sales || 0;
+        currentAgg.ad_sales += metric.ad_sales || 0;
+        currentAgg.total_ad_spend += metric.ad_spend || 0;
+        currentAgg.total_ad_sales += metric.ad_sales || 0;
+        currentAgg.profit += metric.profit || 0;
+        currentAgg.inventory_level += metric.inventory_level || 0;
+        currentAgg.count++;
+      });
+
+      return Object.values(aggregatedData).map(calculateFinalProductMetrics);
+    },
+    [],
+  );
+
+  // Memoized product performance data using the new helper functions
   const productPerformanceData = useMemo(() => {
     if (metrics.length === 0) {
       return []; // Return empty array if no metrics
     }
-    const aggregatedData: { [key: string]: AggregatedProductMetrics } = {};
-
-    const searchTermLower = searchTerm?.toLowerCase() || ''; // Cache lowercase searchTerm
-
-    const filteredMetrics = metrics.filter((metric) => {
-      const asin = metric.asin?.toLowerCase() || '';
-      const uniqueIdentifier = metric.unique_identifier?.toLowerCase() || '';
-      const targetedKeyword = metric.targeted_keyword?.toLowerCase() || '';
-      const keyword = metric.keyword?.toLowerCase() || '';
-
-      return (
-        asin.includes(searchTermLower) ||
-        uniqueIdentifier.includes(searchTermLower) ||
-        targetedKeyword.includes(searchTermLower) ||
-        keyword.includes(searchTermLower)
-      );
-    });
-
-    filteredMetrics.forEach((metric) => {
-      const id = metric.unique_identifier;
-      if (!id) return;
-
-      if (!aggregatedData[id]) {
-        aggregatedData[id] = {
-          unique_identifier: id,
-          total_sales: 0,
-          ad_sales: 0,
-          acos: 0,
-          profit: 0,
-          inventory_level: 0,
-          count: 0,
-          total_ad_spend: 0,
-          total_ad_sales: 0,
-        };
-      }
-
-      aggregatedData[id].total_sales += metric.total_sales || 0;
-      aggregatedData[id].ad_sales += metric.ad_sales || 0;
-      aggregatedData[id].total_ad_spend += metric.ad_spend || 0;
-      aggregatedData[id].total_ad_sales += metric.ad_sales || 0;
-      aggregatedData[id].profit += metric.profit || 0;
-      aggregatedData[id].inventory_level += metric.inventory_level || 0;
-      aggregatedData[id].count++;
-    });
-
-    return Object.values(aggregatedData).map(
-      (item: AggregatedProductMetrics) => ({
-        ...item,
-        acos:
-          item.total_ad_sales > 0
-            ? (item.total_ad_spend / item.total_ad_sales) * 100
-            : 0,
-        inventory_level: item.count > 0 ? item.inventory_level / item.count : 0,
-      }),
-    );
-  }, [metrics, searchTerm]);
+    const filtered = filterMetricsBySearchTerm(metrics, searchTerm);
+    return aggregateProductMetrics(filtered);
+  }, [metrics, searchTerm, filterMetricsBySearchTerm, aggregateProductMetrics]);
 
   // Memoize rowIdAccessor for Product Performance TableChart
   const productPerformanceRowIdAccessor = useCallback(
@@ -695,19 +792,26 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                   : null;
 
               return (
-                <PlaceholderCard
+                <DataCard
                   key={metricConfig.key}
                   title={metricConfig.label}
                   value={
                     metricValue !== null && typeof metricValue === 'number'
-                      ? metricValue.toLocaleString(undefined, {
-                          style: 'currency',
-                          currency: 'USD',
-                        })
+                      ? metricConfig.expectedType === 'number'
+                        ? metricValue.toLocaleString(undefined, {
+                            style: 'currency',
+                            currency: 'USD',
+                          })
+                        : String(metricValue) // Fallback for other number types
                       : 'N/A'
                   }
+                  unit={
+                    metricConfig.key === 'total_conversion_rate'
+                      ? '%'
+                      : undefined
+                  } // Add unit for conversion rate
                   description="Based on latest data"
-                  colorClass="text-blue-400"
+                  colorClass="text-blue-400" // Consider dynamic color based on metric type or value
                 />
               );
             })}
@@ -768,14 +872,14 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           </div>
           {/* Placeholder KPI Cards now above */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
-            <PlaceholderCard
+            <DataCard
               title="Avg. Conversion Rate"
               value={SAMPLE_CARD_DATA.total_conversion_rate.toFixed(2)}
               unit="%"
               description={DESC_SAMPLE_DATA}
               colorClass="text-blue-400"
             />
-            <PlaceholderCard
+            <DataCard
               title="Total Sales"
               value={SAMPLE_CARD_DATA.total_sales_sample.toLocaleString(
                 undefined,
@@ -784,7 +888,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               description={DESC_SAMPLE_DATA}
               colorClass="text-green-400"
             />
-            <PlaceholderCard
+            <DataCard
               title="Avg. Clicks"
               value={SAMPLE_CARD_DATA.avg_clicks.toFixed(1)}
               description={DESC_SAMPLE_DATA}
@@ -794,9 +898,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </>
       )}
 
-      {/* AddEventModal moved outside conditional block */}
-      <AddEventModal onSave={handleAddEvent} />
-
+      {/* Remove AddEventModal and its related logic */}
       {/* Product Performance Overview Table (Always rendered, data conditional) */}
       <div className="mb-4 p-4 border rounded-md bg-muted/40">
         <h3 className="text-lg font-semibold mb-2">
@@ -839,94 +941,4 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   );
 };
 
-interface AddEventModalProps {
-  onSave: (date: Date | undefined, title: string, description: string) => void;
-}
-const AddEventModal: React.FC<AddEventModalProps> = ({ onSave }) => {
-  const [open, setOpen] = useState(false);
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [title, setTitle] = useState<string>('');
-  const [description, setDescription] = useState<string>('');
-
-  const handleSubmit = () => {
-    onSave(date, title, description);
-    setOpen(false); // Close modal after saving
-    // Optionally reset form fields
-    setDate(new Date());
-    setTitle('');
-    setDescription('');
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Add Event</Button>
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Add Event</DialogTitle>
-          <DialogDescription>
-            Add event details to be displayed on the chart.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="date" className="text-right">
-              Date
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={'outline'}
-                  className={cn(
-                    'w-[240px] justify-start text-left font-normal',
-                    !date && 'text-muted-foreground',
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date ? format(date, 'PPP') : <span>Pick a date</span>}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Title
-            </Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="description" className="text-right">
-              Description
-            </Label>
-            <Input
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="col-span-3"
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="submit" onClick={handleSubmit}>
-            Save
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-};
 export default OverviewTab;

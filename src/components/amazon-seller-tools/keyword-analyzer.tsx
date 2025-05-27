@@ -1,8 +1,8 @@
 // src/components/amazon-seller-tools/keyword-analyzer.tsx
 'use client';
 
-import { useToast } from '@/hooks/use-toast';
-import { fetchKeywordAnalysis } from '@/lib/api/keyword-analysis';
+import { useToast } from '@/hooks/use-toast.ts';
+import { fetchKeywordAnalysis } from '@/lib/api/keyword-analysis.ts';
 import { logError } from '@/lib/error-handling';
 import { type KeywordAnalysis } from '@/lib/keyword-intelligence';
 import {
@@ -30,7 +30,7 @@ import {
 // Local/UI Imports
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
@@ -227,17 +227,17 @@ const CsvUploadSection: React.FC<CsvUploadSectionProps> = ({
   isLoading,
   fileInputRef,
 }) => (
-  <DataCard>
-    <CardContent className="p-6">
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-sm font-medium">Upload Keywords CSV</CardTitle>
+      <p className="text-xs text-muted-foreground">
+        Bulk analyze keywords from a CSV file
+      </p>
+    </CardHeader>
+    <CardContent>
       <div className="flex flex-col items-center justify-center gap-4 text-center">
         <div className="rounded-full bg-primary/10 p-3">
           <Upload className="h-6 w-6 text-primary" />
-        </div>
-        <div>
-          <h3 className="text-lg font-medium">Upload Keywords CSV</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            Bulk analyze keywords from a CSV file
-          </p>
         </div>
         <div className="w-full">
           <label className="relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5">
@@ -246,7 +246,7 @@ const CsvUploadSection: React.FC<CsvUploadSectionProps> = ({
               Click or drag CSV file here
             </span>
             <span className="text-xs text-muted-foreground mt-1">
-              (Requires: {REQUIRED_CSV_HEADERS.join(', ')})
+              (Requires: product, keywords)
             </span>
             <input
               type="file"
@@ -255,18 +255,19 @@ const CsvUploadSection: React.FC<CsvUploadSectionProps> = ({
               onChange={onFileUpload}
               disabled={isLoading}
               ref={fileInputRef}
+              aria-label="Upload CSV file"
             />
           </label>
         </div>
       </div>
     </CardContent>
-  </DataCard>
+  </Card>
 );
 
 interface ManualAnalysisSectionProps {
   manualKeywords: string;
   onKeywordsChange: (value: string) => void;
-  onAnalyze: () => void;
+  onAnalyze: () => Promise<void>;
   isLoading: boolean;
 }
 
@@ -276,43 +277,141 @@ const ManualAnalysisSection: React.FC<ManualAnalysisSectionProps> = ({
   onAnalyze,
   isLoading,
 }) => (
-  <DataCard>
-    <CardContent className="p-6">
-      <h3 className="text-lg font-medium mb-4 text-center sm:text-left">
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-sm font-medium">
         Manual Keyword Analysis
-      </h3>
+      </CardTitle>
+      <p className="text-xs text-muted-foreground">Analyze keywords manually</p>
+    </CardHeader>
+    <CardContent>
       <div className="space-y-4">
         <div>
           <Label htmlFor="manual-keywords" className="text-sm font-medium">
             Keywords*
           </Label>
-          <div className="flex flex-col sm:flex-row gap-2 mt-1">
-            <Input
-              id="manual-keywords"
-              value={manualKeywords}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                onKeywordsChange(e.target.value);
-              }}
-              placeholder="Enter keywords, comma-separated"
-              className="flex-grow"
-              disabled={isLoading}
-            />
-            <Button
-              onClick={onAnalyze}
-              disabled={isLoading || !manualKeywords.trim()}
-              className="flex-shrink-0 w-full sm:w-auto"
-            >
-              <Search className="mr-2 h-4 w-4" />
-              Analyze
-            </Button>
-          </div>
+          <Input
+            id="manual-keywords"
+            type="text"
+            value={manualKeywords}
+            onChange={(e) => onKeywordsChange(e.target.value)}
+            placeholder="Enter comma-separated keywords (e.g., red shirt, cotton shirt)"
+            className="mt-1"
+            disabled={isLoading}
+          />
           <p className="mt-1 text-xs text-muted-foreground">
-            Separate multiple keywords with commas.
+            Separate keywords with commas.
           </p>
         </div>
+        <Button
+          onClick={onAnalyze}
+          className="w-full"
+          disabled={isLoading || !manualKeywords.trim()}
+        >
+          <Search className="mr-2 h-4 w-4" />
+          {isLoading ? 'Analyzing...' : 'Analyze Keywords'}
+        </Button>
       </div>
     </CardContent>
-  </DataCard>
+  </Card>
+);
+
+interface ActionButtonsProps {
+  onExport: () => void;
+  onClear: () => void;
+  isLoading: boolean;
+  hasData: boolean;
+}
+
+const ActionButtons: React.FC<ActionButtonsProps> = ({
+  onExport,
+  onClear,
+  isLoading,
+  hasData,
+}) =>
+  hasData && !isLoading ? (
+    <div className="flex justify-end gap-2 mb-6">
+      <Button variant="outline" onClick={onExport} disabled={isLoading}>
+        <Download className="mr-2 h-4 w-4" />
+        Export Results
+      </Button>
+      <Button variant="destructive" onClick={onClear} disabled={isLoading}>
+        <XCircle className="mr-2 h-4 w-4" />
+        Clear Results
+      </Button>
+    </div>
+  ) : null;
+
+interface ErrorDisplayProps {
+  error: string | null;
+  onErrorDismiss: () => void;
+}
+
+const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
+  error,
+  onErrorDismiss,
+}) =>
+  error ? (
+    <div className="flex items-center gap-2 rounded-lg bg-red-100 p-3 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+      <AlertCircle className="h-5 w-5 flex-shrink-0" />
+      <span className="flex-grow break-words">{error}</span>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onErrorDismiss}
+        className="text-red-800 dark:text-red-400 h-6 w-6 flex-shrink-0"
+        aria-label="Dismiss error"
+      >
+        <XCircle className="h-4 w-4" />
+      </Button>
+    </div>
+  ) : null;
+
+interface LoadingIndicatorProps {
+  isLoading: boolean;
+  progress: number | null;
+}
+
+const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
+  isLoading,
+  progress,
+}) =>
+  isLoading ? (
+    <div className="space-y-2 py-4 text-center">
+      <Progress
+        value={progress !== null ? progress : undefined}
+        className="h-2 w-1/2 mx-auto"
+      />
+      <p className="text-sm text-muted-foreground">
+        {progress !== null
+          ? `Processing: ${progress}%`
+          : 'Analyzing keywords...'}
+      </p>
+    </div>
+  ) : null;
+
+interface AnalysisResultsProps {
+  products: KeywordData[];
+}
+
+const AnalysisResults: React.FC<AnalysisResultsProps> = ({ products }) => (
+  <Card>
+    <CardHeader>
+      <CardTitle className="text-sm font-medium">
+        Analysis Results ({products.length} Products)
+      </CardTitle>
+      <p className="text-xs text-muted-foreground">
+        Detailed analysis for your keywords
+      </p>
+    </CardHeader>
+    <CardContent>
+      <div className="space-y-4">
+        {products.map((product, index) => (
+          <ProductAnalysisCard key={index} product={product} index={index} />
+        ))}
+      </div>
+    </CardContent>
+  </Card>
 );
 
 interface ProductAnalysisCardProps {
@@ -490,115 +589,6 @@ const ProductAnalysisCard: React.FC<ProductAnalysisCardProps> = ({
   </Card>
 );
 
-interface AnalysisResultsProps {
-  products: KeywordData[];
-}
-
-const AnalysisResults: React.FC<AnalysisResultsProps> = ({ products }) => (
-  <DataCard>
-    <CardContent className="p-4 space-y-6">
-      <h2 className="text-xl font-semibold border-b pb-3">
-        Analysis Results ({products.length} Products/Entries)
-      </h2>
-      <div className="space-y-4">
-        {products.map((product, index) => (
-          <ProductAnalysisCard
-            key={`${product.product}-${index}`} // Ensure unique key
-            product={product}
-            index={index}
-          />
-        ))}
-      </div>
-    </CardContent>
-  </DataCard>
-);
-
-interface ActionButtonsProps {
-  onExport: () => void;
-  onClear: () => void;
-  isLoading: boolean;
-  hasData: boolean;
-}
-
-const ActionButtons: React.FC<ActionButtonsProps> = ({
-  onExport,
-  onClear,
-  isLoading,
-  hasData,
-}) => {
-  if (!hasData || isLoading) {
-    return null;
-  }
-  return (
-    <div className="flex justify-end gap-2 mb-6">
-      <Button variant="outline" onClick={onExport} disabled={isLoading}>
-        <Download className="mr-2 h-4 w-4" />
-        Export Analysis
-      </Button>
-      <Button variant="destructive" onClick={onClear} disabled={isLoading}>
-        <XCircle className="mr-2 h-4 w-4" />
-        Clear Results
-      </Button>
-    </div>
-  );
-};
-
-interface LoadingIndicatorProps {
-  isLoading: boolean;
-  progress: number | null;
-}
-
-const LoadingIndicator: React.FC<LoadingIndicatorProps> = ({
-  isLoading,
-  progress,
-}) => {
-  if (!isLoading) {
-    return null;
-  }
-  return (
-    <div className="space-y-2 py-4 text-center">
-      <Progress
-        value={progress ?? undefined} // Use undefined for indeterminate
-        className="h-2 w-1/2 mx-auto"
-      />
-      <p className="text-sm text-muted-foreground">
-        {progress !== null
-          ? `Analyzing keywords... ${progress}%`
-          : 'Analyzing keywords...'}
-      </p>
-    </div>
-  );
-};
-
-interface ErrorDisplayProps {
-  error: string | null;
-  onErrorDismiss: () => void;
-}
-
-const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
-  error,
-  onErrorDismiss,
-}) => {
-  if (!error) {
-    return null;
-  }
-  return (
-    <div className="flex items-center gap-2 rounded-lg bg-red-100 p-3 text-red-800 dark:bg-red-900/30 dark:text-red-400">
-      <AlertCircle className="h-5 w-5 flex-shrink-0" />
-      <span className="flex-grow break-words">{error}</span>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onErrorDismiss}
-        className="text-red-800 dark:text-red-400 h-6 w-6 flex-shrink-0"
-        aria-label="Dismiss error"
-      >
-        <XCircle className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-};
-
 // --- Main Component ---
 export default function KeywordAnalyzer() {
   const { toast } = useToast();
@@ -687,6 +677,7 @@ export default function KeywordAnalyzer() {
         toast({
           title: 'Analysis Complete',
           description: `Successfully analyzed ${processedProducts.length} products.`,
+          variant: 'success',
         });
       } catch (err) {
         const message =
@@ -698,6 +689,7 @@ export default function KeywordAnalyzer() {
         toast({
           title: 'Processing Failed',
           description: message,
+          variant: 'destructive',
         });
       } finally {
         setIsLoading(false);
@@ -717,6 +709,7 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Input Required',
         description: 'Please enter keywords to analyze.',
+        variant: 'warning',
       });
       return;
     }
@@ -768,6 +761,7 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Analysis Complete',
         description: `Analyzed ${keywords.length} manually entered keywords.`,
+        variant: 'success',
       });
     } catch (err) {
       const message =
@@ -776,6 +770,7 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Analysis Failed',
         description: message,
+        variant: 'destructive',
       });
     } finally {
       setIsLoading(false);
@@ -788,6 +783,7 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Export Error',
         description: 'No data to export.',
+        variant: 'warning',
       });
       return;
     }
@@ -826,6 +822,7 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Export Successful',
         description: 'Keyword analysis exported to CSV.',
+        variant: 'success',
       });
     } catch (err) {
       const message =
@@ -834,6 +831,7 @@ export default function KeywordAnalyzer() {
       toast({
         title: 'Export Failed',
         description: message,
+        variant: 'destructive',
       });
     }
   }, [products, toast]);
@@ -849,6 +847,7 @@ export default function KeywordAnalyzer() {
     toast({
       title: 'Data Cleared',
       description: 'All analysis results have been removed.',
+      variant: 'info',
     });
   }, [toast]);
 

@@ -1,4 +1,4 @@
-import { toast } from '@/app/hooks/use-toast';
+import { toast } from '@/app/hooks/use-toast.tsx';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,7 +6,7 @@ import {
   validateFbaForm,
   type FbaFormData,
 } from '@/lib/amazon-tools/fba-form-schema';
-import React from 'react';
+import React, { useEffect } from 'react'; // Import useEffect
 import type { FbaCalculationInput } from './fba-calculator';
 
 interface ManualFbaFormProps {
@@ -24,12 +24,20 @@ export default function ManualFbaForm({
     React.useState<FbaCalculationInput>(initialValues);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
+  // Effect to synchronize internal state with initialValues prop
+  useEffect(() => {
+    setValues(initialValues);
+  }, [initialValues]); // Re-run when initialValues changes
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setValues((prev: FbaCalculationInput) => {
+      // Store as string for numeric inputs, validation will handle conversion
+      // This allows invalid numeric input (e.g., "abc") to remain in the field
+      // until validation, providing better user feedback.
       const newValues = {
         ...prev,
-        [name]: name === 'product' ? value : Number(value) || 0,
+        [name]: value,
       };
       return newValues;
     });
@@ -40,34 +48,39 @@ export default function ManualFbaForm({
     setIsSubmitting(true);
 
     try {
-      // Validate form data using Zod schema
-      const validationErrors = validateFbaForm(values as FbaFormData);
+      // Convert numeric values from string to number for validation
+      const formDataForValidation: FbaFormData = {
+        ...values,
+        cost: Number(values.cost),
+        price: Number(values.price),
+        fees: Number(values.fees),
+      };
+
+      const validationErrors = validateFbaForm(formDataForValidation);
 
       if (validationErrors.length > 0) {
-        // Log validation errors
         console.warn('FBA form validation failed', {
           component: 'ManualFbaForm',
           errors: validationErrors,
           formData: values,
         });
 
-        // Show first error to user
         toast({
           title: 'Validation Error',
           description: validationErrors[0].message,
+          variant: 'destructive', // Add variant
         });
         return;
       }
 
-      // Log successful submission
       console.info('FBA form submitted successfully', {
         component: 'ManualFbaForm',
         formData: values,
       });
 
-      onSubmit(values);
+      // Ensure numbers are passed to onSubmit
+      onSubmit(formDataForValidation);
     } catch (error) {
-      // Log unexpected errors
       console.error((error as Error).message, {
         component: 'ManualFbaForm',
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -77,6 +90,7 @@ export default function ManualFbaForm({
       toast({
         title: 'Error',
         description: 'An unexpected error occurred. Please try again.',
+        variant: 'destructive', // Add variant
       });
     } finally {
       setIsSubmitting(false);
