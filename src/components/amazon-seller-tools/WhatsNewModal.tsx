@@ -13,12 +13,12 @@ import { Button } from '@/components/ui/button';
 
 interface WhatsNewModalProps {
   isOpen: boolean;
-  onCloseAction: () => void; // Renamed to follow linter suggestion
+  onCloseAction: () => void;
 }
 
 export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
   isOpen,
-  onCloseAction, // Use the new prop name
+  onCloseAction,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onCloseAction}>
@@ -37,8 +37,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
               filter control data set!
             </li>
             <li>
-              Enhanced csv Data-Table feature try per- column settings then and
-              many now fix! to load with now a setting{' '}
+              Enhanced CSV Data-Table feature with per-column settings.
             </li>
           </ul>
 
