@@ -6,6 +6,7 @@ import {
   Copy,
   ExternalLink,
 } from 'lucide-react';
+import { INDEXED_DB_TABLE_CHART_STATE_KEY } from '@/lib/constants';
 import {
   setItem,
   getItem,
@@ -191,7 +192,7 @@ const TableChart = <TData extends Record<string, unknown>>({
     setExpandedRowIds(new Set());
 
     if (persistenceKey) {
-      deleteItem(`tableState_${persistenceKey}`).catch(
+      deleteItem(INDEXED_DB_TABLE_CHART_STATE_KEY).catch(
         (error: IDBRequest['error']) =>
           console.error('Failed to remove table state from IndexedDB:', error),
       );
@@ -236,7 +237,7 @@ const TableChart = <TData extends Record<string, unknown>>({
   useEffect(() => {
     if (!persistenceKey) return;
 
-    getItem<PersistedTableState>(`tableState_${persistenceKey}`)
+    getItem<PersistedTableState>(INDEXED_DB_TABLE_CHART_STATE_KEY)
       .then((savedState) => {
         if (savedState) {
           setSortConfig(savedState.sortConfig);
@@ -265,7 +266,7 @@ const TableChart = <TData extends Record<string, unknown>>({
         globalFilter,
         columnFilters,
       };
-      setItem(`tableState_${persistenceKey}`, stateToSave).catch((error) =>
+      setItem(INDEXED_DB_TABLE_CHART_STATE_KEY, stateToSave).catch((error) =>
         console.error('Failed to save table state to IndexedDB:', error),
       );
     }, 500);

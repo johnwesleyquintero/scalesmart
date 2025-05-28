@@ -109,6 +109,10 @@ import {
   TargetMetricConfig,
   MetricKey,
 } from '@/lib/amazon-tools/types';
+import {
+  INDEXED_DB_OVERVIEW_TAB_SELECTED_METRICS_KEY,
+  INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY,
+} from '@/lib/constants';
 import { getItem, setItem } from '@/lib/indexeddb-service'; // Import IndexedDB service
 import DataCard from './DataCard';
 
@@ -422,7 +426,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   useEffect(() => {
     const loadPreferences = async () => {
       const storedPreferences = await getItem<DashboardViewPreferences>(
-        'dashboard_view_preferences',
+        INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY,
       );
       if (storedPreferences) {
         setTimeGranularity(storedPreferences.timeGranularity);
@@ -441,7 +445,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   // Save preferences to IndexedDB when they change (debounced)
   useEffect(() => {
     const savePreferences = async () => {
-      await setItem('dashboard_view_preferences', {
+      await setItem(INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY, {
         timeGranularity: debouncedTimeGranularity,
         timeRange: debouncedTimeRange,
         customDateRange: debouncedCustomDateRange,
@@ -465,7 +469,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   useEffect(() => {
     // Also load selectedMetrics from IndexedDB on component mount
     const loadSelectedMetrics = async () => {
-      const storedSelectedMetrics = await getItem<string[]>('selectedMetrics');
+      const storedSelectedMetrics = await getItem<string[]>(
+        INDEXED_DB_OVERVIEW_TAB_SELECTED_METRICS_KEY,
+      );
       if (storedSelectedMetrics) {
         setSelectedMetrics(storedSelectedMetrics);
       }
@@ -489,13 +495,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setTimeGranularity('daily'); // Reset to default daily
     setTimeRange('custom'); // Reset to default custom
     setCustomDateRange({ from: undefined, to: undefined }); // Clear custom date range
-    await setItem('dashboard_view_preferences', null); // Clear from IndexedDB
+    await setItem(INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY, null); // Clear from IndexedDB
 
     console.log('Refresh clicked - clearing status.');
     await new Promise((resolve) => setTimeout(resolve, 500));
     setIsLoading(false);
     // Clear saved mapping on refresh
-    await setItem('last_csv_mapping', null);
+    await setItem('last_csv_mapping', null); // This key is not part of the current task to be centralized, but it might be later
     setSavedMapping(null); // Also clear from state
   }, [
     setIsLoading,
@@ -819,7 +825,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           duration: 5000,
         });
 
-        await setItem('last_csv_mapping', mapping);
+        await setItem('last_csv_mapping', mapping); // This key is not part of the current task to be centralized, but it might be later
         console.log('Valid Metrics:', validMetrics);
         console.log('Collected Errors/Warnings:', collectedErrors);
         console.log('Mapping saved to IndexedDB.');

@@ -1,4 +1,5 @@
 import Dexie, { Table } from 'dexie';
+import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 
 // Interface for chat messages stored in IndexedDB
 export interface ChatMessageRecord {
@@ -136,7 +137,7 @@ export async function saveCalculation(data: CalculationData): Promise<void> {
   try {
     await db.transaction('rw', db.cache, async () => {
       await db.cache.put({
-        key: `calculation-${data.campaignName}-${data.date}`,
+        key: `${INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY}-${data.campaignName}-${data.date}`,
         value: data,
       });
       console.log('Calculation saved to IndexedDB:', data);
@@ -191,7 +192,7 @@ export async function getCalculations(): Promise<CalculationData[]> {
   try {
     const calculations: CalculationData[] = [];
     await db.cache.each((item) => {
-      if (item.key.startsWith('calculation-')) {
+      if (item.key.startsWith(INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY)) {
         calculations.push(item.value as CalculationData);
       }
     });
