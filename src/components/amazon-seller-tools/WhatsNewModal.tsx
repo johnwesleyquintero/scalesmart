@@ -35,13 +35,18 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           </h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>
-              **Advanced Table Interactivity:** The data table now supports per-column filtering, custom sorting, and persists your preferences across sessions.
+              **Advanced Table Interactivity:** The data table now supports
+              per-column filtering, custom sorting, and persists your
+              preferences across sessions.
             </li>
             <li>
-              **Data Context Transfer:** Easily send ASINs/Keywords from tables directly to relevant specialized tools for deeper analysis.
+              **Data Context Transfer:** Easily send ASINs/Keywords from tables
+              directly to relevant specialized tools for deeper analysis.
             </li>
             <li>
-              **Keyword Performance Table:** A new toggleable table in the Overview tab provides granular insights into keyword-specific metrics.
+              **Keyword Performance Table:** A new toggleable table in the
+              Overview tab provides granular insights into keyword-specific
+              metrics.
             </li>
           </ul>
 
@@ -50,13 +55,17 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           </h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>
-              **Refined Data Loading:** Clearer options to "Upload Your Data" or "Explore Sample Data" with helpful hints for CSV requirements.
+              **Refined Data Loading:** Clearer options to "Upload Your Data" or
+              "Explore Sample Data" with helpful hints for CSV requirements.
             </li>
             <li>
-              **Enhanced Processing Feedback:** Detailed, row-level error and warning reporting during CSV processing, with improved loading indicators for each stage (uploading, parsing, mapping).
+              **Enhanced Processing Feedback:** Detailed, row-level error and
+              warning reporting during CSV processing, with improved loading
+              indicators for each stage (uploading, parsing, mapping).
             </li>
             <li>
-              **Persistent View Preferences:** Your selected time range and granularity preferences for the Overview tab are now saved.
+              **Persistent View Preferences:** Your selected time range and
+              granularity preferences for the Overview tab are now saved.
             </li>
           </ul>
 
@@ -65,7 +74,8 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           </h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>
-              **Standardized Notifications:** Integrated consistent status notifications using the `use-toast` hook for better feedback.
+              **Standardized Notifications:** Integrated consistent status
+              notifications using the `use-toast` hook for better feedback.
             </li>
             <li>
               Print and Download PDF options for easily sharing dashboard
