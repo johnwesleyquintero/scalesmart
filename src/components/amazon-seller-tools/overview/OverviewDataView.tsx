@@ -29,11 +29,19 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
+
 import type {
   DashboardMetrics,
   TargetMetricConfig,
   MetricKey,
 } from '@/lib/amazon-tools/types';
+import {
+  formatCurrencyValue,
+  formatPercentageValue,
+  formatDateValue,
+  formatDefaultValue,
+  getCellFormatter,
+} from '@/lib/utils/formatting';
 import { ComparisonKpiCard } from './ComparisonKpiCard';
 import { SalesTrendsChart } from '../charts/SalesTrendsChart';
 import { ClicksImpressionsChart } from '../charts/ClicksImpressionsChart';
@@ -49,68 +57,6 @@ interface OverviewDataViewProps {
   aggregatedAndSortedMetrics: DashboardMetrics[];
   timeGranularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'; // Add timeGranularity prop
 }
-
-// --- Helper Formatting Functions (can be moved to a utils file if preferred) ---
-const formatCurrencyValue = (value: unknown): React.ReactNode => {
-  if (typeof value === 'number') {
-    return `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-  }
-  return 'N/A';
-};
-
-const formatPercentageValue = (value: unknown): React.ReactNode => {
-  if (typeof value === 'number') {
-    return `${value.toFixed(2)}%`;
-  }
-  return 'N/A';
-};
-
-const formatDateValue = (value: unknown): React.ReactNode => {
-  if (typeof value === 'string') {
-    try {
-      const date = new Date(value);
-      // Check if the date is valid
-      if (isNaN(date.getTime())) {
-        return value; // Return original string if date is invalid
-      }
-      return date.toLocaleDateString();
-    } catch {
-      return value; // Return original string on error
-    }
-  }
-  // Fallback for non-string date values, or return 'N/A'
-  return value != null ? String(value) : 'N/A';
-};
-
-const formatDefaultValue = (value: unknown): React.ReactNode => {
-  return value != null ? String(value) : 'N/A'; // Handles undefined and null
-};
-
-// Function to get the appropriate formatter based on the metric key
-const getCellFormatter = (
-  metricKey: keyof DashboardMetrics,
-): ((val: unknown) => React.ReactNode) => {
-  switch (metricKey) {
-    case 'total_sales':
-    case 'ad_spend':
-    case 'ad_sales':
-    case 'profit':
-      return formatCurrencyValue;
-    case 'total_conversion_rate':
-    case 'acos':
-    case 'roas':
-      return formatPercentageValue;
-    case 'date': // Handles the primary date key
-      return formatDateValue;
-    default:
-      // For other keys that might be dates by convention (e.g., 'creation_date')
-      if (typeof metricKey === 'string' && metricKey.includes('date')) {
-        return formatDateValue;
-      }
-      return formatDefaultValue;
-  }
-};
-// --- End Helper Formatting Functions ---
 
 export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
   metrics,
