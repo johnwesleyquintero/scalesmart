@@ -1,5 +1,4 @@
 'use client';
-
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -77,8 +76,9 @@ import {
 import { DashboardMetrics, TargetMetricConfig } from '@/lib/amazon-tools/types';
 import { TARGET_METRICS_CONFIG_RAW as TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
 
-import type { CsvColumnMapping } from '@/types/data-mapping';
+import type { CsvColumnMapping } from '../../types/data-mapping';
 
+// Metadata has been moved to layout.tsx
 // --- Helper Functions for Data Processing ---
 export default function UnifiedDashboard() {
   const searchParams = useSearchParams();
