@@ -1,17 +1,26 @@
 import { NextResponse } from 'next/server';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
+import { resumeAnalysisSchema } from '@/lib/validation/schemas';
+import { ZodError } from 'zod';
 
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
-    const file = formData.get('file') as Blob | null;
+    const file = formData.get('file');
 
-    if (!file) {
+    const validationResult = resumeAnalysisSchema.safeParse({ file });
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.errors
+        .map((err) => err.message)
+        .join(', ');
       return NextResponse.json(
-        createErrorResponse('No file uploaded', 'NO_FILE_UPLOADED'),
+        createErrorResponse(`Invalid input: ${errorMessages}`, 'INVALID_INPUT'),
         { status: 400 },
       );
     }
+
+    const validatedFile = validationResult.data.file;
 
     // Simulate resume analysis with a 2-second delay
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -47,6 +56,15 @@ export async function POST(request: Request) {
 
     return NextResponse.json(analysisResults);
   } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        createErrorResponse(
+          `Validation error: ${error.errors.map((err) => err.message).join(', ')}`,
+          'VALIDATION_ERROR',
+        ),
+        { status: 400 },
+      );
+    }
     console.error('Error analyzing resume:', error);
     return NextResponse.json(handleApiError(error), { status: 500 });
   }

@@ -30,21 +30,25 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async session({ session, token }: { session: Session; token: JWT }) {
+      console.time('NextAuth Session Callback');
       if (session?.user && token.sub) {
         session.user.id = token.sub;
       }
       if (token.accessToken) {
         session.accessToken = token.accessToken as string;
       }
+      console.timeEnd('NextAuth Session Callback');
       return session;
     },
     async jwt({ token, user, account }) {
+      console.time('NextAuth JWT Callback');
       if (user) {
         token.sub = user.id;
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;
       }
+      console.timeEnd('NextAuth JWT Callback');
       return token;
     },
   },
