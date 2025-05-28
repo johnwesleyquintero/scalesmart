@@ -7,28 +7,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import TableChart, {
   ColumnDef,
 } from '@/components/amazon-seller-tools/charts/TableChart';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { CalendarIcon } from 'lucide-react';
-import { format } from 'date-fns';
 
 import type {
   DashboardMetrics,
@@ -120,6 +102,42 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
     [],
   );
 
+  const averageConversionRate = useMemo(() => {
+    if (
+      aggregatedAndSortedMetrics.length > 0 &&
+      aggregatedAndSortedMetrics.every(
+        (m) => typeof m.total_conversion_rate === 'number',
+      )
+    ) {
+      return (
+        aggregatedAndSortedMetrics.reduce(
+          (sum, m) => sum + (m.total_conversion_rate || 0),
+          0,
+        ) / aggregatedAndSortedMetrics.length
+      );
+    }
+    return 0;
+  }, [aggregatedAndSortedMetrics]);
+
+  const totalSales = useMemo(() => {
+    return aggregatedAndSortedMetrics.reduce(
+      (sum, m) => sum + (m.total_sales || 0),
+      0,
+    );
+  }, [aggregatedAndSortedMetrics]);
+
+  const averageClicks = useMemo(() => {
+    if (aggregatedAndSortedMetrics.length > 0) {
+      return (
+        aggregatedAndSortedMetrics.reduce(
+          (sum, m) => sum + (m.ad_clicks || 0),
+          0,
+        ) / aggregatedAndSortedMetrics.length
+      );
+    }
+    return 0;
+  }, [aggregatedAndSortedMetrics]);
+
   return (
     <>
       {/* KPI Cards */}
@@ -134,16 +152,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
                       Avg. Conversion Rate
                     </h4>
                     <div className="text-3xl font-bold text-blue-600">
-                      {(aggregatedAndSortedMetrics.length > 0 &&
-                      aggregatedAndSortedMetrics.every(
-                        (m) => typeof m.total_conversion_rate === 'number',
-                      )
-                        ? aggregatedAndSortedMetrics.reduce(
-                            (sum, m) => sum + (m.total_conversion_rate || 0),
-                            0,
-                          ) / aggregatedAndSortedMetrics.length
-                        : 0
-                      ).toFixed(2)}
+                      {averageConversionRate.toFixed(2)}
                       %
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
@@ -178,9 +187,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
                     <h4 className="text-lg font-semibold mb-2">Total Sales</h4>
                     <div className="text-3xl font-bold text-green-600">
                       $
-                      {aggregatedAndSortedMetrics
-                        .reduce((sum, m) => sum + (m.total_sales || 0), 0)
-                        .toLocaleString(undefined, {
+                      {totalSales.toLocaleString(undefined, {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}
@@ -209,14 +216,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
                   <CardContent className="p-4">
                     <h4 className="text-lg font-semibold mb-2">Avg. Clicks</h4>
                     <div className="text-3xl font-bold text-yellow-600">
-                      {aggregatedAndSortedMetrics.length > 0
-                        ? (
-                            aggregatedAndSortedMetrics.reduce(
-                              (sum, m) => sum + (m.ad_clicks || 0),
-                              0,
-                            ) / aggregatedAndSortedMetrics.length
-                          ).toFixed(1)
-                        : 0}
+                      {averageClicks.toFixed(1)}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
                       Average from Report
