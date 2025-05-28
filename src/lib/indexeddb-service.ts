@@ -12,6 +12,26 @@ export interface ChatMessageRecord {
   metadata?: Record<string, unknown>; // Optional: for any other data like message status, etc.
 }
 
+export interface Task {
+  id: string;
+  title: string;
+  description?: string;
+  status: string;
+  assignee?: string;
+  dueDate?: number;
+  projectId?: string;
+  creationTimestamp: number;
+  updateTimestamp: number;
+}
+
+export interface Project {
+  id: string; // Unique identifier for the project
+  name: string; // Name of the project
+  description?: string; // Optional description
+  creationTimestamp: number;
+  updateTimestamp: number;
+}
+
 // Define the Dexie database class
 class ChatDatabase extends Dexie {
   // 'chatMessages' is a table in this database.
@@ -22,6 +42,8 @@ class ChatDatabase extends Dexie {
   public cache!: Table<{ key: string; value: unknown }, string>;
   public events!: Table<Event, number>;
   public contacts!: Table<Contact, string>;
+  public tasks!: Table<Task, string>;
+  public projects!: Table<Project, string>;
 
   constructor() {
     super('ChatAppDatabase'); // Name of the IndexedDB database
@@ -43,6 +65,13 @@ class ChatDatabase extends Dexie {
     this.version(4).stores({
       contacts:
         'id, name, email, phone, company, notes, creationTimestamp, updateTimestamp',
+    });
+    this.version(5).stores({
+      tasks:
+        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp',
+    });
+    this.version(6).stores({
+      projects: 'id, name, description, creationTimestamp, updateTimestamp',
     });
   }
 }
@@ -93,6 +122,7 @@ export const initializeDB = async (): Promise<void> => {
 
 /**
  * Retrieves chat messages for a specific chat session, sorted by timestamp.
+ * @remarks Used by the general Chat functionality.
  * @param chatSessionId - The ID of the chat session.
  * @returns A promise that resolves to an array of chat messages.
  */
@@ -117,6 +147,11 @@ function logError(error: unknown, message: string, component: string) {
   console.error(`${component}: ${message}`, error);
 }
 
+/**
+ * Retrieves an item from the IndexedDB cache.
+ * @remarks General cache utility.
+ * @param key - The key of the item to retrieve.
+ */
 export async function getItem<T>(key: string): Promise<T | undefined> {
   if (!db) {
     await initializeDB();
@@ -135,6 +170,11 @@ export async function getItem<T>(key: string): Promise<T | undefined> {
   }
 }
 
+/**
+ * Saves calculation data (e.g., ACoS) to IndexedDB.
+ * @remarks Used by WesTools (ACoS Calculator).
+ * @param data - The calculation data to save.
+ */
 export async function saveCalculation(data: CalculationData): Promise<void> {
   if (!db) {
     await initializeDB();
@@ -157,6 +197,12 @@ export async function saveCalculation(data: CalculationData): Promise<void> {
   }
 }
 
+/**
+ * Sets an item in the IndexedDB cache.
+ * @remarks General cache utility.
+ * @param key - The key of the item to set.
+ * @param value - The value of the item to set.
+ */
 export async function setItem<T>(key: string, value: T): Promise<void> {
   if (!db) {
     await initializeDB();
@@ -172,6 +218,11 @@ export async function setItem<T>(key: string, value: T): Promise<void> {
   }
 }
 
+/**
+ * Adds an event to IndexedDB.
+ * @remarks General event utility.
+ * @param event - The event data to add.
+ */
 export const addEvent = async (event: Event): Promise<number | undefined> => {
   if (!db) {
     await initializeDB();
@@ -190,6 +241,10 @@ export const addEvent = async (event: Event): Promise<number | undefined> => {
   }
 };
 
+/**
+ * Retrieves all calculation data (e.g., ACoS history) from IndexedDB.
+ * @remarks Used by WesTools (ACoS Calculator).
+ */
 export async function getCalculations(): Promise<CalculationData[]> {
   if (!db) {
     await initializeDB();
@@ -226,6 +281,11 @@ export interface CalculationData {
 
 // CRM Contact methods
 
+/**
+ * Creates a new contact in IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param contact - The contact data to create.
+ */
 export const createContact = async (
   contact: Contact,
 ): Promise<string | undefined> => {
@@ -255,6 +315,11 @@ export const createContact = async (
   }
 };
 
+/**
+ * Retrieves a contact by ID from IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param id - The ID of the contact to retrieve.
+ */
 export const getContact = async (id: string): Promise<Contact | undefined> => {
   if (!db) {
     await initializeDB();
@@ -273,6 +338,11 @@ export const getContact = async (id: string): Promise<Contact | undefined> => {
   }
 };
 
+/**
+ * Updates an existing contact in IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param contact - The contact data to update.
+ */
 export const updateContact = async (contact: Contact): Promise<void> => {
   if (!db) {
     await initializeDB();
@@ -291,6 +361,11 @@ export const updateContact = async (contact: Contact): Promise<void> => {
   }
 };
 
+/**
+ * Deletes a contact by ID from IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param id - The ID of the contact to delete.
+ */
 export const deleteContact = async (id: string): Promise<void> => {
   if (!db) {
     await initializeDB();
@@ -307,6 +382,243 @@ export const deleteContact = async (id: string): Promise<void> => {
   }
 };
 
+// WesSync Task methods
+
+/**
+ * Creates a new task in IndexedDB.
+ * @remarks Used by WesSync.
+ * @param task - The task data to create.
+ */
+export const createTask = async (task: Task): Promise<string | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const id = crypto.randomUUID();
+    const creationTimestamp = Date.now();
+    const updateTimestamp = Date.now();
+    const taskToStore = { ...task, id, creationTimestamp, updateTimestamp };
+    await db.tasks.put(taskToStore);
+    console.log('Task added to IndexedDB:', task);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error adding task to IndexedDB: ${task.title}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+/**
+ * Retrieves a task by ID from IndexedDB.
+ * @remarks Used by WesSync.
+ * @param id - The ID of the task to retrieve.
+ */
+export const getTask = async (id: string): Promise<Task | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const task = await db.tasks.get(id);
+    console.log('Task retrieved from IndexedDB:', task);
+    return task;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting task from IndexedDB: ${id}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+/**
+ * Updates an existing task in IndexedDB.
+ * @remarks Used by WesSync.
+ * @param task - The task data to update.
+ */
+export const updateTask = async (task: Task): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const updateTimestamp = Date.now();
+    const taskToStore = { ...task, updateTimestamp };
+    await db.tasks.put(taskToStore);
+    console.log('Task updated in IndexedDB:', task);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating task in IndexedDB: ${task.title}`,
+      'IndexedDBService',
+    );
+  }
+};
+
+/**
+ * Deletes a task by ID from IndexedDB.
+ * @remarks Used by WesSync.
+ * @param id - The ID of the task to delete.
+ */
+export const deleteTask = async (id: string): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    await db.tasks.delete(id);
+    console.log('Task deleted from IndexedDB:', id);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting task from IndexedDB: ${id}`,
+      'IndexedDBService',
+    );
+  }
+};
+
+// WesSync Project CRUD operations
+
+/**
+ * Creates a new project in IndexedDB.
+ * @remarks Used by WesSync.
+ * @param projectData - The project data to create.
+ */
+export const createProject = async (
+  projectData: Omit<Project, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
+): Promise<string | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const id = crypto.randomUUID();
+    const now = Date.now();
+    const projectToStore: Project = {
+      ...projectData,
+      id,
+      creationTimestamp: now,
+      updateTimestamp: now,
+    };
+    await db.projects.put(projectToStore);
+    console.log('Project added to IndexedDB:', projectToStore);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error adding project to IndexedDB: ${projectData.name}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+/**
+ * Retrieves a project by ID from IndexedDB.
+ * @remarks Used by WesSync.
+ * @param id - The ID of the project to retrieve.
+ */
+export const getProject = async (id: string): Promise<Project | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const project = await db.projects.get(id);
+    console.log('Project retrieved from IndexedDB:', project);
+    return project;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting project from IndexedDB: ${id}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+/**
+ * Retrieves all projects from IndexedDB.
+ * @remarks Used by WesSync.
+ */
+export const getAllProjects = async (): Promise<Project[]> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const projects = await db.projects.toArray();
+    console.log('All projects retrieved from IndexedDB:', projects);
+    return projects;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting all projects from IndexedDB`,
+      'IndexedDBService',
+    );
+    return [];
+  }
+};
+
+/**
+ * Updates an existing project in IndexedDB.
+ * @remarks Used by WesSync.
+ * @param project - The project data to update.
+ */
+export const updateProject = async (project: Project): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const projectToStore = { ...project, updateTimestamp: Date.now() };
+    await db.projects.put(projectToStore); // put will update if id exists
+    console.log('Project updated in IndexedDB:', projectToStore);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating project in IndexedDB: ${project.name}`,
+      'IndexedDBService',
+    );
+  }
+};
+
+/**
+ * Deletes a project by ID from IndexedDB.
+ * @remarks Used by WesSync.
+ * @param id - The ID of the project to delete.
+ */
+export const deleteProject = async (id: string): Promise<void> => {
+  // Note: Consider how to handle tasks associated with a deleted project.
+  // For now, we'll just delete the project.
+  // Future enhancement: orphan tasks or prompt user.
+  await db.projects.delete(id);
+  console.log('Project deleted from IndexedDB:', id);
+};
+
+/**
+ * Retrieves all tasks from IndexedDB.
+ * @remarks Used by WesSync.
+ */
+export const getAllTasks = async (): Promise<Task[]> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const tasks = await db.tasks.toArray();
+    console.log('All tasks retrieved from IndexedDB:', tasks);
+    return tasks;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting all tasks from IndexedDB`,
+      'IndexedDBService',
+    );
+    return [];
+  }
+};
+
+/**
+ * Retrieves all contacts from IndexedDB.
+ * @remarks Used by WesCRM.
+ */
 export const getAllContacts = async (): Promise<Contact[]> => {
   if (!db) {
     await initializeDB();
