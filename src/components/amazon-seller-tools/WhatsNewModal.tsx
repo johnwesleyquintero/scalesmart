@@ -78,12 +78,12 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
               notifications using the `use-toast` hook for better feedback.
             </li>
             <li>
-              Print and Download PDF options for easily sharing dashboard
-              insights.
+              **Print and Download PDF Options:** Easily share dashboard
+              insights with new print and download PDF options.
             </li>
             <li>
-              Listing Quality Checker now uses `shadcn/ui` Card components for
-              consistent and improved visual presentation.
+              **Listing Quality Checker UI:** Now uses `shadcn/ui` Card
+              components for consistent and improved visual presentation.
             </li>
           </ul>
         </div>
