@@ -4,25 +4,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useEffect } from 'react'; // useState and toast were unused
-import type { Customer, Category } from '../types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { useEffect } from 'react';
+import type { Contact } from '../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 
 interface CustomerFormProps {
-  initialData?: (Omit<Customer, 'id'> & { category?: string | null }) | null;
-  onSubmitSuccessAction: (data: Omit<Customer, 'id'>) => void;
+  initialData?: Omit<Contact, 'id'> | null;
+  onSubmitSuccessAction: (data: Omit<Contact, 'id'>) => void;
   onCancel?: () => void;
   isEditing: boolean;
-  categories: Category[]; // Receive categories as a prop
 }
 
 const customerSchema = z.object({
@@ -34,13 +26,13 @@ const customerSchema = z.object({
     .or(z.literal('')),
   phone: z
     .string()
-    .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, {
+    .regex(/^[+]?[(]?[0-9]{3}[)]?[-\\s.]?[0-9]{3}[-\\s.]?[0-9]{4,6}$/, {
       message: 'Please enter a valid phone number.',
     })
     .optional()
     .or(z.literal('')),
+  company: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
-  category: z.string().optional().nullable(),
 });
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
@@ -49,8 +41,8 @@ const defaultFormData: CustomerFormValues = {
   name: '',
   email: '',
   phone: '',
+  company: '',
   notes: '',
-  category: 'null', // Use 'null' string to represent "None" to match SelectItem value
 };
 
 export function CustomerForm({
@@ -58,13 +50,11 @@ export function CustomerForm({
   onSubmitSuccessAction,
   onCancel,
   isEditing,
-  categories, // Destructure categories from props
 }: CustomerFormProps) {
   const {
     register,
     handleSubmit,
     setValue,
-    watch, // Import watch
     formState: { errors },
     reset,
   } = useForm<CustomerFormValues>({
@@ -78,34 +68,26 @@ export function CustomerForm({
       setValue('name', initialData.name);
       setValue('email', initialData.email || '');
       setValue('phone', initialData.phone || '');
+      setValue('company', initialData.company || '');
       setValue('notes', initialData.notes || '');
-      setValue('category', initialData.category || 'null'); // Set to 'null' string if category is null/undefined
     } else {
-      // Reset to default values, including category: 'null'
       reset(defaultFormData);
     }
   }, [initialData, setValue, reset]);
 
-  const handleCategoryChange = (value: string) => {
-    setValue('category', value, { shouldValidate: true, shouldDirty: true });
-  };
-
   const onSubmit = (data: CustomerFormValues) => {
-    // Convert empty string category to null
-    const category = data.category === 'null' ? null : data.category;
     onSubmitSuccessAction({
       name: data.name,
-      email: data.email ?? '', // Coerce undefined to empty string for Omit<Customer, 'id'>
-      phone: data.phone ?? '', // Coerce undefined to empty string for Omit<Customer, 'id'>
-      notes: data.notes || '', // Coerce null or undefined to empty string, as Customer['notes'] is string
-      category: category ?? null, // Coerce undefined to null, as Customer['category'] is string | null
+      email: data.email ?? '',
+      phone: data.phone ?? '',
+      company: data.company || '',
+      notes: data.notes || '',
     });
     if (!isEditing) {
-      reset(defaultFormData); // Reset form to defaults after adding
+      reset(defaultFormData);
     }
   };
 
-  const currentCategoryValue = watch('category');
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -157,26 +139,19 @@ export function CustomerForm({
         )}
       </div>
       <div>
-        <Label htmlFor="category">Category</Label>
-        <Select
-          // currentCategoryValue is typed as string | null | undefined from Zod.
-          // Select's value prop expects string | undefined.
-          value={currentCategoryValue ?? undefined} // Coerce null to undefined for Select value prop
-          onValueChange={handleCategoryChange}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a category" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="null">None</SelectItem>
-            {categories.map((category) => (
-              <SelectItem key={category.id} value={category.name}>
-                {category.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {/* You can add error display for category if validation is needed in the future */}
+        <Label htmlFor="company">Company (optional)</Label>
+        <Input
+          id="company"
+          {...register('company')}
+          placeholder="Company"
+          aria-invalid={!!errors.company}
+          aria-describedby={errors.company ? 'company-error' : undefined}
+        />
+        {errors.company && (
+          <p id="company-error" className="text-sm text-red-500 mt-1">
+            {errors.company?.message}
+          </p>
+        )}
       </div>
       <div>
         <Label htmlFor="notes">Notes (optional)</Label>

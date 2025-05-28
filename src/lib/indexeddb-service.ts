@@ -1,5 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
+import { Contact } from '@/app/crm/types';
 
 // Interface for chat messages stored in IndexedDB
 export interface ChatMessageRecord {
@@ -20,6 +21,7 @@ class ChatDatabase extends Dexie {
   public chatMessages!: Table<ChatMessageRecord, number>;
   public cache!: Table<{ key: string; value: unknown }, string>;
   public events!: Table<Event, number>;
+  public contacts!: Table<Contact, string>;
 
   constructor() {
     super('ChatAppDatabase'); // Name of the IndexedDB database
@@ -37,6 +39,10 @@ class ChatDatabase extends Dexie {
     });
     this.version(3).stores({
       events: '++id, date', // Primary key is 'id', index on 'date'
+    });
+    this.version(4).stores({
+      contacts:
+        'id, name, email, phone, company, notes, creationTimestamp, updateTimestamp',
     });
   }
 }
@@ -217,5 +223,106 @@ export interface CalculationData {
   roas: number;
   date: Date;
 }
+
+// CRM Contact methods
+
+export const createContact = async (
+  contact: Contact,
+): Promise<string | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const id = crypto.randomUUID();
+    const creationTimestamp = Date.now();
+    const updateTimestamp = Date.now();
+    const contactToStore = {
+      ...contact,
+      id,
+      creationTimestamp,
+      updateTimestamp,
+    };
+    await db.contacts.put(contactToStore);
+    console.log('Contact added to IndexedDB:', contact);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error adding contact to IndexedDB: ${contact.name}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+export const getContact = async (id: string): Promise<Contact | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const contact = await db.contacts.get(id);
+    console.log('Contact retrieved from IndexedDB:', contact);
+    return contact;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting contact from IndexedDB: ${id}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+export const updateContact = async (contact: Contact): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const updateTimestamp = Date.now();
+    const contactToStore = { ...contact, updateTimestamp };
+    await db.contacts.put(contactToStore);
+    console.log('Contact updated in IndexedDB:', contact);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating contact in IndexedDB: ${contact.name}`,
+      'IndexedDBService',
+    );
+  }
+};
+
+export const deleteContact = async (id: string): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    await db.contacts.delete(id);
+    console.log('Contact deleted from IndexedDB:', id);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting contact from IndexedDB: ${id}`,
+      'IndexedDBService',
+    );
+  }
+};
+
+export const getAllContacts = async (): Promise<Contact[]> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const contacts = await db.contacts.toArray();
+    console.log('All contacts retrieved from IndexedDB:', contacts);
+    return contacts;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting all contacts from IndexedDB`,
+      'IndexedDBService',
+    );
+    return [];
+  }
+};
 // If direct access to the db instance is needed elsewhere (though usually it's better to encapsulate):
 // export { db as chatDBInstance };

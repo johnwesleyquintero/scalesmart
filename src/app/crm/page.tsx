@@ -2,56 +2,44 @@
 
 import { Button } from '@/components/ui/button';
 import { CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Download, Loader2 } from 'lucide-react'; // useMemo was missing here, but it's a React hook
+import { Download, Loader2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import ReactPaginate from 'react-paginate';
-// import { useLocalStorage } from '../../hooks/use-local-storage';
-import { Toaster, toast } from 'sonner'; // Import Toaster and toast
+import { Toaster, toast } from 'sonner';
 import useDebounce from '@/hooks/use-debounce';
-import { CustomerForm } from './components/CustomerForm'; // Import new component
-import { CustomerListItem } from './components/CustomerListItem'; // Import new component
-import CategoryManager from './components/CategoryManager';
-import type { Customer, Category } from './types';
+import { CustomerForm } from './components/CustomerForm';
+import { CustomerListItem } from './components/CustomerListItem';
+import type { Contact, Customer } from './types';
 import {
-  addCustomer,
-  updateCustomer,
-  deleteCustomer,
-  getAllCustomers,
-  getAllCategories, // Import getAllCategories
-} from '@/lib/indexeddb';
+  createContact,
+  updateContact,
+  deleteContact,
+  getAllContacts,
+} from '@/lib/indexeddb-service';
 
 import Papa from 'papaparse';
-import Fuse from 'fuse.js'; // It's good practice to keep imports grouped
-import { useMemo } from 'react'; // Import useMemo from React
+import Fuse from 'fuse.js';
+import { useMemo } from 'react';
 
 const fuseOptions = {
-  keys: ['name', 'email', 'phone', 'notes', 'category'],
+  keys: ['name', 'email', 'phone', 'notes', 'company'],
   threshold: 0.3,
 };
 
-// Helper function to generate CSV data string
 const generateCustomerCSVData = (customers: Customer[]): string | null => {
   if (customers.length === 0) {
     return null;
   }
 
   const csvData = Papa.unparse({
-    fields: ['id', 'name', 'email', 'phone', 'category', 'notes'],
+    fields: ['id', 'name', 'email', 'phone', 'company', 'notes'],
     data: customers.map((customer) => ({
       id: customer.id,
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
-      category: customer.category,
+      company: customer.company,
       notes: customer.notes,
     })),
   });
@@ -59,12 +47,9 @@ const generateCustomerCSVData = (customers: Customer[]): string | null => {
   return csvData;
 };
 
-// Helper function to filter customers
 const filterCustomers = (
   customers: Customer[],
   searchQuery: string,
-  categoryFilter: string[],
-  isCategoryFilterExact: boolean,
 ): Customer[] => {
   let results = customers;
 
@@ -73,25 +58,12 @@ const filterCustomers = (
     results = fuse.search(searchQuery).map((result) => result.item);
   }
 
-  if (categoryFilter.length > 0) {
-    results = results.filter((customer) => {
-      if (isCategoryFilterExact) {
-        return categoryFilter.includes(customer.category || '');
-      } else {
-        return categoryFilter.some((filter) =>
-          customer.category?.toLowerCase().includes(filter.toLowerCase()),
-        );
-      }
-    });
-  }
-
   return results;
 };
 
 interface CustomerListContentProps {
   customers: Customer[];
   searchQuery: string;
-  categoryFilter: string[];
   hasAttemptedInitialLoad: boolean;
   onEdit: (customer: Customer) => void;
   onDelete: (id: string) => void;
@@ -103,7 +75,6 @@ interface CustomerListContentProps {
 const CustomerListContent: React.FC<CustomerListContentProps> = ({
   customers,
   searchQuery,
-  categoryFilter,
   hasAttemptedInitialLoad,
   onEdit,
   onDelete,
@@ -131,20 +102,12 @@ const CustomerListContent: React.FC<CustomerListContentProps> = ({
     );
   }
 
-  // Logic for when filteredCustomers.length === 0
   let emptyStateContent;
-  if (searchQuery && !categoryFilter) {
+  if (searchQuery) {
     emptyStateContent = 'No customers match your search.';
-  } else if (!searchQuery && categoryFilter) {
-    emptyStateContent = 'No customers match the selected category.';
-  } else if (searchQuery && categoryFilter) {
-    emptyStateContent =
-      'No customers match your search and the selected category.';
   } else if (hasAttemptedInitialLoad) {
-    // No filters active, initial load done
     emptyStateContent = 'No customers added yet.';
   } else {
-    // No filters active, initial load not done (or in progress)
     emptyStateContent = <Loader2 className="h-4 w-4 animate-spin" />;
   }
 
@@ -156,68 +119,32 @@ export default function CRMComponent() {
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
-  const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(5);
-  const [allAvailableCategories, setAllAvailableCategories] = useState<
-    Category[]
-  >([]);
-  const [isCategoryFilterExact, setIsCategoryFilterExact] = useState(true); // Keep state, remove console.log effect
 
   const handlePageClick = (selectedObject: { selected: number }) => {
     setCurrentPage(selectedObject.selected);
   };
 
-  // Initialize customers state. The third argument [] is for server-side rendering
-  // to prevent hydration mismatch, ensuring it's an empty array on first server render.
   const [customers, setCustomers] = useState<Customer[]>([]);
-  // const [customers, setCustomers] = useLocalStorage<Customer[]>(
-  //   'crmCustomers',
-  //   [],
-  //   [],
-  // );
 
-  const migrateDataFromLocalStorage = async () => {
-    try {
-      // Check if migration has already been performed
-      if (localStorage.getItem('crmDataMigrated') !== 'true') {
-        const localStorageData = localStorage.getItem('crmCustomers');
-        if (localStorageData) {
-          const parsedData: Customer[] = JSON.parse(localStorageData);
-          for (const customer of parsedData) {
-            await addCustomer(customer);
-          }
-          localStorage.removeItem('crmCustomers');
-          // Set flag to indicate migration has been performed
-          localStorage.setItem('crmDataMigrated', 'true');
-          toast.success(
-            'Successfully migrated data from localStorage to IndexedDB!',
-          );
-        }
-      }
-    } catch (error) {
-      console.error('Error migrating data from localStorage:', error);
-      toast.error(
-        'Failed to migrate data from localStorage. See console for details.',
-      );
-    }
-  };
-
-  // This effect helps in determining if we have tried to load from localStorage.
-  // Useful for showing a loading state or a "no data" message correctly.
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        await migrateDataFromLocalStorage();
-        const allCustomers = await getAllCustomers();
+        const allContacts = await getAllContacts();
+        const allCustomers: Customer[] = allContacts.map(
+          (contact) =>
+            ({
+              ...contact,
+              id: contact.id!,
+              category: '',
+              notes: '',
+            }) as Customer,
+        );
         setCustomers(allCustomers);
-
-        const fetchedCategories = await getAllCategories();
-        setAllAvailableCategories(fetchedCategories);
       } catch (error) {
         console.error('Error loading customers from IndexedDB:', error);
         toast.error('Failed to load customers. See console for details.');
-        // Consider separate error handling for categories if needed
       } finally {
         setHasAttemptedInitialLoad(true);
       }
@@ -229,19 +156,19 @@ export default function CRMComponent() {
     setEditingCustomer(null);
   };
 
-  const handleSaveCustomer = async (formData: Omit<Customer, 'id'>) => {
+  const handleSaveCustomer = async (formData: Omit<Contact, 'id'>) => {
     if (editingCustomer) {
-      // Update existing customer
-      const updatedCustomer: Customer = {
+      const updatedCustomer: Contact = {
         ...formData,
         id: editingCustomer.id,
-        category: formData.category === '' ? null : formData.category,
       };
       try {
-        await updateCustomer(updatedCustomer);
+        await updateContact(updatedCustomer);
         setCustomers(
           customers.map((customer: Customer) =>
-            customer.id === editingCustomer.id ? updatedCustomer : customer,
+            customer.id === editingCustomer.id
+              ? { ...customer, ...updatedCustomer }
+              : customer,
           ),
         );
         toast.success('Customer updated successfully!');
@@ -251,33 +178,41 @@ export default function CRMComponent() {
         toast.error('Failed to update customer. See console for details.');
       }
     } else {
-      // Add new customer
-      const newCustomer: Customer = {
+      const newCustomer: Contact = {
         ...formData,
-        id: crypto.randomUUID(),
-        category: formData.category, // formData.category is already string | null
       };
       try {
-        await addCustomer(newCustomer);
-        setCustomers([...customers, newCustomer]);
+        const newId = await createContact(newCustomer);
+
+        if (newId === undefined) {
+          toast.error('Failed to add customer. See console for details.');
+          return;
+        }
+
+        const completeNewCustomer = {
+          ...newCustomer,
+          id: newId,
+          category: '',
+          notes: '',
+        } as Customer;
+        setCustomers([...customers, completeNewCustomer]);
         toast.success('Customer added successfully!');
       } catch (error) {
         console.error('Error adding customer to IndexedDB:', error);
-        toast.error('Failed to update customer. See console for details.');
+        toast.error('Failed to add customer. See console for details.');
       }
     }
   };
 
   const handleEdit = (customer: Customer) => {
-    setEditingCustomer({ ...customer }); // Store customer as is, category will be string | null
-    // Scroll to form for better UX, optional
+    setEditingCustomer({ ...customer });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
       try {
-        await deleteCustomer(id);
+        await deleteContact(id);
         setCustomers(
           customers.filter((customer: Customer) => customer.id !== id),
         );
@@ -316,7 +251,6 @@ export default function CRMComponent() {
     const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     if (link.download !== undefined) {
-      // Feature detection
       const url = URL.createObjectURL(blob);
       link.setAttribute('href', url);
       link.setAttribute('download', 'customers.csv');
@@ -331,105 +265,9 @@ export default function CRMComponent() {
     }
   };
 
-  const filteredCustomers = filterCustomers(
-    customers,
-    debouncedSearchQuery,
-    categoryFilter,
-    isCategoryFilterExact,
-  );
-
-  // Derive unique category names for the filter dropdown from allAvailableCategories
-  const uniqueCategoriesForFilter = allAvailableCategories
-    .map((cat) => cat.name)
-    .sort();
+  const filteredCustomers = filterCustomers(customers, debouncedSearchQuery);
 
   const pageCount = Math.ceil(filteredCustomers.length / itemsPerPage);
-
-  const handleCategoriesUpdated = (updatedCategories: Category[]) => {
-    setAllAvailableCategories(updatedCategories);
-    // If a category was renamed, we might need to update customers here too.
-    // For now, this handles additions and ensures the list is fresh.
-    // Deletion cleanup is handled by onCategorySuccessfullyDeleted.
-  };
-
-  const handleCategorySuccessfullyDeleted = async (
-    deletedCategoryName: string,
-  ) => {
-    const customersToUpdate = customers.filter(
-      (customer) => customer.category === deletedCategoryName,
-    );
-
-    if (customersToUpdate.length > 0) {
-      try {
-        const updatePromises = customersToUpdate.map(
-          (customer) => updateCustomer({ ...customer, category: null }), // Set category to null
-        );
-        await Promise.all(updatePromises);
-
-        // Update local state
-        setCustomers((prevCustomers) =>
-          prevCustomers.map((customer) =>
-            customer.category === deletedCategoryName
-              ? { ...customer, category: null }
-              : customer,
-          ),
-        );
-        toast.info(
-          `Customers previously in '${deletedCategoryName}' category have been updated to 'None'.`,
-        );
-      } catch (error) {
-        console.error(
-          'Error updating customers after category deletion:',
-          error,
-        );
-        toast.error(
-          'Failed to update some customers after category deletion. Please check console.',
-        );
-      }
-    }
-  };
-
-  const handleCategoryRenamed = async (oldName: string, newName: string) => {
-    const customersToUpdate = customers.filter(
-      (customer) => customer.category === oldName,
-    );
-
-    if (customersToUpdate.length > 0) {
-      try {
-        const updatePromises = customersToUpdate.map((customer) =>
-          updateCustomer({ ...customer, category: newName }),
-        );
-        await Promise.all(updatePromises);
-
-        // Update local state
-        setCustomers((prevCustomers) =>
-          prevCustomers.map((customer) =>
-            customer.category === oldName
-              ? { ...customer, category: newName }
-              : customer,
-          ),
-        );
-        toast.info(
-          `Customers in category '${oldName}' have been moved to '${newName}'.`,
-        );
-      } catch (error) {
-        console.error('Error updating customers after category rename:', error);
-        toast.error(
-          'Failed to update some customers after category rename. Please check console.',
-        );
-      }
-    }
-  };
-
-  // Calculate counts for each category and uncategorized customers
-  const customerCategoryCounts = useMemo(() => {
-    const counts = new Map<string | null, number>();
-    (customers ?? []).forEach((customer) => {
-      const categoryKey = customer.category || null; // Treat empty or undefined as null (Uncategorized)
-      counts.set(categoryKey, (counts.get(categoryKey) || 0) + 1);
-    });
-    return counts;
-  }, [customers]);
 
   return (
     <>
@@ -449,32 +287,24 @@ export default function CRMComponent() {
             </CardHeader>
             <CardContent>
               <CustomerForm
-                key={editingCustomer ? editingCustomer.id : 'add-customer-form'} // Re-key to reset form state when editingCustomer changes
+                key={editingCustomer ? editingCustomer.id : 'add-customer-form'}
                 initialData={
                   editingCustomer
                     ? {
                         name: editingCustomer.name,
                         email: editingCustomer.email,
                         phone: editingCustomer.phone,
+                        company: editingCustomer.company,
                         notes: editingCustomer.notes,
-                        category: editingCustomer.category, // Pass string | null directly
                       }
                     : null
                 }
                 onSubmitSuccessAction={handleSaveCustomer}
                 onCancel={editingCustomer ? handleCancelEdit : undefined}
                 isEditing={!!editingCustomer}
-                categories={allAvailableCategories} // Pass categories to the form
               />
             </CardContent>
           </div>
-          <CategoryManager
-            onCategoriesUpdate={handleCategoriesUpdated}
-            initialCategories={allAvailableCategories}
-            onCategorySuccessfullyDeleted={handleCategorySuccessfullyDeleted}
-            onCategoryRenamed={handleCategoryRenamed}
-            customerCounts={customerCategoryCounts} // Pass the calculated counts
-          />
 
           <div className="card flex-1">
             <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -487,50 +317,6 @@ export default function CRMComponent() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full sm:w-auto md:min-w-[250px] lg:min-w-[300px]"
                 />
-                <Select
-                  value={''}
-                  onValueChange={(value: string) => {
-                    if (categoryFilter.includes(value)) {
-                      setCategoryFilter(
-                        categoryFilter.filter((item) => item !== value),
-                      );
-                    } else {
-                      setCategoryFilter([...categoryFilter, value]);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-full sm:w-auto md:min-w-[180px]">
-                    <SelectValue>
-                      {categoryFilter.length === 0
-                        ? 'Filter by category'
-                        : categoryFilter.join(', ')}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {uniqueCategoriesForFilter.map((categoryName) => (
-                      <SelectItem key={categoryName} value={categoryName}>
-                        {categoryName}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <div className="inline-flex items-center space-x-2 cursor-pointer">
-                  <Label
-                    htmlFor="exact-match"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    Exact Match
-                  </Label>
-                  <Input
-                    type="checkbox"
-                    id="exact-match"
-                    className="h-5 w-5 rounded-sm border-2 border-primary ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
-                    checked={isCategoryFilterExact}
-                    onChange={(e) => {
-                      setIsCategoryFilterExact(e.target.checked);
-                    }}
-                  />
-                </div>
                 <Button
                   variant="outline"
                   onClick={exportTasksToCSV}
@@ -545,7 +331,6 @@ export default function CRMComponent() {
               <CustomerListContent
                 customers={filteredCustomers}
                 searchQuery={searchQuery}
-                categoryFilter={categoryFilter}
                 hasAttemptedInitialLoad={hasAttemptedInitialLoad}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
@@ -558,7 +343,7 @@ export default function CRMComponent() {
                 nextLabel={'Next'}
                 pageCount={pageCount}
                 onPageChange={handlePageClick}
-                containerClassName={'pagination hubspot-pagination'}
+                containerClassName="pagination hubspot-pagination"
                 previousLinkClassName="hubspot-pagination__link"
                 nextLinkClassName="hubspot-pagination__link"
                 disabledClassName="hubspot-pagination__link--disabled"

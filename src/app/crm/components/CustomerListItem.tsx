@@ -1,16 +1,9 @@
-'use client';
-
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Copy } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
-import { memo } from 'react';
-import type { Customer } from '../types';
-import remarkGfm from 'remark-gfm';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Copy, Edit, Trash2 } from 'lucide-react';
 
-// Define the remark plugins array outside the component for stable reference.
-// This ensures that ReactMarkdown receives the same prop reference across re-renders (if its other props haven't changed),
-// which is good for performance and works well with memoization.
-const markdownPlugins = [remarkGfm];
+import type { Customer } from '../types';
 
 interface CustomerListItemProps {
   customer: Customer;
@@ -19,61 +12,54 @@ interface CustomerListItemProps {
   onCopyNotes: (notes: string) => void;
 }
 
-const CustomerListItemComponent = ({
+const CustomerListItem: React.FC<CustomerListItemProps> = ({
   customer,
   onEdit,
   onDelete,
   onCopyNotes,
-}: CustomerListItemProps) => {
+}) => {
   return (
-    <div className="border rounded-lg p-4">
-      <div className="flex justify-between items-start">
-        <div>
-          <h3 className="font-bold">{customer.name}</h3>
-          <p className="text-muted-foreground">{customer.email}</p>
-          {customer.phone && (
-            <p className="text-muted-foreground">{customer.phone}</p>
-          )}
-          {customer.category && (
-            <p className="text-xs mt-1 px-2 py-0.5 bg-secondary text-secondary-foreground rounded-full inline-block">
-              {customer.category}
-            </p>
-          )}
-        </div>
-        <div className="flex space-x-2">
-          <Button variant="outline" size="sm" onClick={() => onEdit(customer)}>
-            Edit
-          </Button>
-          {customer.notes && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onCopyNotes(customer.notes)}
-              title="Copy notes as Markdown"
-            >
-              <Copy className="h-4 w-4" />
-            </Button>
-          )}
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onDelete(customer.id)}
-          >
-            Delete
-          </Button>
-        </div>
-      </div>
-      {customer.notes && (
-        <div className="mt-2">
-          <div className="prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
-            <ReactMarkdown remarkPlugins={markdownPlugins}>
-              {customer.notes}
-            </ReactMarkdown>
-          </div>
-        </div>
-      )}
-    </div>
+    <Card className="w-full">
+      <CardContent className="grid grid-cols-1 gap-2">
+        <h3 className="text-lg font-semibold">{customer.name}</h3>
+        <p className="text-muted-foreground">{customer.email}</p>
+        <p className="text-muted-foreground">{customer.phone}</p>
+        <p className="text-muted-foreground">Address: {customer.address}</p>
+        {customer.notes && (
+          <>
+            <p className="font-semibold">Notes:</p>
+            <p className="text-sm text-muted-foreground">{customer.notes}</p>
+          </>
+        )}
+      </CardContent>
+      <CardFooter className="flex justify-end gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onCopyNotes(customer.notes || '')}
+          title="Copy notes"
+        >
+          <Copy className="mr-2 h-4 w-4" /> Copy
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onEdit(customer)}
+          title="Edit customer"
+        >
+          <Edit className="mr-2 h-4 w-4" /> Edit
+        </Button>
+        <Button
+          variant="destructive"
+          size="sm"
+          onClick={() => onDelete(customer.id!)}
+          title="Delete customer"
+        >
+          <Trash2 className="mr-2 h-4 w-4" /> Delete
+        </Button>
+      </CardFooter>
+    </Card>
   );
 };
 
-export const CustomerListItem = memo(CustomerListItemComponent);
+export { CustomerListItem };
