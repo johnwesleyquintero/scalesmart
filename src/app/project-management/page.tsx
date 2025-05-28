@@ -20,9 +20,12 @@ const ProjectManagementPage = () => {
   }, []);
 
   return (
-    <div>
-      <h1>WesSync Tasks</h1>
-      <TaskForm setTasks={setTasks} tasks={tasks} />
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold text-center my-6">WesSync Tasks</h1>
+      <div className="bg-white shadow-md rounded-lg p-6 mb-8">
+        <h2 className="text-2xl font-semibold mb-4">Add New Task</h2>
+        <TaskForm setTasks={setTasks} tasks={tasks} />
+      </div>
       <TaskList tasks={tasks} setTasks={setTasks} />
     </div>
   );

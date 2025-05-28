@@ -5,6 +5,7 @@ import { Task } from '@/lib/indexeddb-service';
 import { deleteTask } from '@/lib/indexeddb-service';
 import TaskForm from './TaskForm';
 import { useState } from 'react';
+import Modal from '@/components/Modal';
 
 interface TaskListProps {
   tasks: Task[];
@@ -12,52 +13,93 @@ interface TaskListProps {
 }
 
 const TaskList = ({ tasks, setTasks }: TaskListProps) => {
-  console.log('TaskList tasks prop:', tasks);
-  const taskPropLog = 'TaskList tasks prop:';
-  console.log(taskPropLog, tasks);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+
   const handleDeleteTask = async (id: string) => {
     await deleteTask(id);
     setTasks(tasks.filter((task) => task.id !== id));
   };
 
-  const todoTasks = tasks.filter((task) => task.status === 'to-do');
-  const inProgressTasks = tasks.filter((task) => task.status === 'in-progress');
-  const completedTasks = tasks.filter((task) => task.status === 'completed');
+  const handleEditClick = (task: Task) => {
+    setSelectedTask(task);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedTask(null);
+  };
+
+  const renderTaskSection = (
+    title: string,
+    filteredTasks: Task[],
+    status: string,
+  ) => (
+    <div key={status} className="mb-8">
+      <h2 className="text-2xl font-semibold mb-4">{title}</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filteredTasks.map((task) => (
+          <div key={task.id} className="bg-white shadow-md rounded-lg p-4">
+            <h3 className="text-xl font-bold mb-2">{task.title}</h3>
+            <p className="text-gray-700 mb-2">{task.description}</p>
+            <p className="text-gray-600 text-sm">Assignee: {task.assignee}</p>
+            <p className="text-gray-600 text-sm">Status: {task.status}</p>
+            {task.dueDate && (
+              <p className="text-gray-600 text-sm">
+                Due: {new Date(task.dueDate).toLocaleDateString()}
+              </p>
+            )}
+            <div className="mt-4 flex space-x-2">
+              <button
+                onClick={() => handleEditClick(task)}
+                className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition-colors duration-200"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDeleteTask(task.id)}
+                className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors duration-200"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  const sections = [
+    { title: 'To Do', status: 'to-do' },
+    { title: 'In Progress', status: 'in-progress' },
+    { title: 'Completed', status: 'completed' },
+  ];
 
   return (
     <div>
-      <h2>To Do</h2>
-      <ul>
-        {todoTasks.map((task) => (
-          <li key={task.id}>
-            {task.title} - {task.assignee}
-            <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
-            <TaskForm task={task} setTasks={setTasks} tasks={tasks} />
-          </li>
-        ))}
-      </ul>
+      {sections.map((section) =>
+        renderTaskSection(
+          section.title,
+          tasks.filter((task) => task.status === section.status),
+          section.status,
+        ),
+      )}
 
-      <h2>In Progress</h2>
-      <ul>
-        {inProgressTasks.map((task) => (
-          <li key={task.id}>
-            {task.title} - {task.assignee}
-            <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
-            <TaskForm task={task} setTasks={setTasks} tasks={tasks} />
-          </li>
-        ))}
-      </ul>
-
-      <h2>Completed</h2>
-      <ul>
-        {completedTasks.map((task) => (
-          <li key={task.id}>
-            {task.title} - {task.assignee}
-            <button onClick={() => handleDeleteTask(task.id)}>Delete</button>
-            <TaskForm task={task} setTasks={setTasks} tasks={tasks} />
-          </li>
-        ))}
-      </ul>
+      {selectedTask && (
+        <Modal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+          title="Edit Task"
+        >
+          <TaskForm
+            task={selectedTask}
+            setTasks={setTasks}
+            tasks={tasks}
+            onTaskUpdated={handleCloseModal}
+          />
+        </Modal>
+      )}
     </div>
   );
 };

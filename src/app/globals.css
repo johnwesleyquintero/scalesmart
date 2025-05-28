@@ -51,6 +51,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import '../styles/modal.css';
+
 @import '../styles/premium.css';
 
 @layer base {

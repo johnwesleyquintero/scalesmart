@@ -6,9 +6,15 @@ interface TaskFormProps {
   setTasks: (tasks: Task[]) => void;
   tasks: Task[];
   task?: Task;
+  onTaskUpdated?: () => void;
 }
 
-const TaskForm = ({ setTasks, tasks, task: initialTask }: TaskFormProps) => {
+const TaskForm = ({
+  setTasks,
+  tasks,
+  task: initialTask,
+  onTaskUpdated,
+}: TaskFormProps) => {
   const [title, setTitle] = useState(initialTask?.title || '');
   const [description, setDescription] = useState(
     initialTask?.description || '',
@@ -51,23 +57,31 @@ const TaskForm = ({ setTasks, tasks, task: initialTask }: TaskFormProps) => {
     setStatus('to-do');
     setAssignee('');
     setDueDate(null);
+    onTaskUpdated?.();
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="space-y-4">
       <input
         type="text"
         placeholder="Title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         required
+        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <textarea
         placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
+        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        rows={3}
       />
-      <select value={status} onChange={(e) => setStatus(e.target.value)}>
+      <select
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
         <option value="to-do">To Do</option>
         <option value="in-progress">In Progress</option>
         <option value="completed">Completed</option>
@@ -77,13 +91,20 @@ const TaskForm = ({ setTasks, tasks, task: initialTask }: TaskFormProps) => {
         placeholder="Assignee"
         value={assignee}
         onChange={(e) => setAssignee(e.target.value)}
+        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <input
         type="date"
         value={dueDate ? dueDate.toISOString().split('T')[0] : ''}
         onChange={(e) => setDueDate(new Date(e.target.value))}
+        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      <button type="submit">{initialTask ? 'Update Task' : 'Add Task'}</button>
+      <button
+        type="submit"
+        className="w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition-colors duration-200"
+      >
+        {initialTask ? 'Update Task' : 'Add Task'}
+      </button>
     </form>
   );
 };
