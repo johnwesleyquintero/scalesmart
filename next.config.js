@@ -3,6 +3,7 @@ import path from 'path';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@react-pdf/renderer'],
+  productionBrowserSourceMaps: true,
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -69,7 +70,7 @@ const nextConfig = {
   // Compiler options
   compiler: {
     // Remove console logs in production builds
-    removeConsole: process.env.NODE_ENV === 'production',
+    // removeConsole: process.env.NODE_ENV === 'production',
   },
   // Webpack customization
   webpack: (config, { webpack: webpackInstance, isServer, dev }) => {
