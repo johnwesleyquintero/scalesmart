@@ -300,6 +300,82 @@ const TableChart = <TData extends Record<string, unknown>>({
     setExpandedRowIds(new Set());
   }, [data, globalFilter, sortConfig, columnFilters]);
 
+  const applyNumberFilterLogic = (
+    numValue: number,
+    filterValue: unknown,
+    operator: FilterOperator,
+  ) => {
+    const numFilterValue = Number(filterValue);
+    if (isNaN(numValue) || isNaN(numFilterValue)) return false;
+
+    switch (operator) {
+      case 'equals':
+        return numValue === numFilterValue;
+      case 'greaterThan':
+        return numValue > numFilterValue;
+      case 'lessThan':
+        return numValue < numFilterValue;
+      case 'between': {
+        const [min, max] = filterValue as [number, number];
+        return numValue >= min && numValue <= max;
+      }
+      default:
+        return false;
+    }
+  };
+
+  const applyDateRangeFilterLogic = (
+    value: unknown,
+    filterValue: unknown,
+    operator: FilterOperator,
+  ) => {
+    const dateValue = new Date(value as string);
+    const filterValues = filterValue as [string, string];
+    const startDate = new Date(filterValues[0]);
+    const endDate = new Date(filterValues[1]);
+
+    if (isNaN(dateValue.getTime())) return false;
+
+    switch (operator) {
+      case 'equals':
+        return dateValue.toDateString() === startDate.toDateString();
+      case 'greaterThan':
+        return dateValue.getTime() > startDate.getTime();
+      case 'lessThan':
+        return dateValue.getTime() < startDate.getTime();
+      case 'between':
+        return (
+          dateValue.getTime() >= startDate.getTime() &&
+          dateValue.getTime() <= endDate.getTime()
+        );
+      default:
+        return false;
+    }
+  };
+
+  const applyTextFilterLogic = (
+    cellValue: string,
+    filterValue: string,
+    operator: FilterOperator,
+  ) => {
+    switch (operator) {
+      case 'contains':
+        return cellValue.includes(filterValue);
+      case 'equals':
+        return cellValue === filterValue;
+      case 'startsWith':
+        return cellValue.startsWith(filterValue);
+      case 'endsWith':
+        return cellValue.endsWith(filterValue);
+      default:
+        return false;
+    }
+  };
+
+  const applySelectFilterLogic = (cellValue: string, filterValue: string) => {
+    return cellValue === filterValue;
+  };
+
   const filteredData = useMemo(() => {
     let currentFilteredData = data;
 
@@ -350,63 +426,15 @@ const TableChart = <TData extends Record<string, unknown>>({
       }
 
       switch (filter.type) {
-        case 'number': {
-          const numValue = Number(value);
-          const numFilterValue = Number(filter.value);
-          if (isNaN(numValue) || isNaN(numFilterValue)) return false;
-
-          switch (operator) {
-            case 'equals':
-              return numValue === numFilterValue;
-            case 'greaterThan':
-              return numValue > numFilterValue;
-            case 'lessThan':
-              return numValue < numFilterValue;
-            // case 'between': // @todo: Implement 'between' for numbers
-            //   return numValue >= numFilterValue[0] && numValue <= numFilterValue[1];
-            default:
-              return false;
-          }
-        }
+        case 'number':
+          return applyNumberFilterLogic(Number(value), filter.value, operator);
         case 'select':
-          return cellValue === filterValue;
-        case 'dateRange': {
-          const dateValue = new Date(value as string);
-          const dateFilterValue = new Date(filter.value as string);
-
-          if (isNaN(dateValue.getTime()) || isNaN(dateFilterValue.getTime()))
-            return false;
-
-          switch (operator) {
-            case 'equals':
-              return (
-                dateValue.toDateString() === dateFilterValue.toDateString()
-              );
-            case 'greaterThan':
-              return dateValue.getTime() > dateFilterValue.getTime();
-            case 'lessThan':
-              return dateValue.getTime() < dateFilterValue.getTime();
-            // case 'between': // @todo: Implement 'between' for dates
-            //   return dateValue >= dateFilterValue[0] && dateValue <= dateFilterValue[1];
-            default:
-              return false;
-          }
-        }
+          return applySelectFilterLogic(cellValue, filterValue);
+        case 'dateRange':
+          return applyDateRangeFilterLogic(value, filter.value, operator);
         case 'text':
-        default: {
-          switch (operator) {
-            case 'contains':
-              return cellValue.includes(filterValue);
-            case 'equals':
-              return cellValue === filterValue;
-            case 'startsWith':
-              return cellValue.startsWith(filterValue);
-            case 'endsWith':
-              return cellValue.endsWith(filterValue);
-            default:
-              return false;
-          }
-        }
+        default:
+          return applyTextFilterLogic(cellValue, filterValue, operator);
       }
     };
 
@@ -574,6 +602,28 @@ const TableChart = <TData extends Record<string, unknown>>({
       'w-full text-xs p-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500';
     const stopPropagation = (e: React.MouseEvent) => e.stopPropagation();
 
+    const getOperatorOptions = (filterType: ColumnDef<TData>['filterType']) => {
+      if (filterType === 'number' || filterType === 'dateRange') {
+        return (
+          <>
+            <option value="equals">Equals</option>
+            <option value="greaterThan">Greater Than</option>
+            <option value="lessThan">Less Than</option>
+            <option value="between">Between</option>
+          </>
+        );
+      } else {
+        return (
+          <>
+            <option value="contains">Contains</option>
+            <option value="equals">Equals</option>
+            <option value="startsWith">Starts With</option>
+            <option value="endsWith">Ends With</option>
+          </>
+        );
+      }
+    };
+
     const renderOperatorSelect = (currentType: string) => (
       <select
         value={columnFilterOperator}
@@ -588,133 +638,128 @@ const TableChart = <TData extends Record<string, unknown>>({
         className={`${commonInputClasses} mb-1`}
         onClick={stopPropagation}
       >
-        {column.filterType === 'number' || column.filterType === 'dateRange' ? (
-          <>
-            <option value="equals">Equals</option>
-            <option value="greaterThan">Greater Than</option>
-            <option value="lessThan">Less Than</option>
-            {/* <option value="between">Between</option> */}
-          </>
-        ) : (
-          <>
-            <option value="contains">Contains</option>
-            <option value="equals">Equals</option>
-            <option value="startsWith">Starts With</option>
-            <option value="endsWith">Ends With</option>
-          </>
-        )}
+        {getOperatorOptions(column.filterType)}
         <option value="isEmpty">Is Empty</option>
         <option value="isNotEmpty">Is Not Empty</option>
       </select>
     );
 
-    switch (column.filterType) {
-      case 'number':
-        return (
-          <div className="flex flex-col">
-            {renderOperatorSelect('number')}
-            {columnFilterOperator !== 'isEmpty' &&
-              columnFilterOperator !== 'isNotEmpty' && (
-                <input
-                  type="number"
-                  placeholder="Filter..."
-                  value={String(columnFilterValue ?? '')}
-                  onChange={(e) =>
-                    handleColumnFilterChange(
-                      column.accessorKey as string,
-                      e.target.value,
-                      'number',
-                      columnFilterOperator,
-                    )
-                  }
-                  className={commonInputClasses}
-                  onClick={stopPropagation}
-                />
-              )}
-          </div>
-        );
-      case 'select': {
-        const uniqueValues =
-          memoizedSelectOptions[column.accessorKey as string] || [];
-        return (
-          <div className="flex flex-col">
-            {renderOperatorSelect('select')}
-            {columnFilterOperator !== 'isEmpty' &&
-              columnFilterOperator !== 'isNotEmpty' && (
-                <select
-                  value={String(columnFilterValue ?? '')}
-                  onChange={(e) =>
-                    handleColumnFilterChange(
-                      column.accessorKey as string,
-                      e.target.value,
-                      'select',
-                      columnFilterOperator,
-                    )
-                  }
-                  className={commonInputClasses}
-                  onClick={stopPropagation}
-                >
-                  <option value="">All</option>
-                  {uniqueValues.map((value) => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-                </select>
-              )}
-          </div>
-        );
-      }
-      case 'dateRange':
-        return (
-          <div className="flex flex-col">
-            {renderOperatorSelect('dateRange')}
-            {columnFilterOperator !== 'isEmpty' &&
-              columnFilterOperator !== 'isNotEmpty' && (
-                <input
-                  type="text"
-                  placeholder="Filter Date (YYYY-MM-DD)"
-                  value={String(columnFilterValue ?? '')}
-                  onChange={(e) =>
-                    handleColumnFilterChange(
-                      column.accessorKey as string,
-                      e.target.value,
-                      'dateRange',
-                      columnFilterOperator,
-                    )
-                  }
-                  className={commonInputClasses}
-                  onClick={stopPropagation}
-                />
-              )}
-          </div>
-        );
-      case 'text':
-      default:
-        return (
-          <div className="flex flex-col">
-            {renderOperatorSelect('text')}
-            {columnFilterOperator !== 'isEmpty' &&
-              columnFilterOperator !== 'isNotEmpty' && (
-                <input
-                  type="text"
-                  placeholder="Filter..."
-                  value={String(columnFilterValue ?? '')}
-                  onChange={(e) =>
-                    handleColumnFilterChange(
-                      column.accessorKey as string,
-                      e.target.value,
-                      'text',
-                      columnFilterOperator,
-                    )
-                  }
-                  className={commonInputClasses}
-                  onClick={stopPropagation}
-                />
-              )}
-          </div>
-        );
-    }
+    const renderSingleInput = (type: 'text' | 'number' | 'date') => (
+      <input
+        type={type}
+        placeholder={`Filter ${type === 'date' ? 'Date (YYYY-MM-DD)' : '...'}`}
+        value={String(columnFilterValue ?? '')}
+        onChange={(e) =>
+          handleColumnFilterChange(
+            column.accessorKey as string,
+            e.target.value,
+            column.filterType,
+            columnFilterOperator,
+          )
+        }
+        className={commonInputClasses}
+        onClick={stopPropagation}
+      />
+    );
+
+    const renderBetweenInputs = (type: 'number' | 'date') => (
+      <div className="flex space-x-1">
+        <input
+          type={type}
+          placeholder={type === 'number' ? 'Min' : 'Start Date'}
+          value={
+            Array.isArray(columnFilterValue)
+              ? String(columnFilterValue[0] ?? '')
+              : ''
+          }
+          onChange={(e) =>
+            handleColumnFilterChange(
+              column.accessorKey as string,
+              [
+                type === 'number' ? Number(e.target.value) : e.target.value,
+                (columnFilterValue as (string | number)[])?.[1],
+              ],
+              column.filterType,
+              columnFilterOperator,
+            )
+          }
+          className={commonInputClasses}
+          onClick={stopPropagation}
+        />
+        <input
+          type={type}
+          placeholder={type === 'number' ? 'Max' : 'End Date'}
+          value={
+            Array.isArray(columnFilterValue)
+              ? String(columnFilterValue[1] ?? '')
+              : ''
+          }
+          onChange={(e) =>
+            handleColumnFilterChange(
+              column.accessorKey as string,
+              [
+                (columnFilterValue as (string | number)[])?.[0],
+                type === 'number' ? Number(e.target.value) : e.target.value,
+              ],
+              column.filterType,
+              columnFilterOperator,
+            )
+          }
+          className={commonInputClasses}
+          onClick={stopPropagation}
+        />
+      </div>
+    );
+
+    const renderSelectInput = () => {
+      const uniqueValues =
+        memoizedSelectOptions[column.accessorKey as string] || [];
+      return (
+        <select
+          value={String(columnFilterValue ?? '')}
+          onChange={(e) =>
+            handleColumnFilterChange(
+              column.accessorKey as string,
+              e.target.value,
+              'select',
+              columnFilterOperator,
+            )
+          }
+          className={commonInputClasses}
+          onClick={stopPropagation}
+        >
+          <option value="">All</option>
+          {uniqueValues.map((value) => (
+            <option key={value} value={value}>
+              {value}
+            </option>
+          ))}
+        </select>
+      );
+    };
+
+    const isBetween = columnFilterOperator === 'between';
+
+    return (
+      <div className="flex flex-col space-y-1">
+        {renderOperatorSelect(column.filterType || 'text')}
+        {columnFilterOperator !== 'isEmpty' &&
+          columnFilterOperator !== 'isNotEmpty' && (
+            <>
+              {column.filterType === 'number' &&
+                (isBetween
+                  ? renderBetweenInputs('number')
+                  : renderSingleInput('number'))}
+              {column.filterType === 'dateRange' &&
+                (isBetween
+                  ? renderBetweenInputs('date')
+                  : renderSingleInput('date'))}
+              {column.filterType === 'select' && renderSelectInput()}
+              {column.filterType === 'text' && renderSingleInput('text')}
+            </>
+          )}
+      </div>
+    );
   };
 
   const tableClasses = `min-w-full divide-y divide-gray-200 border border-gray-200 ${className}`;
@@ -987,11 +1032,9 @@ const TableChart = <TData extends Record<string, unknown>>({
             </tr>
           ) : (
             paginatedData.map((row, rowIndex) => {
-              const rowId = rowIdAccessor ? rowIdAccessor(row) : undefined;
-              const isSelected =
-                rowId !== undefined ? selectedRowIds.has(rowId) : false;
-              const isExpanded =
-                rowId !== undefined ? expandedRowIds.has(rowId) : false;
+              const rowId = rowIdAccessor ? rowIdAccessor(row) : rowIndex;
+              const isSelected = selectedRowIds.has(rowId);
+              const isExpanded = expandedRowIds.has(rowId);
               const totalColumns =
                 columns.length +
                 (enableRowSelection ? 1 : 0) +

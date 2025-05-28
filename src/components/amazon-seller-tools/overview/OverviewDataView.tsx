@@ -152,8 +152,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
                       Avg. Conversion Rate
                     </h4>
                     <div className="text-3xl font-bold text-blue-600">
-                      {averageConversionRate.toFixed(2)}
-                      %
+                      {averageConversionRate.toFixed(2)}%
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
                       Avg. (Orders/Sessions) from Report
@@ -188,9 +187,9 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
                     <div className="text-3xl font-bold text-green-600">
                       $
                       {totalSales.toLocaleString(undefined, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </div>
                     <div className="text-sm text-gray-500 mt-1">
                       Sum from Report Period

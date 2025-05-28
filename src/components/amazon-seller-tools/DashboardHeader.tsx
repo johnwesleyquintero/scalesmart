@@ -9,6 +9,12 @@ import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 import { saveAs } from 'file-saver';
 import KpiCustomizationModal from './KpiCustomizationModal';
 import { getItem } from '@/lib/indexeddb-service';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'; // Import Tooltip components
 
 interface DashboardHeaderProps {
   isLoading: boolean;
@@ -95,14 +101,25 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           )}
         </div>
         <div className="flex items-center space-x-2 flex-wrap justify-center">
-          <Button
-            variant="outline"
-            onClick={handleRefresh}
-            aria-label="Refresh Dashboard"
-            disabled={isLoading || isParsing}
-          >
-            <RefreshCw className="w-4 h-4 mr-2" /> Refresh
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={handleRefresh}
+                  aria-label="Refresh Dashboard"
+                  disabled={isLoading || isParsing}
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>
+                  Clear all loaded data, errors, and reset dashboard states.
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <Button
             variant="outline"
             onClick={handleExportData}

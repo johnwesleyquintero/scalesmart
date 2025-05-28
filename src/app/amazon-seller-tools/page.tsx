@@ -76,13 +76,29 @@ export default function UnifiedDashboard() {
     localStorage.setItem('hasSeenWhatsNew_v1.0', 'true'); // Mark as seen
   };
 
-  const handleRefresh = useCallback(async () => {
-    setIsLoading(true);
+  const handleRefresh = useCallback(() => {
+    setMetrics([]);
     setError(null);
-    console.log('Refresh clicked - clearing status.');
-    await new Promise((resolve) => setTimeout(resolve, 500));
     setIsLoading(false);
-  }, [setIsLoading, setError]);
+    setIsParsing(false);
+    setIsUploading(false);
+    setIsMapping(false);
+    setIsProcessing(false);
+    setSearchTerm('');
+    setInitialAsin(null);
+    setInitialKeyword(null);
+  }, [
+    setMetrics,
+    setError,
+    setIsLoading,
+    setIsParsing,
+    setIsUploading,
+    setIsMapping,
+    setIsProcessing,
+    setSearchTerm,
+    setInitialAsin,
+    setInitialKeyword,
+  ]);
 
   return (
     <div className="container mx-auto p-4 space-y-4">
