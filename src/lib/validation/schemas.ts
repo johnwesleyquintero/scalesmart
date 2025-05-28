@@ -16,6 +16,7 @@ export const resumeAnalysisSchema = z.object({
         ].includes(file.type),
       'Only PDF and DOCX files are allowed.',
     ),
+  jobDescription: z.string().optional(),
 });
 
 export const moduleProgressSchema = z.object({
@@ -23,4 +24,8 @@ export const moduleProgressSchema = z.object({
   courseId: z.string().min(1, 'Course ID is required.'),
   moduleId: z.string().min(1, 'Module ID is required.'),
   progress: z.number().min(0, 'Progress cannot be negative.').max(100, 'Progress cannot exceed 100.'),
+});
+
+export const keywordTrendsGetSchema = z.object({
+  keyword: z.string().optional(),
 });

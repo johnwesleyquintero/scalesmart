@@ -3,8 +3,10 @@ import {
   type KeywordTrendData,
 } from '@/lib/models/keyword-trends';
 import { createClient } from '@supabase/supabase-js';
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
+import { keywordTrendsGetSchema } from '@/lib/validation/schemas';
+import { ZodError } from 'zod';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -83,6 +85,71 @@ export async function POST(request: Request) {
     return NextResponse.json(trendData);
   } catch (error) {
     console.error('Error processing keyword trends:', error);
+    return NextResponse.json(handleApiError(error), { status: 500 });
+  }
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const queryParams = {
+      keyword: searchParams.get('keyword') || undefined,
+    };
+
+    const validationResult = keywordTrendsGetSchema.safeParse(queryParams);
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.errors.map((err) => err.message).join(', ');
+      return NextResponse.json(
+        createErrorResponse(`Invalid query parameters: ${errorMessages}`, 'VALIDATION_ERROR'),
+        { status: 400 },
+      );
+    }
+
+    const { keyword } = validationResult.data;
+
+    let query = supabase.from(KEYWORD_TREND_TABLE).select('*');
+
+    if (keyword) {
+      query = query.eq('keyword', keyword);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      console.error('Error fetching keyword trends:', error);
+      return NextResponse.json(
+        createErrorResponse('Error fetching keyword trends', 'DATABASE_ERROR'),
+        { status: 500 },
+      );
+    }
+
+    // Format data for visualization
+    const dates = [...new Set(data.map((t) => t.date))].sort((a, b) =>
+      a.localeCompare(b),
+    );
+    const keywordsInResult = [...new Set(data.map((t) => t.keyword))];
+
+    const trendData: KeywordTrendData[] = dates.map((date) => {
+      const dataPoint: KeywordTrendData = { name: date };
+      keywordsInResult.forEach((kw) => {
+        const entry = data.find(
+          (e: KeywordTrend) => e.date === date && e.keyword === kw,
+        ) as KeywordTrend | undefined;
+        dataPoint[kw] = entry ? entry.volume : 0;
+      });
+      return dataPoint;
+    });
+
+    return NextResponse.json(trendData);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        createErrorResponse(`Validation error: ${error.errors.map((err) => err.message).join(', ')}`, 'VALIDATION_ERROR'),
+        { status: 400 },
+      );
+    }
+    console.error('Error fetching keyword trends:', error);
     return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

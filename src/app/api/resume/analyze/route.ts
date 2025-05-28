@@ -7,8 +7,14 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get('file');
+    const jobDescription = formData.get('jobDescription') as string | undefined;
 
-    const validationResult = resumeAnalysisSchema.safeParse({ file });
+    const validationInput = {
+      file,
+      jobDescription,
+    };
+
+    const validationResult = resumeAnalysisSchema.safeParse(validationInput);
 
     if (!validationResult.success) {
       const errorMessages = validationResult.error.errors
@@ -20,7 +26,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const validatedFile = validationResult.data.file;
+    const { file: validatedFile, jobDescription: validatedJobDescription } =
+      validationResult.data;
 
     // Simulate resume analysis with a 2-second delay
     await new Promise((resolve) => setTimeout(resolve, 2000));
@@ -52,6 +59,7 @@ export async function POST(request: Request) {
         present: ['Experience', 'Skills', 'Education', 'Summary'],
         missing: ['Projects', 'Awards', 'Certifications'],
       },
+      validatedJobDescription: validatedJobDescription, // Echo back for confirmation
     };
 
     return NextResponse.json(analysisResults);

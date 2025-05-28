@@ -59,14 +59,12 @@ export default function KeywordTrendAnalyzer() {
 
   // State for manual input
   const [keyword, setKeyword] = useState<string>('');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
 
   const handleAnalyze = useCallback(async () => {
-    if (!keyword || !startDate || !endDate) {
+    if (!keyword) {
       toast({
         title: 'Input Required',
-        description: 'Please enter a keyword, start date, and end date.',
+        description: 'Please enter a keyword.',
         variant: 'warning',
       });
       return;
@@ -78,25 +76,33 @@ export default function KeywordTrendAnalyzer() {
     setKeywords([]);
 
     try {
-      // Mock data for demonstration
-      const mockData: TrendDataPoint[] = [
-        { date: '2023-01-01', [keyword]: 100 },
-        { date: '2023-01-02', [keyword]: 120 },
-        { date: '2023-01-03', [keyword]: 110 },
-        { date: '2023-01-04', [keyword]: 130 },
-        { date: '2023-01-05', [keyword]: 150 },
-      ];
+      const response = await fetch(`/api/amazon/keyword-trends?keyword=${encodeURIComponent(keyword)}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to fetch keyword trends.');
+      }
+      const data: TrendDataPoint[] = await response.json();
 
-      const { chartData: processedData, keywords: foundKeywords } =
-        await KeywordTrendService.analyzeTrends(mockData);
+      if (data.length === 0) {
+        setError('No data found for the specified keyword.');
+        toast({
+          title: 'No Data',
+          description: 'No trend data found for this keyword. Try uploading a CSV first.',
+          variant: 'info',
+        });
+        return;
+      }
 
-      setChartData(processedData);
+      // Extract unique keywords from the fetched data for chart lines
+      const foundKeywords = Array.from(new Set(data.flatMap(item => Object.keys(item).filter(key => key !== 'date'))));
+
+      setChartData(data);
       setKeywords(foundKeywords);
       setError(undefined);
 
       toast({
         title: 'Analysis Complete',
-        description: `Successfully analyzed trend for "${keyword}".`,
+        description: `Successfully fetched trend for "${keyword}".`,
         variant: 'success',
       });
     } catch (err: unknown) {
@@ -115,7 +121,7 @@ export default function KeywordTrendAnalyzer() {
     } finally {
       setIsLoading(false);
     }
-  }, [keyword, startDate, endDate, toast]);
+  }, [keyword, toast]);
 
   const handleFileUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -397,30 +403,6 @@ export default function KeywordTrendAnalyzer() {
                     className="mt-1"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="start-date" className="text-sm font-medium">
-                    Start Date
-                  </Label>
-                  <Input
-                    id="start-date"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="end-date" className="text-sm font-medium">
-                    End Date
-                  </Label>
-                  <Input
-                    id="end-date"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                    className="mt-1"
-                  />
-                </div>
                 <Button
                   onClick={handleAnalyze}
                   className="w-full"
@@ -435,10 +417,6 @@ export default function KeywordTrendAnalyzer() {
                     'Analyze Trend'
                   )}
                 </Button>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Uses mock data for demonstration. Replace with actual API
-                  call.
-                </p>
               </div>
             </div>
           </CardContent>
