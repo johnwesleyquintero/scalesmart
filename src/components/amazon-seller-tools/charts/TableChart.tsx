@@ -1,11 +1,25 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { ChevronUp, ChevronDown, Filter } from 'lucide-react';
+import {
+  ChevronUp,
+  ChevronDown,
+  Filter,
+  Copy,
+  ExternalLink,
+} from 'lucide-react';
 import {
   setItem,
   getItem,
   deleteItem,
 } from '../../../../lib/indexeddb-service';
 import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
+import { useToast } from '../../ui/use-toast';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../../ui/dropdown-menu';
+import { useRouter } from 'next/navigation';
 
 /**
  * Defines the structure for a column in the TableChart component.
@@ -53,6 +67,18 @@ export interface ColumnDef<TData> {
    * Used if `sortFn` is not provided.
    */
   sortType?: 'string' | 'number' | 'date' | 'alphanumeric' | 'currency';
+  /**
+   * If true, enables copy-to-clipboard functionality for this column's cells.
+   */
+  copyable?: boolean;
+  /**
+   * An optional configuration to enable "Analyze in Tool" functionality.
+   * Specifies the target tool (tab) and the query parameter name.
+   */
+  analyzeInTool?: {
+    toolName: string; // e.g., 'competitor-analyzer', 'keyword-analyzer'
+    paramName: string; // e.g., 'asin', 'keyword'
+  };
 }
 
 export type FilterOperator =
@@ -121,6 +147,7 @@ const TableChart = <TData extends Record<string, unknown>>({
   persistenceKey,
   onResetPreferences,
 }: TableChartProps<TData>) => {
+  const router = useRouter();
   // Ensure all states are within the component's scope
   const [sortConfig, setSortConfig] = useState<{
     key: keyof TData | string;
@@ -696,6 +723,25 @@ const TableChart = <TData extends Record<string, unknown>>({
     } hover:bg-gray-100 ${compact ? 'py-2' : 'py-4'} divide-y divide-gray-200`;
   const cellPadding = compact ? 'px-4 py-2' : 'px-6 py-4';
 
+  const { toast } = useToast();
+
+  const handleCopyToClipboard = async (value: string, header: string) => {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast({
+        title: `Copied to clipboard`,
+        description: `${header}: "${value}"`,
+      });
+    } catch (err) {
+      toast({
+        title: 'Failed to copy',
+        description: `Could not copy ${header} to clipboard.`,
+        variant: 'destructive',
+      });
+      console.error('Failed to copy to clipboard:', err);
+    }
+  };
+
   const toggleRowExpansion = (rowId: string | number) => {
     console.log(
       'toggleRowExpansion: rowIdAccessor status:',
@@ -997,7 +1043,7 @@ const TableChart = <TData extends Record<string, unknown>>({
                       return (
                         <td
                           key={column.accessorKey.toString() + colIndex}
-                          className={`whitespace-nowrap text-sm text-gray-800 ${cellPadding}`}
+                          className={`whitespace-nowrap text-sm text-gray-800 ${cellPadding} ${column.copyable || column.analyzeInTool ? 'group relative flex items-center justify-between' : ''}`}
                           role="gridcell"
                         >
                           {column.cell
@@ -1007,6 +1053,56 @@ const TableChart = <TData extends Record<string, unknown>>({
                                 column as ColumnDef<TData>,
                               )
                             : String(value)}
+                          {(column.copyable || column.analyzeInTool) &&
+                            (typeof value === 'string' ||
+                              typeof value === 'number') && (
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <button className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 -mr-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <ExternalLink className="h-3 w-3 text-gray-500" />
+                                  </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  {column.copyable && (
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        handleCopyToClipboard(
+                                          String(value),
+                                          column.header as string,
+                                        )
+                                      }
+                                    >
+                                      <Copy className="mr-2 h-4 w-4" /> Copy "
+                                      {value}"
+                                    </DropdownMenuItem>
+                                  )}
+                                  {column.analyzeInTool && (
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        const toolName =
+                                          column.analyzeInTool?.toolName;
+                                        const paramName =
+                                          column.analyzeInTool?.paramName;
+                                        if (toolName && paramName) {
+                                          router.push(
+                                            `/amazon-seller-tools?tab=${toolName}&${paramName}=${encodeURIComponent(
+                                              String(value),
+                                            )}`,
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      <ExternalLink className="mr-2 h-4 w-4" />{' '}
+                                      Analyze in{' '}
+                                      {column.analyzeInTool.toolName
+                                        .charAt(0)
+                                        .toUpperCase() +
+                                        column.analyzeInTool.toolName.slice(1)}
+                                    </DropdownMenuItem>
+                                  )}
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            )}
                         </td>
                       );
                     })}
@@ -1027,6 +1123,7 @@ const TableChart = <TData extends Record<string, unknown>>({
           )}
         </tbody>
       </table>
+      {/* Moved toast to root layout. This element is not necessary. */}
 
       {enablePagination && totalPages > 1 && (
         <div className="flex justify-between items-center mt-4 px-4 py-2 bg-gray-50 border-t border-gray-200 rounded-b-lg">

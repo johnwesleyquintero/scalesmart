@@ -30,7 +30,7 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 ```
 | Tool                     | Status                     | Version     | Notes                              |
 | :----------------------- | :------------------------- | :---------- | :--------------------------------- |
-| Overview Dashboard       | ✅ Active                  | 1.3.1       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features enhanced CSV data processing feedback with row-level error information and robust date sorting, per-column filtering, custom sort functions, persistent table state using IndexedDB, <code>rowIdAccessor</code> validation in the TableChart, improved data type inference, performance improvements for data merging, basic mapping persistence, new granular loading indicators for processing states (uploading, parsing, mapping), and a data table using the TableChart component with enhanced stability due to resolved hook order issues. A new toggleable Keyword Performance Overview Table has been added. Integrated standardized application-wide status notifications using the `use-toast` hook. |
+| Overview Dashboard       | ✅ Active                  | 1.4.0       | Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Features advanced table interactivity (filtering, sorting, persistence), enhanced CSV data processing feedback with row-level errors/warnings, refined initial data loading experience, data context transfer ("Analyze in Tool"), persistent dashboard view preferences, and a toggleable Keyword Performance Overview Table. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. Integrated standardized application-wide status notifications using the `use-toast` hook. |
 | FBA Calculator           | ✅ Active                  | 2.0.0       | Advanced profitability calculator for FBA products with real-time ROI analysis and market trend integration.                       |
 | Keyword Analyzer         | ✅ Active                  | 2.0.0       | A tool for analyzing and managing keywords.                                    |
 | Listing Quality Checker  | ✅ Active                  | 1.6.0       | AI-powered listing analysis and optimization tool. Updated to use standard Shadcn/ui `Card` components for consistent UI and improved clarity. |
@@ -56,21 +56,29 @@ Welcome to the Amazon Seller Tools Suite! This collection of React-based tools h
 ### Overview Dashboard
 
 **Status**: ✅ Active
-**Version**: 1.3.1
+**Version**: 1.4.0
 
-🔍 **Description**: Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Charts are now rendered using the ReusableChart component. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. The dashboard now features improved data type inference, performance improvements for data merging, and basic mapping persistence. **Stability improvements have been implemented for data visualization consistency and performance, specifically addressing React Hook order issues.** The dashboard now also features enhanced CSV data processing feedback with row-level error information and robust date sorting, per-column filtering, custom sort functions, persistent table state using IndexedDB, and new granular loading indicators for processing states (uploading, parsing, mapping). A new toggleable `Keyword Performance Overview Table` has been added. Standardized application-wide status notifications have been integrated using the `use-toast` hook for consistent feedback.
+🔍 **Description**: Centralized dashboard for business report analysis, KPI tracking, and trend visualization. Features **advanced table interactivity (per-column filtering, custom sorting, persistent state)**, **enhanced CSV data processing feedback with detailed row-level errors and warnings**, **refined initial data loading experience with clear options and hints**, **data context transfer ("Analyze in Tool" links from tables)**, **persistent dashboard view preferences (time range, granularity)**, and a **toggleable Keyword Performance Overview Table**. Includes CSV Data Mapper with data validation and Sample CSV download. Includes Print and Download PDF options. Integrated standardized application-wide status notifications using the `use-toast` hook.
 
 The Overview Dashboard is a central hub for analyzing key business metrics. It allows users to upload their Amazon Business Report data (in CSV format), visualize key performance indicators (KPIs), analyze trends, and access a variety of specialized tools. The CSV Data Mapper now includes data validation to ensure data integrity. Charts are now rendered using the ReusableChart component for improved consistency and maintainability. The dashboard now includes Print and Download PDF options.
 
-**Recent Improvements (Version 1.3.1):**
+**Recent Improvements (Version 1.4.0):**
 
+- Implemented **advanced per-column filtering** in the data table.
+- Added support for **custom sort functions and enhanced default sorting** in the data table.
+- Implemented **persistent table state** (sort, filters, pagination) using IndexedDB.
+- Provided **enhanced CSV data processing feedback** with detailed row-level errors and warnings.
+- Refined the **initial data loading user experience** with distinct "Upload Your Data" and "Explore Sample Data" options and contextual hints.
+- Implemented **persistent dashboard view preferences** (time range, granularity) using IndexedDB.
+- Added **"Analyze in Tool" options** to tables for data context transfer.
 - Integrated standardized application-wide status notifications using the `use-toast` hook.
+- Added a **toggleable Keyword Performance Overview Table**.
 
 **How to Use the Overview Dashboard:**
 
 1.  **Uploading Data:**
-    1.  Click "Choose Report File (.csv)".
-    2.  Select your CSV file.
+    1.  Click "Upload Your Data (.csv)" or "Explore Sample Data".
+    2.  If uploading, select your CSV file.
     3.  **Column Mapping:** Use the `GenericCsvDataMapper` component to map CSV columns to the required data fields.
         - Select the corresponding column from your CSV using the dropdown menus.
         - Hints are provided for each target field to guide you.
@@ -82,19 +90,19 @@ The Overview Dashboard is a central hub for analyzing key business metrics. It a
     - **KPI Cards:** Display overall averages or totals for metrics like "Avg. Conversion Rate," "Total Sales," and "Avg. Clicks."
     - **Period-over-Period Comparison KPIs:** Shows key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS) for the most recent period compared to the previous one. Changes are indicated with icons (up/down arrows) and percentage differences.
     - **Charts:** Visualizing trends for sales, advertising performance (clicks, impressions), and engagement (orders, sessions) using the ReusableChart component.
-    - **Data Table:** Displaying the data in a sortable and filterable table using the `MetricsDataTable` component.
+    - **Data Table:** Displaying the data in a sortable and filterable table using the enhanced `TableChart` component.
 3.  **Time Granularity:** Use the "Select Time Granularity" dropdown to change the aggregation period (Daily, Weekly, Monthly, Quarterly, Yearly). Charts and KPI comparisons will update accordingly.
-4.  **Time Range Filtering:** Use the time range selector in the top right corner of each chart to filter the data by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time).
+4.  **Time Range Filtering:** Use the time range selector to filter the data by time range (Last 7 Days, Last 30 Days, Last 90 Days, Year to Date, All Time, Custom Range).
 5.  **Period-over-Period Comparison:** The dashboard displays period-over-period comparisons for key metrics (Total Sales, Total Orders, Conversion Rate, ACoS, RoAS). Changes are indicated with icons (up/down arrows) and percentage differences.
 6.  **Interacting with the Dashboard:**
     - The dashboard now displays sample data when no CSV file is uploaded.
     - **Refresh:** Click the "Refresh" button in the DashboardHeader to clear current data and start over.
-
-- **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
-- **Print:** Click the "Print" button to print the dashboard report.
-- **Download PDF:** Click the "Download PDF" button to download the dashboard report as a PDF file.
-- **Docs:** Links to external documentation for the Amazon Seller Tools.
-- **Error Handling:** If issues occur during file upload, parsing, or mapping, an error message will be displayed. You'll often have an option to "Try uploading again."
+    - **Export:** Click the "Export" button to download the currently processed and aggregated dashboard metrics as a CSV file.
+    - **Print:** Click the "Print" button to print the dashboard report.
+    - **Download PDF:** Click the "Download PDF" button to download the dashboard report as a PDF file.
+    - **Docs:** Links to external documentation for the Amazon Seller Tools.
+    - **Error Handling:** If issues occur during file upload, parsing, or mapping, detailed error messages and warnings will be displayed. You'll often have an option to "Try uploading again."
+    - **Analyze in Tool:** From tables, click the options menu on ASINs or Keywords to send them directly to relevant specialized tools for further analysis.
 
 ### FBA Calculator
 

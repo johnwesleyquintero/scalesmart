@@ -17,14 +17,27 @@ import {
 import TableChart, {
   ColumnDef,
 } from '@/components/amazon-seller-tools/charts/TableChart';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Calendar } from '@/components/ui/calendar';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { CalendarIcon } from 'lucide-react';
+import { format } from 'date-fns';
 import type {
   DashboardMetrics,
   TargetMetricConfig,
 } from '@/app/amazon-seller-tools/page';
+import { TimeRange } from '@/lib/amazon-tools/types';
 import { ComparisonKpiCard } from './ComparisonKpiCard';
 import { SalesTrendsChart } from '../charts/SalesTrendsChart';
 import { ClicksImpressionsChart } from '../charts/ClicksImpressionsChart';
-import { OrdersSessionsChart } from '../charts/OrdersSessionsChart'; // Corrected import path
+import { OrdersSessionsChart } from '../charts/OrdersSessionsChart';
 import { AdSpendSalesChart } from '../charts/AdSpendSalesChart';
 import { ProfitTrendChart } from '../charts/ProfitTrendChart';
 import KeywordVsAdSalesDonutChart from '../charts/KeywordVsAdSalesDonutChart';
@@ -38,6 +51,12 @@ interface OverviewDataViewProps {
     granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
   ) => void;
   aggregatedAndSortedMetrics: DashboardMetrics[];
+  timeRange: TimeRange;
+  setTimeRange: (range: TimeRange) => void;
+  customDateRange: { from: Date | undefined; to: Date | undefined };
+  setCustomDateRange: React.Dispatch<
+    React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>
+  >;
 }
 
 // --- Helper Formatting Functions (can be moved to a utils file if preferred) ---
@@ -105,9 +124,14 @@ const getCellFormatter = (
 export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
   metrics,
   targetMetricsConfig,
+  onDeleteMetric,
   timeGranularity,
   setTimeGranularity,
   aggregatedAndSortedMetrics,
+  timeRange,
+  setTimeRange,
+  customDateRange,
+  setCustomDateRange,
 }) => {
   const tableColumns: ColumnDef<DashboardMetrics>[] = useMemo(() => {
     // Define which metrics to show in the table and their display properties
@@ -166,25 +190,98 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
 
   return (
     <>
-      {/* Time Granularity Selector */}
-      <div className="my-4 flex justify-end">
-        <Select
-          value={timeGranularity}
-          onValueChange={(value) =>
-            setTimeGranularity(value as typeof timeGranularity)
-          }
-        >
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select Time Granularity" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="daily">Daily</SelectItem>
-            <SelectItem value="weekly">Weekly</SelectItem>
-            <SelectItem value="monthly">Monthly</SelectItem>
-            <SelectItem value="quarterly">Quarterly</SelectItem>
-            <SelectItem value="yearly">Yearly</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* Time Granularity & Range Selectors */}
+      <div className="my-4 flex items-center justify-end space-x-4">
+        <div className="flex items-center space-x-2">
+          <Label htmlFor="time-granularity-select">Granularity:</Label>
+          <Select
+            value={timeGranularity}
+            onValueChange={(value) =>
+              setTimeGranularity(value as typeof timeGranularity)
+            }
+          >
+            <SelectTrigger id="time-granularity-select" className="w-[180px]">
+              <SelectValue placeholder="Select Time Granularity" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="daily">Daily</SelectItem>
+              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="monthly">Monthly</SelectItem>
+              <SelectItem value="quarterly">Quarterly</SelectItem>
+              <SelectItem value="yearly">Yearly</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {/* Time range selector in OverviewDataView as well (not in OverviewTab) */}
+        <div className="flex items-center space-x-2">
+          <Label htmlFor="time-range-select">Time Range:</Label>
+          <Select
+            value={timeRange}
+            onValueChange={(value: TimeRange) => setTimeRange(value)}
+          >
+            <SelectTrigger id="time-range-select" className="w-[180px]">
+              {timeRange === 'last_7_days' && 'Last 7 Days'}
+              {timeRange === 'last_30_days' && 'Last 30 Days'}
+              {timeRange === 'month_to_date' && 'Month to Date'}
+              {timeRange === 'year_to_date' && 'Year to Date'}
+              {timeRange === 'all_time' && 'All Time'}
+              {timeRange === 'custom' && 'Custom Range'}
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+              <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+              <SelectItem value="month_to_date">Month to Date</SelectItem>
+              <SelectItem value="year_to_date">Year to Date</SelectItem>
+              <SelectItem value="all_time">All Time</SelectItem>
+              <SelectItem value="custom">Custom Range</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        {timeRange === 'custom' && (
+          <div className="flex items-center space-x-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant={'outline'}
+                  className={cn(
+                    'w-[280px] justify-start text-left font-normal',
+                    !customDateRange.from && 'text-muted-foreground',
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {customDateRange.from ? (
+                    customDateRange.to ? (
+                      <>
+                        {format(customDateRange.from, 'PPP')} -{' '}
+                        {format(customDateRange.to, 'PPP')}
+                      </>
+                    ) : (
+                      format(customDateRange.from, 'PPP')
+                    )
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="range"
+                  selected={customDateRange}
+                  onSelect={(range) => {
+                    if (range) {
+                      setCustomDateRange({
+                        from: range.from,
+                        to: range.to,
+                      });
+                    }
+                  }}
+                  numberOfMonths={2}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
 
       {/* KPI Cards */}
@@ -193,8 +290,6 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <div>
-                {' '}
-                {/* Wrap Card in a div or use asChild directly on Card if supported by your Card component */}
                 <Card>
                   <CardContent className="p-4">
                     <h4 className="text-lg font-semibold mb-2">

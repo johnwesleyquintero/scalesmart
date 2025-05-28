@@ -15,7 +15,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import Papa from 'papaparse';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   Bar,
   BarChart,
@@ -590,7 +590,11 @@ const ProductAnalysisCard: React.FC<ProductAnalysisCardProps> = ({
 );
 
 // --- Main Component ---
-export default function KeywordAnalyzer() {
+export default function KeywordAnalyzer({
+  initialKeyword,
+}: {
+  initialKeyword?: string | null;
+}) {
   const { toast } = useToast();
   const [products, setProducts] = useState<KeywordData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -598,6 +602,15 @@ export default function KeywordAnalyzer() {
   const [manualKeywords, setManualKeywords] = useState('');
   const [progress, setProgress] = useState<number | null>(null); // Moved progress state here
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Effect to set initial keyword if provided from URL params
+  useEffect(() => {
+    if (initialKeyword && initialKeyword.trim() !== '') {
+      setManualKeywords(initialKeyword);
+      // Optionally trigger analysis directly, or let user click analyze
+      // handleManualAnalysis(); // Uncomment this line if you want to auto-analyze
+    }
+  }, [initialKeyword]);
 
   // --- Handlers ---
   const handleFileUpload = useCallback(

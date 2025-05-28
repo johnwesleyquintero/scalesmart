@@ -101,13 +101,26 @@ const getChartColor = (metric: MetricType): string => {
   return colors[metric];
 };
 
-export function CompetitorAnalyzer() {
+export function CompetitorAnalyzer({
+  initialAsin,
+}: {
+  initialAsin?: string | null;
+}) {
   const [asin, setAsin] = useState('');
   const [metrics, setMetrics] = useState<MetricType[]>([
     'price',
     'reviews',
     'rating',
   ]);
+
+  // Effect to set initial ASIN if provided from URL params
+  useEffect(() => {
+    if (initialAsin && initialAsin.trim() !== '') {
+      setAsin(initialAsin);
+      // Optionally trigger analysis directly
+      // analyzeCompetitor(); // Uncomment to auto-analyze on initial ASIN
+    }
+  }, [initialAsin]);
 
   const handleFileUpload = useCallback(
     (

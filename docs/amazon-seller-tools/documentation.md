@@ -359,19 +359,21 @@ The `calculations.ts` file (`src/lib/utils/amazon/calculations.ts`) contains uti
   - `calculateAcos(adSpend: number, adSales: number): number`: Calculates the Advertising Cost of Sales (ACoS).
   - `calculateProfitMargin(revenue: number, costOfGoodsSold: number, otherCosts: number): number`: Calculates the profit margin.
 
-## 15. Key Areas for Improvement
+## 16. Key Areas for Improvement
 
-The following improvements have been implemented:
+**_This section outlines potential areas for further improvement based on recent code reviews._**
 
-- Updated tooltips for KPI cards in the `OverviewDataView` component to provide clearer context and definitions for the metrics.
-- Enhanced the `tooltipFormatter` prop in the `ReusableChart` component to display more detailed information in chart tooltips, including exact values, date ranges, and period-over-period comparisons. The `enhancedTooltipFormatter` function now calculates and displays percentage changes compared to the previous period.
-- Improved the visual indicators for sorting in the `MetricsDataTable` component, making it clearer which columns are sorted and in what direction. More prominent arrow icons now indicate the sort direction.
-- Implemented more detailed progress messages and a progress bar in the `GenericCsvDataMapper` and `OverviewTab` components to provide more granular feedback during CSV file parsing and data processing.
-- Added a loading indicator to the `OverviewTab` component to show the status of the upload, parsing, and processing stages.
-- Implemented basic mapping persistence using IndexedDB to save the user's last-used column mapping preferences. On subsequent uploads, the mapping suggestions are pre-populated based on the saved configuration.
-- Added tooltips and help text to specialized tools to provide in-context guidance for each tool's purpose, key inputs, and expected outputs.
-- Updated styling in `listing-quality-checker.tsx` to use `Card` and its sub-components (`CardHeader`, `CardTitle`, `CardContent`) for consistent UI with `shadcn/ui` conventions, replacing custom `DataCard` usage in relevant sections, specifically around ASIN input and results display, to adhere to standard patterns for enhanced clarity and maintainability.
-
----
-
-**_This section outlines the key areas for improvement for the Amazon Seller Tools Dashboard._**
+- **Date and Numeric Parsing Robustness:** Enhance date and numeric parsing logic in `data-transformation.ts` and `TableChart.tsx` using a dedicated library (e.g., `date-fns`) for consistency and better handling of edge cases.
+- **Complete Filter Operators:** Implement the `between` filter operator for number and date range filter types in `TableChart.tsx`.
+- **`rowIdAccessor` Null Checks:** Add explicit null/undefined checks for the `rowIdAccessor` prop in `TableChart.tsx` where it is used in handlers and memoized values to prevent potential runtime errors if the prop is missing when required.
+- **Refine CSV Parsing Error Handling:** Investigate PapaParse's error handling during the `step` function in `OverviewTab.tsx` to ensure all parsing errors are captured and reported correctly.
+- **Clarify "Refresh" Behavior:** Modify the `handleRefresh` function in `src/app/amazon-seller-tools/page.tsx` to actually trigger data reload/re-processing in `OverviewTab`, or rename it to better reflect its current behavior (clearing state).
+- **Persist `selectedMetrics`:** Implement logic in `OverviewTab.tsx` to save the `selectedMetrics` state to IndexedDB whenever it changes.
+- **Centralize Type Definitions and Constants:** Move the `DashboardMetrics` interface from `page.tsx` and IndexedDB key strings from `OverviewTab.tsx` to shared utility/types files.
+- **Improve Code Structure:** Extract the nested `OverviewTabContentDisplay` component from `OverviewTab.tsx` into its own file and consider breaking down other long functions (`handleFileChange`, `processCsvData`, `handleMappingComplete`) into smaller helpers.
+- **Consolidate Loading States:** Explore simplifying the multiple boolean loading/processing states in `OverviewTab.tsx` into a single status state variable.
+- **Optimize Performance for Large Datasets:** Consider incremental CSV processing within the PapaParse `step` function and potentially offloading heavy data processing (sorting, filtering, aggregation) to a Web Worker if performance becomes an issue with very large files.
+- **Remove Redundant UI:** Remove the duplicate time range selector UI from `OverviewDataView.tsx`, as the state and persistence are managed in `OverviewTab.tsx`.
+- **Extract KPI Calculation Logic:** Move the KPI calculation logic from the JSX in `OverviewDataView.tsx` into helper functions or `useMemo` hooks.
+- **Move Formatting Helpers:** Relocate the formatting helper functions (`formatCurrencyValue`, `formatPercentageValue`, etc.) from `OverviewDataView.tsx` to a shared utility file.
+- **Maintain Tooltip Content:** Ensure tooltip descriptions remain accurate as features evolve.

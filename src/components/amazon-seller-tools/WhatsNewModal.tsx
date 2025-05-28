@@ -35,34 +35,28 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           </h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>
-              New charts visualizing sales and advertising performance with
-              flexible filter control data set!
+              **Advanced Table Interactivity:** The data table now supports per-column filtering, custom sorting, and persists your preferences across sessions.
             </li>
             <li>
-              Enhanced CSV Data-Table feature with per-column settings, custom
-              sort functions, and persistent state for user preferences.
+              **Data Context Transfer:** Easily send ASINs/Keywords from tables directly to relevant specialized tools for deeper analysis.
             </li>
             <li>
-              New toggleable Keyword Performance Overview Table for granular
-              insights.
+              **Keyword Performance Table:** A new toggleable table in the Overview tab provides granular insights into keyword-specific metrics.
             </li>
           </ul>
 
           <h4 className="font-semibold text-lg">
-            Improved CSV Data Mapping & Error Handling
+            Improved Data Loading & Processing
           </h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>
-              Easier upload and mapping with the new CSV Data Mapper, including
-              robust data validation and transformation configuration.
+              **Refined Data Loading:** Clearer options to "Upload Your Data" or "Explore Sample Data" with helpful hints for CSV requirements.
             </li>
             <li>
-              Detailed, row-level error information for CSV uploads and improved
-              loading indicators, offering clearer user feedback.
+              **Enhanced Processing Feedback:** Detailed, row-level error and warning reporting during CSV processing, with improved loading indicators for each stage (uploading, parsing, mapping).
             </li>
             <li>
-              Robust date sorting for CSV data to handle invalid date values
-              gracefully.
+              **Persistent View Preferences:** Your selected time range and granularity preferences for the Overview tab are now saved.
             </li>
           </ul>
 
@@ -71,8 +65,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           </h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>
-              Standardized application-wide status notifications using the
-              `use-toast` hook for consistent and informative feedback.
+              **Standardized Notifications:** Integrated consistent status notifications using the `use-toast` hook for better feedback.
             </li>
             <li>
               Print and Download PDF options for easily sharing dashboard
@@ -81,10 +74,6 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
             <li>
               Listing Quality Checker now uses `shadcn/ui` Card components for
               consistent and improved visual presentation.
-            </li>
-            <li>
-              Dashboard now loads sample data when no CSV is uploaded, allowing
-              immediate exploration.
             </li>
           </ul>
         </div>

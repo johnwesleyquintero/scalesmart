@@ -2,6 +2,20 @@
 
 export type MetricKey = 'acos' | 'roas' | 'ctr' | 'cpc';
 
+export type TimeRange =
+  | 'last_7_days'
+  | 'last_30_days'
+  | 'month_to_date'
+  | 'year_to_date'
+  | 'all_time'
+  | 'custom';
+
+export interface DashboardViewPreferences {
+  timeGranularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+  timeRange: TimeRange;
+  customDateRange?: { from: Date | undefined; to: Date | undefined };
+}
+
 export type ProductCategory =
   | 'Books'
   | 'Electronics'

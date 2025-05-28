@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import React, { useCallback, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation'; // Import useSearchParams
 import AcosCalculator from '@/components/amazon-seller-tools/acos-calculator';
 import { CompetitorAnalyzer } from '@/components/amazon-seller-tools/competitor-analyzer';
 import DescriptionEditor from '@/components/amazon-seller-tools/description-editor';
@@ -56,7 +57,39 @@ export interface DashboardMetrics {
   keyword_ad_orders_7_day?: number; // From 'Keyword Ad Orders (7-day)' (keyword specific)
   asin?: string;
   keyword?: string;
-  [key: string]: unknown;
+  [key: string]: unknown; // Allow for other properties
+
+  // Validation and Outlier Flags
+  date_validation_warning?: boolean;
+  unique_identifier_validation_warning?: boolean;
+  total_sales_outlier_flag?: boolean;
+  total_orders_outlier_flag?: boolean;
+  total_sessions_outlier_flag?: boolean;
+  total_page_views_outlier_flag?: boolean;
+  total_conversion_rate_outlier_flag?: boolean;
+  ad_impressions_outlier_flag?: boolean;
+  ad_clicks_outlier_flag?: boolean;
+  ad_spend_outlier_flag?: boolean;
+  ad_sales_outlier_flag?: boolean;
+  ad_orders_outlier_flag?: boolean;
+  acos_outlier_flag?: boolean;
+  roas_outlier_flag?: boolean;
+  cpc_outlier_flag?: boolean;
+  ctr_outlier_flag?: boolean;
+  ad_conversion_rate_outlier_flag?: boolean;
+  profit_outlier_flag?: boolean;
+  inventory_level_outlier_flag?: boolean;
+  review_rating_outlier_flag?: boolean;
+  cac_outlier_flag?: boolean;
+  ltv_outlier_flag?: boolean;
+  targeted_keyword_validation_warning?: boolean;
+  keyword_ad_impressions_outlier_flag?: boolean;
+  keyword_ad_clicks_outlier_flag?: boolean;
+  keyword_ad_spend_outlier_flag?: boolean;
+  keyword_ad_sales_7_day_outlier_flag?: boolean;
+  keyword_ad_orders_7_day_outlier_flag?: boolean;
+  asin_validation_warning?: boolean;
+  keyword_validation_warning?: boolean;
 }
 
 import type { CsvColumnMapping } from '@/types/data-mapping';
@@ -287,6 +320,7 @@ const TARGET_METRICS_CONFIG = TARGET_METRICS_CONFIG_RAW;
 
 // --- Helper Functions for Data Processing ---
 export default function UnifiedDashboard() {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState('overview');
   const [metrics, setMetrics] = useState<DashboardMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -297,6 +331,8 @@ export default function UnifiedDashboard() {
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [showWhatsNew, setShowWhatsNew] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [initialAsin, setInitialAsin] = useState<string | null>(null);
+  const [initialKeyword, setInitialKeyword] = useState<string | null>(null);
 
   useEffect(() => {
     const hasSeenWhatsNew = localStorage.getItem('hasSeenWhatsNew_v1.0'); // Use a versioned key
@@ -304,6 +340,22 @@ export default function UnifiedDashboard() {
       setShowWhatsNew(true);
     }
   }, []);
+
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    const asinParam = searchParams.get('asin');
+    const keywordParam = searchParams.get('keyword');
+
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+    if (asinParam) {
+      setInitialAsin(asinParam);
+    }
+    if (keywordParam) {
+      setInitialKeyword(keywordParam);
+    }
+  }, [searchParams]);
 
   const handleCloseWhatsNew = () => {
     setShowWhatsNew(false);
@@ -379,7 +431,7 @@ export default function UnifiedDashboard() {
                   <TabsTrigger value="trend">Trend Analyzer</TabsTrigger>
                 </TabsList>
                 <TabsContent value="analyzer">
-                  <KeywordAnalyzer />
+                  <KeywordAnalyzer initialKeyword={initialKeyword} />
                 </TabsContent>
                 <TabsContent value="deduplicator">
                   <KeywordDeduplicator />
@@ -470,7 +522,7 @@ export default function UnifiedDashboard() {
                   <TabsTrigger value="estimator">Sales Estimator</TabsTrigger>
                 </TabsList>
                 <TabsContent value="analyzer">
-                  <CompetitorAnalyzer />
+                  <CompetitorAnalyzer initialAsin={initialAsin} />
                 </TabsContent>
                 <TabsContent value="estimator">
                   <SalesEstimator />
