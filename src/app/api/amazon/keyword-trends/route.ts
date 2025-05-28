@@ -99,9 +99,14 @@ export async function GET(request: NextRequest) {
     const validationResult = keywordTrendsGetSchema.safeParse(queryParams);
 
     if (!validationResult.success) {
-      const errorMessages = validationResult.error.errors.map((err) => err.message).join(', ');
+      const errorMessages = validationResult.error.errors
+        .map((err) => err.message)
+        .join(', ');
       return NextResponse.json(
-        createErrorResponse(`Invalid query parameters: ${errorMessages}`, 'VALIDATION_ERROR'),
+        createErrorResponse(
+          `Invalid query parameters: ${errorMessages}`,
+          'VALIDATION_ERROR',
+        ),
         { status: 400 },
       );
     }
@@ -145,7 +150,10 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     if (error instanceof ZodError) {
       return NextResponse.json(
-        createErrorResponse(`Validation error: ${error.errors.map((err) => err.message).join(', ')}`, 'VALIDATION_ERROR'),
+        createErrorResponse(
+          `Validation error: ${error.errors.map((err) => err.message).join(', ')}`,
+          'VALIDATION_ERROR',
+        ),
         { status: 400 },
       );
     }

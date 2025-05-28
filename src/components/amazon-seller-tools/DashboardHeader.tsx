@@ -3,8 +3,6 @@ import useDebounce from '@/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { BookOpen, Download, Loader2, RefreshCw, Settings } from 'lucide-react';
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import DashboardPdf from './DashboardPdf';
 import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 import { saveAs } from 'file-saver';
 import KpiCustomizationModal from './KpiCustomizationModal';
@@ -14,7 +12,14 @@ import {
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip'; // Import Tooltip components
+} from '@/components/ui/tooltip';
+import dynamic from 'next/dynamic';
+
+const PDFDownloadLink = dynamic(
+  () => import('@react-pdf/renderer').then((mod) => mod.PDFDownloadLink),
+  { ssr: false },
+);
+const DashboardPdf = dynamic(() => import('./DashboardPdf'), { ssr: false });
 
 interface DashboardHeaderProps {
   isLoading: boolean;
@@ -136,28 +141,33 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           >
             Print
           </Button>
-          {pdfData && (
-            <PDFDownloadLink
-              document={
-                <DashboardPdf title={pdfData.title} content={pdfData.content} />
-              }
-              fileName="dashboard.pdf"
-            >
-              {({ loading }) =>
-                loading ? (
-                  'Loading document...'
-                ) : (
-                  <Button
-                    variant="outline"
-                    aria-label="Download PDF"
-                    disabled={loading}
-                  >
-                    <Download className="w-4 h-4 mr-2" /> Download PDF
-                  </Button>
-                )
-              }
-            </PDFDownloadLink>
-          )}
+          {pdfData &&
+            PDFDownloadLink &&
+            DashboardPdf && ( // Check if dynamically imported components are loaded
+              <PDFDownloadLink
+                document={
+                  <DashboardPdf
+                    title={pdfData.title}
+                    content={pdfData.content}
+                  />
+                }
+                fileName="dashboard.pdf"
+              >
+                {({ loading }) =>
+                  loading ? (
+                    'Loading document...'
+                  ) : (
+                    <Button
+                      variant="outline"
+                      aria-label="Download PDF"
+                      disabled={loading}
+                    >
+                      <Download className="w-4 h-4 mr-2" /> Download PDF
+                    </Button>
+                  )
+                }
+              </PDFDownloadLink>
+            )}
           <Button
             variant="outline"
             asChild

@@ -7,7 +7,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue, // Added SelectValue import
+  SelectValue,
 } from '@/components/ui/select';
 import Papa from 'papaparse';
 import React, {
@@ -29,9 +29,8 @@ import { OverviewDataMapper } from '@/components/amazon-seller-tools/overview/Ov
 import { PlaceholderCard } from '@/components/amazon-seller-tools/overview/PlaceholderCard';
 import { PlaceholderChartContainer } from '@/components/amazon-seller-tools/overview/PlaceholderChartContainer';
 import { OverviewDataView } from '@/components/amazon-seller-tools/overview/OverviewDataView';
-import OverviewDataLoader from '@/components/amazon-seller-tools/overview/OverviewDataLoader'; // Import the new data loader
+import OverviewDataLoader from '@/components/amazon-seller-tools/overview/OverviewDataLoader';
 
-// Import newly extracted chart components and OverviewDataView
 // Convert chart imports to lazy imports with named export handling
 const SalesTrendsChart = lazy(() =>
   import('@/components/amazon-seller-tools/charts/SalesTrendsChart').then(
@@ -69,18 +68,21 @@ const TableChart = lazy(
 ) as React.LazyExoticComponent<
   React.FC<TableChartProps<AggregatedProductMetrics>>
 >;
+const KeywordPerformanceOverviewTable = lazy(
+  () => import('./KeywordPerformanceOverviewTable'),
+);
 
 import {
   SAMPLE_CARD_DATA,
   SAMPLE_CHART_DATA,
 } from '@/data/amazon-tools-sample-data/amazon-dashboard-sample-data';
-import { aggregateMetricsByTime } from '@/lib/utils/amazon/data-aggregation'; // Import aggregation utility
+import { aggregateMetricsByTime } from '@/lib/utils/amazon/data-aggregation';
 import {
   transformCsvRow,
-  TransformationError, // Import TransformationError
-  CsvRowTransformationResult, // Import CsvRowTransformationResult
-} from '@/lib/utils/amazon/data-transformation'; // Import data transformation utilities
-import { Input } from '@/components/ui/input'; // Keeping Input here for CSV file input for now
+  TransformationError,
+  CsvRowTransformationResult,
+} from '@/lib/utils/amazon/data-transformation';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -91,17 +93,16 @@ import {
 } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-import KeywordPerformanceOverviewTable from './KeywordPerformanceOverviewTable';
-import { useToast } from '@/hooks/use-toast.ts'; // Import useToast hook
+import { useToast } from '@/hooks/use-toast.ts';
 import {
   TooltipProvider,
   Tooltip,
   TooltipTrigger,
   TooltipContent,
-} from '@/components/ui/tooltip'; // Import Tooltip components (still needed for context hint within DataLoader)
+} from '@/components/ui/tooltip';
 
 import type { CsvColumnMapping } from '@/types/data-mapping';
-import type { TableChartProps } from '@/components/amazon-seller-tools/charts/TableChart'; // Import TableChartProps
+import type { TableChartProps } from '@/components/amazon-seller-tools/charts/TableChart';
 import {
   DashboardMetrics,
   DashboardViewPreferences,
@@ -113,10 +114,9 @@ import {
   INDEXED_DB_OVERVIEW_TAB_SELECTED_METRICS_KEY,
   INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY,
 } from '@/lib/constants';
-import { getItem, setItem } from '@/lib/indexeddb-service'; // Import IndexedDB service
+import { getItem, setItem } from '@/lib/indexeddb-service';
 import DataCard from './DataCard';
 
-// Define a new interface for aggregated product metrics
 interface AggregatedProductMetrics {
   unique_identifier: string;
   total_sales: number;
@@ -136,16 +136,16 @@ interface OverviewTabProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isParsing: boolean;
   setIsParsing: React.Dispatch<React.SetStateAction<boolean>>;
-  isUploading: boolean; // Prop indicating if parent considers it uploading
-  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>; // Setter from parent
-  isMapping: boolean; // Prop indicating if parent considers it mapping
-  setIsMapping: React.Dispatch<React.SetStateAction<boolean>>; // Setter from parent
-  isProcessing: boolean; // Prop indicating if parent considers it processing
-  setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>; // Setter from parent
+  isUploading: boolean;
+  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>;
+  isMapping: boolean;
+  setIsMapping: React.Dispatch<React.SetStateAction<boolean>>;
+  isProcessing: boolean;
+  setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   TARGET_METRICS_CONFIG: TargetMetricConfig[];
-  searchTerm: string; // Add searchTerm prop
+  searchTerm: string;
 }
 
 const DESC_SAMPLE_DATA = 'Sample Data';
@@ -170,14 +170,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   searchTerm,
 }) => {
   const [showMapper, setShowMapper] = useState(false);
-  // ... (rest of the state and hooks from OverviewTab)
 
-  // Define the new sub-component here or import if in a separate file
   const OverviewTabContentDisplay: React.FC<{
     isUploading: boolean;
     isParsing: boolean;
     isProcessing: boolean;
-    showMapperFlag: boolean; // Renamed to avoid conflict with OverviewTab's showMapper state setter
+    showMapperFlag: boolean;
     csvHeaders: string[];
     error: string | null;
     parsingErrors: TransformationError[];
@@ -189,8 +187,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     firstCsvDataRow?: Record<string, string>;
     handleMappingCancel: () => void;
     savedMapping: CsvColumnMapping | null;
-    handleUploadClick: () => void; // For error retry
-    // For Data View
+    handleUploadClick: () => void;
     selectedMetricsForDataView: string[];
     aggregatedAndSortedMetrics: DashboardMetrics[];
     timeGranularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
@@ -204,7 +201,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setCustomDateRange: React.Dispatch<
       React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>
     >;
-    // For Loading Indicator
     totalRows: number;
     processedRows: number;
   }> = ({
@@ -229,6 +225,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     onDeleteMetric,
     totalRows,
     processedRows,
+    timeGranularity,
+    setTimeGranularity,
+    timeRange,
+    setTimeRange,
+    customDateRange,
+    setCustomDateRange,
   }) => {
     if (isUploading || isParsing || isProcessing) {
       return (
@@ -236,7 +238,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           isUploading={isUploading}
           isParsing={isParsing}
           isProcessing={isProcessing}
-          showMapperText={showMapperFlag} // Use the passed prop
+          showMapperText={showMapperFlag}
           totalRows={totalRows}
           processedRows={processedRows}
           parsingErrorCount={parsingErrors.length}
@@ -275,7 +277,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     if (metrics.length > 0) {
       return (
         <>
-          {/* This div for DataCards was previously inside OverviewTab, moving it here */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
             {selectedMetricsForDataView.map((metricKey) => {
               const metricConfig = TARGET_METRICS_CONFIG.find(
@@ -312,13 +313,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             aggregatedAndSortedMetrics={aggregatedAndSortedMetrics}
             targetMetricsConfig={TARGET_METRICS_CONFIG}
             onDeleteMetric={onDeleteMetric}
-            timeGranularity={timeGranularity} // Pass timeGranularity
+            timeGranularity={timeGranularity}
           />
         </>
       );
     }
 
-    // Placeholder View
     return (
       <>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -401,7 +401,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   const [timeGranularity, setTimeGranularity] = useState<
     'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
   >('daily');
-  const [timeRange, setTimeRange] = useState<TimeRange>('custom'); // Changed default to 'custom'
+  const [timeRange, setTimeRange] = useState<TimeRange>('custom');
   const [customDateRange, setCustomDateRange] = useState<{
     from: Date | undefined;
     to: Date | undefined;
@@ -412,17 +412,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     null,
   );
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
-  const [parsingErrors, setParsingErrors] = useState<TransformationError[]>([]); // New state for parsing errors
+  const [parsingErrors, setParsingErrors] = useState<TransformationError[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const totalRowsRef = useRef(0); // Ref to store total rows from CSV
-  const processedRowsRef = useRef(0); // Ref to store count of rows processed
-  const { toast } = useToast(); // Initialize useToast hook
+  const totalRowsRef = useRef(0);
+  const processedRowsRef = useRef(0);
+  const { toast } = useToast();
 
   const debouncedTimeRange = useDebounce(timeRange, 500);
   const debouncedTimeGranularity = useDebounce(timeGranularity, 500);
   const debouncedCustomDateRange = useDebounce(customDateRange, 500);
 
-  // Load preferences from IndexedDB on mount
   useEffect(() => {
     const loadPreferences = async () => {
       const storedPreferences = await getItem<DashboardViewPreferences>(
@@ -442,7 +441,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     loadPreferences();
   }, []);
 
-  // Save preferences to IndexedDB when they change (debounced)
   useEffect(() => {
     const savePreferences = async () => {
       await setItem(INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY, {
@@ -486,23 +484,21 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
     setError(null);
-    setParsingErrors([]); // Clear parsing errors on refresh
+    setParsingErrors([]);
     setOverviewDataMapperKey((prev) => prev + 1);
     setIsLoading(true);
-    totalRowsRef.current = 0; // Reset row counts
-    processedRowsRef.current = 0; // Reset row counts
-    // Reset view preferences to default or null out persisted state values
-    setTimeGranularity('daily'); // Reset to default daily
-    setTimeRange('custom'); // Reset to default custom
-    setCustomDateRange({ from: undefined, to: undefined }); // Clear custom date range
-    await setItem(INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY, null); // Clear from IndexedDB
+    totalRowsRef.current = 0;
+    processedRowsRef.current = 0;
+    setTimeGranularity('daily');
+    setTimeRange('custom');
+    setCustomDateRange({ from: undefined, to: undefined });
+    await setItem(INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY, null);
 
     console.log('Refresh clicked - clearing status.');
     await new Promise((resolve) => setTimeout(resolve, 500));
     setIsLoading(false);
-    // Clear saved mapping on refresh
-    await setItem('last_csv_mapping', null); // This key is not part of the current task to be centralized, but it might be later
-    setSavedMapping(null); // Also clear from state
+    await setItem('last_csv_mapping', null);
+    setSavedMapping(null);
   }, [
     setIsLoading,
     setError,
@@ -512,15 +508,15 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setFirstCsvDataRow,
     setMetrics,
     setOverviewDataMapperKey,
-    setTimeGranularity, // Add to deps
-    setTimeRange, // Add to deps
-    setCustomDateRange, // Add to deps
+    setTimeGranularity,
+    setTimeRange,
+    setCustomDateRange,
     setSavedMapping,
   ]);
 
   const handleLoadSampleData = useCallback(() => {
     setIsLoading(true);
-    setMetrics(SAMPLE_CHART_DATA as DashboardMetrics[]); // Load your sample data
+    setMetrics(SAMPLE_CHART_DATA as DashboardMetrics[]);
     setError(null);
     setParsingErrors([]);
     setShowMapper(false);
@@ -530,8 +526,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     totalRowsRef.current = SAMPLE_CHART_DATA.length;
     processedRowsRef.current = SAMPLE_CHART_DATA.length;
 
-    // Reset custom date range as sample data typically doesn't honor it strictly unless aggregated beforehand
-    setTimeRange('custom'); // Set to custom range by default for sample data
+    setTimeRange('custom');
     setCustomDateRange({ from: undefined, to: undefined });
 
     toast({
@@ -541,7 +536,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       duration: 3000,
     });
 
-    // Simulate loading time
     setTimeout(() => setIsLoading(false), 500);
   }, [
     setIsLoading,
@@ -560,14 +554,14 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   const handleUploadClick = useCallback(() => {
     setMetrics([]);
     setError(null);
-    setParsingErrors([]); // Clear errors on new upload
-    setShowKeywordPerformanceTable(SHOW_KEYWORD_TABLE_DEFAULT); // Hide table on new upload
+    setParsingErrors([]);
+    setShowKeywordPerformanceTable(SHOW_KEYWORD_TABLE_DEFAULT);
     setShowMapper(false);
     setCsvHeaders([]);
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
-    totalRowsRef.current = 0; // Reset on new upload
-    processedRowsRef.current = 0; // Reset on new upload
+    totalRowsRef.current = 0;
+    processedRowsRef.current = 0;
     if (fileInputRef.current) fileInputRef.current.value = '';
     fileInputRef.current?.click();
   }, [
@@ -593,20 +587,20 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         return;
       }
 
-      setIsUploading(true); // Start uploading indicator
-      setIsParsing(true); // Start parsing indicator
-      setIsLoading(true); // Set isLoading to true when starting file processing
+      setIsUploading(true);
+      setIsParsing(true);
+      setIsLoading(true);
       setError(null);
-      setParsingErrors([]); // Clear previous errors
+      setParsingErrors([]);
       setMetrics([]);
-      setShowMapper(false); // Hide mapper initially
+      setShowMapper(false);
       setCsvHeaders([]);
       setSelectedFile(null);
       setFirstCsvDataRow(undefined);
-      setIsMapping(false); // Ensure mapping is false
-      setIsProcessing(false); // Ensure processing is false
-      totalRowsRef.current = 0; // Reset on new file selection
-      processedRowsRef.current = 0; // Reset on new file selection
+      setIsMapping(false);
+      setIsProcessing(false);
+      totalRowsRef.current = 0;
+      processedRowsRef.current = 0;
 
       toast({
         title: 'CSV Upload Started',
@@ -634,18 +628,18 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             });
             setIsParsing(false);
             setIsUploading(false);
-            setIsLoading(false); // Set isLoading to false on error
+            setIsLoading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
             return;
           }
           setCsvHeaders(headers);
           setFirstCsvDataRow(sampleRow);
           setSelectedFile(file);
-          setShowMapper(true); // Show mapper after parsing headers
-          setIsParsing(false); // Parsing headers is complete
-          setIsUploading(false); // Uploading is complete
-          setIsLoading(false); // Set isLoading to false after successful header parsing
-          setIsMapping(true); // Now user is in mapping stage
+          setShowMapper(true);
+          setIsParsing(false);
+          setIsUploading(false);
+          setIsLoading(false);
+          setIsMapping(true);
           toast({
             title: 'CSV Uploaded Successfully',
             description: 'Now mapping your data columns.',
@@ -654,7 +648,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           });
         },
         error: (error: Error) => {
-          // Corrected type signature
           setError(`Failed to read file headers: ${error.message}`);
           toast({
             title: 'Upload Error',
@@ -663,8 +656,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           });
           setIsParsing(false);
           setIsUploading(false);
-          setIsLoading(false); // Set isLoading to false on error
-          setIsMapping(false); // Ensure mapping is false on error
+          setIsLoading(false);
+          setIsMapping(false);
           if (fileInputRef.current) fileInputRef.current.value = '';
         },
       });
@@ -703,10 +696,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           if (rowParseResult.data) {
             allRows.push(rowParseResult.data);
           }
-          processedRowsRef.current = allRows.length; // Live update during step
+          processedRowsRef.current = allRows.length;
         },
         complete: () => {
-          totalRowsRef.current = allRows.length; // Final total rows count
+          totalRowsRef.current = allRows.length;
           const validMetrics: DashboardMetrics[] = [];
           const collectedErrors: TransformationError[] = [];
 
@@ -714,7 +707,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             const result: CsvRowTransformationResult = transformCsvRow(
               row,
               mapping,
-              i, // row number
+              i,
               TARGET_METRICS_CONFIG,
             );
             if (result.data) {
@@ -784,7 +777,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       };
     },
     [],
-  ); // No dependencies for this pure function
+  );
 
   const handleMappingComplete = useCallback(
     async (mapping: CsvColumnMapping) => {
@@ -825,7 +818,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           duration: 5000,
         });
 
-        await setItem('last_csv_mapping', mapping); // This key is not part of the current task to be centralized, but it might be later
+        await setItem('last_csv_mapping', mapping);
         console.log('Valid Metrics:', validMetrics);
         console.log('Collected Errors/Warnings:', collectedErrors);
         console.log('Mapping saved to IndexedDB.');
@@ -862,9 +855,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       setMetrics,
       toast,
       fileInputRef,
-      generateProcessingStatus, // Added dependency for generateProcessingStatus
-      processCsvData, // Added dependency for processCsvData
-      selectedFile, // Added dependency
+      generateProcessingStatus,
+      processCsvData,
+      selectedFile,
     ],
   );
 
@@ -874,10 +867,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setSelectedFile(null);
     setFirstCsvDataRow(undefined);
     setError(null);
-    setParsingErrors([]); // Clear errors on cancel
+    setParsingErrors([]);
     setOverviewDataMapperKey((prev) => prev + 1);
     setIsParsing(false);
-    setIsLoading(false); // Set isLoading to false on cancel
+    setIsLoading(false);
     if (fileInputRef.current) fileInputRef.current.value = '';
     console.log('Mapping cancelled.');
   }, [
@@ -932,7 +925,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         const dateA = new Date(a.date);
         const dateB = new Date(b.date);
 
-        // Handle invalid dates gracefully
         if (isNaN(dateA.getTime()) || isNaN(dateB.getTime())) {
           return 0;
         }
@@ -948,19 +940,15 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       range: TimeRange,
       customRange: { from: Date | undefined; to: Date | undefined },
     ) => {
-      // Preliminary filter for valid dates to prevent errors in subsequent operations
       const validDateMetrics = dataToFilter.filter((m) => {
         if (!m.date || typeof m.date !== 'string') {
-          // Log or handle metrics with missing or non-string date properties if necessary
-          // console.warn('Metric with invalid or missing date string:', m);
           return false;
         }
         const d = new Date(m.date);
-        // Check if the date is valid
         return !isNaN(d.getTime());
       });
 
-      let filtered = validDateMetrics; // Use the filtered metrics for further processing
+      let filtered = validDateMetrics;
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
@@ -1006,7 +994,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           break;
         case 'all_time':
         default:
-          // No filter applied for 'all_time'
           break;
       }
       return aggregateMetricsByTime(filtered, timeGranularity);
@@ -1056,7 +1043,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     );
   }, [aggregatedTableMetricsConfig]);
 
-  // Helper function to filter metrics based on search term
   const filterMetricsBySearchTerm = useCallback(
     (allMetrics: DashboardMetrics[], term: string) => {
       const searchTermLower = term.toLowerCase();
@@ -1078,7 +1064,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     [],
   );
 
-  // Helper function to initialize an aggregated product metric
   const initializeAggregatedMetric = (
     id: string,
   ): AggregatedProductMetrics => ({
@@ -1093,7 +1078,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     total_ad_sales: 0,
   });
 
-  // Helper function to calculate final product metrics (e.g., ACoS, average inventory)
   const calculateFinalProductMetrics = (
     item: AggregatedProductMetrics,
   ): AggregatedProductMetrics => ({
@@ -1105,7 +1089,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     inventory_level: item.count > 0 ? item.inventory_level / item.count : 0,
   });
 
-  // Helper function to aggregate product metrics
   const aggregateProductMetrics = useCallback(
     (filteredMetrics: DashboardMetrics[]) => {
       const aggregatedData: { [key: string]: AggregatedProductMetrics } = {};
@@ -1133,22 +1116,19 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     [],
   );
 
-  // Memoized product performance data using the new helper functions
   const productPerformanceData = useMemo(() => {
     if (metrics.length === 0) {
-      return []; // Return empty array if no metrics
+      return [];
     }
     const filtered = filterMetricsBySearchTerm(metrics, searchTerm);
     return aggregateProductMetrics(filtered);
   }, [metrics, searchTerm, filterMetricsBySearchTerm, aggregateProductMetrics]);
 
-  // Memoize rowIdAccessor for Product Performance TableChart
   const productPerformanceRowIdAccessor = useCallback(
     (row: AggregatedProductMetrics) => row.unique_identifier,
     [],
   );
 
-  // Memoize columns for Product Performance TableChart
   const productPerformanceTableColumns = useMemo(
     () => [
       {
@@ -1168,7 +1148,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Moved most data loading UI to OverviewDataLoader */}
       <OverviewDataLoader
         isParsing={isParsing}
         isLoading={isLoading}
@@ -1180,7 +1159,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         hasMetrics={metrics.length > 0}
       />
 
-      {/* Time Granularity & Range Selectors */}
       {metrics.length > 0 && (
         <div className="mt-4 p-4 border rounded-md bg-muted/40 flex flex-wrap items-center gap-4">
           <div className="flex items-center space-x-2">
@@ -1275,12 +1253,11 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
       )}
 
-      {/* Use the new sub-component for main content rendering */}
       <OverviewTabContentDisplay
         isUploading={isUploading}
         isParsing={isParsing}
         isProcessing={isProcessing}
-        showMapperFlag={showMapper} // Pass the state value
+        showMapperFlag={showMapper}
         csvHeaders={csvHeaders}
         error={error}
         parsingErrors={parsingErrors}
@@ -1292,9 +1269,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         firstCsvDataRow={firstCsvDataRow}
         handleMappingCancel={handleMappingCancel}
         savedMapping={savedMapping}
-        handleUploadClick={handleUploadClick} // For error retry
-        // Data View props
-        selectedMetricsForDataView={selectedMetrics} // Pass the selected metrics for DataCard rendering
+        handleUploadClick={handleUploadClick}
+        selectedMetricsForDataView={selectedMetrics}
         aggregatedAndSortedMetrics={aggregatedAndSortedMetrics}
         timeGranularity={timeGranularity}
         setTimeGranularity={setTimeGranularity}
@@ -1303,7 +1279,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         setTimeRange={setTimeRange}
         customDateRange={customDateRange}
         setCustomDateRange={setCustomDateRange}
-        // Loading Indicator props
         totalRows={totalRowsRef.current}
         processedRows={processedRowsRef.current}
       />
@@ -1328,10 +1303,12 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           <h3 className="text-lg font-semibold mb-2">
             Keyword Performance Overview
           </h3>
-          <KeywordPerformanceOverviewTable
-            metrics={metrics}
-            searchTerm={searchTerm}
-          />
+          <Suspense fallback={<div>Loading keyword table...</div>}>
+            <KeywordPerformanceOverviewTable
+              metrics={metrics}
+              searchTerm={searchTerm}
+            />
+          </Suspense>
         </div>
       )}
 

@@ -76,7 +76,9 @@ export default function KeywordTrendAnalyzer() {
     setKeywords([]);
 
     try {
-      const response = await fetch(`/api/amazon/keyword-trends?keyword=${encodeURIComponent(keyword)}`);
+      const response = await fetch(
+        `/api/amazon/keyword-trends?keyword=${encodeURIComponent(keyword)}`,
+      );
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || 'Failed to fetch keyword trends.');
@@ -87,14 +89,21 @@ export default function KeywordTrendAnalyzer() {
         setError('No data found for the specified keyword.');
         toast({
           title: 'No Data',
-          description: 'No trend data found for this keyword. Try uploading a CSV first.',
+          description:
+            'No trend data found for this keyword. Try uploading a CSV first.',
           variant: 'info',
         });
         return;
       }
 
       // Extract unique keywords from the fetched data for chart lines
-      const foundKeywords = Array.from(new Set(data.flatMap(item => Object.keys(item).filter(key => key !== 'date'))));
+      const foundKeywords = Array.from(
+        new Set(
+          data.flatMap((item) =>
+            Object.keys(item).filter((key) => key !== 'date'),
+          ),
+        ),
+      );
 
       setChartData(data);
       setKeywords(foundKeywords);

@@ -4,23 +4,70 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import React, { useCallback, useState, useEffect } from 'react';
-import { useSearchParams } from 'next/navigation'; // Import useSearchParams
-import AcosCalculator from '@/components/amazon-seller-tools/acos-calculator';
-import { CompetitorAnalyzer } from '@/components/amazon-seller-tools/competitor-analyzer';
-import DescriptionEditor from '@/components/amazon-seller-tools/description-editor';
-import FbaCalculator from '@/components/amazon-seller-tools/fba-calculator';
-import KeywordAnalyzer from '@/components/amazon-seller-tools/keyword-analyzer';
-import KeywordDeduplicator from '@/components/amazon-seller-tools/keyword-deduplicator';
-import KeywordTrendAnalyzer from '@/components/amazon-seller-tools/keyword-trend-analyzer';
-import ListingQualityChecker from '@/components/amazon-seller-tools/listing-quality-checker';
-import OptimalPriceCalculator from '@/components/amazon-seller-tools/optimal-price-calculator';
-import PpcCampaignAuditor from '@/components/amazon-seller-tools/ppc-campaign-auditor';
-import ProductScoreCalculator from '@/components/amazon-seller-tools/product-score-calculator';
-import ProfitMarginCalculator from '@/components/amazon-seller-tools/profit-margin-calculator';
-import SalesEstimator from '@/components/amazon-seller-tools/sales-estimator';
+import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic'; // Import dynamic
+
+// Dynamically import tab components
+const AcosCalculator = dynamic(
+  () => import('@/components/amazon-seller-tools/acos-calculator'),
+  { ssr: false },
+);
+const CompetitorAnalyzer = dynamic(
+  () =>
+    import('@/components/amazon-seller-tools/competitor-analyzer').then(
+      (mod) => mod.CompetitorAnalyzer,
+    ),
+  { ssr: false },
+);
+const DescriptionEditor = dynamic(
+  () => import('@/components/amazon-seller-tools/description-editor'),
+  { ssr: false },
+);
+const FbaCalculator = dynamic(
+  () => import('@/components/amazon-seller-tools/fba-calculator'),
+  { ssr: false },
+);
+const KeywordAnalyzer = dynamic(
+  () => import('@/components/amazon-seller-tools/keyword-analyzer'),
+  { ssr: false },
+);
+const KeywordDeduplicator = dynamic(
+  () => import('@/components/amazon-seller-tools/keyword-deduplicator'),
+  { ssr: false },
+);
+const KeywordTrendAnalyzer = dynamic(
+  () => import('@/components/amazon-seller-tools/keyword-trend-analyzer'),
+  { ssr: false },
+);
+const ListingQualityChecker = dynamic(
+  () => import('@/components/amazon-seller-tools/listing-quality-checker'),
+  { ssr: false },
+);
+const OptimalPriceCalculator = dynamic(
+  () => import('@/components/amazon-seller-tools/optimal-price-calculator'),
+  { ssr: false },
+);
+const PpcCampaignAuditor = dynamic(
+  () => import('@/components/amazon-seller-tools/ppc-campaign-auditor'),
+  { ssr: false },
+);
+const ProductScoreCalculator = dynamic(
+  () => import('@/components/amazon-seller-tools/product-score-calculator'),
+  { ssr: false },
+);
+const ProfitMarginCalculator = dynamic(
+  () => import('@/components/amazon-seller-tools/profit-margin-calculator'),
+  { ssr: false },
+);
+const SalesEstimator = dynamic(
+  () => import('@/components/amazon-seller-tools/sales-estimator'),
+  { ssr: false },
+);
+
+// Keep static imports for smaller, non-tab components that are always rendered or not a primary target for lazy loading based on the prompt's focus
 import DashboardHeader from '@/components/amazon-seller-tools/DashboardHeader';
 import OverviewTab from '@/components/amazon-seller-tools/OverviewTab';
-import { KeywordPerformanceTable } from '@/components/amazon-seller-tools/KeywordPerformanceTable'; // Import the new table
+
 import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
 import {
   SAMPLE_CARD_DATA,
