@@ -76,10 +76,13 @@ export default function Logo({ className, ...props }: Readonly<LogoProps>) {
         strokeWidth="2"
         d="M25 15l10 15-15-10-10 15"
         className={styles.dynamicLine}
+        strokeDasharray="100"
+        strokeDashoffset="100"
       >
         <animate
-          attributeName="stroke-dasharray"
-          values="0, 100; 100, 0"
+          attributeName="stroke-dashoffset"
+          from="100"
+          to="0"
           dur="2s"
           repeatCount="indefinite"
         />
