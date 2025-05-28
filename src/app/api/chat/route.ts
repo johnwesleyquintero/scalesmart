@@ -1,6 +1,7 @@
 import { rateLimiter } from '@/lib/api/rate-limiter';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -50,7 +51,10 @@ export async function POST(request: NextRequest) {
     const { success } = await rateLimiter.limit(identifier);
 
     if (!success) {
-      return new NextResponse('Too many requests', { status: 429 });
+      return NextResponse.json(
+        createErrorResponse('Too many requests', 'RATE_LIMIT_EXCEEDED'),
+        { status: 429 },
+      );
     }
 
     const apiKey = process.env.GEMINI_API_KEY;
@@ -59,9 +63,10 @@ export async function POST(request: NextRequest) {
         'Chat API Error: Missing GEMINI_API_KEY environment variable',
       );
       return NextResponse.json(
-        {
-          error: 'Chat service configuration error. API key is missing.',
-        },
+        createErrorResponse(
+          'Chat service configuration error. API key is missing.',
+          'MISSING_API_KEY',
+        ),
         { status: 500 },
       );
     }
@@ -70,16 +75,20 @@ export async function POST(request: NextRequest) {
     if (!apiKey.startsWith('AIzaSyAP') || apiKey.length !== 39) {
       console.error('Chat API Error: Invalid GEMINI_API_KEY format');
       return NextResponse.json(
-        {
-          error: 'Chat service configuration error. Invalid API key format.',
-        },
+        createErrorResponse(
+          'Chat service configuration error. Invalid API key format.',
+          'INVALID_API_KEY_FORMAT',
+        ),
         { status: 500 },
       );
     }
 
     body = await request.json();
     if (!body.message?.trim()) {
-      return new NextResponse('Message is required', { status: 400 });
+      return NextResponse.json(
+        createErrorResponse('Message is required', 'MISSING_MESSAGE'),
+        { status: 400 },
+      );
     }
     const { message, history = [] } = body;
 
@@ -211,15 +220,6 @@ export async function POST(request: NextRequest) {
       errorStack: (error as Error)?.stack,
       body: body,
     });
-    return NextResponse.json(
-      {
-        error:
-          'Our chat service is temporarily unavailable. Please try again later.',
-        ...(process.env.NODE_ENV === 'development' && {
-          details: errorMessage,
-        }),
-      },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

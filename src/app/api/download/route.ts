@@ -2,6 +2,7 @@ export const dynamic = 'force-static';
 import { readFile } from 'fs/promises';
 import { NextResponse } from 'next/server';
 import path from 'path';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 export async function GET() {
   try {
@@ -17,7 +18,10 @@ export async function GET() {
       fileBuffer = await readFile(filePath);
     } catch (error: unknown) {
       console.error('Error reading file:', error);
-      return new NextResponse('Failed to read file', { status: 500 });
+      return NextResponse.json(
+        createErrorResponse('Failed to read file', 'FILE_READ_ERROR'),
+        { status: 500 },
+      );
     }
 
     const headers = {
@@ -31,6 +35,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error serving PDF:', error);
-    return new NextResponse('File not found', { status: 404 });
+    return NextResponse.json(handleApiError(error), { status: 404 });
   }
 }

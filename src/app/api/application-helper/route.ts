@@ -1,6 +1,7 @@
 import { rateLimiter } from '@/lib/api/rate-limiter';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
@@ -46,7 +47,10 @@ export async function POST(request: NextRequest) {
     const { success } = await rateLimiter.limit(`app-helper-${identifier}`);
 
     if (!success) {
-      return new NextResponse('Too many requests', { status: 429 });
+      return NextResponse.json(
+        createErrorResponse('Too many requests', 'RATE_LIMIT_EXCEEDED'),
+        { status: 429 },
+      );
     }
 
     if (!process.env.GEMINI_API_KEY) {
@@ -54,18 +58,25 @@ export async function POST(request: NextRequest) {
         'Application Helper API Error: Missing GEMINI_API_KEY environment variable',
       );
       return NextResponse.json(
-        {
-          error: 'Service configuration error. API key is missing.',
-        },
+        createErrorResponse(
+          'Service configuration error. API key is missing.',
+          'MISSING_API_KEY',
+        ),
         { status: 500 },
       );
     }
 
     body = await request.json();
     if (!body.application_question?.trim()) {
-      return new NextResponse('Application question is required', {
-        status: 400,
-      });
+      return NextResponse.json(
+        createErrorResponse(
+          'Application question is required',
+          'MISSING_QUESTION',
+        ),
+        {
+          status: 400,
+        },
+      );
     }
     const { application_question } = body;
 
@@ -172,9 +183,6 @@ Your Answer:`;
     });
   } catch (error) {
     console.error('Application Helper API Error:', error);
-    return NextResponse.json(
-      { error: 'Application helper service is temporarily unavailable.' },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

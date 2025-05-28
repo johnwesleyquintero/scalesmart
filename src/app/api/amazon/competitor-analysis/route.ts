@@ -1,6 +1,8 @@
 import { InventoryOptimizationError } from '@/lib/amazon-tools/errors/errors';
 import { loadStaticData } from '@/lib/load-static-data';
 import { z } from 'zod';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
+
 // Define stricter types for CSV data
 interface CompetitorData {
   [key: string]: string | number;
@@ -67,7 +69,16 @@ export async function POST(request: Request) {
 
   if (!parsedBody.success) {
     console.log(parsedBody.error.issues);
-    return new Response(parsedBody.error.message, { status: 400 });
+    return new Response(
+      JSON.stringify(
+        createErrorResponse(
+          parsedBody.error.message,
+          'VALIDATION_ERROR',
+          parsedBody.error.issues,
+        ),
+      ),
+      { status: 400, headers: { 'Content-Type': 'application/json' } },
+    );
   }
 
   try {
@@ -77,8 +88,9 @@ export async function POST(request: Request) {
     const metricsData: MetricsData = {};
 
     if (!sellerData || !competitorData) {
-      throw new Error(
+      throw new InventoryOptimizationError(
         'Please provide both seller and competitor CSV data files for analysis',
+        'MISSING_DATA',
       );
     }
 
@@ -91,8 +103,9 @@ export async function POST(request: Request) {
         metricsData[metric] = allData.map((row) => row[metric] as number);
       });
     } else {
-      throw new Error(
+      throw new InventoryOptimizationError(
         'Please provide either CSV data files or an ASIN for analysis',
+        'MISSING_METRICS_OR_ASIN',
       );
     }
 
@@ -107,11 +120,9 @@ export async function POST(request: Request) {
   } catch (err) {
     if (err instanceof InventoryOptimizationError) {
       return new Response(
-        JSON.stringify({
-          message: err.message,
-          code: err.errorCode,
-          details: err.details,
-        }),
+        JSON.stringify(
+          createErrorResponse(err.message, err.errorCode, err.details),
+        ),
         {
           status: 500,
           headers: {
@@ -120,17 +131,11 @@ export async function POST(request: Request) {
         },
       );
     }
-    return new Response(
-      JSON.stringify({
-        message:
-          err instanceof Error ? err.message : 'An unexpected error occurred',
-      }),
-      {
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    return new Response(JSON.stringify(handleApiError(err)), {
+      status: 500,
+      headers: {
+        'Content-Type': 'application/json',
       },
-    );
+    });
   }
 }

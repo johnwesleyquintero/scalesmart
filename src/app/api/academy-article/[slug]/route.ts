@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
 import matter from 'gray-matter';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 const academyDirectory = path.join(process.cwd(), 'src/app/content/academy');
 
@@ -19,9 +20,6 @@ export async function GET(
     return NextResponse.json({ content, keywords });
   } catch (error) {
     console.error('Error reading MDX file:', error);
-    return NextResponse.json(
-      { error: 'Failed to load article' },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

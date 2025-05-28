@@ -1,5 +1,6 @@
 // import fs from 'fs/promises'; // No longer needed since POST is commented out
 import { NextResponse } from 'next/server';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 // import path from 'path'; // No longer needed
 // import { z } from 'zod'; // No longer needed
 // const prohibitedKeywordsSchema = z.array(z.string()); // No longer needed
@@ -18,13 +19,7 @@ export async function GET() {
       'Error serving prohibited keywords list from API route:',
       error,
     );
-    return NextResponse.json(
-      {
-        error:
-          'Failed to load prohibited keywords list. Please check server logs.',
-      },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }
 

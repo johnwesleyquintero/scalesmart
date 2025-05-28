@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { AmazonAlgorithms } from '../../../../lib/calculations/amazon-algorithms';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 import { z } from 'zod';
 
@@ -17,7 +18,11 @@ export async function POST(request: Request) {
     if (!parsedData.success) {
       console.log(parsedData.error.issues);
       return NextResponse.json(
-        { error: 'Invalid pricing data' },
+        createErrorResponse(
+          'Invalid pricing data',
+          'VALIDATION_ERROR',
+          parsedData.error.issues,
+        ),
         { status: 400 },
       );
     }
@@ -26,7 +31,10 @@ export async function POST(request: Request) {
 
     if (!basePrice || !competition.length || !demandFactor) {
       return NextResponse.json(
-        { error: 'Missing required pricing parameters' },
+        createErrorResponse(
+          'Missing required pricing parameters',
+          'MISSING_PARAMETERS',
+        ),
         { status: 400 },
       );
     }
@@ -49,9 +57,6 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to process pricing strategy', details: error },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

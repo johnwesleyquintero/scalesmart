@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 interface EmailPayload {
   name: string;
@@ -13,7 +14,7 @@ export async function POST(request: Request) {
   // Validate input
   if (!body.name || !body.email || !body.message) {
     return NextResponse.json(
-      { error: 'Missing required fields' },
+      createErrorResponse('Missing required fields', 'VALIDATION_ERROR'),
       { status: 400 },
     );
   }
@@ -40,9 +41,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Email sending error:', error);
-    return NextResponse.json(
-      { error: 'Failed to send email' },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { UserProfile } from '@/lib/models/user';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -11,14 +12,12 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const INTERNAL_SERVER_ERROR = 'Internal server error';
-
 export async function GET(request: NextRequest) {
   const email = request.nextUrl.searchParams.get('email');
 
   if (!email) {
     return NextResponse.json(
-      { error: 'Missing email parameter' },
+      createErrorResponse('Missing email parameter', 'VALIDATION_ERROR'),
       { status: 400 },
     );
   }
@@ -33,14 +32,14 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('Error fetching user profile:', error);
       return NextResponse.json(
-        { error: 'Error fetching user profile' },
+        createErrorResponse('Error fetching user profile', 'DATABASE_ERROR'),
         { status: 500 },
       );
     }
 
     if (!data) {
       return NextResponse.json(
-        { error: 'User profile not found' },
+        createErrorResponse('User profile not found', 'NOT_FOUND'),
         { status: 404 },
       );
     }
@@ -48,7 +47,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data, { status: 200 });
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    return NextResponse.json({ error: INTERNAL_SERVER_ERROR }, { status: 500 });
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }
 
@@ -63,7 +62,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error creating user profile:', error);
       return NextResponse.json(
-        { error: 'Error creating user profile' },
+        createErrorResponse('Error creating user profile', 'DATABASE_ERROR'),
         { status: 500 },
       );
     }
@@ -74,7 +73,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error creating user profile:', error);
-    return NextResponse.json({ error: INTERNAL_SERVER_ERROR }, { status: 500 });
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }
 
@@ -90,7 +89,7 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Error updating user profile:', error);
       return NextResponse.json(
-        { error: 'Error updating user profile' },
+        createErrorResponse('Error updating user profile', 'DATABASE_ERROR'),
         { status: 500 },
       );
     }
@@ -101,6 +100,6 @@ export async function PUT(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error updating user profile:', error);
-    return NextResponse.json({ error: INTERNAL_SERVER_ERROR }, { status: 500 });
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

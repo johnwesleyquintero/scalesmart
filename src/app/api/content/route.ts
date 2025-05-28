@@ -1,6 +1,7 @@
 import skills from '@/data/portfolio-data/skills.json';
 import { getGitHubProjects } from '@/lib/github';
 import { NextResponse } from 'next/server';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 export async function GET() {
   try {
@@ -18,14 +19,6 @@ export async function GET() {
     });
   } catch (error) {
     console.error('Error fetching content:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch content',
-        skills: skills.skills || [],
-        projects: [],
-        experience: [],
-      },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

@@ -4,6 +4,7 @@ import {
 } from '@/lib/models/keyword-trends';
 import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -82,14 +83,6 @@ export async function POST(request: Request) {
     return NextResponse.json(trendData);
   } catch (error) {
     console.error('Error processing keyword trends:', error);
-    return NextResponse.json(
-      {
-        error:
-          error instanceof Error
-            ? error.message
-            : 'Failed to process keyword trends',
-      },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

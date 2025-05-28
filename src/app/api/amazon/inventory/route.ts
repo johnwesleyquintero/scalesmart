@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import type { InventoryData } from '../../../../lib/amazon-types';
 import { AmazonAlgorithms } from '../../../../lib/calculations/amazon-algorithms';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 export async function POST(request: Request) {
   try {
@@ -22,7 +23,11 @@ export async function POST(request: Request) {
     if (!parsedInventoryData.success) {
       console.log(parsedInventoryData.error.issues);
       return NextResponse.json(
-        { error: 'Invalid inventory data' },
+        createErrorResponse(
+          'Invalid inventory data',
+          'VALIDATION_ERROR',
+          parsedInventoryData.error.issues,
+        ),
         { status: 400 },
       );
     }
@@ -33,7 +38,10 @@ export async function POST(request: Request) {
     // Validate required fields
     if (!inventoryData.salesLast30Days || !inventoryData.leadTime) {
       return NextResponse.json(
-        { error: 'Missing required inventory parameters' },
+        createErrorResponse(
+          'Missing required inventory parameters',
+          'MISSING_PARAMETERS',
+        ),
         { status: 400 },
       );
     }
@@ -52,9 +60,6 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    return NextResponse.json(
-      { error: 'Failed to process inventory optimization', details: error },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

@@ -2,6 +2,7 @@ import NextAuth, { NextAuthOptions } from 'next-auth';
 import { loadStaticData } from '@/lib/load-static-data';
 import { rateLimiter } from '@/lib/api/rate-limiter';
 import { NextRequest, NextResponse } from 'next/server';
+import { createErrorResponse } from '@/lib/api-error-handler';
 
 loadStaticData('prohibited-keywords');
 
@@ -17,13 +18,15 @@ async function handler(
   const { success } = await rateLimiter.limit(identifier);
 
   if (!success) {
-    return new NextResponse('Too many requests', {
-      status: 429,
-      statusText: 'Too Many Requests',
-      headers: {
-        'Content-Type': 'text/plain',
+    return NextResponse.json(
+      createErrorResponse('Too many requests', 'RATE_LIMIT_EXCEEDED'),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
   }
 
   const authOptions = (await import('./options'))

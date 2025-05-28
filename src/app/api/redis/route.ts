@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient, RedisClientType } from 'redis';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 let redisClient: RedisClientType;
 
@@ -30,7 +31,7 @@ export async function initializeRedis() {
     console.log('Connected to Redis');
   } catch (error) {
     console.error('Failed to connect to Redis:', error);
-    throw error;
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }
 
@@ -44,9 +45,6 @@ export async function GET() {
     return NextResponse.json({ value });
   } catch (error) {
     console.error('Redis operation failed:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch from Redis' },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

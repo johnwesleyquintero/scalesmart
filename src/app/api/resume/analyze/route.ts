@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 export async function POST(request: Request) {
   try {
@@ -6,7 +7,10 @@ export async function POST(request: Request) {
     const file = formData.get('file') as Blob | null;
 
     if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+      return NextResponse.json(
+        createErrorResponse('No file uploaded', 'NO_FILE_UPLOADED'),
+        { status: 400 },
+      );
     }
 
     // Simulate resume analysis with a 2-second delay
@@ -44,9 +48,6 @@ export async function POST(request: Request) {
     return NextResponse.json(analysisResults);
   } catch (error) {
     console.error('Error analyzing resume:', error);
-    return NextResponse.json(
-      { error: 'Failed to analyze resume' },
-      { status: 500 },
-    );
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

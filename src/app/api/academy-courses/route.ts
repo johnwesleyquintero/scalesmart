@@ -4,6 +4,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import { Module } from '@/types';
 import { generateSlug } from '@/lib/utils';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 const contentDirectory = path.join(process.cwd(), 'src/app/content/academy');
 
@@ -79,8 +80,6 @@ export async function GET() {
   });
 }
 
-const UNEXPECTED_ERROR_MESSAGE = 'An unexpected error occurred';
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -114,14 +113,7 @@ ${body.content || ''}
     );
   } catch (error: unknown) {
     console.error(error);
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 400 });
-    } else {
-      return NextResponse.json(
-        { message: UNEXPECTED_ERROR_MESSAGE },
-        { status: 500 },
-      );
-    }
+    return NextResponse.json(handleApiError(error), { status: 400 });
   }
 }
 
@@ -137,10 +129,9 @@ export async function PUT(req: NextRequest) {
     // Check if the course exists
     const existingCourses = await getCourses(slug);
     if (!existingCourses || existingCourses.length === 0) {
-      return NextResponse.json(
-        { message: 'Course not found' },
-        { status: 404 },
-      );
+      return NextResponse.json(createErrorResponse('Course not found'), {
+        status: 404,
+      });
     }
 
     // Create the MDX content
@@ -167,14 +158,7 @@ ${body.content || ''}
     );
   } catch (error: unknown) {
     console.error(error);
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 400 });
-    } else {
-      return NextResponse.json(
-        { message: UNEXPECTED_ERROR_MESSAGE },
-        { status: 500 },
-      );
-    }
+    return NextResponse.json(handleApiError(error), { status: 400 });
   }
 }
 
@@ -184,10 +168,9 @@ export async function DELETE(req: NextRequest) {
     const { slug } = body;
 
     if (!slug) {
-      return NextResponse.json(
-        { message: 'Slug is required' },
-        { status: 400 },
-      );
+      return NextResponse.json(createErrorResponse('Slug is required'), {
+        status: 400,
+      });
     }
 
     const fileName = `${slug}.mdx`;
@@ -196,10 +179,9 @@ export async function DELETE(req: NextRequest) {
     // Check if the course exists
     const existingCourses = await getCourses(slug);
     if (!existingCourses || existingCourses.length === 0) {
-      return NextResponse.json(
-        { message: 'Course not found' },
-        { status: 404 },
-      );
+      return NextResponse.json(createErrorResponse('Course not found'), {
+        status: 404,
+      });
     }
 
     // Delete the MDX file
@@ -211,13 +193,6 @@ export async function DELETE(req: NextRequest) {
     );
   } catch (error: unknown) {
     console.error(error);
-    if (error instanceof Error) {
-      return NextResponse.json({ message: error.message }, { status: 400 });
-    } else {
-      return NextResponse.json(
-        { message: UNEXPECTED_ERROR_MESSAGE },
-        { status: 500 },
-      );
-    }
+    return NextResponse.json(handleApiError(error), { status: 400 });
   }
 }

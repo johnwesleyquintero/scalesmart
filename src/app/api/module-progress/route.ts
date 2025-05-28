@@ -1,5 +1,6 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -10,15 +11,16 @@ if (!supabaseUrl || !supabaseKey) {
 
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const INTERNAL_SERVER_ERROR = 'Internal server error';
-
 export async function POST(request: NextRequest) {
   try {
     const { userId, courseId, moduleId, progress } = await request.json();
 
     if (!userId || !courseId || !moduleId || typeof progress !== 'number') {
       return NextResponse.json(
-        { error: 'Missing or invalid parameters' },
+        createErrorResponse(
+          'Missing or invalid parameters',
+          'VALIDATION_ERROR',
+        ),
         { status: 400 },
       );
     }
@@ -35,7 +37,7 @@ export async function POST(request: NextRequest) {
     if (error) {
       console.error('Error updating module progress:', error);
       return NextResponse.json(
-        { error: 'Error updating module progress' },
+        createErrorResponse('Error updating module progress', 'DATABASE_ERROR'),
         { status: 500 },
       );
     }
@@ -46,7 +48,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error('Error updating module progress:', error);
-    return NextResponse.json({ error: INTERNAL_SERVER_ERROR }, { status: 500 });
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }
 
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
 
     if (!userId || !courseId || !moduleId) {
       return NextResponse.json(
-        { error: 'Missing parameters' },
+        createErrorResponse('Missing parameters', 'VALIDATION_ERROR'),
         { status: 400 },
       );
     }
@@ -75,7 +77,7 @@ export async function GET(request: NextRequest) {
     if (error) {
       console.error('Error fetching module progress:', error);
       return NextResponse.json(
-        { error: 'Error fetching module progress' },
+        createErrorResponse('Error fetching module progress', 'DATABASE_ERROR'),
         { status: 500 },
       );
     }
@@ -87,6 +89,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ progress: data.progress }, { status: 200 });
   } catch (error) {
     console.error('Error fetching module progress:', error);
-    return NextResponse.json({ error: INTERNAL_SERVER_ERROR }, { status: 500 });
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }
