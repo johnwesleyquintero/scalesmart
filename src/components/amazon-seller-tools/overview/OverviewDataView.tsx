@@ -46,17 +46,8 @@ interface OverviewDataViewProps {
   metrics: DashboardMetrics[];
   targetMetricsConfig: TargetMetricConfig[];
   onDeleteMetric: (metricDate: string, metricIdentifier?: string) => void;
-  timeGranularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
-  setTimeGranularity: (
-    granularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly',
-  ) => void;
   aggregatedAndSortedMetrics: DashboardMetrics[];
-  timeRange: TimeRange;
-  setTimeRange: (range: TimeRange) => void;
-  customDateRange: { from: Date | undefined; to: Date | undefined };
-  setCustomDateRange: React.Dispatch<
-    React.SetStateAction<{ from: Date | undefined; to: Date | undefined }>
-  >;
+  timeGranularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'; // Add timeGranularity prop
 }
 
 // --- Helper Formatting Functions (can be moved to a utils file if preferred) ---
@@ -125,13 +116,8 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
   metrics,
   targetMetricsConfig,
   onDeleteMetric,
-  timeGranularity,
-  setTimeGranularity,
   aggregatedAndSortedMetrics,
-  timeRange,
-  setTimeRange,
-  customDateRange,
-  setCustomDateRange,
+  timeGranularity, // Destructure timeGranularity
 }) => {
   const tableColumns: ColumnDef<DashboardMetrics>[] = useMemo(() => {
     // Define which metrics to show in the table and their display properties
@@ -190,100 +176,6 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
 
   return (
     <>
-      {/* Time Granularity & Range Selectors */}
-      <div className="my-4 flex items-center justify-end space-x-4">
-        <div className="flex items-center space-x-2">
-          <Label htmlFor="time-granularity-select">Granularity:</Label>
-          <Select
-            value={timeGranularity}
-            onValueChange={(value) =>
-              setTimeGranularity(value as typeof timeGranularity)
-            }
-          >
-            <SelectTrigger id="time-granularity-select" className="w-[180px]">
-              <SelectValue placeholder="Select Time Granularity" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
-              <SelectItem value="monthly">Monthly</SelectItem>
-              <SelectItem value="quarterly">Quarterly</SelectItem>
-              <SelectItem value="yearly">Yearly</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {/* Time range selector in OverviewDataView as well (not in OverviewTab) */}
-        <div className="flex items-center space-x-2">
-          <Label htmlFor="time-range-select">Time Range:</Label>
-          <Select
-            value={timeRange}
-            onValueChange={(value: TimeRange) => setTimeRange(value)}
-          >
-            <SelectTrigger id="time-range-select" className="w-[180px]">
-              {timeRange === 'last_7_days' && 'Last 7 Days'}
-              {timeRange === 'last_30_days' && 'Last 30 Days'}
-              {timeRange === 'month_to_date' && 'Month to Date'}
-              {timeRange === 'year_to_date' && 'Year to Date'}
-              {timeRange === 'all_time' && 'All Time'}
-              {timeRange === 'custom' && 'Custom Range'}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-              <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-              <SelectItem value="month_to_date">Month to Date</SelectItem>
-              <SelectItem value="year_to_date">Year to Date</SelectItem>
-              <SelectItem value="all_time">All Time</SelectItem>
-              <SelectItem value="custom">Custom Range</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        {timeRange === 'custom' && (
-          <div className="flex items-center space-x-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={'outline'}
-                  className={cn(
-                    'w-[280px] justify-start text-left font-normal',
-                    !customDateRange.from && 'text-muted-foreground',
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {customDateRange.from ? (
-                    customDateRange.to ? (
-                      <>
-                        {format(customDateRange.from, 'PPP')} -{' '}
-                        {format(customDateRange.to, 'PPP')}
-                      </>
-                    ) : (
-                      format(customDateRange.from, 'PPP')
-                    )
-                  ) : (
-                    <span>Pick a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="range"
-                  selected={customDateRange}
-                  onSelect={(range) => {
-                    if (range) {
-                      setCustomDateRange({
-                        from: range.from,
-                        to: range.to,
-                      });
-                    }
-                  }}
-                  numberOfMonths={2}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-        )}
-      </div>
-
       {/* KPI Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
         <TooltipProvider>
@@ -400,91 +292,6 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
           </Tooltip>
         </TooltipProvider>
       </div>
-
-      {/* Period-over-Period Comparison Section */}
-      {aggregatedAndSortedMetrics.length >= 2 && (
-        <div className="mb-6">
-          <h4 className="text-xl font-semibold mb-3">
-            Period-over-Period Comparison (
-            {timeGranularity.charAt(0).toUpperCase() + timeGranularity.slice(1)}
-            )
-          </h4>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <ComparisonKpiCard
-              title="Total Sales"
-              currentValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 1
-                ]?.total_sales
-              }
-              previousValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 2
-                ]?.total_sales
-              }
-              unit="$"
-            />
-            <ComparisonKpiCard
-              title="Total Orders"
-              currentValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 1
-                ]?.total_orders
-              }
-              previousValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 2
-                ]?.total_orders
-              }
-              unit="$"
-            />
-            <ComparisonKpiCard
-              title="Conversion Rate"
-              currentValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 1
-                ]?.total_conversion_rate
-              }
-              previousValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 2
-                ]?.total_conversion_rate
-              }
-              unit="%"
-              isPercentage
-            />
-            <ComparisonKpiCard
-              title="ACoS"
-              currentValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 1
-                ]?.acos
-              }
-              previousValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 2
-                ]?.acos
-              }
-              unit="%"
-              higherIsBetter={false}
-              isPercentage
-            />
-            <ComparisonKpiCard
-              title="RoAS"
-              currentValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 1
-                ]?.roas
-              }
-              previousValue={
-                aggregatedAndSortedMetrics[
-                  aggregatedAndSortedMetrics.length - 2
-                ]?.roas
-              }
-            />
-          </div>
-        </div>
-      )}
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">

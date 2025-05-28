@@ -7,6 +7,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
+  SelectValue, // Added SelectValue import
 } from '@/components/ui/select';
 import Papa from 'papaparse';
 import React, {
@@ -219,13 +220,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     handleUploadClick,
     selectedMetricsForDataView,
     aggregatedAndSortedMetrics,
-    timeGranularity,
-    setTimeGranularity,
     onDeleteMetric,
-    timeRange,
-    setTimeRange,
-    customDateRange,
-    setCustomDateRange,
     totalRows,
     processedRows,
   }) => {
@@ -314,13 +309,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             metrics={metrics}
             aggregatedAndSortedMetrics={aggregatedAndSortedMetrics}
             targetMetricsConfig={TARGET_METRICS_CONFIG}
-            timeGranularity={timeGranularity}
-            setTimeGranularity={setTimeGranularity}
             onDeleteMetric={onDeleteMetric}
-            timeRange={timeRange}
-            setTimeRange={setTimeRange}
-            customDateRange={customDateRange}
-            setCustomDateRange={setCustomDateRange}
+            timeGranularity={timeGranularity} // Pass timeGranularity
           />
         </>
       );
@@ -376,7 +366,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             title="Avg. Conversion Rate"
             value={SAMPLE_CARD_DATA.total_conversion_rate.toFixed(2)}
             unit="%"
-            description={DESC_SAMPLE_DATA}
+            description="Based on latest data"
             colorClass="text-blue-400"
           />
           <DataCard
@@ -385,13 +375,13 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               undefined,
               { style: 'currency', currency: 'USD' },
             )}
-            description={DESC_SAMPLE_DATA}
+            description="Based on latest data"
             colorClass="text-green-400"
           />
           <DataCard
             title="Avg. Clicks"
             value={SAMPLE_CARD_DATA.avg_clicks.toFixed(1)}
-            description={DESC_SAMPLE_DATA}
+            description="Based on latest data"
             colorClass="text-yellow-400"
           />
         </div>
@@ -409,7 +399,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   const [timeGranularity, setTimeGranularity] = useState<
     'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'
   >('daily');
-  const [timeRange, setTimeRange] = useState<TimeRange>('month_to_date');
+  const [timeRange, setTimeRange] = useState<TimeRange>('custom'); // Changed default to 'custom'
   const [customDateRange, setCustomDateRange] = useState<{
     from: Date | undefined;
     to: Date | undefined;
@@ -499,7 +489,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     processedRowsRef.current = 0; // Reset row counts
     // Reset view preferences to default or null out persisted state values
     setTimeGranularity('daily'); // Reset to default daily
-    setTimeRange('month_to_date'); // Reset to default month to date
+    setTimeRange('custom'); // Reset to default custom
     setCustomDateRange({ from: undefined, to: undefined }); // Clear custom date range
     await setItem('dashboard_view_preferences', null); // Clear from IndexedDB
 
@@ -537,7 +527,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     processedRowsRef.current = SAMPLE_CHART_DATA.length;
 
     // Reset custom date range as sample data typically doesn't honor it strictly unless aggregated beforehand
-    setTimeRange('all_time'); // Set a reasonable default for sample data
+    setTimeRange('custom'); // Set to custom range by default for sample data
     setCustomDateRange({ from: undefined, to: undefined });
 
     toast({
@@ -824,7 +814,6 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
           collectedErrors,
         );
 
-        setError(message || null);
         toast({
           title,
           description: message,
@@ -1187,35 +1176,35 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         hasMetrics={metrics.length > 0}
       />
 
-      {/* Time range selection for when data IS present */}
+      {/* Time Granularity & Range Selectors */}
       {metrics.length > 0 && (
-        <div className="mt-4 p-4 border rounded-md bg-muted/40">
-          <Label htmlFor="time-range-select" className="mr-2">
-            Time Range:
-          </Label>
-          <Select
-            value={timeRange}
-            onValueChange={(value: TimeRange) => setTimeRange(value)}
-          >
-            <SelectTrigger id="time-range-select" className="w-[180px]">
-              {timeRange === 'last_7_days' && 'Last 7 Days'}
-              {timeRange === 'last_30_days' && 'Last 30 Days'}
-              {timeRange === 'month_to_date' && 'Month to Date'}
-              {timeRange === 'year_to_date' && 'Year to Date'}
-              {timeRange === 'all_time' && 'All Time'}
-              {timeRange === 'custom' && 'Custom Range'}
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-              <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-              <SelectItem value="month_to_date">Month to Date</SelectItem>
-              <SelectItem value="year_to_date">Year to Date</SelectItem>
-              <SelectItem value="all_time">All Time</SelectItem>
-              <SelectItem value="custom">Custom Range</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="mt-4 p-4 border rounded-md bg-muted/40 flex flex-wrap items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="time-range-select">Time Range:</Label>
+            <Select
+              value={timeRange}
+              onValueChange={(value: TimeRange) => setTimeRange(value)}
+            >
+              <SelectTrigger id="time-range-select" className="w-[180px]">
+                {timeRange === 'last_7_days' && 'Last 7 Days'}
+                {timeRange === 'last_30_days' && 'Last 30 Days'}
+                {timeRange === 'month_to_date' && 'Month to Date'}
+                {timeRange === 'year_to_date' && 'Year to Date'}
+                {timeRange === 'all_time' && 'All Time'}
+                {timeRange === 'custom' && 'Custom Range'}
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="last_7_days">Last 7 Days</SelectItem>
+                <SelectItem value="last_30_days">Last 30 Days</SelectItem>
+                <SelectItem value="month_to_date">Month to Date</SelectItem>
+                <SelectItem value="year_to_date">Year to Date</SelectItem>
+                <SelectItem value="all_time">All Time</SelectItem>
+                <SelectItem value="custom">Custom Range</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {timeRange === 'custom' && (
-            <div className="flex items-center space-x-2 mt-2">
+            <div className="flex items-center space-x-2">
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -1259,6 +1248,26 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               </Popover>
             </div>
           )}
+          <div className="flex items-center space-x-2">
+            <Label htmlFor="time-granularity-select">Granularity:</Label>
+            <Select
+              value={timeGranularity}
+              onValueChange={(value) =>
+                setTimeGranularity(value as typeof timeGranularity)
+              }
+            >
+              <SelectTrigger id="time-granularity-select" className="w-[180px]">
+                <SelectValue placeholder="Select Time Granularity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+                <SelectItem value="quarterly">Quarterly</SelectItem>
+                <SelectItem value="yearly">Yearly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       )}
 
