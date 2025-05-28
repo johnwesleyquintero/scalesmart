@@ -73,7 +73,7 @@ const TableChart = lazy(
 import {
   SAMPLE_CARD_DATA,
   SAMPLE_CHART_DATA,
-} from '@/config/amazon-tools-config';
+} from '@/data/amazon-tools-sample-data/amazon-dashboard-sample-data';
 import { aggregateMetricsByTime } from '@/lib/utils/amazon/data-aggregation'; // Import aggregation utility
 import {
   transformCsvRow,

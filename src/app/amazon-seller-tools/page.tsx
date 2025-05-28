@@ -21,8 +21,11 @@ import SalesEstimator from '@/components/amazon-seller-tools/sales-estimator';
 import DashboardHeader from '@/components/amazon-seller-tools/DashboardHeader';
 import OverviewTab from '@/components/amazon-seller-tools/OverviewTab';
 import { KeywordPerformanceTable } from '@/components/amazon-seller-tools/KeywordPerformanceTable'; // Import the new table
-import sampleData from '@/data/sample-data.json';
 import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
+import {
+  SAMPLE_CARD_DATA,
+  SAMPLE_CHART_DATA,
+} from '@/data/amazon-tools-sample-data/amazon-dashboard-sample-data';
 
 import { DashboardMetrics, TargetMetricConfig } from '@/lib/amazon-tools/types';
 import { TARGET_METRICS_CONFIG_RAW as TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
