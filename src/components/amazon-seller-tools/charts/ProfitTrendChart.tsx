@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { ReusableChart } from './ReusableChart';
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 
 interface ProfitTrendChartProps {
   sortedMetrics: DashboardMetrics[];

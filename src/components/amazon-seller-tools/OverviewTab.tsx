@@ -104,11 +104,13 @@ import type { CsvColumnMapping } from '@/types/data-mapping';
 import type { TableChartProps } from '@/components/amazon-seller-tools/charts/TableChart'; // Import TableChartProps
 import {
   DashboardMetrics,
+  DashboardViewPreferences,
+  TimeRange,
   TargetMetricConfig,
-} from '@/app/amazon-seller-tools/page';
+  MetricKey,
+} from '@/lib/amazon-tools/types';
 import { getItem, setItem } from '@/lib/indexeddb-service'; // Import IndexedDB service
 import DataCard from './DataCard';
-import { DashboardViewPreferences, TimeRange } from '@/lib/amazon-tools/types'; // Import new types
 
 // Define a new interface for aggregated product metrics
 interface AggregatedProductMetrics {
@@ -294,11 +296,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                         : String(metricValue)
                       : 'N/A'
                   }
-                  unit={
-                    metricConfig.key === 'total_conversion_rate'
-                      ? '%'
-                      : undefined
-                  }
+                  unit={metricKey === 'total_conversion_rate' ? '%' : undefined}
                   description="Based on latest data"
                   colorClass="text-blue-400"
                 />

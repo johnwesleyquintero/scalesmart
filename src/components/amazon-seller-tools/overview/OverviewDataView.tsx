@@ -32,8 +32,8 @@ import { format } from 'date-fns';
 import type {
   DashboardMetrics,
   TargetMetricConfig,
-} from '@/app/amazon-seller-tools/page';
-import { TimeRange } from '@/lib/amazon-tools/types';
+  MetricKey,
+} from '@/lib/amazon-tools/types';
 import { ComparisonKpiCard } from './ComparisonKpiCard';
 import { SalesTrendsChart } from '../charts/SalesTrendsChart';
 import { ClicksImpressionsChart } from '../charts/ClicksImpressionsChart';

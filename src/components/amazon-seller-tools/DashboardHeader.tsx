@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { BookOpen, Download, Loader2, RefreshCw, Settings } from 'lucide-react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import DashboardPdf from './DashboardPdf';
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 import { saveAs } from 'file-saver';
 import KpiCustomizationModal from './KpiCustomizationModal';
 import { getItem } from '@/lib/indexeddb-service';

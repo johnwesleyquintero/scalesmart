@@ -1,5 +1,5 @@
 // src/types/data-mapping.ts
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 
 export interface CsvColumnMapping {
   date: keyof DashboardMetrics | null;

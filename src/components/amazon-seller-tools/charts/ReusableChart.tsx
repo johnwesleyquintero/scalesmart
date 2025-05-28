@@ -10,7 +10,7 @@ import {
   ResponsiveContainer,
   TooltipProps as RechartsTooltipProps,
 } from 'recharts';
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 
 import { BRAND_CHART_COLORS } from '@/lib/constants/chart-colors';
 

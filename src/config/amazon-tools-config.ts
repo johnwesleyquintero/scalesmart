@@ -2,7 +2,7 @@
 import type {
   DashboardMetrics,
   TargetMetricConfig,
-} from '@/app/amazon-seller-tools/page'; // Adjust path if types are moved
+} from '@/lib/amazon-tools/types';
 
 // Constants for TargetMetricConfig
 export const DATE_TYPE = 'date';

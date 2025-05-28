@@ -10,7 +10,7 @@ import {
   PieLabelRenderProps,
 } from 'recharts';
 import { useTheme } from 'next-themes'; // Correct import path for useTheme
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 import { formatCurrency } from '@/lib/utils/amazon/chart-formatters';
 import { PIE_CHART_COLORS } from '@/lib/constants/chart-colors';
 

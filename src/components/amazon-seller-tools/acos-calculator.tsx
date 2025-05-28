@@ -62,7 +62,8 @@ const chartConfig = {
     theme: { light: '#ff8042', dark: '#ff8042' },
   },
 } as const satisfies {
-  [key in MetricKey | 'revenuePerClickRate']: {
+  [key in 'acos' | 'roas' | 'ctr' | 'cpc' | 'revenuePerClickRate']: {
+    // Explicitly list keys present
     label: string;
     theme: { light: string; dark: string };
   };

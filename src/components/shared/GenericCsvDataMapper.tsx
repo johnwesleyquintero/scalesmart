@@ -7,7 +7,8 @@ import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
 import type { CsvColumnMapping } from '@/types/data-mapping';
 import stringSimilarity from 'string-similarity';
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
+import { MetricKey } from '@/lib/amazon-tools/types'; // Add MetricKey import if needed for clarity
 import {
   Tooltip,
   TooltipContent,

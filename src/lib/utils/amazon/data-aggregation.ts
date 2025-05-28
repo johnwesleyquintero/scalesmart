@@ -6,7 +6,7 @@ import {
   startOfYear,
   format,
 } from 'date-fns';
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page'; // Adjust path if DashboardMetrics is moved
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 
 type TimeGranularity = 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly';
 

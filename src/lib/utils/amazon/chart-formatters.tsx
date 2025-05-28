@@ -1,6 +1,6 @@
 import React from 'react'; // React import is necessary for JSX
 import { format, formatDistanceToNow } from 'date-fns';
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 
 export const formatTick = (
   tick: string | number | Date,

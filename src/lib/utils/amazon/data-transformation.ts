@@ -2,7 +2,8 @@
 import type {
   DashboardMetrics,
   TargetMetricConfig,
-} from '@/app/amazon-seller-tools/page'; // Adjust path if types are moved
+  MetricKey,
+} from '@/lib/amazon-tools/types';
 import type { CsvColumnMapping } from '@/types/data-mapping';
 import type { CsvTransformerFieldType } from '@/types/csv-transformer-config';
 
@@ -179,7 +180,11 @@ export const getDateFromRow = (
   }
 
   // If a date header was mapped but no value was found or it was invalid
-  if (mappedHeader && mappedHeader !== 'Unknown') {
+  if (
+    mappedHeader &&
+    typeof mappedHeader === 'string' &&
+    mappedHeader !== 'Unknown'
+  ) {
     errors.push({
       rowNumber,
       column: mappedHeader as string,
@@ -371,6 +376,8 @@ export const getNumericValueFromRow = (
   } else if (
     numericValue !== undefined &&
     mappedHeader &&
+    mappedHeader &&
+    typeof mappedHeader === 'string' &&
     mappedHeader !== 'Unknown'
   ) {
     // Check for outliers only if a valid number was found and a mapped header exists

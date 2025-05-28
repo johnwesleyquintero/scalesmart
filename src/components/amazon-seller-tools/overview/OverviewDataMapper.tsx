@@ -2,7 +2,7 @@
 import React from 'react';
 import GenericCsvDataMapper from '@/components/shared/GenericCsvDataMapper';
 import type { CsvColumnMapping } from '@/types/data-mapping';
-import type { TargetMetricConfig } from '@/app/amazon-seller-tools/page'; // Assuming TargetMetricConfig is exported from page.tsx or a types file
+import type { TargetMetricConfig } from '@/lib/amazon-tools/types';
 
 interface OverviewDataMapperProps {
   csvHeaders: string[];

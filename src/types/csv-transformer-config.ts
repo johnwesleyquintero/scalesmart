@@ -1,5 +1,5 @@
 // src/types/csv-transformer-config.ts
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 
 export type CsvTransformerFieldType = keyof DashboardMetrics; // Type alias for convenience
 

@@ -4,7 +4,7 @@ import type {
   CsvColumnMapping,
   UserCsvMappingRecord,
 } from '@/types/data-mapping';
-import type { DashboardMetrics } from '@/app/amazon-seller-tools/page';
+import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 import type { CalculationData } from '@/lib/indexeddb-service';
 
 const USER_CSV_MAPPINGS_STORE_NAME: string = 'userCsvMappings';
