@@ -171,7 +171,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           <Button
             variant="outline"
             asChild
-            aria-label="View Documentation for Amazon Seller Tools"
+            aria-label="Amazon Seller Tools Documentation"
           >
             <a
               href="https://wescode.vercel.app/blog/amazon-seller-tools"

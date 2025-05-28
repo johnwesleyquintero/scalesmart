@@ -1284,9 +1284,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       />
 
       <div className="mb-4 p-4 border rounded-md bg-muted/40">
-        <h3 className="text-lg font-semibold mb-2">
+        <h2 className="text-lg font-semibold mb-2">
           Product Performance Overview
-        </h3>
+        </h2>
         <Suspense
           fallback={<div className="p-4 text-center">Loading table...</div>}
         >
@@ -1300,9 +1300,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
 
       {showKeywordPerformanceTable && metrics.length > 0 && (
         <div className="mb-4 p-4 border rounded-md bg-muted/40">
-          <h3 className="text-lg font-semibold mb-2">
+          <h2 className="text-lg font-semibold mb-2">
             Keyword Performance Overview
-          </h3>
+          </h2>
           <Suspense fallback={<div>Loading keyword table...</div>}>
             <KeywordPerformanceOverviewTable
               metrics={metrics}

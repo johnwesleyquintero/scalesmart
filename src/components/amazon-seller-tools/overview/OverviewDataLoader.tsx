@@ -35,7 +35,7 @@ const OverviewDataLoader: React.FC<OverviewDataLoaderProps> = ({
     <div className="mb-4 p-4 border rounded-md bg-muted/40">
       {hasMetrics ? (
         <>
-          <h3 className="text-lg font-semibold mb-2">Load Overview Data</h3>
+          <h2 className="text-lg font-semibold mb-2">Load Overview Data</h2>
           <p className="text-sm text-muted-foreground mb-3">
             Upload an Amazon Reports CSV to visualize your key metrics. You'll
             be asked to map the columns after uploading.
@@ -61,7 +61,7 @@ const OverviewDataLoader: React.FC<OverviewDataLoaderProps> = ({
         </>
       ) : (
         <>
-          <h3 className="text-lg font-semibold mb-2">Load Overview Data</h3>
+          <h2 className="text-lg font-semibold mb-2">Load Overview Data</h2>
           <p className="text-sm text-muted-foreground mb-3">
             To get started, choose to upload your own Amazon Business Report
             data or explore with sample data.
