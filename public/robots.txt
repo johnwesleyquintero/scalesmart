@@ -1,6 +1,27 @@
 # Allow all crawlers
+# Allow all crawlers
 User-agent: *
 Allow: /
+
+# Sitemaps
+Sitemap: https://wescode.vercel.app/sitemap.xml
+
+# Crawl-delay for rate limiting
+Crawl-delay: 10
+
+# Block specific paths
+Disallow: /api/
+Disallow: /_next/static/
+Disallow: /admin/
+Disallow: /error/
+Disallow: /loading/
+
+# Allow critical content paths
+Allow: /blog/
+Allow: /projects/
+Allow: /about/
+Allow: /contact/
+Allow: /academy/
 
 # Sitemap location
 Sitemap: https://wescode.vercel.app/sitemap.xml

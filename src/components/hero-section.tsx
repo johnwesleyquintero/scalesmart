@@ -25,7 +25,7 @@ export default function HeroSection() {
 
           <div className="animate-fadeIn">
             <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              I'm{' '}
+              I&apos;m{' '}
               {/* Improved contrast with darker gradient colors and text shadow */}
               <span className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] hover:animate-none drop-shadow-sm">
                 Wesley Quintero

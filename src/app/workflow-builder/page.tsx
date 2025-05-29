@@ -5,8 +5,14 @@ import WorkflowCanvas from '@/components/ui/WorkflowCanvas';
 import nodeRegistry from '@/lib/workflow/node-registry';
 import { NodeType } from '@/lib/workflow/types';
 import React, { useCallback, useEffect, useState } from 'react';
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
+import {
+  DndContext,
+  useSensors,
+  useSensor,
+  MouseSensor,
+  TouchSensor,
+  DragEndEvent,
+} from '@dnd-kit/core';
 import { setItem, getItem } from '@/lib/indexeddb-service';
 import {
   addEdge,
@@ -100,8 +106,28 @@ const WorkflowBuilderPage = () => {
     }
   }, []); // Empty dependency array ensures this runs only once on mount
 
+  const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+
+      // If a draggable item is dropped over the workflow canvas
+      if (over?.id === 'workflow-canvas') {
+        const newNode = {
+          id: String(Math.random()), // Generate a unique ID for the new node
+          type: active.id.toString(), // The type of the node comes from the draggable's ID
+          position: { x: event.delta.x, y: event.delta.y }, // Use delta for relative positioning
+          data: { label: `${active.id} Node` }, // Set a label based on the type
+        };
+        setNodes((nds) => nds.concat(newNode));
+      }
+    },
+    [setNodes],
+  );
+
   return (
-    <DndProvider backend={HTML5Backend}>
+    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
       <div className={styles.pageContainer}>
         <header className={styles.header}>
           <h1>Workflow Builder</h1>
@@ -114,15 +140,15 @@ const WorkflowBuilderPage = () => {
           <aside className={styles.sidebar}>
             <h2>Nodes</h2>
             {/* Manually add basic nodes for dragging */}
-            <DraggableNode type="start" label="Start Node" />
-            <DraggableNode type="log" label="Log Node" />
-            <DraggableNode type="end" label="End Node" />
+            <DraggableNode label="Start Node" type="start" />
+            <DraggableNode label="Log Node" type="log" />
+            <DraggableNode label="End Node" type="end" />
             {/* Add nodes from the registry */}
             {registeredNodeTypes.map((nodeType) => (
               <DraggableNode
                 key={nodeType.type}
-                type={nodeType.type}
                 label={nodeType.label}
+                type={nodeType.type}
               />
             ))}
           </aside>
@@ -147,7 +173,7 @@ const WorkflowBuilderPage = () => {
           </main>
         </div>
       </div>
-    </DndProvider>
+    </DndContext>
   );
 
   async function saveWorkflow(currentNodes: Node[], currentEdges: Edge[]) {

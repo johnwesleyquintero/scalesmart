@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import useAcademyStorage from '@/hooks/use-academy-storage';
 import useUserProfile from '@/hooks/use-user-profile';
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+
 import { ModuleType, QuizResult } from '@/types';
 import { useAcademy } from '@/context/AcademyContext';
 import CertificateDisplay from './CertificateDisplay';
@@ -205,8 +204,8 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
         {isCertificateEarned ? (
           <>
             <p className="mt-4 font-medium text-emerald-600 text-lg">
-              🎉 Congratulations! You've earned the certificate for this quiz!
-              🎉
+              🎉 Congratulations! You&apos;ve earned the certificate for this
+              quiz! 🎉
             </p>
             <input
               type="text"
@@ -222,7 +221,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
           </>
         ) : passedCurrentAttempt && totalAttempts > MAX_CERTIFICATE_ATTEMPTS ? (
           <p className="mt-4 font-medium text-orange-500">
-            Great score! However, you've used more than{' '}
+            Great score! However, you&apos;ve used more than{' '}
             {MAX_CERTIFICATE_ATTEMPTS} attempts for the certificate.
           </p>
         ) : !passedCurrentAttempt &&
@@ -234,7 +233,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
         ) : (
           <p className="mt-4 font-medium text-red-600">
             You did not pass this time and have no more attempts for the
-            certificate, or you've exceeded the attempt limit.
+            certificate, or you&apos;ve exceeded the attempt limit.
           </p>
         )}
         <p

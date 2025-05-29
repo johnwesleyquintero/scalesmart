@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     url: 'https://wescode.vercel.app/',
     title: `${AUTHOR_NAME} | Data Analytics Innovator`,
     description:
-      'Data Analytics Innovator and Founder of Nebula Suite, building tools that streamline workflows and provide valuable insights.',
+      'Data Analytics Innovator and Founder of ScaleSmart, building tools that streamline workflows and provide valuable insights.',
     siteName: `${AUTHOR_NAME} Portfolio`,
     images: [
       {
@@ -54,7 +54,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `${AUTHOR_NAME} | Data Analytics Innovator`,
     description:
-      'Data Analytics Innovator and Founder of Nebula Suite, building tools that streamline workflows and provide valuable insights.',
+      'Data Analytics Innovator and Founder of ScaleSmart, building tools that streamline workflows and provide valuable insights.',
     images: [
       'https://wescode.vercel.app/og-image.svg',
       `https://wescode.vercel.app${defaultImage}`,
@@ -109,6 +109,12 @@ import type { Viewport } from 'next';
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  minimumScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  viewportFit: 'cover',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
 };

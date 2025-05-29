@@ -24,10 +24,10 @@ export default function AboutSection() {
             About Me
           </h2>
           <p className="mx-auto mt-4 max-w-3xl text-lg text-muted-foreground">
-            I'm a passionate and results-oriented professional with a strong
-            background in e-commerce, data analysis, and full-stack development.
-            My journey is driven by a constant desire to learn, innovate, and
-            create impactful solutions.
+            I&apos;m a passionate and results-oriented professional with a
+            strong background in e-commerce, data analysis, and full-stack
+            development. My journey is driven by a constant desire to learn,
+            innovate, and create impactful solutions.
           </p>
         </div>
 

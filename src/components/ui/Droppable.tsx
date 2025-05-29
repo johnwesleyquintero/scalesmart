@@ -1,5 +1,5 @@
 import React from 'react';
-import { DropTargetMonitor, useDrop } from 'react-dnd';
+import { useDroppable } from '@dnd-kit/core';
 
 interface DroppableProps {
   type: string;
@@ -9,27 +9,14 @@ interface DroppableProps {
 
 import { useCallback } from 'react';
 
-const Droppable: React.FC<DroppableProps> = ({ type, onDrop, children }) => {
-  const [{ isOver }, drop] = useDrop(() => ({
-    accept: type,
-    drop: (item: string) => {
-      onDrop(item);
-    },
-    collect: (monitor: DropTargetMonitor) => ({
-      isOver: monitor.isOver(),
-    }),
-  }));
-
-  const setRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      drop(node);
-    },
-    [drop],
-  );
+const Droppable: React.FC<DroppableProps> = ({ onDrop, children }) => {
+  const { isOver, setNodeRef } = useDroppable({
+    id: 'droppable-area', // A unique ID for the droppable area
+  });
 
   return (
     <div
-      ref={setRef}
+      ref={setNodeRef}
       style={{ backgroundColor: isOver ? 'lightgreen' : 'white' }}
     >
       {children}

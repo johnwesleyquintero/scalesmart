@@ -578,10 +578,9 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
         ? targetMetric.key.toLowerCase()
         : '';
     const results = fuzzysort.go(targetMetricKey, csvHeaders, {
-      key: (header: string) => header.toLowerCase(),
       limit: 5, // Limit to top 5 results
     });
-    return results.map((result) => result.obj);
+    return results.map((result) => result.target);
   };
 
   return (
@@ -640,7 +639,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
                       field.key as keyof CsvColumnMapping
                     ] as string) || 'none'
                   }
-                  onValueChange={(value) =>
+                  onValueChange={(value: string) =>
                     handleSelectChange(field.key, value)
                   }
                 >
@@ -784,14 +783,15 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                Configure Transformations for "{currentTransformField?.label}"
+                Configure Transformations for &quot;
+                {currentTransformField?.label}&quot;
               </DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <p>
                 Transformation settings UI (e.g., trim, case change,
-                find/replace) for the "{currentTransformField?.label}" field
-                will be implemented here.
+                find/replace) for the &quot;{currentTransformField?.label}&quot;
+                field will be implemented here.
               </p>
             </div>
             <DialogFooter>
@@ -804,6 +804,20 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        {/* Correcting the second instance based on the error messages provided, assuming it's similar to the DialogTitle */}
+        {/* If the error at line 792 is indeed for the quotes around {currentTransformField?.label} within the <p> tag, it should be: */}
+        {/*
+            <div className="py-4">
+              <p>
+                Transformation settings UI (e.g., trim, case change,
+                find/replace) for the &quot;{currentTransformField?.label}&quot; field
+                will be implemented here.
+              </p>
+            </div>
+        */}
+        {/* However, typically ESLint is more concerned with quotes directly in JSX text nodes or attributes.
+            The provided errors point to the quotes around the interpolated variable.
+        */}
       </div>
     </TooltipProvider>
   );

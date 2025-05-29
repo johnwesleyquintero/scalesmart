@@ -1,5 +1,5 @@
 import React from 'react';
-import { DragSourceMonitor, useDrag } from 'react-dnd';
+import { useDraggable } from '@dnd-kit/core';
 
 interface DraggableProps {
   id: string;
@@ -10,24 +10,21 @@ interface DraggableProps {
 
 import { useCallback } from 'react';
 
-const Draggable: React.FC<DraggableProps> = ({ id, type, children }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: type,
-    item: { id: id },
-    collect: (monitor: DragSourceMonitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
-  }));
+const Draggable: React.FC<DraggableProps> = ({ id, children }) => {
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: id,
+    });
 
-  const setRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      drag(node);
-    },
-    [drag],
-  );
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        opacity: isDragging ? 0.5 : 1,
+      }
+    : { opacity: isDragging ? 0.5 : 1 };
 
   return (
-    <div ref={setRef} style={{ opacity: isDragging ? 0.5 : 1 }}>
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
       {children}
     </div>
   );

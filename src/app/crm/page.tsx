@@ -23,11 +23,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs
 
 import Papa from 'papaparse';
-import Fuse from 'fuse.js';
+import fuzzysort from 'fuzzysort';
 
-const fuseOptions = {
+const fuzzysortOptions = {
   keys: ['name', 'email', 'phone', 'notes', 'company'],
-  threshold: 0.3,
+  threshold: -700, // fuzzysort uses a negative threshold (lower is better)
 };
 
 const generateCustomerCSVData = (customers: Customer[]): string | null => {
@@ -67,8 +67,13 @@ const filterCustomers = (
   }
 
   if (searchQuery) {
-    const fuse = new Fuse(results, fuseOptions); // Search within already filtered results
-    results = fuse.search(searchQuery).map((result) => result.item);
+    // Filter results first
+    results = fuzzysort
+      .go(searchQuery, results, {
+        keys: fuzzysortOptions.keys as [string],
+        threshold: fuzzysortOptions.threshold,
+      })
+      .map((result) => result.obj); // Access original object
   }
 
   return results;

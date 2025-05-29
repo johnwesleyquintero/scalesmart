@@ -45,47 +45,53 @@ export default function RootLayout({
         '[color-scheme:dark_light]',
       )}
     >
+      <head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5"
+        />
+        <meta
+          name="theme-color"
+          content="#ffffff"
+          media="(prefers-color-scheme: light)"
+        />
+        <meta
+          name="theme-color"
+          content="#000000"
+          media="(prefers-color-scheme: dark)"
+        />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+          name="apple-mobile-web-app-status-bar-style"
+          content="black-translucent"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body
         suppressHydrationWarning
-        style={
-          {
-            /* Add background tile effect here */
-          }
-        }
-        className={cn(
-          'relative',
-          'min-h-screen',
-          'bg-gradient-to-br',
-          'from-purple-50',
-          'via-white',
-          'to-blue-50',
-          'dark:from-gray-900',
-          'dark:via-gray-900',
-          'dark:to-gray-800',
-          'min-h-screen',
-          'font-sans',
-          'antialiased',
-          'bg-background',
-          'text-foreground',
-          'flex',
-          'flex-col',
-          'selection:bg-primary/10',
-          'selection:text-primary',
-          'mx-auto',
-          'flex',
-          'justify-center',
-        )}
+        className="min-h-screen bg-background font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none"
       >
-        <ClientProviders>
-          <Header /> {/* ADD THE GLOBAL HEADER HERE */}
-          <main id="main" className="flex-1">
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]"></div>
-            {children}
-          </main>
+        <div className="relative flex min-h-screen flex-col">
+          <ClientProviders>
+            <Header />
+            <main className="flex-1 w-full px-4 sm:px-6 md:px-8">
+              {children}
+            </main>
+            <Footer />
+          </ClientProviders>
           <Toaster />
-        </ClientProviders>
+        </div>
         <Analytics />
-        <Footer />
       </body>
     </html>
   );

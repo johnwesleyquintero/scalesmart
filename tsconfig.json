@@ -32,7 +32,7 @@
       "@/hooks/*": ["./hooks/*"] // Ensure this line exists
     }
   },
-  "types": ["@testing-library/jest-dom", "node"],
+  "types": ["@testing-library/jest-dom", "node", "react"],
   "include": ["src/**/*", ".next/types/**/*.ts"],
   "typeRoots": ["./src/types", "./node_modules/@types"],
   "exclude": [

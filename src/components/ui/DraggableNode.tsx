@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDrag } from 'react-dnd';
+import { useDraggable } from '@dnd-kit/core';
 
 interface DraggableNodeProps {
   type: string;
@@ -7,31 +7,26 @@ interface DraggableNodeProps {
 }
 
 const DraggableNode: React.FC<DraggableNodeProps> = ({ type, label }) => {
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: 'NODE',
-    item: { type },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
-    }),
-  }));
+  const { attributes, listeners, setNodeRef, transform, isDragging } =
+    useDraggable({
+      id: type, // Use type as the ID for draggable nodes
+    });
 
-  const divRef = React.useRef<HTMLDivElement>(null);
-
-  React.useEffect(() => {
-    if (divRef.current) {
-      drag(divRef.current);
-    }
-  }, [drag]);
-
-  return (
-    <div
-      ref={divRef}
-      style={{
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
         border: '1px solid black',
         padding: '10px',
         backgroundColor: isDragging ? 'lightgray' : 'white',
-      }}
-    >
+      }
+    : {
+        border: '1px solid black',
+        padding: '10px',
+        backgroundColor: isDragging ? 'lightgray' : 'white',
+      };
+
+  return (
+    <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
       {label}
     </div>
   );

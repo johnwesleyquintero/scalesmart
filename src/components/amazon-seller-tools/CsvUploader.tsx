@@ -336,7 +336,7 @@ export const CsvUploader = <T extends Record<string, unknown>>({
                   : selectedFileName || 'Click or drag CSV file to upload'}
               </span>
               <p className="text-xs text-muted-foreground mt-1">
-                Drag 'n' drop, or click to select file
+                Drag &apos;n&apos; drop, or click to select file
               </p>
             </>
           )}

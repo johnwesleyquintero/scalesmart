@@ -24,7 +24,7 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onCloseAction}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>What's New in Amazon Seller Tools!</DialogTitle>
+          <DialogTitle>What&apos;s New in Amazon Seller Tools!</DialogTitle>
           <DialogDescription>
             Exciting Updates for Enhanced Analysis and Experience!
           </DialogDescription>
@@ -55,8 +55,9 @@ export const WhatsNewModal: React.FC<WhatsNewModalProps> = ({
           </h4>
           <ul className="list-disc list-inside text-sm text-muted-foreground">
             <li>
-              **Refined Data Loading:** Clearer options to "Upload Your Data" or
-              "Explore Sample Data" with helpful hints for CSV requirements.
+              **Refined Data Loading:** Clearer options to &quot;Upload Your
+              Data&quot; or &quot;Explore Sample Data&quot; with helpful hints
+              for CSV requirements.
             </li>
             <li>
               **Enhanced Processing Feedback:** Detailed, row-level error and

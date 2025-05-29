@@ -1,5 +1,5 @@
 // src/components/amazon-seller-tools/overview/OverviewErrorDisplay.tsx
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Info, XCircle } from 'lucide-react';
@@ -87,10 +87,7 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                                 key={`crit-err-${index}`}
                                 className="text-red-700"
                               >
-                                <strong>
-                                  Row {err.rowNumber + 1}, Column '{err.column}
-                                  ':
-                                </strong>{' '}
+                                <strong>Row {err.rowNumber}:</strong>{' '}
                                 {err.message}
                               </li>
                             ))}
@@ -117,8 +114,11 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                                 className="text-yellow-700"
                               >
                                 <strong>
-                                  Row {warn.rowNumber + 1}, Column '
-                                  {warn.column}':
+                                  Row {warn.rowNumber}
+                                  {warn.column
+                                    ? `, Column '${warn.column}'`
+                                    : ''}
+                                  :
                                 </strong>{' '}
                                 {warn.message}
                               </li>

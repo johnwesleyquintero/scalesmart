@@ -1,5 +1,6 @@
 import React from 'react';
-import { useDrop } from 'react-dnd';
+import { useDroppable } from '@dnd-kit/core';
+import { DragEndEvent } from '@dnd-kit/core';
 import ReactFlow, {
   Node as ReactFlowNode,
   Edge as ReactFlowEdge,
@@ -25,14 +26,26 @@ const WorkflowCanvas = ({
   onEdgesChange,
   onConnect,
 }: WorkflowCanvasProps) => {
-  const [, drop] = useDrop(() => ({
-    accept: 'NODE',
-    drop: (item: { type: string }) => {
+  const { setNodeRef } = useDroppable({
+    id: 'workflow-canvas',
+  });
+
+  // This function will be called by the DndContext's onDragEnd
+  // It's passed down from WorkflowBuilderPage
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (
+      active.id.toString().startsWith('node-') &&
+      over?.id === 'workflow-canvas'
+    ) {
+      // This is a simplified example. In a real app, you'd get the drop position
+      // and create a new node at that position.
       const newNode = {
         id: String(Math.random()),
-        type: 'default',
-        position: { x: 100, y: 100 },
-        data: { label: item.type },
+        type: active.id.toString().replace('node-', ''), // Extract type from draggable ID
+        position: { x: Math.random() * 200, y: Math.random() * 200 }, // Placeholder position
+        data: { label: active.id.toString().replace('node-', '') + ' Node' },
       };
       onNodesChange([
         {
@@ -40,28 +53,20 @@ const WorkflowCanvas = ({
           item: newNode,
         },
       ]);
-    },
-    collect: (monitor) => ({
-      isOver: !!monitor.isOver(),
-    }),
-  }));
-
-  const dropRef = React.useCallback(
-    (node: HTMLDivElement) => {
-      drop(node);
-    },
-    [drop],
-  );
+    }
+  };
 
   return (
-    <div style={{ width: '100%', height: '100%', border: '1px dashed gray' }}>
+    <div
+      ref={setNodeRef}
+      style={{ width: '100%', height: '100%', border: '1px dashed gray' }}
+    >
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        ref={dropRef}
         fitView
       />
     </div>

@@ -961,7 +961,9 @@ const TableChart = <TData extends Record<string, unknown>>({
                 <div className="flex items-center justify-between">
                   <span
                     onClick={
-                      column.sortable ? undefined : (e) => e.stopPropagation()
+                      column.sortable
+                        ? undefined
+                        : (e: React.MouseEvent) => e.stopPropagation()
                     }
                   >
                     {column.header}
@@ -1004,7 +1006,9 @@ const TableChart = <TData extends Record<string, unknown>>({
                         </PopoverTrigger>
                         <PopoverContent
                           className="w-48 p-2"
-                          onClick={(e) => e.stopPropagation()}
+                          onClick={(e: { stopPropagation: () => unknown }) =>
+                            e.stopPropagation()
+                          }
                         >
                           {renderFilterInput(column)}
                         </PopoverContent>
@@ -1116,8 +1120,9 @@ const TableChart = <TData extends Record<string, unknown>>({
                                         )
                                       }
                                     >
-                                      <Copy className="mr-2 h-4 w-4" /> Copy "
-                                      {value}"
+                                      <Copy className="mr-2 h-4 w-4" /> Copy
+                                      &quot;
+                                      {value}&quot;
                                     </DropdownMenuItem>
                                   )}
                                   {column.analyzeInTool && (

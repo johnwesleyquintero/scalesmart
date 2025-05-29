@@ -27,18 +27,18 @@ export default function PrivacyPolicyPage() {
                 <h3 className="font-semibold">Data Storage</h3>
                 <p>
                   Currently, your data is stored locally within your web
-                  browser's IndexedDB. This is part of our free tier service. We
-                  do not collect or store any personal data on our servers at
-                  this time.
+                  browser&apos;s IndexedDB. This is part of our free tier
+                  service. We do not collect or store any personal data on our
+                  servers at this time.
                 </p>
               </section>
 
               <section className="space-y-3">
                 <h3 className="font-semibold">Data Usage</h3>
                 <p>
-                  The stored data is used solely to provide the application's
-                  core functionality and improve your user experience. We do not
-                  share your data with any third parties.
+                  The stored data is used solely to provide the
+                  application&apos;s core functionality and improve your user
+                  experience. We do not share your data with any third parties.
                 </p>
               </section>
 
@@ -46,9 +46,9 @@ export default function PrivacyPolicyPage() {
                 <h3 className="font-semibold">User Rights</h3>
                 <p>
                   You have the right to access, modify, and delete your data.
-                  You can do this by clearing your browser's site data. We also
-                  encourage you to use any available "Export" features to back
-                  up your data.
+                  You can do this by clearing your browser&apos;s site data. We
+                  also encourage you to use any available &quot;Export&quot;
+                  features to back up your data.
                 </p>
               </section>
 

@@ -1234,7 +1234,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
             <Label htmlFor="time-granularity-select">Granularity:</Label>
             <Select
               value={timeGranularity}
-              onValueChange={(value) =>
+              onValueChange={(value: string) =>
                 setTimeGranularity(value as typeof timeGranularity)
               }
             >
@@ -1315,8 +1315,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       <Card className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30">
         <CardContent className="p-6 text-center">
           <p className="text-lg font-medium text-primary dark:text-blue-300">
-            While you're here, feel free to explore the other specialized tools
-            available in the tabs above!
+            While you&apos;re here, feel free to explore the other specialized
+            tools available in the tabs above!
           </p>
         </CardContent>
       </Card>

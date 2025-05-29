@@ -1,55 +1,20 @@
 {
-  "compilerOptions": {
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "target": "ES6",
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "preserve",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"],
-      "@/lib/*": ["./src/lib/*"],
-      "@/components/*": ["./src/components/*"],
-      "@/app/components/*": ["./src/app/components/*"],
-      "@/hooks/*": ["./src/app/hooks/*"]
-    }
-  },
+  "extends": "./tsconfig.json",
   "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/app/amazon-seller-tools/page.tsx",
-    "lib/**/*.ts",
-    "lib/**/*.tsx",
+    "src/**/*",
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
     "vitest.config.ts",
-    "types/**/*.d.ts",
-    "next-env.d.ts"
+    "postcss.config.mjs",
+    "tailwind.config.ts",
+    "eslint.config.mjs"
   ],
   "exclude": [
     "node_modules",
-    "dist",
     ".next",
+    "dist",
     "coverage",
-    "build",
-    "out",
-    ".wescore",
-    ".cache",
-    "test",
-    "__tests__",
-    "__mocks__",
-    "**/*.test.{js,jsx,ts,tsx}",
-    "**/*.spec.{js,jsx,ts,tsx}",
-    "public/pdf.worker.min.mjs"
+    "**/*.test.ts",
+    "**/*.spec.ts"
   ]
 }

@@ -37,8 +37,8 @@ const OverviewDataLoader: React.FC<OverviewDataLoaderProps> = ({
         <>
           <h2 className="text-lg font-semibold mb-2">Load Overview Data</h2>
           <p className="text-sm text-muted-foreground mb-3">
-            Upload an Amazon Reports CSV to visualize your key metrics. You'll
-            be asked to map the columns after uploading.
+            Upload an Amazon Reports CSV to visualize your key metrics.
+            You&apos;ll be asked to map the columns after uploading.
           </p>
           <input
             type="file"
@@ -93,8 +93,8 @@ const OverviewDataLoader: React.FC<OverviewDataLoaderProps> = ({
                   <TooltipContent>
                     <p>
                       Upload your Amazon Business Report data here. Ensure it
-                      contains columns like 'Ordered Product Sales', 'Total
-                      Order Items', etc.
+                      contains columns like &apos;Ordered Product Sales&apos;,
+                      &apos;Total Order Items&apos;, etc.
                     </p>
                   </TooltipContent>
                 </Tooltip>
