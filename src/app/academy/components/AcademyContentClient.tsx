@@ -283,7 +283,6 @@ function AcademyContentClient({
               onClick={handleBackToCourses}
               variant="outline"
               className="mb-4"
-              aria-label="Back to Courses"
             >
               &larr; Back to Courses
             </Button>
@@ -353,7 +352,7 @@ function AcademyContentClient({
                               onClick={handlePreviousModule}
                               variant="outline"
                               disabled={getCurrentModuleIndex() <= 0}
-                              aria-label="Previous Module (Alt + Left Arrow)"
+                              aria-label="Previous Module"
                             >
                               &larr; Previous Module
                             </Button>
@@ -372,7 +371,7 @@ function AcademyContentClient({
                                 getCurrentModuleIndex() >=
                                 (activeCourse.modules?.length || 0) - 1
                               }
-                              aria-label="Next Module (Alt + Right Arrow)"
+                              aria-label="Next Module"
                             >
                               Next Module &rarr;
                             </Button>

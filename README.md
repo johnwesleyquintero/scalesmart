@@ -5,14 +5,14 @@
 This project is a comprehensive portfolio platform, the "Wes-verse," built with Next.js, TypeScript, and Tailwind CSS. It showcases an integrated suite of custom-built applications and tools, demonstrating a wide range of skills. The current "Wes-apps" include:
 
 - Blog
-- **WesAcademy:** An online learning platform.
+- **ScaleSmart Academy:** An online learning platform.
 - **Admin Dashboard:** For managing project content and settings.
-- **WesTools:** A suite of tools for Amazon sellers (Bootleg Helium 10).
-- **WeScan:** A Resume Scanner/ATS tool.
+- **Amazon Seller Tools:** A suite of tools for Amazon sellers (Bootleg Helium 10).
+- **Resume Scan:** A Resume Scanner/ATS tool.
 - Chat Interface
-- **WesCRM:** A Customer Relationship Management tool (Bootleg Hubspot CRM).
-- **WesSync:** A project management tool (Bootleg Asana).
-- **WesNode:** A workflow automation builder (Bootleg n8n).
+- **CRM:** A Customer Relationship Management tool (Bootleg Hubspot CRM).
+- **Project Board:** A project management tool (Bootleg Asana).
+- **Workflow Builder:** A workflow automation builder (Bootleg n8n).
 
 The platform is designed to be an ever-expanding ecosystem, with potential for more "WesIntegrations" in the future.
 
@@ -74,14 +74,14 @@ The project also includes API routes for various functionalities, such as:
 ## Usage
 
 - **Blog:** Browse articles and learn about various topics.
-- **WesAcademy:** Access courses and learning materials.
+- **ScaleSmart Academy:** Access courses and learning materials.
 - **Admin Dashboard:** Manage project content and settings.
-- **WesTools:** Utilize tools for Amazon seller activities.
-- **WeScan:** Scan and analyze resumes.
+- **Amazon Seller Tools:** Utilize tools for Amazon seller activities.
+- **Resume Scan:** Scan and analyze resumes.
 - **Chat Interface:** Communicate with others through the chat feature.
-- **WesCRM:** Manage customer relationships.
-- **WesSync:** Manage projects and tasks.
-- **WesNode:** Create and manage automated workflows.
+- **CRM:** Manage customer relationships.
+- **Project Board:** Manage projects and tasks.
+- **Workflow Builder:** Create and manage automated workflows.
 
 ## Contributing
 

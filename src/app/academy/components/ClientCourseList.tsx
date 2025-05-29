@@ -80,9 +80,7 @@ export default function ClientCourseList({ courses }: ClientCourseListProps) {
                   onClick={() => handleStartCourseClick(course)}
                   disabled={course.locked || !context?.startCourseAction}
                   className="w-full"
-                  aria-label={
-                    course.locked ? 'Coming Soon' : `Start ${course.title}`
-                  }
+                  aria-label={course.locked ? 'Coming Soon' : 'Start Course'}
                 >
                   {course.locked ? 'Coming Soon' : 'Start Course'}
                 </Button>

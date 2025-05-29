@@ -29,20 +29,20 @@ export function AcademyPageContent() {
     setLoading(true);
     setError(null);
     try {
-      // Try to load from IndexedDB first
-      const indexedDBCourses = await getAllCourses();
+      const [indexedDBCourses, serverResponse] = await Promise.all([
+        getAllCourses(),
+        fetch('/api/academy/courses'),
+      ]);
+
       if (indexedDBCourses.length > 0) {
         setCourses(indexedDBCourses);
       }
 
-      // Always attempt to fetch latest from server
-      const response = await fetch('/api/academy/courses'); // Assuming this endpoint exists
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!serverResponse.ok) {
+        throw new Error(`HTTP error! status: ${serverResponse.status}`);
       }
-      const serverCourses: Course[] = await response.json();
+      const serverCourses: Course[] = await serverResponse.json();
 
-      // Identify courses to delete (exist in IndexedDB but not on server)
       const serverCourseIds = new Set(serverCourses.map((c) => c.id));
       const coursesToDelete = indexedDBCourses.filter(
         (c) => !serverCourseIds.has(c.id),
@@ -52,8 +52,7 @@ export function AcademyPageContent() {
         await deleteCoursesByIds(coursesToDelete.map((c) => c.id));
       }
 
-      // Update IndexedDB with latest server data
-      for (const serverCourse of serverCourses) {
+      const updatePromises = serverCourses.map(async (serverCourse) => {
         const existingCourse = indexedDBCourses.find(
           (c) => c.id === serverCourse.id,
         );
@@ -65,12 +64,12 @@ export function AcademyPageContent() {
             new Date(serverCourse.updateTimestamp).getTime() >
               new Date(existingCourse.updateTimestamp).getTime())
         ) {
-          // If course doesn't exist or server version is newer, update/create
           await updateCourse(serverCourse);
         }
-      }
+      });
 
-      // After syncing, get all courses from IndexedDB again to ensure consistency
+      await Promise.all(updatePromises);
+
       const updatedCourses = await getAllCourses();
       setCourses(updatedCourses);
     } catch (e) {
@@ -78,7 +77,7 @@ export function AcademyPageContent() {
     } finally {
       setLoading(false);
     }
-  }, []); // Remove indexedDBCourses from dependency array
+  }, []);
 
   useEffect(() => {
     fetchAndStoreCourses();
