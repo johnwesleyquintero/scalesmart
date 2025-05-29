@@ -1,0 +1,85 @@
+<svg width="800" height="400" viewBox="0 0 300 150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .icon-fill { fill: white; stroke: none; }
+      .icon-stroke { stroke: white; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+      .connector-arrow {
+        stroke: #6B7280; /* Gray 500 */
+        stroke-width: 1.5;
+        fill: none;
+        marker-end: url(#arrowhead);
+      }
+    </style>
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="0" refY="3" orient="auto" fill="#6B7280">
+      <polygon points="0 0, 7 3, 0 6"/>
+    </marker>
+    <filter id="node-shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feDropShadow dx="1" dy="1" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="100%" height="100%" fill="#F0F4F8" /> <!-- Light Blue-Gray -->
+
+  <!-- Workflow Nodes and Connectors -->
+  <g transform="translate(30, 35)"> <!-- Main group for workflow elements -->
+
+    <!-- Node 1: Start -->
+    <g transform="translate(0, 25)" filter="url(#node-shadow)">
+      <rect x="0" y="0" width="45" height="25" rx="5" fill="#6366F1"/> <!-- Indigo 500 -->
+      <!-- Icon: Play / Start -->
+      <path d="M 17.5 6.5 L 17.5 18.5 L 27.5 12.5 Z" class="icon-fill"/>
+    </g>
+
+    <!-- Node 2: Process A -->
+    <g transform="translate(65, 0)" filter="url(#node-shadow)">
+      <rect x="0" y="0" width="45" height="25" rx="5" fill="#14B8A6"/> <!-- Teal 500 -->
+      <!-- Icon: Gear -->
+      <g transform="translate(22.5, 12.5) scale(0.5)">
+        <circle cx="0" cy="0" r="8" class="icon-stroke" stroke-width="2.5"/>
+        <line x1="0" y1="-8" x2="0" y2="-11" class="icon-stroke" stroke-width="3"/>
+        <line x1="0" y1="8" x2="0" y2="11" class="icon-stroke" stroke-width="3"/>
+        <line x1="-8" y1="0" x2="-11" y2="0" class="icon-stroke" stroke-width="3"/>
+        <line x1="8" y1="0" x2="11" y2="0" class="icon-stroke" stroke-width="3"/>
+        <line x1="-5.65" y1="-5.65" x2="-7.7" y2="-7.7" class="icon-stroke" stroke-width="3"/>
+        <line x1="5.65" y1="-5.65" x2="7.7" y2="-7.7" class="icon-stroke" stroke-width="3"/>
+        <line x1="-5.65" y1="5.65" x2="-7.7" y2="7.7" class="icon-stroke" stroke-width="3"/>
+        <line x1="5.65" y1="5.65" x2="7.7" y2="7.7" class="icon-stroke" stroke-width="3"/>
+      </g>
+    </g>
+
+    <!-- Node 3: Process B (branch from Start) -->
+    <g transform="translate(65, 50)" filter="url(#node-shadow)">
+      <rect x="0" y="0" width="45" height="25" rx="5" fill="#F97316"/> <!-- Orange 600 -->
+      <!-- Icon: Cloud -->
+      <path d="M 18 10 C 18 8.5 19.5 7.5 21 8 C 22.5 7.5 24.5 8.5 24.5 10 C 26 10 27 11.5 26.5 13 C 27 14.5 26.5 16 24.5 16 L 19.5 16 C 17.5 16 17 14.5 17.5 13 C 17 11.5 17.5 10 19.5 10 C 19 8.5 18.5 8.5 18 10 Z" class="icon-fill" transform="translate(0.5, -0.5)"/>
+    </g>
+
+    <!-- Node 4: Decision/Merge -->
+    <g transform="translate(130, 25)" filter="url(#node-shadow)">
+      <rect x="0" y="0" width="45" height="25" rx="5" fill="#22C55E"/> <!-- Green 500 -->
+      <!-- Icon: Diamond (for decision) -->
+       <path d="M 22.5 6.5 L 27.75 12.5 L 22.5 18.5 L 17.25 12.5 Z" class="icon-fill"/>
+    </g>
+
+    <!-- Node 5: End -->
+    <g transform="translate(195, 25)" filter="url(#node-shadow)">
+      <rect x="0" y="0" width="45" height="25" rx="5" fill="#4B5563"/> <!-- Gray 600 -->
+      <!-- Icon: Checkmark / Finish -->
+      <polyline points="15.5,12 20.5,17 29.5,8" class="icon-stroke" stroke-width="2"/>
+    </g>
+
+    <!-- Connectors -->
+    <!-- Start to Process A -->
+    <line x1="45" y1="37.5" x2="65" y2="12.5" class="connector-arrow"/>
+    <!-- Start to Process B -->
+    <line x1="45" y1="37.5" x2="65" y2="62.5" class="connector-arrow"/>
+    <!-- Process A to Decision -->
+    <line x1="110" y1="12.5" x2="130" y2="37.5" class="connector-arrow"/>
+    <!-- Process B to Decision -->
+    <line x1="110" y1="62.5" x2="130" y2="37.5" class="connector-arrow"/>
+    <!-- Decision to End -->
+    <line x1="175" y1="37.5" x2="195" y2="37.5" class="connector-arrow"/>
+
+  </g>
+</svg>
