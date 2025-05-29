@@ -10,6 +10,7 @@ import {
   getAllCourses,
   createCourse,
   updateCourse,
+  deleteCoursesByIds, // Import deleteCoursesByIds
 } from '@/lib/indexeddb-service';
 import { useSearchParams } from 'next/navigation'; // Import useSearchParams
 
@@ -32,7 +33,6 @@ export function AcademyPageContent() {
       const indexedDBCourses = await getAllCourses();
       if (indexedDBCourses.length > 0) {
         setCourses(indexedDBCourses);
-        console.log('Courses loaded from IndexedDB.');
       }
 
       // Always attempt to fetch latest from server
@@ -41,6 +41,16 @@ export function AcademyPageContent() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const serverCourses: Course[] = await response.json();
+
+      // Identify courses to delete (exist in IndexedDB but not on server)
+      const serverCourseIds = new Set(serverCourses.map((c) => c.id));
+      const coursesToDelete = indexedDBCourses.filter(
+        (c) => !serverCourseIds.has(c.id),
+      );
+
+      if (coursesToDelete.length > 0) {
+        await deleteCoursesByIds(coursesToDelete.map((c) => c.id));
+      }
 
       // Update IndexedDB with latest server data
       for (const serverCourse of serverCourses) {
@@ -52,7 +62,8 @@ export function AcademyPageContent() {
           !existingCourse ||
           (serverCourse.updateTimestamp &&
             existingCourse.updateTimestamp &&
-            serverCourse.updateTimestamp > existingCourse.updateTimestamp)
+            new Date(serverCourse.updateTimestamp).getTime() >
+              new Date(existingCourse.updateTimestamp).getTime())
         ) {
           // If course doesn't exist or server version is newer, update/create
           await updateCourse(serverCourse);
@@ -62,14 +73,12 @@ export function AcademyPageContent() {
       // After syncing, get all courses from IndexedDB again to ensure consistency
       const updatedCourses = await getAllCourses();
       setCourses(updatedCourses);
-      console.log('Courses synced with server and IndexedDB updated.');
     } catch (e) {
-      console.error('Failed to fetch or store courses:', e);
       setError('Failed to load academy courses. Please try again later.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, []); // Remove indexedDBCourses from dependency array
 
   useEffect(() => {
     fetchAndStoreCourses();
@@ -131,6 +140,14 @@ export function AcademyPageContent() {
     return (
       <div className="container mx-auto p-4 text-center text-red-500">
         {error}
+      </div>
+    );
+  }
+
+  if (filteredAndSortedCourses.length === 0 && !loading) {
+    return (
+      <div className="container mx-auto p-4 text-center text-gray-600">
+        No courses found for the selected category.
       </div>
     );
   }

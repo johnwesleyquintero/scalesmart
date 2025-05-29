@@ -875,6 +875,27 @@ export const deleteCourse = async (id: string): Promise<void> => {
   }
 };
 
+/**
+ * Deletes multiple courses by their IDs from IndexedDB.
+ * @remarks Used by Academy for synchronization.
+ * @param ids - An array of course IDs to delete.
+ */
+export const deleteCoursesByIds = async (ids: string[]): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    await db.courses.bulkDelete(ids);
+    console.log('Courses deleted from IndexedDB:', ids);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting multiple courses from IndexedDB: ${ids.join(', ')}`,
+      'IndexedDBService',
+    );
+  }
+};
+
 // Category methods
 
 /**
