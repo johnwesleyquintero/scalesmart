@@ -49,56 +49,69 @@ Software testing is crucial for several reasons:
 <Quiz
   questions={[
     {
-      question: 'What is the primary goal of software testing?',
+      question:
+        'Your team is starting a new feature. When would implementing tests provide the most value?',
       options: [
-        'To write code efficiently',
-        'To identify defects, errors, or gaps in requirements',
-        'To design user interfaces',
-        'To manage project timelines',
+        'After the feature is complete',
+        'During the design phase',
+        'When bugs are reported',
+        'Before the release',
       ],
       correctAnswer: 1,
+      explanation:
+        'Writing tests during design (Test-Driven Development) helps clarify requirements, catch issues early, and ensures testability is built into the feature from the start.',
     },
     {
       question:
-        'Which type of testing involves testing individual components in isolation?',
+        'A bug was fixed but similar issues keep appearing in different parts of the code. Which testing approach best prevents this?',
       options: [
-        'Integration Testing',
-        'System Testing',
-        'Unit Testing',
-        'Acceptance Testing',
+        'More thorough QA testing',
+        'Additional integration tests',
+        'Comprehensive regression tests',
+        'Unit tests for edge cases',
       ],
       correctAnswer: 2,
+      explanation:
+        'Regression tests systematically check for recurring issues across the entire codebase, preventing similar bugs from reappearing in different locations.',
     },
     {
       question:
-        "Which testing type ensures that the software meets the end-user's needs and expectations?",
+        "Your unit tests pass but users report system-wide issues. What's the most likely testing gap?",
       options: [
-        'Unit Testing',
-        'Integration Testing',
-        'System Testing',
-        'Acceptance Testing',
+        'Insufficient unit test coverage',
+        'Missing integration tests',
+        'Poor test quality',
+        'Outdated test cases',
       ],
-      correctAnswer: 3,
+      correctAnswer: 1,
+      explanation:
+        'Integration tests verify component interactions - passing unit tests but failing system behavior often indicates missing integration tests.',
     },
     {
-      question: 'Why is early detection of defects important?',
+      question:
+        "A critical production bug needs fixing immediately. What's the minimum viable testing approach?",
       options: [
-        'It increases the complexity of the code',
-        'It significantly reduces the cost of fixing them later',
-        'It makes the software more difficult to understand',
-        'It requires more skilled developers',
+        'Skip testing to deploy faster',
+        'Test only the changed code',
+        'Run core regression suite',
+        'Full system test',
       ],
       correctAnswer: 2,
+      explanation:
+        'The core regression suite balances speed and safety by testing critical paths that could be affected, without requiring full system testing.',
     },
     {
-      question: 'Which of the following is NOT a benefit of software testing?',
+      question:
+        'Your test suite takes hours to run. Which optimization would be most effective?',
       options: [
-        'Ensuring Quality',
-        'Improving Reliability',
-        'Reducing Costs',
-        'Complicating the development process',
+        'Remove redundant tests',
+        'Parallelize test execution',
+        'Reduce test coverage',
+        'Skip complex tests',
       ],
-      correctAnswer: 3,
+      correctAnswer: 1,
+      explanation:
+        'Parallelizing tests can dramatically reduce execution time without compromising coverage or reliability, making CI/CD pipelines more efficient.',
     },
   ]}
   userId="test-user"

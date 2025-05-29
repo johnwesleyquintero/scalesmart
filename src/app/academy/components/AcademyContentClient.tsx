@@ -2,6 +2,12 @@
 
 import { useAcademy } from '@/context/AcademyContext';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import useUserProfile from '@/hooks/use-user-profile';
 import { getRecommendedCourses } from '@/lib/course-recommendations';
 import { Module, ModuleType, Course } from '@/types';
@@ -188,6 +194,65 @@ function AcademyContentClient({
       course.slug && index === self.findIndex((t) => t.slug === course.slug),
   );
 
+  // Add navigation functions
+  const getCurrentModuleIndex = useCallback(() => {
+    if (!activeCourse?.modules || !activeModule) return -1;
+    return activeCourse.modules.findIndex((m) => m.id === activeModule.id);
+  }, [activeCourse, activeModule]);
+
+  const handleNextModule = useCallback(() => {
+    if (!activeCourse?.modules) return;
+    const currentIndex = getCurrentModuleIndex();
+    if (currentIndex < activeCourse.modules.length - 1) {
+      const nextModule = activeCourse.modules[currentIndex + 1];
+      handleSelectModule(nextModule);
+    }
+  }, [activeCourse, getCurrentModuleIndex, handleSelectModule]);
+
+  const handlePreviousModule = useCallback(() => {
+    if (!activeCourse?.modules) return;
+    const currentIndex = getCurrentModuleIndex();
+    if (currentIndex > 0) {
+      const previousModule = activeCourse.modules[currentIndex - 1];
+      handleSelectModule(previousModule);
+    }
+  }, [activeCourse, getCurrentModuleIndex, handleSelectModule]);
+
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Only handle keyboard shortcuts when a module is active
+      if (!activeModule || !activeCourse) return;
+
+      // Check if user is typing in an input field
+      if (
+        event.target instanceof HTMLInputElement ||
+        event.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          if (event.altKey) {
+            handleNextModule();
+          }
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          if (event.altKey) {
+            handlePreviousModule();
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [activeModule, activeCourse, handleNextModule, handlePreviousModule]);
+
   return (
     <div className="w-full p-4 bg-gray-100 rounded-lg shadow-md">
       {!activeCourse ? (
@@ -280,6 +345,44 @@ function AcademyContentClient({
                       activeModule={activeModule}
                       userProfile={userProfile}
                     />
+                    <div className="flex justify-between mt-8 pt-4 border-t">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              onClick={handlePreviousModule}
+                              variant="outline"
+                              disabled={getCurrentModuleIndex() <= 0}
+                              aria-label="Previous Module (Alt + Left Arrow)"
+                            >
+                              &larr; Previous Module
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Previous Module (Alt + Left Arrow)</p>
+                          </TooltipContent>
+                        </Tooltip>
+
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              onClick={handleNextModule}
+                              variant="outline"
+                              disabled={
+                                getCurrentModuleIndex() >=
+                                (activeCourse.modules?.length || 0) - 1
+                              }
+                              aria-label="Next Module (Alt + Right Arrow)"
+                            >
+                              Next Module &rarr;
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Next Module (Alt + Right Arrow)</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </div>
                 ) : (
                   <p className="text-center text-gray-500 pt-16">

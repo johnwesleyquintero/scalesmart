@@ -51,58 +51,68 @@ Upon successful creation of your Amazon seller account, you can commence listing
   questions={[
     {
       question:
-        'What is the initial step in creating an Amazon seller account?',
+        "During registration, your tax information validation fails. What's the most likely cause?",
       options: [
-        'Configuring shipping settings.',
-        'Navigating to Amazon Seller Central and initiating the registration process.',
-        'Creating product listings.',
-        'Setting up payment methods.',
+        'Wrong business address format',
+        'Mismatch with IRS records',
+        'Incorrect bank details',
+        'Invalid phone number',
       ],
       correctAnswer: 1,
+      explanation:
+        "Tax information must exactly match IRS records. Common issues include using abbreviations or different business name formats than what's registered with the IRS.",
     },
     {
       question:
-        'What are the two primary selling plans offered by Amazon, and how do they differ?',
+        "You're starting with limited inventory. Which selling plan decision is most cost-effective?",
       options: [
-        'Basic and Premium, with Premium offering enhanced customer support.',
-        'Individual and Professional, with the Individual plan suitable for low-volume sellers and the Professional plan designed for high-volume sellers.',
-        'Standard and Enterprise, with Enterprise providing access to advanced analytics.',
-        'Free and Paid, with the Paid plan offering unlimited product listings.',
+        'Professional plan with discounts',
+        'Individual plan until 40 sales/month',
+        'Professional plan immediately',
+        'Switch plans monthly',
       ],
       correctAnswer: 1,
+      explanation:
+        "The Individual plan is more cost-effective until you reach about 40 items per month, as the $0.99 per-item fee becomes more expensive than the Professional plan's $39.99 monthly fee beyond this point.",
     },
     {
       question:
-        'Which type of information is required during the Amazon seller account registration process?',
+        'Your business is registered in multiple states. Which address should you use for seller registration?',
       options: [
-        'Social media account details.',
-        'Business and payment information.',
-        'Personal hobbies and interests.',
-        'Dietary preferences.',
+        'State with lowest tax rate',
+        'Primary business location',
+        'Home office address',
+        'Shipping warehouse location',
       ],
       correctAnswer: 1,
+      explanation:
+        'Use your primary business location where your company is officially registered. This ensures consistency across business documents and tax filings.',
     },
     {
       question:
-        'Why is it important to provide accurate bank account information during the registration process?',
+        'Which payment information setup best protects your business finances?',
       options: [
-        'To enable Amazon to charge listing fees.',
-        'To facilitate the deposit of sales proceeds by Amazon.',
-        "To verify the seller's creditworthiness.",
-        'To receive promotional discounts from Amazon.',
+        'Personal checking account',
+        'Dedicated business account',
+        'Savings account',
+        'Joint business account',
       ],
       correctAnswer: 1,
+      explanation:
+        'A dedicated business account keeps personal and business finances separate, simplifies accounting, and provides better protection for both personal and business assets.',
     },
     {
       question:
-        'What action should sellers take after providing all the required information during registration?',
+        'After account approval, which setup task should you complete first?',
       options: [
-        'Immediately start listing products without reviewing the terms.',
-        "Accept Amazon's Seller Agreement and finalize the registration process.",
-        'Contact Amazon support for account activation.',
-        'Ignore the Seller Agreement and proceed to the dashboard.',
+        'Upload product listings',
+        'Set up tax collection',
+        'Create shipping templates',
+        'Design store branding',
       ],
       correctAnswer: 1,
+      explanation:
+        "Setting up tax collection first ensures you're compliant from your very first sale and prevents the need to handle tax issues retroactively.",
     },
   ]}
   userId="test-user"
