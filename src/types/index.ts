@@ -61,6 +61,7 @@ export type BlogPost = {
   author?: string;
   content?: string;
   relatedPosts?: unknown[];
+  type?: 'blog' | 'article' | 'case-study'; // New: Type of the blog post
 };
 
 export interface Question {

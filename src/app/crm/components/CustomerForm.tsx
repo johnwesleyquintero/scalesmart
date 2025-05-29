@@ -5,16 +5,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useEffect } from 'react';
-import type { Contact } from '../types';
+import type { Contact, Category } from '../types'; // Import Category
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'; // Import Select components
 
 interface CustomerFormProps {
   initialData?: Omit<Contact, 'id'> | null;
   onSubmitSuccessAction: (data: Omit<Contact, 'id'>) => void;
   onCancel?: () => void;
   isEditing: boolean;
+  categories: Category[]; // New prop for categories
 }
 
 const customerSchema = z.object({
@@ -33,6 +41,7 @@ const customerSchema = z.object({
     .or(z.literal('')),
   company: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
+  category: z.string().optional().nullable(), // Add category to schema
 });
 
 type CustomerFormValues = z.infer<typeof customerSchema>;
@@ -43,6 +52,7 @@ const defaultFormData: CustomerFormValues = {
   phone: '',
   company: '',
   notes: '',
+  category: '', // Default category
 };
 
 export function CustomerForm({
@@ -50,6 +60,7 @@ export function CustomerForm({
   onSubmitSuccessAction,
   onCancel,
   isEditing,
+  categories, // Destructure categories prop
 }: CustomerFormProps) {
   const {
     register,
@@ -70,6 +81,7 @@ export function CustomerForm({
       setValue('phone', initialData.phone || '');
       setValue('company', initialData.company || '');
       setValue('notes', initialData.notes || '');
+      setValue('category', initialData.category || ''); // Set category value
     } else {
       reset(defaultFormData);
     }
@@ -82,6 +94,7 @@ export function CustomerForm({
       phone: data.phone ?? '',
       company: data.company || '',
       notes: data.notes || '',
+      category: data.category || '', // Pass category data
     });
     if (!isEditing) {
       reset(defaultFormData);
@@ -152,6 +165,27 @@ export function CustomerForm({
             {errors.company?.message}
           </p>
         )}
+      </div>
+      <div>
+        <Label htmlFor="category">Category (optional)</Label>
+        <Select
+          onValueChange={(value) =>
+            setValue('category', value === '__no_category__' ? '' : value)
+          }
+          value={initialData?.category || '__no_category__'} // Map empty string to special value for display
+        >
+          <SelectTrigger id="category">
+            <SelectValue placeholder="Select a category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__no_category__">No Category</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.name}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div>
         <Label htmlFor="notes">Notes (optional)</Label>

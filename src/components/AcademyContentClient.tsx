@@ -17,8 +17,6 @@ import ClientCourseList from '@/app/academy/ClientCourseList';
 
 interface AcademyContentProps {
   courses: Course[];
-  filter: string;
-  sort: string;
 }
 
 interface ModuleSpecificContentProps {
@@ -90,11 +88,7 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
   }
 };
 
-function AcademyContentClient({
-  courses: allCourses,
-  filter,
-  sort,
-}: AcademyContentProps) {
+function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
   const { activeCourse, setActiveCourse, setActiveModule, activeModule } =
     useAcademy();
   const { userProfile } = useUserProfile();
@@ -161,22 +155,9 @@ function AcademyContentClient({
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <ClientCourseList
-            courses={courses
-              .filter((course) =>
-                course.title
-                  ?.toLowerCase()
-                  ?.includes(searchQuery.toLowerCase()),
-              )
-              .filter((course) =>
-                recommendedCourses.length > 0
-                  ? !recommendedCourses.find(
-                      (recommendedCourse) =>
-                        course.slug === recommendedCourse.slug,
-                    )
-                  : true,
-              )}
-            filter={filter}
-            sort={sort}
+            courses={courses.filter((course) =>
+              course.title?.toLowerCase()?.includes(searchQuery.toLowerCase()),
+            )}
           />
         </>
       ) : (

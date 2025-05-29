@@ -24,7 +24,15 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
         <h3 className="text-lg font-semibold">{customer.name}</h3>
         <p className="text-muted-foreground">{customer.email}</p>
         <p className="text-muted-foreground">{customer.phone}</p>
-        <p className="text-muted-foreground">Address: {customer.address}</p>
+        {customer.company && (
+          <p className="text-muted-foreground">Company: {customer.company}</p>
+        )}
+        {customer.category && (
+          <p className="text-muted-foreground">Category: {customer.category}</p>
+        )}
+        {customer.address && (
+          <p className="text-muted-foreground">Address: {customer.address}</p>
+        )}
         {customer.notes && (
           <>
             <p className="font-semibold">Notes:</p>

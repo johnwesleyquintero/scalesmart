@@ -16,44 +16,16 @@ const moduleItemStyle = 'text-gray-700';
 
 interface ClientCourseListProps {
   courses: Course[];
-  filter: string;
-  sort: string;
 }
 
-export default function ClientCourseList({
-  courses,
-  filter,
-  sort,
-}: ClientCourseListProps) {
+export default function ClientCourseList({ courses }: ClientCourseListProps) {
   const context = useContext<AcademyContextType | undefined>(AcademyContext);
-
-  const filteredCourses = courses
-    .filter((course) => {
-      if (filter === 'All') return true;
-      return course.metadata?.category === filter;
-    })
-    .sort((a, b) => {
-      if (sort === 'Title') {
-        return (a.title || '').localeCompare(b.title || '');
-      } else if (sort === 'Level') {
-        return (a.level || '').localeCompare(b.level || '');
-      } else if (sort === 'Duration (descending)') {
-        const durationA = parseInt((a.duration || '0 minutes').split(' ')[0]);
-        const durationB = parseInt((b.duration || '0 minutes').split(' ')[0]);
-        return durationB - durationA;
-      } else {
-        // Default to 'Duration' (ascending)
-        const durationA = parseInt((a.duration || '0 minutes').split(' ')[0]);
-        const durationB = parseInt((b.duration || '0 minutes').split(' ')[0]);
-        return durationA - durationB;
-      }
-    });
 
   const handleStartCourseClick = (course: Course) => {
     context?.startCourseAction(course);
   };
 
-  if (filteredCourses.length === 0) {
+  if (courses.length === 0) {
     return (
       <div className="text-center text-gray-500 py-10">
         No courses match your current filter.
@@ -63,7 +35,7 @@ export default function ClientCourseList({
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 px-4">
-      {filteredCourses.map((course) => {
+      {courses.map((course) => {
         // The try-catch here is a safeguard for individual card rendering errors.
         // Ideally, data integrity should be ensured upstream.
         try {

@@ -18,6 +18,18 @@ export default async function AcademyPage() {
     console.error('Failed to fetch academy data:', error);
     // Log to error tracking service (e.g., Sentry, Bugsnag)
     // Sentry.captureException(error);
-    return <div>Error loading academy data. Please try again later.</div>;
+    return (
+      <div className="text-center py-10">
+        <h2 className="text-xl font-semibold text-red-600">
+          Oops! Something went wrong.
+        </h2>
+        <p className="text-gray-700 mt-2">
+          We couldn't load the academy content. Please try refreshing the page.
+        </p>
+        <p className="text-gray-500 text-sm mt-1">
+          If the problem persists, please contact support.
+        </p>
+      </div>
+    );
   }
 }

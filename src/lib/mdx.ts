@@ -12,6 +12,7 @@ const matterDataSchema = z.object({
   tags: z.array(z.string()).optional(),
   readingTime: z.string().optional(),
   author: z.string().optional(),
+  type: z.enum(['blog', 'article', 'case-study']).optional().default('blog'), // New: Type of the blog post
 });
 
 // Removing unused type definition
@@ -53,6 +54,7 @@ export async function getAllPosts(): Promise<BlogPost[]> {
           tags: data.tags || [],
           readingTime: data.readingTime || '5 min read',
           author: data.author || 'Wesley Quintero',
+          type: data.type, // Include type in BlogPost
           content: '',
         } as BlogPost;
       }),
@@ -135,6 +137,7 @@ export async function getPostBySlug(
       tags: data.tags || [],
       readingTime: data.readingTime || '5 min read',
       author: data.author || 'Wesley Quintero',
+      type: data.type, // Include type in BlogPost
       content,
       relatedPosts,
     };

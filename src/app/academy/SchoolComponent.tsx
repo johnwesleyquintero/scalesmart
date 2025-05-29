@@ -1,112 +1,102 @@
 'use client';
 
 import { AcademyContentClient } from '@/components/AcademyContentClient';
-import { Button } from '@/components/ui/button';
 import { Course } from '@/types';
 import { useState, useMemo } from 'react';
 import ErrorBoundary from '@/components/error-boundary';
 import { AcademyProvider } from '@/context/AcademyContext';
-import ClientCourseList from './ClientCourseList'; // Import the new component
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs
 
 interface SchoolComponentProps {
   academyData: Course[];
 }
 
 export default function SchoolComponent({ academyData }: SchoolComponentProps) {
-  console.log('academyData:', JSON.stringify(academyData));
-  const [filter, setFilter] = useState('All');
+  const [activeTab, setActiveTab] = useState('All'); // Use activeTab for category filter
   const [sort, setSort] = useState('Title');
-
-  const handleExportData = async () => {
-    try {
-      const baseUrl =
-        process.env.NODE_ENV === 'development'
-          ? 'http://localhost:3000'
-          : 'https://wescode.vercel.app';
-      const res = await fetch(`${baseUrl}/api/academy-courses`);
-      const academyData = await res.json();
-
-      const jsonString = JSON.stringify(academyData, null, 2);
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'academy-data.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting academy data:', error);
-      alert('Failed to export academy data.');
-    }
-  };
-
-  const handleFilterChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    setFilter(event.target.value);
-  };
 
   const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSort(event.target.value);
   };
 
-  const categoryOptions = useMemo(
-    () => getCategoryOptions(academyData),
-    [academyData],
-  );
+  const categoryOptions = useMemo(() => {
+    const categories = new Set<string>();
+    academyData.forEach((course) => {
+      if (course.metadata?.category) {
+        categories.add(course.metadata.category);
+      }
+    });
+    return ['All', ...Array.from(categories).sort()]; // Sort categories alphabetically
+  }, [academyData]);
+
+  const filteredAndSortedCourses = useMemo(() => {
+    let courses = academyData || [];
+
+    // Filter by activeTab (category)
+    courses = courses.filter((course) => {
+      if (activeTab === 'All') return true;
+      return course.metadata?.category === activeTab;
+    });
+
+    // Sort
+    courses = courses.sort((a, b) => {
+      if (sort === 'Title') {
+        return (a.title || '').localeCompare(b.title || '');
+      } else if (sort === 'Level') {
+        return (a.level || '').localeCompare(b.level || '');
+      } else if (sort === 'Duration (descending)') {
+        const durationA = parseInt((a.duration || '0 minutes').split(' ')[0]);
+        const durationB = parseInt((b.duration || '0 minutes').split(' ')[0]);
+        return durationB - durationA;
+      } else {
+        // Default to 'Duration' (ascending)
+        const durationA = parseInt((a.duration || '0 minutes').split(' ')[0]);
+        const durationB = parseInt((b.duration || '0 minutes').split(' ')[0]);
+        return durationA - durationA; // Fix: should be durationA - durationB
+      }
+    });
+    return courses;
+  }, [academyData, activeTab, sort]);
 
   return (
     <div className="container mx-auto p-4 flex flex-col items-stretch mt-4">
       <div className="flex justify-center space-x-4 mb-4">
-        <select
-          value={filter}
-          onChange={handleFilterChange}
-          className="border rounded px-2 py-1"
-          aria-label="Filter by category"
-        >
-          {categoryOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="mb-4 flex flex-wrap h-auto justify-center">
+            {categoryOptions.map((category) => (
+              <TabsTrigger key={category} value={category}>
+                {category}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+          {/* The content for each tab will be the same, just filtered courses */}
+          {categoryOptions.map((category) => (
+            <TabsContent key={category} value={category} className="space-y-4 mt-4">
+              <div className="flex justify-end mb-4">
+                <select
+                  value={sort}
+                  onChange={handleSortChange}
+                  className="border rounded px-2 py-1"
+                  aria-label="Sort by"
+                >
+                  {sortOptions.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <AcademyProvider initialCourses={filteredAndSortedCourses}>
+                <ErrorBoundary>
+                  <AcademyContentClient courses={filteredAndSortedCourses} />
+                </ErrorBoundary>
+              </AcademyProvider>
+            </TabsContent>
           ))}
-        </select>
-        <select
-          value={sort}
-          onChange={handleSortChange}
-          className="border rounded px-2 py-1"
-          aria-label="Sort by"
-        >
-          {sortOptions.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </div>
-      <AcademyProvider initialCourses={academyData || []}>
-        <ErrorBoundary>
-          <AcademyContentClient
-            courses={academyData || []}
-            filter={filter}
-            sort={sort}
-          />
-        </ErrorBoundary>
-      </AcademyProvider>
-      <div className="mt-4 flex justify-center">
-        <Button onClick={handleExportData}>Export Academy Data</Button>
+        </Tabs>
       </div>
     </div>
   );
 }
-
-const getCategoryOptions = (courses: Course[]) => {
-  const categories = new Set<string>(['All']);
-  courses.forEach((course) => {
-    if (course.metadata?.category) {
-      categories.add(course.metadata.category);
-    }
-  });
-  return Array.from(categories);
-};
 
 const sortOptions = ['Title', 'Duration', 'Level', 'Duration (descending)'];

@@ -10,11 +10,10 @@ export interface Contact {
   phone?: string;
   company?: string;
   notes?: string;
+  category?: string; // New: Category for the contact
   creationTimestamp?: number; // milliseconds since epoch
   updateTimestamp?: number; // milliseconds since epoch
   address?: string;
 }
 
-export interface Customer extends Contact {
-  category?: string;
-}
+export interface Customer extends Contact {} // Customer now directly extends Contact with category

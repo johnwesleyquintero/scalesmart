@@ -1,6 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
-import { Contact } from '@/app/crm/types';
+import { Contact, Category } from '@/app/crm/types'; // Import Category
 
 // Interface for chat messages stored in IndexedDB
 export interface ChatMessageRecord {
@@ -44,6 +44,7 @@ class ChatDatabase extends Dexie {
   public contacts!: Table<Contact, string>;
   public tasks!: Table<Task, string>;
   public projects!: Table<Project, string>;
+  public categories!: Table<Category, string>; // Add categories table
 
   constructor() {
     super('ChatAppDatabase'); // Name of the IndexedDB database
@@ -64,7 +65,7 @@ class ChatDatabase extends Dexie {
     });
     this.version(4).stores({
       contacts:
-        'id, name, email, phone, company, notes, creationTimestamp, updateTimestamp',
+        'id, name, email, phone, company, notes, category, creationTimestamp, updateTimestamp', // Add category to contacts schema
     });
     this.version(5).stores({
       tasks:
@@ -72,6 +73,9 @@ class ChatDatabase extends Dexie {
     });
     this.version(6).stores({
       projects: 'id, name, description, creationTimestamp, updateTimestamp',
+    });
+    this.version(7).stores({
+      categories: 'id, name', // Add categories schema
     });
   }
 }
@@ -636,5 +640,96 @@ export const getAllContacts = async (): Promise<Contact[]> => {
     return [];
   }
 };
-// If direct access to the db instance is needed elsewhere (though usually it's better to encapsulate):
-// export { db as chatDBInstance };
+
+// Category methods
+
+/**
+ * Adds a new category to IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param category - The category data to create.
+ */
+export const addCategory = async (
+  category: Category,
+): Promise<string | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const id = crypto.randomUUID(); // Generate a UUID for the category ID
+    const categoryToStore = { ...category, id };
+    await db.categories.put(categoryToStore);
+    console.log('Category added to IndexedDB:', categoryToStore);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error adding category to IndexedDB: ${category.name}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+/**
+ * Retrieves all categories from IndexedDB.
+ * @remarks Used by WesCRM.
+ */
+export const getAllCategories = async (): Promise<Category[]> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const categories = await db.categories.toArray();
+    console.log('All categories retrieved from IndexedDB:', categories);
+    return categories;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting all categories from IndexedDB`,
+      'IndexedDBService',
+    );
+    return [];
+  }
+};
+
+/**
+ * Updates an existing category in IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param category - The category data to update.
+ */
+export const updateCategory = async (category: Category): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    await db.categories.put(category);
+    console.log('Category updated in IndexedDB:', category);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating category in IndexedDB: ${category.name}`,
+      'IndexedDBService',
+    );
+  }
+};
+
+/**
+ * Deletes a category by ID from IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param id - The ID of the category to delete.
+ */
+export const deleteCategory = async (id: string): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    await db.categories.delete(id);
+    console.log('Category deleted from IndexedDB:', id);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting category from IndexedDB: ${id}`,
+      'IndexedDBService',
+    );
+  }
+};
