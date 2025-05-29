@@ -1,4 +1,4 @@
-import { BlogImage } from '@/components/blog/BlogImage';
+import BlogImage from '@/components/blog/blog-image';
 import { Badge } from '@/components/ui/badge';
 import {
   Card,

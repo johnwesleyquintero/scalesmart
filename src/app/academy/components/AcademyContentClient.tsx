@@ -7,7 +7,7 @@ import { getRecommendedCourses } from '@/lib/course-recommendations';
 import { Module, ModuleType, Course } from '@/types';
 import useAcademyStorage from '@/hooks/use-academy-storage'; // Import the hook
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import ArticleModule from './ArticleModule';
 import VideoModule from './VideoModule';
 import ExerciseModule from '../../../components/ExerciseModule';
@@ -18,6 +18,7 @@ import { UserProfile } from '@/lib/models/user'; // Corrected import for UserPro
 
 interface AcademyContentProps {
   courses: Course[];
+  initialCourseId?: string | null;
 }
 
 interface ModuleSpecificContentProps {
@@ -69,38 +70,56 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
   }
 };
 
-function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
-  const { activeCourse, setActiveCourse, setActiveModule, activeModule } =
-    useAcademy();
+function AcademyContentClient({
+  courses: allCourses,
+  initialCourseId,
+}: AcademyContentProps) {
+  const {
+    activeCourse,
+    setActiveCourse,
+    activeModule,
+    setActiveModule,
+    startCourseAction,
+  } = useAcademy();
   const { userProfile } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
-  const { academyData, markModuleVisited } = useAcademyStorage();
+  const { academyData, getModuleProgress, markModuleVisited } =
+    useAcademyStorage();
+
+  const initialCourseHandled = useRef(false);
+
+  // Effect to handle initial course selection from URL parameter
+  useEffect(() => {
+    if (
+      initialCourseId &&
+      allCourses.length > 0 &&
+      !activeCourse &&
+      !initialCourseHandled.current
+    ) {
+      const courseToSelect = allCourses.find((c) => c.id === initialCourseId);
+      if (courseToSelect) {
+        startCourseAction(courseToSelect);
+        initialCourseHandled.current = true; // Mark as handled
+      }
+    }
+  }, [initialCourseId, allCourses, activeCourse, startCourseAction]);
 
   // Calculate completed course IDs based on module progress
   const completedCourseIds = useMemo(() => {
     const completed = new Set<string>();
-    if (academyData?.moduleProgress) {
-      for (const moduleId in academyData.moduleProgress) {
-        if (academyData.moduleProgress[moduleId]) {
-          // Find the course associated with this module
-          const course = allCourses.find((c) =>
-            c.modules?.some((m) => m.id === moduleId),
-          );
-          if (course) {
-            // Check if all modules in the course are completed
-            const allModulesCompleted = course.modules?.every(
-              (m) => academyData.moduleProgress?.[m.id],
-            );
-            if (allModulesCompleted) {
-              completed.add(course.id);
-            }
-          }
+    allCourses.forEach((course) => {
+      if (course.modules && course.modules.length > 0) {
+        const allModulesCompleted = course.modules.every(
+          (m) => getModuleProgress(m.id) === 100,
+        );
+        if (allModulesCompleted) {
+          completed.add(course.id);
         }
       }
-    }
+    });
     return Array.from(completed);
-  }, [academyData, allCourses]);
+  }, [allCourses, getModuleProgress]);
 
   useEffect(() => {
     if (userProfile) {
@@ -113,20 +132,17 @@ function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
   }, [userProfile, completedCourseIds]);
 
   useEffect(() => {
-    if (activeCourse && activeModule) {
-      markModuleVisited(activeModule.id); // Mark module as visited
-    }
-  }, [activeCourse, activeModule, markModuleVisited]);
+    // This useEffect is no longer needed as markModuleVisited is called directly on interaction.
+  }, []);
 
   const startCourse = (selectedCourse: Course) => {
-    setActiveCourse(selectedCourse);
-    if (selectedCourse.modules && selectedCourse.modules.length > 0) {
-      setActiveModule(selectedCourse.modules[0]);
-    }
+    startCourseAction(selectedCourse); // Use the context action
+    // The context's startCourseAction will handle setting activeCourse and activeModule
   };
 
   const handleSelectModule = (module: Module) => {
-    setActiveModule(module);
+    setActiveModule(module); // Set active module
+    markModuleVisited(module.id); // Mark module as visited when selected
   };
 
   const handleBackToCourses = () => {
@@ -140,12 +156,12 @@ function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
       if (!course.modules || course.modules.length === 0) {
         return 0;
       }
-      const completedModules = course.modules.filter(
-        (module) => academyData?.moduleProgress?.[module.id],
-      ).length;
-      return Math.round((completedModules / course.modules.length) * 100);
+      const totalProgress = course.modules.reduce((sum, module) => {
+        return sum + getModuleProgress(module.id);
+      }, 0);
+      return Math.round(totalProgress / course.modules.length);
     },
-    [academyData],
+    [getModuleProgress],
   );
 
   // Filter out duplicate courses based on slug
@@ -156,14 +172,6 @@ function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
 
   return (
     <div className="w-full p-4 bg-gray-100 rounded-lg shadow-md">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold my-6">ScaleSmart Academy</h1>
-        <p className="text-lg text-muted-foreground">
-          Master Amazon PPC, SEO, and sales strategies with our comprehensive
-          courses
-        </p>
-      </div>
-
       {!activeCourse ? (
         <>
           <input
@@ -221,15 +229,13 @@ function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
                           title={module.title || `Module ${module.id}`}
                         >
                           <span>{module.title || `Module ${module.id}`}</span>
-                          {academyData?.moduleProgress?.[module.id] && (
+                          {getModuleProgress(module.id) === 100 && (
                             <span className="text-green-500 text-xs font-medium ml-2">
                               ✓
                             </span>
                           )}
                           <progress
-                            value={
-                              academyData?.moduleProgress?.[module.id] ? 100 : 0
-                            }
+                            value={getModuleProgress(module.id)}
                             max="100"
                           ></progress>
                         </button>

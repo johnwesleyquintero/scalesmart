@@ -13,6 +13,14 @@ export interface ChatMessageRecord {
   metadata?: Record<string, unknown>; // Optional: for any other data like message status, etc.
 }
 
+export interface ModuleProgressRecord {
+  userId: string;
+  courseId: string;
+  moduleId: string;
+  progress: number; // 0-100
+  lastUpdated: number;
+}
+
 export interface Task {
   id: string;
   title: string;
@@ -47,6 +55,7 @@ class ChatDatabase extends Dexie {
   public projects!: Table<Project, string>;
   public categories!: Table<Category, string>; // Add categories table
   public courses!: Table<Course, string>; // Add courses table
+  public moduleProgress!: Table<ModuleProgressRecord, [string, string, string]>; // Add module progress table
 
   constructor() {
     super('ChatAppDatabase'); // Name of the IndexedDB database
@@ -82,6 +91,9 @@ class ChatDatabase extends Dexie {
     this.version(8).stores({
       courses:
         'id, title, description, duration, level, metadata.category, metadata.tags, creationTimestamp, updateTimestamp', // Add courses schema
+    });
+    this.version(9).stores({
+      moduleProgress: '[userId+courseId+moduleId], progress, lastUpdated', // Composite primary key
     });
   }
 }
@@ -679,6 +691,99 @@ export const createCourse = async (
       'IndexedDBService',
     );
     return undefined;
+  }
+};
+
+/**
+ * Updates the progress of a specific module for a user.
+ * @remarks Used by Academy.
+ * @param userId - The ID of the user.
+ * @param courseId - The ID of the course.
+ * @param moduleId - The ID of the module.
+ * @param progress - The progress percentage (0-100).
+ */
+export const updateModuleProgress = async (
+  userId: string,
+  courseId: string,
+  moduleId: string,
+  progress: number,
+): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const record: ModuleProgressRecord = {
+      userId,
+      courseId,
+      moduleId,
+      progress,
+      lastUpdated: Date.now(),
+    };
+    await db.moduleProgress.put(record);
+    console.log('Module progress updated:', record);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating module progress for user ${userId}, course ${courseId}, module ${moduleId}`,
+      'IndexedDBService',
+    );
+  }
+};
+
+/**
+ * Retrieves the progress of a specific module for a user.
+ * @remarks Used by Academy.
+ * @param userId - The ID of the user.
+ * @param courseId - The ID of the course.
+ * @param moduleId - The ID of the module.
+ * @returns The progress percentage (0-100) or 0 if not found.
+ */
+export const getModuleProgress = async (
+  userId: string,
+  courseId: string,
+  moduleId: string,
+): Promise<number> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const record = await db.moduleProgress.get([userId, courseId, moduleId]);
+    return record?.progress || 0;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting module progress for user ${userId}, course ${courseId}, module ${moduleId}`,
+      'IndexedDBService',
+    );
+    return 0;
+  }
+};
+
+/**
+ * Retrieves all module progress records for a given user and course.
+ * @remarks Used by Academy.
+ * @param userId - The ID of the user.
+ * @param courseId - The ID of the course.
+ * @returns An array of ModuleProgressRecord.
+ */
+export const getCourseModuleProgress = async (
+  userId: string,
+  courseId: string,
+): Promise<ModuleProgressRecord[]> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    return await db.moduleProgress
+      .where({ userId: userId, courseId: courseId })
+      .toArray();
+  } catch (error) {
+    logError(
+      error,
+      `Error getting course module progress for user ${userId}, course ${courseId}`,
+      'IndexedDBService',
+    );
+    return [];
   }
 };
 

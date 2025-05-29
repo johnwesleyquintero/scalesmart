@@ -1,12 +1,17 @@
 import { useToast } from '@/hooks/use-toast.ts';
 import { Course, QuizResult } from '@/types';
-import { useCallback } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import useAcademyStorageService from '@/lib/academy-storage-service';
+import {
+  updateModuleProgress as updateModuleProgressDB,
+  getModuleProgress as getModuleProgressDB,
+  getCourseModuleProgress as getCourseModuleProgressDB,
+  ModuleProgressRecord,
+} from '@/lib/indexeddb-service';
+import useUserProfile from './use-user-profile';
 
 export interface AcademyDataType {
   courses: Course[];
-  moduleProgress: Record<string, boolean>; // ModuleId: Completed
-  quizResults: Record<string, QuizResult>; // ModuleId: QuizResult
   lastVisitedCourse?: string; // CourseId
   lastVisitedModule?: string; // ModuleId
 }
@@ -15,11 +20,32 @@ const useAcademyStorage = () => {
   const { toast } = useToast();
   const { getAcademyData, setAcademyDataValue } = useAcademyStorageService();
   const academyData = getAcademyData();
+  const { userProfile } = useUserProfile();
+  const userId = userProfile?.id || 'defaultUserId'; // Fallback to a default user ID
+
+  const [moduleProgressMap, setModuleProgressMap] = useState<
+    Record<string, number>
+  >({}); // moduleId: progress (0-100)
+  const [quizResultsMap, setQuizResultsMap] = useState<
+    Record<string, QuizResult>
+  >({}); // moduleId: QuizResult
+
+  // Load initial module progress and quiz results from IndexedDB
+  useEffect(() => {
+    const loadProgress = async () => {
+      const allProgressRecords = await getCourseModuleProgressDB(userId, '');
+      const progressMap: Record<string, number> = {};
+      allProgressRecords.forEach((record) => {
+        progressMap[record.moduleId] = record.progress;
+      });
+      setModuleProgressMap(progressMap);
+    };
+    loadProgress();
+  }, [userId]);
 
   const saveData = useCallback(
     (updates: Partial<AcademyDataType>) => {
       try {
-        // Data validation
         if (updates.courses) {
           if (!Array.isArray(updates.courses)) {
             throw new Error('Courses must be an array.');
@@ -46,16 +72,6 @@ const useAcademyStorage = () => {
               ? updates.courses
               : currentData.courses;
 
-          const newModuleProgress =
-            updates.moduleProgress !== undefined
-              ? { ...currentData.moduleProgress, ...updates.moduleProgress }
-              : currentData.moduleProgress;
-
-          const newQuizResults =
-            updates.quizResults !== undefined
-              ? { ...currentData.quizResults, ...updates.quizResults }
-              : currentData.quizResults;
-
           const newLastVisitedCourse =
             updates.lastVisitedCourse !== undefined
               ? updates.lastVisitedCourse
@@ -70,8 +86,6 @@ const useAcademyStorage = () => {
             ...currentData,
             ...updates,
             courses: newCourses || [],
-            moduleProgress: newModuleProgress || {},
-            quizResults: newQuizResults || {},
             lastVisitedCourse: newLastVisitedCourse,
             lastVisitedModule: newLastVisitedModule,
           };
@@ -103,18 +117,60 @@ const useAcademyStorage = () => {
     [setAcademyDataValue, toast],
   );
 
-  const markModuleComplete = useCallback(
-    (moduleId: string) => {
-      saveData({ moduleProgress: { [moduleId]: true } });
+  const markModuleProgress = useCallback(
+    async (courseId: string, moduleId: string, progress: number) => {
+      await updateModuleProgressDB(userId, courseId, moduleId, progress);
+      setModuleProgressMap((prev) => ({ ...prev, [moduleId]: progress }));
+
+      // Recalculate and update course progress
+      const currentCourses = academyData?.courses || [];
+      const updatedCourses = currentCourses.map((course) => {
+        if (course.id === courseId) {
+          let totalModuleProgress = 0;
+          let moduleCount = 0;
+
+          if (course.modules && course.modules.length > 0) {
+            // Use the latest progress from moduleProgressMap (which includes the just-updated module)
+            // and fall back to 0 if not found (e.g., for new modules)
+            totalModuleProgress = course.modules.reduce((sum, m) => {
+              return sum + (moduleProgressMap[m.id] || 0);
+            }, 0);
+            moduleCount = course.modules.length;
+          }
+
+          const newCourseProgress =
+            moduleCount > 0 ? Math.round(totalModuleProgress / moduleCount) : 0;
+
+          return { ...course, progress: newCourseProgress };
+        }
+        return course;
+      });
+
+      saveData({ courses: updatedCourses });
     },
-    [saveData],
+    [userId, academyData, saveData, moduleProgressMap],
+  );
+
+  const getModuleProgress = useCallback(
+    (moduleId: string) => {
+      return moduleProgressMap[moduleId] || 0;
+    },
+    [moduleProgressMap],
   );
 
   const updateQuizResult = useCallback(
     (moduleId: string, result: QuizResult) => {
-      saveData({ quizResults: { [moduleId]: result } });
+      setQuizResultsMap((prev) => ({ ...prev, [moduleId]: result }));
+      // Potentially save quiz results to IndexedDB as well if needed
     },
-    [saveData],
+    [],
+  );
+
+  const getQuizResult = useCallback(
+    (moduleId: string) => {
+      return quizResultsMap[moduleId];
+    },
+    [quizResultsMap],
   );
 
   const markCourseVisited = useCallback(
@@ -134,8 +190,10 @@ const useAcademyStorage = () => {
   return {
     academyData,
     saveData,
-    markModuleComplete,
+    markModuleProgress,
+    getModuleProgress,
     updateQuizResult,
+    getQuizResult,
     markCourseVisited,
     markModuleVisited,
   };

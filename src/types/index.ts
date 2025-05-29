@@ -37,6 +37,7 @@ export type Module = {
   title: string;
   duration: string;
   completed: boolean;
+  progress: number; // Add progress to module
   type: ModuleType;
   contentSlug?: string;
   link?: string;
