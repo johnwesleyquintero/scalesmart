@@ -1,6 +1,6 @@
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import Quiz from './Quiz';
-import ExerciseModule from './ExerciseModule';
+import ExerciseModule from '../../../components/ExerciseModule';
 import { Question } from '@/types';
 
 interface AcademyModuleProps {

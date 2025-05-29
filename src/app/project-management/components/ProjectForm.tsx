@@ -60,7 +60,9 @@ const ProjectForm = ({
       try {
         await updateProject(updatedProject);
         setProjects(
-          projects.map((p) => (p.id === updatedProject.id ? updatedProject : p)),
+          projects.map((p) =>
+            p.id === updatedProject.id ? updatedProject : p,
+          ),
         );
         toast.success('Project updated successfully!');
         onProjectUpdated?.();
@@ -85,7 +87,7 @@ const ProjectForm = ({
           setDescription('');
           onProjectUpdated?.();
         } else {
-           toast.error('Failed to add project. See console for details.');
+          toast.error('Failed to add project. See console for details.');
         }
       } catch (error) {
         console.error('Error adding project:', error);
@@ -119,7 +121,7 @@ const ProjectForm = ({
       </div>
       <div className="flex justify-end">
         {initialProject && onProjectUpdated && (
-           <Button
+          <Button
             type="button"
             variant="outline"
             onClick={onProjectUpdated}

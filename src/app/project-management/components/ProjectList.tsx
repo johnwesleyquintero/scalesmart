@@ -20,7 +20,11 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const handleDeleteProject = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this project? This will not delete associated tasks.')) {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this project? This will not delete associated tasks.',
+      )
+    ) {
       try {
         await deleteProject(id);
         setProjects(projects.filter((project) => project.id !== id));

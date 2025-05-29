@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import MdxRenderer from './MdxRenderer';
+import MdxRenderer from '../../../components/MdxRenderer';
 
 interface ArticleModuleProps {
   contentSlug: string;

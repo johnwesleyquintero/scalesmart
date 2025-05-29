@@ -22,6 +22,9 @@ export type Course = {
   slug?: string;
   completed: boolean;
   lastVisited?: Date; // Track last visited course
+  isPublished?: boolean; // Added for admin management
+  creationTimestamp?: number; // Add creation timestamp
+  updateTimestamp?: number; // Add update timestamp
   metadata: {
     level: string;
     tags: string[];
@@ -39,6 +42,9 @@ export type Module = {
   link?: string;
   videoUrl?: string;
   exercise?: string;
+  quiz?: {
+    questions: Question[];
+  };
   lastVisited?: Date; // Track last visited module
 };
 

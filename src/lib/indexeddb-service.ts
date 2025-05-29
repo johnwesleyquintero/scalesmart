@@ -1,6 +1,7 @@
 import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 import { Contact, Category } from '@/app/crm/types'; // Import Category
+import { Course } from '@/types'; // Import Course
 
 // Interface for chat messages stored in IndexedDB
 export interface ChatMessageRecord {
@@ -45,6 +46,7 @@ class ChatDatabase extends Dexie {
   public tasks!: Table<Task, string>;
   public projects!: Table<Project, string>;
   public categories!: Table<Category, string>; // Add categories table
+  public courses!: Table<Course, string>; // Add courses table
 
   constructor() {
     super('ChatAppDatabase'); // Name of the IndexedDB database
@@ -76,6 +78,10 @@ class ChatDatabase extends Dexie {
     });
     this.version(7).stores({
       categories: 'id, name', // Add categories schema
+    });
+    this.version(8).stores({
+      courses:
+        'id, title, description, duration, level, metadata.category, metadata.tags, creationTimestamp, updateTimestamp', // Add courses schema
     });
   }
 }
@@ -638,6 +644,129 @@ export const getAllContacts = async (): Promise<Contact[]> => {
       'IndexedDBService',
     );
     return [];
+  }
+};
+
+// Academy Course methods
+
+/**
+ * Creates a new course in IndexedDB.
+ * @remarks Used by Academy.
+ * @param courseData - The course data to create.
+ */
+export const createCourse = async (
+  courseData: Omit<Course, 'creationTimestamp' | 'updateTimestamp'>,
+): Promise<string | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const id = courseData.id || crypto.randomUUID(); // Use existing ID if available, otherwise generate
+    const now = Date.now();
+    const courseToStore: Course = {
+      ...courseData,
+      id,
+      creationTimestamp: now,
+      updateTimestamp: now,
+    };
+    await db.courses.put(courseToStore);
+    console.log('Course added to IndexedDB:', courseToStore);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error adding course to IndexedDB: ${courseData.title}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+/**
+ * Retrieves a course by ID from IndexedDB.
+ * @remarks Used by Academy.
+ * @param id - The ID of the course to retrieve.
+ */
+export const getCourse = async (id: string): Promise<Course | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const course = await db.courses.get(id);
+    console.log('Course retrieved from IndexedDB:', course);
+    return course;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting course from IndexedDB: ${id}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+/**
+ * Retrieves all courses from IndexedDB.
+ * @remarks Used by Academy.
+ */
+export const getAllCourses = async (): Promise<Course[]> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const courses = await db.courses.toArray();
+    console.log('All courses retrieved from IndexedDB:', courses);
+    return courses;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting all courses from IndexedDB`,
+      'IndexedDBService',
+    );
+    return [];
+  }
+};
+
+/**
+ * Updates an existing course in IndexedDB.
+ * @remarks Used by Academy.
+ * @param course - The course data to update.
+ */
+export const updateCourse = async (course: Course): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const courseToStore = { ...course, updateTimestamp: Date.now() };
+    await db.courses.put(courseToStore); // put will update if id exists
+    console.log('Course updated in IndexedDB:', courseToStore);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating course in IndexedDB: ${course.title}`,
+      'IndexedDBService',
+    );
+  }
+};
+
+/**
+ * Deletes a course by ID from IndexedDB.
+ * @remarks Used by Academy.
+ * @param id - The ID of the course to delete.
+ */
+export const deleteCourse = async (id: string): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    await db.courses.delete(id);
+    console.log('Course deleted from IndexedDB:', id);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting course from IndexedDB: ${id}`,
+      'IndexedDBService',
+    );
   }
 };
 

@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs
 import { getAllPosts } from '@/lib/mdx';
+import type { BlogPost } from '@/types'; // Import BlogPost type
 import { ArrowRight, Calendar, Clock } from 'lucide-react';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -31,7 +32,7 @@ export default async function BlogPage() {
   const articles = posts.filter((post) => post.type === 'article');
   const caseStudies = posts.filter((post) => post.type === 'case-study');
 
-  const renderPostCards = (filteredPosts: unknown[]) => (
+  const renderPostCards = (filteredPosts: BlogPost[]) => (
     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
       {filteredPosts.map((post) => (
         <Card
@@ -60,9 +61,7 @@ export default async function BlogPage() {
                 </div>
               )}
             </div>
-            <CardTitle className="line-clamp-2 text-xl">
-              {post.title}
-            </CardTitle>
+            <CardTitle className="line-clamp-2 text-xl">{post.title}</CardTitle>
             <CardDescription className="line-clamp-3">
               {post.description}
             </CardDescription>

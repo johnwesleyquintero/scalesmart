@@ -7,13 +7,14 @@ import { getRecommendedCourses } from '@/lib/course-recommendations';
 import { Module, ModuleType, Course } from '@/types';
 import useAcademyStorage from '@/hooks/use-academy-storage'; // Import the hook
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import ArticleModule from './ArticleModule';
 import VideoModule from './VideoModule';
-import ExerciseModule from './ExerciseModule';
-import CaseStudyModule from './CaseStudyModule';
+import ExerciseModule from '../../../components/ExerciseModule';
+import CaseStudyModule from '../../../components/CaseStudyModule';
 import Quiz from './Quiz';
-import ClientCourseList from '@/app/academy/ClientCourseList';
+import ClientCourseList from '@/app/academy/components/ClientCourseList';
+import { UserProfile } from '@/lib/models/user'; // Corrected import for UserProfile type
 
 interface AcademyContentProps {
   courses: Course[];
@@ -21,41 +22,14 @@ interface AcademyContentProps {
 
 interface ModuleSpecificContentProps {
   activeModule: Module;
+  userProfile: UserProfile | null; // Pass userProfile as a prop
 }
 
 const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
   activeModule,
+  userProfile, // Destructure userProfile
 }) => {
   const { activeCourse } = useAcademy();
-
-  const sampleQuestions = [
-    {
-      id: 1,
-      text: 'What is Amazon Brand Registry?',
-      options: [
-        'A program to protect your brand on Amazon',
-        'A tool for keyword research',
-        'A service for managing inventory',
-        'A way to get free advertising',
-      ],
-      correctAnswer: 'A program to protect your brand on Amazon',
-      explanation:
-        'Amazon Brand Registry helps you protect your trademarks and intellectual property on Amazon.',
-    },
-    {
-      id: 2,
-      text: 'What is product validation?',
-      options: [
-        'Ensuring your product meets safety standards',
-        'Confirming there is demand for your product',
-        'Checking for patent infringements',
-        'Calculating your profit margin',
-      ],
-      correctAnswer: 'Confirming there is demand for your product',
-      explanation:
-        'Product validation involves researching and confirming that there is sufficient customer demand for your product before investing in inventory.',
-    },
-  ];
 
   switch (activeModule.type) {
     case ModuleType.ARTICLE:
@@ -70,7 +44,7 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
       return activeModule.exercise ? (
         <ExerciseModule
           exercise={activeModule.exercise}
-          userId={useUserProfile().userProfile?.id || 'defaultUserId'}
+          userId={userProfile?.id || 'defaultUserId'}
           courseId={activeCourse?.id || 'defaultCourseId'}
           moduleId={activeModule.id || 'defaultModuleId'}
         />
@@ -80,7 +54,14 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
     case ModuleType.CASE_STUDY:
       return <CaseStudyModule />;
     case ModuleType.QUIZ:
-      return <Quiz questions={sampleQuestions} moduleId={activeModule.id} />;
+      return activeModule.quiz && activeModule.quiz.questions.length > 0 ? (
+        <Quiz
+          questions={activeModule.quiz.questions}
+          moduleId={activeModule.id}
+        />
+      ) : (
+        <p>No quiz questions available for this module.</p>
+      );
     case ModuleType.SIMULATION:
       return <p>Simulation Content Here for {activeModule.title}</p>; // Placeholder for Simulation component
     default:
@@ -95,7 +76,31 @@ function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
   const { academyData, markModuleVisited } = useAcademyStorage();
-  const completedCourseIds = Object.keys(academyData?.moduleProgress || {});
+
+  // Calculate completed course IDs based on module progress
+  const completedCourseIds = useMemo(() => {
+    const completed = new Set<string>();
+    if (academyData?.moduleProgress) {
+      for (const moduleId in academyData.moduleProgress) {
+        if (academyData.moduleProgress[moduleId]) {
+          // Find the course associated with this module
+          const course = allCourses.find((c) =>
+            c.modules?.some((m) => m.id === moduleId),
+          );
+          if (course) {
+            // Check if all modules in the course are completed
+            const allModulesCompleted = course.modules?.every(
+              (m) => academyData.moduleProgress?.[m.id],
+            );
+            if (allModulesCompleted) {
+              completed.add(course.id);
+            }
+          }
+        }
+      }
+    }
+    return Array.from(completed);
+  }, [academyData, allCourses]);
 
   useEffect(() => {
     if (userProfile) {
@@ -129,6 +134,20 @@ function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
     setActiveModule(null);
   };
 
+  // Calculate overall course progress
+  const calculateCourseProgress = useCallback(
+    (course: Course) => {
+      if (!course.modules || course.modules.length === 0) {
+        return 0;
+      }
+      const completedModules = course.modules.filter(
+        (module) => academyData?.moduleProgress?.[module.id],
+      ).length;
+      return Math.round((completedModules / course.modules.length) * 100);
+    },
+    [academyData],
+  );
+
   // Filter out duplicate courses based on slug
   const courses = allCourses.filter(
     (course: Course, index, self) =>
@@ -159,6 +178,12 @@ function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
               course.title?.toLowerCase()?.includes(searchQuery.toLowerCase()),
             )}
           />
+          {recommendedCourses.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold mb-4">Recommended Courses</h2>
+              <ClientCourseList courses={recommendedCourses} />
+            </div>
+          )}
         </>
       ) : (
         <>
@@ -173,7 +198,7 @@ function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
             </Button>
             <h2 className="text-2xl font-bold mb-2">{activeCourse.title}</h2>
             <p className="text-sm text-gray-600 mb-4">
-              Overall Progress: {activeCourse.progress || 0}%
+              Overall Progress: {calculateCourseProgress(activeCourse)}%
             </p>
 
             <div className="flex flex-col md:flex-row gap-6">
@@ -223,7 +248,10 @@ function AcademyContentClient({ courses: allCourses }: AcademyContentProps) {
                     <h3 className="text-xl font-semibold mb-4 pb-2 border-b">
                       {activeModule.title || `Module ${activeModule.id}`}
                     </h3>
-                    <ModuleSpecificContent activeModule={activeModule} />
+                    <ModuleSpecificContent
+                      activeModule={activeModule}
+                      userProfile={userProfile}
+                    />
                   </div>
                 ) : (
                   <p className="text-center text-gray-500 pt-16">
