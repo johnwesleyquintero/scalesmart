@@ -98,6 +98,35 @@ export function AcademyPageContent() {
     return ['All', ...Array.from(categories).sort()];
   }, [courses]);
 
+  const parseDuration = (durationString: string | undefined): number => {
+    if (!durationString) return 0;
+    const parts = durationString.toLowerCase().split(' ');
+    let totalMinutes = 0;
+    for (let i = 0; i < parts.length; i += 2) {
+      const value = parseInt(parts[i]);
+      const unit = parts[i + 1];
+      if (isNaN(value)) continue;
+      if (
+        unit === 'minutes' ||
+        unit === 'minute' ||
+        unit === 'mins' ||
+        unit === 'min'
+      ) {
+        totalMinutes += value;
+      } else if (
+        unit === 'hours' ||
+        unit === 'hour' ||
+        unit === 'hrs' ||
+        unit === 'hr'
+      ) {
+        totalMinutes += value * 60;
+      } else if (unit === 'days' || unit === 'day') {
+        totalMinutes += value * 60 * 24;
+      }
+    }
+    return totalMinutes;
+  };
+
   const filteredAndSortedCourses = useMemo(() => {
     let currentCourses = courses || [];
 
@@ -112,13 +141,9 @@ export function AcademyPageContent() {
       } else if (sort === 'Level') {
         return (a.level || '').localeCompare(b.level || '');
       } else if (sort === 'Duration' || sort === 'Duration (descending)') {
-        const durationA = parseInt((a.duration || '0 minutes').split(' ')[0]);
-        const durationB = parseInt((b.duration || '0 minutes').split(' ')[0]);
+        const durationA = parseDuration(a.duration);
+        const durationB = parseDuration(b.duration);
 
-        if (isNaN(durationA) && isNaN(durationB)) return 0;
-        if (isNaN(durationA)) return 1;
-        if (isNaN(durationB)) return -1;
-        // Ensure a number is always returned
         return sort === DURATION_DESCENDING_SORT
           ? durationB - durationA
           : durationA - durationB;
