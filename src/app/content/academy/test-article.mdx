@@ -1,26 +1,116 @@
 ---
-title: Test Article
-description: This is a test article with a quiz and an exercise.
-duration: '5 minutes'
+title: Test Article - Software Development Testing
+description: This is a test article with a quiz and an exercise, focusing on software development testing principles.
+duration: '10 minutes'
 level: Beginner
 category: Testing
 tags:
   - test
   - article
+  - software development
 author: Cline
 interactive: true
 ---
 
-This is a plain test article.
+This article serves as a test case to validate the content pipeline for the Academy, specifically focusing on software development testing principles. It aims to demonstrate the correct rendering and functionality of various components within the course module.
 
-## More Details
+## Introduction to Software Testing
 
-We are adding these details to see if they reflect correctly in the "Test Course for Academy".
-This section should demonstrate that the content pipeline from MDX to the course module is working as expected.
+Software testing is a critical phase in the software development lifecycle (SDLC), ensuring the quality, reliability, and performance of software applications (Beizer, 1990). It involves executing software components or systems to evaluate one or more properties. The primary goal of testing is to identify defects, errors, or gaps in requirements, thereby preventing faulty software from reaching end-users.
 
-### Sub-section
+### Types of Software Testing
 
-Content can be structured using markdown headings.
+Several types of software testing exist, each serving a specific purpose:
 
-- And lists
-- Like this one.
+- **Unit Testing:** Testing individual components or modules of the software in isolation to verify their functionality (Myers, 1979).
+- **Integration Testing:** Testing the interaction between different components or modules to ensure they work together correctly (Pressman, 2005).
+- **System Testing:** Testing the entire system to ensure it meets the specified requirements and functions as intended (Kaner, Bach, & Pettichord, 2002).
+- **Acceptance Testing:** Testing the system from the perspective of the end-user to ensure it meets their needs and expectations (Black, 2009).
+
+### Importance of Testing
+
+Software testing is crucial for several reasons:
+
+- **Ensuring Quality:** Testing helps to identify and fix defects, ensuring the software meets quality standards.
+- **Improving Reliability:** Testing improves the reliability of the software by verifying its functionality and stability.
+- **Reducing Costs:** Early detection of defects through testing can significantly reduce the cost of fixing them later in the development cycle.
+- **Enhancing Customer Satisfaction:** Delivering high-quality, reliable software enhances customer satisfaction and builds trust.
+
+## References
+
+- Beizer, B. (1990). _Software Testing Techniques_. Van Nostrand Reinhold.
+- Black, R. (2009). _Pragmatic Software Testing: Becoming an Effective and Efficient Test Professional_. John Wiley & Sons.
+- Kaner, C., Bach, J., & Pettichord, B. (2002). _Lessons Learned in Software Testing_. John Wiley & Sons.
+- Myers, G. J. (1979). _The Art of Software Testing_. John Wiley & Sons.
+- Pressman, R. S. (2005). _Software Engineering: A Practitioner's Approach_. McGraw-Hill.
+
+## Quiz
+
+<Quiz
+  questions={[
+    {
+      question: 'What is the primary goal of software testing?',
+      options: [
+        'To write code efficiently',
+        'To identify defects, errors, or gaps in requirements',
+        'To design user interfaces',
+        'To manage project timelines',
+      ],
+      correctAnswer: 1,
+    },
+    {
+      question:
+        'Which type of testing involves testing individual components in isolation?',
+      options: [
+        'Integration Testing',
+        'System Testing',
+        'Unit Testing',
+        'Acceptance Testing',
+      ],
+      correctAnswer: 2,
+    },
+    {
+      question:
+        "Which testing type ensures that the software meets the end-user's needs and expectations?",
+      options: [
+        'Unit Testing',
+        'Integration Testing',
+        'System Testing',
+        'Acceptance Testing',
+      ],
+      correctAnswer: 3,
+    },
+    {
+      question: 'Why is early detection of defects important?',
+      options: [
+        'It increases the complexity of the code',
+        'It significantly reduces the cost of fixing them later',
+        'It makes the software more difficult to understand',
+        'It requires more skilled developers',
+      ],
+      correctAnswer: 2,
+    },
+    {
+      question: 'Which of the following is NOT a benefit of software testing?',
+      options: [
+        'Ensuring Quality',
+        'Improving Reliability',
+        'Reducing Costs',
+        'Complicating the development process',
+      ],
+      correctAnswer: 3,
+    },
+  ]}
+  userId="test-user"
+  courseId="3"
+  moduleId="1"
+/>
+
+## Exercise
+
+<ExerciseModule
+  exercise="Write a short paragraph explaining the importance of unit testing in software development."
+  userId="test-user"
+  courseId="3"
+  moduleId="1"
+/>

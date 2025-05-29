@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
-import { promises as fs } from 'fs';
+import fs from 'fs/promises';
 import path from 'path';
 import matter from 'gray-matter';
 import { serialize } from 'next-mdx-remote/serialize';
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } },
+  { params: routeParamsInput }: { params: { slug: string } },
 ) {
-  const { slug } = params;
+  const routeParams = await routeParamsInput;
+  const { slug } = routeParams;
   const contentDirectory = path.join(
     process.cwd(),
     'src',

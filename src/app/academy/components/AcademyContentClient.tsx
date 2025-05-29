@@ -57,7 +57,25 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
     case ModuleType.QUIZ:
       return activeModule.quiz && activeModule.quiz.questions.length > 0 ? (
         <Quiz
-          questions={activeModule.quiz.questions}
+          questions={activeModule.quiz.questions.map((q) => {
+            // q's type is inferred from activeModule.quiz.questions
+            // Cast q to its own type intersected with potential 'question' and 'title' fields.
+            // This avoids 'any' and provides better type safety for accessing these optional fields.
+            const questionData = q as typeof q & {
+              question?: string;
+              title?: string;
+            };
+            return {
+              id: questionData.id,
+              question: questionData.question || questionData.title || '', // Ensure 'question' property is provided
+              options: questionData.options,
+              // Convert the string index from MDX/source to a number.
+              // The error indicates questionData.correctAnswer is a string.
+              // The Quiz component expects a number (index).
+              correctAnswer: parseInt(questionData.correctAnswer as string, 10),
+              explanation: questionData.explanation,
+            };
+          })}
           moduleId={activeModule.id}
         />
       ) : (
