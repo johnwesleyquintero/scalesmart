@@ -1,44 +1,71 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import MdxRenderer from '../../../components/MdxRenderer';
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
+import { components as MdxComponents } from '../../../components/MdxRenderer';
 
 interface ArticleModuleProps {
   contentSlug: string;
 }
 
 const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
-  const [content, setContent] = useState<string | null>(null);
-  const [keywords, setKeywords] = useState<string[]>([]);
+  const [mdxSource, setMdxSource] = useState<MDXRemoteSerializeResult | null>(
+    null,
+  );
+  interface Frontmatter {
+    title?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    [key: string]: any; // Allow for other arbitrary frontmatter properties
+  }
+  const [frontmatter, setFrontmatter] = useState<Frontmatter>({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchContent = async () => {
+    const fetchMdxContent = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await fetch(`/api/academy-article/${contentSlug}`);
+        const response = await fetch(
+          `/api/academy/academy-article/${contentSlug}`,
+        );
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setContent(data.content);
-        setKeywords(data.keywords || []); // Set keywords
-      } catch (error) {
-        console.error('Could not fetch content:', error);
-        setContent(null);
-        setKeywords([]); // Reset keywords on error
+        setMdxSource(data.source);
+        setFrontmatter(data.frontmatter || {});
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : 'An unknown error occurred.';
+        console.error('Could not fetch MDX content:', err);
+        setError(errorMessage || 'Failed to load article content.');
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchContent();
+    fetchMdxContent();
   }, [contentSlug]);
+
+  if (loading) {
+    return <p>Loading article content...</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-500">Error: {error}</p>;
+  }
+
+  if (!mdxSource) {
+    return <p>No article content available.</p>;
+  }
 
   return (
     <div>
-      <h2>Article</h2>
-      {content ? (
-        <MdxRenderer content={content} keywords={keywords} />
-      ) : (
-        <p>Loading article content...</p>
-      )}
+      {frontmatter.title && <h2>{frontmatter.title}</h2>}
+      <div className="prose">
+        <MDXRemote {...mdxSource} components={MdxComponents} />
+      </div>
     </div>
   );
 };

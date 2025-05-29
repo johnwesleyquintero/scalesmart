@@ -1,27 +1,38 @@
 'use client';
 
-import MdxRenderer from '@/components/MdxRenderer';
+import { components as MdxComponents } from './MdxRenderer';
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { useEffect, useState } from 'react';
-import { cachedFetch } from '@/lib/api-cache';
+import { cachedFetch } from '../lib/api-cache';
 
 const ErrorGuide = () => {
-  const [mdxContent, setMdxContent] = useState('');
   const [keywords, setKeywords] = useState<string[]>([]);
+  const [mdxSource, setMdxSource] = useState<MDXRemoteSerializeResult | null>(
+    null,
+  );
+  const [frontmatter, setFrontmatter] = useState<Record<string, unknown>>({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMdxContent = async () => {
+      setLoading(true);
       const response = await cachedFetch('/error-guide');
-      const data = await response.json(); // Assuming the API returns JSON with content and keywords
-      setMdxContent(data.content);
-      setKeywords(data.keywords || []);
+      const data = await response.json();
+      setMdxSource(data.source);
+      setFrontmatter(data.frontmatter || {});
+      setKeywords(data.frontmatter?.keywords || []);
+      setLoading(false);
     };
 
     fetchMdxContent();
   }, []);
 
+  if (loading) return <p>Loading error guide...</p>;
+  if (!mdxSource) return <p>No error guide content available.</p>;
+
   return (
     <div>
-      {mdxContent && <MdxRenderer content={mdxContent} keywords={keywords} />}
+      {mdxSource && <MDXRemote {...mdxSource} components={MdxComponents} />}
     </div>
   );
 };

@@ -37,7 +37,7 @@ export const getRecommendedCourses = async (
       // Further filter based on experience level (example: Beginner courses only for Beginner users)
       if (
         userProfile.experienceLevel === 'Beginner' &&
-        course.metadata.level !== 'Beginner'
+        course.level !== 'Beginner'
       ) {
         return false;
       }

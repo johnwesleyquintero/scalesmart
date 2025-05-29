@@ -1,45 +1,18 @@
 'use client';
 
-import React, { useMemo } from 'react';
-import { MDXProvider } from '@mdx-js/react';
+import React from 'react';
 import Quiz from '../app/academy/components/Quiz';
 import ExerciseModule from './ExerciseModule';
 
-interface MdxRendererProps {
-  content: string;
-  keywords: string[];
-}
-
-const MdxRenderer: React.FC<MdxRendererProps> = ({ content, keywords }) => {
-  const components = useMemo(
-    () => ({
-      Quiz: Quiz,
-      ExerciseModule: ExerciseModule,
-    }),
-    [],
-  );
-
-  const highlightedContent = useMemo(() => {
-    if (!keywords || keywords.length === 0) {
-      return content;
-    }
-
-    let highlighted = content;
-    keywords.forEach((keyword) => {
-      const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
-      highlighted = highlighted.replace(
-        regex,
-        (match) => `<span class="bg-yellow-200">${match}</span>`,
-      );
-    });
-    return highlighted;
-  }, [content, keywords]);
-
-  return (
-    <MDXProvider components={components}>
-      <div dangerouslySetInnerHTML={{ __html: highlightedContent }} />
-    </MDXProvider>
-  );
+// Define custom components to be used within MDX
+export const components = {
+  Quiz: Quiz,
+  ExerciseModule: ExerciseModule,
+  // Add any other custom components you want to use in your MDX files
 };
 
-export default MdxRenderer;
+// This component is now just a placeholder for the components object
+// The actual rendering will be done by MDXRemote in ArticleModule
+const MdxRenderer = () => {
+  return null; // This component doesn't render anything directly
+};

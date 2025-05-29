@@ -26,7 +26,6 @@ export type Course = {
   creationTimestamp?: number; // Add creation timestamp
   updateTimestamp?: number; // Add update timestamp
   metadata: {
-    level: string;
     tags: string[];
     category: string;
   };

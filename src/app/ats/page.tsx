@@ -10,9 +10,10 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { AlertCircle, Check, Upload, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
-import MdxRenderer from '@/components/MdxRenderer';
+import { MDXRemote } from 'next-mdx-remote';
+import { components as MdxComponents } from '@/components/MdxRenderer';
 
 interface ResumeAnalysis {
   score: number;
@@ -127,6 +128,16 @@ export default function ResumeScanner() {
     return 'bg-red-500';
   };
 
+  const suggestionsMdxSource = useMemo(() => {
+    if (analysis && analysis.suggestions.length > 0) {
+      return {
+        compiledSource: analysis.suggestions.map((s) => `- ${s}`).join('\n'),
+        scope: {}, // Provide empty scope
+        frontmatter: {}, // Provide empty frontmatter
+      };
+    }
+    return null;
+  }, [analysis]);
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 bg-background">
       <h1 className="text-3xl font-bold my-6 text-center">
@@ -276,20 +287,23 @@ export default function ResumeScanner() {
               </CardContent>
             </Card>
           </div>
-          {analysis && analysis.suggestions.length > 0 && (
+          {suggestionsMdxSource && (
             <Card>
               <CardHeader>
                 <CardTitle>Optimization Suggestions</CardTitle>
               </CardHeader>
               <CardContent>
-                <MdxRenderer
-                  content={analysis.suggestions.join('\n')}
-                  keywords={analysis.keywords.missing}
+                <MDXRemote
+                  {...suggestionsMdxSource}
+                  components={MdxComponents}
                 />
               </CardContent>
             </Card>
           )}
-          {analysis?.weaknesses.length && (
+          {/* Display generic error message if analysis failed and weaknesses array contains the error message */}
+          {analysis?.weaknesses.some((w) =>
+            w.includes('An error occurred during analysis'),
+          ) && (
             <Alert variant="destructive" className="mt-4">
               <AlertCircle className="h-4 w-4" />
               <p>
