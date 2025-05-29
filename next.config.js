@@ -1,4 +1,5 @@
 import path from 'path';
+import crypto from 'crypto';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
