@@ -82,4 +82,5 @@ export type QuizResult = {
   score: number;
   attempts: number;
   pass: boolean;
+  certificateAwarded?: boolean; // True if a certificate has been earned for this quiz
 };

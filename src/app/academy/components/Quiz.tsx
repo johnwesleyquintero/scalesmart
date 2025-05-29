@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import useAcademyStorage from '@/hooks/use-academy-storage';
 import useUserProfile from '@/hooks/use-user-profile';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 import { ModuleType, QuizResult } from '@/types';
 import { useAcademy } from '@/context/AcademyContext';
+import CertificateDisplay from './CertificateDisplay';
 
 interface QuestionInput {
   id?: number; // Optional, as MDX might not provide it
@@ -12,6 +15,9 @@ interface QuestionInput {
   explanation?: string; // Optional, as MDX might not provide it
 }
 
+const MAX_CERTIFICATE_ATTEMPTS = 3;
+const PASS_THRESHOLD = 70;
+
 interface QuizProps {
   questions: QuestionInput[];
   moduleId: string;
@@ -19,9 +25,13 @@ interface QuizProps {
 
 const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
   const { activeCourse } = useAcademy();
-  const { userProfile } = useUserProfile();
-  const { markModuleProgress, updateQuizResult, getQuizResult } =
-    useAcademyStorage();
+  const { userProfile, updateUserProfile } = useUserProfile();
+  const { updateQuizResult, getQuizResult } = useAcademyStorage();
+
+  const markModuleProgress = useCallback(
+    useAcademyStorage().markModuleProgress,
+    [],
+  );
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -31,6 +41,14 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
     Array(questions.length).fill(null),
   );
   const [attempts, setAttempts] = useState(0);
+  const [certificateAwarded, setCertificateAwarded] = useState<boolean>(false);
+  const [userName, setUserName] = useState<string>('');
+
+  useEffect(() => {
+    if (userProfile?.name) {
+      setUserName(userProfile.name);
+    }
+  }, [userProfile?.name]);
 
   const userId = userProfile?.id || 'defaultUserId';
   const courseId = activeCourse?.id || 'defaultCourseId';
@@ -44,7 +62,13 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
       // The progress should reflect the saved score.
       // This line can cause a loop if markModuleProgress or courseId are unstable
       // and cause this effect to re-run.
+      setCertificateAwarded(savedResult.certificateAwarded || false);
       markModuleProgress(courseId, moduleId, savedResult.score);
+    } else {
+      // Initialize for a fresh quiz if no saved data
+      setQuizScore(null);
+      setAttempts(0);
+      setCertificateAwarded(false);
     }
   }, [moduleId, courseId, getQuizResult, markModuleProgress]);
 
@@ -91,16 +115,29 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
         : 0;
 
     setQuizScore(finalScore);
-    const newAttempts = attempts + 1;
-    setAttempts(newAttempts);
 
     const PASS_THRESHOLD = 70; // Example: 70% to pass
     const passed = finalScore >= PASS_THRESHOLD;
+    const updatedAttempts = attempts + 1;
+
+    const passedThisAttempt = finalScore >= PASS_THRESHOLD;
+    let newCertificateStatus = certificateAwarded;
+
+    // Check if certificate can be awarded
+    if (
+      !newCertificateStatus &&
+      passedThisAttempt &&
+      updatedAttempts <= MAX_CERTIFICATE_ATTEMPTS
+    ) {
+      newCertificateStatus = true;
+    }
+    setCertificateAwarded(newCertificateStatus);
 
     const result: QuizResult = {
       score: finalScore,
-      attempts: newAttempts,
-      pass: passed,
+      attempts: updatedAttempts,
+      pass: passedThisAttempt,
+      certificateAwarded: newCertificateStatus,
     };
 
     await markModuleProgress(courseId, moduleId, finalScore);
@@ -113,8 +150,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
         ...userProfile,
         badges: [...(userProfile.badges || []), badgeId],
       };
-      // Assuming updateUserProfile saves to IndexedDB or backend
-      // updateUserProfile(updatedProfile);
+      await updateUserProfile(updatedProfile);
     }
   }, [
     courseId,
@@ -125,6 +161,8 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
     updateQuizResult,
     attempts,
     userProfile,
+    certificateAwarded, // Added
+    updateUserProfile, // Added
   ]);
 
   // Helper layout component
@@ -142,23 +180,71 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
   interface QuizCompletedViewProps {
     score: number;
     attempts: number;
+    totalAttempts: number;
+    isCertificateEarned: boolean;
   }
   const QuizCompletedView: React.FC<QuizCompletedViewProps> = ({
     score,
     attempts,
-  }) => (
-    <div className="text-center">
-      <h3 className="text-xl font-semibold mb-2">Quiz Completed!</h3>
-      <p className="text-lg">Your score: {score}%</p>
-      <p className="text-sm text-gray-600">Attempts: {attempts}</p>
-      <p
-        className={`mt-4 font-medium ${score >= 70 ? 'text-green-600' : 'text-red-600'}`}
-      >
-        Module marked as {score}% complete.
-        {score < 70 && ' (You did not pass this time.)'}
-      </p>
-    </div>
-  );
+    totalAttempts,
+    isCertificateEarned,
+  }) => {
+    const passedCurrentAttempt = score >= PASS_THRESHOLD;
+    const attemptsRemainingForCert = MAX_CERTIFICATE_ATTEMPTS - totalAttempts;
+    const [customName, setCustomName] = useState<string>(
+      localStorage.getItem('customName') || '',
+    );
+    const courseName = activeCourse?.title || 'This Course';
+
+    return (
+      <div className="text-center">
+        <h3 className="text-xl font-semibold mb-2">Quiz Completed!</h3>
+        <p className="text-lg">Your score for this attempt: {score}%</p>
+        <p className="text-sm text-gray-600">Total attempts: {totalAttempts}</p>
+
+        {isCertificateEarned ? (
+          <>
+            <p className="mt-4 font-medium text-emerald-600 text-lg">
+              🎉 Congratulations! You've earned the certificate for this quiz!
+              🎉
+            </p>
+            <input
+              type="text"
+              placeholder="Enter your name"
+              value={customName}
+              onChange={(e) => setCustomName(e.target.value)}
+              className="mt-2 p-2 border rounded-md text-black"
+            />
+            <CertificateDisplay
+              userName={customName || userName}
+              courseName={courseName}
+            />
+          </>
+        ) : passedCurrentAttempt && totalAttempts > MAX_CERTIFICATE_ATTEMPTS ? (
+          <p className="mt-4 font-medium text-orange-500">
+            Great score! However, you've used more than{' '}
+            {MAX_CERTIFICATE_ATTEMPTS} attempts for the certificate.
+          </p>
+        ) : !passedCurrentAttempt &&
+          totalAttempts < MAX_CERTIFICATE_ATTEMPTS ? (
+          <p className="mt-4 font-medium text-blue-600">
+            You did not pass this time. You have {attemptsRemainingForCert}{' '}
+            attempt(s) remaining to earn the certificate.
+          </p>
+        ) : (
+          <p className="mt-4 font-medium text-red-600">
+            You did not pass this time and have no more attempts for the
+            certificate, or you've exceeded the attempt limit.
+          </p>
+        )}
+        <p
+          className={`mt-2 font-medium ${passedCurrentAttempt ? 'text-green-600' : 'text-red-600'}`}
+        >
+          Module marked as {score}% complete for this attempt.
+        </p>
+      </div>
+    );
+  };
 
   // Component for displaying the active question
   interface ActiveQuestionDisplayProps {
@@ -284,7 +370,12 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
   return (
     <QuizLayout title="Quiz">
       {quizScore !== null ? (
-        <QuizCompletedView score={quizScore} attempts={attempts} />
+        <QuizCompletedView
+          score={quizScore}
+          attempts={attempts}
+          totalAttempts={attempts}
+          isCertificateEarned={certificateAwarded}
+        />
       ) : currentQuestionIndex < questions.length ? (
         <ActiveQuestionDisplay
           currentQuestion={questions[currentQuestionIndex]}

@@ -253,8 +253,12 @@ function AcademyContentClient({
                             </span>
                           )}
                           <progress
+                            className="w-1/3 h-1.5 ml-2 rounded" // Example styling, adjust as needed
                             value={getModuleProgress(module.id)}
                             max="100"
+                            aria-valuenow={getModuleProgress(module.id)}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
                           ></progress>
                         </button>
                       </li>
