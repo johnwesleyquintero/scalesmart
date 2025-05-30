@@ -4,32 +4,62 @@ import path from 'path';
 import { z } from 'zod';
 import { BlogPost, DocPost } from '@/types';
 
-/** An empty string constant. */
+/**
+ * @constant {string} EMPTY_STRING - An empty string constant.
+ */
 const EMPTY_STRING = '';
-/** Default reading time for posts if not specified. */
+/**
+ * @constant {string} DEFAULT_READING_TIME - Default reading time for posts if not specified.
+ */
 const DEFAULT_READING_TIME = '5 min read';
-/** Default author for posts if not specified. */
+/**
+ * @constant {string} DEFAULT_AUTHOR - Default author for posts if not specified.
+ */
 const DEFAULT_AUTHOR = 'Wesley Quintero';
-/** Default title for document posts if not specified or derivable. */
+/**
+ * @constant {string} DEFAULT_DOC_TITLE - Default title for document posts if not specified or derivable.
+ */
 const DEFAULT_DOC_TITLE = 'Untitled Document';
-/** Slug for the main introduction document. */
+/**
+ * @constant {string} INTRODUCTION_SLUG - Slug for the main introduction document.
+ */
 const INTRODUCTION_SLUG = 'introduction';
-/** Title for the main introduction document. */
+/**
+ * @constant {string} INTRODUCTION_TITLE - Title for the main introduction document.
+ */
 const INTRODUCTION_TITLE = 'Introduction';
 
-/** String constant for 'mdx'. */
+/**
+ * @constant {string} STR_MDX - String constant for 'mdx'.
+ */
 const STR_MDX = 'mdx';
-/** String constant for 'md'. */
+/**
+ * @constant {string} STR_MD - String constant for 'md'.
+ */
 const STR_MD = 'md';
-/** File extension for MDX files. */
+/**
+ * @constant {string} EXT_MDX - File extension for MDX files.
+ */
 const EXT_MDX = `.${STR_MDX}`;
-/** File extension for Markdown files. */
+/**
+ * @constant {string} EXT_MD - File extension for Markdown files.
+ */
 const EXT_MD = `.${STR_MD}`;
-/** Encoding constant for file system operations. */
+/**
+ * @constant {string} UTF8 - Encoding constant for file system operations.
+ */
 const UTF8 = 'utf8';
 
 /**
  * Zod schema for validating frontmatter data of blog posts.
+ * @property {string} title - The title of the blog post.
+ * @property {string} [description=''] - An optional description of the blog post. Defaults to an empty string.
+ * @property {string|Date} [date] - The publication date of the blog post. Can be a string or Date object.
+ * @property {string} [image] - An optional URL or path to an image associated with the blog post.
+ * @property {string[]} [tags] - An optional array of tags for the blog post.
+ * @property {string} [readingTime] - An optional estimated reading time for the blog post.
+ * @property {string} [author] - An optional author of the blog post.
+ * @property {'blog'|'article'|'case-study'} [type='blog'] - The type of the post, defaulting to 'blog'.
  */
 const blogMatterDataSchema = z.object({
   /** The title of the blog post. */
@@ -53,6 +83,14 @@ const blogMatterDataSchema = z.object({
 /**
  * Zod schema for validating frontmatter data of documentation posts.
  * Title is optional as it can be derived from the slug.
+ * @property {string} [title] - An optional title of the document. If not provided, it will be derived.
+ * @property {string} [description=''] - An optional description of the document. Defaults to an empty string.
+ * @property {string|Date} [date] - The publication date of the document. Can be a string or Date object.
+ * @property {string} [image] - An optional URL or path to an image associated with the document.
+ * @property {string[]} [tags] - An optional array of tags for the document.
+ * @property {string} [readingTime] - An optional estimated reading time for the document.
+ * @property {string} [author] - An optional author of the document.
+ * @property {'doc'} [type='doc'] - The type of the post, defaulting to 'doc'.
  */
 const docMatterDataSchema = z.object({
   /** An optional title of the document. If not provided, it will be derived. */
@@ -84,7 +122,7 @@ function normalizeDate(date: string | Date) {
 }
 
 /**
- * Defines the priority order for special document filenames.
+ * @constant {string[]} DOC_FILE_PRIORITY_ORDER - Defines the priority order for special document filenames.
  * Files appearing earlier in this list have higher priority for a given slug.
  * For example, `index.mdx` will be chosen over `README.mdx` if both exist for the same logical document.
  */
@@ -96,14 +134,17 @@ const DOC_FILE_PRIORITY_ORDER = [
   `README.${STR_MD}`,
   `documentation.${STR_MD}`,
 ];
-/** Path to the directory containing blog post content. */
+/**
+ * @constant {string} blogPostsDirectory - Path to the directory containing blog post content.
+ */
 const blogPostsDirectory = path.join(process.cwd(), 'src/app/content/blog');
-/** Path to the directory containing documentation content. */
+/**
+ * @constant {string} docsDirectory - Path to the directory containing documentation content.
+ */
 const docsDirectory = path.join(process.cwd(), 'src/app/content/docs');
 
 /**
- * A list of special filenames that are typically used for index or main documentation pages
- * within a directory.
+ * @constant {string[]} DOC_FILE_NAMES - A list of special filenames that are typically used for index or main documentation pages within a directory.
  */
 const DOC_FILE_NAMES = [
   'documentation.md',
@@ -112,14 +153,20 @@ const DOC_FILE_NAMES = [
   'index.md',
   'README.md',
 ];
-/** The base name of the docs directory (e.g., "docs"). */
+/**
+ * @constant {string} DOCS_BASE_DIR_NAME - The base name of the docs directory (e.g., "docs").
+ */
 const DOCS_BASE_DIR_NAME = path.basename(docsDirectory);
-/** An array of supported Markdown file extensions. */
+/**
+ * @constant {string[]} MARKDOWN_FILE_EXTENSIONS - An array of supported Markdown file extensions.
+ */
 const MARKDOWN_FILE_EXTENSIONS = [EXT_MDX, EXT_MD];
 /** A regular expression to match Markdown file extensions. */
 const MARKDOWN_FILE_REGEX = new RegExp(`\\.(${STR_MDX}|${STR_MD})$`);
-/** The number of related documents to fetch for a given document post. */
-const RELATED_DOCS_COUNT = 2; // Define constant for related docs count
+/**
+ * @constant {number} RELATED_DOCS_COUNT - The number of related documents to fetch for a given document post.
+ */
+const RELATED_DOCS_COUNT = 2;
 
 /**
  * Retrieves all blog posts from the filesystem.
