@@ -76,7 +76,9 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
   const titleBgColor = resolvedTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-100';
 
   return (
-    <div className={`${bgColor} shadow-md rounded-lg overflow-hidden`}>
+    <div
+      className={`${bgColor} shadow-md dark:shadow-lg rounded-lg overflow-hidden`}
+    >
       <div className={`${titleBgColor} p-3 font-bold text-xl`}>{title}</div>
       {chartType === 'line' ? (
         <ResponsiveContainer width="100%" height={300}>
@@ -86,9 +88,23 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
             data={data}
             margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xAxisDataKey} />
-            <YAxis type="number" tickFormatter={yAxisFormatter} />
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke={
+                resolvedTheme === 'dark'
+                  ? 'rgba(255,255,255,0.2)'
+                  : 'rgba(0,0,0,0.2)'
+              }
+            />
+            <XAxis
+              dataKey={xAxisDataKey}
+              stroke={resolvedTheme === 'dark' ? '#fff' : '#000'}
+            />
+            <YAxis
+              type="number"
+              tickFormatter={yAxisFormatter}
+              stroke={resolvedTheme === 'dark' ? '#fff' : '#000'}
+            />
             <Tooltip
               content={
                 <CustomTooltip
@@ -119,7 +135,11 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
                     x={0}
                     y1={0}
                     y2={300}
-                    stroke="rgba(0,0,0,0.2)"
+                    stroke={
+                      resolvedTheme === 'dark'
+                        ? 'rgba(255,255,255,0.2)'
+                        : 'rgba(0,0,0,0.2)'
+                    }
                     strokeWidth={1}
                   />
                 </g>
@@ -149,10 +169,16 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   if (active && payload && payload.length && formatter) {
     const tooltipBgColor =
       resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white';
+    const tooltipTextColor =
+      resolvedTheme === 'dark' ? 'text-gray-100' : 'text-gray-900';
     return (
       <div className={`${tooltipBgColor} p-2 rounded shadow`}>
         {/* Display the X-axis label (e.g., date) */}
-        {label && <p className="label font-semibold mb-1">{`${label}`}</p>}
+        {label && (
+          <p
+            className={`label font-semibold mb-1 ${tooltipTextColor}`}
+          >{`${label}`}</p>
+        )}
         {payload.map((entry, index) => {
           // entry.value is TValue (number), entry.name is TName (string)
           // The formatter expects (value: number, name: string)
@@ -164,7 +190,7 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
             <div
               key={`tooltip-item-${index}`}
               style={{ color: entry.color }}
-              className="text-sm"
+              className={`text-sm ${tooltipTextColor}`}
             >
               {`${formattedName}: ${formattedValue}`}
             </div>

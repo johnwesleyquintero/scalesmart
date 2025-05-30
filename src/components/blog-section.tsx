@@ -152,11 +152,7 @@ export default function BlogSection() {
                 </div>
               </CardContent>
               <CardFooter className="p-4 pt-0">
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="p-0 hover:bg-transparent group"
-                >
+                <Button asChild variant="ghost">
                   <Link
                     href={post.url}
                     className="flex items-center text-primary group-hover:underline"

@@ -78,7 +78,9 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
               // Convert the string index from MDX/source to a number.
               // The error indicates questionData.correctAnswer is a string.
               // The Quiz component expects a number (index).
-              correctAnswer: parseInt(questionData.correctAnswer as string, 10),
+              correctAnswer: isNaN(Number(questionData.correctAnswer))
+                ? 0
+                : Number(questionData.correctAnswer),
               explanation: questionData.explanation,
             };
           })}
@@ -281,11 +283,7 @@ function AcademyContentClient({
       ) : (
         <>
           <div>
-            <Button
-              onClick={handleBackToCourses}
-              variant="outline"
-              className="mb-4 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
-            >
+            <Button onClick={handleBackToCourses} variant="outline">
               &larr; Back to Courses
             </Button>
             <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">
@@ -321,7 +319,7 @@ function AcademyContentClient({
                             </span>
                           )}
                           <progress
-                            className="w-1/3 h-1.5 ml-2 rounded" // Example styling, adjust as needed
+                            className="w-1/3 h-1.5 ml-2 rounded"
                             value={getModuleProgress(module.id)}
                             max="100"
                             aria-valuenow={getModuleProgress(module.id)}
@@ -357,7 +355,6 @@ function AcademyContentClient({
                               variant="outline"
                               disabled={getCurrentModuleIndex() <= 0}
                               aria-label="Previous Module"
-                              className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                             >
                               &larr; Previous Module
                             </Button>
@@ -377,7 +374,6 @@ function AcademyContentClient({
                                 (activeCourse.modules?.length || 0) - 1
                               }
                               aria-label="Next Module"
-                              className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                             >
                               Next Module &rarr;
                             </Button>

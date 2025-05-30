@@ -404,11 +404,11 @@ export const deleteContact = async (id: string): Promise<void> => {
   }
 };
 
-// WesSync Task methods
+// Project Board Task methods
 
 /**
  * Creates a new task in IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  * @param task - The task data to create.
  */
 export const createTask = async (task: Task): Promise<string | undefined> => {
@@ -435,7 +435,7 @@ export const createTask = async (task: Task): Promise<string | undefined> => {
 
 /**
  * Retrieves a task by ID from IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  * @param id - The ID of the task to retrieve.
  */
 export const getTask = async (id: string): Promise<Task | undefined> => {
@@ -458,7 +458,7 @@ export const getTask = async (id: string): Promise<Task | undefined> => {
 
 /**
  * Updates an existing task in IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  * @param task - The task data to update.
  */
 export const updateTask = async (task: Task): Promise<void> => {
@@ -481,7 +481,7 @@ export const updateTask = async (task: Task): Promise<void> => {
 
 /**
  * Deletes a task by ID from IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  * @param id - The ID of the task to delete.
  */
 export const deleteTask = async (id: string): Promise<void> => {
@@ -500,11 +500,11 @@ export const deleteTask = async (id: string): Promise<void> => {
   }
 };
 
-// WesSync Project CRUD operations
+// Project Board Project CRUD operations
 
 /**
  * Creates a new project in IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  * @param projectData - The project data to create.
  */
 export const createProject = async (
@@ -537,7 +537,7 @@ export const createProject = async (
 
 /**
  * Retrieves a project by ID from IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  * @param id - The ID of the project to retrieve.
  */
 export const getProject = async (id: string): Promise<Project | undefined> => {
@@ -560,7 +560,7 @@ export const getProject = async (id: string): Promise<Project | undefined> => {
 
 /**
  * Retrieves all projects from IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  */
 export const getAllProjects = async (): Promise<Project[]> => {
   if (!db) {
@@ -582,7 +582,7 @@ export const getAllProjects = async (): Promise<Project[]> => {
 
 /**
  * Updates an existing project in IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  * @param project - The project data to update.
  */
 export const updateProject = async (project: Project): Promise<void> => {
@@ -604,7 +604,7 @@ export const updateProject = async (project: Project): Promise<void> => {
 
 /**
  * Deletes a project by ID from IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  * @param id - The ID of the project to delete.
  */
 export const deleteProject = async (id: string): Promise<void> => {
@@ -617,7 +617,7 @@ export const deleteProject = async (id: string): Promise<void> => {
 
 /**
  * Retrieves all tasks from IndexedDB.
- * @remarks Used by WesSync.
+ * @remarks Used by Project Board.
  */
 export const getAllTasks = async (): Promise<Task[]> => {
   if (!db) {

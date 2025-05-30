@@ -213,12 +213,7 @@ export default function ProjectsSection() {
                           </Link>
                         </CardTitle>
                         {project.homepage && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            asChild
-                            className="flex-shrink-0"
-                          >
+                          <Button variant="outline" size="sm" asChild>
                             <Link
                               href={project.homepage}
                               target="_blank"

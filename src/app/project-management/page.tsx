@@ -28,7 +28,7 @@ const ProjectManagementPage = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold text-center my-6">WesSync</h1>
+      <h1 className="text-3xl font-bold text-center my-6">Project Board</h1>
       <p className="text-lg text-muted-foreground text-center mb-8">
         Manage your projects and tasks efficiently.
       </p>

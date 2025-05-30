@@ -123,9 +123,9 @@ export default function ResumeScanner() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500';
-    if (score >= 60) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (score >= 80) return 'bg-green-500 dark:bg-green-700';
+    if (score >= 60) return 'bg-yellow-500 dark:bg-yellow-700';
+    return 'bg-red-500 dark:bg-red-700';
   };
 
   const suggestionsMdxSource = useMemo(() => {
@@ -159,8 +159,8 @@ export default function ResumeScanner() {
           <div className="border-2 border-dashed rounded-lg p-6 text-center">
             {!file ? (
               <div className="flex flex-col items-center justify-center space-y-4">
-                <Upload className="h-12 w-12 text-gray-400" />
-                <p className="text-sm text-gray-500">
+                <Upload className="h-12 w-12 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
                   Upload your resume (PDF or DOCX)
                 </p>
                 <input
@@ -180,7 +180,7 @@ export default function ResumeScanner() {
             ) : (
               <div className="flex flex-col items-center space-y-4">
                 <div className="flex items-center space-x-2">
-                  <Check className="h-5 w-5 text-green-500" />
+                  <Check className="h-5 w-5 text-success" />
                   <span className="font-medium">{file.name}</span>
                   <Button variant="ghost" size="icon" onClick={resetScanner}>
                     <X className="h-4 w-4" />
@@ -200,7 +200,7 @@ export default function ResumeScanner() {
           <CardContent className="p-6">
             <div className="flex flex-col items-center space-y-4">
               <Progress className="w-full" value={30} />
-              <p className="text-gray-600">
+              <p className="text-muted-foreground">
                 Analyzing your resume... This may take a few seconds.
               </p>
             </div>
@@ -229,7 +229,7 @@ export default function ResumeScanner() {
                 <div className="text-center">
                   <div className="font-medium">ATS Score</div>
                   <div
-                    className={`${analysis.score >= 70 ? 'text-green-500' : 'text-yellow-500'} font-bold`}
+                    className={`${analysis.score >= 70 ? 'text-success' : 'text-yellow-400 dark:text-yellow-300'} font-bold`}
                   >
                     {analysis.score >= 70 ? 'Good' : 'Needs Work'}
                   </div>
@@ -263,7 +263,7 @@ export default function ResumeScanner() {
                 <ul className="space-y-3">
                   {analysis.strengths.map((strength, index) => (
                     <li key={index} className="flex items-start">
-                      <Check className="h-5 w-5 text-green-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <Check className="h-5 w-5 text-success mr-2 mt-0.5 flex-shrink-0" />
                       <span>{strength}</span>
                     </li>
                   ))}
@@ -279,7 +279,7 @@ export default function ResumeScanner() {
                 <ul className="space-y-3">
                   {analysis.weaknesses.map((weakness, index) => (
                     <li key={index} className="flex items-start">
-                      <AlertCircle className="h-5 w-5 text-yellow-500 mr-2 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-yellow-400 dark:text-yellow-300 mr-2 mt-0.5 flex-shrink-0" />
                       <span>{weakness}</span>
                     </li>
                   ))}

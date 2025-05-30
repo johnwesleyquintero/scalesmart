@@ -40,26 +40,33 @@ const TaskList = ({ tasks, setTasks }: TaskListProps) => {
       <h2 className="text-2xl font-semibold mb-4">{title}</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredTasks.map((task) => (
-          <div key={task.id} className="bg-white shadow-md rounded-lg p-4">
+          <div
+            key={task.id}
+            className="bg-card shadow-md dark:shadow-lg rounded-lg p-4"
+          >
             <h3 className="text-xl font-bold mb-2">{task.title}</h3>
-            <p className="text-gray-700 mb-2">{task.description}</p>
-            <p className="text-gray-600 text-sm">Assignee: {task.assignee}</p>
-            <p className="text-gray-600 text-sm">Status: {task.status}</p>
+            <p className="text-muted-foreground mb-2">{task.description}</p>
+            <p className="text-muted-foreground text-sm">
+              Assignee: {task.assignee}
+            </p>
+            <p className="text-muted-foreground text-sm">
+              Status: {task.status}
+            </p>
             {task.dueDate && (
-              <p className="text-gray-600 text-sm">
+              <p className="text-muted-foreground text-sm">
                 Due: {new Date(task.dueDate).toLocaleDateString()}
               </p>
             )}
             <div className="mt-4 flex space-x-2">
               <button
                 onClick={() => handleEditClick(task)}
-                className="bg-yellow-500 text-white px-3 py-1 rounded-md hover:bg-yellow-600 transition-colors duration-200"
+                className="bg-yellow-500 dark:bg-yellow-700 text-white px-3 py-1 rounded-md hover:bg-yellow-600 dark:hover:bg-yellow-800 transition-colors duration-200"
               >
                 Edit
               </button>
               <button
                 onClick={() => handleDeleteTask(task.id)}
-                className="bg-red-500 text-white px-3 py-1 rounded-md hover:bg-red-600 transition-colors duration-200"
+                className="bg-red-500 dark:bg-red-700 text-white px-3 py-1 rounded-md hover:bg-red-600 dark:hover:bg-red-800 transition-colors duration-200"
               >
                 Delete
               </button>

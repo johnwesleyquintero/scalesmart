@@ -13,8 +13,8 @@
 .sidebar {
   width: 250px; /* Slightly wider for better usability */
   padding: 15px;
-  border-right: 1px solid #e0e0e0; /* Lighter border */
-  background-color: #f9f9f9; /* Light background for sidebar */
+  border-right: 1px solid var(--border); /* Using CSS variable for border */
+  background-color: var(--muted); /* Using CSS variable for sidebar */
   overflow-y: auto; /* Allow scrolling if many nodes */
 }
 
@@ -22,7 +22,7 @@
   margin-top: 0;
   margin-bottom: 15px;
   font-size: 1.2em;
-  color: #333;
+  color: var(--foreground); /* Using CSS variable for text color */
 }
 
 .mainContent {
@@ -35,16 +35,17 @@
 .header {
   height: 60px; /* Slightly taller header */
   padding: 0 20px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between; /* Pushes title and buttons apart */
-  background-color: #fff;
+  background-color: var(--card);
 }
 
 .header h1 {
   margin: 0;
   font-size: 1.5em;
+  color: var(--card-foreground);
 }
 
 .headerButtons {
@@ -56,4 +57,13 @@
   margin: 10px;
   padding: 8px 15px;
   align-self: flex-start; /* Align button to the start of the cross axis */
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.executeButton:hover {
+  background-color: var(--primary-hover);
 }

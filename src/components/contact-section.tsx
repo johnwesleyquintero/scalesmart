@@ -125,7 +125,6 @@ export default function ContactSection() {
                 </p>
                 <Button
                   variant="outline"
-                  className="mt-4"
                   onClick={() => {
                     setIsSubmitted(false);
                   }}

@@ -47,11 +47,7 @@ export default function HeroSection() {
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Button
-              asChild
-              size="lg"
-              className="group hover:scale-105 duration-300 bg-gradient-to-r from-purple-600 to-purple-400 text-white shadow-lg hover:shadow-xl hover:from-purple-700 hover:to-purple-500"
-            >
+            <Button asChild size="lg">
               <Link href="#projects">
                 View Projects
                 <span className="ml-2 group-hover:translate-x-1 duration-500">
@@ -59,20 +55,10 @@ export default function HeroSection() {
                 </span>
               </Link>
             </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="hover:scale-105 duration-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300 border-2 border-purple-200 dark:border-purple-800 hover:border-purple-300 dark:hover:border-purple-700"
-            >
+            <Button asChild variant="outline" size="lg">
               <Link href="/amazon-seller-tools">Amazon Tools</Link>
             </Button>
-            <Button
-              asChild
-              variant="ghost"
-              size="lg"
-              className="transition-transform duration-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300"
-            >
+            <Button asChild variant="ghost" size="lg">
               <Link href="#contact">Contact Me</Link>
             </Button>
           </div>

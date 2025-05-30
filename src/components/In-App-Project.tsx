@@ -138,11 +138,7 @@ const InAppProjects = () => {
                 {/* Content can be added here if needed in the future */}
               </CardContent>
               <CardFooter>
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="p-0 h-auto text-primary hover:text-primary group"
-                >
+                <Button asChild variant="ghost">
                   <Link
                     href={project.href}
                     target={project.external ? '_blank' : '_self'}

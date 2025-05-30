@@ -20,7 +20,6 @@ export default function DataCard({
   value,
   unit,
   description,
-  colorClass,
   suggestion,
 }: DataCardProps) {
   return (
@@ -29,7 +28,7 @@ export default function DataCard({
         <CardTitle className="text-sm font-medium">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className={`text-2xl font-bold ${colorClass}`}>
+        <div className={`text-2xl font-bold text-primary`}>
           {value}
           {unit && (
             <span className="text-sm font-normal text-muted-foreground ml-1">
