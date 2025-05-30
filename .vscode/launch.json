@@ -32,14 +32,12 @@
       "request": "launch",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev", "--", "--inspect"],
-      "port": 9229,
       "skipFiles": ["<node_internals>/**"]
     },
     {
       "name": "Next.js: Full Stack",
-      "type": "compound",
+      "type": "node",
       "request": "launch",
-      "configurations": ["Next.js: Node.js Server", "Next.js: Chrome Debug"],
       "preLaunchTask": "npm: dev"
     }
   ]

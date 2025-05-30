@@ -16,7 +16,10 @@ export async function generateStaticParams() {
 }
 
 export default async function DocPage({ params }: DocPageProps) {
-  const doc = await getDocPostBySlug(params.slug.join('/'));
+  const awaitedParams = await params;
+  const slugParam = awaitedParams.slug;
+  console.log('Resolved slug:', slugParam);
+  const doc = await getDocPostBySlug(slugParam.join('/'));
 
   if (!doc) {
     notFound();
