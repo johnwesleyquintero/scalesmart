@@ -1,0 +1,29 @@
+---
+title: Redis API Endpoint Documentation
+description: Documentation for the Redis API endpoint.
+date: 2025-05-30
+---
+
+# Redis API Endpoint Documentation (`src/app/api/redis/route.ts`)
+
+## Overview
+
+The `src/app/api/redis/route.ts` file defines an API endpoint that connects to a Redis database and retrieves a value associated with the key "myKey".
+
+## Functionality
+
+- **Connects to Redis Database:** Connects to a Redis database using the URL specified in the `REDIS_URL` environment variable.
+- **Retrieves Value from Redis:** Retrieves the value associated with the key "myKey" from the Redis database.
+- **Returns JSON Response:** Returns the retrieved value as a JSON response.
+
+## Technical Details
+
+- The endpoint uses the `createClient` function from `redis` to create a Redis client.
+- The endpoint uses the `REDIS_URL` environment variable to connect to the Redis database.
+
+## Data Flow
+
+1.  A GET request is made to the `/api/redis` endpoint.
+2.  The endpoint connects to the Redis database using the URL specified in the `REDIS_URL` environment variable.
+3.  The endpoint retrieves the value associated with the key "myKey" from the Redis database.
+4.  The endpoint returns the retrieved value as a JSON response.

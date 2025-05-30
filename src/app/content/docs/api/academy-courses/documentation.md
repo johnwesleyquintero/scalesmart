@@ -1,0 +1,161 @@
+---
+title: Academy Courses API Documentation
+description: Documentation for the Academy Courses API endpoint.
+date: 2025-05-30
+tags: ['academy', 'courses', 'api']
+readingTime: '7 min read'
+author: 'Wesley Quintero'
+type: 'doc'
+---
+
+# Academy Courses API Endpoint Documentation (`src/app/api/academy-courses/route.ts`)
+
+## Overview
+
+The Academy Courses API endpoint (`src/app/api/academy-courses/route.ts`) is responsible for reading academy course data, including metadata and content, from MDX files stored in the `c:\Users\johnw\portfolio\src\app\content\academy` directory.
+
+## Functionality
+
+- **Reads and Serves Course Data:** Fetches all MDX files from `c:\Users\johnw\portfolio\src\app\content\academy`, parses their frontmatter (metadata) using `gray-matter`, and potentially includes the MDX content itself.
+- **Provides Standardized Course Information:** Returns a structured list of courses with standardized metadata fields.
+
+## Technical Details
+
+- The endpoint uses the `NextResponse` object from `next/server` to return the JSON response.
+- The endpoint reads MDX files from the `c:\Users\johnw\portfolio\src\app\content\academy` directory.
+- Metadata is parsed from the MDX frontmatter using `gray-matter`.
+- The endpoint uses the `Cache-Control` header for caching.
+
+## Data Flow
+
+1.  A request is made to the `/api/academy-courses` endpoint.
+2.  The endpoint reads all MDX files from `c:\Users\johnw\portfolio\src\app\content\academy`.
+3.  For each file, it parses the frontmatter (metadata) and extracts the MDX content.
+4.  The endpoint returns an array of course objects, including their metadata and potentially the MDX content, as a JSON response.
+
+## Request Methods
+
+### `GET`
+
+Returns a list of academy courses from MDX files located in `c:\Users\johnw\portfolio\src\app\content\academy`.
+
+#### Query Parameters
+
+- `slug` (optional): If provided, returns only the course with the specified slug.
+
+#### Success Response
+
+- **Code:** 200 OK
+
+#### Example
+
+````json
+[
+  {
+    "slug": "example-course",
+    "title": "Example Course",
+    "description": "This is an example course.",
+    "duration": "1h 30m",
+    "level": "Beginner",
+    "category": "Amazon Basics",
+    "tags": ["FBA", "Product Listing"],
+    "author": "ScaleSmart Team",
+    "interactive": false,
+    "content": "## Module 1: Introduction to SEO",
+    "modules": [
+      {
+        "slug": "module-1",
+        "title": "Module 1: Introduction",
+        "content": "MDX content for module 1..."
+      }
+    ]
+  }
+]
+
+### `POST`
+
+Creates a new academy course.
+
+#### Request Body
+
+```json
+{
+  "title": "New Course Title",
+  "description": "New course description",
+  "duration": "2h 0m",
+  "level": "Intermediate",
+  "category": "Marketing",
+  "tags": ["SEO", "Content Marketing"],
+  "author": "Marketing Team",
+  "interactive": true,
+  "content": "## Module 1: Introduction to SEO"
+}
+````
+
+#### Success Response
+
+- **Code:** 201 Created
+- **Content:**
+
+```json
+{
+  "message": "Course created successfully",
+  "slug": "new-course-title"
+}
+```
+
+### `PUT`
+
+Updates an existing academy course.
+
+#### Request Body
+
+```json
+{
+  "title": "Updated Course Title",
+  "description": "Updated course description",
+  "duration": "2h 30m",
+  "level": "Advanced",
+  "category": "Marketing",
+  "tags": ["SEO", "Content Marketing", "Analytics"],
+  "author": "Marketing Team",
+  "interactive": true,
+  "content": "## Module 1: Advanced SEO Techniques"
+}
+```
+
+#### Success Response
+
+- **Code:** 200 OK
+- **Content:**
+
+```json
+{
+  "message": "Course updated successfully",
+  "slug": "updated-course-title"
+}
+```
+
+### `DELETE`
+
+Deletes an academy course.
+
+#### Request Body
+
+```json
+{
+  "slug": "course-to-delete"
+}
+```
+
+#### Success Response
+
+- **Code:** 200 OK
+- **Content:**
+
+```json
+{
+  "message": "Course deleted successfully",
+  "slug": "course-to-delete"
+}
+```

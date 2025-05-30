@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs
-import { getAllPosts } from '@/lib/mdx';
+import { getAllBlogPosts } from '@/lib/mdx';
 import type { BlogPost } from '@/types'; // Import BlogPost type
 import { ArrowRight, Calendar, Clock } from 'lucide-react';
 import type { Metadata } from 'next';
@@ -23,14 +23,16 @@ export const metadata: Metadata = {
 
 export default async function BlogPage() {
   console.time('BlogPage');
-  console.time('getAllPosts');
-  const posts = await getAllPosts();
-  console.timeEnd('getAllPosts');
+  console.time('getAllBlogPosts');
+  const posts = await getAllBlogPosts();
+  console.timeEnd('getAllBlogPosts');
   console.timeEnd('BlogPage');
 
-  const blogPosts = posts.filter((post) => post.type === 'blog');
-  const articles = posts.filter((post) => post.type === 'article');
-  const caseStudies = posts.filter((post) => post.type === 'case-study');
+  const blogPosts = posts.filter((post: BlogPost) => post.type === 'blog');
+  const articles = posts.filter((post: BlogPost) => post.type === 'article');
+  const caseStudies = posts.filter(
+    (post: BlogPost) => post.type === 'case-study',
+  );
 
   const renderPostCards = (filteredPosts: BlogPost[]) => (
     <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">

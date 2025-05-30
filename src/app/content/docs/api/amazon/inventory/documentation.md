@@ -1,0 +1,30 @@
+---
+title: Amazon Inventory API Endpoint Documentation
+description: Documentation for the Amazon Inventory API endpoint.
+date: 2025-05-30
+---
+
+# Amazon Inventory API Endpoint Documentation (`src/app/api/amazon/inventory/route.ts`)
+
+## Overview
+
+The Amazon Inventory API endpoint (`src/app/api/amazon/inventory/route.ts`) calculates inventory recommendations based on the provided inventory data. It validates the input data using `zod` and uses the `AmazonAlgorithms.calculateInventoryRecommendation` function to calculate the recommendation.
+
+## Functionality
+
+- **Calculates Inventory Recommendation:** Calculates an inventory recommendation based on the provided inventory data.
+- **Validates Input Data:** Validates the input data using the `zod` library.
+- **Returns JSON Response:** Returns the inventory recommendation and analysis as a JSON response.
+
+## Technical Details
+
+- The endpoint uses the `zod` library to validate the request body.
+- The endpoint defines an interface for the inventory data.
+- The endpoint uses the `AmazonAlgorithms.calculateInventoryRecommendation` function to calculate the recommendation.
+
+## Data Flow
+
+1.  A POST request is made to the `/api/amazon/inventory` endpoint with the inventory data.
+2.  The endpoint validates the request body using the `zod` library.
+3.  The endpoint calculates the inventory recommendation using the `AmazonAlgorithms.calculateInventoryRecommendation` function.
+4.  The endpoint returns the inventory recommendation and analysis as a JSON response.

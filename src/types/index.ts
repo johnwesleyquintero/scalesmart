@@ -70,6 +70,21 @@ export type BlogPost = {
   type?: 'blog' | 'article' | 'case-study'; // New: Type of the blog post
 };
 
+export type DocPost = {
+  id: string;
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  image?: string;
+  tags?: string[];
+  readingTime?: string;
+  author?: string;
+  content?: string;
+  relatedDocs?: unknown[];
+  type?: 'doc';
+};
+
 export interface Question {
   id: number;
   text: string;

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
-import { components as MdxComponents } from '../../../components/MdxRenderer';
+import { components as components } from '../../../components/MdxRenderer';
 
 interface ArticleModuleProps {
   contentSlug: string;
@@ -68,7 +68,7 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
         </h2>
       )}
       <div className="prose dark:prose-invert">
-        <MDXRemote {...mdxSource} components={MdxComponents} />
+        <MDXRemote {...mdxSource} components={components} />
       </div>
     </div>
   );

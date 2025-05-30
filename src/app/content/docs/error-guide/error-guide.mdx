@@ -1,0 +1,182 @@
+---
+title: ScaleSmart Error Guide
+description: A comprehensive resource for troubleshooting common issues encountered while using ScaleSmart.
+date: 2025-05-30
+tags: ['error', 'guide', 'troubleshooting']
+readingTime: '10 min read'
+author: 'Wesley Quintero'
+type: 'doc'
+---
+
+# ScaleSmart Error Guide
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Error Categories](#error-categories)
+- [Troubleshooting Steps](#troubleshooting-steps)
+  - [User Input Errors](#user-input-errors)
+    - [Invalid Input](#invalid-input)
+    - [Missing Required Field](#missing-required-field)
+  - [API Errors](#api-errors)
+    - [API Endpoint Not Found](#api-endpoint-not-found)
+    - [API Request Failed](#api-request-failed)
+  - [System Errors](#system-errors)
+    - [Internal Server Error](#internal-server-error)
+    - [Service Unavailable](#service-unavailable)
+- [Reporting Unresolved Errors](#reporting-unresolved-errors)
+- [Contributing to the Guide](#contributing-to-the-guide)
+
+## Introduction
+
+This error guide provides a comprehensive resource for troubleshooting common issues encountered while using ScaleSmart. It aims to help users understand the causes of errors and provides step-by-step instructions for resolving them. This guide is designed for users of all technical skill levels.
+
+## Error Categories
+
+Errors are categorized into the following groups:
+
+- User Input Errors: Errors caused by incorrect or invalid user input.
+- API Errors: Errors related to the ScaleSmart API.
+- System Errors: Errors caused by issues with the ScaleSmart system or environment.
+
+## Troubleshooting Steps
+
+### User Input Errors
+
+#### Invalid Input
+
+- **Error Message:** `Invalid input. Please check your input and try again.`
+- **Description:** This error occurs when the user provides invalid input, such as incorrect data types or values.
+- **Cause:** The input validation logic in ScaleSmart detects that the input does not meet the required criteria.
+- **Troubleshooting Steps:**
+  1. Check the input fields for any typos or incorrect values.
+  2. Ensure that the input data types match the expected data types.
+  3. Refer to the ScaleSmart documentation for the correct input format.
+- **Example:**
+  ```
+  // Example of invalid input
+  const age = "abc"; // Invalid input: age should be a number
+  ```
+  **Solution:**
+  ```
+  // Example of valid input
+  const age = 30; // Valid input: age is a number
+  ```
+
+#### Missing Required Field
+
+- **Error Message:** `Missing required field: [field_name]`
+- **Description:** This error occurs when a required field is missing from the user input.
+- **Cause:** The ScaleSmart application requires certain fields to be present in order to process the request.
+- **Troubleshooting Steps:**
+  1. Identify the missing required field from the error message.
+  2. Ensure that the missing field is included in the input data.
+  3. Refer to the ScaleSmart documentation for a list of required fields.
+- **Example:**
+  ```
+  // Example of missing required field
+  const data = {
+    name: "John Doe"
+    // Missing required field: email
+  };
+  ```
+  **Solution:**
+  ```
+  // Example of including the required field
+  const data = {
+    name: "John Doe",
+    email: "john.doe@example.com"
+  };
+  ```
+
+### API Errors
+
+#### API Endpoint Not Found
+
+- **Error Message:** `API endpoint not found: [endpoint_url]`
+- **Description:** This error occurs when the requested API endpoint does not exist.
+- **Cause:** The API endpoint may be misspelled, or the endpoint may have been removed or renamed.
+- **Troubleshooting Steps:**
+  1. Check the API endpoint URL for any typos.
+  2. Ensure that the API endpoint is still valid and has not been removed or renamed.
+  3. Refer to the ScaleSmart API documentation for a list of valid endpoints.
+- **Example:**
+  ```
+  // Example of incorrect API endpoint
+  const url = "/api/v1/invalidepoint"; // Incorrect endpoint
+  ```
+  **Solution:**
+  ```
+  // Example of correct API endpoint
+  const url = "/api/v1/validendpoint"; // Correct endpoint
+  ```
+
+#### API Request Failed
+
+- **Error Message:** `API request failed with status code: [status_code]`
+- **Description:** This error occurs when an API request fails due to a server error or other issue.
+- **Cause:** The API server may be down, or there may be a network connectivity issue.
+- **Troubleshooting Steps:**
+  1. Check the API server status to ensure that it is running.
+  2. Check your network connection to ensure that you can reach the API server.
+  3. Review the API server logs for any error messages.
+- **Example:**
+  ```
+  // Example of API request failing
+  fetch("/api/v1/data")
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`API request failed with status code: ${response.status}`);
+      }
+    });
+  ```
+  **Solution:**
+  1. Check the server logs for the specific error.
+  2. Ensure the API endpoint is correctly implemented on the server.
+
+### System Errors
+
+#### Internal Server Error
+
+- **Error Message:** `Internal server error.`
+- **Description:** This error occurs when an unexpected error occurs on the ScaleSmart server.
+- **Cause:** The error may be caused by a bug in the ScaleSmart code, or by a problem with the server environment.
+- **Troubleshooting Steps:**
+  1. Check the ScaleSmart server logs for any error messages.
+  2. Restart the ScaleSmart server.
+  3. Contact ScaleSmart support for assistance.
+- **Example:** N/A, this is a server-side error.
+  **Solution:**
+  1. Check the server logs for the specific error.
+  2. Restart the server.
+  3. Contact ScaleSmart support if the issue persists.
+
+#### Service Unavailable
+
+- **Error Message:** `Service unavailable.`
+- **Description:** This error occurs when the ScaleSmart service is temporarily unavailable.
+- **Cause:** The service may be down for maintenance, or there may be a problem with the server infrastructure.
+- **Troubleshooting Steps:**
+  1. Check the ScaleSmart status page for any known outages.
+  2. Wait a few minutes and try again.
+  3. Contact ScaleSmart support for assistance.
+- **Example:** N/A, this is a server-side error.
+  **Solution:**
+  1. Check the ScaleSmart status page.
+  2. Wait and try again later.
+  3. Contact ScaleSmart support if the issue persists.
+
+## Reporting Unresolved Errors
+
+If you encounter an error that is not covered in this guide, please report it to the ScaleSmart support team. When reporting an error, please include the following information:
+
+- Error message
+- Description of the error
+- Steps to reproduce the error
+- Any relevant code snippets or screenshots
+
+## Contributing to the Guide
+
+We welcome contributions to this error guide. If you have encountered an error that is not covered in this guide, or if you have a better solution for an existing error, please submit a pull request to the ScaleSmart documentation repository.
+
+The `ErrorGuide` component now uses `cachedFetch` to fetch the MDX content.

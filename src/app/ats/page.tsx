@@ -13,7 +13,7 @@ import { AlertCircle, Check, Upload, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { MDXRemote } from 'next-mdx-remote';
-import { components as MdxComponents } from '@/components/MdxRenderer';
+import { components as components } from '@/components/MdxRenderer';
 
 interface ResumeAnalysis {
   score: number;
@@ -293,10 +293,7 @@ export default function ResumeScanner() {
                 <CardTitle>Optimization Suggestions</CardTitle>
               </CardHeader>
               <CardContent>
-                <MDXRemote
-                  {...suggestionsMdxSource}
-                  components={MdxComponents}
-                />
+                <MDXRemote {...suggestionsMdxSource} components={components} />
               </CardContent>
             </Card>
           )}

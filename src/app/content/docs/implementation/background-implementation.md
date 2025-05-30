@@ -1,0 +1,37 @@
+---
+title: Background Implementation Details
+description: This document outlines the implementation details of the standardized background theme.
+date: 2025-05-30
+tags: ['implementation', 'background']
+readingTime: '5 min read'
+author: 'Wesley Quintero'
+type: 'doc'
+---
+
+# Background Implementation Details
+
+This document outlines the implementation details of the standardized background theme.
+
+## Background Color
+
+The chosen background color is HSL 0 0% 95%, which is a light gray.
+
+## Modified Files
+
+The following files were modified to implement the background theme:
+
+- [src/styles/globals.css](src/styles/globals.css)
+- [src/app/project-management/page.tsx](src/app/project-management/page.tsx)
+- [src/app/academy/page.tsx](src/app/academy/page.tsx) - The `bg-secondary` class was removed to ensure the global background color is applied.
+- [src/app/crm/page.tsx](src/app/crm/page.tsx)
+- [src/app/ats/page.tsx](src/app/ats/page.tsx) - The `bg-background` class was added to the main div element to ensure the global background color is applied.
+
+## Guidelines for Future Modifications
+
+### Changing the Background Color
+
+To change the background color, modify the `background-color` property in the [src/styles/globals.css](src/styles/globals.css) file. Ensure that the new color is accessible and provides sufficient contrast with the text.
+
+### Handling Route-Specific Styles
+
+When implementing route-specific styles, be mindful of potential conflicts with the global background color. To avoid conflicts, use specific selectors for route-specific elements or adjust the global styles accordingly.

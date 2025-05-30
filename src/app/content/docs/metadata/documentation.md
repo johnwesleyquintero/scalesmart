@@ -1,0 +1,46 @@
+---
+title: Metadata Configuration Documentation
+description: Documentation for the Metadata Configuration.
+date: 2025-05-30
+tags: ['metadata', 'configuration']
+readingTime: '5 min read'
+author: 'Wesley Quintero'
+type: 'doc'
+---
+
+# Metadata Configuration Documentation (`src/app/metadata.ts`)
+
+## Overview
+
+The Metadata Configuration (`src/app/metadata.ts`) defines the metadata for the application, which is used by search engines, social media platforms, and other services to understand and display information about the application.
+
+## Functionality
+
+- **Defines Title:** Sets the title of the application.
+- **Defines Description:** Sets the description of the application.
+- **Defines Keywords:** Sets the keywords for the application.
+- **Defines Authors:** Sets the authors of the application.
+- **Configures Open Graph Properties:** Defines the Open Graph properties for social media sharing.
+- **Configures Twitter Card:** Defines the Twitter card properties for Twitter sharing.
+- **Configures Robots Settings:** Defines the robots settings for search engine crawlers.
+- **Defines Icons:** Sets the icons for the application.
+- **Defines Manifest:** Sets the manifest file for the application.
+- **Configures Metadata Base:** Defines the base URL for the application.
+- **Configures Verification:** Defines the verification codes for various services.
+- **Configures Alternates:** Defines alternate URLs for the application.
+- **Configures Generator:** Defines the generator for the application.
+- **Configures Application Name:** Defines the application name.
+- **Configures Referrer:** Defines the referrer policy for the application.
+- **Configures Format Detection:** Defines format detection settings for the application.
+
+## Technical Details
+
+- The file uses the `Metadata` type from `next`.
+- It defines constants for the default image, site description, author name, and favicon path.
+- It uses environment variables to determine the metadata base URL.
+
+## Data Flow
+
+1.  The `metadata` object is exported from the `src/app/metadata.ts` file.
+2.  The `RootLayout` component imports the `metadata` object and uses it to configure the application's metadata.
+3.  The metadata is then used by search engines, social media platforms, and other services to display information about the application.

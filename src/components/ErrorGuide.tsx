@@ -1,6 +1,6 @@
 'use client';
 
-import { components as MdxComponents } from './MdxRenderer';
+import { components } from './MdxRenderer';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { useEffect, useState } from 'react';
 import { cachedFetch } from '../lib/api-cache';
@@ -32,7 +32,7 @@ const ErrorGuide = () => {
 
   return (
     <div>
-      {mdxSource && <MDXRemote {...mdxSource} components={MdxComponents} />}
+      {mdxSource && <MDXRemote {...mdxSource} components={components} />}
     </div>
   );
 };

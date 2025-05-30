@@ -1,0 +1,39 @@
+---
+title: useToast Hook Documentation (src/app/hooks/use-toast.ts)
+description: The `src/app/hooks/use-toast.ts` file defines a custom hook that provides a toast notification system. It allows components to display temporary messages to the user.
+date: 2025-05-30
+tags: ['hook', 'toast']
+readingTime: '5 min read'
+author: 'Wesley Quintero'
+type: 'doc'
+---
+
+# useToast Hook Documentation (`src/app/hooks/use-toast.ts`)
+
+## Overview
+
+The `src/app/hooks/use-toast.ts` file defines a custom hook that provides a toast notification system. It allows components to display temporary messages to the user.
+
+## Functionality
+
+- **Displays Toast Notifications:** Allows components to display temporary messages to the user.
+- **Manages Toast State:** Manages the state of the toast notifications, including adding, updating, dismissing, and removing toasts.
+- **Provides Toast Context:** Provides a context for accessing the toast notification system.
+
+## Technical Details
+
+- The hook uses the `React.useState` and `React.useEffect` hooks to manage the state and side effects.
+- The hook uses a reducer function to update the state.
+- The hook uses a `Map` to store the toast timeouts.
+- The hook uses a `listeners` array to notify components of state changes.
+
+## Data Flow
+
+1.  The `useToast` hook is called in a component.
+2.  The hook initializes the state with the initial state from memory.
+3.  The component subscribes to the state changes by adding a listener to the `listeners` array.
+4.  The `toast` function is called to add a new toast notification.
+5.  The `dispatch` function is called to update the state.
+6.  The reducer function updates the state based on the action type.
+7.  The listeners are notified of the state change.
+8.  The component re-renders with the updated state.

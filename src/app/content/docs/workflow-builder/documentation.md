@@ -1,0 +1,23 @@
+---
+title: Workflow Builder Documentation
+description: Documentation for the Workflow Builder.
+date: 2025-05-30
+tags: ['workflow', 'builder']
+readingTime: '5 min read'
+author: 'Wesley Quintero'
+type: 'doc'
+---
+
+# Workflow Builder Documentation
+
+## Overview
+
+The Workflow Builder page is a React component that allows users to create and manage workflows visually. It uses the `reactflow` library to provide a drag-and-drop interface for building workflows.
+
+## Functionality
+
+- **Node Creation:** Users can drag nodes from the sidebar onto the canvas to add them to the workflow.
+- **Node Connection:** Users can connect nodes by dragging edges between them.
+- **Workflow Saving:** Users can save the current workflow to IndexedDB.
+- **Workflow Loading:** Users can load a previously saved workflow from IndexedDB.
+- **Workflow Execution:** Users can execute the workflow, which will run the logic defined by the nodes and edges.

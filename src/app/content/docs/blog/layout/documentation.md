@@ -1,0 +1,30 @@
+---
+title: Blog Layout Documentation
+description: Documentation for the Blog layout.
+date: 2025-05-30
+tags: ['blog', 'layout']
+readingTime: '3 min read'
+author: 'Wesley Quintero'
+type: 'doc'
+---
+
+# Blog Layout Documentation (`src/app/blog/layout.tsx`)
+
+## Overview
+
+The `src/app/blog/layout.tsx` file defines the layout for the blog section of the application. It sets the metadata and viewport configurations for the blog pages.
+
+## Functionality
+
+- **Defines Metadata:** Sets the title and description for the blog pages.
+- **Configures Viewport:** Defines the viewport settings for different devices.
+
+## Technical Details
+
+- The file uses the `Metadata` and `Viewport` types from `next`.
+
+## Data Flow
+
+1.  The `BlogLayout` component is rendered for all pages under the `/blog` route.
+2.  The component sets the metadata and viewport configurations for the blog pages.
+3.  The `children` prop is rendered within the `<main>` element, displaying the content of the specific blog page.

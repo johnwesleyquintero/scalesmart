@@ -1,7 +1,8 @@
 import BlogImage from '@/components/blog/blog-image';
 import { MDXComponents as mdxComponents } from '@/components/blog/mdx-components';
 import { Badge } from '@/components/ui/badge';
-import { getAllPosts, getPostBySlug } from '@/lib/mdx';
+import type { BlogPost } from '@/types';
+import { getAllBlogPosts, getBlogPostBySlug } from '@/lib/mdx';
 import { ArrowLeft, Calendar, Clock, Tag } from 'lucide-react';
 import type { Metadata } from 'next';
 import { MDXRemote } from 'next-mdx-remote/rsc';
@@ -20,7 +21,7 @@ export async function generateMetadata({
     // Await the params to ensure they are fully resolved
     const resolvedParams = await params;
     const { slug } = resolvedParams;
-    const post = await getPostBySlug(slug);
+    const post = await getBlogPostBySlug(slug);
 
     const DEFAULT_IMAGE_URL = '/default-fallback.svg'; // Define the constant here
     const NOT_FOUND_TITLE = 'Post Not Found | Wesley Quintero'; // Define the constant for the title
@@ -99,9 +100,9 @@ export async function generateMetadata({
 }
 
 export async function generateStaticParams() {
-  const posts = await getAllPosts();
+  const posts = await getAllBlogPosts();
 
-  return posts.map((post) => ({
+  return posts.map((post: BlogPost) => ({
     slug: post.slug,
   }));
 }
@@ -110,7 +111,7 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
   // Await the params to ensure they are fully resolved
   const resolvedParams = await params;
   const { slug } = resolvedParams;
-  const post = await getPostBySlug(slug);
+  const post = await getBlogPostBySlug(slug);
 
   if (!post) {
     notFound();
@@ -180,29 +181,20 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
           <div className="mt-16 pt-8 border-t">
             <h2 className="text-2xl font-bold mb-4">Continue Reading</h2>
             <div className="grid gap-4 md:grid-cols-2">
-              {post.relatedPosts?.map((relatedPost) => {
-                const typedRelatedPost = relatedPost as {
-                  id: string;
-                  slug: string;
-                  title: string;
-                  description: string;
-                };
-
-                return (
+              {(post.relatedPosts as BlogPost[])?.map(
+                (relatedPost: BlogPost) => (
                   <Link
-                    key={typedRelatedPost.slug}
-                    href={`/blog/${typedRelatedPost.slug}`}
+                    key={relatedPost.slug}
+                    href={`/blog/${relatedPost.slug}`}
                     className="block p-4 rounded-lg border hover:bg-muted/50 transition-colors"
                   >
-                    <h3 className="font-medium mb-1">
-                      {typedRelatedPost.title}
-                    </h3>
+                    <h3 className="font-medium mb-1">{relatedPost.title}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {typedRelatedPost.description || ''}
+                      {relatedPost.description || ''}
                     </p>
                   </Link>
-                );
-              })}
+                ),
+              )}
             </div>
           </div>
         </div>
