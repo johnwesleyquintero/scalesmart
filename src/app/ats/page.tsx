@@ -123,9 +123,9 @@ export default function ResumeScanner() {
   };
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'bg-green-500 dark:bg-green-700';
-    if (score >= 60) return 'bg-yellow-500 dark:bg-yellow-700';
-    return 'bg-red-500 dark:bg-red-700';
+    if (score >= 80) return 'bg-success text-success-foreground';
+    if (score >= 60) return 'bg-warning text-warning-foreground';
+    return 'bg-destructive text-destructive-foreground';
   };
 
   const suggestionsMdxSource = useMemo(() => {
@@ -214,7 +214,7 @@ export default function ResumeScanner() {
               <div className="flex justify-between items-center">
                 <CardTitle>Resume Score</CardTitle>
                 <div
-                  className={`px-3 py-1 rounded-full ${getScoreColor(analysis.score)} text-white text-sm font-medium`}
+                  className={`px-3 py-1 rounded-full ${getScoreColor(analysis.score)} text-sm font-medium`}
                 >
                   {analysis.score}/100
                 </div>
@@ -229,14 +229,14 @@ export default function ResumeScanner() {
                 <div className="text-center">
                   <div className="font-medium">ATS Score</div>
                   <div
-                    className={`${analysis.score >= 70 ? 'text-success' : 'text-yellow-400 dark:text-yellow-300'} font-bold`}
+                    className={`${analysis.score >= 70 ? 'text-success' : 'text-warning'} font-bold`}
                   >
                     {analysis.score >= 70 ? 'Good' : 'Needs Work'}
                   </div>
                 </div>
                 <div className="text-center">
                   <div className="font-medium">Keywords Match</div>
-                  <div className="text-gray-600">
+                  <div className="text-gray-600 dark:text-gray-300">
                     {analysis.keywords.present.length}/
                     {analysis.keywords.present.length +
                       analysis.keywords.missing.length}
@@ -244,7 +244,7 @@ export default function ResumeScanner() {
                 </div>
                 <div className="text-center">
                   <div className="font-medium">Sections</div>
-                  <div className="text-gray-600">
+                  <div className="text-gray-600 dark:text-gray-300">
                     {analysis.sections.present.length}/
                     {analysis.sections.present.length +
                       analysis.sections.missing.length}
@@ -279,7 +279,7 @@ export default function ResumeScanner() {
                 <ul className="space-y-3">
                   {analysis.weaknesses.map((weakness, index) => (
                     <li key={index} className="flex items-start">
-                      <AlertCircle className="h-5 w-5 text-yellow-400 dark:text-yellow-300 mr-2 mt-0.5 flex-shrink-0" />
+                      <AlertCircle className="h-5 w-5 text-warning mr-2 mt-0.5 flex-shrink-0" />
                       <span>{weakness}</span>
                     </li>
                   ))}

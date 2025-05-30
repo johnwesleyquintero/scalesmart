@@ -176,37 +176,37 @@ export default function UnifiedDashboard() {
           <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-gray-100 dark:bg-gray-700">
             <TabsTrigger
               value="overview"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="keywords"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
             >
               Keywords
             </TabsTrigger>
             <TabsTrigger
               value="listing-optimization"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
             >
               Listing Optimization
             </TabsTrigger>
             <TabsTrigger
               value="financials"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
             >
               Financials
             </TabsTrigger>
             <TabsTrigger
               value="ppc-ads"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
             >
               PPC & Ads
             </TabsTrigger>
             <TabsTrigger
               value="competition"
-              className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
             >
               Competition
             </TabsTrigger>
@@ -241,19 +241,19 @@ export default function UnifiedDashboard() {
                   <TabsList className="mb-4 bg-gray-100 dark:bg-gray-700">
                     <TabsTrigger
                       value="analyzer"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Analyzer
                     </TabsTrigger>
                     <TabsTrigger
                       value="deduplicator"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Deduplicator
                     </TabsTrigger>
                     <TabsTrigger
                       value="trend"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Trend Analyzer
                     </TabsTrigger>
@@ -281,19 +281,19 @@ export default function UnifiedDashboard() {
                   <TabsList className="mb-4 bg-gray-100 dark:bg-gray-700">
                     <TabsTrigger
                       value="editor"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Description Editor
                     </TabsTrigger>
                     <TabsTrigger
                       value="quality"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Quality Checker
                     </TabsTrigger>
                     <TabsTrigger
                       value="score"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Score Calculator
                     </TabsTrigger>
@@ -321,25 +321,25 @@ export default function UnifiedDashboard() {
                   <TabsList className="mb-4 bg-gray-100 dark:bg-gray-700">
                     <TabsTrigger
                       value="fba"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       FBA Calculator
                     </TabsTrigger>
                     <TabsTrigger
                       value="acos"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       ACoS Calculator
                     </TabsTrigger>
                     <TabsTrigger
                       value="profit"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Profit Margin Calc
                     </TabsTrigger>
                     <TabsTrigger
                       value="price"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Optimal Price Calc
                     </TabsTrigger>
@@ -370,7 +370,7 @@ export default function UnifiedDashboard() {
                   <TabsList className="mb-4 bg-gray-100 dark:bg-gray-700">
                     <TabsTrigger
                       value="auditor"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Campaign Auditor
                     </TabsTrigger>
@@ -392,13 +392,13 @@ export default function UnifiedDashboard() {
                   <TabsList className="mb-4 bg-gray-100 dark:bg-gray-700">
                     <TabsTrigger
                       value="analyzer"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Competitor Analyzer
                     </TabsTrigger>
                     <TabsTrigger
                       value="estimator"
-                      className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
                     >
                       Sales Estimator
                     </TabsTrigger>

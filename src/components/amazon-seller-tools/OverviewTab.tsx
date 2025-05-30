@@ -1184,12 +1184,42 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                 {timeRange === 'custom' && 'Custom Range'}
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700">
-                <SelectItem value="last_7_days">Last 7 Days</SelectItem>
-                <SelectItem value="last_30_days">Last 30 Days</SelectItem>
-                <SelectItem value="month_to_date">Month to Date</SelectItem>
-                <SelectItem value="year_to_date">Year to Date</SelectItem>
-                <SelectItem value="all_time">All Time</SelectItem>
-                <SelectItem value="custom">Custom Range</SelectItem>
+                <SelectItem
+                  value="last_7_days"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Last 7 Days
+                </SelectItem>
+                <SelectItem
+                  value="last_30_days"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Last 30 Days
+                </SelectItem>
+                <SelectItem
+                  value="month_to_date"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Month to Date
+                </SelectItem>
+                <SelectItem
+                  value="year_to_date"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Year to Date
+                </SelectItem>
+                <SelectItem
+                  value="all_time"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  All Time
+                </SelectItem>
+                <SelectItem
+                  value="custom"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Custom Range
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1263,11 +1293,36 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                 <SelectValue placeholder="Select Time Granularity" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700">
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-                <SelectItem value="quarterly">Quarterly</SelectItem>
-                <SelectItem value="yearly">Yearly</SelectItem>
+                <SelectItem
+                  value="daily"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Daily
+                </SelectItem>
+                <SelectItem
+                  value="weekly"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Weekly
+                </SelectItem>
+                <SelectItem
+                  value="monthly"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Monthly
+                </SelectItem>
+                <SelectItem
+                  value="quarterly"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Quarterly
+                </SelectItem>
+                <SelectItem
+                  value="yearly"
+                  className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                >
+                  Yearly
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

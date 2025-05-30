@@ -368,10 +368,25 @@ export default function CRMComponent() {
         </p>
 
         <Tabs defaultValue="add-customer" className="w-full">
-          <TabsList className="mb-4 flex flex-wrap h-auto justify-start">
-            <TabsTrigger value="add-customer">Add Customer</TabsTrigger>
-            <TabsTrigger value="customer-list">Customer List</TabsTrigger>
-            <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-gray-100 dark:bg-gray-700">
+            <TabsTrigger
+              value="add-customer"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+            >
+              Add Customer
+            </TabsTrigger>
+            <TabsTrigger
+              value="customer-list"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+            >
+              Customer List
+            </TabsTrigger>
+            <TabsTrigger
+              value="categories"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+            >
+              Categories
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="add-customer" className="space-y-4 mt-4">

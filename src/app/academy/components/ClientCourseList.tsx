@@ -93,7 +93,7 @@ export default function ClientCourseList({ courses }: ClientCourseListProps) {
                 <Button
                   onClick={() => handleStartCourseClick(course)}
                   disabled={course.locked || !context?.startCourseAction}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-700 dark:hover:bg-blue-800"
+                  className="w-full bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))] text-white dark:bg-[hsl(var(--primary))] dark:hover:bg-[hsl(var(--primary))]"
                   aria-label={course.locked ? 'Coming Soon' : 'Start Course'}
                 >
                   {course.locked ? 'Coming Soon' : 'Start Course'}

@@ -102,11 +102,31 @@ export default async function BlogPage() {
         </div>
 
         <Tabs defaultValue="all" className="w-full mt-8">
-          <TabsList className="mb-4 flex flex-wrap h-auto justify-center">
-            <TabsTrigger value="all">All Posts</TabsTrigger>
-            <TabsTrigger value="blog">Blog Posts</TabsTrigger>
-            <TabsTrigger value="article">Articles</TabsTrigger>
-            <TabsTrigger value="case-study">Case Studies</TabsTrigger>
+          <TabsList className="mb-4 flex flex-wrap h-auto justify-center bg-gray-100 dark:bg-gray-700">
+            <TabsTrigger
+              value="all"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+            >
+              All Posts
+            </TabsTrigger>
+            <TabsTrigger
+              value="blog"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+            >
+              Blog Posts
+            </TabsTrigger>
+            <TabsTrigger
+              value="article"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+            >
+              Articles
+            </TabsTrigger>
+            <TabsTrigger
+              value="case-study"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+            >
+              Case Studies
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-4 mt-4">

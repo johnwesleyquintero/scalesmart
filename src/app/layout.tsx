@@ -74,7 +74,7 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className="min-h-screen bg-background font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none"
+        className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none"
       >
         <div className="relative flex min-h-screen flex-col">
           <ClientProviders>

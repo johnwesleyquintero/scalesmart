@@ -46,7 +46,7 @@ const getChangeDisplayProperties = (
   ): { Icon: React.ElementType; color: string } => {
     const Icon = isPositive ? ArrowUpRight : ArrowDownRight;
     const color =
-      higherIsBetter === isPositive ? 'text-success' : 'text-red-600';
+      higherIsBetter === isPositive ? 'text-success' : 'text-destructive';
     return { Icon, color };
   };
 

@@ -1,486 +1,303 @@
 'use client';
 
-import Logo from '@/components/Logo'; // Added import for your Logo component
+import Logo from '@/components/Logo';
 import { Button } from '@/components/ui/button';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
-import { FileText, Loader2, Menu, Moon, Sun, X } from 'lucide-react';
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { Menu, Moon, Sun, X } from 'lucide-react'; // Removed FileText, Loader2
+import { signIn, useSession } from 'next-auth/react'; // Removed signOut
+import { useScroll } from '@/hooks/use-scroll';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { cachedFetch } from '@/lib/api-cache';
+import React from 'react'; // Added React for ListItem
 
-const SITE_TITLE = 'ScaleSmart'; // Define your site title here
-const COMMON_BUTTON_CLASSES =
-  'text-sm font-medium transition-all duration-300 hover:text-primary';
+const SITE_TITLE = 'ScaleSmart';
 
-// Define a more structured NavItem interface
 interface NavItem {
   name: string;
   href?: string;
   external?: boolean;
   className?: string;
-  onClick?: () => void;
+  onClick?: () => void; // Kept for potential future use
   auth?: 'loggedIn' | 'loggedOut' | 'always';
   hideOnMobile?: boolean;
-  children?: NavItem[];
+  children?: NavItemChild[];
+}
+
+interface NavItemChild {
+  name: string;
+  href?: string;
+  external?: boolean;
+  description?: string;
+  category?: string;
 }
 
 export default function Header() {
   const { data: session } = useSession();
-  const [query, setQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
-
-  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
-  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const scrolled = useScroll(50);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedQuery(query);
-    }, 500);
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [query]);
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      const searchContainer = document.querySelector('.search-container');
-      if (searchContainer && !searchContainer.contains(e.target as Node)) {
-        setIsSearchOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setIsSearchOpen(true);
-      } else if (e.key === 'Escape') {
-        setIsSearchOpen(false);
-        setQuery('');
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ['search', debouncedQuery],
-    queryFn: async () => {
-      if (!debouncedQuery) return { blog: [], tools: [] };
-      console.time('Fetch search results');
-      const data = await cachedFetch(
-        `/api/search?q=${encodeURIComponent(debouncedQuery)}`,
-      );
-      console.timeEnd('Fetch search results');
-      return data;
-    },
-    enabled: !!debouncedQuery,
-  });
-
-  const handleSearch = (searchQuery: string) => {
-    setQuery(searchQuery);
-    if (searchQuery && !searchHistory.includes(searchQuery)) {
-      setSearchHistory((prev) => [searchQuery, ...prev].slice(0, 5));
-    }
-  };
-
   const toggleMenu = (): void => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleExportClick = async () => {
-    try {
-      setIsDownloading(true);
-      const response = await cachedFetch('/api/download');
-      if (!response.ok) throw new Error('Download failed');
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'Wesley_Quintero_Resume.pdf';
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Failed to download resume:', error);
-    } finally {
-      setIsDownloading(false);
-    }
-  };
+  const productsCategories: string[] = [
+    'Business & E-commerce',
+    'Productivity & Automation',
+    'Career & Personal Growth',
+  ];
 
-  // Consolidate navItems, including auth actions
   const navItems: NavItem[] = [
-    { name: 'Home', href: '#hero', auth: 'always' },
     {
-      name: 'Projects',
-      href: '#projects',
-      auth: 'always',
+      name: 'Products',
       children: [
         {
           name: 'Amazon Seller Tools',
           href: '/amazon-seller-tools',
-          external: true,
-          auth: 'always',
+          external: false, // Assuming internal link based on user's project structure
+          category: productsCategories[0], // Business & E-commerce
+          description:
+            'Suite of tools to optimize listings & track performance.',
         },
         {
-          name: 'Resume Scanner', // Our new star!
-          href: '/ats', // Assuming this will be the route for it
-          auth: 'always',
+          name: 'Resume Scanner (ATS)',
+          href: '/ats',
+          category: productsCategories[2], // Career & Personal Growth
+          description: 'Analyze your resume against job descriptions.',
         },
         {
           name: 'CRM',
           href: '/crm',
-          auth: 'always',
+          category: productsCategories[0], // Business & E-commerce
+          description: 'Manage customer relationships and sales pipelines.',
         },
         {
           name: 'Project Management',
           href: '/project-management',
-          auth: 'always',
-        },
-        {
-          name: 'Free Certificate Courses',
-          href: '/academy',
-          external: true,
-          auth: 'always',
+          category: productsCategories[1], // Productivity & Automation
+          description: 'Organize tasks and keep projects on track.',
         },
         {
           name: 'Workflow Builder',
           href: '/workflow-builder',
-          auth: 'always',
+          category: productsCategories[1], // Productivity & Automation
+          description: 'Automate tasks with custom workflows.',
         },
       ],
     },
     {
-      name: 'About',
-      auth: 'always',
+      name: 'Solutions',
       children: [
-        { name: 'About', href: '#about', auth: 'always' },
-        { name: 'Certifications', href: '#certifications', auth: 'always' },
         {
-          name: 'Resume',
-          href: 'https://johnwesleyquintero-resume.netlify.app/',
-          external: true,
-          auth: 'always',
+          name: 'ScaleSmart Academy',
+          href: '/academy',
+          external: false, // Assuming internal
+          description: 'Enhance skills with free courses in e-commerce & data.',
+        },
+        // Add other solutions if any
+      ],
+    },
+    {
+      name: 'Docs',
+      children: [
+        {
+          name: 'Documentation',
+          href: '/docs',
+          external: false,
+          description: 'Comprehensive guides and API references.',
+        },
+        {
+          name: 'Blog',
+          href: '/blog',
+          external: false,
+          description: 'Latest articles, updates, and insights.',
         },
       ],
     },
-    { name: 'Blog', href: '#blog', auth: 'always' },
-    { name: 'Contact', href: '#contact', auth: 'always' },
-
-    {
-      name: 'Sign In',
-      onClick: () => signIn(),
-      auth: 'loggedOut',
-      className: COMMON_BUTTON_CLASSES,
-    },
-    {
-      name: 'Sign Out',
-      onClick: () => signOut(),
-      auth: 'loggedIn',
-      className:
-        'text-sm font-medium transition-all duration-300 hover:text-primary',
-    },
+    { name: 'Pricing', href: '/pricing' }, // Example: if you have a pricing page
   ];
+
+  // ListItem component for NavigationMenu
+  const ListItem = React.forwardRef<
+    React.ElementRef<'a'>,
+    React.ComponentPropsWithoutRef<'a'> & { title: string }
+  >(({ className, title, children, href, ...props }, ref) => {
+    return (
+      <li>
+        <NavigationMenuLink asChild>
+          <Link
+            href={href || '/'}
+            ref={ref}
+            className={cn(
+              'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
+              className,
+            )}
+            {...props}
+          >
+            <div className="text-sm font-medium leading-none">{title}</div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+              {children}
+            </p>
+          </Link>
+        </NavigationMenuLink>
+      </li>
+    );
+  });
+  ListItem.displayName = 'ListItem';
 
   return (
     <>
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header
+        className={cn(
+          'sticky top-0 z-50 w-full transition-all',
+          scrolled
+            ? 'border-b bg-background/70 backdrop-blur-lg'
+            : 'bg-background/0',
+        )}
+      >
         <div className="container flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            {/* Replaced Image with your Logo component */}
-            {/* Using h-8 w-8 for a size similar to the previous 32x32px */}
-            <Logo className="h-8 w-8" title={`${SITE_TITLE} Site Logo`} />
-            <span className="text-2xl font-semibold">{SITE_TITLE}</span>
-          </Link>
-
-          <nav className="hidden md:flex md:gap-6 items-center">
-            {navItems
-              .filter((item) => {
-                if (item.auth === 'loggedIn' && !session) return false;
-                if (item.auth === 'loggedOut' && session) return false;
-                return true;
-              })
-              .map((item) => {
-                if (item.children) {
-                  return (
-                    <div key={item.name} className="relative group">
-                      <button className="text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 group-hover:after:w-full">
-                        {item.name}
-                      </button>
-                      {/* Removed mt-2 to close the gap between button and dropdown */}
-                      <div className="absolute hidden group-hover:block top-full left-0 py-2 w-48 bg-white border rounded-md shadow-md z-10">
-                        {item.children.map((child) => {
-                          if (child.external) {
-                            return (
-                              <a
-                                key={child.name}
-                                href={child.href || '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              >
-                                {child.name}
-                              </a>
-                            );
-                          }
-                          return (
-                            <Link
-                              key={child.name}
-                              href={child.href || '/'}
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            >
-                              {child.name}
-                            </Link>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  );
-                }
-
-                const commonClasses = cn(
-                  'text-sm font-medium transition-all duration-300 hover:text-primary relative after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-0 after:bg-primary after:transition-all after:duration-300 hover:after:w-full',
-                  item.className,
-                );
-
-                if (item.onClick) {
-                  return (
-                    <Button
-                      key={item.name}
-                      variant="ghost"
-                      onClick={item.onClick}
-                      className={cn(COMMON_BUTTON_CLASSES, item.className)}
-                    >
-                      {item.name}
-                    </Button>
-                  );
-                }
-
-                if (item.external) {
-                  return (
-                    <a
-                      key={item.name}
-                      href={item.href}
-                      className={commonClasses}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {item.name}
-                    </a>
-                  );
-                }
-
-                return (
-                  <Link
-                    key={item.name}
-                    href={item.href || '/'}
-                    className={commonClasses}
-                  >
-                    {item.name}
-                  </Link>
-                );
-              })}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <div className="relative hidden md:block search-container">
-              <input
-                type="text"
-                placeholder="Search..."
-                value={query}
-                onChange={(e) => {
-                  handleSearch(e.target.value);
-                }}
-                onFocus={() => {
-                  setIsSearchOpen(true);
-                }}
-                className="h-9 w-48 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-              />
-              <kbd className="pointer-events-none absolute right-1.5 top-1.5 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-                <span className="text-xs">⌘</span>K
-              </kbd>
-
-              {(query || isSearchOpen) && (
-                <div className="absolute top-full mt-2 w-full rounded-md border bg-popover p-2 shadow-md max-h-[300px] overflow-y-auto">
-                  {!query && searchHistory.length > 0 && (
-                    <div className="mb-4">
-                      <div className="mb-2 text-sm font-medium text-muted-foreground">
-                        Recent Searches
-                      </div>
-                      {searchHistory.map((item) => (
-                        <button
-                          key={item}
-                          className="block w-full text-left px-2 py-1 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground"
-                          onClick={() => {
-                            handleSearch(item);
-                          }}
-                        >
-                          {item}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                  {isLoading && (
-                    <div className="flex items-center justify-center py-2 text-muted-foreground">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      <span>Searching...</span>
-                    </div>
-                  )}
-                  {!isLoading && data && !(data instanceof Response) && (
-                    <div className="space-y-4">
-                      {(
-                        data as {
-                          blog: { slug: string; title: string }[];
-                          tools: { id: string }[];
-                        }
-                      ).blog &&
-                      (
-                        data as {
-                          blog: { slug: string; title: string }[];
-                          tools: { id: string }[];
-                        }
-                      ).blog.length > 0 ? (
-                        <div key="blog">
-                          <div className="mb-2 text-sm font-medium text-muted-foreground">
-                            Blog Posts
-                          </div>
-                          {(
-                            data as {
-                              blog: { slug: string; title: string }[];
-                              tools: { id: string }[];
-                            }
-                          ).blog.map(
-                            (item: { slug: string; title: string }) => (
-                              <Link
-                                key={item.slug}
-                                href={`/blog/${item.slug}`}
-                                className={cn(
-                                  'block px-2 py-1 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground',
-                                )}
-                                onClick={() => {
-                                  setQuery('');
-                                  setIsSearchOpen(false);
-                                }}
-                              >
-                                {item.title}
-                              </Link>
-                            ),
+          {/* Left Group: Logo + Nav */}
+          <div className="flex items-center gap-x-6">
+            {' '}
+            {/* Added gap-x-6 for spacing */}
+            <Link href="/" className="flex items-center gap-2">
+              <Logo className="h-8 w-8" title={`${SITE_TITLE} Site Logo`} />
+              <span className="text-2xl font-semibold">{SITE_TITLE}</span>
+            </Link>
+            <NavigationMenu className="hidden md:flex">
+              <NavigationMenuList>
+                {navItems.map((item) => (
+                  <NavigationMenuItem key={item.name}>
+                    {item.children ? (
+                      <>
+                        <NavigationMenuTrigger>
+                          {item.name}
+                        </NavigationMenuTrigger>
+                        <NavigationMenuContent>
+                          {item.name === 'Products' ? (
+                            <div className="grid w-[600px] gap-3 p-4 md:grid-cols-2 lg:w-[700px] lg:grid-cols-3">
+                              {productsCategories.map((category) => (
+                                <div
+                                  key={category}
+                                  className="flex flex-col space-y-2"
+                                >
+                                  <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3">
+                                    {category}
+                                  </h4>
+                                  <ul className="space-y-1">
+                                    {item.children
+                                      ?.filter(
+                                        (child) => child.category === category,
+                                      )
+                                      .map((child) => (
+                                        <ListItem
+                                          key={child.name}
+                                          title={child.name}
+                                          href={child.href}
+                                          target={
+                                            child.external
+                                              ? '_blank'
+                                              : undefined
+                                          }
+                                          rel={
+                                            child.external
+                                              ? 'noopener noreferrer'
+                                              : undefined
+                                          }
+                                        >
+                                          {child.description}
+                                        </ListItem>
+                                      ))}
+                                  </ul>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            // For "Solutions" or other dropdowns
+                            <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                              {item.children?.map((child) => (
+                                <ListItem
+                                  key={child.name}
+                                  title={child.name}
+                                  href={child.href}
+                                  target={child.external ? '_blank' : undefined}
+                                  rel={
+                                    child.external
+                                      ? 'noopener noreferrer'
+                                      : undefined
+                                  }
+                                >
+                                  {child.description}
+                                </ListItem>
+                              ))}
+                            </ul>
                           )}
-                        </div>
-                      ) : null}
-                      {(
-                        data as {
-                          blog: { slug: string; title: string }[];
-                          tools: { id: string }[];
-                        }
-                      ).tools &&
-                      (
-                        data as {
-                          blog: { slug: string; title: string }[];
-                          tools: { id: string }[];
-                        }
-                      ).tools.length > 0 ? (
-                        <div key="tools">
-                          <div className="mb-2 text-sm font-medium text-muted-foreground">
-                            Tools
-                          </div>
-                          {(
-                            data as {
-                              blog: { slug: string; title: string }[];
-                              tools: { id: string }[];
-                            }
-                          ).tools.map((item: { id: string }) => (
-                            <Link
-                              key={item.id}
-                              href={`#${item.id}`}
-                              className={cn(
-                                'block px-2 py-1 text-sm rounded-sm hover:bg-accent hover:text-accent-foreground',
-                              )}
-                              onClick={() => {
-                                setQuery('');
-                                setIsSearchOpen(false);
-                              }}
-                            >
-                              {item.id}
-                            </Link>
-                          ))}
-                        </div>
-                      ) : null}
-                      {!(
-                        data as {
-                          blog: { slug: string; title: string }[];
-                          tools: { id: string }[];
-                        }
-                      ).blog?.length &&
-                      !(
-                        data as {
-                          blog: { slug: string; title: string }[];
-                          tools: { id: string }[];
-                        }
-                      ).tools?.length ? (
-                        <div className="text-sm text-muted-foreground text-center py-2">
-                          No results found
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+                        </NavigationMenuContent>
+                      </>
+                    ) : (
+                      <NavigationMenuLink asChild>
+                        <Link
+                          href={item.href || '/'}
+                          className={navigationMenuTriggerStyle()}
+                        >
+                          {item.name}
+                        </Link>
+                      </NavigationMenuLink>
+                    )}
+                  </NavigationMenuItem>
+                ))}
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => signIn()}
+              className="text-sm font-medium hidden md:inline-flex"
+            >
+              Log In
+            </Button>
+            <Button
+              onClick={() => signIn()}
+              className="text-sm font-medium hidden md:inline-flex"
+            >
+              Sign Up
+            </Button>
 
             {mounted && (
-              <>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Toggle theme"
-                  className="mr-2"
-                  onClick={() => {
-                    setTheme(theme === 'dark' ? 'light' : 'dark');
-                  }}
-                >
-                  {theme === 'dark' ? (
-                    <Sun className="h-5 w-5" />
-                  ) : (
-                    <Moon className="h-5 w-5" />
-                  )}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label="Export as PDF"
-                  className="mr-2"
-                  onClick={handleExportClick}
-                  disabled={isDownloading}
-                >
-                  {isDownloading ? (
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <FileText className="h-5 w-5" />
-                  )}
-                </Button>
-              </>
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label="Toggle theme"
+                onClick={() => {
+                  setTheme(theme === 'dark' ? 'light' : 'dark');
+                }}
+                className="text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
+              </Button>
             )}
 
             <Button
@@ -499,107 +316,85 @@ export default function Header() {
           </div>
 
           {isMenuOpen && (
-            <div className="absolute left-0 right-0 top-16 z-50 border-b bg-background/95 backdrop-blur-sm p-4 md:hidden animate-fadeIn">
+            <div
+              className={cn(
+                'fixed inset-0 top-16 z-40 grid h-[calc(100vh-4rem)] grid-flow-row auto-rows-max overflow-auto p-6 pb-32 shadow-md animate-in slide-in-from-bottom-80 md:hidden',
+                'bg-background/95 backdrop-blur-sm',
+              )}
+            >
               <nav className="flex flex-col space-y-4">
-                {navItems
-                  .filter((item) => {
-                    if (item.auth === 'loggedIn' && !session) return false;
-                    if (item.auth === 'loggedOut' && session) return false;
-                    return !item.hideOnMobile;
-                  })
-                  .map((item) => {
-                    if (item.children) {
-                      return (
-                        <div key={item.name}>
-                          <button
-                            className="block px-3 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md w-full text-left"
-                            onClick={() => setIsMenuOpen(false)}
-                          >
-                            {item.name}
-                          </button>
+                {navItems.map((item) => {
+                  if (item.children) {
+                    return (
+                      <div key={item.name}>
+                        <h4 className="font-medium text-foreground mb-2">
+                          {item.name}
+                        </h4>
+                        <ul className="space-y-2 pl-4">
                           {item.children.map((child) => {
                             if (child.external) {
                               return (
-                                <a
-                                  key={child.name}
-                                  href={child.href || '#'}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="block px-6 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md"
-                                  onClick={() => setIsMenuOpen(false)}
-                                >
-                                  {child.name}
-                                </a>
+                                <li key={child.name}>
+                                  <a
+                                    href={child.href || '/'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="block py-1 text-muted-foreground hover:text-primary"
+                                    onClick={toggleMenu}
+                                  >
+                                    {child.name}
+                                  </a>
+                                </li>
                               );
                             }
                             return (
-                              <Link
-                                key={child.name}
-                                href={child.href || '/'}
-                                className="block px-6 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md"
-                                onClick={() => setIsMenuOpen(false)}
-                              >
-                                {child.name}
-                              </Link>
+                              <li key={child.name}>
+                                <Link
+                                  href={child.href || '/'}
+                                  className="block py-1 text-muted-foreground hover:text-primary"
+                                  onClick={toggleMenu}
+                                >
+                                  {child.name}
+                                </Link>
+                              </li>
                             );
                           })}
-                        </div>
-                      );
-                    }
-
-                    const mobileItemClasses = cn(
-                      'block px-3 py-2 text-base font-medium transition-all duration-300 hover:text-primary hover:bg-accent rounded-md',
-                      item.className,
+                        </ul>
+                      </div>
                     );
+                  }
 
-                    if (item.onClick) {
-                      return (
-                        <Button
-                          key={item.name}
-                          variant="ghost"
-                          onClick={() => {
-                            item.onClick?.();
-                            setIsMenuOpen(false);
-                          }}
-                          className={cn(
-                            mobileItemClasses,
-                            'w-full text-left justify-start',
-                          )}
-                        >
-                          {item.name}
-                        </Button>
-                      );
-                    }
-
-                    if (item.external) {
-                      return (
-                        <a
-                          key={item.name}
-                          href={item.href}
-                          className={mobileItemClasses}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          {item.name}
-                        </a>
-                      );
-                    }
-
-                    // Rollback strategy: To revert to the previous version, simply remove the cachedFetch import
-                    // and replace cachedFetch with fetch.
-
-                    return (
-                      <Link
-                        key={item.name}
-                        href={item.href || '/'}
-                        className={mobileItemClasses}
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        {item.name}
-                      </Link>
-                    );
-                  })}
+                  return (
+                    <Link
+                      key={item.name}
+                      href={item.href || '/'}
+                      className="block py-2 text-base font-medium text-foreground hover:text-primary"
+                      onClick={toggleMenu}
+                    >
+                      {item.name}
+                    </Link>
+                  );
+                })}
+                <hr className="my-4" />
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    signIn();
+                    toggleMenu();
+                  }}
+                  className="w-full"
+                >
+                  Log In
+                </Button>
+                <Button
+                  onClick={() => {
+                    signIn();
+                    toggleMenu();
+                  }}
+                  className="w-full"
+                >
+                  Sign Up
+                </Button>
               </nav>
             </div>
           )}

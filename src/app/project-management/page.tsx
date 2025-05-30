@@ -34,9 +34,19 @@ const ProjectManagementPage = () => {
       </p>
 
       <Tabs defaultValue="tasks" className="w-full">
-        <TabsList className="mb-4 flex flex-wrap h-auto justify-start">
-          <TabsTrigger value="tasks">Tasks</TabsTrigger>
-          <TabsTrigger value="projects">Projects</TabsTrigger>
+        <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-gray-100 dark:bg-gray-700">
+          <TabsTrigger
+            value="tasks"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+          >
+            Tasks
+          </TabsTrigger>
+          <TabsTrigger
+            value="projects"
+            className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+          >
+            Projects
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-4 mt-4">

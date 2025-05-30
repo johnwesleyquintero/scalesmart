@@ -26,6 +26,8 @@
   --radius: 0.75rem;
   --success: 142.1 76.2% 36.3%; /* Darker green for light mode */
   --success-foreground: 210 40% 98%; /* White text on success background */
+  --warning: 40 80% 70%; /* Yellow for warning */
+  --warning-foreground: 222.2 47.4% 11.2%; /* Dark text on warning background */
 }
 
 .dark {
@@ -50,6 +52,8 @@
   --ring: 224.3 76.3% 48%;
   --success: 142.1 70.2% 70%; /* Adjusted for better contrast in dark mode */
   --success-foreground: 222.2 47.4% 11.2%;
+  --warning: 40 80% 50%; /* Darker yellow for warning in dark mode */
+  --warning-foreground: 222.2 47.4% 11.2%; /* Dark text on warning background */
 }
 
 @tailwind base;
@@ -127,7 +131,7 @@
   /* Tab interface improvements for accessibility and contrast */
   .tab-button {
     /* Improved contrast for tab buttons */
-    --tab-inactive-bg: hsl(var(--secondary));
+    --tab-inactive-bg: hsl(270, 40%, 90%);
     --tab-inactive-text: hsl(215 25% 27%); /* Darker for contrast */
     --tab-active-bg: hsl(var(--primary));
     --tab-active-text: hsl(0 0% 100%);

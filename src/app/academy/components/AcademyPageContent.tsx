@@ -185,7 +185,7 @@ export function AcademyPageContent() {
               <TabsTrigger
                 key={category}
                 value={category}
-                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                className="data-[state=active]:bg-[hsl(var(--primary))] data-[state=active]:text-white dark:data-[state=active]:bg-[hsl(var(--primary))] dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
               >
                 {category}
               </TabsTrigger>
