@@ -97,42 +97,63 @@ export async function getAllDocPosts(): Promise<DocPost[]> {
 
   readDocsRecursively(docsDirectory);
 
-  const allDocsData = await Promise.all(
-    docFiles.map((fullPath) => {
-      const fileContents = fs.readFileSync(fullPath, 'utf8');
-      const parsed = matter(fileContents);
-      const relativePath = path.relative(docsDirectory, fullPath);
-      const slug = relativePath.replace(/\.(mdx|md)$/, '');
+  const docPromises = docFiles.map(async (fullPath) => {
+    console.log(`DEBUG: Processing doc file: ${fullPath}`); // Log before file read
+    let fileContents: string;
+    try {
+      fileContents = fs.readFileSync(fullPath, 'utf8');
+    } catch (err) {
+      console.error(`ERROR: Could not read file ${fullPath}:`, err);
+      return null; // Skip this file if read fails
+    }
 
-      // Log the file being processed before parsing its data
-      console.log(`Attempting to parse data for file: ${fullPath}`);
+    let parsed: matter.GrayMatterFile<string>;
+    try {
+      parsed = matter(fileContents);
+    } catch (err) {
+      console.error(`ERROR: Could not parse frontmatter in ${fullPath}:`, err);
+      return null; // Skip this file if parsing fails
+    }
+    const relativePath = path.relative(docsDirectory, fullPath);
+    const slug = relativePath.replace(/\.(mdx|md)$/, '');
 
-      let data: z.infer<typeof docMatterDataSchema> | undefined;
-      try {
-        data = docMatterDataSchema.parse(parsed.data);
-      } catch (error) {
-        console.error(`Validation Error in ${fullPath}:`, error);
-        // Optionally, log the parsed.data to see what's missing
-        console.log('Parsed data:', parsed.data);
-        data = undefined;
-      }
+    // Log the file being processed before parsing its data
+    console.log(`Attempting to parse data for file: ${fullPath}`);
 
-      const title = data?.title || 'Untitled Document';
+    let data: z.infer<typeof docMatterDataSchema> | undefined;
+    try {
+      data = docMatterDataSchema.parse(parsed.data);
+    } catch (error) {
+      console.error(`Validation Error in ${fullPath}:`, error);
+      // Optionally, log the parsed.data to see what's missing
+      console.log('Parsed data:', parsed.data);
+      data = undefined;
+    }
 
-      return {
-        id: slug, // Will be replaced by actual slug later
-        slug: slug, // Will be replaced by actual slug later
-        title: title,
-        description: data?.description || '',
-        date: normalizeDate(data?.date || new Date()),
-        image: data?.image || `/images/docs/${slug}.svg`, // Assuming slug is available or will be passed
-        tags: data?.tags || [],
-        readingTime: data?.readingTime || DEFAULT_READING_TIME,
-        author: data?.author || DEFAULT_AUTHOR,
-        type: data?.type,
-        content: parsed.content,
-      } as DocPost;
-    }),
+    if (!data) {
+      // If data parsing failed, return null early
+      return null;
+    }
+
+    const title = data.title;
+
+    return {
+      id: slug, // Will be replaced by actual slug later
+      slug: slug, // Will be replaced by actual slug later
+      title: title,
+      description: data?.description || '',
+      date: normalizeDate(data?.date || new Date()),
+      image: data?.image || `/images/docs/${slug}.svg`, // Assuming slug is available or will be passed
+      tags: data?.tags || [],
+      readingTime: data?.readingTime || DEFAULT_READING_TIME,
+      author: data?.author || DEFAULT_AUTHOR,
+      type: data?.type,
+      content: parsed.content,
+    } as DocPost;
+  });
+
+  const allDocsData = (await Promise.all(docPromises)).filter(
+    (doc): doc is DocPost => doc !== null,
   );
 
   return allDocsData.sort((a: DocPost, b: DocPost) =>
