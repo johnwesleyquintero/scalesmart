@@ -41,10 +41,10 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
   const warnings = parsingErrors.filter((err) => err.type === 'warning');
 
   return (
-    <Card className="border-red-400 bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300">
+    <Card className="border-red-400 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-900/20 dark:text-red-300">
       <CardHeader>
-        <CardTitle className="flex items-center text-red-700 dark:text-red-200">
-          <AlertTriangle className="h-5 w-5 mr-2" />
+        <CardTitle className="flex items-center text-red-700 dark:text-red-300">
+          <AlertTriangle className="mr-2 h-5 w-5" />
           Data Processing Issues
         </CardTitle>
       </CardHeader>
@@ -52,17 +52,17 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
         {error && <p className="mb-3 text-sm">{error}</p>}
 
         {parsingErrors.length > 0 && (
-          <div className="mt-4 border-t pt-4 border-red-200 dark:border-red-700">
-            <h5 className="font-semibold mb-2">
+          <div className="mt-4 border-t border-red-200 pt-4 dark:border-red-700">
+            <h5 className="mb-2 font-semibold">
               Detailed Report ({parsingErrors.length} issues)
             </h5>
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="outline" size="sm" className="mb-4">
+                <Button size="sm" className="mb-4" variant="outline">
                   View Details
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-screen-md max-h-[80vh] overflow-y-auto">
+              <DialogContent className="max-h-[80vh] max-w-screen-md overflow-y-auto bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700">
                 <DialogHeader>
                   <DialogTitle>Detailed Data Transformation Report</DialogTitle>
                   <DialogDescription>
@@ -75,8 +75,8 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                     <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value="critical-errors">
                         <AccordionTrigger>
-                          <span className="flex items-center text-red-600 font-semibold">
-                            <XCircle className="h-4 w-4 mr-2" />
+                          <span className="flex items-center font-semibold text-red-600 dark:text-red-400">
+                            <XCircle className="mr-2 h-4 w-4" />
                             Critical Errors ({criticalErrors.length})
                           </span>
                         </AccordionTrigger>
@@ -85,7 +85,7 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                             {criticalErrors.map((err, index) => (
                               <li
                                 key={`crit-err-${index}`}
-                                className="text-red-700"
+                                className="text-red-700 dark:text-red-300"
                               >
                                 <strong>Row {err.rowNumber}:</strong>{' '}
                                 {err.message}
@@ -101,8 +101,8 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                     <Accordion type="single" collapsible className="w-full">
                       <AccordionItem value="warnings">
                         <AccordionTrigger>
-                          <span className="flex items-center text-yellow-600 font-semibold">
-                            <Info className="h-4 w-4 mr-2" />
+                          <span className="flex items-center font-semibold text-yellow-600 dark:text-yellow-400">
+                            <Info className="mr-2 h-4 w-4" />
                             Warnings ({warnings.length})
                           </span>
                         </AccordionTrigger>
@@ -111,7 +111,7 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                             {warnings.map((warn, index) => (
                               <li
                                 key={`warn-${index}`}
-                                className="text-yellow-700"
+                                className="text-yellow-700 dark:text-yellow-300"
                               >
                                 <strong>
                                   Row {warn.rowNumber}
@@ -130,8 +130,8 @@ export const OverviewErrorDisplay: React.FC<OverviewErrorDisplayProps> = ({
                   )}
 
                   {parsingErrors.length > 0 && (
-                    <div className="mt-4 p-3 border rounded-md bg-muted/40">
-                      <p className="text-sm text-muted-foreground">
+                    <div className="mt-4 rounded-md border p-3 bg-muted/40 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                      <p className="text-sm text-muted-foreground dark:text-gray-400">
                         Please review these details and adjust your CSV file or
                         mapping as needed for best results.
                       </p>

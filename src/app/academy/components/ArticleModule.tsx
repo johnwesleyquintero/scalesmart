@@ -62,8 +62,12 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
 
   return (
     <div>
-      {frontmatter.title && <h2>{frontmatter.title}</h2>}
-      <div className="prose">
+      {frontmatter.title && (
+        <h2 className="text-gray-900 dark:text-gray-100">
+          {frontmatter.title}
+        </h2>
+      )}
+      <div className="prose dark:prose-invert">
         <MDXRemote {...mdxSource} components={MdxComponents} />
       </div>
     </div>

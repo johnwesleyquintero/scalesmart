@@ -12,7 +12,7 @@ import { Course } from '@/types';
 import { useContext } from 'react';
 import { AcademyContext, AcademyContextType } from '@/context/AcademyContext';
 
-const moduleItemStyle = 'text-gray-700';
+const moduleItemStyle = 'text-gray-700 dark:text-gray-200';
 
 interface ClientCourseListProps {
   courses: Course[];
@@ -27,7 +27,7 @@ export default function ClientCourseList({ courses }: ClientCourseListProps) {
 
   if (courses.length === 0) {
     return (
-      <div className="text-center text-gray-500 py-10">
+      <div className="text-center text-gray-500 dark:text-gray-400 py-10">
         No courses match your current filter.
       </div>
     );
@@ -43,14 +43,18 @@ export default function ClientCourseList({ courses }: ClientCourseListProps) {
             <Card
               key={course.id || course.slug} // Prefer course.id if available and unique, otherwise slug.
               className={` ${
-                course.locked ? 'opacity-75 bg-gray-100' : ''
-              } border border-gray-200 shadow-md premium-shadow hover:shadow-lg transition-shadow duration-300 flex flex-col`}
+                course.locked
+                  ? 'opacity-75 bg-gray-100 dark:bg-gray-700'
+                  : 'bg-white dark:bg-gray-800'
+              } border border-gray-200 dark:border-gray-700 shadow-md premium-shadow hover:shadow-lg transition-shadow duration-300 flex flex-col`}
             >
               <CardHeader className="flex-grow">
                 <div className="flex justify-between items-start">
                   <div>
-                    <CardTitle>{course.title}</CardTitle>
-                    <CardDescription className="mt-1">
+                    <CardTitle className="text-gray-900 dark:text-gray-100">
+                      {course.title}
+                    </CardTitle>
+                    <CardDescription className="mt-1 text-gray-600 dark:text-gray-400">
                       {course.description}
                     </CardDescription>
                   </div>
@@ -58,19 +62,29 @@ export default function ClientCourseList({ courses }: ClientCourseListProps) {
               </CardHeader>
               <div className="p-4">
                 <div className="flex justify-between text-sm mb-2">
-                  <span className="flex items-center">{course.duration}</span>
+                  <span className="flex items-center text-gray-700 dark:text-gray-200">
+                    {course.duration}
+                  </span>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${moduleItemStyle}`}
+                    className={`px-2 py-1 rounded-full text-xs ${moduleItemStyle} ${
+                      course.level === 'Beginner'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-100'
+                        : course.level === 'Intermediate'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100'
+                          : course.level === 'Advanced'
+                            ? 'bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-100'
+                            : ''
+                    }`}
                   >
                     {course.level}
                   </span>
                 </div>
                 <progress
-                  className="w-full h-2 rounded-full"
+                  className="w-full h-2 rounded-full [&::-webkit-progress-bar]:bg-gray-200 [&::-webkit-progress-value]:bg-blue-500 dark:[&::-webkit-progress-bar]:bg-gray-600 dark:[&::-webkit-progress-value]:bg-blue-700"
                   value={course.progress || 0}
                   max="100"
                 />
-                <p className="text-sm text-gray-500 mt-1">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                   Progress:{' '}
                   {course.progress !== undefined ? course.progress : 0}%
                 </p>
@@ -79,7 +93,7 @@ export default function ClientCourseList({ courses }: ClientCourseListProps) {
                 <Button
                   onClick={() => handleStartCourseClick(course)}
                   disabled={course.locked || !context?.startCourseAction}
-                  className="w-full"
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white dark:bg-blue-700 dark:hover:bg-blue-800"
                   aria-label={course.locked ? 'Coming Soon' : 'Start Course'}
                 >
                   {course.locked ? 'Coming Soon' : 'Start Course'}
@@ -92,7 +106,7 @@ export default function ClientCourseList({ courses }: ClientCourseListProps) {
           return (
             <div
               key={course.id || course.slug}
-              className="p-4 border border-red-500 rounded"
+              className="p-4 border border-red-500 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
               Error loading this course.
             </div>

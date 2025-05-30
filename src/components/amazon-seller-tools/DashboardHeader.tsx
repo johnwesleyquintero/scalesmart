@@ -88,11 +88,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
   };
 
   return (
-    <div className="mb-12" aria-live="polite">
+    <div className="mb-12 p-4 rounded-lg shadow-md" aria-live="polite">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
         <div className="flex items-center space-x-2 min-h-[24px]">
           {(isLoading || isParsing) && (
-            <div className="flex items-center">
+            <div className="flex items-center text-gray-700 dark:text-gray-300">
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               <span className="text-sm text-muted-foreground">
                 {isParsing ? 'Processing file...' : 'Refreshing...'}
@@ -100,7 +100,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </div>
           )}
           {error && !(isLoading || isParsing) && (
-            <span className="text-sm text-red-500" role="alert">
+            <span
+              className="text-sm text-red-500 dark:text-red-400"
+              role="alert"
+            >
               {error}
             </span>
           )}
@@ -114,8 +117,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                   onClick={handleRefresh}
                   aria-label="Refresh Dashboard"
                   disabled={isLoading || isParsing}
+                  className="border-gray-300  text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                 >
-                  <RefreshCw className="w-4 h-4 mr-2" /> Refresh
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -130,14 +135,17 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             onClick={handleExportData}
             aria-label="Export Data"
             disabled={metricsLength === 0 || isLoading || isParsing}
+            className="border-gray-300  text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           >
-            <Download className="w-4 h-4 mr-2" /> Export
+            <Download className="mr-2 h-4 w-4" />
+            Export
           </Button>
           <Button
             variant="outline"
             onClick={handlePrint}
             aria-label="Print Report"
             disabled={metricsLength === 0 || isLoading || isParsing}
+            className="border-gray-300  text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           >
             Print
           </Button>
@@ -161,8 +169,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                       variant="outline"
                       aria-label="Download PDF"
                       disabled={loading}
+                      className="border-gray-300  text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
                     >
-                      <Download className="w-4 h-4 mr-2" /> Download PDF
+                      <Download className="mr-2 h-4 w-4" />
+                      Download PDF
                     </Button>
                   )
                 }
@@ -172,6 +182,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             variant="outline"
             asChild
             aria-label="Docs: Amazon Seller Tools Documentation"
+            className="border-gray-300  text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
           >
             <a
               href="https://wescode.vercel.app/blog/amazon-seller-tools"
@@ -183,7 +194,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
           </Button>
           <div className="relative flex items-center">
             <Input
-              className="w-64 px-4 py-2 pr-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-64 border-gray-300 px-4 py-2 pr-10 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
               type="search"
               placeholder="Search ASIN, Identifier, Keyword..."
               id="global-search"
@@ -196,7 +207,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 }
               }}
             />
-            <span className="absolute right-3 text-gray-400">
+            <span className="absolute right-3 text-gray-400 dark:text-gray-500">
               <Settings className="w-4 h-4 mr-2" />
             </span>
           </div>

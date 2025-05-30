@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTheme } from 'next-themes';
 import {
   LineChart,
   Line,
@@ -13,6 +14,7 @@ import {
 import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 
 import { BRAND_CHART_COLORS } from '@/lib/constants/chart-colors';
+import { theme } from '@/lib/theme';
 
 const defaultColors = BRAND_CHART_COLORS;
 
@@ -68,9 +70,14 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
     });
   }, [sortedMetrics, xAxisDataKey, yAxisDataKeys]);
 
+  const { theme, resolvedTheme } = useTheme();
+
+  const bgColor = resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white';
+  const titleBgColor = resolvedTheme === 'dark' ? 'bg-gray-700' : 'bg-gray-100';
+
   return (
-    <div className="bg-white shadow-md rounded-lg overflow-hidden">
-      <div className="bg-gray-100 p-3 font-bold text-xl">{title}</div>
+    <div className={`${bgColor} shadow-md rounded-lg overflow-hidden`}>
+      <div className={`${titleBgColor} p-3 font-bold text-xl`}>{title}</div>
       {chartType === 'line' ? (
         <ResponsiveContainer width="100%" height={300}>
           <LineChart
@@ -84,7 +91,11 @@ export const ReusableChart: React.FC<ReusableChartProps> = ({
             <YAxis type="number" tickFormatter={yAxisFormatter} />
             <Tooltip
               content={
-                <CustomTooltip formatter={tooltipFormatter} events={events} />
+                <CustomTooltip
+                  formatter={tooltipFormatter}
+                  events={events}
+                  resolvedTheme={resolvedTheme || 'light'}
+                />
               }
             />
             <Legend />
@@ -124,6 +135,7 @@ interface CustomTooltipProps extends RechartsTooltipProps<number, string> {
   // TValue is number, TName is string
   formatter?: (value: number, name: string) => [string, string];
   events?: Array<{ date: string; title: string; description?: string }>;
+  resolvedTheme: string; // Add resolvedTheme prop
 }
 
 const CustomTooltip: React.FC<CustomTooltipProps> = ({
@@ -132,10 +144,13 @@ const CustomTooltip: React.FC<CustomTooltipProps> = ({
   active,
   label, // label for the X-axis value
   events,
+  resolvedTheme, // Receive resolvedTheme prop
 }) => {
   if (active && payload && payload.length && formatter) {
+    const tooltipBgColor =
+      resolvedTheme === 'dark' ? 'bg-gray-800' : 'bg-white';
     return (
-      <div className="bg-gray-100 p-2 rounded shadow">
+      <div className={`${tooltipBgColor} p-2 rounded shadow`}>
         {/* Display the X-axis label (e.g., date) */}
         {label && <p className="label font-semibold mb-1">{`${label}`}</p>}
         {payload.map((entry, index) => {

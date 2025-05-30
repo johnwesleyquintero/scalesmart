@@ -1147,7 +1147,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-gray-900 dark:text-gray-100">
       <OverviewDataLoader
         isParsing={isParsing}
         isLoading={isLoading}
@@ -1160,14 +1160,22 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       />
 
       {metrics.length > 0 && (
-        <div className="mt-4 p-4 border rounded-md bg-muted/40 flex flex-wrap items-center gap-4">
+        <div className="mt-4 p-4 border rounded-md bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-4">
           <div className="flex items-center space-x-2">
-            <Label htmlFor="time-range-select">Time Range:</Label>
+            <Label
+              htmlFor="time-range-select"
+              className="text-gray-700 dark:text-gray-300"
+            >
+              Time Range:
+            </Label>
             <Select
               value={timeRange}
               onValueChange={(value: TimeRange) => setTimeRange(value)}
             >
-              <SelectTrigger id="time-range-select" className="w-[180px]">
+              <SelectTrigger
+                id="time-range-select"
+                className="w-[180px] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+              >
                 {timeRange === 'last_7_days' && 'Last 7 Days'}
                 {timeRange === 'last_30_days' && 'Last 30 Days'}
                 {timeRange === 'month_to_date' && 'Month to Date'}
@@ -1175,7 +1183,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                 {timeRange === 'all_time' && 'All Time'}
                 {timeRange === 'custom' && 'Custom Range'}
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700">
                 <SelectItem value="last_7_days">Last 7 Days</SelectItem>
                 <SelectItem value="last_30_days">Last 30 Days</SelectItem>
                 <SelectItem value="month_to_date">Month to Date</SelectItem>
@@ -1192,8 +1200,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                   <Button
                     variant={'outline'}
                     className={cn(
-                      'w-[280px] justify-start text-left font-normal',
-                      !customDateRange.from && 'text-muted-foreground',
+                      'w-[280px] justify-start text-left font-normal bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600',
+                      !customDateRange.from &&
+                        'text-muted-foreground dark:text-gray-400',
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -1211,7 +1220,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent
+                  className="w-auto p-0 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+                  align="start"
+                >
                   <Calendar
                     mode="range"
                     selected={customDateRange}
@@ -1225,23 +1237,32 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
                     }}
                     numberOfMonths={2}
                     initialFocus
+                    className="text-gray-900 dark:text-gray-100"
                   />
                 </PopoverContent>
               </Popover>
             </div>
           )}
           <div className="flex items-center space-x-2">
-            <Label htmlFor="time-granularity-select">Granularity:</Label>
+            <Label
+              htmlFor="time-granularity-select"
+              className="text-gray-700 dark:text-gray-300"
+            >
+              Granularity:
+            </Label>
             <Select
               value={timeGranularity}
               onValueChange={(value: string) =>
                 setTimeGranularity(value as typeof timeGranularity)
               }
             >
-              <SelectTrigger id="time-granularity-select" className="w-[180px]">
+              <SelectTrigger
+                id="time-granularity-select"
+                className="w-[180px] bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
+              >
                 <SelectValue placeholder="Select Time Granularity" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700">
                 <SelectItem value="daily">Daily</SelectItem>
                 <SelectItem value="weekly">Weekly</SelectItem>
                 <SelectItem value="monthly">Monthly</SelectItem>
@@ -1283,12 +1304,16 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         processedRows={processedRowsRef.current}
       />
 
-      <div className="mb-4 p-4 border rounded-md bg-muted/40">
-        <h2 className="text-lg font-semibold mb-2">
+      <div className="mb-4 p-4 border rounded-md bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+        <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
           Product Performance Overview
         </h2>
         <Suspense
-          fallback={<div className="p-4 text-center">Loading table...</div>}
+          fallback={
+            <div className="p-4 text-center text-gray-700 dark:text-gray-300">
+              Loading table...
+            </div>
+          }
         >
           <TableChart
             columns={productPerformanceTableColumns}
@@ -1299,11 +1324,17 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       </div>
 
       {showKeywordPerformanceTable && metrics.length > 0 && (
-        <div className="mb-4 p-4 border rounded-md bg-muted/40">
-          <h2 className="text-lg font-semibold mb-2">
+        <div className="mb-4 p-4 border rounded-md bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+          <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
             Keyword Performance Overview
           </h2>
-          <Suspense fallback={<div>Loading keyword table...</div>}>
+          <Suspense
+            fallback={
+              <div className="text-gray-700 dark:text-gray-300">
+                Loading keyword table...
+              </div>
+            }
+          >
             <KeywordPerformanceOverviewTable
               metrics={metrics}
               searchTerm={searchTerm}
@@ -1312,7 +1343,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
         </div>
       )}
 
-      <Card className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30">
+      <Card className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30 border-gray-200 dark:border-gray-700">
         <CardContent className="p-6 text-center">
           <p className="text-lg font-medium text-primary dark:text-blue-300">
             While you&apos;re here, feel free to explore the other specialized

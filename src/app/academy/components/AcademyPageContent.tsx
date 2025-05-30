@@ -177,12 +177,16 @@ export function AcademyPageContent() {
   }
 
   return (
-    <div className="p-4 flex flex-col items-stretch">
+    <div className="p-4 flex flex-col items-stretch bg-white dark:bg-gray-800 rounded-xl shadow-lg">
       <div className="flex justify-center space-x-4 mb-4">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4 flex flex-wrap h-auto justify-center">
+          <TabsList className="mb-4 flex flex-wrap h-auto justify-center bg-gray-100 dark:bg-gray-700">
             {categoryOptions.map((category) => (
-              <TabsTrigger key={category} value={category}>
+              <TabsTrigger
+                key={category}
+                value={category}
+                className="data-[state=active]:bg-blue-500 data-[state=active]:text-white dark:data-[state=active]:bg-blue-700 dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+              >
                 {category}
               </TabsTrigger>
             ))}
@@ -192,7 +196,7 @@ export function AcademyPageContent() {
               <select
                 value={sort}
                 onChange={handleSortChange}
-                className="border rounded px-2 py-1"
+                className="border rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600"
                 aria-label="Sort by"
               >
                 {sortOptions.map((option) => (

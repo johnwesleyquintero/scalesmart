@@ -5,6 +5,7 @@ import fuzzysort from 'fuzzysort';
 
 import React, { useState, useEffect, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
+import { useTheme } from 'next-themes'; // Import useTheme
 import type { CsvColumnMapping } from '@/types/data-mapping';
 import stringSimilarity from 'string-similarity';
 import type { DashboardMetrics } from '@/lib/amazon-tools/types';

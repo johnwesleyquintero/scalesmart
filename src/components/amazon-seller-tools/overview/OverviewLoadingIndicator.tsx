@@ -49,17 +49,17 @@ export const OverviewLoadingIndicator: React.FC<
   }
 
   return (
-    <Card>
+    <Card className="bg-white dark:bg-gray-800">
       <CardContent className="p-6 flex flex-col items-center justify-center min-h-[300px]">
-        <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
-        <p className="text-lg text-muted-foreground text-center mb-2">
+        <Loader2 className="h-12 w-12 animate-spin text-primary dark:text-primary-foreground mb-4" />
+        <p className="text-lg text-muted-foreground dark:text-gray-300 text-center mb-2">
           {message}
         </p>
         {isProcessing && totalRows > 0 && (
           <Progress value={progress} className="w-[80%] max-w-sm h-2" />
         )}
         {parsingErrorCount > 0 && (
-          <p className="text-sm text-red-500 mt-2">
+          <p className="text-sm text-red-500 dark:text-red-400 mt-2">
             Some data issues detected. Check error report after completion.
           </p>
         )}

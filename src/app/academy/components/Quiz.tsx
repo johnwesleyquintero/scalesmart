@@ -169,7 +169,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
     title,
     children,
   }) => (
-    <div className="quiz-container p-4">
+    <div className="quiz-container p-4 text-gray-900 dark:text-gray-100">
       <h2 className="text-2xl font-bold mb-4">{title}</h2>
       {children}
     </div>
@@ -197,13 +197,19 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
 
     return (
       <div className="text-center">
-        <h3 className="text-xl font-semibold mb-2">Quiz Completed!</h3>
-        <p className="text-lg">Your score for this attempt: {score}%</p>
-        <p className="text-sm text-gray-600">Total attempts: {totalAttempts}</p>
+        <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
+          Quiz Completed!
+        </h3>
+        <p className="text-lg text-gray-800 dark:text-gray-200">
+          Your score for this attempt: {score}%
+        </p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Total attempts: {totalAttempts}
+        </p>
 
         {isCertificateEarned ? (
           <>
-            <p className="mt-4 font-medium text-emerald-600 text-lg">
+            <p className="mt-4 font-medium text-emerald-600 dark:text-emerald-400 text-lg">
               🎉 Congratulations! You&apos;ve earned the certificate for this
               quiz! 🎉
             </p>
@@ -212,7 +218,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
               placeholder="Enter your name"
               value={customName}
               onChange={(e) => setCustomName(e.target.value)}
-              className="mt-2 p-2 border rounded-md text-black"
+              className="mt-2 p-2 border rounded-md text-black dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
             />
             <CertificateDisplay
               userName={customName || userName}
@@ -220,24 +226,24 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
             />
           </>
         ) : passedCurrentAttempt && totalAttempts > MAX_CERTIFICATE_ATTEMPTS ? (
-          <p className="mt-4 font-medium text-orange-500">
+          <p className="mt-4 font-medium text-orange-500 dark:text-orange-400">
             Great score! However, you&apos;ve used more than{' '}
             {MAX_CERTIFICATE_ATTEMPTS} attempts for the certificate.
           </p>
         ) : !passedCurrentAttempt &&
           totalAttempts < MAX_CERTIFICATE_ATTEMPTS ? (
-          <p className="mt-4 font-medium text-blue-600">
+          <p className="mt-4 font-medium text-blue-600 dark:text-blue-400">
             You did not pass this time. You have {attemptsRemainingForCert}{' '}
             attempt(s) remaining to earn the certificate.
           </p>
         ) : (
-          <p className="mt-4 font-medium text-red-600">
+          <p className="mt-4 font-medium text-red-600 dark:text-red-400">
             You did not pass this time and have no more attempts for the
             certificate, or you&apos;ve exceeded the attempt limit.
           </p>
         )}
         <p
-          className={`mt-2 font-medium ${passedCurrentAttempt ? 'text-success' : 'text-red-600'}`}
+          className={`mt-2 font-medium ${passedCurrentAttempt ? 'text-success dark:text-success-dark' : 'text-red-600 dark:text-red-400'}`}
         >
           Module marked as {score}% complete for this attempt.
         </p>
@@ -269,18 +275,20 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
     onFinishQuiz,
   }) => (
     <div className="question-section">
-      <h3 className="text-lg font-semibold mb-3">
+      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
         Question {currentQuestionIndex + 1} of {totalQuestions}
       </h3>
-      <p className="mb-4 text-gray-800">{currentQuestion.question}</p>
+      <p className="mb-4 text-gray-800 dark:text-gray-200">
+        {currentQuestion.question}
+      </p>
       <div className="options-grid grid gap-2">
         {currentQuestion.options.map((option) => (
           <label
             key={option}
-            className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors duration-200 ${
+            className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors duration-200 text-gray-800 dark:text-gray-100 ${
               selectedAnswer === option
-                ? 'bg-blue-100 border-blue-500'
-                : 'bg-white hover:bg-gray-50'
+                ? 'bg-blue-100 border-blue-500 dark:bg-blue-800 dark:border-blue-500 dark:text-white'
+                : 'bg-white hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600'
             }`}
           >
             <input
@@ -296,12 +304,14 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
       </div>
 
       {showFeedback && (
-        <div className="feedback-section mt-4 p-3 border rounded-md">
+        <div className="feedback-section mt-4 p-3 border rounded-md bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
           {selectedAnswer ===
           currentQuestion.options[currentQuestion.correctAnswer] ? (
-            <p className="text-success font-medium">Correct!</p>
+            <p className="text-success font-medium dark:text-success-dark">
+              Correct!
+            </p>
           ) : (
-            <p className="text-red-600 font-medium">
+            <p className="text-red-600 font-medium dark:text-red-400">
               Incorrect. The correct answer is{' '}
               <span className="font-bold">
                 {currentQuestion.options[currentQuestion.correctAnswer]}
@@ -310,7 +320,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
             </p>
           )}
           {currentQuestion.explanation && (
-            <p className="text-sm text-gray-700 mt-2">
+            <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
               Explanation: {currentQuestion.explanation}
             </p>
           )}
@@ -320,7 +330,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
                 ? onNextQuestion
                 : onFinishQuiz
             }
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors dark:bg-blue-700 dark:hover:bg-blue-800"
           >
             {currentQuestionIndex < totalQuestions - 1
               ? 'Next Question'
@@ -335,8 +345,8 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
           disabled={selectedAnswer === null}
           className={`mt-4 px-4 py-2 rounded-md transition-colors ${
             selectedAnswer === null
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-success text-success-foreground hover:bg-success/90'
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400'
+              : 'bg-success text-success-foreground hover:bg-success/90 dark:bg-green-700 dark:hover:bg-green-800 dark:text-white'
           }`}
         >
           Check Answer

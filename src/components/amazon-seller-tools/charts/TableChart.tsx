@@ -879,14 +879,14 @@ const TableChart = <TData extends Record<string, unknown>>({
       }`}
     >
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10 rounded-lg">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+        <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 bg-opacity-75 z-10 rounded-lg">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-100"></div>
           <span className="sr-only">Loading...</span>
         </div>
       )}
 
       {enableFiltering && (
-        <div className="mb-4 p-2 border border-gray-200 rounded-t-lg bg-white flex items-center space-x-2">
+        <div className="mb-4 p-2 border border-gray-200 dark:border-gray-700 rounded-t-lg bg-white dark:bg-gray-800 flex items-center space-x-2">
           <input
             type="text"
             placeholder="Search all columns..."
@@ -895,13 +895,13 @@ const TableChart = <TData extends Record<string, unknown>>({
               setGlobalFilter(e.target.value);
               setCurrentPage(1);
             }}
-            className="flex-grow px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-grow px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             aria-label="Global filter search input"
           />
           {persistenceKey && (
             <button
               onClick={resetTablePreferences}
-              className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               aria-label="Reset table preferences"
             >
               Reset
@@ -910,12 +910,12 @@ const TableChart = <TData extends Record<string, unknown>>({
         </div>
       )}
       <table className={tableClasses} role="grid">
-        <thead className="bg-gray-100">
+        <thead className="bg-gray-100 dark:bg-gray-700">
           <tr role="row">
             {enableRowSelection && (
               <th
                 scope="col"
-                className={`w-12 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider ${cellPadding}`}
+                className={`w-12 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider ${cellPadding}`}
               >
                 <input
                   type="checkbox"
@@ -934,7 +934,7 @@ const TableChart = <TData extends Record<string, unknown>>({
             {renderSubComponent && (
               <th
                 scope="col"
-                className={`w-12 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider ${cellPadding}`}
+                className={`w-12 text-center text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider ${cellPadding}`}
               >
                 {/* Empty header for expand/collapse column */}
               </th>
@@ -943,7 +943,7 @@ const TableChart = <TData extends Record<string, unknown>>({
               <th
                 key={column.accessorKey.toString() || index}
                 scope="col"
-                className={`text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ${cellPadding} ${
+                className={`text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider ${cellPadding} ${
                   column.sortable ? 'cursor-pointer select-none' : ''
                 }`}
                 onClick={() =>
@@ -974,20 +974,20 @@ const TableChart = <TData extends Record<string, unknown>>({
                         {sortConfig?.key === column.accessorKey &&
                           sortConfig.direction === 'asc' && (
                             <ChevronUp
-                              className="h-4 w-4 text-gray-700"
+                              className="h-4 w-4 text-gray-700 dark:text-gray-300"
                               aria-hidden="true"
                             />
                           )}
                         {sortConfig?.key === column.accessorKey &&
                           sortConfig.direction === 'desc' && (
                             <ChevronDown
-                              className="h-4 w-4 text-gray-700"
+                              className="h-4 w-4 text-gray-700 dark:text-gray-300"
                               aria-hidden="true"
                             />
                           )}
                         {sortConfig?.key !== column.accessorKey && (
                           <ChevronUp
-                            className="h-4 w-4 text-gray-300"
+                            className="h-4 w-4 text-gray-300 dark:text-gray-600"
                             aria-hidden="true"
                           />
                         )}
@@ -997,15 +997,15 @@ const TableChart = <TData extends Record<string, unknown>>({
                       <Popover>
                         <PopoverTrigger asChild>
                           <button
-                            className="ml-2 p-1 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="ml-2 p-1 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                             onClick={(e) => e.stopPropagation()}
                             aria-label={`Filter column ${column.header}`}
                           >
-                            <Filter className="h-4 w-4 text-gray-600" />
+                            <Filter className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                           </button>
                         </PopoverTrigger>
                         <PopoverContent
-                          className="w-48 p-2"
+                          className="w-48 p-2 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                           onClick={(e: { stopPropagation: () => unknown }) =>
                             e.stopPropagation()
                           }
@@ -1020,7 +1020,7 @@ const TableChart = <TData extends Record<string, unknown>>({
             ))}
           </tr>
         </thead>
-        <tbody className="bg-white divide-y divide-gray-200">
+        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
           {paginatedData.length === 0 && !isLoading ? (
             <tr>
               <td
@@ -1029,7 +1029,7 @@ const TableChart = <TData extends Record<string, unknown>>({
                   (enableRowSelection ? 1 : 0) +
                   (renderSubComponent ? 1 : 0)
                 }
-                className={`text-center ${cellPadding} text-gray-500`}
+                className={`text-center ${cellPadding} text-gray-500 dark:text-gray-400`}
               >
                 {emptyStateContent}
               </td>
@@ -1046,7 +1046,18 @@ const TableChart = <TData extends Record<string, unknown>>({
 
               return (
                 <React.Fragment key={rowId !== undefined ? rowId : rowIndex}>
-                  <tr className={rowClasses(rowIndex, isSelected)} role="row">
+                  <tr
+                    className={`${
+                      stripedRows && rowIndex % 2 === 0
+                        ? 'bg-gray-50 dark:bg-gray-700'
+                        : 'bg-white dark:bg-gray-800'
+                    } ${
+                      isSelected ? 'bg-blue-100 dark:bg-blue-900' : ''
+                    } hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                      compact ? 'py-2' : 'py-4'
+                    } divide-y divide-gray-200 dark:divide-gray-700`}
+                    role="row"
+                  >
                     {enableRowSelection && (
                       <td
                         className={`text-center ${cellPadding}`}
@@ -1091,7 +1102,7 @@ const TableChart = <TData extends Record<string, unknown>>({
                       return (
                         <td
                           key={column.accessorKey.toString() + colIndex}
-                          className={`whitespace-nowrap text-sm text-gray-800 ${cellPadding} ${column.copyable || column.analyzeInTool ? 'group relative flex items-center justify-between' : ''}`}
+                          className={`whitespace-nowrap text-sm text-gray-800 dark:text-gray-200 ${cellPadding} ${column.copyable || column.analyzeInTool ? 'group relative flex items-center justify-between' : ''}`}
                           role="gridcell"
                         >
                           {column.cell
@@ -1106,11 +1117,11 @@ const TableChart = <TData extends Record<string, unknown>>({
                               typeof value === 'number') && (
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <button className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 -mr-2 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                    <ExternalLink className="h-3 w-3 text-gray-500" />
+                                  <button className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 -mr-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <ExternalLink className="h-3 w-3 text-gray-500 dark:text-gray-400" />
                                   </button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent>
+                                <DropdownMenuContent className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100">
                                   {column.copyable && (
                                     <DropdownMenuItem
                                       onClick={() =>
@@ -1160,7 +1171,7 @@ const TableChart = <TData extends Record<string, unknown>>({
                     <tr id={`details-row-${rowId}`} role="row">
                       <td
                         colSpan={totalColumns}
-                        className="p-4 bg-gray-50 border-t border-gray-200"
+                        className="p-4 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
                       >
                         {renderSubComponent(row)}
                       </td>
@@ -1175,22 +1186,25 @@ const TableChart = <TData extends Record<string, unknown>>({
       {/* Moved toast to root layout. This element is not necessary. */}
 
       {enablePagination && totalPages > 1 && (
-        <div className="flex justify-between items-center mt-4 px-4 py-2 bg-gray-50 border-t border-gray-200 rounded-b-lg">
+        <div className="flex justify-between items-center mt-4 px-4 py-2 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-700 rounded-b-lg text-gray-700 dark:text-gray-300">
           <button
             onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
-            className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Previous page"
           >
             Previous
           </button>
-          <span className="text-sm text-gray-700" aria-live="polite">
+          <span
+            className="text-sm text-gray-700 dark:text-gray-300"
+            aria-live="polite"
+          >
             Page {currentPage} of {totalPages}
           </span>
           <button
             onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Next page"
           >
             Next

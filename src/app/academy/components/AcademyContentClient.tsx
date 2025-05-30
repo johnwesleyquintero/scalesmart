@@ -254,13 +254,13 @@ function AcademyContentClient({
   }, [activeModule, activeCourse, handleNextModule, handlePreviousModule]);
 
   return (
-    <div className="w-full p-4 bg-gray-100 rounded-lg shadow-md">
+    <div className="w-full p-4 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-md text-gray-900 dark:text-gray-100">
       {!activeCourse ? (
         <>
           <input
             type="text"
             placeholder="Search courses..."
-            className="w-full p-2 mb-4 border rounded"
+            className="w-full p-2 mb-4 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -271,7 +271,9 @@ function AcademyContentClient({
           />
           {recommendedCourses.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-2xl font-bold mb-4">Recommended Courses</h2>
+              <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+                Recommended Courses
+              </h2>
               <ClientCourseList courses={recommendedCourses} />
             </div>
           )}
@@ -282,18 +284,20 @@ function AcademyContentClient({
             <Button
               onClick={handleBackToCourses}
               variant="outline"
-              className="mb-4"
+              className="mb-4 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
             >
               &larr; Back to Courses
             </Button>
-            <h2 className="text-2xl font-bold mb-2">{activeCourse.title}</h2>
-            <p className="text-sm text-gray-600 mb-4">
+            <h2 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+              {activeCourse.title}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
               Overall Progress: {calculateCourseProgress(activeCourse)}%
             </p>
 
             <div className="flex flex-col md:flex-row gap-6">
-              <div className="w-full md:w-1/4 bg-white p-4 rounded shadow-lg">
-                <h3 className="text-lg font-semibold mb-3 border-b pb-2">
+              <div className="w-full md:w-1/4 bg-white dark:bg-gray-800 p-4 rounded shadow-lg">
+                <h3 className="text-lg font-semibold mb-3 border-b pb-2 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700">
                   Modules
                 </h3>
                 {activeCourse.modules && activeCourse.modules.length > 0 ? (
@@ -302,10 +306,10 @@ function AcademyContentClient({
                       <li key={module.id}>
                         <button
                           onClick={() => handleSelectModule(module)}
-                          className={`w-full text-left p-2.5 rounded-md hover:bg-gray-100 transition-colors duration-150 flex justify-between items-center text-sm ${
+                          className={`w-full text-left p-2.5 rounded-md transition-colors duration-150 flex justify-between items-center text-sm ${
                             activeModule?.id === module.id
-                              ? 'bg-blue-100 text-blue-700 font-medium ring-1 ring-blue-300'
-                              : 'text-gray-700'
+                              ? 'bg-blue-100 text-blue-700 font-medium ring-1 ring-blue-300 dark:bg-blue-700 dark:text-white dark:ring-blue-500'
+                              : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                           }`}
                           aria-label={`Select module ${module.title}`}
                           title={module.title || `Module ${module.id}`}
@@ -329,22 +333,22 @@ function AcademyContentClient({
                     ))}
                   </ol>
                 ) : (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     No modules available for this course.
                   </p>
                 )}
               </div>
-              <div className="w-full md:w-3/4 bg-white p-6 rounded shadow-lg min-h-[300px]">
+              <div className="w-full md:w-3/4 bg-white dark:bg-gray-800 p-6 rounded shadow-lg min-h-[300px]">
                 {activeModule ? (
                   <div>
-                    <h3 className="text-xl font-semibold mb-4 pb-2 border-b">
+                    <h3 className="text-xl font-semibold mb-4 pb-2 border-b text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700">
                       {activeModule.title || `Module ${activeModule.id}`}
                     </h3>
                     <ModuleSpecificContent
                       activeModule={activeModule}
                       userProfile={userProfile}
                     />
-                    <div className="flex justify-between mt-8 pt-4 border-t">
+                    <div className="flex justify-between mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
@@ -353,6 +357,7 @@ function AcademyContentClient({
                               variant="outline"
                               disabled={getCurrentModuleIndex() <= 0}
                               aria-label="Previous Module"
+                              className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                             >
                               &larr; Previous Module
                             </Button>
@@ -372,6 +377,7 @@ function AcademyContentClient({
                                 (activeCourse.modules?.length || 0) - 1
                               }
                               aria-label="Next Module"
+                              className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600"
                             >
                               Next Module &rarr;
                             </Button>
@@ -384,7 +390,7 @@ function AcademyContentClient({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-center text-gray-500 pt-16">
+                  <p className="text-center text-gray-500 dark:text-gray-400 pt-16">
                     Select a module from the list to view its content.
                   </p>
                 )}
