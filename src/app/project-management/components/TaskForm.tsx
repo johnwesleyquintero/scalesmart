@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Task } from '@/lib/indexeddb-service';
 import { createTask, updateTask } from '@/lib/indexeddb-service';
+import { Button } from '@/components/ui/button';
 
 interface TaskFormProps {
   setTasks: (tasks: Task[]) => void;
@@ -99,12 +100,7 @@ const TaskForm = ({
         onChange={(e) => setDueDate(new Date(e.target.value))}
         className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
-      <button
-        type="submit"
-        className="w-full bg-blue-500 dark:bg-blue-700 hover:bg-blue-600 dark:hover:bg-blue-800 text-white p-2 rounded-md transition-colors duration-200"
-      >
-        {initialTask ? 'Update Task' : 'Add Task'}
-      </button>
+      <Button type="submit">{initialTask ? 'Update Task' : 'Add Task'}</Button>
     </form>
   );
 };

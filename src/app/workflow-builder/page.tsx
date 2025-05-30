@@ -23,6 +23,7 @@ import {
   Edge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { Button } from '@/components/ui/button'; // Import Button component
 
 import styles from './WorkflowBuilderPage.module.css';
 
@@ -132,8 +133,8 @@ const WorkflowBuilderPage = () => {
         <header className={styles.header}>
           <h1>Workflow Builder</h1>
           <div className={styles.headerButtons}>
-            <button onClick={() => saveWorkflow(nodes, edges)}>Save</button>
-            <button onClick={loadWorkflow}>Load</button>
+            <Button onClick={() => saveWorkflow(nodes, edges)}>Save</Button>
+            <Button onClick={loadWorkflow}>Load</Button>
           </div>
         </header>
         <div className={styles.contentWrapper}>
@@ -160,8 +161,7 @@ const WorkflowBuilderPage = () => {
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
             />
-            <button
-              className={styles.executeButton}
+            <Button
               onClick={() => {
                 import('@/lib/workflow/engine').then((module) => {
                   module.executeWorkflow(nodes, edges);
@@ -169,7 +169,7 @@ const WorkflowBuilderPage = () => {
               }}
             >
               Execute Workflow
-            </button>
+            </Button>
           </main>
         </div>
       </div>

@@ -26,6 +26,7 @@ import remarkMath from 'remark-math';
 // --- Component Imports ---
 import { RotateCcw, Trash2 } from 'lucide-react';
 import CopyMarkdownButton from './CopyMarkdownButton';
+import { Button } from '@/components/ui/button';
 
 // --- Interfaces ---
 export interface Message {
@@ -589,10 +590,9 @@ export default function ChatInterface() {
                 className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 disabled:opacity-70 disabled:cursor-not-allowed"
                 aria-label="Chat input"
               />
-              <button
+              <Button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center h-10 w-[70px]" // Fixed width for button consistency
                 aria-label="Send message"
               >
                 {isLoading ? (
@@ -622,7 +622,7 @@ export default function ChatInterface() {
                   // <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 16.571V11a1 1 0 112 0v5.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"></path></svg>
                   'Send'
                 )}
-              </button>
+              </Button>
             </form>
           </div>
         </div>
@@ -791,5 +791,4 @@ const renderMessage = (content: string): JSX.Element => (
   </ReactMarkdown>
 );
 
-// Rollback strategy: To revert to the previous version, simply remove the cachedFetch import
-// and replace cachedFetch with fetch.
+// Rollback strategy: To revert to the previous version, simply remove the cached

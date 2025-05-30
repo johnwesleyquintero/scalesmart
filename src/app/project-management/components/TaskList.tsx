@@ -6,7 +6,7 @@ import { deleteTask } from '@/lib/indexeddb-service';
 import TaskForm from './TaskForm';
 import { useState } from 'react';
 import Modal from '@/components/Modal';
-
+import { Button } from '@/components/ui/button'; // Import Button
 interface TaskListProps {
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
@@ -58,18 +58,15 @@ const TaskList = ({ tasks, setTasks }: TaskListProps) => {
               </p>
             )}
             <div className="mt-4 flex space-x-2">
-              <button
-                onClick={() => handleEditClick(task)}
-                className="bg-yellow-500 dark:bg-yellow-700 text-white px-3 py-1 rounded-md hover:bg-yellow-600 dark:hover:bg-yellow-800 transition-colors duration-200"
-              >
+              <Button onClick={() => handleEditClick(task)} variant="outline">
                 Edit
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => handleDeleteTask(task.id)}
-                className="bg-red-500 dark:bg-red-700 text-white px-3 py-1 rounded-md hover:bg-red-600 dark:hover:bg-red-800 transition-colors duration-200"
+                variant="destructive"
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         ))}
