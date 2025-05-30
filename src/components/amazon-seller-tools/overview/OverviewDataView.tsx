@@ -184,7 +184,7 @@ export const OverviewDataView: React.FC<OverviewDataViewProps> = ({
                 <Card>
                   <CardContent className="p-4">
                     <h4 className="text-lg font-semibold mb-2">Total Sales</h4>
-                    <div className="text-3xl font-bold text-green-600">
+                    <div className="text-3xl font-bold text-success">
                       $
                       {totalSales.toLocaleString(undefined, {
                         minimumFractionDigits: 2,

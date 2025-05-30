@@ -953,7 +953,7 @@ export default function ListingQualityChecker() {
                               {listing.title &&
                               listing.title.length >= MIN_TITLE_LENGTH &&
                               listing.title.length <= MAX_TITLE_LENGTH ? (
-                                <CheckCircle className="mr-1 h-4 w-4 text-green-500 flex-shrink-0" />
+                                <CheckCircle className="mr-1 h-4 w-4 text-success flex-shrink-0" />
                               ) : (
                                 <XCircle className="mr-1 h-4 w-4 text-red-500 flex-shrink-0" />
                               )}
@@ -968,7 +968,7 @@ export default function ListingQualityChecker() {
                               {listing.description &&
                               listing.description.length >=
                                 MIN_DESCRIPTION_LENGTH ? (
-                                <CheckCircle className="mr-1 h-4 w-4 text-green-500 flex-shrink-0" />
+                                <CheckCircle className="mr-1 h-4 w-4 text-success flex-shrink-0" />
                               ) : (
                                 <XCircle className="mr-1 h-4 w-4 text-red-500 flex-shrink-0" />
                               )}
@@ -982,7 +982,7 @@ export default function ListingQualityChecker() {
                             <span className="flex items-center text-sm text-right">
                               {(listing.bulletPoints?.length ?? 0) >=
                               MIN_BULLET_POINTS ? (
-                                <CheckCircle className="mr-1 h-4 w-4 text-green-500 flex-shrink-0" />
+                                <CheckCircle className="mr-1 h-4 w-4 text-success flex-shrink-0" />
                               ) : (
                                 <XCircle className="mr-1 h-4 w-4 text-red-500 flex-shrink-0" />
                               )}
@@ -995,7 +995,7 @@ export default function ListingQualityChecker() {
                             <span className="text-sm">Images:</span>
                             <span className="flex items-center text-sm text-right">
                               {(listing.images ?? 0) >= MIN_IMAGES ? (
-                                <CheckCircle className="mr-1 h-4 w-4 text-green-500 flex-shrink-0" />
+                                <CheckCircle className="mr-1 h-4 w-4 text-success flex-shrink-0" />
                               ) : (
                                 <XCircle className="mr-1 h-4 w-4 text-red-500 flex-shrink-0" />
                               )}
@@ -1007,7 +1007,7 @@ export default function ListingQualityChecker() {
                             <span className="text-sm">Keywords:</span>
                             <span className="flex items-center text-sm text-right">
                               {(listing.keywords?.length ?? 0) > 0 ? (
-                                <CheckCircle className="mr-1 h-4 w-4 text-green-500 flex-shrink-0" />
+                                <CheckCircle className="mr-1 h-4 w-4 text-success flex-shrink-0" />
                               ) : (
                                 <XCircle className="mr-1 h-4 w-4 text-red-500 flex-shrink-0" />
                               )}
@@ -1038,7 +1038,7 @@ export default function ListingQualityChecker() {
                                 </ul>
                               </div>
                             ) : (
-                              <p className="text-sm text-green-600 dark:text-green-400 flex items-center">
+                              <p className="text-sm text-success dark:text-green-400 flex items-center">
                                 <CheckCircle className="mr-1 h-4 w-4 flex-shrink-0" />{' '}
                                 No major issues found.
                               </p>

@@ -97,7 +97,7 @@ export default function CertificationsSection() {
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle className="h-4 w-4 text-green-500" />
-                    <span className="text-green-600 dark:text-green-400">
+                    <span className="text-success dark:text-green-400">
                       {cert.status}
                     </span>
                   </div>

@@ -28,7 +28,7 @@ export default function CustomError({
         {/* New error documentation note */}
         <p className="mb-8 text-sm text-muted-foreground">
           For more details see the{' '}
-          <a href="/docs/error-guide.md" className="underline">
+          <a href="/error-guide" className="underline">
             error guide
           </a>
           .

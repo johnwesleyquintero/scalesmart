@@ -207,11 +207,7 @@ export default function Header() {
     <>
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
-          <Link
-            href="/"
-            className="flex items-center gap-2"
-            aria-label={`${SITE_TITLE}: Homepage`}
-          >
+          <Link href="/" className="flex items-center gap-2">
             {/* Replaced Image with your Logo component */}
             {/* Using h-8 w-8 for a size similar to the previous 32x32px */}
             <Logo className="h-8 w-8" title={`${SITE_TITLE} Site Logo`} />

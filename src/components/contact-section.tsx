@@ -115,7 +115,7 @@ export default function ContactSection() {
           <CardContent>
             {isSubmitted ? (
               <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="mb-4 rounded-full bg-green-100 p-3 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                <div className="mb-4 rounded-full bg-green-100 p-3 text-success dark:bg-green-900/30 dark:text-green-400">
                   <Send className="h-6 w-6" />
                 </div>
                 <h3 className="mb-2 text-xl font-semibold">Message Sent!</h3>

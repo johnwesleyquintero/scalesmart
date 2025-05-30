@@ -1,3 +1,5 @@
+'use client';
+
 import dynamic from 'next/dynamic';
 
 // Only disable SSR for components that truly need client-side features
@@ -7,6 +9,7 @@ const ErrorBoundary = dynamic(() => import('@/components/ui/error-boundary'), {
 
 const ClientChatInterface = dynamic(
   () => import('@/components/ui/client-chat-interface'),
+  { ssr: false },
 );
 
 // Enable SSR for static content sections

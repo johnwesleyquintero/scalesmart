@@ -329,7 +329,7 @@ function ProductEditorArea({
   };
 
   const getScoreColorClass = (scoreValue: number): string => {
-    if (scoreValue >= 80) return 'text-green-600 dark:text-green-400';
+    if (scoreValue >= 80) return 'text-success dark:text-green-400';
     if (scoreValue >= 50) return 'text-yellow-600 dark:text-yellow-400';
     return 'text-red-600 dark:text-red-400';
   };

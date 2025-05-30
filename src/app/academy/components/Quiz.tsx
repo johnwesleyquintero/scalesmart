@@ -237,7 +237,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
           </p>
         )}
         <p
-          className={`mt-2 font-medium ${passedCurrentAttempt ? 'text-green-600' : 'text-red-600'}`}
+          className={`mt-2 font-medium ${passedCurrentAttempt ? 'text-success' : 'text-red-600'}`}
         >
           Module marked as {score}% complete for this attempt.
         </p>
@@ -299,7 +299,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
         <div className="feedback-section mt-4 p-3 border rounded-md">
           {selectedAnswer ===
           currentQuestion.options[currentQuestion.correctAnswer] ? (
-            <p className="text-green-600 font-medium">Correct!</p>
+            <p className="text-success font-medium">Correct!</p>
           ) : (
             <p className="text-red-600 font-medium">
               Incorrect. The correct answer is{' '}
@@ -336,7 +336,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
           className={`mt-4 px-4 py-2 rounded-md transition-colors ${
             selectedAnswer === null
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-green-600 text-white hover:bg-green-700'
+              : 'bg-success text-success-foreground hover:bg-success/90'
           }`}
         >
           Check Answer
