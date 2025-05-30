@@ -4,7 +4,7 @@ import crypto from 'crypto';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@react-pdf/renderer'],
-  productionBrowserSourceMaps: true,
+  productionBrowserSourceMaps: false, // Disable source maps in production for smaller bundle size
   eslint: {
     ignoreDuringBuilds: true,
   },
@@ -71,7 +71,7 @@ const nextConfig = {
   // Compiler options
   compiler: {
     // Remove console logs in production builds
-    // removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === 'production',
   },
   // Webpack customization
   webpack: (config, { webpack: webpackInstance, isServer, dev }) => {

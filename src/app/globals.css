@@ -10,12 +10,12 @@
   --card-foreground: 222.2 84% 4.9%;
   --popover: 0 0% 100%;
   --popover-foreground: 222.2 84% 4.9%;
-  --primary: 270 65% 45%; /* Darker purple for better contrast in light mode */
+  --primary: 270 65% 35%; /* Adjusted for better contrast in light mode */
   --primary-foreground: 210 40% 98%;
   --secondary: 210 40% 96.1%;
   --secondary-foreground: 222.2 47.4% 11.2%;
   --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 35%; /* Darker for better contrast in light mode */
+  --muted-foreground: 215.4 16.3% 25%; /* Adjusted for better contrast in light mode */
   --accent: 210 40% 96.1%;
   --accent-foreground: 222.2 47.4% 11.2%;
   --destructive: 0 84.2% 60.2%;
@@ -30,26 +30,26 @@
 
 .dark {
   --background: 222.2 84% 4.9%;
-  --foreground: 210 20% 98%; /* Brighter white for better contrast */
+  --foreground: 210 20% 90%; /* Adjusted for better contrast */
   --card: 222.2 84% 4.9%;
-  --card-foreground: 210 20% 98%;
+  --card-foreground: 210 20% 90%;
   --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 20% 98%;
-  --primary: 250 80% 70%; /* Keep as is, ensure good contrast with foreground */
-  --primary-foreground: 222.2 47.4% 11.2%; /* Darker for contrast on primary */
+  --popover-foreground: 210 20% 90%;
+  --primary: 250 80% 70%;
+  --primary-foreground: 222.2 47.4% 11.2%;
   --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 20% 98%;
+  --secondary-foreground: 210 20% 90%;
   --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 10% 75%; /* Lighter gray for better contrast */
+  --muted-foreground: 215 10% 85%; /* Adjusted for better contrast */
   --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 20% 98%;
+  --accent-foreground: 210 20% 90%;
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 20% 98%;
+  --destructive-foreground: 210 20% 90%;
   --border: 217.2 32.6% 17.5%;
   --input: 217.2 32.6% 17.5%;
   --ring: 224.3 76.3% 48%;
-  --success: 142.1 70.2% 60%; /* Lighter green for dark mode */
-  --success-foreground: 222.2 47.4% 11.2%; /* Dark text on success background */
+  --success: 142.1 70.2% 70%; /* Adjusted for better contrast in dark mode */
+  --success-foreground: 222.2 47.4% 11.2%;
 }
 
 @tailwind base;

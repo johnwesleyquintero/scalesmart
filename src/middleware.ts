@@ -78,6 +78,41 @@ async function handleAuth(request: NextRequest): Promise<NextResponse | null> {
 }
 
 export async function middleware(request: NextRequest) {
+  const response = NextResponse.next();
+
+  // Security Headers
+  // Content Security Policy (CSP)
+  const csp = `
+    default-src 'self';
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://cdn.vercel-insights.com;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: https://wescode.vercel.app https://avatars.githubusercontent.com;
+    font-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'self';
+    upgrade-insecure-requests;
+  `
+    .replace(/\s+/g, ' ')
+    .trim();
+  response.headers.set('Content-Security-Policy', csp);
+
+  // Cross-Origin-Embedder-Policy (COEP)
+  response.headers.set('Cross-Origin-Embedder-Policy', 'require-corp');
+
+  // Cross-Origin-Opener-Policy (COOP)
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+
+  // X-Frame-Options (XFO)
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
+
+  // Strict-Transport-Security (HSTS)
+  response.headers.set(
+    'Strict-Transport-Security',
+    'max-age=31536000; includeSubDomains; preload',
+  );
+
   // Check if maintenance mode is enabled
   const maintenanceMode = await get('maintenance_mode');
   if (maintenanceMode) {
@@ -121,7 +156,7 @@ export async function middleware(request: NextRequest) {
 
   // Allow access to public paths (paths that don't require authentication)
   if (isPublicPath) {
-    return NextResponse.next(); // Continue to the requested route
+    return response; // Continue to the requested route with headers
   }
 
   // If no token is present, redirect to the login page
@@ -131,7 +166,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url); // Redirect to the sign-in page
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 // Configure paths that trigger the middleware
