@@ -59,6 +59,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import 'prismjs/themes/prism-okaidia.css';
 
 @import '../styles/modal.css';
 
