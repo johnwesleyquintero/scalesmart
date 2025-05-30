@@ -29,7 +29,17 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   callbacks: {
+    async signIn({ user, account, profile, email, credentials }) {
+      console.log('[NextAuth] signIn callback START', { user: user?.id });
+      // Add logging for any specific operations here
+      // e.g., console.log("[NextAuth] signIn: About to query database...");
+      // await someDbOperation();
+      // console.log("[NextAuth] signIn: Database query complete.");
+      console.log('[NextAuth] signIn callback END');
+      return true;
+    },
     async session({ session, token }: { session: Session; token: JWT }) {
+      console.log('[NextAuth] session callback START', { userId: token?.sub });
       console.time('NextAuth Session Callback');
       if (session?.user && token.sub) {
         session.user.id = token.sub;
@@ -38,9 +48,14 @@ export const authOptions: NextAuthOptions = {
         session.accessToken = token.accessToken as string;
       }
       console.timeEnd('NextAuth Session Callback');
+      console.log('[NextAuth] session callback END');
       return session;
     },
     async jwt({ token, user, account }) {
+      console.log('[NextAuth] jwt callback START', {
+        userId: user?.id,
+        accountProvider: account?.provider,
+      });
       console.time('NextAuth JWT Callback');
       if (user) {
         token.sub = user.id;
@@ -49,7 +64,28 @@ export const authOptions: NextAuthOptions = {
         token.accessToken = account.access_token;
       }
       console.timeEnd('NextAuth JWT Callback');
+      console.log('[NextAuth] jwt callback END');
       return token;
+    },
+  },
+  events: {
+    async signIn(message) {
+      console.log('[NextAuth] signIn event', message);
+    },
+    async signOut(message) {
+      console.log('[NextAuth] signOut event', message);
+    },
+    async createUser(message) {
+      console.log('[NextAuth] createUser event', message);
+    },
+    async updateUser(message) {
+      console.log('[NextAuth] updateUser event', message);
+    },
+    async linkAccount(message) {
+      console.log('[NextAuth] linkAccount event', message);
+    },
+    async session(message) {
+      console.log('[NextAuth] session event', message);
     },
   },
 };

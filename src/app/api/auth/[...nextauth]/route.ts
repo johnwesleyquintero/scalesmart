@@ -32,7 +32,10 @@ async function handler(
   const authOptions = (await import('./options'))
     .authOptions as NextAuthOptions;
 
-  return NextAuth(authOptions)(req, res);
+  console.log('[NextAuth] handler START');
+  const result = await NextAuth(authOptions)(req, res);
+  console.log('[NextAuth] handler END');
+  return result;
 }
 
 export { handler as GET, handler as POST };
