@@ -115,7 +115,7 @@ const docMatterDataSchema = z.object({
  * Normalizes a date string or Date object to 'YYYY-MM-DD' format.
  * @param date - The date to normalize.
  * @returns The normalized date string.
- */
+*/
 function normalizeDate(date: string | Date) {
   const d = new Date(date);
   return d.toISOString().split('T')[0];
@@ -152,6 +152,9 @@ const DOC_FILE_NAMES = [
   'README.mdx',
   'index.md',
   'README.md',
+  // Added introduction.mdx as a special root-level file that maps to 'introduction' slug
+  'introduction.mdx',
+  'introduction.md'
 ];
 /**
  * @constant {string} DOCS_BASE_DIR_NAME - The base name of the docs directory (e.g., "docs").
@@ -282,33 +285,32 @@ export async function getAllDocPosts(): Promise<DocPost[]> {
 }
 
 /**
- * Derives the slug for a documentation post based on its relative path, filename, and parent directory.
+ * Derives the slug for a documentation post based on its relative path.
  * Special handling for 'introduction' slug for root-level special files.
  * @param relativePath - The path of the file relative to the docs directory.
- * @param fileName - The name of the file.
- * @param parentDir - The name of the parent directory of the file.
+ * @param fileName - The name of the file (unused in new logic but kept for signature consistency).
+ * @param parentDir - The name of the parent directory of the file (unused in new logic but kept for signature consistency).
  * @returns The derived slug string.
  */
 function deriveDocSlug(
   relativePath: string,
-  fileName: string,
+  _fileName: string,
   parentDir: string,
 ): string {
-  if (DOC_FILE_NAMES.includes(fileName)) {
-    if (parentDir === DOCS_BASE_DIR_NAME) {
-      return INTRODUCTION_SLUG;
-    } else {
-      return path
-        .relative(
-          docsDirectory,
-          path.dirname(path.join(docsDirectory, relativePath)),
-        )
-        .replace(/\\/g, '/');
-    }
-  } else {
-    return relativePath.replace(MARKDOWN_FILE_REGEX, '').replace(/\\/g, '/');
+  const normalizedRelativePath = relativePath.replace(/\\/g, '/');
+
+  // Check for special files directly under the `docsDirectory` that should map to 'introduction'
+  const isRootSpecialFile = DOC_FILE_NAMES.some(name => name.replace(/\\/g, '/') === normalizedRelativePath);
+  const isParentDocsBaseDir = parentDir === DOCS_BASE_DIR_NAME;
+
+  if (isRootSpecialFile && isParentDocsBaseDir) {
+    return INTRODUCTION_SLUG;
   }
+
+  // For all other cases, return the full relative path as the slug, removing extension
+  return normalizedRelativePath.replace(MARKDOWN_FILE_REGEX, '');
 }
+
 
 /**
  * Derives the title for a documentation post.
@@ -526,7 +528,7 @@ function findDocFile(slug: string): string | undefined {
     }
   }
 
-  // Try to find the file directly (e.g., 'getting-started.mdx')
+  // Try to find the file directly (e.g., 'getting-started.mdx' or 'amazon-seller-tools/documentation.mdx')
   const directPathMdx = path.join(docsDirectory, `${slug}${EXT_MDX}`);
   const directPathMd = path.join(docsDirectory, `${slug}${EXT_MD}`);
 
@@ -537,7 +539,7 @@ function findDocFile(slug: string): string | undefined {
     return directPathMd;
   }
 
-  // If not found directly, try to find it as a directory's main doc (e.g., 'amazon-seller-tools/documentation.md')
+  // If not found directly, try to find it as a directory's main doc (e.g., 'amazon-seller-tools/index.md')
   const dirPath = path.join(docsDirectory, slug);
   if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
     for (const fileName of DOC_FILE_NAMES) {

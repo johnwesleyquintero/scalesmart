@@ -1,6 +1,6 @@
 import { getDocPostBySlug } from '@/lib/mdx';
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { components } from '@/components/MdxRenderer';
+import { mdxDocsComponents } from '@/components/MdxDocsComponents'; // Import the new components
 import { notFound } from 'next/navigation';
 import rehypePrismPlus from 'rehype-prism-plus';
 
@@ -36,10 +36,10 @@ export default async function DocPage({ params }: DocPageProps) {
             <p className="text-lg text-muted-foreground">{doc.description}</p>
           )}
         </div>
-        <div className="pb-12 pt-8">
+        <div className="prose dark:prose-invert pb-12 pt-8">
           <MDXRemote
             source={doc.content || ''}
-            components={components}
+            components={mdxDocsComponents}
             options={{
               mdxOptions: {
                 rehypePlugins: [[rehypePrismPlus, { ignoreMissing: true }]],
