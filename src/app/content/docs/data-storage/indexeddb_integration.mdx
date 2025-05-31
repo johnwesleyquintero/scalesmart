@@ -1,51 +1,228 @@
 ---
 title: IndexedDB Integration
-description: Documentation for IndexedDB integration in Amazon Seller Tools.
+description: Comprehensive documentation for IndexedDB integration in Amazon Seller Tools and related application features.
+date: 2025-05-31
+tags: ['data-storage', 'indexeddb', 'integration']
+readingTime: '7 min read'
+author: 'Wesley Quintero'
+type: 'doc'
 ---
 
 # IndexedDB Integration Documentation
 
 ## 1. Overview
 
-This document describes the IndexedDB integration for the Amazon Seller Tools dashboard. IndexedDB is used for local, browser-based data storage. This allows the tools to store user-specific data, such as saved calculations and preferences, improving performance and enabling offline functionality.
+This document provides a comprehensive overview of the IndexedDB integration within the application. IndexedDB serves as a robust client-side, NoSQL database for local data storage directly within the user's browser. This enables several key benefits:
 
-## 2. Implementation
+- **Improved Performance**: Reduces reliance on network requests by caching data locally.
+- **Offline Functionality**: Allows certain features to operate even without an active internet connection.
+- **User-Specific Data Persistence**: Stores user preferences, saved calculations, chat histories, CRM contacts, project data, and course progress for a tailored user experience.
 
-The `src/lib/indexeddb-service.ts` file provides an interface for interacting with the IndexedDB database.
+The application leverages the **Dexie.js** library, a powerful and developer-friendly wrapper around the IndexedDB API, simplifying complex database operations.
 
-### 2.1. Key Functions
+Currently, the application utilizes two main IndexedDB instances:
 
-- `initializeDB()`: Initializes the IndexedDB database.
-- `saveCalculation(data: CalculationData)`: Saves a calculation to IndexedDB.
-- `getCalculations()`: Retrieves all calculations from IndexedDB.
-- `getItem<T>(key: string)`: Retrieves an item from IndexedDB by key.
-- `setItem<T>(key: string, value: T)`: Saves an item to IndexedDB with a key.
-- `deleteItem(key: string)`: Deletes an item from IndexedDB by key.
+- [`src/lib/indexeddb-service.ts`](src/lib/indexeddb-service.ts): This file provides the primary interface for general application data storage, managing various object stores for chat messages, application cache, CRM data, project management data, and academy course progress. It is implemented as a singleton instance of the `ChatDatabase` class.
+- [`src/lib/indexeddb/amazon-tools-db.ts`](src/lib/indexeddb/amazon-tools-db.ts): This file defines a separate IndexedDB instance, `AmazonToolsDB`, specifically for storing data related to Amazon Seller Tools, such as calculation history, CSV mappings, and dashboard metrics.
 
-### 2.2. Data Structure
+This documentation will primarily focus on the general-purpose `IndexedDBService`, which handles a broad range of application-wide local data.
 
-The following data structure is used for saving calculations:
+## 2. Fundamental IndexedDB Concepts
 
-```typescript
-export interface CalculationData {
-  campaignName: string;
-  date: string;
-  adSpend: number;
-  sales: number;
-  acos: number;
-  roas: number;
-}
-```
+To better understand the implementation, it's helpful to grasp a few core IndexedDB concepts:
 
-## 3. Usage
+- **IndexedDB**: A low-level API for client-side storage of significant amounts of structured data, including files/blobs. It is a transactional database system, meaning data changes are handled in isolated units ensuring data integrity.
+- **Object Store**: Analogous to a "table" in a relational database. It stores records (JavaScript objects). Each object store can define a primary key and indexes to efficiently retrieve data.
+- **Index**: A way to look up records in an object store based on properties other than the primary key. Indexes improve query performance.
+- **Transaction**: A mechanism to group multiple database operations into a single atomic unit. All operations within a transaction either succeed completely or fail completely, ensuring data consistency. Dexie.js greatly simplifies transaction management.
 
-The `saveCalculation` and `getCalculations` functions are used in the ACoS calculator to save and retrieve calculation history.
+## 3. Implementation (`src/lib/indexeddb-service.ts`)
 
-## 4. Error Handling
+The `src/lib/indexeddb-service.ts` file encapsulates the core IndexedDB logic. It exports a singleton `db` instance of the `ChatDatabase` class (a Dexie subclass) and various functions for interacting with its object stores.
 
-The `logError` function is used to log errors that occur during IndexedDB operations.
+### 3.1. Database Instance and Object Stores
 
-## 5. Future Improvements
+The `ChatDatabase` class defines the IndexedDB name (`ChatAppDatabase`) and the schema for multiple object stores:
 
-- Implement more robust error handling.
-- Add support for storing other types of data, such as user preferences.
+- `chatMessages`: Stores `ChatMessageRecord` for chat session history (`++id, chatSessionId, timestamp, sender`).
+- `cache`: A generic key-value store for application data, including `CalculationData` (`key`).
+- `events`: Stores `Event` data (`++id, date`).
+- `contacts`: Stores `Contact` data for the CRM (`id, name, ...`).
+- `tasks`: Stores `Task` data for project management (`id, title, ...`).
+- `projects`: Stores `Project` data for project management (`id, name, ...`).
+- `categories`: Stores `Category` data for CRM and other categorizations (`id, name`).
+- `courses`: Stores `Course` data for the Academy feature (`id, title, ...`).
+- `moduleProgress`: Stores `ModuleProgressRecord` for tracking user progress in courses (`[userId+courseId+moduleId]`).
+
+Each `db.version().stores()` call defines or upgrades the database schema, adding new object stores or indexes as needed across different application versions.
+
+### 3.2. Key Functions and Their Usage
+
+Here are some of the principal functions exported by `indexeddb-service.ts` and examples of their typical usage:
+
+#### `initializeDB()`
+
+- **Purpose**: Ensures the IndexedDB database instance (`ChatAppDatabase`) is open and ready for operations. Dexie opens databases lazily, but explicit initialization can be useful for early setup or error detection.
+- **Example**:
+
+  ```typescript
+  import { initializeDB } from '@/lib/indexeddb-service';
+
+  async function setupApp() {
+    try {
+      await initializeDB();
+      console.log('Database is ready!');
+    } catch (error) {
+      console.error('Failed to initialize IndexedDB:', error);
+    }
+  }
+  setupApp();
+  ```
+
+#### `setItem<T>(key: string, value: T)`
+
+- **Purpose**: Stores a generic key-value pair in the `cache` object store. This is versatile for caching various data types. If the key already exists, its value is updated.
+- **Remarks**: General cache utility.
+- **Example (Saving a User Preference)**:
+
+  ```typescript
+  import { setItem } from '@/lib/indexeddb-service';
+
+  interface UserSettings {
+    theme: string;
+    notifications: boolean;
+  }
+
+  async function saveUserSettings(settings: UserSettings) {
+    await setItem<UserSettings>('userSettings', settings);
+    console.log('User settings saved locally.');
+  }
+
+  // Usage
+  saveUserSettings({ theme: 'dark', notifications: true });
+  ```
+
+#### `getItem<T>(key: string)`
+
+- **Purpose**: Retrieves a generic item from the `cache` object store by its key.
+- **Remarks**: General cache utility.
+- **Example (Retrieving a User Preference)**:
+
+  ```typescript
+  import { getItem } from '@/lib/indexeddb-service';
+
+  interface UserSettings {
+    theme: string;
+    notifications: boolean;
+  }
+
+  async function loadUserSettings(): Promise<UserSettings | undefined> {
+    const settings = await getItem<UserSettings>('userSettings');
+    if (settings) {
+      console.log('Loaded user settings:', settings);
+    } else {
+      console.log('User settings not found locally.');
+    }
+    return settings;
+  }
+
+  // Usage
+  loadUserSettings();
+  ```
+
+#### `saveCalculation(data: CalculationData)`
+
+- **Purpose**: Specifically saves `CalculationData` (e.g., ACoS calculator history) to the `cache` object store, using a compound key to ensure uniqueness for each calculation.
+- **Remarks**: Used by the ACoS Calculator for persistent storage of historical calculations.
+- **Example**:
+
+  ```typescript
+  import { saveCalculation } from '@/lib/indexeddb-service';
+
+  interface CalculationData {
+    campaignName: string;
+    date: string; // Or Date type, depending on implementation
+    adSpend: number;
+    sales: number;
+    acos: number;
+    roas: number;
+  }
+
+  const newCalculation: CalculationData = {
+    campaignName: 'Q1_Launch_Campaign',
+    date: '2025-03-15',
+    adSpend: 1500,
+    sales: 3000,
+    acos: 50,
+    roas: 2,
+  };
+
+  async function storeCalculation() {
+    await saveCalculation(newCalculation);
+    console.log('Calculation history updated.');
+  }
+  storeCalculation();
+  ```
+
+#### `getCalculations()`
+
+- **Purpose**: Retrieves all stored `CalculationData` records from the `cache` object store. It filters items based on a predefined key prefix (`INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY`).
+- **Remarks**: Used by the ACoS Calculator to display historical calculation data.
+- **Example**:
+
+  ```typescript
+  import { getCalculations } from '@/lib/indexeddb-service';
+
+  async function fetchAllCalculations() {
+    const allCalculations = await getCalculations();
+    console.log('All saved calculations:', allCalculations);
+    // Display or process these calculations
+  }
+  fetchAllCalculations();
+  ```
+
+#### Other Key Functions (Brief Mentions)
+
+- **Chat**: `getChatMessagesBySession` to retrieve messages for a specific session.
+- **CRM**: `createContact`, `getContact`, `updateContact`, `deleteContact`, `getAllContacts`, `addCategory`, `getAllCategories`, `updateCategory`, `deleteCategory` for managing contact and category data.
+- **Project Board**: `createTask`, `getTask`, `updateTask`, `deleteTask`, `getAllTasks`, `createProject`, `getProject`, `getAllProjects`, `updateProject`, `deleteProject` for managing project and task data.
+- **Academy**: `createCourse`, `getCourse`, `getAllCourses`, `updateCourse`, `deleteCourse`, `deleteCoursesByIds`, `updateModuleProgress`, `getModuleProgress`, `getCourseModuleProgress` for managing course content and user progress.
+
+## 4. Data Flow and Synchronization Strategy
+
+The IndexedDB implementation primarily focuses on **client-side local persistence**. Data stored in IndexedDB is confined to the user's browser.
+
+- **Local Storage**: Data from forms, user preferences, and intermediate results (like ACoS calculations, CRM contacts, project tasks) are saved directly to IndexedDB for immediate availability and improved user experience.
+- **No Direct Backend Synchronization**: The IndexedDB services (`indexeddb-service.ts` and `amazon-tools-db.ts`) themselves **do not include direct mechanisms for synchronizing data with backend services** like Supabase.
+- **Complementary Role**: IndexedDB acts as a local cache that complements backend data. If backend synchronization is required for certain data types (e.g., `Course` data which might originate from Supabase), it would be handled by separate services (e.g., `supabase-service.ts`) that fetch data from the backend and then _optionally_ store it locally via IndexedDB for caching purposes, or conversely, push local changes to the backend. The application's design currently uses IndexedDB for user-specific local state and features that don't strictly require cloud persistence for all operations.
+
+## 5. Error Handling
+
+Error handling within `src/lib/indexeddb-service.ts` (and similarly in `amazon-tools-db.ts`) is centralized through the `logError` function.
+
+- **`logError(error: unknown, message: string, component: string)`**: This internal utility function is called whenever an error occurs during an IndexedDB operation (e.g., a failed `put`, `get`, or `delete`). It logs the error details, a descriptive message, and the component where the error originated to the browser's console.
+- **Graceful Degradation**: Many functions that interact with IndexedDB are designed to return `undefined` or an empty array (`[]`) in case of an error. This approach prevents the application from crashing due to IndexedDB failures and allows the calling code to handle the absence of data gracefully.
+- **Example (Inside a function)**:
+  ```typescript
+  // ... inside getChatMessagesBySession ...
+  try {
+    return await db.chatMessages
+      .where('chatSessionId')
+      .equals(chatSessionId)
+      .sortBy('timestamp');
+  } catch (error) {
+    logError(
+      error,
+      `Failed to get messages for session ${chatSessionId}:`,
+      'IndexedDBService',
+    );
+    return []; // Returns empty array on error
+  }
+  ```
+
+## 6. Future Improvements
+
+- Implement more robust error handling and potentially integrate with a client-side error tracking system.
+- Explore options for background data synchronization with backend services where cloud persistence is desired for specific local data (e.g., user preferences that should roam across devices).
+- Add more complex query examples to the documentation for filtering and sorting data within different object stores.
+- Provide a dedicated section for managing schema migrations when introducing new versions of the database or new object stores, as handled by `db.version().stores()`.

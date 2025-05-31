@@ -44,7 +44,7 @@
         }
       },
       "professionalProfile": {
-        "title": "Amazon Growth Specialist | Developing SP-API Solutions",
+        "title": "Amazon Growth Specialist | Developing Digital Solutions",
         "tagline": "Driving e-commerce success with expertise in Amazon SEO & PPC, and actively developing SP-API skills for custom automation tools.",
         "summary": "Highly motivated Amazon Growth Specialist with 5+ years of experience. I combine deep expertise in Amazon SEO & PPC optimization with developing SP-API skills (Python/Node.js, AWS), currently focused on building custom automation tools, insightful dashboards, and data-driven strategies. These tools are being designed with the goal of significantly reducing manual workload, enhancing operational efficiency for e-commerce operations, and improving key performance metrics like ACoS and organic rank. Passionate about leveraging technology and data to solve complex seller challenges and achieve scalable growth.",
         "coreCompetencies": [
@@ -346,8 +346,8 @@
     },
     "webappContext": {
       "projectOverview": {
-        "name": "Amazon Seller Tools Suite (ScaleSmart (My Portfolio App) Platform)",
-        "description": "A suite of React-based tools designed to help Amazon sellers optimize listings, analyze performance, and manage their businesses effectively. This platform embodies Wesley's approach to building comprehensive, AI-enhanced solutions.",
+        "name": "ScaleSmart: My Portfolio & Amazon Seller Tool Development Platform",
+        "description": "ScaleSmart is my personal and professional portfolio platform where I, Wesley Quintero, develop and showcase a suite of React-based Amazon seller tools. These tools are designed to help sellers optimize listings, analyze performance, and manage their businesses. ScaleSmart embodies my approach to building comprehensive, AI-enhanced solutions and demonstrates my skills in SP-API, full-stack development, and e-commerce strategy.",
         "currentStatus": "Active development & Continuous Improvement",
         "version": "2.1.0",
         "lastUpdate": "2024-05-26",

@@ -8,7 +8,6 @@ import {
   getChatMessagesBySession,
   ChatMessageRecord,
 } from '@/lib/indexeddb-service';
-import { cachedFetch } from '@/lib/api-cache';
 
 // --- Style Imports ---
 import 'katex/dist/katex.min.css'; // For math rendering
@@ -159,6 +158,119 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
   }
 }
 
+// --- Constants ---
+const DEFAULT_RETRY_LIMIT = 3;
+
+// --- Pure Helper Functions (can be outside the component) ---
+
+// Parses an error response from the API
+async function parseApiErrorResponse(apiResponse: Response): Promise<string> {
+  let errorResponseMessage = `API Error: ${apiResponse.status} ${apiResponse.statusText}`;
+  let rawErrorResponse = '';
+
+  try {
+    rawErrorResponse = await apiResponse.text();
+    if (rawErrorResponse) {
+      try {
+        const errorData = JSON.parse(rawErrorResponse);
+        // console.debug('Parsed API Error Data:', errorData); // Optional: for debugging
+
+        if (
+          errorData &&
+          typeof errorData.error === 'string' &&
+          errorData.error.trim() !== ''
+        ) {
+          errorResponseMessage = errorData.error;
+        } else if (
+          rawErrorResponse.trim() !== '' &&
+          rawErrorResponse.trim() !== '{}'
+        ) {
+          const Suffix = '... (response truncated)';
+          const MaxLength = 200;
+          errorResponseMessage = `Server Error ${apiResponse.status}: ${rawErrorResponse.substring(0, MaxLength)}${rawErrorResponse.length > MaxLength ? Suffix : ''}`;
+        }
+      } catch (jsonParseError) {
+        // console.warn('Failed to parse API error response as JSON. Raw response:', rawErrorResponse.substring(0, 500)); // Optional: for debugging
+        const Suffix = '... (response truncated)';
+        const MaxLength = 200;
+        errorResponseMessage = `Server Error ${apiResponse.status}: ${rawErrorResponse.substring(0, MaxLength)}${rawErrorResponse.length > MaxLength ? Suffix : ''}`;
+      }
+    }
+  } catch (textReadError) {
+    console.error('Failed to read API error response as text:', textReadError);
+  }
+  return errorResponseMessage;
+}
+
+// Fetches chat response and processes it into a success or error object
+async function fetchAndProcessChatApi(
+  sanitizedContent: string,
+  currentMessages: Message[],
+): Promise<
+  { type: 'success'; data: Message } | { type: 'error'; message: string }
+> {
+  console.log('Calling /api/chat with message:', sanitizedContent);
+  console.time('Fetch /api/chat');
+  try {
+    const apiResponse = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: sanitizedContent.trim(),
+        history: currentMessages
+          .filter((msg) => msg.status === 'sent')
+          .map(({ role, content }) => ({ role, content })),
+      }),
+      cache: 'no-store',
+    });
+    console.timeEnd('Fetch /api/chat');
+    console.log('API Response:', apiResponse);
+
+    if (!apiResponse.ok) {
+      const errorMessage = await parseApiErrorResponse(apiResponse);
+      return { type: 'error', message: errorMessage };
+    }
+
+    const data = await apiResponse.json();
+    console.log('API Data:', data);
+    const aiContent = data?.response;
+
+    if (typeof aiContent === 'string' && aiContent.trim() !== '') {
+      return {
+        type: 'success',
+        data: {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content: aiContent,
+          timestamp: Date.now(),
+          status: 'sent',
+        },
+      };
+    } else {
+      console.error('AI Reply Content is invalid. API Data:', data);
+      return {
+        type: 'success',
+        data: {
+          id: crypto.randomUUID(),
+          role: 'assistant',
+          content:
+            "Sorry, I couldn't fetch a valid response. Please try again.",
+          timestamp: Date.now(),
+          status: 'sent',
+        },
+      };
+    }
+  } catch (error) {
+    // Catches network errors or issues with fetch/json itself
+    console.error('Error in fetchAndProcessChatApi:', error);
+    const message =
+      error instanceof Error
+        ? error.message
+        : 'An unknown network error occurred.';
+    return { type: 'error', message };
+  }
+}
+
 // --- Main Chat Component ---
 export default function ChatInterface() {
   const [state, dispatch] = useReducer(chatReducer, initialState);
@@ -228,17 +340,19 @@ export default function ChatInterface() {
   useEffect(() => {
     const saveMessages = async () => {
       if (typeof window !== 'undefined') {
-        console.time('Save chat messages to IndexedDB');
         for (const message of messages) {
-          const recordForDB = {
-            // Construct the object as expected by setItem
-            chatSessionId: chatSessionIdRef.current,
+          // Prepare the data payload for setItem.
+          // This assumes setItem(chatSessionId, messageData) is designed to handle
+          // individual message records, using message.id for uniqueness.
+          const messageDataPayload = {
+            id: message.id!, // UI ensures message.id exists (string UUID)
             sender: mapMessageRoleToSender(message.role), // Use helper for clear typing
             text: message.content, // Map 'content' to 'text'
+            timestamp: message.timestamp,
           };
-          await setItem(chatSessionIdRef.current, recordForDB);
+          // Pass chatSessionId and the specific message data to setItem
+          await setItem(chatSessionIdRef.current, messageDataPayload);
         }
-        console.timeEnd('Save chat messages to IndexedDB');
       }
     };
     saveMessages();
@@ -284,128 +398,112 @@ export default function ChatInterface() {
 
   const sendMessage = useCallback(
     async (
-      message: Message,
-      isRetry: boolean,
-      timestampToUse: number,
+      userMessage: Message, // Full message object, includes timestamp, content, id, etc.
       currentRetryCount: number,
     ) => {
-      const RETRY_LIMIT = message.retryLimit ?? ConfigRetryLimit ?? 3;
+      const RETRY_LIMIT =
+        userMessage.retryLimit ?? ConfigRetryLimit ?? DEFAULT_RETRY_LIMIT;
       // Sanitize the message content before sending
-      const sanitizedContent = DOMPurify.sanitize(message.content);
+      const sanitizedContent = DOMPurify.sanitize(userMessage.content);
+
       try {
-        // --- Actual API Call ---
-        console.log('Calling /api/chat with message:', sanitizedContent);
-        console.time('Fetch /api/chat');
-        const apiResponse = await cachedFetch('/api/chat', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: sanitizedContent.trim(),
-            history: messages
-              .filter((msg) => msg.status === 'sent')
-              .map(({ role, content }) => ({ role, content })),
-          }),
-        });
-        console.timeEnd('Fetch /api/chat');
+        const result = await fetchAndProcessChatApi(sanitizedContent, messages);
 
-        // --- Handle API Response ---
-        console.log('API Response:', apiResponse);
-        if (!apiResponse.ok) {
-          let errorData;
-          try {
-            errorData = await apiResponse.json();
-          } catch (jsonError) {
-            console.error('Failed to parse JSON error response:', jsonError);
-            throw new Error(
-              `API Error: ${apiResponse.status} ${apiResponse.statusText}. Failed to parse JSON response.`,
-            );
-          }
-          console.error('API Error Data:', errorData);
-          const errorMessage =
-            errorData?.error ||
-            `API Error: ${apiResponse.status} ${apiResponse.statusText}`;
-          throw new Error(errorMessage);
-        }
-
-        const data = await apiResponse.json();
-        console.log('API Data:', data); // Log the parsed JSON data
-        const aiContent = data?.response; // Changed 'reply' to 'response' to match backend
-        console.log('AI Reply Content:', aiContent);
-
-        // 1. Update user message status to 'sent' since the API request itself was successful
-        dispatch({
-          type: 'UPDATE_MESSAGE',
-          payload: {
-            timestamp: message.timestamp,
-            role: 'user',
-            updates: { status: 'sent', error: undefined },
-          },
-        });
-
-        // 2. Add the assistant's response or an error message if content is invalid
-        if (typeof aiContent === 'string' && aiContent.trim() !== '') {
-          const assistantMessage: Message = {
-            role: 'assistant',
-            content: aiContent,
-            timestamp: Date.now(),
-            status: 'sent',
-          };
-          dispatch({ type: 'ADD_MESSAGE', payload: assistantMessage });
-        } else {
-          console.error(
-            'AI Reply Content is empty, undefined, or not a string. API Data:',
-            data,
-          );
-          const assistantErrorMessage: Message = {
-            role: 'assistant',
-            content:
-              "Sorry, I couldn't fetch a valid response. Please try again or rephrase your question.",
-            timestamp: Date.now(),
-            status: 'sent', // Display as a normal assistant message, its content is the error.
-          };
-          dispatch({ type: 'ADD_MESSAGE', payload: assistantErrorMessage });
-        }
-      } catch (error: unknown) {
-        console.error('Failed to send/process message:', error);
-        // --- Retry Mechanism with Exponential Backoff ---
-        const retryCount = currentRetryCount + 1;
-        if (retryCount <= RETRY_LIMIT) {
-          const delay = Math.pow(2, retryCount) * 1000; // Exponential backoff
-          console.log(
-            `Retrying message (attempt ${retryCount}/${RETRY_LIMIT}) in ${
-              delay / 1000
-            } seconds...`,
-          );
-          setTimeout(() => {
-            sendMessage(message, true, timestampToUse, retryCount); // Recursive call for retry
-          }, delay);
-        } else {
-          // --- Update State on Error After Retries Exhausted ---
-          console.warn(`Max retries reached for message: ${message.timestamp}`);
+        if (result.type === 'success') {
+          // API call was successful, and we got a response (even if it's an error message from AI)
           dispatch({
             type: 'UPDATE_MESSAGE',
             payload: {
-              timestamp: message.timestamp,
+              timestamp: userMessage.timestamp,
               role: 'user',
               updates: {
-                status: 'error',
-                error:
-                  error instanceof Error
-                    ? `Failed after ${RETRY_LIMIT} retries: ${error.message}`
-                    : `Failed after ${RETRY_LIMIT} retries: An unknown error occurred`,
-                retryCount: retryCount,
+                status: 'sent',
+                error: undefined,
+                retryCount: currentRetryCount,
               },
             },
           });
+          dispatch({ type: 'ADD_MESSAGE', payload: result.data }); // result.data is already a Message
+        } else {
+          // result.type === 'error' - API call itself failed
+          console.error(
+            `API call failed for message ${userMessage.timestamp}: ${result.message}`,
+          );
+          const nextRetryCount = currentRetryCount + 1;
+
+          if (nextRetryCount <= RETRY_LIMIT) {
+            const delay = Math.pow(2, nextRetryCount) * 1000; // Exponential backoff
+            console.log(
+              `Retrying message ${userMessage.timestamp} (attempt ${nextRetryCount}/${RETRY_LIMIT}) in ${delay / 1000}s. Error: ${result.message}`,
+            );
+            // Update UI to show retrying status
+            dispatch({
+              type: 'UPDATE_MESSAGE',
+              payload: {
+                timestamp: userMessage.timestamp,
+                role: 'user',
+                updates: {
+                  status: 'sending', // Keep as 'sending' or use a dedicated 'retrying' status
+                  error: `Retry ${nextRetryCount}/${RETRY_LIMIT}: ${result.message}`,
+                  retryCount: nextRetryCount,
+                },
+              },
+            });
+            // Schedule retry
+            setTimeout(() => {
+              sendMessage(userMessage, nextRetryCount); // Recursive call for retry
+            }, delay);
+            // Return here to prevent `finally` from setting isLoading to false if a retry is scheduled
+            return;
+          } else {
+            // Max retries reached
+            console.warn(
+              `Max retries (${RETRY_LIMIT}) reached for message: ${userMessage.timestamp}. Final error: ${result.message}`,
+            );
+            dispatch({
+              type: 'UPDATE_MESSAGE',
+              payload: {
+                timestamp: userMessage.timestamp,
+                role: 'user',
+                updates: {
+                  status: 'error',
+                  error: `Failed after ${RETRY_LIMIT} retries: ${result.message}`,
+                  retryCount: currentRetryCount, // Show the count at which it failed
+                },
+              },
+            });
+          }
         }
+      } catch (unexpectedError) {
+        // This catch is for unexpected errors within this sendMessage logic itself,
+        // not for API errors which are handled by fetchAndProcessChatApi.
+        console.error(
+          'Unexpected error in sendMessage logic:',
+          unexpectedError,
+        );
+        dispatch({
+          type: 'UPDATE_MESSAGE',
+          payload: {
+            timestamp: userMessage.timestamp,
+            role: 'user',
+            updates: {
+              status: 'error',
+              error:
+                unexpectedError instanceof Error
+                  ? unexpectedError.message
+                  : 'A critical internal error occurred.',
+              retryCount: currentRetryCount,
+            },
+          },
+        });
       } finally {
+        // This block executes if the try block completes or if an error is caught and not returned from.
+        // If a retry is scheduled, the function returns early, and this finally block is skipped for that call.
         dispatch({ type: 'SET_LOADING', payload: false });
         scrollToBottom();
       }
     },
-    [messages, scrollToBottom, dispatch],
+    [messages, scrollToBottom, dispatch, ConfigRetryLimit],
   );
 
   const handleMessageSubmit = useCallback(
@@ -413,7 +511,7 @@ export default function ChatInterface() {
       const isRetry = typeof messageOrContent !== 'string';
       const content = isRetry ? messageOrContent.content : messageOrContent;
       const timestampToUse = isRetry ? messageOrContent.timestamp : Date.now();
-      const currentRetryCount = isRetry
+      const initialRetryCountForCall = isRetry
         ? (messageOrContent.retryCount ?? 0)
         : 0;
       const RETRY_LIMIT = getRetryLimit(messageOrContent);
@@ -421,7 +519,7 @@ export default function ChatInterface() {
       if (!content?.trim()) return;
 
       // Check retry limit
-      if (isRetry && currentRetryCount >= RETRY_LIMIT) {
+      if (isRetry && initialRetryCountForCall >= RETRY_LIMIT) {
         console.warn(`Retry limit reached for message: ${timestampToUse}`);
         dispatch({
           type: 'UPDATE_MESSAGE',
@@ -429,8 +527,8 @@ export default function ChatInterface() {
             timestamp: timestampToUse,
             role: 'user',
             updates: {
-              error: `Failed after ${RETRY_LIMIT} retries. Cannot send.`,
-              retryCount: currentRetryCount, // Keep the count for display
+              error: `Failed after ${RETRY_LIMIT} retries. Cannot send.`, // Or messageRetryLimit
+              retryCount: initialRetryCountForCall,
             },
           },
         });
@@ -438,12 +536,13 @@ export default function ChatInterface() {
       }
 
       const userMessage: Message = {
+        id: isRetry ? messageOrContent.id : crypto.randomUUID(),
         role: 'user',
         content: content.trim(),
         timestamp: timestampToUse,
         status: 'sending',
-        retryCount: currentRetryCount,
-        retryLimit: RETRY_LIMIT,
+        retryCount: initialRetryCountForCall,
+        retryLimit: RETRY_LIMIT, // Or messageRetryLimit
       };
 
       // --- Optimistic UI Update ---
@@ -457,7 +556,7 @@ export default function ChatInterface() {
             updates: {
               status: 'sending',
               error: undefined,
-              retryCount: currentRetryCount,
+              retryCount: initialRetryCountForCall,
             },
           },
         });
@@ -470,15 +569,11 @@ export default function ChatInterface() {
       scrollToBottom(); // Scroll after adding/updating user message
       console.log('Submitting message:', content); // Log the message content
 
-      await sendMessage(
-        userMessage,
-        isRetry,
-        timestampToUse,
-        currentRetryCount,
-      );
+      // Pass the full userMessage object and the initial retry count
+      await sendMessage(userMessage, initialRetryCountForCall);
     },
-    [messages, scrollToBottom, dispatch, sendMessage],
-  ); // Include messages and scrollToBottom in dependencies
+    [scrollToBottom, dispatch, sendMessage, getRetryLimit],
+  );
 
   // --- Delete Handler ---
   const handleDeleteMessage = useCallback((timestamp: number) => {
@@ -640,7 +735,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   const isUser = message.role === 'user';
   // Conditional styling for user vs assistant, and dark mode
   const bubbleClass = isUser
-    ? 'bg-blue-500 text-white ml-auto'
+    ? 'bg-primary text-primary-foreground ml-auto'
     : // Assistant bubble needs to be relative for absolute positioning of copy button
       'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100';
   const containerClass = isUser ? 'flex justify-end' : 'flex justify-start';

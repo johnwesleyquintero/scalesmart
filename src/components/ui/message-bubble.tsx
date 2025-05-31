@@ -121,7 +121,7 @@ export function MessageBubble({
           'relative flex flex-col gap-2 rounded-lg p-4 max-w-[85%]',
           isAssistant
             ? 'bg-gray-100 dark:bg-gray-800'
-            : 'bg-blue-500 text-white',
+            : 'bg-primary text-primary-foreground',
           isError &&
             'bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30',
         )}
