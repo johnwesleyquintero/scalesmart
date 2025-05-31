@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 
-const defaultImage = '/default-fallback.svg';
 const SITE_DESCRIPTION =
   'Data-Driven Amazon & E-commerce Specialist portfolio website.';
 const AUTHOR_NAME = 'Wesley Quintero'; // Define a constant for the author's name
@@ -42,12 +41,6 @@ export const metadata: Metadata = {
         height: 630,
         alt: `${AUTHOR_NAME} Portfolio`,
       },
-      {
-        url: `https://wescode.vercel.app${defaultImage}`,
-        width: 1200,
-        height: 630,
-        alt: `${AUTHOR_NAME} Portfolio Fallback`,
-      },
     ],
   },
   twitter: {
@@ -57,7 +50,6 @@ export const metadata: Metadata = {
       'Data Analytics Innovator and Founder of ScaleSmart, building tools that streamline workflows and provide valuable insights.',
     images: [
       'https://wescode.vercel.app/og-image.svg',
-      `https://wescode.vercel.app${defaultImage}`,
     ],
   },
   robots: {

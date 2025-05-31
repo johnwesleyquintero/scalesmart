@@ -131,3 +131,6 @@ jest.setup.js
 __mocks__/
 .vercel
 
+
+.vercel
+.env*.local

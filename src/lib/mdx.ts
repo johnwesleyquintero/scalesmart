@@ -115,7 +115,7 @@ const docMatterDataSchema = z.object({
  * Normalizes a date string or Date object to 'YYYY-MM-DD' format.
  * @param date - The date to normalize.
  * @returns The normalized date string.
-*/
+ */
 function normalizeDate(date: string | Date) {
   const d = new Date(date);
   return d.toISOString().split('T')[0];
@@ -154,7 +154,7 @@ const DOC_FILE_NAMES = [
   'README.md',
   // Added introduction.mdx as a special root-level file that maps to 'introduction' slug
   'introduction.mdx',
-  'introduction.md'
+  'introduction.md',
 ];
 /**
  * @constant {string} DOCS_BASE_DIR_NAME - The base name of the docs directory (e.g., "docs").
@@ -300,7 +300,9 @@ function deriveDocSlug(
   const normalizedRelativePath = relativePath.replace(/\\/g, '/');
 
   // Check for special files directly under the `docsDirectory` that should map to 'introduction'
-  const isRootSpecialFile = DOC_FILE_NAMES.some(name => name.replace(/\\/g, '/') === normalizedRelativePath);
+  const isRootSpecialFile = DOC_FILE_NAMES.some(
+    (name) => name.replace(/\\/g, '/') === normalizedRelativePath,
+  );
   const isParentDocsBaseDir = parentDir === DOCS_BASE_DIR_NAME;
 
   if (isRootSpecialFile && isParentDocsBaseDir) {
@@ -310,7 +312,6 @@ function deriveDocSlug(
   // For all other cases, return the full relative path as the slug, removing extension
   return normalizedRelativePath.replace(MARKDOWN_FILE_REGEX, '');
 }
-
 
 /**
  * Derives the title for a documentation post.
