@@ -2,7 +2,6 @@
 
 import React from 'react';
 import Quiz from '../app/academy/components/Quiz';
-import ExerciseModule from './ExerciseModule';
 import { clsx } from 'clsx'; // Import clsx
 
 // Define custom components to be used within MDX
@@ -95,7 +94,6 @@ export const components = {
     </pre>
   ),
   Quiz: Quiz,
-  ExerciseModule: ExerciseModule,
   // Add any other custom components you want to use in your MDX files
 };
 

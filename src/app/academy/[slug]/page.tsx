@@ -1,6 +1,6 @@
 import { getAcademyArticleBySlug, getAllAcademyArticles } from '@/lib/mdx'; // Re-using existing MDX utility for now
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { mdxDocsComponents } from '@/components/MdxDocsComponents'; // Assuming same components for academy articles
+import { components } from '@/components/MdxRenderer'; // Assuming same components for academy articles
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
@@ -174,10 +174,7 @@ export default async function AcademyArticlePage({
 
           {article.content && (
             <article className="prose prose-lg dark:prose-invert max-w-none">
-              <MDXRemote
-                source={article.content}
-                components={mdxDocsComponents}
-              />
+              <MDXRemote source={article.content} components={components} />
             </article>
           )}
 

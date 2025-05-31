@@ -2,6 +2,7 @@ import ClientProviders from '@/components/client-providers';
 import { Analytics } from '@vercel/analytics/next';
 import Footer from '@/components/footer'; // /* IMPORT THE FOOTER */
 import Header from '@/components/header'; // /* IMPORT THE HEADER */
+import ChatInterface from '@/components/ui/chat-interface'; // Import ChatInterface
 import { Toaster } from '@/components/ui/toaster'; // Import Toaster
 import { cn } from '@/lib/utils';
 import type { Metadata, Viewport } from 'next';
@@ -83,6 +84,7 @@ export default function RootLayout({
               {children}
             </main>
             <Footer />
+            <ChatInterface /> {/* Render ChatInterface here */}
           </ClientProviders>
           <Toaster />
         </div>

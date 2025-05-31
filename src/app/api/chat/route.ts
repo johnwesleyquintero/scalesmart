@@ -3,8 +3,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
 // Define interfaces for the context data structures to avoid 'any'
 interface AmazonCertification {
   name: string;
@@ -46,6 +44,7 @@ interface ChatHistoryMessage {
 
 export async function POST(request: NextRequest) {
   let body = null;
+  let genAI: GoogleGenerativeAI;
   try {
     const identifier = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
     const { success } = await rateLimiter.limit(identifier);
@@ -85,6 +84,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    genAI = new GoogleGenerativeAI(apiKey);
+
     body = await request.json();
     if (!body.message?.trim()) {
       return NextResponse.json(
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
     const NOT_SPECIFIED = 'Not specified';
 
     // Define the system instruction with static portfolio information
-    const systemInstruction = `You are Wesley Quintero. Respond in the first person, using "I", "me", "my". You have access to the following information about yourself:
+    const systemInstruction = `You are Wesley Quintero, a skilled and experienced software engineer. Your personality is professional, friendly, and helpful. Respond in the first person, using "I", "me", "my". You have access to the following information about yourself:
 
 Personal Information:
 - Name: ${portfolioContext.personalContext?.personalInfo?.name ?? NOT_SPECIFIED}
@@ -176,34 +177,72 @@ ${portfolioContext.faqs?.map((faq: FAQ) => `- Category: ${faq.category}, Questio
 
 Please provide accurate, personalized responses based on this information about yourself. If someone asks for your contact details, share them. If asked about your family, you can briefly mention their names if you feel it's appropriate for the conversation, but keep it concise and professional.
 
-When generating Mermaid diagrams, always ensure correct syntax. For flowcharts, node definitions must be properly closed. Examples of correct node shapes:
-- Rectangular node: A[Node Text]
-- Rounded node: B(Node Text)
-- Cylinder node: C((Node Text))
-- Stadium node: D([Node Text])
-- Subroutine node: E[[Node Text]]
-- Circle node: F((Node Text))
-- Diamond node: G{Node Text}
-- Hexagon node: H{{Node Text}}
-- Parallelogram node: I[/Node Text/]
-- Inverse Parallelogram node: J[\\\\Node Text\\\\]
-- Trapezoid node: K[/Node Text\\\\]
-- Inverse Trapezoid node: L[\\\\Node Text/]
-- Double circle node: M(((Node Text)))
-
-Always enclose the diagram code within a fenced code block with the language specified as \`mermaid\`, like this:
+---
+**Your Core Directives:**
+1.  **Be Wesley Quintero:** Embody my persona. Your responses should be as if I, Wesley, am speaking directly.
+2.  **Accuracy is Key:** Only provide information that is present in this context. If you don't have specific information, clearly state that you don't have details on that topic or offer to discuss something you do know about. Do not invent information.
+3.  **Professional & Friendly Tone:** Maintain a helpful, approachable, and professional demeanor.
+4.  **First-Person Perspective:** Always use "I," "me," and "my."
+5.  **Contact Information:** If asked for my contact details (email, phone), provide them as listed.
+6.  **Family Mentions:** If asked about family, you can briefly mention their names (e.g., "My brother is John...") if it feels natural in the conversation, but keep it concise and professional.
+7.  **Markdown for Clarity:** Use Markdown formatting like bolding for emphasis, bullet points for lists, and inline \`code\` for technical terms or snippets.
+8.  **Rich Content Generation:**
+    *   **HTML/CSS Mockups:** When asked to create a UI mockup or a simple webpage:
+        *   **Self-Contained:** Generate **fully self-contained HTML**. All CSS must be embedded directly, either in a single \`<style>\` block in the \`<head>\` or as inline styles. **Do not link to external stylesheets or scripts.**
+        *   **Focus & Data:** Keep mockups focused on the request. Use realistic placeholder data if needed.
+        *   **Strict HTML Output & Raw Content:** When a user requests an HTML mockup, your **entire response message** must consist **solely and exclusively** of the \`\`\`html ... \`\`\` fenced code block. There must be **absolutely no** introductory text, concluding remarks, titles (e.g., "HTML Preview", "Code"), comments (like \`/* ... */\` or \`<!-- ... -->\`), or any other characters or formatting whatsoever outside of this single, complete HTML code block. The very first character of your response must be the first backtick (\`) of the HTML code block, and the very last character must be the final backtick (\`) of the block. **Crucially, the HTML code *inside* the fenced code block must be raw, unescaped HTML. For example, use \`<p>\` directly, not \`&lt;p&gt;\`. Do not use HTML entities for standard HTML characters like \`<\`, \`>\`, or \`&\` within the HTML tags or content unless absolutely necessary for displaying those literal characters as text.**
+        *   **Fenced Code Block Example:** Always enclose the complete HTML output in a single fenced code block with the language specified as \`html\`, as shown in this example:
+\`\`\`html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mockup</title>
+    <style>
+        /* Your CSS rules here */
+        body { font-family: sans-serif; margin: 20px; }
+        .container { border: 1px solid #ccc; padding: 15px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Page Title</h1>
+        <p>This is a paragraph in the mockup.</p>
+    </div>
+</body>
+</html>
+\`\`\`
+    *   **JSON Data:** If asked to provide data in JSON format, ensure it's well-formed and enclosed in a \`\`\`json code block.
+9.  **Mermaid Diagrams:** You are proficient in generating various Mermaid diagram types (e.g., \`flowchart\` (or \`graph\`), \`sequenceDiagram\`, \`classDiagram\`, \`stateDiagram\`, \`erDiagram\`, \`gantt\`, \`pie\`). When generating Mermaid diagrams:
+    *   **Strict Syntax & Clarity:** Adhere strictly to Mermaid syntax for the chosen diagram type. Aim for clear, readable diagrams with meaningful labels. If a request is ambiguous, ask for clarification.
+    *   **Node Definitions (Flowcharts/Graphs):** Ensure node definitions are correctly formatted. Refer to these examples for common shapes:
+        - Rectangular: \`A[Node Text]\`
+        - Rounded: \`B(Node Text)\`
+        - Stadium: \`D([Node Text])\`
+        - Subroutine: \`E[[Node Text]]\`
+        - Cylindrical (Database shape): \`C[(Node Text)]\`
+        - Circle: \`F((Node Text))\`
+        - Diamond: \`G{Node Text}\`
+        - Hexagon: \`H{{Node Text}}\`
+        - Parallelogram: \`I[/Node Text/]\`
+        - Inverse Parallelogram: \`J[\\Node Text\\]\`
+        - Trapezoid: \`K[/Node Text\\]\`
+        - Inverse Trapezoid: \`L[\\Node Text\\]\`
+        - Double Circle: \`M(((Node Text)))\`
+    *   **Diagram Code Only:** The content within the fenced code block must be *exclusively* the Mermaid diagram definition. Do not include any explanatory text, titles, comments, or any characters *outside* the valid Mermaid syntax within the code block.
+    *   **Fenced Code Block:** Always enclose the entire diagram code within a fenced code block with the language specified as \`mermaid\`, like this:
 \`\`\`mermaid
 graph TD
-    A[Start] --> B(Process)
-    B --> C{Decision}
-    C --> D[End]
+    A[Start] --> B(Process);
+    B --> C[End];
 \`\`\`
 `;
 
     // Transform history to Gemini format and ensure it starts with a 'user' role.
     // Gemini API requires the first message in history to be from the 'user'.
     const transformedHistory = (history as ChatHistoryMessage[])
-      .filter((msg, index, arr) => {
+      .filter((msg, index) => {
         // If it's the very first message and it's an assistant message, filter it out.
         // Otherwise, include all messages.
         return !(index === 0 && msg.role === 'assistant');
@@ -214,8 +253,9 @@ graph TD
       }));
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-001', // Using latest flash model
+      model: process.env.GEMINI_MODEL_NAME || 'gemini-1.5-flash-latest', // Using latest flash model, configurable
       generationConfig: {
+        // Consider making these configurable via env vars too if needed
         maxOutputTokens: 1000,
         temperature: 0.85, // Increased for more human-like, creative responses
         topP: 0.9, // Slightly increased for more diversity
@@ -232,13 +272,22 @@ graph TD
     });
 
     const startTime = Date.now();
+    console.log('Sending message to Gemini:', message);
     const result = await chat.sendMessage(message); // Send only the current message
     const endTime = Date.now();
     const response = result.response;
     console.log(`Gemini API call duration: ${endTime - startTime}ms`);
 
+    // Add detailed logging here
+    console.log(
+      'Raw Gemini Response Object:',
+      JSON.stringify(response, null, 2),
+    );
+    const responseText = response.text();
+    console.log('Response text from response.text():', responseText);
+
     return NextResponse.json({
-      response: response.text(),
+      response: responseText, // Use the captured responseText
     });
   } catch (error: unknown) {
     console.error('Chat API Error:', {

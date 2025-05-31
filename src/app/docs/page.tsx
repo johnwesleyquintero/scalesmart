@@ -21,7 +21,7 @@ export default async function DocsHomePage() {
             <p className="text-lg text-muted-foreground">{doc.description}</p>
           )}
         </div>
-        <div className="pb-12 pt-8">
+        <div className="pb-12 pt-8 prose dark:prose-invert max-w-none">
           <MDXRemote source={doc.content || ''} components={components} />
         </div>
       </div>

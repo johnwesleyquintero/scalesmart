@@ -23,12 +23,14 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 // --- Component Imports ---
-import { RotateCcw, Trash2 } from 'lucide-react';
+import { RotateCcw, Trash2, Maximize, Minimize } from 'lucide-react';
 import CopyMarkdownButton from './CopyMarkdownButton';
 import HtmlPreview from './HtmlPreview'; // Import the new HtmlPreview component
+import JsonViewer from './JsonViewer'; // Import the new JsonViewer component
 import MermaidDiagram from './MermaidDiagram'; // Import the MermaidDiagram component
 import { toString as hastToString } from 'hast-util-to-string'; // For extracting raw code
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils'; // For conditional class names
 
 // --- Interfaces ---
 export interface Message {
@@ -55,6 +57,7 @@ type ChatState = {
   input: string;
   isLoading: boolean; // True when waiting for AI response
   isChatOpen: boolean; // Controls visibility of the chat window
+  isFullScreen: boolean; // New state for fullscreen mode
 };
 
 type ChatAction =
@@ -62,6 +65,7 @@ type ChatAction =
   | { type: 'SET_INPUT'; payload: string }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'TOGGLE_CHAT' }
+  | { type: 'TOGGLE_FULLSCREEN' }
   | { type: 'ADD_MESSAGE'; payload: Message }
   | {
       type: 'UPDATE_MESSAGE';
@@ -112,6 +116,7 @@ export const initialState: ChatState = {
   input: '',
   isLoading: false,
   isChatOpen: false,
+  isFullScreen: false, // Initialize to false
 };
 
 export function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -157,7 +162,14 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
     case 'TOGGLE_CHAT':
-      return { ...state, isChatOpen: !state.isChatOpen };
+      // When toggling chat visibility, ensure fullscreen is reset if chat is closing
+      return {
+        ...state,
+        isChatOpen: !state.isChatOpen,
+        isFullScreen: !state.isChatOpen ? false : state.isFullScreen,
+      };
+    case 'TOGGLE_FULLSCREEN':
+      return { ...state, isFullScreen: !state.isFullScreen };
     default:
       // Ensure exhaustive check for action types if using TypeScript 4.9+
       // const _exhaustiveCheck: never = action;
@@ -209,6 +221,32 @@ async function parseApiErrorResponse(apiResponse: Response): Promise<string> {
   return errorResponseMessage;
 }
 
+// --- Types and Helpers for AI Content Processing ---
+interface ContentBlock {
+  type: string;
+  content: string;
+  language?: string;
+}
+
+// For objects like { html: "...", css: "..." } or any other object
+interface OtherObjectContent {
+  html?: string;
+  css?: string;
+  javascript?: string;
+  json?: string;
+  [key: string]: unknown; // Allows any other properties, safer than 'any'
+}
+
+type ArrayItemType = string | ContentBlock | OtherObjectContent;
+
+type AiContentRaw =
+  | string
+  | ContentBlock
+  | OtherObjectContent
+  | Array<ArrayItemType>
+  | null
+  | undefined;
+
 // Fetches chat response and processes it into a success or error object
 async function fetchAndProcessChatApi(
   sanitizedContent: string,
@@ -242,78 +280,18 @@ async function fetchAndProcessChatApi(
     const data = await apiResponse.json();
     console.log('API Data:', data);
     console.log('Raw API Data (data.response):', data?.response); // Log the raw response part
-    interface CodeBlockContent {
-      type: 'code';
-      content: string;
-      language: string;
-    }
-
-    // Type guard to check if an object is a CodeBlockContent
-    function isCodeBlockContent(item: unknown): item is CodeBlockContent {
-      if (typeof item !== 'object' || item === null) {
-        return false;
-      }
-
-      // Check if all required properties exist and have the correct types/values
-      if (
-        !('type' in item) ||
-        typeof item.type !== 'string' ||
-        item.type !== 'code'
-      ) {
-        return false;
-      }
-      if (!('content' in item) || typeof item.content !== 'string') {
-        return false;
-      }
-      if (!('language' in item) || typeof item.language !== 'string') {
-        return false;
-      }
-
-      return true;
-    }
-
-    type AiContentRaw =
-      | string
-      | CodeBlockContent
-      | Array<string | object | CodeBlockContent>
-      | null
-      | undefined;
 
     const aiContentRaw = data?.response; // This could be string, array, or object
 
-    const processAiContentRaw = (rawContent: AiContentRaw): string => {
-      if (typeof rawContent === 'string') {
-        return rawContent;
-      } else if (Array.isArray(rawContent)) {
-        return rawContent
-          .map((item) => {
-            if (typeof item === 'string') {
-              return item;
-            } else if (isCodeBlockContent(item)) {
-              return `\`\`\`${item.language}\n${item.content}\n\`\`\``;
-            } else if (typeof item === 'object' && item !== null) {
-              return JSON.stringify(item, null, 2);
-            }
-            return String(item);
-          })
-          .join('\n\n');
-      } else if (isCodeBlockContent(rawContent)) {
-        return `\`\`\`${rawContent.language}\n${rawContent.content}\n\`\`\``;
-      } else if (typeof rawContent === 'object' && rawContent !== null) {
-        return JSON.stringify(rawContent, null, 2);
-      } else if (rawContent === null || typeof rawContent === 'undefined') {
-        console.warn(
-          'AI Reply Content (data.response) was null or undefined, defaulting to empty string. API Data:',
-          data,
-        );
-        return '';
-      } else {
-        return String(rawContent);
-      }
-    };
-
     const aiContent = processAiContentRaw(aiContentRaw);
     console.log('Processed aiContent before sending to UI:', aiContent); // Log the processed content
+
+    if (aiContentRaw === null || typeof aiContentRaw === 'undefined') {
+      console.warn(
+        'AI Reply Content (data.response) was null or undefined, defaulting to empty string. API Data:',
+        data,
+      );
+    }
 
     if (aiContent.trim() !== '') {
       return {
@@ -354,10 +332,88 @@ async function fetchAndProcessChatApi(
   }
 }
 
+// --- AI Content Processing Helper Functions ---
+
+// Helper for single ContentBlock
+function processSingleContentBlock(block: ContentBlock): string {
+  switch (block.type) {
+    case 'html':
+      return `\`\`\`html\n${block.content}\n\`\`\``;
+    case 'css':
+      return `\`\`\`css\n${block.content}\n\`\`\``;
+    case 'javascript':
+      return `\`\`\`javascript\n${block.content}\n\`\`\``;
+    case 'code':
+      return `\`\`\`${block.language || 'plaintext'}\n${block.content}\n\`\`\``;
+    case 'json':
+      return `\`\`\`json\n${block.content}\n\`\`\``;
+    default:
+      return `\`\`\`json\n${JSON.stringify(block, null, 2)}\n\`\`\``;
+  }
+}
+
+// Helper for OtherObjectContent
+function processOtherObjectContent(obj: OtherObjectContent): string {
+  if (typeof obj.html === 'string') return `\`\`\`html\n${obj.html}\n\`\`\``;
+  if (typeof obj.css === 'string') return `\`\`\`css\n${obj.css}\n\`\`\``;
+  if (typeof obj.javascript === 'string')
+    return `\`\`\`javascript\n${obj.javascript}\n\`\`\``;
+  if (typeof obj.json === 'string') return `\`\`\`json\n${obj.json}\n\`\`\``;
+  // Fallback for any other object, treat as JSON
+  return `\`\`\`json\n${JSON.stringify(obj, null, 2)}\n\`\`\``;
+}
+
+// Type guard for ContentBlock
+function isContentBlock(item: unknown): item is ContentBlock {
+  return (
+    typeof item === 'object' &&
+    item !== null &&
+    'type' in item &&
+    'content' in item
+  );
+}
+
+const processAiContentRaw = (rawContent: AiContentRaw): string => {
+  if (typeof rawContent === 'string') {
+    return rawContent;
+  }
+  if (rawContent === null || typeof rawContent === 'undefined') {
+    // Specific console.warn with API data is handled in the calling function (fetchAndProcessChatApi)
+    // This function only knows about rawContent.
+    console.warn(
+      'processAiContentRaw received null or undefined, defaulting to empty string.',
+    );
+    return '';
+  }
+
+  if (Array.isArray(rawContent)) {
+    return rawContent
+      .map((item: ArrayItemType) => {
+        if (typeof item === 'string') return item;
+        if (isContentBlock(item)) {
+          return processSingleContentBlock(item);
+        }
+        if (typeof item === 'object' && item !== null) {
+          return processOtherObjectContent(item);
+        }
+        return String(item);
+      })
+      .join('\n\n');
+  }
+
+  if (isContentBlock(rawContent)) {
+    return processSingleContentBlock(rawContent);
+  }
+  if (typeof rawContent === 'object' && rawContent !== null) {
+    return processOtherObjectContent(rawContent);
+  }
+  return String(rawContent);
+};
+
 // --- Main Chat Component ---
 export default function ChatInterface() {
   const [state, dispatch] = useReducer(chatReducer, initialState);
-  const { messages, input, isLoading, isChatOpen } = state;
+  const { messages, input, isLoading, isChatOpen, isFullScreen } = state;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -474,7 +530,7 @@ export default function ChatInterface() {
         const greetingMessage: Message = {
           role: 'assistant',
           content:
-            "Hey there! I'm WesAI, your guide to Wesley Quintero's digital space. I can help you explore his projects, understand his skills in Amazon & e-commerce, or even assist with tasks like visualizing data or brainstorming ideas.\n\n" +
+            "Hey there! I'm WesAI.\n\n" +
             'What can I help you with today? Or try one of these:',
           timestamp: Date.now(),
           status: 'sent',
@@ -719,25 +775,47 @@ export default function ChatInterface() {
 
       {/* Chat Window */}
       {isChatOpen && (
-        <div className="flex flex-col w-96 max-h-[80vh] bg-white dark:bg-gray-900 shadow-xl rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div
+          className={cn(
+            'flex flex-col bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden',
+            isFullScreen
+              ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-screen-lg h-full z-[60] rounded-none' // z-index 60, above parent's z-50
+              : 'w-96 max-h-[80vh] rounded-lg',
+          )}
+        >
           {/* Header */}
           <div className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
             <h3 className="font-semibold text-gray-800 dark:text-gray-100">
               WesAI
             </h3>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <Button
+                onClick={() => dispatch({ type: 'TOGGLE_FULLSCREEN' })}
+                variant="ghost"
+                size="sm"
+                className="p-1.5 h-auto text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200"
+                aria-label={
+                  isFullScreen ? 'Exit full screen' : 'Enter full screen'
+                }
+              >
+                {isFullScreen ? (
+                  <Minimize className="w-4 h-4" />
+                ) : (
+                  <Maximize className="w-4 h-4" />
+                )}
+              </Button>
               <Button
                 onClick={resetChat}
                 variant="ghost"
                 size="sm"
-                className="text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-xs px-2 py-1 h-auto text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200"
                 aria-label="Start new chat"
               >
                 New Chat
               </Button>
               <button
                 onClick={() => dispatch({ type: 'TOGGLE_CHAT' })}
-                className="text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary rounded"
+                className="p-1.5 text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary rounded"
                 aria-label="Close chat"
               >
                 {/* Close Icon */}
@@ -757,7 +835,7 @@ export default function ChatInterface() {
           </div>
 
           {/* Message List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-800">
             {messages.map((msg) => (
               <MessageBubble
                 key={msg.id}
@@ -880,10 +958,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     (message.retryCount ?? 0) < (message.retryLimit ?? ConfigRetryLimit);
 
   const promptsToTry = [
-    'Tell me about your latest projects.',
-    'Visualize sales: Product A, 100; Product B, 150.',
-    'Create a stand-alone HTML + CSS & JS mock-up dashboard with sample Amazon Ads Data.',
-    'What are some good Amazon SEO strategies?',
+    'Create a flowchart for a user login process using a Mermaid diagram.',
+    'Generate a modern self-contained, responsive HTML, CSS, and JavaScript mock-up dashboard that displays sample Amazon Ads data.',
+    'Show an example of a JSON object representing a product with ID, name, price, and categories.',
+    'Explain the concept of server-side rendering (SSR) in web development.',
+    'What are the key differences between `useEffect` and `useLayoutEffect` in React?',
   ];
 
   return (
@@ -1068,17 +1147,17 @@ const renderMessage = (content: string): JSX.Element => {
   const parts: JSX.Element[] = [];
   let lastIndex = 0;
 
-  // Regex to find HTML code blocks: ```html...```
+  // Regex to find HTML code blocks: ```html...``` or JSON code blocks: ```json...```
   // Using a global flag to find all occurrences
-  const htmlCodeBlockRegex = /```html\n([\s\S]*?)\n```/g;
+  const codeBlockRegex = /```(html|json)\n([\s\S]*?)\n```/g;
   let match;
 
-  while ((match = htmlCodeBlockRegex.exec(content)) !== null) {
-    const [fullMatch, htmlContent] = match;
+  while ((match = codeBlockRegex.exec(content)) !== null) {
+    const [fullMatch, lang, codeContent] = match;
     const startIndex = match.index;
-    const endIndex = htmlCodeBlockRegex.lastIndex;
+    const endIndex = codeBlockRegex.lastIndex;
 
-    // Add text before the current HTML block
+    // Add text before the current code block
     if (startIndex > lastIndex) {
       const textBefore = content.substring(lastIndex, startIndex);
       parts.push(
@@ -1102,18 +1181,27 @@ const renderMessage = (content: string): JSX.Element => {
       );
     }
 
-    // Add the HTML preview component
-    parts.push(
-      <HtmlPreview
-        key={`html-preview-${startIndex}`}
-        htmlContent={htmlContent}
-      />,
-    );
+    // Add the appropriate preview component based on language
+    if (lang === 'html') {
+      parts.push(
+        <HtmlPreview
+          key={`html-preview-${startIndex}`}
+          htmlContent={codeContent}
+        />,
+      );
+    } else if (lang === 'json') {
+      parts.push(
+        <JsonViewer
+          key={`json-viewer-${startIndex}`}
+          jsonContent={codeContent}
+        />,
+      );
+    }
 
     lastIndex = endIndex;
   }
 
-  // Add any remaining text after the last HTML block
+  // Add any remaining text after the last code block
   if (lastIndex < content.length) {
     const textAfter = content.substring(lastIndex);
     parts.push(
@@ -1137,7 +1225,7 @@ const renderMessage = (content: string): JSX.Element => {
     );
   }
 
-  // If no HTML blocks were found, render the entire content as a single markdown block
+  // If no special code blocks were found, render the entire content as a single markdown block
   if (parts.length === 0) {
     return (
       <ReactMarkdown

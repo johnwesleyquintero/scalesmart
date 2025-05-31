@@ -16,7 +16,6 @@ import useAcademyStorage from '@/hooks/use-academy-storage'; // Import the hook
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import ArticleModule from './ArticleModule';
 import VideoModule from './VideoModule';
-import ExerciseModule from '../../../components/ExerciseModule';
 import CaseStudyModule from '../../../components/CaseStudyModule';
 import Quiz from './Quiz';
 import ClientCourseList from '@/app/academy/components/ClientCourseList';
@@ -47,17 +46,6 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
       );
     case ModuleType.VIDEO:
       return <VideoModule />;
-    case ModuleType.EXERCISE:
-      return activeModule.exercise ? (
-        <ExerciseModule
-          exercise={activeModule.exercise}
-          userId={userProfile?.id || 'defaultUserId'}
-          courseId={activeCourse?.id || 'defaultCourseId'}
-          moduleId={activeModule.id || 'defaultModuleId'}
-        />
-      ) : (
-        <p>No exercise content available for this module.</p>
-      );
     case ModuleType.CASE_STUDY:
       return <CaseStudyModule />;
     case ModuleType.QUIZ:
