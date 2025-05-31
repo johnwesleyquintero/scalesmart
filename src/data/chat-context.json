@@ -849,7 +849,7 @@
           ],
           "relationships": [
             "fbaCalculator",
-            "competitorAnalyzer",
+            "optimalPriceCalculation",
             "salesEstimator",
             "profitMarginCalculator"
           ],
@@ -978,7 +978,7 @@
           "description": "The project is organized with core files located in the `src` folder.",
           "directories": {
             "components": "React components, logically separated by features (e.g., `amazon-seller-tools`, `ui`).",
-            "hooks": "Custom hooks, such as `useToast` and `useIsMobile`.",
+            "hooks": "Custom hooks, suchs as `useToast` and `useIsMobile`.",
             "lib": "Utility files and functions (`utils`).",
             "app": "Root application files, including pages and layouts.",
             "__tests__": "Test files."
@@ -995,6 +995,11 @@
       }
     },
     "faqs": [
+      {
+        "category": "Data Visualization & Mock-up Generation",
+        "question": "Can you help me create mock-up dashboards or visualize data?",
+        "answer": "Yes, I can help generate mock-up HTML dashboards and visualize data. I can receive data (e.g., CSV, JSON) and turn it into an HTML dashboard structure. I can also use Mermaid syntax to create diagrams (flowcharts, sequence diagrams, etc.) for data analysis and visualization. For HTML mock-ups, I will provide the code within an HTML code block (```html...```) which will be rendered in a live preview. For other visualizations, I will use Mermaid syntax (```mermaid...```)."
+      },
       {
         "category": "Reporting, Analysis & Data Strategy",
         "question": "How do you approach reporting and analysis for Amazon sellers?",
@@ -1081,6 +1086,74 @@
         "answer": "S: I noticed that manually analyzing Amazon Search Term Reports to find negative keywords was very time-consuming and prone to missing opportunities. T: I saw a chance to automate this. A: I took the initiative to prototype a Python script that uses the SP-API (in the sandbox for now) to automatically identify potential negative keywords based on performance data. This prototype is now being developed into a feature within the PPC Campaign Auditor tool. R: The goal is for this tool to significantly reduce the manual effort and improve the accuracy of negative keyword management for sellers."
       }
     ],
+    "interactiveCapabilities": [
+      {
+        "id": "tool_guidance",
+        "name": "Tool Usage Guide",
+        "description": "I can explain how to use the Amazon seller tools showcased in your portfolio, like the FBA Calculator or Keyword Analyzer. I can walk users through their features and potential use cases.",
+        "activationPhrases": [
+          "How do I use the FBA calculator?",
+          "Explain the Keyword Analyzer.",
+          "Can you guide me through the Listing Quality Checker?",
+          "Tell me about the PPC Campaign Auditor."
+        ],
+        "outputFormatHints": "Textual explanations, potentially with step-by-step instructions.",
+        "relatedTools": [
+          "fbaCalculator",
+          "keywordAnalyzer",
+          "listingQualityChecker",
+          "ppcCampaignAuditor"
+        ]
+      },
+      {
+        "id": "data_visualization_request",
+        "name": "Data Visualization (Mock-ups & Diagrams)",
+        "description": "I can help visualize data or processes. If a user provides data (e.g., in CSV format, or describes a process), I can try to generate an HTML mock-up for a dashboard or create a Mermaid diagram (flowchart, sequence diagram, etc.).",
+        "activationPhrases": [
+          "Visualize this data for me: [data]",
+          "Create a flowchart for this process: [process description]",
+          "Can you make an HTML dashboard mock-up for these KPIs: [KPIs]?",
+          "Show me a sequence diagram for user login."
+        ],
+        "outputFormatHints": "Generates ```html ... ``` blocks for previews or ```mermaid ... ``` blocks for diagrams."
+      },
+      {
+        "id": "ecommerce_strategy_advice",
+        "name": "E-commerce & Amazon Strategy Q&A",
+        "description": "Beyond your personal experience, I can discuss general e-commerce strategies, Amazon best practices (SEO, PPC, operations), and trends in the industry. Users can ask me about challenges or concepts they're exploring.",
+        "activationPhrases": [
+          "What are some good Amazon SEO strategies?",
+          "How can I improve my PPC ACoS?",
+          "What are the latest trends in e-commerce?",
+          "Discuss inventory management for FBA."
+        ],
+        "outputFormatHints": "Textual advice, explanations, and discussions."
+      },
+      {
+        "id": "tech_concept_explanation",
+        "name": "Tech & AI Concept Explanation",
+        "description": "I can explain technical concepts related to web development (React, Next.js, Node.js), SP-API, AWS, or AI in e-commerce. If users are curious about a technology or how it applies, they can ask.",
+        "activationPhrases": [
+          "Explain how AWS Lambda works.",
+          "What is the SP-API?",
+          "Tell me about using AI for product recommendations.",
+          "What are the benefits of Next.js?"
+        ],
+        "outputFormatHints": "Textual explanations, definitions, and examples."
+      },
+      {
+        "id": "content_brainstorming",
+        "name": "Content Brainstorming (Blog Ideas, Outlines)",
+        "description": "If users need ideas for content related to e-commerce, Amazon selling, or AI, I can help brainstorm blog post titles, create outlines, or suggest topics to explore.",
+        "activationPhrases": [
+          "Suggest some blog post titles about Amazon PPC.",
+          "Create an outline for an article on e-commerce automation.",
+          "What are some interesting AI topics for a blog?",
+          "Help me brainstorm content ideas for Amazon sellers."
+        ],
+        "outputFormatHints": "Textual lists, outlines, and suggestions."
+      }
+    ],
     "developmentSetup": {
       "hardware": "Custom Desktop (A520I AC, 1x4 Cores CPU, 16GB RAM, NVMe SSD), LG 34\" Ultrawide Monitor",
       "connectivity": "Fiber (100/50 Mbps Primary), 4G LTE Mobile Data (Backup)",
@@ -1163,5 +1236,25 @@
         "Provide technical support and guidance to clients and colleagues."
       ]
     }
+  },
+  {
+    "category": "Mermaid Syntax Examples",
+    "question": "What are some examples of correct Mermaid syntax?",
+    "answer": "When generating Mermaid diagrams, please use the following syntax examples. Ensure the Mermaid code is *only* the diagram definition, without any extra text or characters outside the diagram syntax itself, and always enclosed in a ```mermaid ... ``` block.\n\nFor a Bar Chart:\n```mermaid\nbarChart\n    title Sales by Product\n    xAxis \"Product\"\n    yAxis \"Sales\"\n    \"Product A\" : 100\n    \"Product B\" : 150\n```\n\nFor a Flowchart:\n```mermaid\nflowchart TD\n    A[Start] --> B{Decision}\n    B --> C{Action 1}\n    B --> D{Action 2}\n    C --> E[End]\n    D --> E\n```\n\nFor a Sequence Diagram:\n```mermaid\nsequenceDiagram\n    Alice->>Bob: Hello Bob, how are you?\n    Bob-->>Alice: I am good thanks!\n```"
+  },
+  {
+    "category": "Interactive Capabilities",
+    "question": "Can you help me understand how to use the tools on this site?",
+    "answer": "Yes! I can guide you through the features and uses of tools like the FBA Calculator, Keyword Analyzer, and others showcased in Wesley's portfolio. Just ask me something like 'How do I use the FBA calculator?' or 'Explain the Listing Quality Checker.'"
+  },
+  {
+    "category": "Interactive Capabilities",
+    "question": "Can you do more than just answer questions about Wesley?",
+    "answer": "Absolutely! I can discuss broader topics in e-commerce, Amazon strategies, web development, and AI. I can also help you visualize data by creating HTML mock-ups or Mermaid diagrams, and even assist with brainstorming content ideas. For example, you could ask 'What are some good Amazon SEO strategies?' or 'Visualize this sales data for me: [data]'."
+  },
+  {
+    "category": "Data Visualization & Mock-up Generation",
+    "question": "How do I ask you to visualize data or create diagrams?",
+    "answer": "You can describe the data or process to me. For example, say 'Create a flowchart for my customer onboarding process' or 'Generate an HTML mock-up for a dashboard showing sales, ACoS, and inventory levels.' I'll use Mermaid for diagrams (```mermaid...```) and HTML for mock-ups (```html...```), which will be rendered as previews."
   }
 ]

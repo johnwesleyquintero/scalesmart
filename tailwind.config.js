@@ -83,6 +83,14 @@ const config = {
           DEFAULT: 'hsl(var(--success))',
           foreground: 'hsl(var(--success-foreground))',
         },
+        'user-bubble': {
+          DEFAULT: 'hsl(var(--user-bubble))',
+          foreground: 'hsl(var(--user-bubble-foreground))',
+        },
+        'typing-indicator': {
+          DEFAULT: 'hsl(var(--typing-indicator))',
+          foreground: 'hsl(var(--typing-indicator-foreground))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',

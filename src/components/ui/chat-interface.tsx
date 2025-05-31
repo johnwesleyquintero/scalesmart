@@ -25,6 +25,9 @@ import remarkMath from 'remark-math';
 // --- Component Imports ---
 import { RotateCcw, Trash2 } from 'lucide-react';
 import CopyMarkdownButton from './CopyMarkdownButton';
+import HtmlPreview from './HtmlPreview'; // Import the new HtmlPreview component
+import MermaidDiagram from './MermaidDiagram'; // Import the MermaidDiagram component
+import { toString as hastToString } from 'hast-util-to-string'; // For extracting raw code
 import { Button } from '@/components/ui/button';
 
 // --- Interfaces ---
@@ -37,12 +40,14 @@ export interface Message {
   retryCount?: number; // How many times retry has been attempted
   retryLimit?: number; // Maximum number of retries allowed
   id?: string; // Unique identifier for the message
+  isGreeting?: boolean; // Flag for the initial greeting message
 }
 
 interface MessageBubbleProps {
   message: Message;
   onRetry?: (message: Message) => void;
   onDelete?: (timestamp: number) => void;
+  onPromptClick?: (promptText: string) => void; // For "Prompts to Try"
 }
 
 type ChatState = {
@@ -66,13 +71,13 @@ type ChatAction =
         updates: Partial<Message>;
       };
     }
-  | { type: 'REMOVE_MESSAGE'; payload: number };
+  | { type: 'REMOVE_MESSAGE'; payload: number }
+  | { type: 'CLEAR_MESSAGES' };
 
 // --- Helper Functions ---
 
 // Maps the Message['role'] to the sender type expected by the database.
 const mapMessageRoleToSender = (role: Message['role']): 'user' | 'ai' => {
-  console.log('mapMessageRoleToSender called with role:', role);
   if (role === 'assistant') {
     return 'ai';
   }
@@ -145,6 +150,8 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         messages: removeMessageFromState(state.messages, action.payload),
       };
+    case 'CLEAR_MESSAGES':
+      return { ...state, messages: [] };
     case 'SET_INPUT':
       return { ...state, input: action.payload };
     case 'SET_LOADING':
@@ -225,6 +232,7 @@ async function fetchAndProcessChatApi(
     });
     console.timeEnd('Fetch /api/chat');
     console.log('API Response:', apiResponse);
+    // console.log('API Response Status:', apiResponse.status); // Keep this concise for now
 
     if (!apiResponse.ok) {
       const errorMessage = await parseApiErrorResponse(apiResponse);
@@ -233,21 +241,96 @@ async function fetchAndProcessChatApi(
 
     const data = await apiResponse.json();
     console.log('API Data:', data);
-    const aiContent = data?.response;
+    console.log('Raw API Data (data.response):', data?.response); // Log the raw response part
+    interface CodeBlockContent {
+      type: 'code';
+      content: string;
+      language: string;
+    }
 
-    if (typeof aiContent === 'string' && aiContent.trim() !== '') {
+    // Type guard to check if an object is a CodeBlockContent
+    function isCodeBlockContent(item: unknown): item is CodeBlockContent {
+      if (typeof item !== 'object' || item === null) {
+        return false;
+      }
+
+      // Check if all required properties exist and have the correct types/values
+      if (
+        !('type' in item) ||
+        typeof item.type !== 'string' ||
+        item.type !== 'code'
+      ) {
+        return false;
+      }
+      if (!('content' in item) || typeof item.content !== 'string') {
+        return false;
+      }
+      if (!('language' in item) || typeof item.language !== 'string') {
+        return false;
+      }
+
+      return true;
+    }
+
+    type AiContentRaw =
+      | string
+      | CodeBlockContent
+      | Array<string | object | CodeBlockContent>
+      | null
+      | undefined;
+
+    const aiContentRaw = data?.response; // This could be string, array, or object
+
+    const processAiContentRaw = (rawContent: AiContentRaw): string => {
+      if (typeof rawContent === 'string') {
+        return rawContent;
+      } else if (Array.isArray(rawContent)) {
+        return rawContent
+          .map((item) => {
+            if (typeof item === 'string') {
+              return item;
+            } else if (isCodeBlockContent(item)) {
+              return `\`\`\`${item.language}\n${item.content}\n\`\`\``;
+            } else if (typeof item === 'object' && item !== null) {
+              return JSON.stringify(item, null, 2);
+            }
+            return String(item);
+          })
+          .join('\n\n');
+      } else if (isCodeBlockContent(rawContent)) {
+        return `\`\`\`${rawContent.language}\n${rawContent.content}\n\`\`\``;
+      } else if (typeof rawContent === 'object' && rawContent !== null) {
+        return JSON.stringify(rawContent, null, 2);
+      } else if (rawContent === null || typeof rawContent === 'undefined') {
+        console.warn(
+          'AI Reply Content (data.response) was null or undefined, defaulting to empty string. API Data:',
+          data,
+        );
+        return '';
+      } else {
+        return String(rawContent);
+      }
+    };
+
+    const aiContent = processAiContentRaw(aiContentRaw);
+    console.log('Processed aiContent before sending to UI:', aiContent); // Log the processed content
+
+    if (aiContent.trim() !== '') {
       return {
         type: 'success',
         data: {
           id: crypto.randomUUID(),
           role: 'assistant',
-          content: aiContent,
+          content: aiContent, // Ensure this is always a string
           timestamp: Date.now(),
           status: 'sent',
         },
       };
     } else {
-      console.error('AI Reply Content is invalid. API Data:', data);
+      console.error(
+        'AI Reply Content is invalid or empty after processing. API Data:',
+        data,
+      );
       return {
         type: 'success',
         data: {
@@ -276,10 +359,9 @@ export default function ChatInterface() {
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { messages, input, isLoading, isChatOpen } = state;
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // --- Helper Functions ---
-
-  // Maps the Message['role'] to the sender type expected by the database.
 
   // Maps a ChatMessageRecord from the DB to the Message interface used in the UI
   const mapDbRecordToMessage = (record: ChatMessageRecord): Message => {
@@ -304,10 +386,29 @@ export default function ChatInterface() {
   useEffect(() => {
     if (isChatOpen) {
       scrollToBottom();
+      textareaRef.current?.focus(); // Focus the textarea when chat opens
     }
-  }, [messages]); // Depend on messages
+  }, [messages, isChatOpen, scrollToBottom]); // Depend on messages, isChatOpen, and scrollToBottom
 
-  // Load messages from IndexedDB when the component mounts
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'; // Reset height to recalculate
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [input]); // Depend on input to resize as text is typed
+
+  // Generate a unique session ID for this chat session
+  const chatSessionIdRef = useRef<string>(crypto.randomUUID());
+
+  // Function to reset chat (clear messages and generate new session ID)
+  const resetChat = useCallback(() => {
+    dispatch({ type: 'CLEAR_MESSAGES' });
+    chatSessionIdRef.current = crypto.randomUUID(); // Generate a new session ID
+    console.log('Chat reset. New session ID:', chatSessionIdRef.current);
+  }, [dispatch]);
+
+  // Load messages from IndexedDB when the component mounts or session ID changes
   useEffect(() => {
     const loadMessages = async () => {
       console.log('ChatInterface: Attempting to load messages from IndexedDB.');
@@ -330,79 +431,78 @@ export default function ChatInterface() {
       }
     };
     loadMessages();
-    console.log('Chat messages loaded from IndexedDB');
-  }, []); // Run only once on mount
-
-  // Generate a unique session ID for this chat session
-  const chatSessionIdRef = useRef<string>(crypto.randomUUID());
+  }, [chatSessionIdRef.current]); // Re-run when session ID changes
 
   // Save messages to IndexedDB when they change
   useEffect(() => {
     const saveMessages = async () => {
       if (typeof window !== 'undefined') {
+        console.log('ChatInterface: Attempting to save messages to IndexedDB.');
         for (const message of messages) {
-          // Prepare the data payload for setItem.
-          // This assumes setItem(chatSessionId, messageData) is designed to handle
-          // individual message records, using message.id for uniqueness.
-          const messageDataPayload = {
-            id: message.id!, // UI ensures message.id exists (string UUID)
-            sender: mapMessageRoleToSender(message.role), // Use helper for clear typing
-            text: message.content, // Map 'content' to 'text'
-            timestamp: message.timestamp,
-          };
-          // Pass chatSessionId and the specific message data to setItem
-          await setItem(chatSessionIdRef.current, messageDataPayload);
+          try {
+            const messageDataPayload = {
+              id: message.id!,
+              sender: mapMessageRoleToSender(message.role),
+              text: message.content,
+              timestamp: message.timestamp,
+              // Potential future enhancement: store message.status, .error, .retryCount in metadata
+            };
+            await setItem(chatSessionIdRef.current, messageDataPayload);
+          } catch (error) {
+            console.error(
+              `ChatInterface: Failed to save message ${message.id} to IndexedDB:`,
+              error,
+            );
+          }
         }
+        console.log('ChatInterface: Messages saved to IndexedDB.');
       }
     };
-    saveMessages();
-    console.log('Chat messages saved to IndexedDB');
-  }, [messages]); // Run whenever messages array changes; setItem is a stable import
-
-  // Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
-  // and uncomment the localStorage code.
+    // Only run saveMessages if there are messages to save, to avoid issues on clear or initial load.
+    if (messages.length > 0) {
+      saveMessages();
+    }
+  }, [messages, chatSessionIdRef.current]); // Run whenever messages array or session ID changes
 
   // Send initial greeting if chat is opened and empty
   useEffect(() => {
     if (isChatOpen && messages.length === 0 && !isLoading) {
       // Check if a greeting hasn't ALREADY been added in this session/load
-      const hasGreetingAlready = messages.some(
-        (msg) =>
-          msg.role === 'assistant' &&
-          msg.content.startsWith("Hey there! I'm Wesley."), // Updated check
-      );
+      const hasGreetingAlready = messages.some((msg) => msg.isGreeting);
 
       if (!hasGreetingAlready) {
         const greetingMessage: Message = {
           role: 'assistant',
           content:
-            "Hey there! I'm Wesley. Thanks for stopping by my digital space. Feel free to ask me about:\n\n" +
-            "- My latest projects and what I'm working on.\n" +
-            '- My core skills and expertise in Amazon & e-commerce.\n' +
-            '- How to get in touch for collaborations or inquiries.\n\n' +
-            'What can I help you with today?',
+            "Hey there! I'm WesAI, your guide to Wesley Quintero's digital space. I can help you explore his projects, understand his skills in Amazon & e-commerce, or even assist with tasks like visualizing data or brainstorming ideas.\n\n" +
+            'What can I help you with today? Or try one of these:',
           timestamp: Date.now(),
           status: 'sent',
+          isGreeting: true, // Mark this as the greeting message
         };
         dispatch({ type: 'ADD_MESSAGE', payload: greetingMessage });
       }
     }
-  }, [isChatOpen, messages, isLoading]); // Re-run if chat opens, messages change, or loading state changes
+  }, [isChatOpen, messages, isLoading, dispatch]); // Re-run if chat opens, messages change, or loading state changes
 
   // --- Message Handling Logic ---
-  const getRetryLimit = (messageOrContent: Message | string): number => {
-    return typeof messageOrContent === 'string'
-      ? 3
-      : (messageOrContent.retryLimit ?? 3);
-  };
+  // Helper to determine the effective retry limit for a message
+  const determineEffectiveRetryLimit = useCallback(
+    (message?: Message): number => {
+      if (message && typeof message.retryLimit === 'number') {
+        return message.retryLimit;
+      }
+      return ConfigRetryLimit ?? DEFAULT_RETRY_LIMIT;
+    },
+    [ConfigRetryLimit],
+  ); // Include DEFAULT_RETRY_LIMIT if it were a prop/state
 
   const sendMessage = useCallback(
     async (
       userMessage: Message, // Full message object, includes timestamp, content, id, etc.
       currentRetryCount: number,
     ) => {
-      const RETRY_LIMIT =
-        userMessage.retryLimit ?? ConfigRetryLimit ?? DEFAULT_RETRY_LIMIT;
+      const effectiveRetryLimit = determineEffectiveRetryLimit(userMessage);
       // Sanitize the message content before sending
       const sanitizedContent = DOMPurify.sanitize(userMessage.content);
 
@@ -431,10 +531,10 @@ export default function ChatInterface() {
           );
           const nextRetryCount = currentRetryCount + 1;
 
-          if (nextRetryCount <= RETRY_LIMIT) {
+          if (nextRetryCount <= effectiveRetryLimit) {
             const delay = Math.pow(2, nextRetryCount) * 1000; // Exponential backoff
             console.log(
-              `Retrying message ${userMessage.timestamp} (attempt ${nextRetryCount}/${RETRY_LIMIT}) in ${delay / 1000}s. Error: ${result.message}`,
+              `Retrying message ${userMessage.timestamp} (attempt ${nextRetryCount}/${effectiveRetryLimit}) in ${delay / 1000}s. Error: ${result.message}`,
             );
             // Update UI to show retrying status
             dispatch({
@@ -444,7 +544,7 @@ export default function ChatInterface() {
                 role: 'user',
                 updates: {
                   status: 'sending', // Keep as 'sending' or use a dedicated 'retrying' status
-                  error: `Retry ${nextRetryCount}/${RETRY_LIMIT}: ${result.message}`,
+                  error: `Retry ${nextRetryCount}/${effectiveRetryLimit}: ${result.message}`,
                   retryCount: nextRetryCount,
                 },
               },
@@ -458,7 +558,7 @@ export default function ChatInterface() {
           } else {
             // Max retries reached
             console.warn(
-              `Max retries (${RETRY_LIMIT}) reached for message: ${userMessage.timestamp}. Final error: ${result.message}`,
+              `Max retries (${effectiveRetryLimit}) reached for message: ${userMessage.timestamp}. Final error: ${result.message}`,
             );
             dispatch({
               type: 'UPDATE_MESSAGE',
@@ -467,7 +567,7 @@ export default function ChatInterface() {
                 role: 'user',
                 updates: {
                   status: 'error',
-                  error: `Failed after ${RETRY_LIMIT} retries: ${result.message}`,
+                  error: `Failed after ${effectiveRetryLimit} retries: ${result.message}`,
                   retryCount: currentRetryCount, // Show the count at which it failed
                 },
               },
@@ -506,6 +606,13 @@ export default function ChatInterface() {
     [messages, scrollToBottom, dispatch, ConfigRetryLimit],
   );
 
+  const handleInput = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      dispatch({ type: 'SET_INPUT', payload: e.target.value });
+    },
+    [dispatch],
+  );
+
   const handleMessageSubmit = useCallback(
     async (messageOrContent: Message | string) => {
       const isRetry = typeof messageOrContent !== 'string';
@@ -514,12 +621,14 @@ export default function ChatInterface() {
       const initialRetryCountForCall = isRetry
         ? (messageOrContent.retryCount ?? 0)
         : 0;
-      const RETRY_LIMIT = getRetryLimit(messageOrContent);
+      const effectiveRetryLimit = determineEffectiveRetryLimit(
+        isRetry ? messageOrContent : undefined,
+      );
 
       if (!content?.trim()) return;
 
       // Check retry limit
-      if (isRetry && initialRetryCountForCall >= RETRY_LIMIT) {
+      if (isRetry && initialRetryCountForCall >= effectiveRetryLimit) {
         console.warn(`Retry limit reached for message: ${timestampToUse}`);
         dispatch({
           type: 'UPDATE_MESSAGE',
@@ -527,7 +636,7 @@ export default function ChatInterface() {
             timestamp: timestampToUse,
             role: 'user',
             updates: {
-              error: `Failed after ${RETRY_LIMIT} retries. Cannot send.`, // Or messageRetryLimit
+              error: `Failed after ${effectiveRetryLimit} retries. Cannot send.`,
               retryCount: initialRetryCountForCall,
             },
           },
@@ -542,7 +651,7 @@ export default function ChatInterface() {
         timestamp: timestampToUse,
         status: 'sending',
         retryCount: initialRetryCountForCall,
-        retryLimit: RETRY_LIMIT, // Or messageRetryLimit
+        retryLimit: effectiveRetryLimit,
       };
 
       // --- Optimistic UI Update ---
@@ -566,13 +675,14 @@ export default function ChatInterface() {
         dispatch({ type: 'SET_INPUT', payload: '' });
       }
       dispatch({ type: 'SET_LOADING', payload: true });
-      scrollToBottom(); // Scroll after adding/updating user message
+      // Scroll after adding/updating user message, but before sending to ensure input is visible
+      scrollToBottom();
       console.log('Submitting message:', content); // Log the message content
 
       // Pass the full userMessage object and the initial retry count
       await sendMessage(userMessage, initialRetryCountForCall);
     },
-    [scrollToBottom, dispatch, sendMessage, getRetryLimit],
+    [scrollToBottom, dispatch, sendMessage, determineEffectiveRetryLimit],
   );
 
   // --- Delete Handler ---
@@ -587,7 +697,7 @@ export default function ChatInterface() {
       {!isChatOpen && (
         <button
           onClick={() => dispatch({ type: 'TOGGLE_CHAT' })}
-          className="p-3 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all"
+          className="p-3 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all"
           aria-label="Open chat"
         >
           {/* Chat Icon */}
@@ -613,22 +723,37 @@ export default function ChatInterface() {
           {/* Header */}
           <div className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
             <h3 className="font-semibold text-gray-800 dark:text-gray-100">
-              Chat with Wesley
+              WesAI
             </h3>
-            <button
-              onClick={() => dispatch({ type: 'TOGGLE_CHAT' })}
-              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 rounded"
-              aria-label="Close chat"
-            >
-              {/* Close Icon */}
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={resetChat}
+                variant="ghost"
+                size="sm"
+                className="text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200"
+                aria-label="Start new chat"
+              >
+                New Chat
+              </Button>
+              <button
+                onClick={() => dispatch({ type: 'TOGGLE_CHAT' })}
+                className="text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary rounded"
+                aria-label="Close chat"
+              >
+                {/* Close Icon */}
+                <svg
+                  className="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
 
           {/* Message List */}
@@ -639,23 +764,24 @@ export default function ChatInterface() {
                 message={msg}
                 onRetry={handleMessageSubmit}
                 onDelete={handleDeleteMessage}
+                onPromptClick={handleMessageSubmit} // Pass submit handler for prompts
               />
             ))}
             {/* Typing Indicator */}
             {isLoading && (
               <div className="flex justify-start mb-4">
-                <div className="bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg p-3 max-w-[80%] break-words shadow-sm">
+                <div className="bg-typing-indicator text-typing-indicator-foreground rounded-lg p-3 max-w-[80%] break-words shadow-sm">
                   <div className="flex items-center space-x-1.5">
                     <span
-                      className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-typing-indicator-foreground rounded-full animate-bounce"
                       style={{ animationDelay: '0ms' }}
                     ></span>
                     <span
-                      className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-typing-indicator-foreground rounded-full animate-bounce"
                       style={{ animationDelay: '150ms' }}
                     ></span>
                     <span
-                      className="w-2 h-2 bg-gray-500 dark:bg-gray-400 rounded-full animate-bounce"
+                      className="w-2 h-2 bg-typing-indicator-foreground rounded-full animate-bounce"
                       style={{ animationDelay: '300ms' }}
                     ></span>
                   </div>
@@ -674,16 +800,25 @@ export default function ChatInterface() {
               }}
               className="flex items-center gap-2"
             >
-              <input
-                type="text"
+              <textarea
+                ref={textareaRef} // Connect the ref here
                 value={input}
-                onChange={(e) =>
-                  dispatch({ type: 'SET_INPUT', payload: e.target.value })
-                }
+                onChange={handleInput} // Use the new handleInput function
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleMessageSubmit(input);
+                  }
+                }}
                 placeholder="Type your message..."
                 disabled={isLoading} // Disable input while loading
-                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 disabled:opacity-70 disabled:cursor-not-allowed"
+                rows={1} // Start with one row
+                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 disabled:opacity-70 disabled:cursor-not-allowed resize-none overflow-hidden max-h-24" // Added resize-none and max-h-24
                 aria-label="Chat input"
+                style={{
+                  height: 'auto',
+                  minHeight: '42px', // Approximate height of a single line input
+                }}
               />
               <Button
                 type="submit"
@@ -731,23 +866,37 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
   message,
   onRetry,
   onDelete,
+  onPromptClick,
 }: Readonly<MessageBubbleProps>) => {
   const isUser = message.role === 'user';
   // Conditional styling for user vs assistant, and dark mode
   const bubbleClass = isUser
-    ? 'bg-primary text-primary-foreground ml-auto'
+    ? 'bg-user-bubble text-user-bubble-foreground ml-auto'
     : // Assistant bubble needs to be relative for absolute positioning of copy button
-      'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-100';
+      'bg-muted text-muted-foreground';
   const containerClass = isUser ? 'flex justify-end' : 'flex justify-start';
   const canRetry =
     message.status === 'error' &&
     (message.retryCount ?? 0) < (message.retryLimit ?? ConfigRetryLimit);
 
+  const promptsToTry = [
+    'Tell me about your latest projects.',
+    'Visualize sales: Product A, 100; Product B, 150.',
+    'Create a stand-alone HTML + CSS & JS mock-up dashboard with sample Amazon Ads Data.',
+    'What are some good Amazon SEO strategies?',
+  ];
+
   return (
-    <div className={`${containerClass} group relative`}>
+    <div className={`${containerClass} group relative items-start`}>
       {' '}
       {/* Added group and relative for copy button */}{' '}
       {/* Removed mb-4, handled by space-y in parent */}
+      {/* Avatar for Assistant */}
+      {!isUser && (
+        <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-accent-foreground text-sm font-bold flex-shrink-0 mr-2">
+          AI
+        </div>
+      )}
       <div
         className={`${bubbleClass} max-w-[80%] rounded-lg p-3 break-words shadow-sm`}
       >
@@ -759,7 +908,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
         {/* Error State Display */}
         {message.status === 'error' ? (
           <div className="flex flex-col gap-1.5">
-            <p className="text-red-300 dark:text-red-400 text-xs italic font-medium">
+            <p className="text-destructive-foreground text-xs italic font-medium">
               {/* Error Icon */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -783,11 +932,11 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               {renderMessage(message.content)}
             </div>
             {/* Action Buttons */}
-            <div className="flex items-center gap-3 mt-1 border-t border-white/20 dark:border-gray-600 pt-1.5">
+            <div className="flex items-center gap-3 mt-1 border-t border-border pt-1.5">
               {canRetry && (
                 <button
                   onClick={() => onRetry?.(message)}
-                  className="text-xs text-blue-200 hover:text-white dark:text-blue-300 dark:hover:text-blue-100 font-medium focus:outline-none focus:underline"
+                  className="text-secondary-foreground hover:text-primary font-medium focus:outline-none focus:underline"
                   aria-label="Retry sending message"
                 >
                   {' '}
@@ -796,7 +945,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               )}
               <button
                 onClick={() => onDelete?.(message.timestamp)}
-                className="text-xs text-red-300 hover:text-red-100 dark:text-red-400 dark:hover:text-red-200 font-medium focus:outline-none focus:underline"
+                className="text-destructive hover:text-destructive-foreground font-medium focus:outline-none focus:underline"
                 aria-label="Delete message"
               >
                 <Trash2 className="w-3 h-3 inline-block mr-1" /> Delete
@@ -814,9 +963,43 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
                 (Sending...)
               </span>
             )}
+            {/* Timestamp */}
+            <span className="block text-right text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {new Intl.DateTimeFormat('en-US', {
+                hour: 'numeric',
+                minute: 'numeric',
+                hour12: true,
+              }).format(new Date(message.timestamp))}
+            </span>
+
+            {/* "Prompts to Try" section for greeting message */}
+            {message.isGreeting && onPromptClick && (
+              <div className="mt-3 pt-3 border-t border-border dark:border-gray-600/50">
+                {/* <p className="text-sm font-semibold mb-2 text-foreground/80 dark:text-gray-300/80">Prompts to Try:</p> */}
+                <div className="flex flex-wrap gap-2">
+                  {promptsToTry.map((prompt, index) => (
+                    <Button
+                      key={index}
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-auto py-1 px-2 border-primary/50 text-primary/90 hover:bg-primary/10 dark:border-primary/40 dark:text-primary/80 dark:hover:bg-primary/20"
+                      onClick={() => onPromptClick(prompt)}
+                    >
+                      {prompt}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+      {/* Avatar for User */}
+      {isUser && (
+        <div className="w-8 h-8 rounded-full bg-user-bubble flex items-center justify-center text-user-bubble-foreground text-sm font-bold flex-shrink-0 ml-2">
+          You
+        </div>
+      )}
     </div>
   );
 };
@@ -824,66 +1007,159 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 // --- Markdown Rendering Configuration ---
 import { FC } from 'react';
 
-interface CodeBlockProps {
+interface CodeElementRendererProps {
   node?: HastElement;
   inline?: boolean;
   className?: string;
   children?: React.ReactNode;
 }
 
-// Custom renderer for code blocks (handles Mermaid, HTML, and regular code)
-const CodeBlock: FC<CodeBlockProps> = ({ inline, className, children }) => {
-  const match = /language-(\w+)/.exec(className || '');
-  const language = match?.[1];
+// Custom renderer for 'code' elements (both inline and fenced block code)
+const CodeElementRenderer: FC<CodeElementRendererProps> = ({
+  className,
+  children,
+}) => {
   const codeContent = String(children).replace(/\n$/, '');
+  return <code className={className}>{codeContent}</code>;
+};
 
-  if (inline) {
-    return <code className={className}>{codeContent}</code>;
+interface PreElementRendererProps {
+  children?: React.ReactNode;
+  node?: HastElement; // To access properties like language from the node
+}
+
+// Custom renderer for 'pre' elements, responsible for wrapping and styling code blocks
+const PreElementRenderer: FC<PreElementRendererProps> = ({
+  children,
+  node,
+}) => {
+  // Extract language from the HAST node structure
+  // The `node` is the <pre> element. Its first child is typically <code>.
+  // The className on the <code> element indicates the language.
+  const codeNode = node?.children?.find(
+    (child) => child.type === 'element' && child.tagName === 'code',
+  ) as HastElement | undefined;
+  const languageClass = codeNode?.properties?.className as string[] | undefined;
+  const language = languageClass
+    ?.find((cls) => cls.startsWith('language-'))
+    ?.substring(9);
+
+  if (language === 'mermaid' && node) {
+    const rawMermaidCode = hastToString(node).trim(); // Extracts text content from the <pre> node
+    return <MermaidDiagram chart={rawMermaidCode} />;
   }
 
-  if (language === 'mermaid') {
-    return (
-      <div className="mermaid-container my-4 overflow-x-auto bg-gray-100 dark:bg-gray-800 p-4 rounded-md">
-        <pre className={className}>
-          <code>{codeContent}</code>
-        </pre>
-      </div>
-    );
-  }
-
+  // HTML blocks are primarily handled by the `renderMessage` splitting logic using `HtmlPreview`.
+  // If an HTML block (e.g., ```html) were to reach here, it would be syntax highlighted as code.
+  // This is generally fine, as `renderMessage` should catch explicit ```html blocks.
   if (language === 'html' || language === 'markup') {
-    return (
-      <div className="code-block-wrapper group/codeblock relative my-4">
-        <pre className={className}>
-          <code className={`language-${language}`}>{codeContent}</code>
-        </pre>
-      </div>
-    );
+    // Fallthrough to default pre rendering for syntax highlighting
   }
 
-  // Standard code block
+  // Default pre rendering for other code blocks (including HTML if not caught by renderMessage)
   return (
     <div className="code-block-wrapper group/codeblock relative my-4">
-      <pre className={className}>
-        <code className={`language-${language}`}>{codeContent}</code>
-      </pre>
+      <pre>{children}</pre>
     </div>
   );
 };
 
-const renderMessage = (content: string): JSX.Element => (
-  <ReactMarkdown
-    remarkPlugins={[remarkGfm, remarkMath]}
-    rehypePlugins={[
-      rehypeKatex,
-      [rehypePrismPlus, { ignoreMissing: true, defaultLanguage: 'plaintext' }],
-    ]}
-    components={{
-      code: CodeBlock,
-    }}
-  >
-    {content}
-  </ReactMarkdown>
-);
+const renderMessage = (content: string): JSX.Element => {
+  const parts: JSX.Element[] = [];
+  let lastIndex = 0;
+
+  // Regex to find HTML code blocks: ```html...```
+  // Using a global flag to find all occurrences
+  const htmlCodeBlockRegex = /```html\n([\s\S]*?)\n```/g;
+  let match;
+
+  while ((match = htmlCodeBlockRegex.exec(content)) !== null) {
+    const [fullMatch, htmlContent] = match;
+    const startIndex = match.index;
+    const endIndex = htmlCodeBlockRegex.lastIndex;
+
+    // Add text before the current HTML block
+    if (startIndex > lastIndex) {
+      const textBefore = content.substring(lastIndex, startIndex);
+      parts.push(
+        <ReactMarkdown
+          key={`markdown-before-${lastIndex}`}
+          remarkPlugins={[remarkGfm, remarkMath]}
+          rehypePlugins={[
+            rehypeKatex,
+            [
+              rehypePrismPlus,
+              { ignoreMissing: true, defaultLanguage: 'plaintext' },
+            ],
+          ]}
+          components={{
+            pre: PreElementRenderer, // Use custom pre renderer
+            code: CodeElementRenderer, // Use custom code renderer
+          }}
+        >
+          {textBefore}
+        </ReactMarkdown>,
+      );
+    }
+
+    // Add the HTML preview component
+    parts.push(
+      <HtmlPreview
+        key={`html-preview-${startIndex}`}
+        htmlContent={htmlContent}
+      />,
+    );
+
+    lastIndex = endIndex;
+  }
+
+  // Add any remaining text after the last HTML block
+  if (lastIndex < content.length) {
+    const textAfter = content.substring(lastIndex);
+    parts.push(
+      <ReactMarkdown
+        key={`markdown-after-${lastIndex}`}
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[
+          rehypeKatex,
+          [
+            rehypePrismPlus,
+            { ignoreMissing: true, defaultLanguage: 'plaintext' },
+          ],
+        ]}
+        components={{
+          pre: PreElementRenderer, // Use custom pre renderer
+          code: CodeElementRenderer, // Use custom code renderer
+        }}
+      >
+        {textAfter}
+      </ReactMarkdown>,
+    );
+  }
+
+  // If no HTML blocks were found, render the entire content as a single markdown block
+  if (parts.length === 0) {
+    return (
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm, remarkMath]}
+        rehypePlugins={[
+          rehypeKatex,
+          [
+            rehypePrismPlus,
+            { ignoreMissing: true, defaultLanguage: 'plaintext' },
+          ],
+        ]}
+        components={{
+          pre: PreElementRenderer, // Use custom pre renderer
+          code: CodeElementRenderer, // Use custom code renderer
+        }}
+      >
+        {content}
+      </ReactMarkdown>
+    );
+  }
+
+  return <>{parts}</>;
+};
 
 // Rollback strategy: To revert to the previous version, simply remove the cached

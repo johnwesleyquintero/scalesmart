@@ -28,6 +28,10 @@
   --success-foreground: 210 40% 98%; /* White text on success background */
   --warning: 40 80% 70%; /* Yellow for warning */
   --warning-foreground: 222.2 47.4% 11.2%; /* Dark text on warning background */
+  --user-bubble: 270 80% 90%; /* Light purple for user messages in light mode */
+  --user-bubble-foreground: 270 80% 20%; /* Dark text for contrast */
+  --typing-indicator: 210 40% 96.1%; /* Light gray for typing indicator in light mode */
+  --typing-indicator-foreground: 215.4 16.3% 25%; /* Dark text for contrast */
 }
 
 .dark {
@@ -54,6 +58,10 @@
   --success-foreground: 222.2 47.4% 11.2%;
   --warning: 40 80% 50%; /* Darker yellow for warning in dark mode */
   --warning-foreground: 222.2 47.4% 11.2%; /* Dark text on warning background */
+  --user-bubble: 270 40% 30%; /* Darker purple for user messages in dark mode */
+  --user-bubble-foreground: 270 80% 90%; /* Lighter text for contrast */
+  --typing-indicator: 217.2 32.6% 17.5%; /* Dark gray for typing indicator in dark mode */
+  --typing-indicator-foreground: 215 10% 85%; /* Light text for contrast */
 }
 
 @tailwind base;

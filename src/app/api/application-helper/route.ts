@@ -39,6 +39,97 @@ interface FAQ {
   answer: string;
 }
 
+// --- Portfolio Context Types ---
+// These interfaces define the expected structure of the data in chat-context.json
+
+interface SocialLink {
+  url: string;
+  summary: string;
+}
+
+interface PersonalInfoData {
+  // Renamed to avoid conflict with a potential DOM PersonalInfo
+  name: string;
+  email: string;
+  location: string;
+  familyInfo: {
+    sibling: string;
+    mother: string;
+    father: string;
+    girlfriend: string;
+  };
+  phone: string;
+  socialLinks: {
+    blog: SocialLink;
+    amazonToolsBlog: SocialLink;
+    aiBlog: SocialLink;
+    ecommerceBlog: SocialLink;
+  };
+}
+
+interface ProfessionalProfileData {
+  // Renamed
+  title: string;
+  summary: string;
+  coreCompetencies: string[];
+}
+
+interface SkillsData {
+  // Renamed
+  technicalProficiencies?: string[]; // This can be optional
+  soft: string[];
+}
+
+interface AmazonExpertiseData {
+  // Renamed
+  certifications?: AmazonCertification[]; // This can be optional
+  areasOfExpertise: string[];
+  keyAchievements: string[];
+}
+
+interface PersonalContextData {
+  // Renamed
+  personalInfo: PersonalInfoData;
+  professionalProfile: ProfessionalProfileData;
+  skills: SkillsData;
+  amazonExpertise: AmazonExpertiseData;
+  workExperience: WorkExperience[];
+  education: Education[];
+  certifications?: GeneralCertification[]; // This can be optional
+}
+
+interface WebappContextData {
+  // Renamed
+  projectOverview: {
+    name: string;
+    description: string;
+  };
+}
+
+interface DevelopmentSetupData {
+  // Renamed
+  hardware: string;
+  connectivity: string;
+  audioVideo: string;
+  powerBackup: string;
+  devToolsWorkflow: {
+    collaboration: string[];
+    development: string[];
+  };
+}
+
+interface PortfolioContextType {
+  personalContext: PersonalContextData;
+  webappContext: WebappContextData;
+  developmentSetup: DevelopmentSetupData;
+  faqs: FAQ[];
+}
+
+// Type for the imported JSON module
+interface ChatContextFile {
+  default: PortfolioContextType[];
+}
+
 export async function POST(request: NextRequest) {
   let body = null;
   try {
@@ -80,10 +171,31 @@ export async function POST(request: NextRequest) {
     }
     const { application_question } = body;
 
-    const portfolioContextData = await import('@/data/chat-context.json');
-    const portfolioContext = portfolioContextData.default[0];
+    // Import chat context data with type assertion
+    const portfolioContextImport = (await import(
+      '@/data/chat-context.json'
+    )) as ChatContextFile;
+    const portfolioContextArray = portfolioContextImport.default;
 
-    // Construct the context data string (same as in chat route, but without history/user message)
+    if (
+      !Array.isArray(portfolioContextArray) ||
+      portfolioContextArray.length === 0
+    ) {
+      console.error(
+        'Application Helper API Error: chat-context.json is empty, not an array, or its first element is invalid.',
+      );
+      return NextResponse.json(
+        createErrorResponse(
+          'Service configuration error. Failed to load portfolio context.',
+          'CONTEXT_LOAD_ERROR',
+        ),
+        { status: 500 },
+      );
+    }
+    // Now, portfolioContext is correctly typed as PortfolioContextType
+    const portfolioContext: PortfolioContextType = portfolioContextArray[0];
+
+    // Construct the context data string
     const contextDataString = `Personal Information:
 - Name: ${portfolioContext.personalContext.personalInfo.name}
 - Email (Primary): ${portfolioContext.personalContext.personalInfo.email}
