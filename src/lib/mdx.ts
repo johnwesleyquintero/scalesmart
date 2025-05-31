@@ -2,7 +2,7 @@ import fs from 'fs';
 import matter from 'gray-matter';
 import path from 'path';
 import { z } from 'zod';
-import { BlogPost, DocPost } from '@/types';
+import { BlogPost, DocPost } from '@/types'; // Assuming BlogPost, DocPost types are compatible or can be extended for AcademyArticle
 
 /**
  * @constant {string} EMPTY_STRING - An empty string constant.
@@ -81,7 +81,7 @@ const blogMatterDataSchema = z.object({
 });
 
 /**
- * Zod schema for validating frontmatter data of documentation posts.
+ * Zod schema for validating frontmatter data of documentation posts and academy articles.
  * Title is optional as it can be derived from the slug.
  * @property {string} [title] - An optional title of the document. If not provided, it will be derived.
  * @property {string} [description=''] - An optional description of the document. Defaults to an empty string.
@@ -90,7 +90,7 @@ const blogMatterDataSchema = z.object({
  * @property {string[]} [tags] - An optional array of tags for the document.
  * @property {string} [readingTime] - An optional estimated reading time for the document.
  * @property {string} [author] - An optional author of the document.
- * @property {'doc'} [type='doc'] - The type of the post, defaulting to 'doc'.
+ * @property {'doc' | 'academy'} [type='doc'] - The type of the post, defaulting to 'doc' or 'academy'.
  */
 const docMatterDataSchema = z.object({
   /** An optional title of the document. If not provided, it will be derived. */
@@ -108,7 +108,7 @@ const docMatterDataSchema = z.object({
   /** An optional author of the document. */
   author: z.string().optional(),
   /** The type of the post, defaulting to 'doc'. */
-  type: z.literal('doc').optional().default('doc'),
+  type: z.enum(['doc', 'academy']).optional().default('doc'),
 });
 
 /**
@@ -142,6 +142,13 @@ const blogPostsDirectory = path.join(process.cwd(), 'src/app/content/blog');
  * @constant {string} docsDirectory - Path to the directory containing documentation content.
  */
 const docsDirectory = path.join(process.cwd(), 'src/app/content/docs');
+/**
+ * @constant {string} academyArticlesDirectory - Path to the directory containing academy article content.
+ */
+const academyArticlesDirectory = path.join(
+  process.cwd(),
+  'src/app/content/academy',
+);
 
 /**
  * @constant {string[]} DOC_FILE_NAMES - A list of special filenames that are typically used for index or main documentation pages within a directory.
@@ -161,6 +168,11 @@ const DOC_FILE_NAMES = [
  */
 const DOCS_BASE_DIR_NAME = path.basename(docsDirectory);
 /**
+ * @constant {string} ACADEMY_BASE_DIR_NAME - The base name of the academy directory (e.g., "academy").
+ */
+const ACADEMY_BASE_DIR_NAME = path.basename(academyArticlesDirectory);
+
+/**
  * @constant {string[]} MARKDOWN_FILE_EXTENSIONS - An array of supported Markdown file extensions.
  */
 const MARKDOWN_FILE_EXTENSIONS = [EXT_MDX, EXT_MD];
@@ -170,6 +182,27 @@ const MARKDOWN_FILE_REGEX = new RegExp(`\\.(${STR_MDX}|${STR_MD})$`);
  * @constant {number} RELATED_DOCS_COUNT - The number of related documents to fetch for a given document post.
  */
 const RELATED_DOCS_COUNT = 2;
+
+/**
+ * Recursively reads all MDX/MD files from a given directory and its subdirectories.
+ * @param directory - The directory to scan.
+ * @param fileList - An array to accumulate the full paths of found files.
+ */
+function readFilesRecursively(directory: string, fileList: string[]) {
+  if (!fs.existsSync(directory)) {
+    return;
+  }
+  const files = fs.readdirSync(directory);
+  for (const file of files) {
+    const fullPath = path.join(directory, file);
+    const stat = fs.statSync(fullPath);
+    if (stat.isDirectory()) {
+      readFilesRecursively(fullPath, fileList);
+    } else if (MARKDOWN_FILE_EXTENSIONS.some((ext) => file.endsWith(ext))) {
+      fileList.push(fullPath);
+    }
+  }
+}
 
 /**
  * Retrieves all blog posts from the filesystem.
@@ -223,52 +256,26 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
  */
 export async function getAllDocPosts(): Promise<DocPost[]> {
   const docFiles: string[] = [];
-
-  /**
-   * Determines the priority of a document file based on its name.
-   * Lower numbers indicate higher priority.
-   * @param fileName - The name of the file.
-   * @returns The priority number.
-   */
-  function getFilePriority(fileName: string): number {
-    const priority = DOC_FILE_PRIORITY_ORDER.indexOf(fileName);
-    return priority === -1 ? DOC_FILE_PRIORITY_ORDER.length : priority; // Lower index = higher priority
-  }
-
-  /**
-   * Recursively reads all MDX/MD files from a given directory and its subdirectories.
-   * @param directory - The directory to scan.
-   */
-  function readDocsRecursively(directory: string) {
-    if (!fs.existsSync(directory)) {
-      return;
-    }
-    const files = fs.readdirSync(directory);
-    for (const file of files) {
-      const fullPath = path.join(directory, file);
-      const stat = fs.statSync(fullPath);
-      if (stat.isDirectory()) {
-        readDocsRecursively(fullPath);
-      } else if (MARKDOWN_FILE_EXTENSIONS.some((ext) => file.endsWith(ext))) {
-        docFiles.push(fullPath);
-      }
-    }
-  }
-
-  readDocsRecursively(docsDirectory);
+  readFilesRecursively(docsDirectory, docFiles);
 
   const processedDocs: { [slug: string]: DocPost } = {};
 
   for (const fullPath of docFiles) {
-    const docPost = await processDocFile(fullPath);
+    const docPost = await processContentFile(fullPath, 'doc');
     if (docPost) {
       const { slug, fileName } = docPost;
-      const currentFilePriority = getFilePriority(fileName!);
+      const currentFilePriority = DOC_FILE_PRIORITY_ORDER.indexOf(fileName!);
       const existingDoc = processedDocs[slug];
 
       if (existingDoc) {
-        const existingFilePriority = getFilePriority(existingDoc.fileName!);
-        if (currentFilePriority < existingFilePriority) {
+        const existingFilePriority = DOC_FILE_PRIORITY_ORDER.indexOf(
+          existingDoc.fileName!,
+        );
+        if (
+          currentFilePriority !== -1 &&
+          (existingFilePriority === -1 ||
+            currentFilePriority < existingFilePriority)
+        ) {
           processedDocs[slug] = docPost;
         }
       } else {
@@ -285,75 +292,133 @@ export async function getAllDocPosts(): Promise<DocPost[]> {
 }
 
 /**
- * Derives the slug for a documentation post based on its relative path.
- * Special handling for 'introduction' slug for root-level special files.
- * @param relativePath - The path of the file relative to the docs directory.
- * @param fileName - The name of the file (unused in new logic but kept for signature consistency).
- * @param parentDir - The name of the parent directory of the file (unused in new logic but kept for signature consistency).
+ * Retrieves all academy articles from the filesystem.
+ * This function mimics `getAllDocPosts` but specifically targets the academy content directory.
+ * @returns A promise that resolves to an array of DocPost objects (AcademyArticle equivalent).
+ */
+export async function getAllAcademyArticles(): Promise<DocPost[]> {
+  // Using DocPost type for now, can be specific if needed
+  const academyFiles: string[] = [];
+  readFilesRecursively(academyArticlesDirectory, academyFiles);
+
+  const processedArticles: { [slug: string]: DocPost } = {}; // Using DocPost as placeholder for AcademyArticle type
+
+  for (const fullPath of academyFiles) {
+    const article = await processContentFile(fullPath, 'academy'); // Process as academy type
+    if (article) {
+      processedArticles[article.slug] = article;
+    }
+  }
+
+  const allAcademyArticlesData = Object.values(processedArticles).sort(
+    (a: DocPost, b: DocPost) =>
+      normalizeDate(b.date).localeCompare(normalizeDate(a.date)),
+  );
+
+  return allAcademyArticlesData;
+}
+
+/**
+ * Derives the slug for a content post (documentation or academy) based on its full path and content type.
+ * Handles special cases like 'introduction' and cleans up generic file names in slugs.
+ * @param fullPath - The absolute path to the content file.
+ * @param baseDir - The base directory (e.g., docsDirectory, academyArticlesDirectory).
+ * @param fileType - The type of content ('doc' or 'academy').
  * @returns The derived slug string.
  */
-function deriveDocSlug(
-  relativePath: string,
-  _fileName: string,
-  parentDir: string,
+function deriveContentSlug(
+  fullPath: string,
+  baseDir: string,
+  fileType: 'doc' | 'academy',
 ): string {
-  const normalizedRelativePath = relativePath.replace(/\\/g, '/');
+  let relativePath = path.relative(baseDir, fullPath).replace(/\\/g, '/'); // Normalize path separators
 
-  // Check for special files directly under the `docsDirectory` that should map to 'introduction'
-  const isRootSpecialFile = DOC_FILE_NAMES.some(
-    (name) => name.replace(/\\/g, '/') === normalizedRelativePath,
-  );
-  const isParentDocsBaseDir = parentDir === DOCS_BASE_DIR_NAME;
-
-  if (isRootSpecialFile && isParentDocsBaseDir) {
+  // Special handling for 'introduction' slug within the docs directory
+  if (
+    fileType === 'doc' &&
+    path.basename(fullPath).toLowerCase().startsWith('introduction') &&
+    path.dirname(relativePath) === '.'
+  ) {
     return INTRODUCTION_SLUG;
   }
 
-  // For all other cases, return the full relative path as the slug, removing extension
-  return normalizedRelativePath.replace(MARKDOWN_FILE_REGEX, '');
+  // Remove file extension
+  let slug = relativePath.replace(MARKDOWN_FILE_REGEX, '');
+
+  // If the last segment is a common file name (like 'documentation', 'index', 'readme'), remove it.
+  const parts = slug.split('/');
+  const lastPart = parts[parts.length - 1]?.toLowerCase();
+
+  if (
+    DOC_FILE_NAMES.some(
+      (name) => lastPart === name.replace(MARKDOWN_FILE_REGEX, ''),
+    )
+  ) {
+    // Only remove if it's not the only segment (e.g., 'documentation.mdx' should still be 'documentation' not empty string)
+    if (parts.length > 1) {
+      slug = parts.slice(0, -1).join('/');
+    }
+  }
+
+  return slug;
 }
 
 /**
- * Derives the title for a documentation post.
+ * Derives the title for a content post.
  * Uses the frontmatter title if available.
  * Otherwise, uses a predefined title for 'introduction' slug,
  * or generates a title from the slug by capitalizing words.
- * Defaults to 'Untitled Document' if no other title can be determined.
- * @param slug - The slug of the document.
- * @param frontmatterTitle - The title from the document's frontmatter, if any.
+ * Defaults to 'Untitled Document' or 'Untitled Academy Article' if no other title can be determined.
+ * @param slug - The slug of the content.
+ * @param frontmatterTitle - The title from the content's frontmatter, if any.
+ * @param fileType - The type of content ('doc' or 'academy').
  * @returns The derived title string.
  */
-function deriveDocTitle(slug: string, frontmatterTitle?: string): string {
+function deriveContentTitle(
+  slug: string,
+  frontmatterTitle?: string,
+  fileType: 'doc' | 'academy' = 'doc',
+): string {
   if (frontmatterTitle) {
     return frontmatterTitle;
   }
-  if (slug === INTRODUCTION_SLUG) {
+  if (slug === INTRODUCTION_SLUG && fileType === 'doc') {
     return INTRODUCTION_TITLE;
   }
-  return (
+
+  const defaultTitle =
+    fileType === 'academy' ? 'Untitled Academy Article' : DEFAULT_DOC_TITLE;
+
+  // Split by '/' to get the last segment, then by '-' for words, capitalize, and join
+  const titleFromSlug =
     slug
       .split('/')
-      .pop()
-      ?.replace(/-/g, ' ')
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ') || DEFAULT_DOC_TITLE
-  );
+      .pop() // Get the last part of the slug (e.g., "nested-slug-example" from "category/nested-slug-example")
+      ?.replace(/-/g, ' ') // Replace hyphens with spaces
+      .split(' ') // Split into words
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1)) // Capitalize first letter of each word
+      .join(' ') || defaultTitle;
+
+  return titleFromSlug;
 }
 
 /**
- * Processes a single documentation file (MDX or MD).
+ * Processes a single documentation or academy file (MDX or MD).
  * Reads the file, parses frontmatter, validates it, and constructs a DocPost object.
- * @param fullPath - The absolute path to the documentation file.
- * @returns A promise that resolves to a DocPost object, or null if processing fails.
+ * @param fullPath - The absolute path to the content file.
+ * @param fileType - The type of content being processed ('doc' or 'academy').
+ * @returns A promise that resolves to a DocPost object, or undefined if processing fails.
  */
-async function processDocFile(fullPath: string): Promise<DocPost | null> {
+async function processContentFile(
+  fullPath: string,
+  fileType: 'doc' | 'academy',
+): Promise<DocPost | undefined> {
   let fileContents: string;
   try {
     fileContents = fs.readFileSync(fullPath, UTF8);
   } catch (err) {
     console.error(`ERROR: Could not read file ${fullPath}:`, err);
-    return null;
+    return undefined; // Changed from null to undefined
   }
 
   let parsed: matter.GrayMatterFile<string>;
@@ -361,19 +426,18 @@ async function processDocFile(fullPath: string): Promise<DocPost | null> {
     parsed = matter(fileContents);
   } catch (err) {
     console.error(`ERROR: Could not parse frontmatter in ${fullPath}:`, err);
-    return null;
+    return undefined; // Changed from null to undefined
   }
 
-  let docFrontmatter: z.infer<typeof docMatterDataSchema>;
+  let contentFrontmatter: z.infer<typeof docMatterDataSchema>;
   try {
-    docFrontmatter = docMatterDataSchema.parse(parsed.data);
+    contentFrontmatter = docMatterDataSchema.parse(parsed.data);
   } catch (error) {
     console.warn(
       `Frontmatter validation error in ${fullPath}. Using defaults. Error:`,
       error,
     );
-    // Provide a minimal default structure if parse fails completely
-    docFrontmatter = {
+    contentFrontmatter = {
       title: undefined,
       description: EMPTY_STRING,
       date: undefined,
@@ -381,30 +445,34 @@ async function processDocFile(fullPath: string): Promise<DocPost | null> {
       tags: [],
       readingTime: undefined,
       author: undefined,
-      type: 'doc',
+      type: fileType,
     };
   }
 
-  const relativePath = path.relative(docsDirectory, fullPath);
-  const fileName = path.basename(fullPath);
-  const parentDir = path.basename(path.dirname(fullPath));
+  const baseDir = fileType === 'doc' ? docsDirectory : academyArticlesDirectory;
+  const currentSlug = deriveContentSlug(fullPath, baseDir, fileType); // Pass fullPath and baseDir
 
-  const currentSlug = deriveDocSlug(relativePath, fileName, parentDir);
-  const currentTitle = deriveDocTitle(currentSlug, docFrontmatter.title);
+  const currentTitle = deriveContentTitle(
+    currentSlug,
+    contentFrontmatter.title,
+    fileType,
+  );
+
+  const finalType = contentFrontmatter.type || fileType;
 
   return {
     id: currentSlug,
     slug: currentSlug,
     title: currentTitle,
-    description: docFrontmatter.description,
-    date: normalizeDate(docFrontmatter.date || new Date()),
-    image: docFrontmatter.image || `/images/docs/${currentSlug}.svg`,
-    tags: docFrontmatter.tags || [],
-    readingTime: docFrontmatter.readingTime || DEFAULT_READING_TIME,
-    author: docFrontmatter.author || DEFAULT_AUTHOR,
-    type: docFrontmatter.type || 'doc',
+    description: contentFrontmatter.description,
+    date: normalizeDate(contentFrontmatter.date || new Date()),
+    image: contentFrontmatter.image || `/images/${fileType}/${currentSlug}.svg`,
+    tags: contentFrontmatter.tags || [],
+    readingTime: contentFrontmatter.readingTime || DEFAULT_READING_TIME,
+    author: contentFrontmatter.author || DEFAULT_AUTHOR,
+    type: finalType,
     content: parsed.content,
-    fileName: fileName, // Add fileName to the returned object for prioritization logic
+    fileName: path.basename(fullPath),
   } as DocPost;
 }
 
@@ -512,44 +580,54 @@ export async function getBlogPostBySlug(
 }
 
 /**
- * Finds the actual file path for a given documentation slug.
- * Handles special cases like 'introduction' and checks for .mdx and .md files
- * directly under the slug name or within a directory named after the slug (looking for special filenames).
- * @param slug - The slug of the document to find.
- * @returns The full path to the document file if found, otherwise undefined.
+ * Finds the actual file path for a given content slug within a base directory.
+ * @param slug - The slug of the content to find.
+ * @param baseDir - The base directory to search within (e.g., docsDirectory, academyArticlesDirectory).
+ * @param fileType - The type of content ('doc' or 'academy') for specific root-level handling.
+ * @returns The full path to the content file if found, otherwise undefined.
  */
-function findDocFile(slug: string): string | undefined {
-  // Special handling for the root 'introduction' slug
-  if (slug === INTRODUCTION_SLUG) {
+function findContentFile(
+  slug: string,
+  baseDir: string,
+  fileType: 'doc' | 'academy',
+): string | undefined {
+  // Check for special handling for root-level 'introduction' for docs
+  if (slug === INTRODUCTION_SLUG && fileType === 'doc') {
     for (const fileName of DOC_FILE_NAMES) {
-      const filePath = path.join(docsDirectory, fileName);
+      const filePath = path.join(baseDir, fileName);
       if (fs.existsSync(filePath)) {
         return filePath;
       }
     }
   }
 
-  // Try to find the file directly (e.g., 'getting-started.mdx' or 'amazon-seller-tools/documentation.mdx')
-  const directPathMdx = path.join(docsDirectory, `${slug}${EXT_MDX}`);
-  const directPathMd = path.join(docsDirectory, `${slug}${EXT_MD}`);
+  // Determine potential file paths
+  const potentialPaths: string[] = [];
 
-  if (fs.existsSync(directPathMdx)) {
-    return directPathMdx;
-  }
-  if (fs.existsSync(directPathMd)) {
-    return directPathMd;
+  // 1. Direct file path: <baseDir>/<slug>.<ext>
+  for (const ext of MARKDOWN_FILE_EXTENSIONS) {
+    potentialPaths.push(path.join(baseDir, `${slug}${ext}`));
   }
 
-  // If not found directly, try to find it as a directory's main doc (e.g., 'amazon-seller-tools/index.md')
-  const dirPath = path.join(docsDirectory, slug);
-  if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
-    for (const fileName of DOC_FILE_NAMES) {
-      const filePath = path.join(dirPath, fileName);
-      if (fs.existsSync(filePath)) {
-        return filePath;
-      }
+  // 2. Directory's main file: <baseDir>/<slug>/<special-file-name>.<ext>
+  // This handles cases like /docs/api/chat mapping to src/app/content/docs/api/chat/documentation.mdx
+  const dirPathForSlug = path.join(baseDir, slug);
+  if (
+    fs.existsSync(dirPathForSlug) &&
+    fs.statSync(dirPathForSlug).isDirectory()
+  ) {
+    for (const specialFileName of DOC_FILE_NAMES) {
+      potentialPaths.push(path.join(dirPathForSlug, specialFileName));
     }
   }
+
+  // Find the first existing file among potential paths
+  for (const filePath of potentialPaths) {
+    if (fs.existsSync(filePath)) {
+      return filePath;
+    }
+  }
+
   return undefined;
 }
 
@@ -563,81 +641,63 @@ function findDocFile(slug: string): string | undefined {
 export async function getDocPostBySlug(
   slug: string,
 ): Promise<DocPost | undefined> {
-  const fullPath = findDocFile(slug);
+  const fullPath = findContentFile(slug, docsDirectory, 'doc');
 
   if (!fullPath) {
     return undefined;
   }
 
   try {
-    let fileContents: string;
-    try {
-      fileContents = fs.readFileSync(fullPath, UTF8);
-    } catch (err) {
-      console.error(`ERROR: Could not read doc file ${fullPath}:`, err);
-      return undefined;
-    }
-
-    const parsed = matter(fileContents);
-    const { content } = parsed;
-    let docFrontmatter: z.infer<typeof docMatterDataSchema>;
-
-    try {
-      docFrontmatter = docMatterDataSchema.parse(parsed.data);
-    } catch (error) {
-      console.warn(
-        `Frontmatter validation Error in ${fullPath}. Using defaults. Error:`,
-        error,
-      );
-      docFrontmatter = {
-        title: undefined,
-        description: EMPTY_STRING,
-        date: undefined,
-        image: undefined,
-        tags: [],
-        readingTime: undefined,
-        author: undefined,
-        type: 'doc',
-      };
-    }
-
-    const finalTitle = deriveDocTitle(slug, docFrontmatter.title);
-
-    const allDocs = await getAllDocPosts();
-    const relatedDocs = allDocs
-      .filter(
-        (doc: DocPost): boolean =>
-          doc.slug !== slug &&
-          (doc.tags ?? []).some(
-            (tag: string): boolean =>
-              docFrontmatter.tags?.includes(tag) ?? false,
-          ),
-      )
-      .slice(0, 2)
-      .map((d: DocPost) => ({
-        id: d.id,
-        slug: d.slug,
-        title: d.title,
-        description: d.description,
-      }));
-
-    return {
-      id: slug,
-      slug,
-      title: finalTitle,
-      description: docFrontmatter.description,
-      date: normalizeDate(docFrontmatter.date || new Date()),
-      image: docFrontmatter.image || `/images/docs/${slug}.svg`,
-      tags: docFrontmatter.tags || [],
-      readingTime: docFrontmatter.readingTime || DEFAULT_READING_TIME,
-      author: docFrontmatter.author || DEFAULT_AUTHOR,
-      type: docFrontmatter.type || 'doc',
-      content,
-      relatedDocs,
-      fileName: path.basename(fullPath),
-    };
+    return processContentFile(fullPath, 'doc');
   } catch (e) {
     console.error('Error in getDocPostBySlug', e);
+    return undefined;
+  }
+}
+
+/**
+ * Retrieves a single academy article by its slug.
+ * It finds the appropriate file path, parses its frontmatter, and constructs a DocPost object (AcademyArticle equivalent).
+ * @param slug - The slug of the academy article to retrieve.
+ * @returns A promise that resolves to a DocPost object if found, otherwise undefined.
+ */
+export async function getAcademyArticleBySlug(
+  slug: string,
+): Promise<DocPost | undefined> {
+  // Using DocPost type for now
+  const fullPath = findContentFile(slug, academyArticlesDirectory, 'academy');
+
+  if (!fullPath) {
+    return undefined;
+  }
+
+  try {
+    const article = await processContentFile(fullPath, 'academy');
+
+    if (article) {
+      const allAcademyArticles = await getAllAcademyArticles();
+      const relatedArticles = allAcademyArticles
+        .filter(
+          (art: DocPost): boolean =>
+            art.slug !== slug &&
+            (art.tags ?? []).some(
+              (tag: string): boolean => article.tags?.includes(tag) ?? false,
+            ),
+        )
+        .slice(0, RELATED_DOCS_COUNT) // Use RELATED_DOCS_COUNT constant
+        .map((a: DocPost) => ({
+          id: a.id,
+          slug: a.slug,
+          title: a.title,
+          description: a.description,
+        }));
+
+      article.relatedArticles = relatedArticles;
+    }
+
+    return article;
+  } catch (e) {
+    console.error('Error in getAcademyArticleBySlug', e);
     return undefined;
   }
 }

@@ -48,9 +48,7 @@ export const metadata: Metadata = {
     title: `${AUTHOR_NAME} | Data Analytics Innovator`,
     description:
       'Data Analytics Innovator and Founder of ScaleSmart, building tools that streamline workflows and provide valuable insights.',
-    images: [
-      'https://wescode.vercel.app/og-image.svg',
-    ],
+    images: ['https://wescode.vercel.app/og-image.svg'],
   },
   robots: {
     index: true,

@@ -1014,33 +1014,37 @@ create_default_env() {
     echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Creating default $env_file..."
     
     cat > "$env_file" << EOL
-# GitHub Integration
-GITHUB_ID=Ov23liaheaCWBdU37uGQ
-GITHUB_SECRET=0e273ee0dea9e61e64ab00c8a1db1e014e464f9b
-
-# AI Integration
-GEMINI_API_KEY=AIzaSyAw1JM42mUEHXrw8RJEzluIafL35w4E0K8
-
-# NextAuth Configuration
-NEXTAUTH_SECRET=6cdb7852e327a7b606b1a9dd8f31b1479c018ac5b54374b6378d90e7d15fc0b6
-NEXTAUTH_URL=http://localhost:3000
-
-# Environment Mode
-NEXT_PUBLIC_VERCEL_ENV=development
-NEXT_PUBLIC_API_URL=http://localhost:3000
-
-# Supabase Configuration
-POSTGRES_URL="postgres://postgres.aybridyinsrebhibkgkh:95KkaULxLgM9XBzE@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
-POSTGRES_PRISMA_URL="postgres://postgres.aybridyinsrebhibkgkh:95KkaULxLgM9XBzE@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
-SUPABASE_URL="https://aybridyinsrebhibkgkh.supabase.co"
-NEXT_PUBLIC_SUPABASE_URL="https://aybridyinsrebhibkgkh.supabase.co"
-POSTGRES_URL_NON_POOLING="postgres://postgres.aybridyinsrebhibkgkh:95KkaULxLgM9XBzE@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
-SUPABASE_JWT_SECRET="kCXz5qE6VrQPt+Uw6o387xSFXaqbNhFCGOKWchArheIQ/oG1B150Pg7IEyE+ZJliG8jqtlI7L3BAGde40PhduA=="
-POSTGRES_USER="postgres"
+# Created by Vercel CLI
+BLOB_READ_WRITE_TOKEN="vercel_blob_rw_oHm7KvD7C4TtStFe_Vdhrx6upV8v3ndlBKWSHyuWvHNPZpv"
+EDGE_CONFIG="https://edge-config.vercel.com/ecfg_pofj3zhkxfj9rt7jg4sr9qbzlmlu?token=fa66081e-cf6a-4ffc-add2-0c6a0cac6873"
+EXPERIMENTATION_CONFIG="https://edge-config.vercel.com/ecfg_ym1v5hpaeklryrq0nfsmc6klg71d?token=78217ac2-74bd-4daf-bb24-83c64cba1b40"
+EXPERIMENTATION_CONFIG_ITEM_KEY="statsig-4PDLG5X27SCb426nvhp6zk"
+GEMINI_API_KEY="AIzaSyAVxXAMj-XPhl3WqWcZ9pxTUOw9vFcjnPg"
+GITHUB_ID="Ov23liaheaCWBdU37uGQ"
+GITHUB_SECRET="0e273ee0dea9e61e64ab00c8a1db1e014e464f9b"
+GITHUB_TOKEN="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"
+NEXTAUTH_SECRET="6819ac284cca8fd463b202b92a5527b27a128d14b4374f431f4363d501050a6a"
+NEXTAUTH_URL="http://localhost:3000"
+NEXT_PUBLIC_LOCAL_STORAGE_ENCRYPTION_KEY="a75d504096f26bb2f95ae350d67c9d0d1e96be70aeaf4d2b58e7c474e0aa4e31"
+NEXT_PUBLIC_STATSIG_CLIENT_KEY="client-XObhw1cELcHMXjInkyEsVH4blVSCijKtpFDiPWBkMte"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YnJpZHlpbnNyZWJoaWJrZ2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyNTQ3MDUsImV4cCI6MjA1MjgzMDcwNX0.sPGXhW_5PyZUrrmrJ36q1iCejppHkQrEfgcO2mSnQOE"
+NEXT_PUBLIC_SUPABASE_URL="https://aybridyinsrebhibkgkh.supabase.co"
+NEXT_PUBLIC_VERCEL_URL="https://wescode.vercel.app"
 POSTGRES_DATABASE="postgres"
-SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YnJpZHlpbnNyZWJoaWJrZ2toIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzI1NDcwNSwiZXhwIjoyMDUyODMwNzA1fQ.vL_wcpzc6wWnBnkc4BjiH1FAmpDsfwoS3gYLpuuhXFM"
 POSTGRES_HOST="db.aybridyinsrebhibkgkh.supabase.co"
+POSTGRES_PASSWORD="95KkaULxLgM9XBzE"
+POSTGRES_PRISMA_URL="postgres://postgres.aybridyinsrebhibkgkh:95KkaULxLgM9XBzE@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
+POSTGRES_URL="postgres://postgres.aybridyinsrebhibkgkh:95KkaULxLgM9XBzE@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
+POSTGRES_URL_NON_POOLING="postgres://postgres.aybridyinsrebhibkgkh:95KkaULxLgM9XBzE@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
+POSTGRES_USER="postgres"
+REDIS_URL="redis://default:jsMU2rG7qIKR8KJTOyi3SDClPnRzvmwE@redis-14221.c270.us-east-1-3.ec2.redns.redis-cloud.com:14221"
+STATSIG_SERVER_API_KEY="secret-hZo8dDHBSEdyezNfaSaeGCEyvx1J7bl5cwfNVqOOFsL"
+SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YnJpZHlpbnNyZWJoaWJrZ2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyNTQ3MDUsImV4cCI6MjA1MjgzMDcwNX0.sPGXhW_5PyZUrrmrJ36q1iCejppHkQrEfgcO2mSnQOE"
+SUPABASE_JWT_SECRET="kCXz5qE6VrQPt+Uw6o387xSFXaqbNhFCGOKWchArheIQ/oG1B150Pg7IEyE+ZJliG8jqtlI7L3BAGde40PhduA=="
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YnJpZHlpbnNyZWJoaWJrZ2toIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzI1NDcwNSwiZXhwIjoyMDUyODMwNzA1fQ.vL_wcpzc6wWnBnkc4BjiH1FAmpDsfwoS3gYLpuuhXFM"
+SUPABASE_URL="https://aybridyinsrebhibkgkh.supabase.co"
+VERCEL_ENV="production"
+VERCEL_OIDC_TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Im1yay00MzAyZWMxYjY3MGY0OGE5OGFkNjFkYWRlNGEyM2JlNyJ9.eyJpc3MiOiJodHRwczovL29pZGMudmVyY2VsLmNvbS9uZWJ1bGEtc2luZ3VsYXJpdHkiLCJzdWIiOiJvd25lcjpuZWJ1bGEtc2luZ3VsYXJpdHk6cHJvamVjdDpwb3J0Zm9saW86ZW52aXJvbm1lbnQ6ZGV2ZWxvcG1lbnQiLCJzY29wZSI6Im93bmVyOm5lYnVsYS1zaW5ndWxhcml0eTpwcm9qZWN0OnBvcnRmb2xpbzplbnZpcm9ubWVudDpkZXZlbG9wbWVudCIsImF1ZCI6Imh0dHBzOi8vdmVyY2VsLmNvbS9uZWJ1bGEtc2luZ3VsYXJpdHkiLCJvd25lciI6Im5lYnVsYS1zaW5ndWxhcml0eSIsIm93bmVyX2lkIjoidGVhbV9jbWVQWkcwTVRZaUc2UHlPTkdtTTJVSEEiLCJwcm9qZWN0IjoicG9ydGZvbGlvIiwicHJvamVjdF9pZCI6InByal9iUVFneHNlTXRqQndFZ1o1bzZaYVlQeVNHQTFJIiwiZW52aXJvbm1lbnQiOiJkZXZlbG9wbWVudCIsIm5iZiI6MTc0ODY2Nzc3OCwiaWF0IjoxNzQ4NjY3Nzc4LCJleHAiOjE3NDg3MTA5Nzh9.BDwJl40f-ci9TaSM2IohJ9290-mghuug24J-PhcgKbTly8BXx7WhMIF6etka7iOWqRIC-QLhRk2t1zKDw4YUKAHSfkX5-rHtrwKWbkTyVl-F7gs00BqwqrBrB_HT3s2xJe1BpF5UORyp0nGb1wRJJ6D7vPIGKWGSyzXHw2B06eon9GHMsMHdOn7kSblfgeh761EALq3p0z1jqzZvO7wJVSWzhXWkT-waAoZFD1DAJrEJOhoL6zj_mynIWwxnfP2tMu8bVGsVarCbWbzzq4K4kc271eI26Ix8WmOWstMykeuUZvkADYVeSEoRYLs3B_ZsUEuyKEg5zgyqoLgu3eZX1g"
 
 # Add other variables as needed...
 EOL

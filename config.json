@@ -1,1 +1,7 @@
-{}
+{
+  "store": {
+    "name": "WesBlob",
+    "id": "store_oHm7KvD7C4TtStFe",
+    "baseUrl": "https://ohm7kvd7c4ttstfe.public.blob.vercel-storage.com"
+  }
+}

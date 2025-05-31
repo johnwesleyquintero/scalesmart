@@ -188,45 +188,48 @@ export type BlogPost = {
 
 /**
  * @typedef {object} DocPost
- * @property {string} id - Unique identifier for the documentation post.
- * @property {string} slug - Slug for the documentation post, used in URLs.
- * @property {string} title - Title of the documentation post.
- * @property {string} description - A brief description or excerpt of the documentation post.
- * @property {string} date - Publication date of the documentation post.
- * @property {string} [image] - Optional URL for the documentation post's featured image.
- * @property {string[]} [tags] - Optional array of tags associated with the documentation post.
- * @property {string} [readingTime] - Optional estimated reading time of the documentation post.
- * @property {string} [author] - Optional author of the documentation post.
- * @property {string} [content] - Optional full content of the documentation post.
+ * @property {string} id - Unique identifier for the documentation or academy post.
+ * @property {string} slug - Slug for the documentation or academy post, used in URLs.
+ * @property {string} title - Title of the documentation or academy post.
+ * @property {string} description - A brief description or excerpt of the documentation or academy post.
+ * @property {string} date - Publication date of the documentation or academy post.
+ * @property {string} [image] - Optional URL for the documentation or academy post's featured image.
+ * @property {string[]} [tags] - Optional array of tags associated with the documentation or academy post.
+ * @property {string} [readingTime] - Optional estimated reading time of the documentation or academy post.
+ * @property {string} [author] - Optional author of the documentation or academy post.
+ * @property {string} [content] - Optional full content of the documentation or academy post.
  * @property {unknown[]} [relatedDocs] - Optional array of related documentation posts.
- * @property {'doc'} [type] - Type of the documentation post.
+ * @property {unknown[]} [relatedArticles] - Optional array of related academy articles.
+ * @property {'doc' | 'academy'} [type] - Type of the post.
  * @property {string} [fileName] - File name for internal processing.
  */
 export type DocPost = {
-  /** Unique identifier for the documentation post. */
+  /** Unique identifier for the documentation or academy post. */
   id: string;
-  /** Slug for the documentation post, used in URLs. */
+  /** Slug for the documentation or academy post, used in URLs. */
   slug: string;
-  /** Title of the documentation post. */
+  /** Title of the documentation or academy post. */
   title: string;
-  /** A brief description or excerpt of the documentation post. */
+  /** A brief description or excerpt of the documentation or academy post. */
   description: string;
-  /** Publication date of the documentation post. */
+  /** Publication date of the documentation or academy post. */
   date: string;
-  /** Optional URL for the documentation post's featured image. */
+  /** Optional URL for the documentation or academy post's featured image. */
   image?: string;
-  /** Optional array of tags associated with the documentation post. */
+  /** Optional array of tags associated with the documentation or academy post. */
   tags?: string[];
-  /** Optional estimated reading time of the documentation post. */
+  /** Optional estimated reading time of the documentation or academy post. */
   readingTime?: string;
-  /** Optional author of the documentation post. */
+  /** Optional author of the documentation or academy post. */
   author?: string;
-  /** Optional full content of the documentation post. */
+  /** Optional full content of the documentation or academy post. */
   content?: string;
   /** Optional array of related documentation posts. */
   relatedDocs?: unknown[];
-  /** Type of the documentation post. */
-  type?: 'doc';
+  /** Optional array of related academy articles. */
+  relatedArticles?: unknown[];
+  /** Type of the post. */
+  type?: 'doc' | 'academy'; // Modified to include 'academy'
   /** File name for internal processing. */
   fileName?: string;
 };

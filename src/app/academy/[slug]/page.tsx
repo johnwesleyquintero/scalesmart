@@ -1,0 +1,189 @@
+import { getAcademyArticleBySlug, getAllAcademyArticles } from '@/lib/mdx'; // Re-using existing MDX utility for now
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import { mdxDocsComponents } from '@/components/MdxDocsComponents'; // Assuming same components for academy articles
+import { notFound } from 'next/navigation';
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { ArrowLeft, Calendar, Clock, Tag } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import Image from 'next/image'; // Import Next.js Image component
+
+interface AcademyArticlePageProps {
+  params: {
+    slug: string;
+  };
+}
+
+const DEFAULT_IMAGE_URL = '/og-image.svg'; // Use a generic fallback image
+const DEFAULT_TITLE_SUFFIX = ' | Wesley Quintero Academy';
+const NOT_FOUND_TITLE = 'Article Not Found' + DEFAULT_TITLE_SUFFIX;
+
+export async function generateMetadata({
+  params,
+}: Readonly<AcademyArticlePageProps>): Promise<Metadata> {
+  try {
+    const resolvedSlug = await params.slug;
+    const article = await getAcademyArticleBySlug(resolvedSlug);
+
+    if (!article) {
+      const NOT_FOUND_DESCRIPTION =
+        'The requested academy article could not be found.';
+      return {
+        title: NOT_FOUND_TITLE,
+        description: NOT_FOUND_DESCRIPTION,
+        openGraph: {
+          title: NOT_FOUND_TITLE,
+          description: NOT_FOUND_DESCRIPTION,
+          images: [
+            {
+              url: DEFAULT_IMAGE_URL,
+              width: 1200,
+              height: 630,
+              alt: 'Article Not Found',
+            },
+          ],
+        },
+        twitter: {
+          card: 'summary_large_image',
+          title: NOT_FOUND_TITLE,
+          description: NOT_FOUND_DESCRIPTION,
+          images: [DEFAULT_IMAGE_URL],
+        },
+      };
+    }
+
+    const canonicalUrl = new URL(
+      `/academy/${resolvedSlug}`,
+      'https://wescode.vercel.app',
+    ).toString();
+
+    return {
+      title: `${article.title}${DEFAULT_TITLE_SUFFIX}`,
+      description: article.description,
+      alternates: {
+        canonical: canonicalUrl,
+      },
+      openGraph: {
+        title: article.title,
+        description: article.description,
+        type: 'article',
+        publishedTime: article.date,
+        authors: ['Wesley Quintero'], // Or pull from article metadata
+        tags: article.tags, // Assuming MDX frontmatter has tags
+        url: canonicalUrl,
+        images: [
+          {
+            url: article.image || DEFAULT_IMAGE_URL,
+            width: 1200,
+            height: 630,
+            alt: article.title,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: article.title,
+        description: article.description,
+        images: [article.image || DEFAULT_IMAGE_URL],
+      },
+    };
+  } catch (error) {
+    console.error('Error generating academy article metadata:', error);
+    const ERROR_DESCRIPTION =
+      'An error occurred while loading this academy article.';
+    return {
+      title: 'Error' + DEFAULT_TITLE_SUFFIX,
+      description: ERROR_DESCRIPTION,
+    };
+  }
+}
+
+export async function generateStaticParams() {
+  const articles = await getAllAcademyArticles();
+  return articles.map((article: { slug: string }) => ({
+    // Specify type for 'article'
+    slug: article.slug,
+  }));
+}
+
+export default async function AcademyArticlePage({
+  params,
+}: AcademyArticlePageProps) {
+  const awaitedParams = await params;
+  const slugParam = awaitedParams.slug;
+
+  const article = await getAcademyArticleBySlug(slugParam);
+
+  if (!article) {
+    notFound();
+  }
+
+  return (
+    <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 min-h-screen">
+      <div className="container mx-auto px-4 py-16">
+        <div className="mb-8">
+          <Link
+            href="/academy"
+            className="flex items-center text-muted-foreground hover:text-primary transition-colors"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to all academy articles
+          </Link>
+        </div>
+
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-8">
+            <div className="flex flex-wrap gap-2 mb-4">
+              {article.tags?.map((tag: string) => (
+                <Badge key={tag} variant="secondary" className="text-xs">
+                  <Tag className="h-3 w-3 mr-1" />
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+              {article.title}
+            </h1>
+
+            <div className="flex items-center gap-4 text-sm text-muted-foreground mb-8">
+              <div className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                <span>{article.date}</span>
+              </div>
+              {/* Assuming readingTime exists in article frontmatter if desired */}
+              {article.readingTime && (
+                <div className="flex items-center gap-1">
+                  <Clock className="h-4 w-4" />
+                  <span>{article.readingTime}</span>
+                </div>
+              )}
+            </div>
+
+            {article.image && (
+              <div className="mb-8 overflow-hidden rounded-lg">
+                <Image // Changed <img> to <Image>
+                  src={article.image}
+                  alt={article.title}
+                  width={1200} // Placeholder, adjust based on your typical image dimensions or content needs
+                  height={630} // Placeholder, adjust as needed
+                  className="w-full object-cover rounded-lg"
+                />
+              </div>
+            )}
+          </div>
+
+          {article.content && (
+            <article className="prose prose-lg dark:prose-invert max-w-none">
+              <MDXRemote
+                source={article.content}
+                components={mdxDocsComponents}
+              />
+            </article>
+          )}
+
+          {/* Consider adding "Related Articles" functionality similar to blog */}
+        </div>
+      </div>
+    </div>
+  );
+}
