@@ -2,9 +2,10 @@ import { getDocPostBySlug } from '@/lib/mdx';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { components } from '@/components/MdxRenderer';
 import { notFound } from 'next/navigation';
+import { INTRODUCTION_SLUG } from '@/config/docs';
 
 export default async function DocsHomePage() {
-  const doc = await getDocPostBySlug('introduction'); // Load the introduction doc by default
+  const doc = await getDocPostBySlug(INTRODUCTION_SLUG); // Load the introduction doc by default
 
   if (!doc) {
     notFound();

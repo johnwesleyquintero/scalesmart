@@ -5,6 +5,13 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import {
+  DOCUMENTATION_BASE_URL,
+  DEFAULT_TITLE_SUFFIX,
+  DEFAULT_DOC_DESCRIPTION,
+  NOT_FOUND_TITLE_PREFIX,
+  DEFAULT_OG_IMAGE_URL,
+} from '@/config/docs';
 
 interface DocPageProps {
   params: {
@@ -12,20 +19,15 @@ interface DocPageProps {
   };
 }
 
-const DOCUMENTATION_BASE_URL = 'https://wescode.vercel.app/'; // Replace with your actual domain
-
-const DEFAULT_TITLE_SUFFIX = ' | ScaleSmart Docs'; // Customize as needed
-const DEFAULT_DOC_DESCRIPTION = 'Documentation page';
-const NOT_FOUND_TITLE = 'Document Not Found' + DEFAULT_TITLE_SUFFIX;
-const DEFAULT_OG_IMAGE_URL = '/og-image.svg'; // Replace with your default OG image
-
 export async function generateMetadata(
   props: Readonly<DocPageProps>,
 ): Promise<Metadata> {
   const { params } = props;
-  const slug = params.slug.join('/');
+  const slug = (await params).slug.join('/');
   try {
     const doc = await getDocPostBySlug(slug);
+
+    const NOT_FOUND_TITLE = NOT_FOUND_TITLE_PREFIX + DEFAULT_TITLE_SUFFIX;
 
     if (!doc) {
       const NOT_FOUND_DESCRIPTION =
@@ -86,7 +88,7 @@ export async function generateStaticParams() {
 
 export default async function DocPage(props: DocPageProps) {
   const { params } = props;
-  const slug = params.slug.join('/');
+  const slug = (await params).slug.join('/');
   const doc = await getDocPostBySlug(slug);
 
   if (!doc) {

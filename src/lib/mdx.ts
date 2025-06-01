@@ -3,6 +3,12 @@ import matter from 'gray-matter';
 import path from 'path';
 import { z } from 'zod';
 import { BlogPost, DocPost } from '@/types'; // Assuming BlogPost, DocPost types are compatible or can be extended for AcademyArticle
+import {
+  DEFAULT_DOC_TITLE,
+  INTRODUCTION_SLUG,
+  INTRODUCTION_TITLE,
+  RELATED_DOCS_COUNT,
+} from '@/config/docs';
 
 /**
  * @constant {string} EMPTY_STRING - An empty string constant.
@@ -16,18 +22,6 @@ const DEFAULT_READING_TIME = '5 min read';
  * @constant {string} DEFAULT_AUTHOR - Default author for posts if not specified.
  */
 const DEFAULT_AUTHOR = 'Wesley Quintero';
-/**
- * @constant {string} DEFAULT_DOC_TITLE - Default title for document posts if not specified or derivable.
- */
-const DEFAULT_DOC_TITLE = 'Untitled Document';
-/**
- * @constant {string} INTRODUCTION_SLUG - Slug for the main introduction document.
- */
-const INTRODUCTION_SLUG = 'introduction';
-/**
- * @constant {string} INTRODUCTION_TITLE - Title for the main introduction document.
- */
-const INTRODUCTION_TITLE = 'Introduction';
 
 /**
  * @constant {string} STR_MDX - String constant for 'mdx'.
@@ -178,10 +172,6 @@ const ACADEMY_BASE_DIR_NAME = path.basename(academyArticlesDirectory);
 const MARKDOWN_FILE_EXTENSIONS = [EXT_MDX, EXT_MD];
 /** A regular expression to match Markdown file extensions. */
 const MARKDOWN_FILE_REGEX = new RegExp(`\\.(${STR_MDX}|${STR_MD})$`);
-/**
- * @constant {number} RELATED_DOCS_COUNT - The number of related documents to fetch for a given document post.
- */
-const RELATED_DOCS_COUNT = 2;
 
 /**
  * Recursively reads all MDX/MD files from a given directory and its subdirectories.
