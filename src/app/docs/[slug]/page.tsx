@@ -81,9 +81,16 @@ export async function generateMetadata(
 
 export async function generateStaticParams() {
   const docs = await getAllDocPosts();
-  return docs.map((doc) => ({
-    slug: doc.slug.split('/'), // Split slug into array for catch-all route
-  }));
+  return docs.map((doc) => {
+    // For the root docs page (slug is empty string), return an empty array
+    // Next.js expects `[]` for the base path of a catch-all route.
+    if (doc.slug === '') {
+      return { slug: [] };
+    }
+    return {
+      slug: doc.slug.split('/'), // Split slug into array for catch-all route
+    };
+  });
 }
 
 export default async function DocPage(props: DocPageProps) {
