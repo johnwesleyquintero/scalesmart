@@ -5,6 +5,12 @@ import { notFound } from 'next/navigation';
 import { INTRODUCTION_SLUG } from '@/config/docs';
 import Link from 'next/link';
 
+export async function generateStaticParams() {
+  // This tells Next.js to generate a single static page for the root /docs route.
+  // The content for this page is fetched dynamically within the component.
+  return [{}];
+}
+
 export default async function DocsHomePage() {
   const doc = await getDocPostBySlug(INTRODUCTION_SLUG); // Load the introduction doc by default
   const allDocs = await getAllDocPosts(); // Fetch all documentation posts
