@@ -120,10 +120,18 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
 export async function getAllDocPosts(): Promise<DocPost[]> {
   const docFiles: string[] = [];
   readFilesFlat(docsDirectory, docFiles); // Use readFilesFlat for docs
+  console.log('Doc files found:', docFiles.length);
 
   const allDocsData = await Promise.all(
-    docFiles.map((fullPath) => processContentFile(fullPath, 'doc')),
+    docFiles.map(async (fullPath) => {
+      const doc = await processContentFile(fullPath, 'doc');
+      if (!doc) {
+        console.error(`Failed to process doc file: ${fullPath}`);
+      }
+      return doc;
+    }),
   );
+  console.log('Processed docs count:', allDocsData.filter(Boolean).length);
 
   return allDocsData
     .filter((doc): doc is DocPost => doc !== undefined)
