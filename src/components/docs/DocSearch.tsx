@@ -6,7 +6,9 @@ import { DocArticleMetadata } from '@/lib/docs-data/static-docs';
 
 export default function DocSearch() {
   const [query, setQuery] = React.useState('');
-  const [searchResults, setSearchResults] = React.useState<DocArticleMetadata[]>([]);
+  const [searchResults, setSearchResults] = React.useState<
+    DocArticleMetadata[]
+  >([]);
   const [allDocs, setAllDocs] = React.useState<DocArticleMetadata[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
@@ -23,7 +25,8 @@ export default function DocSearch() {
         }
         const data: DocArticleMetadata[] = await response.json();
         setAllDocs(data);
-      } catch (e: unknown) { // Change from 'any' to 'unknown'
+      } catch (e: unknown) {
+        // Change from 'any' to 'unknown'
         if (e instanceof Error) {
           setError(e.message);
         } else {
@@ -43,7 +46,10 @@ export default function DocSearch() {
           doc.title.toLowerCase().includes(query.toLowerCase()) ||
           doc.description.toLowerCase().includes(query.toLowerCase()) ||
           doc.category.toLowerCase().includes(query.toLowerCase()) ||
-          (doc.tags && doc.tags.some((tag) => tag.toLowerCase().includes(query.toLowerCase())))
+          (doc.tags &&
+            doc.tags.some((tag) =>
+              tag.toLowerCase().includes(query.toLowerCase()),
+            )),
       );
       setSearchResults(filtered);
     } else {
@@ -58,7 +64,8 @@ export default function DocSearch() {
   };
 
   if (loading) return <div>Loading search index...</div>;
-  if (error) return <div className="text-red-500">Error loading search: {error}</div>;
+  if (error)
+    return <div className="text-red-500">Error loading search: {error}</div>;
 
   return (
     <div className="relative w-full max-w-md mx-auto">
@@ -72,7 +79,8 @@ export default function DocSearch() {
       {query.length > 1 && searchResults.length > 0 && (
         <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
           {searchResults.map((result) => (
-            <li key={result.slug}
+            <li
+              key={result.slug}
               className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => handleSelectResult(result.slug)}
             >

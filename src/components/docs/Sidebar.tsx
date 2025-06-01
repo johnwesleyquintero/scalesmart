@@ -11,7 +11,9 @@ interface DocsSidebarProps {
 
 export default function DocsSidebar() {
   const pathname = usePathname();
-  const [docsMetadata, setDocsMetadata] = React.useState<DocArticleMetadata[]>([]);
+  const [docsMetadata, setDocsMetadata] = React.useState<DocArticleMetadata[]>(
+    [],
+  );
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -25,15 +27,17 @@ export default function DocsSidebar() {
       categories[doc.category].push(doc);
     });
     // Sort categories alphabetically
-    return Object.keys(categories).sort().reduce(
-      (obj, key) => { 
-        obj[key] = categories[key];
-        // Sort articles within each category by order
-        obj[key].sort((a, b) => (a.order || 0) - (b.order || 0));
-        return obj;
-      }, 
-      {} as { [key: string]: DocArticleMetadata[] }
-    );
+    return Object.keys(categories)
+      .sort()
+      .reduce(
+        (obj, key) => {
+          obj[key] = categories[key];
+          // Sort articles within each category by order
+          obj[key].sort((a, b) => (a.order || 0) - (b.order || 0));
+          return obj;
+        },
+        {} as { [key: string]: DocArticleMetadata[] },
+      );
   }, [docsMetadata]);
 
   React.useEffect(() => {
@@ -46,7 +50,8 @@ export default function DocsSidebar() {
         }
         const data: DocArticleMetadata[] = await response.json();
         setDocsMetadata(data);
-      } catch (e: unknown) { // Change from 'any' to 'unknown'
+      } catch (e: unknown) {
+        // Change from 'any' to 'unknown'
         if (e instanceof Error) {
           setError(e.message);
         } else {
@@ -75,7 +80,8 @@ export default function DocsSidebar() {
                 <Link
                   href={`/docs/${doc.slug}`}
                   className={`block px-3 py-2 rounded-md ${
-                    pathname === `/docs/${doc.slug}` || (doc.slug === 'getting-started' && pathname === '/docs')
+                    pathname === `/docs/${doc.slug}` ||
+                    (doc.slug === 'getting-started' && pathname === '/docs')
                       ? 'bg-blue-100 text-blue-800 font-semibold'
                       : 'hover:bg-gray-100'
                   }`}

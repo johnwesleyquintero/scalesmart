@@ -23,7 +23,10 @@ export function getAllDocSlugs() {
   }));
 }
 
-export function getDocBySlug(slug: string): { content: string; data: DocArticleMetadata } {
+export function getDocBySlug(slug: string): {
+  content: string;
+  data: DocArticleMetadata;
+} {
   const fullPath = join(DOCS_CONTENT_PATH, `${slug}.mdx`);
   const fileContents = readFileSync(fullPath, 'utf8');
 

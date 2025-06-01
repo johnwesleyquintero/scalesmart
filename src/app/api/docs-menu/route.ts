@@ -7,6 +7,9 @@ export async function GET() {
     return NextResponse.json(docsMetadata);
   } catch (error) {
     console.error('Failed to fetch docs metadata:', error);
-    return NextResponse.json({ message: 'Internal Server Error' }, { status: 500 });
+    return NextResponse.json(
+      { message: 'Internal Server Error' },
+      { status: 500 },
+    );
   }
 }
