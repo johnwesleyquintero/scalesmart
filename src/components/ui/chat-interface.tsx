@@ -957,13 +957,15 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     message.status === 'error' &&
     (message.retryCount ?? 0) < (message.retryLimit ?? ConfigRetryLimit);
 
-  const promptsToTry = [
+  // Function to render message content with Markdown support
+const promptsToTry = [
     'Create a Mermaid diagram pie chart showing the distribution of these search terms: "AI" with 30%, "Machine Learning" with 25%, "Data Science" with 20%, and "Deep Learning" with 25%.',
-    'Generate a responsive HTML + CSS dashboard for Amazon Ads data with 100 clicks, 5000 impressions, and $500 spend. Include a line chart and a table of 5 ad campaigns.',
+    'Generate a responsive HTML/CSS/JS dashboard for Amazon Ads data with 100 clicks, 5000 impressions, and $500 spend. Include a summary section with key metrics and a table listing 5 ad campaigns with their respective performance data.',
     'Provide a JSON object for a product with ID "12345", name "Wireless Headphones", price "$99.99", and categories ["Electronics", "Audio"]. Include a brief description and an image URL.',
-    'Analyze the following Amazon Business Report data: total sales of $10,000, total units sold of 500, and an average customer rating of 4.5. Provide insights on sales performance, unit sales trends, and customer satisfaction.',
-  ];
+    'Analyze the following Amazon Business Report data: total sales of $10,000, total units sold of 500, and an average customer rating of 4.5. Provide insights on sales performance, unit sales trends, and customer satisfaction.'
+];
 
+  // Function to render message content with Markdown support
   return (
     <div className={`${containerClass} group relative items-start`}>
       {' '}
