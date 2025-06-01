@@ -8,7 +8,7 @@ import Prism from 'prismjs';
 import 'prismjs/components/prism-markup'; // For HTML
 import 'prismjs/components/prism-css'; // For CSS within <style>
 import 'prismjs/components/prism-javascript'; // For JS within <script> if ever allowed
-// Note: Ensure 'prismjs/themes/prism-tomorrow.css' is loaded globally or import a theme here
+import 'prismjs/themes/prism-tomorrow.css'; // Import a dark theme for syntax highlighting
 import { Maximize, Minimize } from 'lucide-react';
 
 interface HtmlPreviewProps {
@@ -24,11 +24,27 @@ const HtmlPreview: React.FC<HtmlPreviewProps> = ({
   const [isMaximized, setIsMaximized] = useState(false);
   const [viewMode, setViewMode] = useState<'preview' | 'code'>('preview'); // 'preview' or 'code'
   const [editableCode, setEditableCode] = useState(htmlContent);
+  const [appliedHtmlContent, setAppliedHtmlContent] = useState(htmlContent); // New state for content applied to iframe
   const [currentTheme, setCurrentTheme] = useState('light');
+  const [copied, setCopied] = useState(false);
+  const [hasEdited, setHasEdited] = useState(false);
+  const [isLoadingIframe, setIsLoadingIframe] = useState(true); // New state for iframe loading
 
   useEffect(() => {
     setEditableCode(htmlContent); // Update editable code if the prop changes
+    setAppliedHtmlContent(htmlContent); // Also update applied content
+    setCopied(false); // Reset copied status when content changes
+    setHasEdited(false); // Reset edited status when content changes
+    setIsLoadingIframe(true); // Set loading to true when content changes
   }, [htmlContent]);
+
+  useEffect(() => {
+    // This effect ensures the iframe updates when appliedHtmlContent changes
+    // and also resets hasEdited if the content matches the original prop
+    if (editableCode === htmlContent) {
+      setHasEdited(false);
+    }
+  }, [editableCode, htmlContent]);
 
   useEffect(() => {
     // Check initial theme
@@ -58,8 +74,31 @@ const HtmlPreview: React.FC<HtmlPreviewProps> = ({
     setIsMaximized(!isMaximized);
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(editableCode);
+    setCopied(true);
+    const timer = setTimeout(() => {
+      setCopied(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  };
+
+  const handleReset = () => {
+    setEditableCode(htmlContent);
+    setHasEdited(false);
+  };
+
+  useEffect(() => {
+    // This effect ensures the iframe updates when appliedHtmlContent changes
+    // and also resets hasEdited if the content matches the original prop
+    if (editableCode === htmlContent) {
+      setHasEdited(false);
+    }
+    setIsLoadingIframe(true); // Set loading to true when applied content changes
+  }, [appliedHtmlContent, htmlContent, editableCode]); // Added editableCode to dependencies
+
   const getIframeSrcDoc = useCallback(() => {
-    const sanitizedAiHtmlString = DOMPurify.sanitize(editableCode, {
+    const sanitizedAiHtmlString = DOMPurify.sanitize(appliedHtmlContent, {
       USE_PROFILES: { html: true },
     });
 
@@ -93,7 +132,7 @@ const HtmlPreview: React.FC<HtmlPreviewProps> = ({
             transition: background-color 0.3s, color 0.3s;
           }
           /* Light theme styles (default) */
-          html:not(.dark) body { color: #333; background-color: #fff; }
+          html:not(.dark) body { color: #333; background-color: #f0f0f0; }
           html:not(.dark) h1, html:not(.dark) h2, html:not(.dark) h3, html:not(.dark) h4, html:not(.dark) h5, html:not(.dark) h6 { color: #222; }
           html:not(.dark) a { color: #007bff; }
           html:not(.dark) th, html:not(.dark) td { border-color: #ddd; }
@@ -178,6 +217,44 @@ const HtmlPreview: React.FC<HtmlPreviewProps> = ({
             >
               {viewMode === 'preview' ? 'Code' : 'Preview'}
             </Button>
+            {viewMode === 'code' && (
+              <>
+                <Button
+                  onClick={handleCopy}
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs px-2 py-1 h-auto text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200"
+                  aria-label={copied ? 'Code copied' : 'Copy code'}
+                >
+                  {copied ? 'Copied!' : 'Copy'}
+                </Button>
+                {hasEdited && (
+                  <>
+                    <Button
+                      onClick={handleReset}
+                      variant="ghost"
+                      size="sm"
+                      className="text-xs px-2 py-1 h-auto text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                      aria-label="Reset code"
+                    >
+                      Reset
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setAppliedHtmlContent(editableCode); // Apply changes to the iframe
+                        setHasEdited(false); // Reset hasEdited after applying
+                      }}
+                      variant="default" // Use default variant for prominence
+                      size="sm"
+                      className="text-xs px-2 py-1 h-auto bg-green-500 hover:bg-green-600 text-white dark:bg-green-600 dark:hover:bg-green-700"
+                      aria-label="Apply changes"
+                    >
+                      Apply Changes
+                    </Button>
+                  </>
+                )}
+              </>
+            )}
             <Button
               onClick={toggleMaximize}
               variant="ghost"
@@ -194,32 +271,46 @@ const HtmlPreview: React.FC<HtmlPreviewProps> = ({
           </div>
         </div>
         {viewMode === 'preview' ? (
-          <div className="flex-1 overflow-hidden">
+          <div className="relative flex-1 overflow-hidden">
+            {isLoadingIframe && (
+              <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900 text-gray-500 dark:text-gray-400">
+                Loading preview...
+              </div>
+            )}
             <iframe
+              key={appliedHtmlContent} // Add key to force re-render on content change
               ref={iframeRef}
               srcDoc={getIframeSrcDoc()}
               title={title}
-              sandbox="allow-scripts allow-same-origin" // Allow scripts to run within the same origin
+              sandbox="allow-scripts" // Removed allow-same-origin for enhanced security
               className="w-full h-full border-0"
               style={{ height: isMaximized ? '100%' : '300px' }} // Fixed height when not maximized
+              onLoad={() => setIsLoadingIframe(false)} // Set loading to false when iframe loads
             />
           </div>
         ) : (
           <div
-            className="flex-1 overflow-auto bg-gray-100 dark:bg-gray-800 p-3"
+            className="flex-1 overflow-auto bg-black p-3"
             style={{ height: isMaximized ? '100%' : '300px' }} // Give code view a fixed 300px height when not maximized
           >
             <Editor
               value={editableCode}
-              onValueChange={(code) => setEditableCode(code)}
+              onValueChange={(code) => {
+                setEditableCode(code);
+                setHasEdited(true);
+              }}
               highlight={(code) =>
                 Prism.highlight(code, Prism.languages.markup, 'markup')
               }
               padding={10}
-              className="text-xs font-mono bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border border-gray-300 dark:border-gray-600 rounded-md focus-within:ring-2 focus-within:ring-blue-500"
+              className="text-xs font-mono rounded-md focus-within:ring-2 focus-within:ring-blue-500"
               style={{
                 minHeight: '100%', // Ensure editor takes full height of its container
                 outline: 'none',
+                backgroundColor: '#282a36', // Dracula background
+                color: '#f8f8f2', // Dracula foreground
+                fontFamily: '"JetBrains Mono", monospace', // JetBrains Mono font
+                border: '1px solid #44475a', // Dracula border color
               }}
               textareaClassName="outline-none"
               preClassName="outline-none"

@@ -22,7 +22,6 @@ async function getMdxContentUrls(
         const lastModified = stats.mtime;
 
         let slug = file.replace(/\.mdx$/, '');
-
         if (
           slug.toLowerCase().endsWith('readme') &&
           file.toLowerCase().endsWith('readme.mdx')

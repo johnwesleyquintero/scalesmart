@@ -104,3 +104,7 @@
     border: 2px solid theme('colors.gray.800');
   }
 }
+
+.code-block-wrapper {
+  background-color: black;
+}

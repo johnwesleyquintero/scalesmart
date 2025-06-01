@@ -957,12 +957,22 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     message.status === 'error' &&
     (message.retryCount ?? 0) < (message.retryLimit ?? ConfigRetryLimit);
 
-  // Function to render message content with Markdown support
+  // An array of prompts for generating different types of content
   const promptsToTry = [
-    'Create a Mermaid diagram pie chart showing the distribution of these search terms: "AI" with 30%, "Machine Learning" with 25%, "Data Science" with 20%, and "Deep Learning" with 25%.',
-    'Generate a responsive HTML/CSS/JS dashboard for Amazon Ads data with 100 clicks, 5000 impressions, and $500 spend. Include a summary section with key metrics and a table listing 5 ad campaigns with their respective performance data.',
-    'Provide a JSON object for a product with ID "12345", name "Wireless Headphones", price "$99.99", and categories ["Electronics", "Audio"]. Include a brief description and an image URL.',
-    'Analyze the following Amazon Business Report data: total sales of $10,000, total units sold of 500, and an average customer rating of 4.5. Provide insights on sales performance, unit sales trends, and customer satisfaction.',
+    // Create a pie chart using Mermaid syntax with specific data
+    'Create a pie chart using Mermaid syntax with the following data: AI 30%, Machine Learning 25%, Data Science 20%, and Deep Learning 25%.',
+
+    // Design a responsive dashboard for Amazon Ads with specific metrics
+    'Design a responsive dashboard for Amazon Ads displaying 100 clicks, 5000 impressions, a $500 spend, a summary of key metrics, and a table of 5 ad campaigns.',
+
+    // Generate a JSON object for a product with specific details
+    'Generate a JSON object for a product with ID 12345, named "Wireless Headphones", priced at $99.99, categorized under Electronics and Audio, including a description and an image URL.',
+
+    // Provide an analysis of an Amazon Business Report with specific sales data
+    'Provide an analysis of an Amazon Business Report with $10,000 in sales, 500 units sold, and an average rating of 4.5. Include insights on performance, trends, and customer satisfaction.',
+
+    // Create a landing page featuring a modern and sleek design
+    'Create a landing page featuring a modern and sleek design.',
   ];
 
   // Function to render message content with Markdown support
@@ -1139,7 +1149,7 @@ const PreElementRenderer: FC<PreElementRendererProps> = ({
   // Default pre rendering for other code blocks (including HTML if not caught by renderMessage)
   return (
     <div className="code-block-wrapper group/codeblock relative my-4">
-      <pre>{children}</pre>
+      <pre className="bg-black text-white">{children}</pre>
     </div>
   );
 };
