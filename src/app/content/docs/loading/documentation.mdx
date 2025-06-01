@@ -1,36 +1,25 @@
 ---
-title: Loading Page Documentation
-description: Documentation for the Loading page.
-date: 2025-05-31
-tags: ['loading', 'page']
+title: Loading States Documentation
+description: Documentation for loading states and components.
+date: 2025-06-01
+tags: ['loading', 'states', 'components']
 readingTime: '1 min read'
 author: 'Wesley Quintero'
 type: 'doc'
 ---
 
-# Loading Page Documentation (`src/app/loading.tsx`)
+# Loading States Documentation
+
+This directory contains documentation related to loading states and components within the ScaleSmart application.
 
 ## Overview
 
-The Loading Page (`src/app/loading.tsx`) is displayed while the application is loading. It provides a visual indicator to the user that the application is in the process of loading.
+Loading states provide visual feedback to users while data is being fetched or processes are running in the background. This documentation outlines the implementation and usage of loading indicators.
 
-## Functionality
+## Key Areas
 
-- **Displays Loading Indicator:** Shows a spinning loader icon to indicate that the application is loading.
-- **Displays Loading Message:** Shows a "Loading..." message to provide additional context to the user.
+- **Loading Components:** Details on reusable loading components (e.g., spinners, progress bars).
+- **State Management:** Techniques for managing loading states in React components.
+- **Best Practices:** Guidelines for providing a smooth and informative loading experience.
 
-## Technical Details
-
-- The page is a client-side component.
-- It uses the `Loader2` icon from the `lucide-react` library.
-- It uses a gradient background for visual appeal.
-
-## Components
-
-- `Loading`: The main loading page component.
-
-## Data Flow
-
-1.  When a page is loading, the `Loading` component is rendered.
-2.  The component displays the loading indicator and message.
-3.  Once the page has finished loading, the `Loading` component is replaced with the actual page content.
+Further details on each aspect can be found in the relevant sections below.

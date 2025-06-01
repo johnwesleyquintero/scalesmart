@@ -26,21 +26,21 @@ This directory contains documentation for various aspects of the project. Below 
 - **chat/:** Documentation for the chat functionality of the project.
 - **content/:** Documentation related to content management, specifically for the blog.
 - **crm/:** Documentation for the Customer Relationship Management (CRM) features of the project.
-- **data/:** Contains sample data or data-related documentation.
+- **data/:** Documentation related to sample data and data structures used in the project.
 - **error/:** Documentation related to error handling and error pages.
 - **error-guide/:** Documentation providing guidance on different types of errors.
 - **hooks/:** Documentation for custom React hooks used in the project, including those for mobile and toast notifications.
 - **implementation/:** Documentation about the implementation details of certain features.
 - **layout/:** Documentation for the overall layout of the application.
 - **loading/:** Documentation for loading states and components.
-- **local-storage/:** Documentation related to the _previous_ usage of browser local storage. (Consider creating a new section for IndexedDB documentation if applicable.)
+- **local-storage/:** Documentation related to the usage of browser local storage, including historical context and migration guidance.
 - **metadata/:** Documentation for the metadata of the application.
 - **not-found/:** Documentation for the 404 (Not Found) page.
 - **page/:** Documentation for general pages within the application.
 - **privacy-policy/:** Documentation for the privacy policy page.
 - **project-management/:** Documentation for project management related features.
 - **robots/:** Documentation for the robots.txt file.
-- **scripts/:** Contains scripts used in the project.
+- **scripts/:** Documentation for various scripts used in the project.
 - **sitemap/:** Documentation for the sitemap.xml file.
 - **strategies/:** Documentation for different strategies used in the project.
 - **supabase/:** Documentation related to Supabase integration, including RLS (Row Level Security) policies.
@@ -51,22 +51,23 @@ This directory contains documentation for various aspects of the project. Below 
 
 Below is a list of subdirectories and their contents:
 
-- **academy/:** Documentation related to the academy section of the project, likely containing course materials, architectural diagrams, and enhancement plans.
+- **academy/:** Documentation related to the academy section of the project, including content update processes, data structures, and IndexedDB storage mechanisms.
   - Files:
+    - documentation.mdx
     - academy_architecture.md
     - academy_curriculum_enhancement_plan.md
     - academy_enhancement_review_guide.md
-    - documentation.md
     - course-list-server/
     - school-component/
-- **admin/:** Documentation for the admin panel or administrative features of the project.
+- **admin/:** Documentation for the admin panel, detailing authentication, authorization, and Supabase integration.
   - Files:
-    - documentation.md
-- **amazon-seller-tools/:** Documentation for tools related to Amazon sellers, possibly including API integrations or data analysis.
+    - documentation.mdx
+- **amazon-seller-tools/:** Documentation for tools related to Amazon sellers, providing a dashboard for data visualization and specialized tools.
   - Files:
-    - documentation.md
-- **api/:** Documentation for the project's API endpoints, including details for academy articles, courses, Amazon integrations, authentication, chat, contact forms, content management, downloads, module progress, prohibited keywords, Redis, resumes, and search functionality.
+    - documentation.mdx
+- **api/:** Documentation for the project's API endpoints, providing an overview of available services and their functionalities.
   - Files:
+    - README.mdx
     - academy-article/
     - academy-courses/
     - amazon/
@@ -80,85 +81,90 @@ Below is a list of subdirectories and their contents:
     - redis/
     - resume/
     - search/
-- **architecture/:** High-level architectural documentation for the project.
+- **architecture/:** High-level architectural documentation, covering system architecture, authentication, middleware, and suggested visual aids.
   - Files:
-    - architecture.md
-- **ats/:** Documentation related to an Applicant Tracking System (ATS) integration or features.
+    - architecture.mdx
+    - architecture_analysis.mdx
+- **ats/:** Documentation related to an Applicant Tracking System (ATS) integration or features, providing an overview of applicant management.
   - Files:
-    - documentation.md
-- **blog/:** Documentation for the blog section of the project, including layout and slug configurations.
+    - documentation.mdx
+- **blog/:** Documentation for the blog section, covering content management, layout, and slug generation.
   - Files:
-    - documentation.md
+    - documentation.mdx
     - layout/
     - slug/
-- **chat/:** Documentation for the chat functionality of the project.
+- **chat/:** Documentation for the chat functionality, enabling real-time communication between users.
   - Files:
-    - documentation.md
-- **content/:** Documentation related to content management, specifically for the blog.
+    - documentation.mdx
+- **content/:** Documentation related to content management for the blog, outlining creation, storage, and formatting.
   - Files:
+    - documentation.mdx
     - blog/
-- **crm/:** Documentation for the Customer Relationship Management (CRM) features of the project.
+- **crm/:** Documentation for the Customer Relationship Management (CRM) features, enabling management of customer interactions and lead tracking.
   - Files:
-    - documentation.md
-- **data/:** Contains sample data or data-related documentation.
+    - documentation.mdx
+- **data/:** Documentation related to sample data and data structures used in the project.
   - Files:
-    - sample_data.csv
-- **error/:** Documentation related to error handling and error pages.
+    - README.mdx
+- **error/:** Documentation related to error handling and error pages, outlining strategies and components for managing errors.
   - Files:
-    - documentation.md
-- **error-guide/:** Documentation providing guidance on different types of errors.
+    - documentation.mdx
+- **error-guide/:** Documentation providing guidance on different types of errors, including troubleshooting steps and FAQs.
   - Files:
-    - error-guide.mdx
+    - documentation.mdx
     - route/
-- **hooks/:** Documentation for custom React hooks used in the project, including those for mobile and toast notifications.
+- **hooks/:** Documentation for custom React hooks, providing reusable logic for mobile detection and toast notifications.
   - Files:
+    - documentation.mdx
     - use-mobile/
     - use-toast/
-- **implementation/:** Documentation about the implementation details of certain features.
+- **implementation/:** Documentation about the implementation details of specific features, including background processes and data synchronization.
   - Files:
+    - documentation.mdx
     - background-implementation.md
-- **layout/:** Documentation for the overall layout of the application.
+- **layout/:** Documentation for the overall layout of the application, outlining key components and design principles.
   - Files:
-    - documentation.md
-- **loading/:** Documentation for loading states and components.
+    - documentation.mdx
+- **loading/:** Documentation for loading states and components, outlining reusable components and state management techniques.
   - Files:
-    - documentation.md
-- **local-storage/:** Documentation related to the usage of local storage.
+    - documentation.mdx
+- **local-storage/:** Documentation related to the usage of browser local storage, including historical context and migration guidance.
   - Files:
-    - documentation.md
-- **metadata/:** Documentation for the metadata of the application.
+    - documentation.mdx
+- **metadata/:** Documentation for the application's metadata, outlining SEO and social media sharing strategies.
   - Files:
-    - documentation.md
-- **not-found/:** Documentation for the 404 (Not Found) page.
+    - documentation.mdx
+- **not-found/:** Documentation for the 404 (Not Found) page, outlining the design and functionality of the custom error page.
   - Files:
-    - documentation.md
-- **page/:** Documentation for general pages within the application.
+    - documentation.mdx
+- **page/:** Documentation for general pages within the application, outlining structure, component usage, and routing.
   - Files:
-    - documentation.md
-- **privacy-policy/:** Documentation for the privacy policy page.
+    - documentation.mdx
+- **privacy-policy/:** Documentation for the privacy policy page, outlining data collection, usage, and security measures.
   - Files:
-    - documentation.md
-- **project-management/:** Documentation for project management related features.
+    - documentation.mdx
+- **project-management/:** Documentation for project management features, enabling task organization, project management, and progress tracking.
   - Files:
-    - documentation.md
-- **robots/:** Documentation for the robots.txt file.
+    - documentation.mdx
+- **robots/:** Documentation for the robots.txt file, outlining its structure, crawler directives, and SEO implications.
   - Files:
-    - documentation.md
-- **scripts/:** Contains scripts used in the project.
+    - documentation.mdx
+- **scripts/:** Documentation for various scripts used in the project.
   - Files:
-    - No files found.
-- **sitemap/:** Documentation for the sitemap.xml file.
+    - README.mdx
+- **sitemap/:** Documentation for the sitemap.xml file, outlining its structure, URL inclusion guidelines, and SEO implications.
   - Files:
-    - documentation.md
-- **strategies/:** Documentation for different strategies used in the project.
+    - documentation.mdx
+- **strategies/:** Documentation for different strategies used in the project, including synchronization and caching.
   - Files:
-    - synchronization_strategy.md
+    - documentation.mdx
+    - synchronization_strategy.mdx
 - **supabase/:** Documentation related to Supabase integration, including RLS (Row Level Security) policies.
   - Files:
-    - documentation.md
+    - documentation.mdx
 - **utils/:** Documentation for utility functions and helpers used across the project.
   - Files:
-    - (Add specific utils documentation files here, e.g., `documentation.md` or individual util docs)
+    - documentation.mdx
 - **workflow-builder/:** Documentation for the workflow builder feature.
   - Files:
     - documentation.md

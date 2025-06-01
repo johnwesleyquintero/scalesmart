@@ -1,0 +1,24 @@
+---
+title: Local Storage Documentation
+description: Documentation related to the usage of browser local storage.
+date: 2025-06-01
+tags: ['local storage', 'browser storage', 'deprecated']
+readingTime: '1 min read'
+author: 'Wesley Quintero'
+type: 'doc'
+---
+
+# Local Storage Documentation
+
+This directory contains documentation related to the usage of browser local storage within the project.
+
+## Purpose
+
+- **Historical Context:** Provides information on how local storage was previously utilized for client-side data persistence.
+- **Migration Guidance:** If applicable, outlines reasons for migrating away from local storage (e.g., limitations, security concerns) and suggests alternative solutions like IndexedDB.
+
+## Current Status
+
+While local storage might still be present in some legacy parts of the application, its use is generally discouraged for new features due to limitations in data size, synchronous API, and security considerations for sensitive data. For robust client-side data storage, IndexedDB is the preferred solution.
+
+Consider migrating existing local storage implementations to IndexedDB where appropriate.

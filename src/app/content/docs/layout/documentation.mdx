@@ -1,43 +1,25 @@
 ---
-title: Root Layout Documentation
-description: Documentation for the Root Layout.
-date: 2025-05-31
-tags: ['layout', 'root']
+title: Layout Documentation
+description: Documentation for the overall layout of the application.
+date: 2025-06-01
+tags: ['layout', 'structure', 'design']
 readingTime: '1 min read'
 author: 'Wesley Quintero'
 type: 'doc'
 ---
 
-# Root Layout Documentation (`src/app/layout.tsx`)
+# Layout Documentation
+
+This directory contains documentation related to the overall layout and structure of the ScaleSmart application.
 
 ## Overview
 
-The Root Layout (`src/app/layout.tsx`) defines the overall structure and styling for all pages in the application. It includes global components such as the `Header` and `Footer`, and configures metadata and viewport settings.
+This documentation outlines the key components and design principles that govern the application's layout.
 
-## Functionality
+## Key Areas
 
-- **Defines Root HTML Structure:** Sets the `lang` attribute and includes necessary CSS classes for styling.
-- **Includes Global Components:** Renders the `Header` and `Footer` components on every page.
-- **Configures Metadata:** Defines the application's metadata, such as title, description, and Open Graph properties.
-- **Configures Viewport:** Defines the viewport settings for different devices.
-- **Provides Client Providers:** Wraps the content with `ClientProviders` to enable client-side functionality.
+- **Global Styles:** Information on global CSS styles and theming.
+- **Component Structure:** Details on the main layout components and their relationships.
+- **Responsive Design:** Guidelines for ensuring a responsive and user-friendly experience across different devices.
 
-## Technical Details
-
-- The page uses the `cn` function from `@/lib/utils` to apply conditional CSS classes.
-- It uses the `Metadata` and `Viewport` types from `next`.
-- It uses the `Inter` font from `next/font/google`.
-- It uses the `ClientProviders` component to enable client-side functionality.
-
-## Components
-
-- `RootLayout`: The main layout component.
-- `Header`: The global header component.
-- `Footer`: The global footer component.
-- `ClientProviders`: A component that provides client-side context and providers.
-
-## Data Flow
-
-1.  The `RootLayout` component receives the `children` prop, which represents the content of the current page.
-2.  It renders the `Header`, `main`, and `Footer` components, wrapping the `children` within the `main` element.
-3.  The `ClientProviders` component provides client-side context and providers to the entire application.
+Further details on each aspect can be found in the relevant sections below.

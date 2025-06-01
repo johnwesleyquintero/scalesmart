@@ -1,16 +1,16 @@
 ---
 title: Academy Content Update Process
 description: This document outlines the process for updating content in the ScaleSmart Academy.
-date: 2025-05-30
-tags: ['academy', 'content']
-readingTime: '5 min read'
+date: 2025-06-01
+tags: ['academy', 'content', 'indexeddb']
+readingTime: '4 min read'
 author: 'Wesley Quintero'
 type: 'doc'
 ---
 
 # Academy Content Update Process
 
-This document outlines the process for updating content in the ScaleSmart Academy.
+This document outlines the process for updating content in the ScaleSmart Academy and details the data storage mechanisms.
 
 ## Content Creation
 
@@ -35,34 +35,47 @@ This document outlines the process for updating content in the ScaleSmart Academ
 1.  Regularly review existing content to ensure it remains accurate and up-to-date.
 2.  Update content as needed to reflect changes in the Amazon marketplace.
 
-## Data Structures
+## Data Structures and Storage
 
-### `AcademyDataType`
+Academy data, including courses and module progress, is primarily stored and managed using IndexedDB for robust client-side persistence.
 
-The `AcademyDataType` interface defines the structure of the academy data stored in local storage. It includes the following properties:
+### IndexedDB Tables
 
-- `courses`: An array of `Course` objects representing the available courses.
-- `moduleProgress`: A record of module completion status, where the key is the module ID and the value is a boolean indicating whether the module is completed.
-- `quizResults`: A record of quiz results, where the key is the module ID and the value is a `QuizResult` object containing the quiz score, attempts, and pass status.
+The following tables in IndexedDB are used for Academy data:
 
-## Components
+- **`courses`**: Stores `Course` objects, which represent the available courses in the academy. Each course has a unique ID, title, description, duration, level, and metadata (category, tags).
+  - **Schema:** `id, title, description, duration, level, metadata.category, metadata.tags, creationTimestamp, updateTimestamp`
+- **`moduleProgress`**: Stores `ModuleProgressRecord` objects, tracking the completion status and progress for each module per user. This table uses a composite primary key `[userId+courseId+moduleId]`.
+  - **Schema:** `[userId+courseId+moduleId], progress, lastUpdated`
+
+### Data Operations (IndexedDB)
+
+The `src/lib/indexeddb-service.ts` file provides the core functions for interacting with the IndexedDB for Academy data:
+
+- `createCourse(courseData: Course)`: Adds a new course to the `courses` table.
+- `getCourse(id: string)`: Retrieves a specific course by its ID.
+- `getAllCourses()`: Retrieves all courses from the `courses` table.
+- `updateCourse(course: Course)`: Updates an existing course.
+- `deleteCourse(id: string)`: Deletes a course by its ID.
+- `deleteCoursesByIds(ids: string[])`: Deletes multiple courses by their IDs.
+- `updateModuleProgress(userId: string, courseId: string, moduleId: string, progress: number)`: Updates a user's progress for a specific module.
+- `getModuleProgress(userId: string, courseId: string, moduleId: string)`: Retrieves a user's progress for a specific module.
+- `getCourseModuleProgress(userId: string, courseId: string)`: Retrieves all module progress records for a given user and course.
+
+## Components and Hooks
 
 ### `useAcademyStorage` Hook
 
-The `useAcademyStorage` hook is responsible for managing the academy data in local storage. It provides functions for:
+The `useAcademyStorage` hook (located in `src/hooks/use-academy-storage.ts`) is responsible for managing the academy data. It abstracts the IndexedDB operations and provides a convenient interface for components to interact with course data and module progress.
 
-- Initializing the academy data.
-- Retrieving the academy data.
-- Saving updates to the academy data.
+### Activity Components (e.g., `Quiz`)
 
-### Activity Component
+Components like `Quiz` (if applicable) interact with the `moduleProgress` table via the `useAcademyStorage` hook to store and retrieve quiz results and completion status.
 
-The `Quiz` component is used to create interactive quizzes within academy modules. It allows users to test their knowledge and track their progress. The quiz results are stored in the `quizResults` property of the `AcademyDataType` in local storage.
+### `ClientCourseList` Component
 
-### ClientCourseList Component
+The `ClientCourseList` component is responsible for rendering the list of courses. It fetches course data using the IndexedDB service functions and displays courses based on `filter` and `sort` props.
 
-The `ClientCourseList` component is responsible for rendering the list of courses. It receives `courses`, `filter`, and `sort` props and displays the courses accordingly.
+### `startCourseAction` Function
 
-### startCourseAction Function
-
-The `startCourseAction` function is used to initiate the process of starting a course. It is available through the `AcademyContext` and is used to set the active course.
+The `startCourseAction` function is used to initiate the process of starting a course. It is available through the `AcademyContext` and is used to set the active course, potentially interacting with IndexedDB to log course access or initial progress.

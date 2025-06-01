@@ -531,7 +531,7 @@ export default function ChatInterface() {
           role: 'assistant',
           content:
             "Hey there! I'm WesAI.\n\n" +
-            'What can I help you with today? Or try one of these:',
+            'I can turn your raw data into insights! or try one of these prompts:',
           timestamp: Date.now(),
           status: 'sent',
           isGreeting: true, // Mark this as the greeting message
@@ -958,11 +958,10 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
     (message.retryCount ?? 0) < (message.retryLimit ?? ConfigRetryLimit);
 
   const promptsToTry = [
-    'Create a flowchart for a user login process using a Mermaid diagram.',
-    'Generate a modern self-contained, responsive HTML, CSS, and JavaScript mock-up dashboard that displays sample Amazon Ads data.',
-    'Show an example of a JSON object representing a product with ID, name, price, and categories.',
-    'Explain the concept of server-side rendering (SSR) in web development.',
-    'What are the key differences between `useEffect` and `useLayoutEffect` in React?',
+    'Create a Mermaid diagram pie chart showing the distribution of these search terms: "AI" with 30%, "Machine Learning" with 25%, "Data Science" with 20%, and "Deep Learning" with 25%.',
+    'Generate a responsive HTML + CSS dashboard for Amazon Ads data with 100 clicks, 5000 impressions, and $500 spend. Include a line chart and a table of 5 ad campaigns.',
+    'Provide a JSON object for a product with ID "12345", name "Wireless Headphones", price "$99.99", and categories ["Electronics", "Audio"]. Include a brief description and an image URL.',
+    'Analyze the following Amazon Business Report data: total sales of $10,000, total units sold of 500, and an average customer rating of 4.5. Provide insights on sales performance, unit sales trends, and customer satisfaction.',
   ];
 
   return (

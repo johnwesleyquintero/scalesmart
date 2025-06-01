@@ -1,46 +1,25 @@
 ---
-title: Metadata Configuration Documentation
-description: Documentation for the Metadata Configuration.
-date: 2025-05-31
-tags: ['metadata', 'configuration']
+title: Metadata Documentation
+description: Documentation for the metadata of the application.
+date: 2025-06-01
+tags: ['metadata', 'seo', 'opengraph']
 readingTime: '1 min read'
 author: 'Wesley Quintero'
 type: 'doc'
 ---
 
-# Metadata Configuration Documentation (`src/app/metadata.ts`)
+# Metadata Documentation
+
+This directory contains documentation related to the metadata configuration of the ScaleSmart application.
 
 ## Overview
 
-The Metadata Configuration (`src/app/metadata.ts`) defines the metadata for the application, which is used by search engines, social media platforms, and other services to understand and display information about the application.
+Metadata is crucial for search engine optimization (SEO) and social media sharing. This documentation outlines how metadata is managed and implemented.
 
-## Functionality
+## Key Areas
 
-- **Defines Title:** Sets the title of the application.
-- **Defines Description:** Sets the description of the application.
-- **Defines Keywords:** Sets the keywords for the application.
-- **Defines Authors:** Sets the authors of the application.
-- **Configures Open Graph Properties:** Defines the Open Graph properties for social media sharing.
-- **Configures Twitter Card:** Defines the Twitter card properties for Twitter sharing.
-- **Configures Robots Settings:** Defines the robots settings for search engine crawlers.
-- **Defines Icons:** Sets the icons for the application.
-- **Defines Manifest:** Sets the manifest file for the application.
-- **Configures Metadata Base:** Defines the base URL for the application.
-- **Configures Verification:** Defines the verification codes for various services.
-- **Configures Alternates:** Defines alternate URLs for the application.
-- **Configures Generator:** Defines the generator for the application.
-- **Configures Application Name:** Defines the application name.
-- **Configures Referrer:** Defines the referrer policy for the application.
-- **Configures Format Detection:** Defines format detection settings for the application.
+- **Title Tags:** Guidelines for creating effective title tags.
+- **Meta Descriptions:** Best practices for writing compelling meta descriptions.
+- **Open Graph Tags:** Information on using Open Graph tags for social media sharing.
 
-## Technical Details
-
-- The file uses the `Metadata` type from `next`.
-- It defines constants for the default image, site description, author name, and favicon path.
-- It uses environment variables to determine the metadata base URL.
-
-## Data Flow
-
-1.  The `metadata` object is exported from the `src/app/metadata.ts` file.
-2.  The `RootLayout` component imports the `metadata` object and uses it to configure the application's metadata.
-3.  The metadata is then used by search engines, social media platforms, and other services to display information about the application.
+Further details on each aspect can be found in the relevant sections below.

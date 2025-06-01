@@ -1,44 +1,25 @@
 ---
-title: Project Management Dashboard Documentation
-description: Documentation for the Project Management Dashboard.
-date: 2025-05-31
-tags: ['project', 'management', 'dashboard']
+title: Project Management Documentation
+description: Documentation for project management related features.
+date: 2025-06-01
+tags: ['project management', 'tasks', 'projects']
 readingTime: '2 min read'
 author: 'Wesley Quintero'
 type: 'doc'
 ---
 
-# Project Management Dashboard Documentation (`src/app/project-management/page.tsx`)
+# Project Management Documentation
+
+This directory contains documentation related to project management features within the ScaleSmart application.
 
 ## Overview
 
-The `src/app/project-management/page.tsx` file defines a project management dashboard with a Kanban-style board. It allows users to add, edit, delete, and drag and drop tasks between different status columns. The data is stored in local storage using the `useLocalStorage` hook.
+The project management features enable users to organize tasks, manage projects, and track progress.
 
-## Functionality
+## Key Areas
 
-- **Add New Task:** Allows users to add new tasks with a title, description, status, and due date.
-- **Edit Existing Task:** Allows users to edit the information of existing tasks.
-- **Delete Task:** Allows users to delete tasks.
-- **Drag and Drop Tasks:** Allows users to drag and drop tasks between different status columns.
-- **Export Tasks to CSV:** Allows users to export the task data to a CSV file.
-- **Clear All Tasks:** Allows users to delete all tasks.
+- **Task Management:** Tools for creating, assigning, and tracking tasks.
+- **Project Organization:** Functionality for grouping tasks into projects.
+- **Progress Tracking:** Visualizations and reports for monitoring project status.
 
-## Technical Details
-
-- The page is a client-side component.
-- The page uses the `useLocalStorage` hook to store the task data in local storage.
-- The page uses the `ui/button` and `ui/card` components from the `@/components/ui` library.
-- The page uses the `lucide-react` library for icons.
-
-## Data Flow
-
-1.  The `ProjectManagement` component is rendered.
-2.  The component initializes the `tasks` state with the data from local storage using the `useLocalStorage` hook.
-3.  The user interacts with the form to add new tasks or drags and drops tasks between columns.
-4.  The `handleAddTask` function is called when the user submits the form.
-5.  The `handleDragStart` function is called when the user starts dragging a task.
-6.  The `handleDrop` function is called when the user drops a task onto a column.
-7.  The `deleteTask` function is called when the user clicks the delete button.
-8.  The `clearAllTasks` function is called when the user clicks the clear all button.
-9.  The `exportTasksToCSV` function is called when the user clicks the export CSV button.
-10. The `tasks` state is updated, and the changes are automatically persisted to local storage using the `useLocalStorage` hook.
+Further details on each aspect can be found in the relevant sections below.
