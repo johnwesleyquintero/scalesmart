@@ -8,23 +8,24 @@ import { ArrowLeft } from 'lucide-react';
 
 interface DocPageProps {
   params: {
-    slug: string[]; // Changed from string to string[]
+    slug: string[]; // For [...slug] routes, params.slug is always an array
   };
 }
 
 const DOCUMENTATION_BASE_URL = 'https://wescode.vercel.app/'; // Replace with your actual domain
 
-const DEFAULT_DOC_DESCRIPTION = 'Documentation page';
 const DEFAULT_TITLE_SUFFIX = ' | ScaleSmart Docs'; // Customize as needed
+const DEFAULT_DOC_DESCRIPTION = 'Documentation page';
 const NOT_FOUND_TITLE = 'Document Not Found' + DEFAULT_TITLE_SUFFIX;
 const DEFAULT_OG_IMAGE_URL = '/og-image.svg'; // Replace with your default OG image
 
-export async function generateMetadata({
-  params,
-}: Readonly<DocPageProps>): Promise<Metadata> {
-  const slugPath = params.slug.join('/'); // Convert slug array to path string
+export async function generateMetadata(
+  props: Readonly<DocPageProps>,
+): Promise<Metadata> {
+  const { params } = props;
+  const slug = params.slug.join('/');
   try {
-    const doc = await getDocPostBySlug(slugPath);
+    const doc = await getDocPostBySlug(slug);
 
     if (!doc) {
       const NOT_FOUND_DESCRIPTION =
@@ -41,7 +42,7 @@ export async function generateMetadata({
     }
 
     const canonicalUrl = new URL(
-      `/docs/${slugPath}`,
+      `/docs/${slug}`,
       DOCUMENTATION_BASE_URL,
     ).toString();
 
@@ -78,16 +79,15 @@ export async function generateMetadata({
 
 export async function generateStaticParams() {
   const docs = await getAllDocPosts();
-  // Assuming getAllDocPosts returns doc.slug as a string like "category/file-name"
-  // We need to provide `slug` as string[] for [...slug] routes.
   return docs.map((doc) => ({
-    slug: doc.slug.split('/'), // Convert "category/file" to ["category", "file"]
+    slug: doc.slug.split('/'), // Split slug into array for catch-all route
   }));
 }
 
-export default async function DocPage({ params }: DocPageProps) {
-  const slugPath = params.slug.join('/'); // Convert slug array to path string
-  const doc = await getDocPostBySlug(slugPath);
+export default async function DocPage(props: DocPageProps) {
+  const { params } = props;
+  const slug = params.slug.join('/');
+  const doc = await getDocPostBySlug(slug);
 
   if (!doc) {
     notFound();

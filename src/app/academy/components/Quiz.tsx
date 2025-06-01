@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import useAcademyStorage from '@/hooks/use-academy-storage';
 import useUserProfile from '@/hooks/use-user-profile';
@@ -41,13 +43,26 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
   );
   const [attempts, setAttempts] = useState(0);
   const [certificateAwarded, setCertificateAwarded] = useState<boolean>(false);
-  const [userName, setUserName] = useState<string>('');
+  const [customCertificateName, setCustomCertificateName] =
+    useState<string>('');
 
   useEffect(() => {
-    if (userProfile?.name) {
-      setUserName(userProfile.name);
+    // Load custom name from localStorage or default to profile name
+    const storedName = localStorage.getItem('customCertificateName');
+    if (storedName) {
+      setCustomCertificateName(storedName);
+    } else if (userProfile?.name) {
+      setCustomCertificateName(userProfile.name);
     }
-  }, [userProfile?.name]);
+  }, [userProfile?.name]); // Re-run if profile name becomes available
+
+  const handleCustomCertificateNameChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const newName = event.target.value;
+    setCustomCertificateName(newName);
+    localStorage.setItem('customCertificateName', newName);
+  };
 
   const userId = userProfile?.id || 'defaultUserId';
   const courseId = activeCourse?.id || 'defaultCourseId';
@@ -180,19 +195,20 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
     score: number;
     attempts: number;
     totalAttempts: number;
-    isCertificateEarned: boolean;
+    isCertificateEarned: boolean; // Renamed from certificateAwarded for clarity in this component
+    currentCustomName: string;
+    onCustomNameChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   }
   const QuizCompletedView: React.FC<QuizCompletedViewProps> = ({
     score,
     attempts,
     totalAttempts,
     isCertificateEarned,
+    currentCustomName,
+    onCustomNameChange,
   }) => {
     const passedCurrentAttempt = score >= PASS_THRESHOLD;
     const attemptsRemainingForCert = MAX_CERTIFICATE_ATTEMPTS - totalAttempts;
-    const [customName, setCustomName] = useState<string>(
-      localStorage.getItem('customName') || '',
-    );
     const courseName = activeCourse?.title || 'This Course';
 
     return (
@@ -216,12 +232,14 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
             <input
               type="text"
               placeholder="Enter your name"
-              value={customName}
-              onChange={(e) => setCustomName(e.target.value)}
+              value={currentCustomName}
+              onChange={onCustomNameChange}
               className="mt-2 p-2 border rounded-md text-black dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
             />
             <CertificateDisplay
-              userName={customName || userName}
+              userName={
+                currentCustomName || userProfile?.name || 'Valued Learner'
+              }
               courseName={courseName}
             />
           </>
@@ -383,7 +401,9 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
           score={quizScore}
           attempts={attempts}
           totalAttempts={attempts}
-          isCertificateEarned={certificateAwarded}
+          isCertificateEarned={certificateAwarded} // Pass down certificateAwarded
+          currentCustomName={customCertificateName}
+          onCustomNameChange={handleCustomCertificateNameChange}
         />
       ) : currentQuestionIndex < questions.length ? (
         <ActiveQuestionDisplay

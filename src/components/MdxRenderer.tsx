@@ -82,17 +82,21 @@ export const components = {
     children,
     className,
     ...props
-  }: React.ComponentPropsWithoutRef<'pre'>) => (
-    <pre
-      className={clsx(
-        'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm overflow-x-auto my-4 p-4 rounded-md',
-        className, // Allow incoming classNames from rehype-prism-plus
-      )}
-      {...props} // Spread any other props, e.g., language-xxx
-    >
-      {children}
-    </pre>
-  ),
+  }: React.ComponentPropsWithoutRef<'pre'>) => {
+    // Ensure tabIndex is always 0 if it's a code block, to match server rendering
+    const finalProps = { ...props, tabIndex: 0 };
+    return (
+      <pre
+        className={clsx(
+          'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm overflow-x-auto my-4 p-4 rounded-md',
+          className, // Allow incoming classNames from rehype-prism-plus
+        )}
+        {...finalProps} // Spread any other props, e.g., language-xxx
+      >
+        {children}
+      </pre>
+    );
+  },
   Quiz: Quiz,
   // Add any other custom components you want to use in your MDX files
 };

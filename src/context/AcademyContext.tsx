@@ -1,3 +1,4 @@
+'use client';
 import { Course, Module, QuizResult } from '@/types';
 import React, { createContext, Dispatch, useContext, useState } from 'react';
 import useAcademyStorage from '../hooks/use-academy-storage';
