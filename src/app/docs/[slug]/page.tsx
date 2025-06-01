@@ -41,7 +41,7 @@ export default async function DocPage({ params }: DocPageProps) {
       {/* Optionally display metadata like title, description */}
       {metadata && <h1>{metadata.title}</h1>}
       {metadata && metadata.description && <p>{metadata.description}</p>}
-      <MDXRemote source={content} components={components} />
+      <MDXRemote source={content} components={components} key={slug} />
     </div>
   );
 }
