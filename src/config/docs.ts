@@ -10,3 +10,4 @@ export const DEFAULT_DOC_TITLE = 'Untitled Document';
 export const INTRODUCTION_SLUG = 'introduction';
 export const INTRODUCTION_TITLE = 'Introduction';
 export const RELATED_DOCS_COUNT = 2;
+export const DEFAULT_DOC_VERSION = '1.0.0';

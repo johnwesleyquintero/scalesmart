@@ -8,6 +8,7 @@ import {
   INTRODUCTION_SLUG,
   INTRODUCTION_TITLE,
   RELATED_DOCS_COUNT,
+  DEFAULT_DOC_VERSION,
 } from '@/config/docs';
 
 const EMPTY_STRING = '';
@@ -40,6 +41,8 @@ const docMatterDataSchema = z.object({
   readingTime: z.string().optional(),
   author: z.string().optional(),
   type: z.enum(['doc', 'academy']).optional().default('doc'),
+  last_updated: z.string().optional(),
+  version: z.string().optional(),
 });
 
 function normalizeDate(date: string | Date) {
@@ -229,6 +232,8 @@ async function processContentFile(
       readingTime: undefined,
       author: undefined,
       type: fileType,
+      last_updated: undefined,
+      version: undefined,
     };
   }
 
@@ -256,6 +261,8 @@ async function processContentFile(
     type: finalType,
     content: parsed.content,
     fileName: path.basename(fullPath),
+    last_updated: contentFrontmatter.last_updated,
+    version: contentFrontmatter.version || DEFAULT_DOC_VERSION,
   } as DocPost;
 }
 

@@ -1,0 +1,37 @@
+---
+title: API Reference
+description: Detailed documentation for our API endpoints.
+category: Advanced
+order: 2
+---
+
+# API Reference
+
+This section provides comprehensive details on how to interact with our RESTful API.
+
+## Authentication
+
+All API requests must be authenticated. Use your API key in the `Authorization` header.
+
+### Endpoint: `/api/users`
+
+`GET /api/users` - Retrieve a list of users.
+
+### Response Example:
+
+```json
+[
+  {
+    "id": "user_123",
+    "name": "John Doe",
+    "email": "john.doe@example.com"
+  },
+  {
+    "id": "user_456",
+    "name": "Jane Smith",
+    "email": "jane.smith@example.com"
+  }
+]
+```
+
+Please note that this is a **beta** feature.

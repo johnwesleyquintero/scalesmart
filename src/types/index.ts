@@ -198,6 +198,8 @@ export type BlogPost = {
  * @property {string} [readingTime] - Optional estimated reading time of the documentation or academy post.
  * @property {string} [author] - Optional author of the documentation or academy post.
  * @property {string} [content] - Optional full content of the documentation or academy post.
+ * @property {string} [last_updated] - Optional last updated date for the document.
+ * @property {string} [version] - Optional version of the document.
  * @property {unknown[]} [relatedDocs] - Optional array of related documentation posts.
  * @property {unknown[]} [relatedArticles] - Optional array of related academy articles.
  * @property {'doc' | 'academy'} [type] - Type of the post.
@@ -224,6 +226,10 @@ export type DocPost = {
   author?: string;
   /** Optional full content of the documentation or academy post. */
   content?: string;
+  /** Optional last updated date for the document. */
+  last_updated?: string;
+  /** Optional version of the document. */
+  version?: string;
   /** Optional array of related documentation posts. */
   relatedDocs?: unknown[];
   /** Optional array of related academy articles. */
