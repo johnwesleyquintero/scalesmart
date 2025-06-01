@@ -84,7 +84,7 @@ export const components = {
     ...props
   }: React.ComponentPropsWithoutRef<'pre'>) => {
     // Ensure tabIndex is always 0 if it's a code block, to match server rendering
-    const finalProps = { ...props, tabIndex: 0 };
+    const finalProps = { ...props };
     return (
       <pre
         className={clsx(
