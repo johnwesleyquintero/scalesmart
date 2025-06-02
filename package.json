@@ -8,8 +8,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npm run format && cross-env NODE_ENV=production next build",
-    "start": " cross-env NODE_ENV=production next start",
+    "build": "cross-env NODE_ENV=production next build",
+    "start": "cross-env NODE_ENV=production next start",
     "format": "prettier --write . --log-level warn",
     "typecheck": "tsc --noEmit",
     "test": "vitest",

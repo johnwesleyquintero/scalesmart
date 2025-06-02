@@ -96,6 +96,7 @@ export async function getAllBlogPosts(): Promise<BlogPost[]> {
         const slug = fileName.replace(MARKDOWN_FILE_REGEX, '');
         const fullPath = path.join(blogPostsDirectory, fileName);
         const fileContents = fs.readFileSync(fullPath, UTF8);
+        console.log(`[MDX Debug] Processing blog post: ${fullPath}`);
         const parsed = matter(fileContents);
         const data = blogMatterDataSchema.parse(parsed.data);
 
@@ -208,6 +209,7 @@ async function processContentFile(
   }
 
   let parsed: matter.GrayMatterFile<string>;
+  console.log(`[MDX Debug] Attempting to parse frontmatter for: ${fullPath}`);
   try {
     parsed = matter(fileContents);
   } catch (err) {
@@ -313,6 +315,9 @@ export async function getBlogPostBySlug(
       console.error(`ERROR: Could not read blog file ${fullPath}:`, err);
       return undefined;
     }
+    console.log(
+      `[MDX Debug] Processing specific blog post by slug: ${fullPath}`,
+    );
     const parsed = matter(fileContents);
     const data = blogMatterDataSchema.parse(parsed.data);
     const { content } = parsed;
