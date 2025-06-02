@@ -81,18 +81,33 @@ export const components = {
   pre: ({
     children,
     className,
-    tabIndex, // Destructure tabIndex explicitly
-    ...props
+    // The raw tabindex attribute from server might conflict with React's camelCase tabIndex prop.
+    // Filter it out from 'props' and apply it explicitly for code blocks if present or implied.
+    ...rest
   }: React.ComponentPropsWithoutRef<'pre'>) => {
-    // Removed explicit tabIndex setting to avoid hydration mismatch
-    // Let the original props handle tabIndex if provided by markdown parser
+    const isCodeBlock = className && className.includes('language-');
+    // Ensure tabIndex is explicitly set to 0 for code blocks, mirroring rehype-prism-plus behavior.
+    // If a tabIndex prop already exists and is not 'undefined', prefer that value.
+    const effectiveTabIndex = isCodeBlock ? 0 : rest.tabIndex || undefined;
+
+    // Remove tabIndex from `rest` to avoid passing it twice if it came in both forms
+    // and to let our explicit `tabIndex={effectiveTabIndex}` control it.
+    const cleanedProps = { ...rest };
+    if ('tabIndex' in cleanedProps) {
+      delete cleanedProps.tabIndex;
+    }
+    // You may add a console.log here to observe `className` and `effectiveTabIndex`
+    // during hydration if further debugging is needed, but for now we'll proceed with the fix.
+
     return (
       <pre
+        // Apply the calculated tabIndex explicitly
+        tabIndex={effectiveTabIndex}
         className={clsx(
           'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm overflow-x-auto my-4 p-4 rounded-md',
-          className, // Allow incoming classNames from rehype-prism-plus
+          className, // Ensure language- classes are preserved
         )}
-        {...props} // Spread all other incoming props
+        {...cleanedProps} // Spread any other remaining props
       >
         {children}
       </pre>

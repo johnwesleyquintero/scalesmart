@@ -5,93 +5,144 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { DocArticleMetadata } from '@/lib/docs-data/static-docs';
 
-interface DocsSidebarProps {
-  // No external props needed as data is fetched internally
-}
-
-export default function DocsSidebar() {
-  const pathname = usePathname();
-  const [docsMetadata, setDocsMetadata] = React.useState<DocArticleMetadata[]>(
-    [],
-  );
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState<string | null>(null);
-
-  // Group documents by category
-  const categorizedDocs = React.useMemo(() => {
-    const categories: { [key: string]: DocArticleMetadata[] } = {};
-    docsMetadata.forEach((doc) => {
-      if (!categories[doc.category]) {
-        categories[doc.category] = [];
-      }
-      categories[doc.category].push(doc);
-    });
-    // Sort categories alphabetically
-    return Object.keys(categories)
-      .sort()
-      .reduce(
-        (obj, key) => {
-          obj[key] = categories[key];
-          // Sort articles within each category by order
-          obj[key].sort((a, b) => (a.order || 0) - (b.order || 0));
-          return obj;
-        },
-        {} as { [key: string]: DocArticleMetadata[] },
-      );
-  }, [docsMetadata]);
+// Custom hook for data fetching
+function useDocsMetadata() {
+  const [state, setState] = React.useState<{
+    data: DocArticleMetadata[];
+    loading: boolean;
+    error: string | null;
+  }>({
+    data: [],
+    loading: true,
+    error: null,
+  });
 
   React.useEffect(() => {
-    async function fetchDocsMenu() {
+    const fetchData = async () => {
       try {
-        setLoading(true);
         const response = await fetch('/api/docs-menu');
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data: DocArticleMetadata[] = await response.json();
-        setDocsMetadata(data);
-      } catch (e: unknown) {
-        // Change from 'any' to 'unknown'
-        if (e instanceof Error) {
-          setError(e.message);
-        } else {
-          setError('An unknown error occurred.');
-        }
-      } finally {
-        setLoading(false);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        setState({
+          data: await response.json(),
+          loading: false,
+          error: null,
+        });
+      } catch (error) {
+        setState({
+          data: [],
+          loading: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
       }
-    }
+    };
 
-    fetchDocsMenu();
+    fetchData();
   }, []);
 
-  if (loading) return <div>Loading sidebar...</div>;
-  if (error) return <div className="text-red-500">Error: {error}</div>;
-  if (docsMetadata.length === 0) return <div>No documentation found.</div>;
+  return state;
+}
+
+// Utility function for grouping docs by category
+function groupAndSortDocs(docs: DocArticleMetadata[]) {
+  return docs.reduce<Record<string, DocArticleMetadata[]>>((acc, doc) => {
+    if (!acc[doc.category]) acc[doc.category] = [];
+    acc[doc.category].push(doc);
+    return acc;
+  }, {});
+}
+
+// UI Components
+function SidebarSection({
+  category,
+  docs,
+  currentPath,
+}: {
+  category: string;
+  docs: DocArticleMetadata[];
+  currentPath: string;
+}) {
+  return (
+    <div className="mb-4">
+      <h3 className="font-bold text-lg mb-2 capitalize">{category}</h3>
+      <ul className="space-y-1">
+        {docs
+          .sort((a, b) => (a.order || 0) - (b.order || 0))
+          .map((doc) => (
+            <DocLink
+              key={doc.slug}
+              doc={doc}
+              isActive={
+                currentPath === `/docs/${doc.slug}` ||
+                (doc.slug === 'getting-started' && currentPath === '/docs')
+              }
+            />
+          ))}
+      </ul>
+    </div>
+  );
+}
+
+function DocLink({
+  doc,
+  isActive,
+}: {
+  doc: DocArticleMetadata;
+  isActive: boolean;
+}) {
+  return (
+    <li>
+      <Link
+        href={`/docs/${doc.slug}`}
+        className={`block px-3 py-2 rounded-md transition-colors ${
+          isActive
+            ? 'bg-blue-100 text-blue-800 font-semibold'
+            : 'hover:bg-gray-100 text-gray-800'
+        }`}
+      >
+        {doc.title}
+      </Link>
+    </li>
+  );
+}
+
+// Main Component
+export default function DocsSidebar() {
+  const pathname = usePathname();
+  const { data, loading, error } = useDocsMetadata();
+
+  // Memoize the grouped docs to prevent unnecessary recalculations
+  const categorizedDocs = React.useMemo(() => {
+    if (!data.length) return {};
+    const grouped = groupAndSortDocs(data);
+
+    // Sort categories alphabetically
+    return Object.keys(grouped)
+      .sort()
+      .reduce(
+        (acc, key) => {
+          acc[key] = grouped[key];
+          return acc;
+        },
+        {} as Record<string, DocArticleMetadata[]>,
+      );
+  }, [data]);
+
+  // Loading and error states
+  if (loading)
+    return <div className="p-4 text-gray-500">Loading sidebar...</div>;
+  if (error) return <div className="p-4 text-red-500">Error: {error}</div>;
+  if (!data.length)
+    return <div className="p-4 text-gray-500">No documentation found.</div>;
 
   return (
     <nav className="space-y-2">
       {Object.entries(categorizedDocs).map(([category, docs]) => (
-        <div key={category} className="mb-4">
-          <h3 className="font-bold text-lg mb-2 capitalize">{category}</h3>
-          <ul className="space-y-1">
-            {docs.map((doc) => (
-              <li key={doc.slug}>
-                <Link
-                  href={`/docs/${doc.slug}`}
-                  className={`block px-3 py-2 rounded-md ${
-                    pathname === `/docs/${doc.slug}` ||
-                    (doc.slug === 'getting-started' && pathname === '/docs')
-                      ? 'bg-blue-100 text-blue-800 font-semibold'
-                      : 'hover:bg-gray-100'
-                  }`}
-                >
-                  {doc.title}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <SidebarSection
+          key={category}
+          category={category}
+          docs={docs}
+          currentPath={pathname}
+        />
       ))}
     </nav>
   );
