@@ -33,7 +33,6 @@ export default async function DocPage({ params }: DocPageProps) {
     console.error(`Failed to fetch doc for slug ${slug}:`, error);
     notFound();
   }
-  
 
   // Pass the components from MdxRenderer to MDXRemote
   return (

@@ -99,6 +99,12 @@ export default function Header() {
           category: productsCategories[1], // Productivity & Automation
           description: 'Automate tasks with custom workflows.',
         },
+        {
+          name: 'Prompt Request Generator',
+          href: '/prompt-request-generator',
+          category: productsCategories[1], // Productivity & Automation
+          description: 'Generate structured prompts for AI code assistance.',
+        },
       ],
     },
     {
