@@ -278,19 +278,20 @@ export default function Header() {
                 variant="ghost"
                 size="sm"
                 onClick={() => signOut()}
-                className="text-sm font-medium hidden md:inline-flex"
+                className="hidden text-sm font-medium md:inline-flex"
               >
                 Log Out
               </Button>
             ) : (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => signIn('github')} // Directly initiates GitHub OAuth
-                className="text-sm font-medium hidden md:inline-flex"
-              >
-                Sign In
-              </Button>
+              <Link href="/login" passHref>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="hidden md:inline-flex"
+                >
+                  Login
+                </Button>
+              </Link>
             )}
 
             {mounted && (
@@ -399,23 +400,15 @@ export default function Header() {
                     Log Out
                   </Button>
                 ) : (
-                  <>
+                  <Link href="/login" className="w-full">
                     <Button
                       variant="outline"
-                      onClick={() => {
-                        signIn('github');
-                        toggleMenu();
-                      }}
+                      onClick={toggleMenu}
                       className="w-full"
                     >
-                      Sign In
+                      Login
                     </Button>
-                    {/* The original code had a "Sign Up" button as well.
-                       If "Sign Up" navigates to the same auth flow, a single "Sign In" is often sufficient.
-                       If a separate "Sign Up" flow is intended for this button (e.g., custom form),
-                       it should be configured accordingly. For now, we consolidate to a single "Sign In" as per common practice.
-                   */}
-                  </>
+                  </Link>
                 )}
               </nav>
             </div>
