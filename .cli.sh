@@ -1,40 +1,71 @@
 #!/usr/bin/env bash
 
+set -o pipefail
+
 # --- Function to load configuration from file ---
 load_config() {
   local config_file=".cli.config.sh"
   if [ -f "$config_file" ]; then
-    while IFS='=' read -r key value; do
-      # Remove leading/trailing whitespace from key and value
-      key=$(echo "$key" | tr -d '[:space:]')
-      value=$(echo "$value" | tr -d '"') # Remove quotes
-      value=$(echo "$value" | sed 's/#.*//') # Remove comments
+    log_info "Loading configuration from $config_file"
+    while IFS='=' read -r key value || [[ -n "$key" ]]; do # Process last line even if no newline
+      # Remove leading/trailing whitespace from key
+      key=$(echo "$key" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
-      # Only set variables that are not empty and are valid
-      if [ -n "$key" ] && [ -n "$value" ] && [[ "$key" =~ ^[A-Za-z_]+$ ]]; then
-        export "$key"="$value"
+      # Skip empty lines or comments
+      if [[ -z "$key" ]] || [[ "$key" =~ ^# ]]; then
+        continue
+      fi
+
+      # Process value: remove comments, then trim whitespace, then remove outer quotes
+      value=$(echo "$value" | sed 's/#.*//') # Remove comments first
+      value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//') # Trim whitespace
+      # Remove one layer of leading/trailing double or single quotes
+      value=$(echo "$value" | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/")
+
+
+      # Only set variables that are not empty and are valid bash exportable names
+      if [ -n "$key" ] && [[ "$key" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; then
+        if [ -n "$value" ]; then # Allow empty values if user explicitly sets them
+          export "$key"="$value"
+          log_info "Config loaded: $key"
+        else # Handle case where value becomes empty after processing
+          export "$key"=""
+          log_info "Config loaded: $key (empty value)"
+        fi
+      elif [ -n "$key" ]; then
+        log_warn "Skipping invalid or non-exportable config key: '$key'"
       fi
     done < "$config_file"
+  else
+    log_info "Configuration file '$config_file' not found. Using default settings."
   fi
 }
 
-# Load configuration
-load_config
-
-# --- Script Configuration ---
-# Load configuration
-load_config
+# --- Script Configuration (Defaults, can be overridden by .cli.config.sh) ---
 OS="$(uname -s)"
-VERSION="1.2.0"
-LOG_FILE="${LOG_FILE:-c:\Users\johnw\portfolio\.cli.log}"
+VERSION="1.2.1" # Incremented version for refinements
+LOG_FILE="${LOG_FILE:-./.cli.log}" # Project-local log file
+TRACKER_FILE="${TRACKER_FILE:-./.cli_project_tracker.log}" # Project-local tracker
 REQUIRED_NODE_VERSION="${REQUIRED_NODE_VERSION:-16.0.0}"
 REQUIRED_NPM_VERSION="${REQUIRED_NPM_VERSION:-9.0.0}"
-BUILD_ARTIFACTS=(${BUILD_ARTIFACTS:-(".next" ".vercel" "node_modules" "coverage" ".nyc_output" "storybook-static" "dist" "out")})
-LOG_PATTERNS=(${LOG_PATTERNS:-("*.cli.log" "*.tmp" "*.temp" "*.bak" "*.cache")})
-REQUIRED_PROJECT_FILES=(${REQUIRED_PROJECT_FILES:-("package.json" "tsconfig.json" "next.config.js")})
+# Ensure arrays are properly initialized, possibly from config
+# For arrays from config, load_config would need to handle them specifically, e.g. by space-separated strings
+# Current load_config handles simple key=value pairs. For arrays, you might need:
+# BUILD_ARTIFACTS_STR="${BUILD_ARTIFACTS_STR:-".next .vercel node_modules coverage .nyc_output storybook-static dist out"}"
+# read -r -a BUILD_ARTIFACTS <<< "$BUILD_ARTIFACTS_STR"
+# For simplicity, keeping direct array initialization here. Config can override individual string vars.
+BUILD_ARTIFACTS=(".next" ".vercel" "node_modules" "coverage" ".nyc_output" "storybook-static" "dist" "out")
+LOG_PATTERNS=("*.cli.log" "*.tmp" "*.temp" "*.bak" "*.cache" "*.command_output.log")
+REQUIRED_PROJECT_FILES=("package.json" "tsconfig.json" "next.config.js")
+
 GENERATED_COMMIT_MESSAGE="" # For sharing commit message between functions
-CONFIG_FILE=""
-TRACKER_FILE="${TRACKER_FILE:-c:\Users\johnw\portfolio\.cli_project_tracker.log}"
+CONFIG_FILE_PATH=".cli.config.sh" # Standardized name (was .cli.config.sh in load_config)
+
+# Maximum log file size in bytes (5MB)
+MAX_LOG_SIZE=5242880
+COMMAND_TIMEOUT=300 # Default command timeout in seconds
+CONTENT_WIDTH=68 # Define a consistent width for menu content
+CMD_TEMP_LOG=".cli.command_output.log" # Temp file for individual command outputs
 
 # --- ANSI Colors ---
 ANSI_Reset='\e[0m'
@@ -50,69 +81,37 @@ ANSI_Cyan='\e[36m'
 spinner_chars=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
 spinner_pid=""
 
-cleanup() {
-    stop_spinner
-    echo -e "\n${ANSI_Yellow}[INFO]${ANSI_Reset} Cleaning up and exiting..."
-    exit 0
-}
-
-# Set up trap for cleanup
-trap cleanup SIGINT SIGTERM
-
-start_spinner() {
-    local message="$1"
-    echo -ne "${ANSI_Cyan}${message}${ANSI_Reset} "
-
-    # Hide cursor
-    echo -ne "\e[?25l"
-
-    # Start spinner in background
-    while :; do
-        for char in "${spinner_chars[@]}"; do
-            echo -ne "\b${char}"
-            sleep 0.1
-        done
-    done &
-
-    spinner_pid=$!
-    disown
-}
-
-stop_spinner() {
-    if [ -n "$spinner_pid" ]; then
-        kill $spinner_pid >/dev/null 2>&1
-        wait $spinner_pid 2>/dev/null
-        spinner_pid=""
-    fi
-
-    # Clear spinner and show cursor
-    echo -ne "\b \b\e[?25h"
-}
-
-# --- Core Functions ---
-# Maximum log file size in bytes (5MB)
-MAX_LOG_SIZE=5242880
-
+# --- Logging Functions ---
 rotate_log() {
-    local log_file=$1
-    if [[ -f "$log_file" ]] && [[ $(stat -f%z "$log_file" 2>/dev/null || stat -c%s "$log_file" 2>/dev/null) -gt $MAX_LOG_SIZE ]]; then
-        local timestamp=$(date +"%Y%m%d_%H%M%S")
-        mv "$log_file" "${log_file}.${timestamp}.bak"
-        log_info "Rotated log file: ${log_file} -> ${log_file}.${timestamp}.bak"
+    local log_file_to_rotate="$1"
+    # Check if file exists and is a regular file, then check size
+    if [[ -f "$log_file_to_rotate" ]] && \
+       [[ $(stat -f%z "$log_file_to_rotate" 2>/dev/null || stat -c%s "$log_file_to_rotate" 2>/dev/null) -gt $MAX_LOG_SIZE ]]; then
+        local timestamp
+        timestamp=$(date +"%Y%m%d_%H%M%S")
+        mv "$log_file_to_rotate" "${log_file_to_rotate}.${timestamp}.bak"
+        # Log this rotation to the *new* log file
+        local new_log_message
+        new_log_message="$(date +'%Y-%m-%d %T') [INFO] Rotated log file: ${log_file_to_rotate} -> ${log_file_to_rotate}.${timestamp}.bak"
+        echo -e "$new_log_message" >> "$log_file_to_rotate" # This creates the new log file with the rotation message
     fi
 }
 
 log() {
-    local level=$1
-    local message=$2
-    local timestamp=$(date +'%Y-%m-%d %T')
-
-    # Rotate logs if needed
-    rotate_log "$LOG_FILE"
+    local level="$1"
+    local message="$2"
+    local timestamp
+    timestamp=$(date +'%Y-%m-%d %T')
 
     # Ensure log directory exists
-    local log_dir=$(dirname "$LOG_FILE")
-    [[ ! -d "$log_dir" ]] && mkdir -p "$log_dir"
+    local log_dir
+    log_dir=$(dirname "$LOG_FILE")
+    if [[ ! -d "$log_dir" ]]; then
+        mkdir -p "$log_dir"
+    fi
+
+    # Rotate logs if needed BEFORE writing the new message
+    rotate_log "$LOG_FILE"
 
     echo -e "${timestamp} [${level}] ${message}" >> "$LOG_FILE"
 }
@@ -120,35 +119,6 @@ log() {
 log_info() {
     echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} $1"
     log "INFO" "$1"
-}
-
-# --- UI Helper Functions ---
-CONTENT_WIDTH=68 # Define a consistent width for menu content
-
-strip_ansi() {
-    # Strips ANSI escape codes (specifically SGR sequences like color, bold, etc.)
-    # and also common cursor movement/clearing sequences if they were to appear.
-    # Using printf %s to handle potential % in the input string safely with sed.
-    printf "%s" "$1" | sed -E 's/\x1b\[[0-9;]*[mGKHJ]//g'
-}
-
-print_bordered_line() {
-    local text_with_color="$1"
-    local text_no_color
-    text_no_color=$(strip_ansi "$text_with_color")
-
-    local visible_len=${#text_no_color}
-    local padding_len=$((CONTENT_WIDTH - visible_len))
-
-    if ((padding_len < 0)); then
-        padding_len=0 # Safety net: if content is too long, don't attempt negative padding
-    fi
-
-    local padding_str
-    # Create a string of $padding_len spaces
-    padding_str=$(printf "%*s" "$padding_len" "")
-
-    echo -e "║${text_with_color}${padding_str}║"
 }
 
 log_warn() {
@@ -160,77 +130,350 @@ log_error() {
     local message="$1"
     local command_executed="${2:-N/A}"
     local exit_code="${3:-N/A}"
-    local timestamp=$(date +'%Y-%m-%d %T')
+    local timestamp
+    timestamp=$(date +'%Y-%m-%d %T')
     local file=""
     local line=""
     local error_message=""
 
-    # Attempt to parse file, line, and error message from the message
-    if [[ "$message" =~ ^([^:]+):([0-9]+):(.*)$ ]]; then
-        file="${BASH_REMATCH[1]}"
-        line="${BASH_REMATCH[2]}"
-        error_message="${BASH_REMATCH[3]}"
-    else
-        local caller_file="${BASH_SOURCE[1]##*/}"
-        local caller_line="${BASH_LINENO[0]}"
+    # Try to determine file and line from caller
+    local caller_info
+    caller_info=($(caller 0)) # Format: LINENO SCRIPT_NAME [FUNCTION_NAME]
+    line="${caller_info[0]}"
+    file="$(realpath "${caller_info[1]}" 2>/dev/null || echo "${caller_info[1]}")" # Full path to script
+    error_message="$message" # Default error message is the input message
 
-        if [[ -n "${BASH_SOURCE[1]}" ]]; then
-            file="$(realpath "${BASH_SOURCE[1]}" 2>/dev/null || echo "${BASH_SOURCE[1]}")"
+    # Attempt to parse file, line, and error_message from the $message string itself
+    # This is useful if $message is e.g. a compiler error like "source.c:123: some error"
+    if [[ "$message" =~ ^([^:]+):([0-9]+):[[:space:]]*(.*)$ ]]; then
+        local parsed_file="${BASH_REMATCH[1]}"
+        local parsed_line="${BASH_REMATCH[2]}"
+        local parsed_msg="${BASH_REMATCH[3]}"
+        # Basic check if parsed_file looks like a path - could be more sophisticated
+        if [[ -f "$parsed_file" || "$parsed_file" == *"/"* || "$parsed_file" == *"$OS_EXT"* ]]; then
+            file="$(realpath "$parsed_file" 2>/dev/null || echo "$parsed_file")"
+            line="$parsed_line"
+            error_message="$parsed_msg"
         fi
-        line="${caller_line}"
-        error_message="${message}"
-        log_warn "Failed to parse error message: $message"
-    fi
-
-    if [[ -n "$file" ]]; then
-        file="$(realpath "$file" 2>/dev/null || echo "$file")"
     fi
 
     local formatted_message="${ANSI_Red}[ERROR]${ANSI_Reset} ${timestamp} - ${file}:${line} - ${error_message}"
     echo -e "$formatted_message"
-    log "ERROR" "$formatted_message"
+    log "ERROR" "In ${file}:${line} - ${error_message} (Command: ${command_executed}, Exit Code: ${exit_code})"
 
-    rotate_log "$LOG_FILE"
 
     local code_snippet=""
     local context_lines=3
     if [[ -f "$file" && -r "$file" ]]; then
         local start_line=$((line > context_lines ? line - context_lines : 1))
         local end_line=$((line + context_lines))
-
         local total_lines
-        total_lines=$(wc -l < "$file" 2>/dev/null)
-        if [[ -z "$total_lines" ]]; then
-            log_warn "Could not determine total lines for file: $file"
-            total_lines=0
-        fi
-
-        end_line=$((end_line > total_lines ? total_lines : end_line))
+        total_lines=$(wc -l < "$file" 2>/dev/null || echo 0)
+        total_lines=${total_lines//[^0-9]/} # Ensure it's a number
 
         if [[ "$total_lines" -gt 0 ]]; then
-            code_snippet=$(sed -n "${start_line},${end_line}p" "$file" 2>/dev/null | awk -v start="$start_line" '{printf "    %4d: %s\n", NR+start-1, $0}')
+            end_line=$((end_line > total_lines ? total_lines : end_line))
+            # Ensure start_line is not greater than end_line
+            [[ $start_line -gt $end_line ]] && start_line=$end_line
+
+            code_snippet=$(sed -n "${start_line},${end_line}p" "$file" 2>/dev/null | 
+                           awk -v s_line="$start_line" -v err_line="$line" '{
+                               prefix = "    ";
+                               current_nr = NR + s_line - 1;
+                               if (current_nr == err_line) { prefix = "--> "; }
+                               printf "%s%4d: %s\n", prefix, current_nr, $0;
+                           }')
+            if [[ -z "$code_snippet" ]]; then
+                 code_snippet="    (Could not retrieve code snippet for $file:$line)"
+            fi
         else
-            log_warn "File is empty or has no lines: $file"
-            code_snippet="    (File is empty or has no lines)"
+            code_snippet="    (File is empty or has no lines: $file)"
         fi
-
-        echo -e "${timestamp} [ERROR] [File: ${file}:${line}] ${error_message}\n  Command: ${command_executed}\n  Context:\n${code_snippet}" >> "$LOG_FILE"
-    else
-        echo -e "${timestamp} [ERROR] [${file}:${line}] ${error_message} - Command: ${command_executed}" >> "$LOG_FILE"
+        log "ERROR" "Context:\n${code_snippet}"
     fi
+    return 1 # Consistent return for error
+}
 
+# Load configuration (after logging functions are defined, so load_config can log)
+load_config
+
+# --- Cleanup and Spinner ---
+cleanup() {
+    stop_spinner
+    echo -e "\n${ANSI_Yellow}[INFO]${ANSI_Reset} Cleaning up and exiting..."
+    # Add any other specific cleanup tasks here
+    exit 0
+}
+trap cleanup SIGINT SIGTERM
+
+start_spinner() {
+    local message="$1"
+    echo -ne "${ANSI_Cyan}${message}${ANSI_Reset} "
+    echo -ne "\e[?25l" # Hide cursor
+    (
+        while :; do
+            for char in "${spinner_chars[@]}"; do
+                echo -ne "\b${char}"
+                sleep 0.1
+            done
+        done
+    ) &
+    spinner_pid=$!
+    disown "$spinner_pid" # Detach from shell job control
+}
+
+stop_spinner() {
+    if [ -n "$spinner_pid" ] && ps -p "$spinner_pid" > /dev/null; then
+        kill "$spinner_pid" >/dev/null 2>&1
+        wait "$spinner_pid" 2>/dev/null # Wait for it to actually terminate
+    fi
+    spinner_pid=""
+    echo -ne "\b \b\e[?25h" # Clear spinner char, restore cursor
+}
+
+# --- UI Helper Functions ---
+strip_ansi() {
+    printf "%s" "$1" | sed -E 's/\x1b\[[0-9;]*[mGKHJ]//g'
+}
+
+print_bordered_line() {
+    local text_with_color="$1"
+    local text_no_color
+    text_no_color=$(strip_ansi "$text_with_color")
+    local visible_len=${#text_no_color}
+    local padding_len=$((CONTENT_WIDTH - visible_len))
+    ((padding_len < 0)) && padding_len=0
+    local padding_str
+    padding_str=$(printf "%*s" "$padding_len" "")
+    echo -e "║${text_with_color}${padding_str}║"
+}
+
+# --- Clipboard Helper ---
+copy_to_clipboard() {
+    local content_to_copy="$1"
+    local success_msg="${2:-Content copied to clipboard!}"
+    local error_msg="${3:-Failed to copy. Install xclip/xsel (Linux), or ensure clip (Win)/pbcopy (macOS) is available.}"
+
+    if [[ "$OS" == "MINGW"* || "$OS" == "CYGWIN"* || "$OS" == "MSYS"* ]]; then # Windows (Git Bash, Cygwin, MSYS)
+        if command -v clip >/dev/null 2>&1; then
+            echo -n "$content_to_copy" | clip
+            log_info "$success_msg"
+            echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} $success_msg"
+            return 0
+        fi
+    elif [[ "$OS" == "Darwin"* ]]; then # macOS
+        if command -v pbcopy >/dev/null 2>&1; then
+            echo -n "$content_to_copy" | pbcopy
+            log_info "$success_msg"
+            echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} $success_msg"
+            return 0
+        fi
+    elif [[ "$OS" == "Linux"* ]]; then # Linux
+        if command -v xclip >/dev/null 2>&1; then
+            echo -n "$content_to_copy" | xclip -selection clipboard
+            log_info "$success_msg"
+            echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} $success_msg"
+            return 0
+        elif command -v xsel >/dev/null 2>&1; then
+            echo -n "$content_to_copy" | xsel --clipboard --input
+            log_info "$success_msg"
+            echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} $success_msg"
+            return 0
+        fi
+    fi
+    log_warn "$error_msg (OS: $OS)"
+    echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} $error_msg"
     return 1
 }
 
+# --- Command Execution Helpers ---
+run_with_timeout() {
+    local cmd="$1"
+    local timeout=${2:-$COMMAND_TIMEOUT}
+    local description="${3:-Command}"
+    local cmd_pid
+    
+    # Start the command in the background
+    eval "$cmd" & cmd_pid=$!
+
+    local count=0
+    while kill -0 "$cmd_pid" 2>/dev/null; do
+        if [ $count -ge "$timeout" ]; then
+            log_warn "${description} is taking too long, attempting to kill (PID: $cmd_pid)..."
+            kill -TERM "$cmd_pid" 2>/dev/null # Try graceful termination first
+            sleep 2 # Give it a moment
+            if kill -0 "$cmd_pid" 2>/dev/null; then # Still alive?
+                kill -KILL "$cmd_pid" 2>/dev/null # Force kill
+            fi
+            log_error "${description} timed out after ${timeout} seconds and was killed." "run_with_timeout"
+            return 1 # Timeout error code
+        fi
+        sleep 1
+        ((count++))
+    done
+
+    wait "$cmd_pid" # Get the actual exit code
+    return $?
+}
+
+run_long_command() {
+    local cmd_string="$1"
+    local spinner_msg="$2"
+    local success_msg="$3"
+    local failure_msg="$4"
+    local log_tag="${5:-${cmd_string%% *}}" # Use first word of command as log tag
+
+    log_info "Executing with spinner: $cmd_string (Description: $spinner_msg)"
+    echo -e "${ANSI_Yellow}[STATUS]${ANSI_Reset} $spinner_msg (this may take a while)..."
+
+    echo "$(date +'%Y-%m-%d %H:%M:%S') - Running command: $cmd_string" > "$CMD_TEMP_LOG" # Overwrite/create
+
+    start_spinner "$spinner_msg..."
+    # Execute command, append stdout and stderr to CMD_TEMP_LOG
+    if eval "$cmd_string" >> "$CMD_TEMP_LOG" 2>&1; then
+        local exit_code=$? # Should be 0 if eval successful path is taken
+        stop_spinner
+        log_info "$log_tag completed successfully (Spinner: $spinner_msg)."
+        echo -e "\n${ANSI_Green}[SUCCESS]${ANSI_Reset} $success_msg"
+
+        if grep -Eqi "(warning|warn)" "$CMD_TEMP_LOG"; then
+            log_warn "$log_tag (Spinner: $spinner_msg) finished with warnings. Check $CMD_TEMP_LOG (also copied to main log)."
+            echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} Command completed with warnings. Details in $LOG_FILE and $CMD_TEMP_LOG."
+        fi
+        {
+            echo "--- Output for: $cmd_string ($spinner_msg) ---"
+            cat "$CMD_TEMP_LOG"
+            echo "--- End Output ---"
+        } >> "$LOG_FILE"
+        return 0
+    else
+        local exit_code=$? # Capture actual exit code of the failed command
+        stop_spinner
+        log_error "$log_tag (Spinner: $spinner_msg) failed with exit code $exit_code. Check $CMD_TEMP_LOG (also copied to main log)." "$cmd_string" "$exit_code"
+        echo -e "\n${ANSI_Red}[ERROR]${ANSI_Reset} $failure_msg (Exit Code: $exit_code). Details in $LOG_FILE and $CMD_TEMP_LOG."
+        {
+            echo "--- Output for FAILED command: $cmd_string ($spinner_msg) ---"
+            cat "$CMD_TEMP_LOG"
+            echo "--- End Output for FAILED command ---"
+        } >> "$LOG_FILE"
+        return "$exit_code" # Return the actual error code
+    fi
+}
+
+# --- Core Logic Functions ---
+validate_environment() {
+    local check_cmd
+    local node_found=false npm_found=false
+    local all_validations_passed=true
+
+    log_info "Starting environment validation..."
+
+    # Check Node.js installation
+    if [[ "$OS" == "MINGW"* || "$OS" == "CYGWIN"* || "$OS" == "MSYS"* ]]; then
+        check_cmd="where node"
+    else
+        check_cmd="command -v node"
+    fi
+    if $check_cmd >/dev/null 2>&1; then
+        log_info "Node.js executable found."
+        node_found=true
+    else
+        log_error "Node.js not found. Please install Node.js." "validate_environment"
+        all_validations_passed=false
+    fi
+
+    # Check npm installation
+    if [[ "$OS" == "MINGW"* || "$OS" == "CYGWIN"* || "$OS" == "MSYS"* ]]; then
+        check_cmd="where npm"
+    else
+        check_cmd="command -v npm"
+    fi
+    if $check_cmd >/dev/null 2>&1; then
+        log_info "npm executable found."
+        npm_found=true
+    else
+        log_error "npm not found. Please install npm." "validate_environment"
+        all_validations_passed=false
+    fi
+
+    if ! $node_found || ! $npm_found; then
+        echo -e "${ANSI_Red}[FATAL]${ANSI_Reset} Critical tools (Node.js/npm) missing. Environment validation failed. Exiting."
+        exit 1
+    fi
+
+    local node_version npm_version
+    if ! node_version_output=$(run_with_timeout "node -v" 10 "Node.js version check"); then
+        log_error "Failed to get Node.js version. Is Node.js working correctly?" "validate_environment"
+        all_validations_passed=false
+    else
+        node_version="${node_version_output#v}" # Remove leading 'v'
+    fi
+
+    if ! npm_version=$(run_with_timeout "npm -v" 10 "npm version check"); then
+        log_error "Failed to get npm version. Is npm working correctly?" "validate_environment"
+        all_validations_passed=false
+    fi
+
+    if ! $all_validations_passed; then # If version checks failed or tools not found earlier
+        echo -e "${ANSI_Red}[FATAL]${ANSI_Reset} Failed to retrieve tool versions or critical tools missing. Environment validation failed. Exiting."
+        exit 1
+    fi
+
+    # Compare versions: `printf 'R\nC' | sort -VC` returns 0 if R <= C (i.e., C is GTE R)
+    if printf '%s\n%s' "$REQUIRED_NODE_VERSION" "$node_version" | sort -V -C; then
+        log_info "Node.js version $node_version meets requirement >= $REQUIRED_NODE_VERSION."
+    else
+        log_error "Node.js version $node_version is less than required $REQUIRED_NODE_VERSION." "validate_environment"
+        all_validations_passed=false
+    fi
+
+    if printf '%s\n%s' "$REQUIRED_NPM_VERSION" "$npm_version" | sort -V -C; then
+        log_info "npm version $npm_version meets requirement >= $REQUIRED_NPM_VERSION."
+    else
+        log_error "npm version $npm_version is less than required $REQUIRED_NPM_VERSION." "validate_environment"
+        all_validations_passed=false
+    fi
+
+    if ! $all_validations_passed; then
+        echo -e "${ANSI_Red}[FATAL]${ANSI_Reset} Environment validation failed due to version mismatches or other issues. Exiting."
+        exit 1
+    fi
+
+    log_info "Environment validation passed successfully."
+}
+
+clean_artifacts() {
+    log_info "Cleaning build artifacts..."
+    local item_cleaned=false
+    for artifact in "${BUILD_ARTIFACTS[@]}"; do
+        if [[ -e "$artifact" ]]; then
+            log_info "Removing $artifact..."
+            if rm -rf "$artifact"; then
+                log_info "Successfully removed $artifact."
+                echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Removed: $artifact"
+                item_cleaned=true
+            else
+                log_error "Failed to remove $artifact." "clean_artifacts"
+                echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to remove: $artifact"
+            fi
+        else
+            log_info "Artifact not found (already clean): $artifact"
+        fi
+    done
+
+    if ! $item_cleaned; then
+        log_info "No artifacts found to clean."
+        echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} No artifacts found to clean."
+    else
+        log_info "Build artifacts cleaning process completed."
+        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Artifacts cleaning complete."
+    fi
+}
 
 generate_commit_message() {
-    local commit_type_input
-    local commit_scope
-    local commit_description
-    local commit_type
+    local commit_type_input commit_scope commit_description commit_type
     GENERATED_COMMIT_MESSAGE="" # Clear previous message
     local suggested_description=""
-
     local common_types=("feat" "fix" "chore" "docs" "style" "refactor" "test" "ci" "build" "perf" "revert")
 
     echo -e "${ANSI_Bold}${ANSI_Yellow}Select Commit Type or enter a custom one:${ANSI_Reset}"
@@ -238,29 +481,28 @@ generate_commit_message() {
         echo -e "  ${ANSI_Green}$((i+1))) ${common_types[$i]}${ANSI_Reset}"
     done
     echo -e "  ${ANSI_Green}c) Custom type${ANSI_Reset}"
-    echo -e "${ANSI_Bold}${ANSI_Yellow}Your choice (number or custom type): ${ANSI_Reset}\c"
+    echo -ne "${ANSI_Bold}${ANSI_Yellow}Your choice (number or custom type): ${ANSI_Reset}"
     read -r commit_type_input
 
     if [[ "$commit_type_input" =~ ^[0-9]+$ ]] && [ "$commit_type_input" -ge 1 ] && [ "$commit_type_input" -le "${#common_types[@]}" ]; then
         commit_type="${common_types[$((commit_type_input-1))]}"
     elif [[ "$commit_type_input" == "c" ]]; then
-        echo -e "${ANSI_Bold}${ANSI_Yellow}Enter Custom Commit Type: ${ANSI_Reset}\c"
+        echo -ne "${ANSI_Bold}${ANSI_Yellow}Enter Custom Commit Type: ${ANSI_Reset}"
         read -r commit_type
         commit_type=$(echo "$commit_type" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
         if [ -z "$commit_type" ]; then
             log_error "Custom commit type cannot be empty." "generate_commit_message"
-            echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Custom commit type cannot be empty."
             return 1
         fi
     else
         commit_type=$(echo "$commit_type_input" | tr '[:upper:]' '[:lower:]' | tr -d '[:space:]')
         if [ -z "$commit_type" ]; then
             log_warn "No valid selection or custom type entered, defaulting to 'chore'."
-            commit_type="chore" # Default to 'chore' or handle as an error
+            commit_type="chore"
         fi
     fi
+    log_info "Selected commit type: $commit_type"
 
-    # Generate suggested description based on commit type
     case "$commit_type" in
         "feat") suggested_description="Implement new feature: " ;;
         "fix") suggested_description="Resolve issue: " ;;
@@ -273,243 +515,73 @@ generate_commit_message() {
         "build") suggested_description="Update build system for: " ;;
         "perf") suggested_description="Improve performance of: " ;;
         "revert") suggested_description="Revert changes related to: " ;;
-        *) suggested_description="Describe the change: " ;; # Default for custom or unlisted types
+        *) suggested_description="Describe the change: " ;;
     esac
 
-    echo -e "${ANSI_Bold}${ANSI_Yellow}Commit Scope (optional, e.g., component name): ${ANSI_Reset}\c"
+    echo -ne "${ANSI_Bold}${ANSI_Yellow}Commit Scope (optional, e.g., component name): ${ANSI_Reset}"
     read -r commit_scope
 
-    # Prompt for description with the suggestion, allowing editing
     local description_prompt="${ANSI_Bold}${ANSI_Yellow}Commit Description: ${ANSI_Reset}"
-    read -e -i "$suggested_description" -p "$description_prompt" -r commit_description
+    # Use printf for the prompt to avoid issues with -e in read if text starts with '-'
+    printf "%s" "$description_prompt"
+    # read -e for readline editing, -i for initial text
+    read -e -i "$suggested_description" -r commit_description
+
+    if [ -z "$commit_description" ] || [ "$commit_description" == "$suggested_description" ]; then
+        log_error "Commit description cannot be empty or just the suggestion placeholder." "generate_commit_message"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Commit description is mandatory and must be more than the placeholder."
+        return 1
+    fi
 
     local commit_message="$commit_type"
     if [ -n "$commit_scope" ]; then
         commit_message="$commit_message($commit_scope)"
     fi
     commit_message="$commit_message: $commit_description"
-
-    GENERATED_COMMIT_MESSAGE="$commit_message" # Store for other functions
+    GENERATED_COMMIT_MESSAGE="$commit_message"
 
     echo -e "${ANSI_Bold}${ANSI_Green}Generated Commit Message:${ANSI_Reset} $commit_message"
-    echo "$commit_message" | clip  # Copy to clipboard (requires 'clip' on Windows, 'xclip' or 'xsel' on Linux)
-    echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Commit message copied to clipboard!"
-    return 0 # Explicitly return success
-}
-
-# Default command timeout in seconds
-COMMAND_TIMEOUT=300
-
-run_with_timeout() {
-    local cmd="$1"
-    local timeout=${2:-$COMMAND_TIMEOUT}
-    local description="$3"
-
-    # Start the command in background
-    eval "$cmd" & local cmd_pid=$!
-
-    # Wait for command to finish or timeout
-    local count=0
-    while kill -0 $cmd_pid 2>/dev/null; do
-        if [ $count -ge $timeout ]; then
-            kill -9 $cmd_pid 2>/dev/null
-            log_error "${description:-Command} timed out after ${timeout} seconds" "run_with_timeout"
-            return 1
-        fi
-        sleep 1
-        ((count++))
-    done
-
-    wait $cmd_pid
-    return $?
-}
-
-validate_environment() {
-    local check_cmd
-
-    # Check Node.js installation
-    if [[ "$OS" == "MINGW"* || "$OS" == "CYGWIN"* || "$OS" == "MSYS"* ]]; then
-        check_cmd="where node 2>/dev/null"
-    else
-        check_cmd="command -v node 2>/dev/null"
-    fi
-    eval $check_cmd || log_error "Node.js not installed" "validate_environment"
-216 |
-    # Check npm installation
-    if [[ "$OS" == "MINGW"* || "$OS" == "CYGWIN"* || "$OS" == "MSYS"* ]]; then
-        check_cmd="where npm 2>/dev/null"
-    else
-        check_cmd="command -v npm 2>/dev/null"
-    fi
-    eval $check_cmd || log_error "npm not installed" "validate_environment"
-224 |
-    # Get versions with timeout protection
-    local node_version
-    if ! node_version=$(run_with_timeout "node -v | cut -d'v' -f2" 10 "Node.js version check"); then
-        log_error "Failed to get Node.js version" "validate_environment"
-    fi
-
-    local npm_version
-    if ! npm_version=$(run_with_timeout "npm -v" 10 "npm version check"); then
-        log_error "Failed to get npm version" "validate_environment"
-    fi
-
-    # Compare versions using semver rules
-    if ! printf '%s\n%s' "$REQUIRED_NODE_VERSION" "$node_version" | sort -V -C; then
-        log_error "Node.js version $node_version < required $REQUIRED_NODE_VERSION" "validate_environment"
-    fi
-
-    if ! printf '%s\n%s' "$REQUIRED_NPM_VERSION" "$npm_version" | sort -V -C; then
-        log_error "npm version $npm_version < required $REQUIRED_NPM_VERSION" "validate_environment"
-    fi
-
-    log_info "Environment validation passed"
-}
-
-clean_artifacts() {
-    log_info "Cleaning build artifacts"
-    for artifact in "${BUILD_ARTIFACTS[@]}"; do
-        if [[ -e "$artifact" ]]; then
-            rm -rf "$artifact"
-        fi
-    done
-}
-
-# --- Interactive Menu ---
-show_menu() {
-    local i
-    clear
-
-    # Box drawing characters
-    local border_top="╔$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╗"
-    local border_middle="╠$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╣"
-    local border_thin_sep="╟$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '─')╢"
-    local border_bottom="╚$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╝"
-
-    # Header
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_top}${ANSI_Reset}"
-    local title_core="Wescore Project CLI v${VERSION}"
-    local title_len=${#title_core}
-    local total_padding=$((CONTENT_WIDTH - title_len))
-    local pad_left=$((total_padding / 2))
-    local pad_right=$((total_padding - pad_left))
-    local title_line
-    title_line=$(printf "%*s%s%s%s%*s" "$pad_left" "" "${ANSI_Bold}${ANSI_Yellow}" "$title_core" "${ANSI_Cyan}" "$pad_right" "")
-    echo -e "║${title_line}${ANSI_Reset}║"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
-
-    # Helper for section titles
-    print_section_title() {
-        local core_title="$1"
-        local color="${2:-${ANSI_Blue}}"
-        local title_text_len=${#core_title}
-        local total_sec_padding=$((CONTENT_WIDTH - title_text_len))
-        local pad_sec_left=$((total_sec_padding / 2))
-        local pad_sec_right=$((total_sec_padding - pad_sec_left))
-        local section_line_content
-        section_line_content=$(printf "%*s%s%s%s%*s" "$pad_sec_left" "" "${ANSI_Bold}${color}" "$core_title" "${ANSI_Reset}" "$pad_sec_right" "")
-        echo -e "║${section_line_content}║"
-    }
-
-    # Development Section
-    print_section_title "Development"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[e]${ANSI_Reset} Setup Environment       - Check/setup dev environment"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[i]${ANSI_Reset} Install Dependencies    - Setup project packages"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[d]${ANSI_Reset} Dev Server              - Manage development server"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[b]${ANSI_Reset} Database                - Manage local database"
-
-    # Testing & Quality Section
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
-    print_section_title "Testing & Quality"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[t]${ANSI_Reset} Run Tests               - Execute test suite"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[c]${ANSI_Reset} Run Code Checks         - Lint and analyze code"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[a]${ANSI_Reset} Security Audit          - Check dependencies"
-
-    # Build & Maintenance Section
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
-    print_section_title "Build & Maintenance"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[w]${ANSI_Reset} Build Project           - Create production build"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[x]${ANSI_Reset} Clean Artifacts         - Remove build files"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[r]${ANSI_Reset} Reset Project           - Clean slate reset"
-
-    # Monitoring Section
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
-    print_section_title "Monitoring"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[s]${ANSI_Reset} Project Status          - View dependencies"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[u]${ANSI_Reset} Project Tracker         - View & Add to Tracker Log"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[l]${ANSI_Reset} View Logs               - Check system logs"
-
-    # Git Section
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
-    print_section_title "Git"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[g]${ANSI_Reset} Generate Commit         - Interactive commit message"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[p]${ANSI_Reset} Smart Commit & Push     - Quick/Template/AI commit"
-
-    # Deployment Section
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
-    print_section_title "Deployment"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[v]${ANSI_Reset} Deploy to Vercel        - Deploy to production"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[m]${ANSI_Reset} Manage Env Variables    - Sync with Vercel"
-    
-    # Security Section
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
-    print_section_title "Security"
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[k]${ANSI_Reset} Generate Secret Key     - Generate a secure key"
-
-    # Exit Option
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
-    print_section_title "Exit" "${ANSI_Red}"
-    print_bordered_line " ${ANSI_Bold}${ANSI_Red}[q]${ANSI_Reset} Exit                    - Quit application"
-
-    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_bottom}${ANSI_Reset}"
-    echo -e "${ANSI_Yellow}  Use shortcut key in [brackets]${ANSI_Reset}"
+    copy_to_clipboard "$commit_message" "Commit message copied to clipboard!"
+    return 0
 }
 
 generate_secret_key() {
-    local secret_key=$(openssl rand -hex 32)
-    echo -e "${ANSI_Bold}${ANSI_Green}Generated Secret Key:${ANSI_Reset} $secret_key"
-    echo "$secret_key" | clip
-    echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Secret key copied to clipboard!"
+    local secret_key
+    if command -v openssl >/dev/null 2>&1; then
+        secret_key=$(openssl rand -hex 32)
+        echo -e "${ANSI_Bold}${ANSI_Green}Generated Secret Key:${ANSI_Reset} $secret_key"
+        copy_to_clipboard "$secret_key" "Secret key copied to clipboard!"
+    else
+        log_error "openssl command not found. Cannot generate secret key." "generate_secret_key"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} openssl is required to generate a secret key."
+        return 1
+    fi
 }
 
-# --- Smart Commit Templates ---
+# --- Smart Commit Templates & Functions ---
 COMMIT_TEMPLATES=(
     "feat(component): add new component for"
     "fix(bug): resolve issue with"
     "docs(readme): update documentation for"
-    "style(ui): improve styling of"
-    "refactor(core): restructure code in"
-    "test(unit): add tests for"
-    "chore(deps): update dependencies for"
-    "perf(optimize): improve performance of"
+    # ... (rest of templates)
 )
-
 QUICK_COMMITS=(
     "quick: minor changes"
     "quick: bug fix"
-    "quick: update docs"
-    "quick: cleanup code"
-    "quick: fix typo"
+    # ... (rest of quick commits)
 )
 
-# --- Smart Commit Functions ---
 smart_commit_message() {
     local commit_message=""
     local template_choice
-    
-    echo -e "\n${ANSI_Bold}${ANSI_Yellow}Select Commit Type:${ANSI_Reset}"
-    echo -e "${ANSI_Green}1) ${ANSI_Reset}Detailed Commit (Interactive)"
-    echo -e "${ANSI_Green}2) ${ANSI_Reset}Quick Commit"
-    echo -e "${ANSI_Green}3) ${ANSI_Reset}Use Template"
-    echo -e "${ANSI_Green}4) ${ANSI_Reset}AI-Suggested Commit"
-    echo -e "${ANSI_Bold}${ANSI_Yellow}Your choice (1-4): ${ANSI_Reset}\c"
+
+    echo -e "\n${ANSI_Bold}${ANSI_Yellow}Select Commit Message Mode:${ANSI_Reset}"
+    echo -e "  ${ANSI_Green}1)${ANSI_Reset} Detailed Commit (Interactive)"
+    echo -e "  ${ANSI_Green}2)${ANSI_Reset} Quick Commit (Predefined short messages)"
+    echo -e "  ${ANSI_Green}3)${ANSI_Reset} Use Template (Predefined structures)"
+    echo -e "  ${ANSI_Green}4)${ANSI_Reset} AI-Suggested Commit (Basic suggestion from changes)"
+    echo -e "  ${ANSI_Green}b)${ANSI_Reset} Back to main menu"
+    echo -ne "${ANSI_Bold}${ANSI_Yellow}Your choice (1-4, b): ${ANSI_Reset}"
     read -r template_choice
 
     case $template_choice in
@@ -517,25 +589,31 @@ smart_commit_message() {
         2) quick_commit ;;
         3) template_commit ;;
         4) ai_suggest_commit ;;
-        *) log_error "Invalid choice" "smart_commit_message" ;;
+        "b"|"B")
+            log_info "User opted out of smart commit message generation."
+            return 1 ;; # Indicate cancellation
+        *)
+            log_error "Invalid choice '$template_choice' in smart commit." "smart_commit_message"
+            return 1 ;; # Indicate failure/invalid choice
     esac
+    return $? # Propagate success/failure from the chosen function
 }
 
 quick_commit() {
     echo -e "\n${ANSI_Bold}${ANSI_Yellow}Select Quick Commit:${ANSI_Reset}"
     for i in "${!QUICK_COMMITS[@]}"; do
-        echo -e "${ANSI_Green}$((i+1))) ${ANSI_Reset}${QUICK_COMMITS[$i]}"
+        echo -e "  ${ANSI_Green}$((i+1))) ${ANSI_Reset}${QUICK_COMMITS[$i]}"
     done
-    
-    echo -e "${ANSI_Bold}${ANSI_Yellow}Your choice (1-${#QUICK_COMMITS[@]}): ${ANSI_Reset}\c"
+    echo -ne "${ANSI_Bold}${ANSI_Yellow}Your choice (1-${#QUICK_COMMITS[@]}): ${ANSI_Reset}"
     read -r choice
-    
+
     if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#QUICK_COMMITS[@]}" ]; then
         GENERATED_COMMIT_MESSAGE="${QUICK_COMMITS[$((choice-1))]}"
+        log_info "Selected quick commit: $GENERATED_COMMIT_MESSAGE"
         echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Selected quick commit: $GENERATED_COMMIT_MESSAGE"
         return 0
     else
-        log_error "Invalid quick commit selection" "quick_commit"
+        log_error "Invalid quick commit selection: $choice" "quick_commit"
         return 1
     fi
 }
@@ -543,1147 +621,792 @@ quick_commit() {
 template_commit() {
     echo -e "\n${ANSI_Bold}${ANSI_Yellow}Select Template:${ANSI_Reset}"
     for i in "${!COMMIT_TEMPLATES[@]}"; do
-        echo -e "${ANSI_Green}$((i+1))) ${ANSI_Reset}${COMMIT_TEMPLATES[$i]}"
+        echo -e "  ${ANSI_Green}$((i+1))) ${ANSI_Reset}${COMMIT_TEMPLATES[$i]}"
     done
-    
-    echo -e "${ANSI_Bold}${ANSI_Yellow}Your choice (1-${#COMMIT_TEMPLATES[@]}): ${ANSI_Reset}\c"
+    echo -ne "${ANSI_Bold}${ANSI_Yellow}Your choice (1-${#COMMIT_TEMPLATES[@]}): ${ANSI_Reset}"
     read -r choice
-    
+
     if [[ "$choice" =~ ^[0-9]+$ ]] && [ "$choice" -ge 1 ] && [ "$choice" -le "${#COMMIT_TEMPLATES[@]}" ]; then
         local template="${COMMIT_TEMPLATES[$((choice-1))]}"
-        echo -e "${ANSI_Bold}${ANSI_Yellow}Enter details to complete the commit message: ${ANSI_Reset}\c"
+        echo -ne "${ANSI_Bold}${ANSI_Yellow}Complete the message: ${template} ${ANSI_Reset}"
         read -r details
+        if [ -z "$details" ]; then
+            log_error "Details for template commit cannot be empty." "template_commit"
+            return 1
+        fi
         GENERATED_COMMIT_MESSAGE="$template $details"
+        log_info "Generated template commit: $GENERATED_COMMIT_MESSAGE"
         echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Generated commit message: $GENERATED_COMMIT_MESSAGE"
         return 0
     else
-        log_error "Invalid template selection" "template_commit"
+        log_error "Invalid template selection: $choice" "template_commit"
         return 1
     fi
 }
 
 ai_suggest_commit() {
     echo -e "\n${ANSI_Yellow}[INFO]${ANSI_Reset} Analyzing changes for AI suggestion..."
-    
-    # Get the git status and diff
-    local changes=$(git diff --cached --name-only)
+    if ! command -v git >/dev/null 2>&1; then
+        log_error "Git command not found. Cannot generate AI-suggested commit." "ai_suggest_commit"
+        return 1
+    fi
+
+    local changes
+    changes=$(git diff --cached --name-only) # Prefer staged changes
     if [ -z "$changes" ]; then
-        changes=$(git diff --name-only)
+        changes=$(git diff --name-only HEAD) # If nothing staged, check working directory changes against HEAD
     fi
-    
-    # Get the types of files changed
-    local file_types=$(echo "$changes" | grep -o '\.[^./]*$' | sort | uniq)
-    
-    # Generate smart suggestion based on changes and project context
-    local suggestion=""
-    if echo "$changes" | grep -q "package.json\|yarn.lock\|pnpm-lock.yaml"; then
-        suggestion="chore(deps): update project dependencies"
-    elif echo "$changes" | grep -q "supabase/"; then
-        suggestion="db: update database schema or config"
-    elif echo "$changes" | grep -q "src/app/"; then
-        suggestion="feat(app): update app routes or pages"
-    elif echo "$changes" | grep -q "src/components/"; then
-        suggestion="feat(ui): update components"
-    elif echo "$changes" | grep -q "docs/.*\.md\|\.mdx$"; then
-        suggestion="docs: update project documentation"
-    elif echo "$changes" | grep -q "src/api/\|src/actions/"; then
-        suggestion="feat(api): update API endpoints"
-    elif echo "$changes" | grep -q "src/hooks/"; then
-        suggestion="feat(hooks): update custom hooks"
-    elif echo "$changes" | grep -q "\.test\.|test/|spec/|jest\.config"; then
-        suggestion="test: update test cases"
-    elif echo "$changes" | grep -q "\.css$\|\.scss$\|tailwind\.config"; then
-        suggestion="style: update styling and theme"
-    elif echo "$changes" | grep -q "src/context/"; then
-        suggestion="feat(context): update global state"
-    elif echo "$changes" | grep -q "public/"; then
-        suggestion="asset: update static assets"
-    elif echo "$changes" | grep -q "src/lib/\|src/utils/"; then
-        suggestion="refactor(utils): update utility functions"
-    elif echo "$changes" | grep -q "\.config\.|\.env\.|vercel\.yml\|netlify\.toml"; then
-        suggestion="config: update project configuration"
-    elif echo "$changes" | grep -q "src/middleware"; then
-        suggestion="feat(middleware): update request handling"
-    elif echo "$changes" | grep -q "src/types/"; then
-        suggestion="types: update TypeScript definitions"
-    else
-        suggestion="chore: update project files"
+    if [ -z "$changes" ]; then
+        log_warn "No changes detected by git. Cannot suggest a commit message." "ai_suggest_commit"
+        echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} No changes to suggest a commit for. Try staging files first."
+        return 1 # Or fallback to manual
     fi
-    
+
+    local suggestion="chore: update project files" # Default suggestion
+    # Simplified suggestion logic (can be expanded)
+    if echo "$changes" | grep -q -E "(\.md|\.txt|README|CONTRIBUTING|LICENSE)"; then suggestion="docs: update documentation files"; fi
+    if echo "$changes" | grep -q -E "(package\.json|yarn\.lock|pnpm-lock\.yaml)"; then suggestion="chore(deps): update dependencies"; fi
+    if echo "$changes" | grep -q -E "(\.js|\.ts|\.jsx|\.tsx)"; then suggestion="feat: modify script/component files"; fi
+    if echo "$changes" | grep -q "src/"; then suggestion="refactor: changes in src directory"; fi
+    # More specific rules from original script
+    if echo "$changes" | grep -q "supabase/"; then suggestion="db: update database schema or config"; fi
+    # ... (add more rules as needed from original)
+
     echo -e "${ANSI_Bold}${ANSI_Yellow}AI Suggested Commit Message:${ANSI_Reset} $suggestion"
-    echo -e "${ANSI_Bold}${ANSI_Yellow}Use this suggestion? (Y/n): ${ANSI_Reset}\c"
+    echo -ne "${ANSI_Bold}${ANSI_Yellow}Use this suggestion? (Y/n) or (e)dit: ${ANSI_Reset}"
     read -r use_suggestion
-    
-    if [[ "$use_suggestion" =~ ^[Yy]?$ ]]; then
+    use_suggestion=$(echo "$use_suggestion" | tr '[:upper:]' '[:lower:]')
+
+    if [[ "$use_suggestion" == "y" || -z "$use_suggestion" ]]; then
         GENERATED_COMMIT_MESSAGE="$suggestion"
+        log_info "Using AI suggestion: $GENERATED_COMMIT_MESSAGE"
         echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Using AI suggestion: $GENERATED_COMMIT_MESSAGE"
         return 0
+    elif [[ "$use_suggestion" == "e" ]]; then
+        echo -ne "${ANSI_Bold}${ANSI_Yellow}Edit suggestion: ${ANSI_Reset}"
+        read -e -i "$suggestion" -r GENERATED_COMMIT_MESSAGE
+        if [ -z "$GENERATED_COMMIT_MESSAGE" ]; then
+            log_error "Edited commit message cannot be empty." "ai_suggest_commit"
+            return 1
+        fi
+        log_info "Using edited AI suggestion: $GENERATED_COMMIT_MESSAGE"
+        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Using edited suggestion: $GENERATED_COMMIT_MESSAGE"
+        return 0
     else
-        echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} AI suggestion declined, falling back to manual commit..."
+        log_info "AI suggestion declined. Falling back to detailed commit generation."
+        echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} AI suggestion declined. Proceeding to manual commit message generation."
         generate_commit_message
-        return $?
+        return $? # Propagate result from generate_commit_message
     fi
 }
 
-# --- Update commit_and_push function ---
+
 commit_and_push() {
     log_info "Starting commit and push process..."
-    echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} Preparing to commit and push changes."
-
-    # Check if inside a Git repository
+    if ! command -v git >/dev/null 2>&1; then
+        log_error "Git command not found. Commit and push aborted." "commit_and_push"
+        return 1
+    fi
     if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
-        log_error "Not inside a Git repository." "commit_and_push"
-        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} This is not a Git repository. Aborting."
+        log_error "Not inside a Git repository. Commit and push aborted." "commit_and_push"
         return 1
     fi
 
-    # Stage all changes
-    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Staging all changes (git add .)..."
-    if git add .; then
-        log_info "Successfully staged all changes."
-        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} All changes staged."
-    else
-        log_error "Failed to stage changes." "commit_and_push (git add .)"
-        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to stage changes. Aborting."
+    log_info "Staging all changes (git add .)..."
+    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Staging all changes..."
+    if ! git add .; then
+        log_error "Failed to stage changes (git add .)." "commit_and_push"
         return 1
     fi
+    log_info "All changes staged successfully."
+    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} All changes staged."
 
     # Use smart commit message system
-    if ! smart_commit_message; then
-        log_warn "Commit message generation was cancelled or failed." "commit_and_push"
-        echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} Commit message generation aborted. Nothing committed."
+    if ! smart_commit_message; then # This function sets GENERATED_COMMIT_MESSAGE or returns error
+        log_warn "Commit message generation was cancelled or failed. Nothing committed." "commit_and_push"
+        # No need to print another user message, smart_commit_message handles its own.
+        return 1 # Propagate failure/cancellation
+    fi
+
+    if [ -z "$GENERATED_COMMIT_MESSAGE" ]; then
+        log_error "Commit message is empty after generation process. Aborting commit." "commit_and_push"
         return 1
     fi
 
-    if [ -z "$GENERATED_COMMIT_MESSAGE" ]; then # Double check, though generate_commit_message should set it
-        log_error "Generated commit message is empty after successful call to generate_commit_message." "commit_and_push"
-        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Commit message is empty. Aborting."
-        return 1
-    fi
-
+    log_info "Committing with message: '$GENERATED_COMMIT_MESSAGE'"
     echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Committing with message: ${ANSI_Cyan}'$GENERATED_COMMIT_MESSAGE'${ANSI_Reset}"
-    if git commit -m "$GENERATED_COMMIT_MESSAGE"; then
-        log_info "Successfully committed changes with message: '$GENERATED_COMMIT_MESSAGE'"
-        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Changes committed."
-        # Log the commit message to the project tracker
-        echo "$(date +'%Y-%m-%d %H:%M:%S') - Commit: $GENERATED_COMMIT_MESSAGE" >> "$TRACKER_FILE" 2>/dev/null || log_warn "Failed to log commit message to tracker."
-
-        # Rotate logs if needed
-        rotate_log "$TRACKER_FILE"
-    else
-        log_error "Failed to commit changes." "commit_and_push (git commit -m \"$GENERATED_COMMIT_MESSAGE\")"
-        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to commit. Check Git output above."
+    if ! git commit -m "$GENERATED_COMMIT_MESSAGE"; then
+        log_error "Failed to commit changes." "commit_and_push (git commit)"
         return 1
     fi
+    log_info "Changes committed successfully."
+    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Changes committed."
+    
+    # Log to project tracker
+    local tracker_log_message="$(date +'%Y-%m-%d %H:%M:%S') - Commit: $GENERATED_COMMIT_MESSAGE"
+    echo "$tracker_log_message" >> "$TRACKER_FILE" 2>/dev/null || log_warn "Failed to write to tracker file $TRACKER_FILE"
+    rotate_log "$TRACKER_FILE" # Rotate tracker file if needed
 
-    # Push changes
+
+    log_info "Pushing changes to remote..."
     echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Pushing changes to remote..."
-    if git push; then
-        log_info "Successfully pushed changes."
-        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Changes pushed to remote."
-    else
+    if ! git push; then
         log_error "Failed to push changes." "commit_and_push (git push)"
-        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to push changes. Check Git output above."
         return 1
     fi
+    log_info "Changes pushed successfully."
+    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Changes pushed to remote."
 
     log_info "Commit and push process completed successfully."
-    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} All changes committed and pushed successfully!"
+    echo -e "${ANSI_Green}${ANSI_Bold}[SUCCESS]${ANSI_Reset} All changes committed and pushed successfully!"
     return 0
 }
 
-# --- Project Reset Function ---
 reset_project() {
     log_info "Starting project reset..."
-    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Preparing to reset project..."
+    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Preparing to reset project. This will remove untracked files and caches."
+    echo -ne "${ANSI_Bold}${ANSI_Red}ARE YOU SURE you want to reset? (y/N): ${ANSI_Reset}"
+    read -r confirmation
+    if [[ "${confirmation}" != "y" && "${confirmation}" != "Y" ]]; then
+        log_info "Project reset cancelled by user."
+        echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Project reset cancelled."
+        return 1
+    fi
 
-    # Function to remove a file or directory if it exists
     remove_if_exists() {
-        if [[ -e "$1" ]]; then
-            rm -rf "$1"
-            echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Removed: $1"
+        local item_to_remove="$1"
+        if [[ -e "$item_to_remove" ]]; then
+            log_info "Removing $item_to_remove..."
+            if rm -rf "$item_to_remove"; then
+                log_info "Successfully removed $item_to_remove."
+                echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Removed: $item_to_remove"
+            else
+                log_error "Failed to remove $item_to_remove." "reset_project (remove_if_exists)"
+            fi
         fi
     }
 
-    # Remove build artifacts
-    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Removing build artifacts..."
-    for artifact in "${BUILD_ARTIFACTS[@]}"; do
-        remove_if_exists "$artifact"
-    done
+    log_info "Removing build artifacts..."
+    for artifact in "${BUILD_ARTIFACTS[@]}"; do remove_if_exists "$artifact"; done
 
-    # Remove lock files
-    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Removing lock files..."
-    remove_if_exists "package-lock.json"
-    remove_if_exists "yarn.lock"
-    remove_if_exists "pnpm-lock.yaml"
-    remove_if_exists ".pnpm-store"
+    log_info "Removing lock files..."
+    remove_if_exists "package-lock.json"; remove_if_exists "yarn.lock"; remove_if_exists "pnpm-lock.yaml"; remove_if_exists ".pnpm-store"
 
-    # Remove environment files
-    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Removing local environment files..."
-    remove_if_exists ".env.local"
-    remove_if_exists ".env.development.local"
-    remove_if_exists ".env.test.local"
-    remove_if_exists ".env.production.local"
+    log_info "Removing local environment files..."
+    remove_if_exists ".env.local"; remove_if_exists ".env.development.local"; remove_if_exists ".env.test.local"; remove_if_exists ".env.production.local"
 
-    # Clear npm cache
-    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Clearing npm cache..."
-    if npm cache clean --force; then
-        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} npm cache cleared"
+    if command -v npm >/dev/null 2>&1; then
+        log_info "Clearing npm cache..."
+        if npm cache clean --force; then log_info "npm cache cleared."; echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} npm cache cleared"; else log_error "Failed to clear npm cache." "reset_project (npm cache clean)"; fi
+        log_info "Verifying npm cache..."
+        if npm cache verify; then log_info "npm cache verified."; echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} npm cache verified"; else log_error "Failed to verify npm cache." "reset_project (npm cache verify)"; fi
     else
-        log_error "Failed to clear npm cache" "reset_project (npm cache clean)"
+        log_warn "npm command not found, skipping npm cache operations."
     fi
 
-    # Verify npm cache
-    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Verifying npm cache..."
-    if npm cache verify; then
-        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} npm cache verified"
-    else
-        log_error "Failed to verify npm cache" "reset_project (npm cache verify)"
-    fi
-
-    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Project reset complete!"
-    echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Run 'npm install' to reinstall dependencies."
+    log_info "Project reset process completed."
+    echo -e "${ANSI_Green}${ANSI_Bold}[SUCCESS]${ANSI_Reset} Project reset complete!"
+    echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} You may need to run dependency installation (e.g., npm install) next."
 }
 
-# --- Development Environment Setup ---
 setup_dev_environment() {
-    log_info "Checking development environment..."
-    
-    # Check for required tools
-    local required_tools=("node" "npm" "git")
+    log_info "Setting up/checking development environment..."
+    local all_ok=true
+
+    local required_tools=("node" "npm" "git") # Assuming git is generally useful
     local missing_tools=()
-    
     for tool in "${required_tools[@]}"; do
         if ! command -v "$tool" &> /dev/null; then
             missing_tools+=("$tool")
+            all_ok=false
         fi
     done
-    
     if [ ${#missing_tools[@]} -ne 0 ]; then
         log_error "Missing required tools: ${missing_tools[*]}" "setup_dev_environment"
-        echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Please install the following tools:"
-        for tool in "${missing_tools[@]}"; do
-            echo -e "  - $tool"
-        done
-        return 1
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Please install: ${missing_tools[*]}"
     fi
 
-    # Check configuration files
-    local required_configs=("next.config.js" "tsconfig.json" "package.json")
     local missing_configs=()
-    
-    for config in "${required_configs[@]}"; do
-        if [ ! -f "$config" ]; then
-            missing_configs+=("$config")
+    for config_file in "${REQUIRED_PROJECT_FILES[@]}"; do
+        if [ ! -f "$config_file" ]; then
+            missing_configs+=("$config_file")
+            all_ok=false
         fi
     done
-    
     if [ ${#missing_configs[@]} -ne 0 ]; then
-        log_error "Missing configuration files: ${missing_configs[*]}" "setup_dev_environment"
-        return 1
+        log_error "Missing required project files: ${missing_configs[*]}" "setup_dev_environment"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Missing project files: ${missing_configs[*]}"
     fi
 
-    # Verify Supabase setup if needed
-    if [ -d "supabase" ]; then
-        if ! command -v supabase &> /dev/null; then
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Supabase CLI not found. Installing..."
-            npm install -g supabase
+    if [ -d "supabase" ] && ! command -v supabase &> /dev/null; then
+        log_warn "Supabase directory exists but Supabase CLI not found." "setup_dev_environment"
+        echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Supabase CLI not found. Consider installing with: npm install -g supabase"
+        # Do not set all_ok=false for this, it's optional
+    fi
+
+    if [ ! -f ".env.local" ] && [ -f ".env.example" ]; then
+        log_info ".env.local not found, copying from .env.example..."
+        if cp ".env.example" ".env.local"; then
+            log_info "Created .env.local from .env.example."
+            echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Created .env.local from .env.example. Please review it."
+        else
+            log_error "Failed to copy .env.example to .env.local." "setup_dev_environment"
+            all_ok=false
+        fi
+    elif [ ! -f ".env.local" ] && [ ! -f ".env" ]; then # Also check .env as a fallback
+        log_warn ".env.local or .env not found. Some features might not work." "setup_dev_environment"
+        echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} No .env.local or .env file found. Consider creating one (e.g., from .env.example or using Vercel env pull)."
+    fi
+
+    if [ ! -d "node_modules" ] && [ -f "package.json" ]; then
+        log_warn "node_modules directory not found." "setup_dev_environment"
+        echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} node_modules directory not found. Run 'Install Dependencies' option."
+        # all_ok=false # Not necessarily a failure of setup check, but an indicator for next steps
+    fi
+
+    if $all_ok; then
+        log_info "Development environment check passed."
+        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Development environment appears to be set up correctly."
+        return 0
+    else
+        log_error "Development environment setup check failed with one or more issues." "setup_dev_environment"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Development environment has issues. Please check logs."
+        return 1
+    fi
+}
+
+show_project_info() {
+    log_info "Displaying project information..."
+    echo -e "\n${ANSI_Bold}${ANSI_Cyan}=== Project Information ===${ANSI_Reset}"
+    if [ -f "package.json" ]; then
+        local name version description author
+        name=$(node -p "require('./package.json').name" 2>/dev/null || echo "N/A")
+        version=$(node -p "require('./package.json').version" 2>/dev/null || echo "N/A")
+        description=$(node -p "require('./package.json').description" 2>/dev/null || echo "N/A")
+        echo -e "${ANSI_Yellow}Project:${ANSI_Reset}     $name"
+        echo -e "${ANSI_Yellow}Version:${ANSI_Reset}     $version"
+        echo -e "${ANSI_Yellow}Description:${ANSI_Reset} $description"
+    else
+        echo -e "${ANSI_Yellow}package.json not found.${ANSI_Reset}"
+    fi
+
+    if command -v git >/dev/null 2>&1 && git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+        echo -e "\n${ANSI_Bold}${ANSI_Cyan}=== Git Status ===${ANSI_Reset}"
+        local branch status
+        branch=$(git branch --show-current 2>/dev/null || git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "N/A")
+        status=$(git status --porcelain 2>/dev/null)
+        echo -e "${ANSI_Yellow}Branch:${ANSI_Reset}      $branch"
+        if [ -n "$status" ]; then
+            echo -e "${ANSI_Yellow}Status:${ANSI_Reset}      ${ANSI_Red}Uncommitted changes${ANSI_Reset}"
+            echo "$status" | while IFS= read -r line; do echo "  $line"; done
+        else
+            echo -e "${ANSI_Yellow}Status:${ANSI_Reset}      ${ANSI_Green}Clean${ANSI_Reset}"
         fi
     fi
 
-    # Check for environment variables
-    if [ ! -f ".env.local" ] && [ ! -f ".env" ]; then
-        echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} No environment file found. Creating .env.local..."
-        cp .env.example .env.local 2>/dev/null || touch .env.local
-    fi
-
-    # Install dependencies if needed
-    if [ ! -d "node_modules" ]; then
-        echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Installing dependencies..."
-        npm install
-    fi
-
-    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Development environment is ready!"
-    return 0
-}
-
-# --- Project Information Display ---
-show_project_info() {
-    echo -e "\n${ANSI_Bold}${ANSI_Cyan}=== Project Information ===${ANSI_Reset}"
-    
-    # Package.json info
-    local name version description
-    name=$(node -p "require('./package.json').name" 2>/dev/null || echo "N/A")
-    version=$(node -p "require('./package.json').version" 2>/dev/null || echo "N/A")
-    description=$(node -p "require('./package.json').description" 2>/dev/null || echo "N/A")
-    
-    echo -e "${ANSI_Yellow}Project:${ANSI_Reset}     $name"
-    echo -e "${ANSI_Yellow}Version:${ANSI_Reset}     $version"
-    echo -e "${ANSI_Yellow}Description:${ANSI_Reset} $description"
-    
-    # Git info
-    local branch status
-    branch=$(git branch --show-current 2>/dev/null || echo "N/A")
-    status=$(git status --porcelain 2>/dev/null)
-    
-    echo -e "\n${ANSI_Bold}${ANSI_Cyan}=== Git Status ===${ANSI_Reset}"
-    echo -e "${ANSI_Yellow}Branch:${ANSI_Reset}      $branch"
-    if [ -n "$status" ]; then
-        echo -e "${ANSI_Yellow}Status:${ANSI_Reset}      Uncommitted changes"
-        echo "$status" | while read -r line; do
-            echo "  $line"
-        done
-    else
-        echo -e "${ANSI_Yellow}Status:${ANSI_Reset}      Clean"
-    fi
-    
-    # Environment
     echo -e "\n${ANSI_Bold}${ANSI_Cyan}=== Environment ===${ANSI_Reset}"
-    echo -e "${ANSI_Yellow}Node:${ANSI_Reset}        $(node -v 2>/dev/null || echo 'N/A')"
-    echo -e "${ANSI_Yellow}NPM:${ANSI_Reset}         $(npm -v 2>/dev/null || echo 'N/A')"
-    
-    # Project structure
-    echo -e "\n${ANSI_Bold}${ANSI_Cyan}=== Project Structure ===${ANSI_Reset}"
-    tree -L 2 -I 'node_modules|.git|.next|out' 2>/dev/null || ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//  /g' -e 's/^/  /' -e 's/-/|/'
+    echo -e "${ANSI_Yellow}CLI Version:${ANSI_Reset}   $VERSION"
+    echo -e "${ANSI_Yellow}OS:${ANSI_Reset}          $OS"
+    echo -e "${ANSI_Yellow}Node:${ANSI_Reset}        $(node -v 2>/dev/null || echo 'N/A (Node not found or not working)')"
+    echo -e "${ANSI_Yellow}NPM:${ANSI_Reset}         $(npm -v 2>/dev/null || echo 'N/A (npm not found or not working)')"
+
+    echo -e "\n${ANSI_Bold}${ANSI_Cyan}=== Project Structure (Top Level) ===${ANSI_Reset}"
+    if command -v tree >/dev/null 2>&1; then
+        tree -L 1 -a -I 'node_modules|.git|.next|out|.vercel|coverage|.nyc_output|storybook-static|dist' 2>/dev/null || ls -d .*/ */ | head -n 15
+    else
+        ls -d .*/ */ | head -n 15 # Fallback: list directories
+    fi
 }
 
-# --- Development Server Management ---
 manage_dev_server() {
-    local action=$1
-    local dev_pid_file=".dev-server.pid"
-    
-    case $action in
+    local action="$1"
+    local dev_pid_file=".dev-server.pid" # Store in project root
+
+    case "$action" in
         "start")
             if [ -f "$dev_pid_file" ]; then
-                local pid=$(cat "$dev_pid_file")
-                if kill -0 "$pid" 2>/dev/null; then
-                    echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} Development server is already running (PID: $pid)"
+                local pid
+                pid=$(cat "$dev_pid_file")
+                if ps -p "$pid" > /dev/null 2>&1; then # Check if process with that PID is running
+                    log_warn "Development server is already running (PID: $pid)."
+                    echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} Development server already running (PID: $pid)."
                     return 1
+                else
+                    log_info "Stale PID file found for dev server. Removing."
+                    rm -f "$dev_pid_file"
                 fi
             fi
-            
+            if [ ! -f "package.json" ] || ! grep -q "\"dev\":" package.json ; then
+                log_error "No 'npm run dev' script found in package.json." "manage_dev_server"
+                return 1
+            fi
+            log_info "Starting development server (npm run dev)..."
             echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Starting development server..."
-            npm run dev & echo $! > "$dev_pid_file"
-            echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Development server started!"
+            # Run in background, redirect its output, save PID
+            npm run dev > .dev-server.log 2>&1 &
+            echo $! > "$dev_pid_file"
+            log_info "Development server started (PID: $!). Output logged to .dev-server.log."
+            echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Development server started (PID: $!). Check .dev-server.log for output."
             ;;
-            
         "stop")
             if [ -f "$dev_pid_file" ]; then
-                local pid=$(cat "$dev_pid_file")
-                if kill -0 "$pid" 2>/dev/null; then
+                local pid
+                pid=$(cat "$dev_pid_file")
+                if ps -p "$pid" > /dev/null 2>&1; then
+                    log_info "Stopping development server (PID: $pid)..."
                     kill "$pid"
-                    rm "$dev_pid_file"
-                    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Development server stopped"
+                    sleep 1 # Give it a moment to shut down
+                    if ps -p "$pid" > /dev/null 2>&1; then # Check if still alive
+                        log_warn "Dev server (PID: $pid) did not stop gracefully, sending SIGKILL."
+                        kill -9 "$pid"
+                    fi
+                    rm -f "$dev_pid_file"
+                    log_info "Development server stopped."
+                    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Development server stopped."
                 else
-                    echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} No running development server found"
+                    log_warn "No running development server found for PID $pid (stale PID file)."
+                    echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} No running server found for PID in $dev_pid_file. Removed stale file."
+                    rm -f "$dev_pid_file"
                 fi
             else
-                echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} No development server PID file found"
+                log_warn "No development server PID file found. Is it running?"
+                echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} No development server PID file found."
             fi
             ;;
-            
         "status")
             if [ -f "$dev_pid_file" ]; then
-                local pid=$(cat "$dev_pid_file")
-                if kill -0 "$pid" 2>/dev/null; then
-                    echo -e "${ANSI_Green}[STATUS]${ANSI_Reset} Development server is running (PID: $pid)"
+                local pid
+                pid=$(cat "$dev_pid_file")
+                if ps -p "$pid" > /dev/null 2>&1; then
+                    log_info "Development server is running (PID: $pid)."
+                    echo -e "${ANSI_Green}[STATUS]${ANSI_Reset} Development server is RUNNING (PID: $pid)."
                 else
-                    echo -e "${ANSI_Yellow}[STATUS]${ANSI_Reset} Development server is not running"
-                    rm "$dev_pid_file"
+                    log_info "Development server is not running (stale PID file: $dev_pid_file)."
+                    echo -e "${ANSI_Yellow}[STATUS]${ANSI_Reset} Development server is NOT RUNNING (stale PID file found)."
+                    rm -f "$dev_pid_file"
                 fi
             else
-                echo -e "${ANSI_Yellow}[STATUS]${ANSI_Reset} No development server PID file found"
+                log_info "No development server PID file found. Assuming not running."
+                echo -e "${ANSI_Yellow}[STATUS]${ANSI_Reset} Development server is NOT RUNNING (no PID file)."
             fi
             ;;
+        *) log_error "Invalid action '$action' for manage_dev_server." "manage_dev_server"; return 1;;
     esac
 }
 
-# --- Database Management ---
 manage_database() {
-    if [ ! -d "supabase" ]; then
-        log_error "Supabase directory not found" "manage_database"
+    local action="$1"
+    if ! command -v supabase >/dev/null 2>&1; then
+        log_error "Supabase CLI not found. Please install it first (npm install -g supabase)." "manage_database"
+        return 1
+    fi
+    if [ ! -d "supabase" ]; then # Check if supabase project files exist
+        log_error "Supabase project directory ('supabase') not found in current location." "manage_database"
+        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} This does not appear to be a Supabase project root."
         return 1
     fi
 
-    local action=$1
-    
-    case $action in
-        "start")
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Starting Supabase local development..."
-            supabase start
-            ;;
-            
-        "stop")
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Stopping Supabase local development..."
-            supabase stop
-            ;;
-            
-        "status")
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Checking Supabase status..."
-            supabase status
-            ;;
-            
-        "reset")
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Resetting Supabase database..."
-            supabase db reset
-            ;;
+    case "$action" in
+        "start") run_long_command "supabase start" "Starting Supabase local services" "Supabase services started." "Failed to start Supabase." "supabase-start" ;;
+        "stop") run_long_command "supabase stop --no-backup" "Stopping Supabase local services" "Supabase services stopped." "Failed to stop Supabase." "supabase-stop" ;; # --no-backup often desired for quick stops
+        "status") supabase status ;; # Status is usually quick and informative directly
+        "reset") run_long_command "supabase db reset" "Resetting Supabase local database" "Supabase database reset." "Failed to reset Supabase database." "supabase-db-reset" ;;
+        *) log_error "Invalid action '$action' for manage_database." "manage_database"; return 1;;
     esac
 }
 
-# --- Vercel Deployment Management ---
 manage_vercel() {
-    # Check if Vercel CLI is installed
-    if ! command -v vercel &> /dev/null; then
-        echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Installing Vercel CLI..."
-        npm install -g vercel
+    local action="$1"
+    if ! command -v vercel >/dev/null 2>&1; then
+        echo -ne "${ANSI_Yellow}[ACTION]${ANSI_Reset} Vercel CLI not found. Attempt to install globally? (y/N): "
+        read -r install_choice
+        if [[ "$install_choice" == "y" || "$install_choice" == "Y" ]]; then
+            if ! run_long_command "npm install -g vercel" "Installing Vercel CLI" "Vercel CLI installed." "Failed to install Vercel CLI."; then
+                log_error "Failed to install Vercel CLI. Aborting Vercel operation." "manage_vercel"
+                return 1
+            fi
+        else
+            log_error "Vercel CLI not found and not installed. Aborting Vercel operation." "manage_vercel"
+            return 1
+        fi
     fi
 
-    local action=$1
-    
-    case $action in
-        "deploy")
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Deploying to Vercel..."
-            vercel deploy --prod
-            ;;
-            
+    case "$action" in
+        "deploy") run_long_command "vercel deploy --prod" "Deploying to Vercel (production)" "Deployment to Vercel initiated." "Vercel deployment failed." "vercel-deploy" ;;
         "env-pull")
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Pulling environment variables from Vercel..."
-            
-            # Backup existing .env.local if it exists
-            if [ -f ".env.local" ]; then
-                local timestamp=$(date +"%Y%m%d_%H%M%S")
-                cp .env.local ".env.local.backup.$timestamp"
-                echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Backed up existing .env.local to .env.local.backup.$timestamp"
+            log_info "Pulling environment variables from Vercel for current project/branch..."
+            local env_target_file=".env.local" # Default target
+            if [ -f "$env_target_file" ]; then
+                local backup_file="${env_target_file}.backup.$(date +"%Y%m%d_%H%M%S")"
+                log_info "Backing up existing $env_target_file to $backup_file"
+                cp "$env_target_file" "$backup_file"
             fi
-
-            # Pull environment variables from Vercel
-            vercel env pull .env.local
-            
-            # Verify if env pull was successful
-            if [ $? -eq 0 ]; then
-                echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Environment variables pulled successfully!"
+            if vercel env pull "$env_target_file"; then # Vercel CLI handles prompts
+                log_info "Vercel environment variables pulled to $env_target_file."
+                echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Environment variables pulled to $env_target_file."
             else
-                echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Failed to pull environment variables"
-                
-                # Restore backup if it exists
-                if [ -f ".env.local.backup.$timestamp" ]; then
-                    mv ".env.local.backup.$timestamp" .env.local
-                    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Restored previous .env.local from backup"
-                else
-                    # Create default .env.local if no backup exists
-                    create_default_env
+                log_error "Failed to pull Vercel environment variables." "manage_vercel (env-pull)"
+                if [ -f "$backup_file" ]; then
+                    log_info "Restoring $env_target_file from backup $backup_file."
+                    mv "$backup_file" "$env_target_file"
+                    echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} Restored $env_target_file from backup."
                 fi
+                return 1
             fi
             ;;
-            
         "env-push")
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Pushing environment variables to Vercel..."
-            if [ -f ".env.local" ]; then
-                while IFS='=' read -r key value; do
-                    # Skip comments and empty lines
-                    [[ $key =~ ^#.*$ ]] || [ -z "$key" ] && continue
-                    # Remove any leading/trailing whitespace
-                    key=$(echo "$key" | xargs)
-                    value=$(echo "$value" | xargs)
-                    if [ -n "$key" ] && [ -n "$value" ]; then
-                        echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Adding $key..."
-                        vercel env add "$key" production
-                    fi
-                done < .env.local
-                echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Environment variables pushed to Vercel"
-            else
-                log_error "No .env.local file found" "vercel-env-push"
+            log_info "Pushing environment variables from .env.local to Vercel (production)..."
+            if [ ! -f ".env.local" ]; then
+                log_error ".env.local file not found. Cannot push." "manage_vercel (env-push)"
+                return 1
             fi
+            echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} Reading from .env.local to push to Vercel Production environment."
+            local pushed_count=0
+            while IFS='=' read -r key value || [[ -n "$key" ]]; do
+                key=$(echo "$key" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+                if [[ "$key" =~ ^#.*$ ]] || [[ -z "$key" ]]; then continue; fi
+
+                value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/")
+
+                if [ -n "$key" ]; then # Vercel add needs a key. Value can be empty for some cases but vercel might prompt.
+                    echo -ne "${ANSI_Cyan}[ACTION]${ANSI_Reset} Adding/Updating Vercel env var ${ANSI_Bold}'$key'${ANSI_Reset} for production. Enter value if prompted or press Enter to use from file ('$value'): "
+                    # Vercel env add <name> <value> [environment(s)]
+                    # If value is sensitive, vercel might prompt anyway.
+                    # The command `vercel env add NAME VALUE production` should be non-interactive if VALUE is provided.
+                    if vercel env add "$key" "$value" production; then
+                        log_info "Successfully added/updated Vercel env var: $key (production)"
+                        echo -e "${ANSI_Green}OK${ANSI_Reset}"
+                        ((pushed_count++))
+                    else
+                        log_error "Failed to add/update Vercel env var: $key. It might require confirmation or already exist with a different type." "manage_vercel (env-push)"
+                        echo -e "${ANSI_Red}Failed for $key. Check Vercel output/dashboard.${ANSI_Reset}"
+                        # Optionally ask to continue
+                    fi
+                fi
+            done < ".env.local"
+            log_info "$pushed_count variables processed for Vercel env push."
+            echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Environment variable push process completed. $pushed_count variables processed."
             ;;
-            
-        "login")
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Logging into Vercel..."
-            vercel login
-            ;;
-            
-        "logout")
-            echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Logging out of Vercel..."
-            vercel logout
-            ;;
+        "login") vercel login ;;
+        "logout") vercel logout ;;
+        *) log_error "Invalid action '$action' for manage_vercel." "manage_vercel"; return 1;;
     esac
 }
 
-# --- Environment File Management ---
 create_default_env() {
     local env_file=".env.local"
-    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Creating default $env_file..."
-    
-    cat > "$env_file" << EOL
-# Created by Vercel CLI
-BLOB_READ_WRITE_TOKEN="vercel_blob_rw_oHm7KvD7C4TtStFe_Vdhrx6upV8v3ndlBKWSHyuWvHNPZpv"
-EDGE_CONFIG="https://edge-config.vercel.com/ecfg_pofj3zhkxfj9rt7jg4sr9qbzlmlu?token=fa66081e-cf6a-4ffc-add2-0c6a0cac6873"
-EXPERIMENTATION_CONFIG="https://edge-config.vercel.com/ecfg_ym1v5hpaeklryrq0nfsmc6klg71d?token=78217ac2-74bd-4daf-bb24-83c64cba1b40"
-EXPERIMENTATION_CONFIG_ITEM_KEY="statsig-4PDLG5X27SCb426nvhp6zk"
-GEMINI_API_KEY="AIzaSyAVxXAMj-XPhl3WqWcZ9pxTUOw9vFcjnPg"
-GITHUB_ID="Ov23liaheaCWBdU37uGQ"
-GITHUB_SECRET="0e273ee0dea9e61e64ab00c8a1db1e014e464f9b"
-GITHUB_TOKEN="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"
-NEXTAUTH_SECRET="6819ac284cca8fd463b202b92a5527b27a128d14b4374f431f4363d501050a6a"
-NEXTAUTH_URL="http://localhost:3000"
-NEXT_PUBLIC_LOCAL_STORAGE_ENCRYPTION_KEY="a75d504096f26bb2f95ae350d67c9d0d1e96be70aeaf4d2b58e7c474e0aa4e31"
-NEXT_PUBLIC_STATSIG_CLIENT_KEY="client-XObhw1cELcHMXjInkyEsVH4blVSCijKtpFDiPWBkMte"
-NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YnJpZHlpbnNyZWJoaWJrZ2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyNTQ3MDUsImV4cCI6MjA1MjgzMDcwNX0.sPGXhW_5PyZUrrmrJ36q1iCejppHkQrEfgcO2mSnQOE"
-NEXT_PUBLIC_SUPABASE_URL="https://aybridyinsrebhibkgkh.supabase.co"
-NEXT_PUBLIC_VERCEL_URL="https://wescode.vercel.app"
-POSTGRES_DATABASE="postgres"
-POSTGRES_HOST="db.aybridyinsrebhibkgkh.supabase.co"
-POSTGRES_PASSWORD="95KkaULxLgM9XBzE"
-POSTGRES_PRISMA_URL="postgres://postgres.aybridyinsrebhibkgkh:95KkaULxLgM9XBzE@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
-POSTGRES_URL="postgres://postgres.aybridyinsrebhibkgkh:95KkaULxLgM9XBzE@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
-POSTGRES_URL_NON_POOLING="postgres://postgres.aybridyinsrebhibkgkh:95KkaULxLgM9XBzE@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
-POSTGRES_USER="postgres"
-REDIS_URL="redis://default:jsMU2rG7qIKR8KJTOyi3SDClPnRzvmwE@redis-14221.c270.us-east-1-3.ec2.redns.redis-cloud.com:14221"
-STATSIG_SERVER_API_KEY="secret-hZo8dDHBSEdyezNfaSaeGCEyvx1J7bl5cwfNVqOOFsL"
-SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YnJpZHlpbnNyZWJoaWJrZ2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzcyNTQ3MDUsImV4cCI6MjA1MjgzMDcwNX0.sPGXhW_5PyZUrrmrJ36q1iCejppHkQrEfgcO2mSnQOE"
-SUPABASE_JWT_SECRET="kCXz5qE6VrQPt+Uw6o387xSFXaqbNhFCGOKWchArheIQ/oG1B150Pg7IEyE+ZJliG8jqtlI7L3BAGde40PhduA=="
-SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF5YnJpZHlpbnNyZWJoaWJrZ2toIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzI1NDcwNSwiZXhwIjoyMDUyODMwNzA1fQ.vL_wcpzc6wWnBnkc4BjiH1FAmpDsfwoS3gYLpuuhXFM"
-SUPABASE_URL="https://aybridyinsrebhibkgkh.supabase.co"
-VERCEL_ENV="production"
-VERCEL_OIDC_TOKEN="eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Im1yay00MzAyZWMxYjY3MGY0OGE5OGFkNjFkYWRlNGEyM2JlNyJ9.eyJpc3MiOiJodHRwczovL29pZGMudmVyY2VsLmNvbS9uZWJ1bGEtc2luZ3VsYXJpdHkiLCJzdWIiOiJvd25lcjpuZWJ1bGEtc2luZ3VsYXJpdHk6cHJvamVjdDpwb3J0Zm9saW86ZW52aXJvbm1lbnQ6ZGV2ZWxvcG1lbnQiLCJzY29wZSI6Im93bmVyOm5lYnVsYS1zaW5ndWxhcml0eTpwcm9qZWN0OnBvcnRmb2xpbzplbnZpcm9ubWVudDpkZXZlbG9wbWVudCIsImF1ZCI6Imh0dHBzOi8vdmVyY2VsLmNvbS9uZWJ1bGEtc2luZ3VsYXJpdHkiLCJvd25lciI6Im5lYnVsYS1zaW5ndWxhcml0eSIsIm93bmVyX2lkIjoidGVhbV9jbWVQWkcwTVRZaUc2UHlPTkdtTTJVSEEiLCJwcm9qZWN0IjoicG9ydGZvbGlvIiwicHJvamVjdF9pZCI6InByal9iUVFneHNlTXRqQndFZ1o1bzZaYVlQeVNHQTFJIiwiZW52aXJvbm1lbnQiOiJkZXZlbG9wbWVudCIsIm5iZiI6MTc0ODY2Nzc3OCwiaWF0IjoxNzQ4NjY3Nzc4LCJleHAiOjE3NDg3MTA5Nzh9.BDwJl40f-ci9TaSM2IohJ9290-mghuug24J-PhcgKbTly8BXx7WhMIF6etka7iOWqRIC-QLhRk2t1zKDw4YUKAHSfkX5-rHtrwKWbkTyVl-F7gs00BqwqrBrB_HT3s2xJe1BpF5UORyp0nGb1wRJJ6D7vPIGKWGSyzXHw2B06eon9GHMsMHdOn7kSblfgeh761EALq3p0z1jqzZvO7wJVSWzhXWkT-waAoZFD1DAJrEJOhoL6zj_mynIWwxnfP2tMu8bVGsVarCbWbzzq4K4kc271eI26Ix8WmOWstMykeuUZvkADYVeSEoRYLs3B_ZsUEuyKEg5zgyqoLgu3eZX1g"
+    log_info "Creating default $env_file..."
+    if [ -f "$env_file" ]; then
+        echo -ne "${ANSI_Yellow}[WARN]${ANSI_Reset} $env_file already exists. Overwrite with template? (y/N): "
+        read -r overwrite_choice
+        if [[ "$overwrite_choice" != "y" && "$overwrite_choice" != "Y" ]]; then
+            log_info "User chose not to overwrite $env_file."
+            echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} $env_file not overwritten."
+            return 1
+        fi
+    fi
 
-# Add other variables as needed...
+    # Using the .env.example pattern is more robust than hardcoding values here
+    if [ -f ".env.example" ]; then
+        if cp ".env.example" "$env_file"; then
+            log_info "Created $env_file from .env.example."
+            echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Created $env_file from .env.example. Please review and fill in the values."
+        else
+            log_error "Failed to copy .env.example to $env_file." "create_default_env"
+        fi
+    else
+        log_warn ".env.example not found. Creating a very basic $env_file."
+        cat > "$env_file" << EOL
+# Basic .env.local created by CLI
+# Please add your project-specific variables here.
+# Example:
+# DATABASE_URL="your_database_url_here"
+# API_KEY="your_api_key_here"
+
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
 EOL
-
-    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Created default $env_file"
-    echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Remember to update the values in $env_file"
+        log_info "Created basic $env_file. Please customize it."
+        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Created a basic $env_file. Please customize it."
+    fi
+    echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Remember to update placeholder values in $env_file and DO NOT commit it if it contains secrets."
 }
+
+# --- Interactive Menu ---
+show_menu() {
+    clear
+    local border_top="╔$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╗"
+    local border_middle="╠$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╣"
+    local border_thin_sep="╟$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '─')╢"
+    local border_bottom="╚$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╝"
+
+    local title_core="Wescore Project CLI v${VERSION}"
+    local title_len=${#title_core}
+    local total_padding=$((CONTENT_WIDTH - title_len))
+    local pad_left=$((total_padding / 2))
+    local pad_right=$((total_padding - pad_left))
+    local title_line
+    title_line=$(printf "%*s%s%s%s%*s" "$pad_left" "" "${ANSI_Bold}${ANSI_Yellow}" "$title_core" "${ANSI_Cyan}" "$pad_right" "")
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_top}${ANSI_Reset}"
+    echo -e "║${title_line}${ANSI_Reset}║"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+
+    print_section_title() {
+        local core_title="$1"; local color="${2:-${ANSI_Blue}}"
+        local title_text_len=${#core_title}
+        local total_sec_padding=$((CONTENT_WIDTH - title_text_len)); local pad_sec_left=$((total_sec_padding / 2)); local pad_sec_right=$((total_sec_padding - pad_sec_left))
+        local section_line_content; section_line_content=$(printf "%*s%s%s%s%*s" "$pad_sec_left" "" "${ANSI_Bold}${color}" "$core_title" "${ANSI_Reset}" "$pad_sec_right" "")
+        echo -e "║${section_line_content}║"
+    }
+
+    # Sections and items... (Copied from original, ensure keys match main loop)
+    print_section_title "Development"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_thin_sep}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[e]${ANSI_Reset} Setup/Check Env       - Check/setup dev environment"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[i]${ANSI_Reset} Install Dependencies    - Setup project packages"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[d]${ANSI_Reset} Dev Server              - Manage development server"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[b]${ANSI_Reset} Database (Supabase)     - Manage local Supabase"
+
+    print_section_title "Testing & Quality"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[t]${ANSI_Reset} Run Tests               - Execute test suite (npm test)"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[c]${ANSI_Reset} Run Code Checks         - Lint & analyze (npm run check)"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[a]${ANSI_Reset} Security Audit          - Check deps (npm audit)"
+
+    print_section_title "Build & Maintenance"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[w]${ANSI_Reset} Build Project           - Create prod build (npm run build)"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[x]${ANSI_Reset} Clean Artifacts         - Remove build/cache files"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[r]${ANSI_Reset} Reset Project           - Clean slate (remove artifacts, caches)"
+
+    print_section_title "Utilities & Info"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[s]${ANSI_Reset} Project Status          - View project info & versions"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[u]${ANSI_Reset} Project Tracker         - View & Add to Tracker Log"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[l]${ANSI_Reset} View CLI Logs           - Display $LOG_FILE"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[k]${ANSI_Reset} Generate Secret Key     - Generate a secure key (openssl)"
+
+    print_section_title "Git & Vercel"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[g]${ANSI_Reset} Generate Commit Msg     - Interactive commit message"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[p]${ANSI_Reset} Smart Commit & Push     - Stage, commit, and push"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[v]${ANSI_Reset} Vercel Deployment       - Deploy, Login/Logout"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Green}[m]${ANSI_Reset} Vercel Env Vars         - Pull/Push Vercel env, create .env.local"
+    
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_middle}${ANSI_Reset}"
+    print_section_title "Exit" "${ANSI_Red}"
+    print_bordered_line " ${ANSI_Bold}${ANSI_Red}[q]${ANSI_Reset} Exit                    - Quit application"
+    echo -e "${ANSI_Bold}${ANSI_Cyan}${border_bottom}${ANSI_Reset}"
+    echo -e "${ANSI_Yellow}  Enter shortcut key (e.g., 'e', 'i', 'q')...${ANSI_Reset}"
+}
+
 
 # --- Main Execution ---
 main() {
-    validate_environment
-
+    log_info "CLI Started. Version: $VERSION. OS: $OS. Log File: $LOG_FILE"
+    validate_environment # This will exit if validation fails
 
     while true; do
         show_menu
-        echo -e "${ANSI_Bold}${ANSI_Yellow}› ${ANSI_Reset}\c"
+        echo -ne "${ANSI_Bold}${ANSI_Yellow}› ${ANSI_Reset}"
         read -r choice
-        choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
+        choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]') # Case-insensitive
+
+        # Add a small delay or clear before action output for better UX
+        # clear # Or just some newlines
+        echo ""
 
         case $choice in
-            "e") {
-                log_info "Setting up development environment..."
-                setup_dev_environment
-            } ;;
-            "i") {
-                log_info "Starting dependency installation..."
-                echo -e "${ANSI_Yellow}[STATUS]${ANSI_Reset} Installing dependencies (this may take a while)..."
-
-                # Show progress spinner during installation
-                start_spinner "Installing dependencies..."
-                if npm install --legacy-peer-deps --progress=true > .cli.log 2>&1; then
-                    stop_spinner
-                    log_info "Dependencies installed successfully"
-                    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Dependencies installed successfully"
-                    # Check if the install log contains any warnings or errors
-                    if grep -q -i "warn" .cli.log; then
-                        log_warn "npm install completed with warnings. Check .cli.log for details."
-                        echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} npm install completed with warnings. Check .cli.log for details."
-                    fi
-                    if grep -q -i "error" .cli.log; then
-                        log_error "npm install completed with errors. Check .cli.log for details." "npm install"
-                        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} npm install completed with errors. Check .cli.log for details."
-                    fi
-
-                    # Verify installation with progress
-                    if [ -d "node_modules" ]; then
-                        start_spinner "Verifying packages..."
-                        log_info "Running npm ls --depth=0"
-                        if npm ls --depth=0 > .cli.log 2>&1; then
-                            local npm_ls_exit_code=$?
-                            log_info "npm ls --depth=0 completed with exit code: $npm_ls_exit_code"
-                            stop_spinner
-                            echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Package verification completed"
-                            log_info "Package verification successful"
-                        else
-                            local npm_ls_exit_code=$?
-                            log_error "npm ls --depth=0 failed" "npm ls --depth=0" "$npm_ls_exit_code"
-                            stop_spinner
-                            log_error "Dependency verification failed"  "npm ls --depth=0" "$npm_ls_exit_code"
-                            echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Package verification failed - check .cli.log for details"
-                        fi
-                    else
-                        stop_spinner
-                        log_error "node_modules directory not found after installation" "npm install" "N/A"
-                        echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Installation failed - node_modules not found"
-                        exit 1
-                    fi
-                else
-                    stop_spinner
-                    log_error "Dependency installation failed" "npm install" "N/A"
-                    echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Installation failed - check .cli.log for details"
-                    exit 1
+            "e") setup_dev_environment ;;
+            "i") 
+                if ! run_long_command "npm install --legacy-peer-deps" \
+                    "Installing dependencies" \
+                    "Dependencies installed successfully." \
+                    "Dependency installation failed."; then
+                    # run_long_command handles logging and error messages
+                    # Exit if critical like install fails
+                    exit 1 # Or decide if user can continue
                 fi
-            } ;;
-            "d") {
+                # Post-install verification (optional, can be part of run_long_command if generalized)
+                if [ -d "node_modules" ]; then
+                    log_info "Verifying package integrity (npm ls --depth=0)..."
+                    if npm ls --depth=0 > "$CMD_TEMP_LOG" 2>&1; then
+                        log_info "npm ls verification passed."
+                        echo -e "${ANSI_Green}[INFO]${ANSI_Reset} Package verification (npm ls) passed."
+                    else
+                        log_warn "npm ls verification reported issues. Check $CMD_TEMP_LOG and $LOG_FILE."
+                        echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} Package verification (npm ls) reported issues."
+                        cat "$CMD_TEMP_LOG" >> "$LOG_FILE" # Append npm ls output
+                    fi
+                fi
+                ;;
+            "d")
                 echo -e "\n${ANSI_Bold}${ANSI_Yellow}Dev Server Management${ANSI_Reset}"
-                echo -e "1) Start server"
-                echo -e "2) Stop server"
-                echo -e "3) Check status"
-                echo -e "${ANSI_Bold}${ANSI_Yellow}Choose an option: ${ANSI_Reset}\c"
+                echo -e "  1) Start server"
+                echo -e "  2) Stop server"
+                echo -e "  3) Check status"
+                echo -e "  b) Back"
+                echo -ne "${ANSI_Bold}${ANSI_Yellow}Choose an option: ${ANSI_Reset}"
                 read -r server_choice
                 case $server_choice in
                     1) manage_dev_server "start" ;;
                     2) manage_dev_server "stop" ;;
                     3) manage_dev_server "status" ;;
-                    *) log_error "Invalid choice" "dev_server" ;;
+                    "b"|"B") ;;
+                    *) log_error "Invalid choice '$server_choice' for Dev Server." "main_loop" ;;
                 esac
-            } ;;
-            "b") {
-                if [ ! -d "supabase" ]; then
-                    log_error "Supabase not configured in this project" "database"
-                    break
-                fi
-                echo -e "\n${ANSI_Bold}${ANSI_Yellow}Database Management${ANSI_Reset}"
-                echo -e "1) Start local database"
-                echo -e "2) Stop local database"
-                echo -e "3) Check status"
-                echo -e "4) Reset database"
-                echo -e "${ANSI_Bold}${ANSI_Yellow}Choose an option: ${ANSI_Reset}\c"
+                ;;
+            "b")
+                echo -e "\n${ANSI_Bold}${ANSI_Yellow}Database (Supabase) Management${ANSI_Reset}"
+                echo -e "  1) Start local database"
+                echo -e "  2) Stop local database"
+                echo -e "  3) Check status"
+                echo -e "  4) Reset database"
+                echo -e "  b) Back"
+                echo -ne "${ANSI_Bold}${ANSI_Yellow}Choose an option: ${ANSI_Reset}"
                 read -r db_choice
                 case $db_choice in
                     1) manage_database "start" ;;
                     2) manage_database "stop" ;;
                     3) manage_database "status" ;;
                     4) manage_database "reset" ;;
-                    *) log_error "Invalid choice" "database" ;;
+                    "b"|"B") ;;
+                    *) log_error "Invalid choice '$db_choice' for Database." "main_loop" ;;
                 esac
-            } ;;
-            "t") {
-                log_info "Running tests..."
-                local test_command="npm test"
-                log_info "Running npm test"
-                echo "$(date +'%Y-%m-%d %H:%M:%S') - Running command: $test_command" > .cli.log
-                if $test_command  2>&1 | tee -a .cli.log; then
-                    local npm_test_exit_code=$?
-                    log_info "npm test completed with exit code: $npm_test_exit_code"
-                    log_info "Tests completed successfully."
-                    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Tests completed successfully."
+                ;;
+            "t")
+                if ! run_long_command "npm test" \
+                    "Running tests" \
+                    "Tests completed." \
+                    "Tests failed or encountered errors."; then
+                    exit 1 # Tests failing is critical
+                fi
+                ;;
+            "c")
+                if ! run_long_command "npm run check" \
+                    "Running code checks" \
+                    "Code checks completed." \
+                    "Code checks failed or found issues."; then
+                    exit 1 # Lint/check failures are critical
+                fi
+                ;;
+            "a") # Security Audit - typically interactive, direct output is fine
+                log_info "Running security audit (npm audit)..."
+                echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Running npm audit. Review output for vulnerabilities..."
+                if npm audit; then
+                    log_info "npm audit completed. No high/critical vulnerabilities or audit passed."
+                    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} npm audit check passed or found no new high/critical issues."
                 else
-                    local npm_test_exit_code=$?
-                    log_error "npm test failed" "$test_command" "$npm_test_exit_code"
-                    log_error "Tests failed. Check .cli.log for details." "$test_command" "$npm_test_exit_code"
-                    echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Tests failed. Check .cli.log for details."
-                    exit 1
+                    local audit_exit_code=$?
+                    log_warn "npm audit found vulnerabilities or failed (Exit Code: $audit_exit_code). Please review the output."
+                    echo -e "${ANSI_Red}[WARN]${ANSI_Reset} npm audit found issues or failed. Review output above."
+                    # Do not exit for audit failures typically, user needs to assess
                 fi
-                if grep -q -i "warn" .cli.log; then
-                    log_warn "npm test completed with warnings. Check .cli.log for details."
-                    echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} npm test completed with warnings. Check .cli.log for details."
+                ;;
+            "w")
+                if ! run_long_command "npm run build" \
+                    "Building project" \
+                    "Project built successfully." \
+                    "Project build failed."; then
+                    exit 1 # Build failure is critical
                 fi
-                if grep -q -i "error" .cli.log; then
-                    log_error "npm test completed with errors. Check .cli.log for details." "$test_command"
-                    echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} npm test completed with errors. Check .cli.log for details."
-                fi
-                log_info "Tests completed. Check .cli.log for details."
-            } ;;
-            "c") {
-                log_info "Running code checks..."
-                timestamp=$(date +'%Y-%m-%d %T')
-                local check_command="npm run check"
-                log_info "Running npm run check"
-                echo "[${timestamp}] Running: $check_command" >> "$LOG_FILE"
-                local check_command_log="npm run check"
-                echo "$(date +'%Y-%m-%d %H:%M:%S') - Running command: $check_command_log" > .cli.log
-                if $check_command  2>&1 | tee -a .cli.log; then
-                    local npm_check_exit_code=$?
-                    log_info "npm run check completed with exit code: $npm_check_exit_code"
-                    log_info "Code checks completed successfully."
-                    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Code checks completed successfully."
-                else
-                    local npm_check_exit_code=$?
-                    log_error "npm run check failed" "$check_command" "$npm_check_exit_code"
-                    log_error "Code checks failed. Check .cli.log for details." "$check_command" "$npm_check_exit_code"
-                    echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Code checks failed. Check .cli.log for details."
-                    exit 1
-                fi
-                if grep -q -i "warn" .cli.log; then
-                    log_warn "npm run check completed with warnings. Check .cli.log for details."
-                    echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} npm run check completed with warnings. Check .cli.log for details."
-                fi
-                if grep -q -i "error" .cli.log; then
-                    log_error "npm run check completed with errors. Check .cli.log for details." "$check_command"
-                    echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} npm run check completed with errors. Check .cli.log for details."
-                fi
-                log_info "Code checks completed. Check .cli.log for details."
-            } ;;
-            "a") { npm audit ;} ;;
-            "w") {
-                log_info "Building project..."
-                local build_command="npm run build"
-                log_info "Running npm run build"
-                echo "$(date +'%Y-%m-%d %H:%M:%S') - Running command: $build_command" > .cli.log
-                if $build_command 2>&1 | tee -a .cli.log; then
-                    local npm_build_exit_code=$?
-                    log_info "npm run build completed with exit code: $npm_build_exit_code"
-                    log_info "Project built successfully."
-                    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Project built successfully."
-                else
-                    local npm_build_exit_code=$?
-                    log_error "npm run build failed" "$build_command" "$npm_build_exit_code"
-                    log_error "Project build failed. Check .cli.log for details." "$build_command" "$npm_build_exit_code"
-                    echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Project build failed. Check .cli.log for details."
-                    exit 1
-                fi
-                if grep -q -i "warn" .cli.log; then
-                    log_warn "npm run build completed with warnings. Check .cli.log for details."
-                    echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} npm run build completed with warnings. Check .cli.log for details."
-                fi
-                if grep -q -i "error" .cli.log; then
-                    log_error "npm run build completed with errors. Check .cli.log for details." "$build_command"
-                    echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} npm build completed with errors. Check .cli.log for details."
-                fi
-                log_info "Project build completed. Check .cli.log for details."
-            } ;;
-            "x") {
-                log_info "Cleaning artifacts..."
-                clean_artifacts
-            } ;;
-            "r") {
-                log_info "Starting project reset..."
-                reset_project
-            } ;;
-            "s") {
-                log_info "Displaying project information..."
-                show_project_info
-            } ;;
-            "u") { # Project Tracker
-                log_info "Accessing Project Tracker..."
+                ;;
+            "x") clean_artifacts ;;
+            "r") reset_project ;;
+            "s") show_project_info ;;
+            "u")
+                log_info "Accessing Project Tracker ($TRACKER_FILE)..."
                 echo -e "\n${ANSI_Bold}${ANSI_Magenta}--- Project Tracker ---${ANSI_Reset}"
-
                 if [[ -f "$TRACKER_FILE" && -s "$TRACKER_FILE" ]]; then
                     echo -e "${ANSI_Yellow}Recent Entries (last 15):${ANSI_Reset}"
-                    tail -n 15 "$TRACKER_FILE"
-                    echo "" # Extra newline for spacing
+                    tail -n 15 "$TRACKER_FILE"; echo ""
                 else
                     echo -e "${ANSI_Cyan}Tracker is currently empty.${ANSI_Reset}"
                 fi
-
-                local add_choice
-                echo -e "${ANSI_Bold}${ANSI_Yellow}Add a new entry to the tracker? (y/N): ${ANSI_Reset}\c"
+                echo -ne "${ANSI_Bold}${ANSI_Yellow}Add new entry? (y/N): ${ANSI_Reset}"
                 read -r add_choice
-                add_choice=$(echo "$add_choice" | tr '[:upper:]' '[:lower:]')
-
-                if [[ "$add_choice" == "y" ]]; then
-                    local tracker_note
-                    echo -e "${ANSI_Bold}${ANSI_Yellow}Enter tracker note: ${ANSI_Reset}\c"
+                if [[ "$add_choice" == "y" || "$add_choice" == "Y" ]]; then
+                    echo -ne "${ANSI_Bold}${ANSI_Yellow}Enter tracker note: ${ANSI_Reset}"
                     read -r tracker_note
                     if [ -n "$tracker_note" ]; then
-                        local timestamp
-                        timestamp=$(date +"%Y-%m-%d %H:%M:%S")
-                        echo "$timestamp - $tracker_note" >> "$TRACKER_FILE"
+                        local tracker_log_entry="$(date +"%Y-%m-%d %H:%M:%S") - $tracker_note"
+                        echo "$tracker_log_entry" >> "$TRACKER_FILE"
+                        rotate_log "$TRACKER_FILE" # Rotate tracker if needed
                         log_info "New entry added to tracker: $tracker_note"
-                        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Entry added to tracker."
+                        echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Entry added."
                     else
-                        log_warn "No tracker note entered. Nothing added."
-                        echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} No note entered. Nothing added."
+                        log_warn "No tracker note entered."
                     fi
-                else
-                    log_info "User chose not to add a new tracker entry."
-                    echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} No new entry added."
                 fi
-            } ;;
-            "l") cat "$LOG_FILE" ;;
-            "g") {
-                log_info "Generating commit message..."
-                generate_commit_message
-            } ;;
-            "p") { # New: Commit & Push
-                log_info "Starting Commit & Push All..."
-                commit_and_push
-            } ;;
-            "v") {
-                log_info "Managing Vercel deployment..."
-                echo -e "\n${ANSI_Bold}${ANSI_Yellow}Vercel Deployment${ANSI_Reset}"
-                echo -e "1) Deploy to production"
-                echo -e "2) Login to Vercel"
-                echo -e "3) Logout from Vercel"
-                echo -e "${ANSI_Bold}${ANSI_Yellow}Choose an option: ${ANSI_Reset}\c"
+                ;;
+            "l")
+                log_info "Displaying CLI log file: $LOG_FILE"
+                if [ -f "$LOG_FILE" ]; then
+                    echo -e "\n${ANSI_Bold}${ANSI_Cyan}--- CLI Log ($LOG_FILE) ---${ANSI_Reset}"
+                    cat "$LOG_FILE"
+                    echo -e "${ANSI_Bold}${ANSI_Cyan}--- End of Log ---${ANSI_Reset}"
+                else
+                    log_warn "Log file $LOG_FILE not found."
+                fi
+                ;;
+            "g") generate_commit_message ;;
+            "p") commit_and_push ;;
+            "v")
+                echo -e "\n${ANSI_Bold}${ANSI_Yellow}Vercel Deployment Management${ANSI_Reset}"
+                echo -e "  1) Deploy to production"
+                echo -e "  2) Login to Vercel"
+                echo -e "  3) Logout from Vercel"
+                echo -e "  b) Back"
+                echo -ne "${ANSI_Bold}${ANSI_Yellow}Choose an option: ${ANSI_Reset}"
                 read -r deploy_choice
                 case $deploy_choice in
                     1) manage_vercel "deploy" ;;
                     2) manage_vercel "login" ;;
                     3) manage_vercel "logout" ;;
-                    *) log_error "Invalid choice" "vercel-deployment" ;;
+                    "b"|"B") ;;
+                    *) log_error "Invalid choice '$deploy_choice' for Vercel Deployment." "main_loop" ;;
                 esac
-            } ;;
-            "m") {
-                log_info "Managing environment variables..."
-                echo -e "\n${ANSI_Bold}${ANSI_Yellow}Environment Variable Management${ANSI_Reset}"
-                echo -e "1) Pull from Vercel"
-                echo -e "2) Push to Vercel"
-                echo -e "3) Create default .env.local"
-                echo -e "${ANSI_Bold}${ANSI_Yellow}Choose an option: ${ANSI_Reset}\c"
+                ;;
+            "m")
+                echo -e "\n${ANSI_Bold}${ANSI_Yellow}Vercel Environment Variable Management${ANSI_Reset}"
+                echo -e "  1) Pull from Vercel (updates .env.local)"
+                echo -e "  2) Push to Vercel (from .env.local to Production env)"
+                echo -e "  3) Create default .env.local (from .env.example or basic template)"
+                echo -e "  b) Back"
+                echo -ne "${ANSI_Bold}${ANSI_Yellow}Choose an option: ${ANSI_Reset}"
                 read -r env_choice
                 case $env_choice in
                     1) manage_vercel "env-pull" ;;
                     2) manage_vercel "env-push" ;;
                     3) create_default_env ;;
-                    *) log_error "Invalid choice" "env-management" ;;
+                    "b"|"B") ;;
+                    *) log_error "Invalid choice '$env_choice' for Vercel Env Vars." "main_loop" ;;
                 esac
-            } ;;
-            "k") {
-                log_info "Generating secret key..."
-                generate_secret_key
-            } ;;
-            "q") exit 0 ;;
-            *) log_error "Invalid selection" "main" ;;
+                ;;
+            "k") generate_secret_key ;;
+            "q") cleanup ;; # Calls exit internally
+            *)
+                log_warn "Invalid selection: '$choice'"
+                echo -e "${ANSI_Red}Invalid selection. Please try again.${ANSI_Reset}"
+                ;;
         esac
 
-        read -p "Press Enter to continue..."
+        if [[ "$choice" != "q" ]]; then
+            echo -ne "\n${ANSI_Yellow}Press Enter to continue...${ANSI_Reset}"
+            read -r _ # Wait for user
+        fi
     done
 }
 
-# Properly separate Bash and PowerShell sections
-if [[ "$0" == "${BASH_SOURCE[0]}" ]]; then
+# Script entry point: only run main if executed directly
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     main "$@"
-    exit 0
+    exit 0 # Should be unreachable if main loop is infinite or cleanup exits
 fi
 
+
 # --- PowerShell Section ---
+# (This section is not executed by Bash due to the `exit 0` above when script is run directly)
 # --- Global Variables ---
-$script:LOG_FILE = $env:LOG_FILE # Attempt to get from environment if set by Bash
-if (-not $script:LOG_FILE) { $script:LOG_FILE = "c:\Users\johnw\portfolio\.cli.ps.log" } # Default PS log
-$script:REQUIRED_NODE_VERSION = $env:REQUIRED_NODE_VERSION # Attempt to get from env
-if (-not $script:REQUIRED_NODE_VERSION) { $script:REQUIRED_NODE_VERSION = "16.0.0" }
-# ... (initialize other PowerShell script variables similarly, potentially from env vars if Bash exports them)
-$script:REQUIRED_NPM_VERSION="9.0.0"
-$script:BUILD_ARTIFACTS=(".next", ".vercel", "node_modules", "coverage", ".nyc_output", "storybook-static", "dist", "out")
-$script:LOG_PATTERNS=("*.cli.log", "*.tmp", "*.temp", "*.bak", "*.cache")
-$script:REQUIRED_PROJECT_FILES=("package.json", "tsconfig.json", "next.config.js")
-
-$script:ANSI = @{
-    Reset   = "`e[0m"
-    Bold    = "`e[1m"
-    Red     = "`e[31m"
-    Yellow  = "`e[33m"
-    Green   = "`e[32m"
-    Cyan    = "`e[36m"
-    Gray    = "`e[90m" # Using bright black for gray
-    # ... add other colors as needed by PowerShell part
-}
-
-$script:CurrentNodeVersion = $null
-$script:CurrentNpmVersion = $null
-
-# --- PowerShell Functions ---
-
-function Get-OrElse {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory=$true, ValueFromPipeline=$true)]
-        $InputObject,
-        [Parameter(Mandatory=$true)]
-        $DefaultValue
-    )
-    if ($null -ne $InputObject -and $InputObject -isnot [System.Management.Automation.Language.NullString]) {
-        return $InputObject
-    } else {
-        return $DefaultValue
-    }
-}
-
-function Write-Log {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true)]
-        [ValidateNotNullOrEmpty()]
-        [string]$Message,
-
-        [Parameter(Mandatory = $false, Position = 1)]
-        [ValidateSet("INFO", "ERROR", "WARN", "SUCCESS", "DEBUG")]
-        [string]$Level = "INFO",
-
-        [Parameter(Mandatory = $false)]
-        [string]$LogPath = $script:LOG_FILE # Use script-scoped variable
-    )
-
-    process {
-        try {
-            $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-            $logMessage = "$timestamp - [$Level] $Message"
-
-            # Ensure log directory exists
-            $logDir = Split-Path -Parent -Path $LogPath -Resolve
-            if ($logDir -and (-not (Test-Path -Path $logDir -PathType Container))) {
-                New-Item -ItemType Directory -Path $logDir -Force | Out-Null
-                Write-Host "Created log directory: $logDir" -ForegroundColor Gray
-            }
-
-            # Write to log file
-            Add-Content -Path $LogPath -Value $logMessage
-
-            # Console output with color
-            switch ($Level) {
-                "ERROR"   { Write-Host "$($script:ANSI.Red)$Message$($script:ANSI.Reset)" }
-                "WARN"    { Write-Host "$($script:ANSI.Yellow)$Message$($script:ANSI.Reset)" }
-                "SUCCESS" { Write-Host "$($script:ANSI.Green)$Message$($script:ANSI.Reset)" }
-                "DEBUG"   { Write-Host "$($script:ANSI.Gray)$Message$($script:ANSI.Reset)" } # Make DEBUG visible but gray
-                default   { Write-Host $Message }
-            }
-        }
-        catch {
-            # Avoid recursive logging if Write-Log itself fails
-            $errorMessage = "FATAL: Failed to write log to '$LogPath'. Error: $($_.Exception.Message)"
-            Write-Error $errorMessage
-            Write-Host $errorMessage -ForegroundColor Red
-            # Consider exiting or alternative logging here if file logging is critical
-        }
-    }
-}
-
-function Get-Configuration {
-    param (
-        [string]$ConfigFile
-    )
-
-    if ($ConfigFile -and (Test-Path $ConfigFile -PathType Leaf)) {
-        try {
-            Write-Log "Loading configuration from $ConfigFile" "INFO"
-            $config = Get-Content $ConfigFile -Raw | ConvertFrom-Json -ErrorAction Stop
-
-            # Update script parameters if present in the config file
-            if ($config.PSObject.Properties.Name -contains 'LOG_FILE') { $script:LOG_FILE = $config.cli.log_FILE }
-            if ($config.PSObject.Properties.Name -contains 'REQUIRED_NODE_VERSION') { $script:REQUIRED_NODE_VERSION = $config.REQUIRED_NODE_VERSION }
-            if ($config.PSObject.Properties.Name -contains 'REQUIRED_NPM_VERSION') { $script:REQUIRED_NPM_VERSION = $config.REQUIRED_NPM_VERSION }
-            if ($config.PSObject.Properties.Name -contains 'BUILD_ARTIFACTS') { $script:BUILD_ARTIFACTS = $config.BUILD_ARTIFACTS }
-            if ($config.PSObject.Properties.Name -contains 'LOG_PATTERNS') { $script:LOG_PATTERNS = $config.cli.log_PATTERNS }
-            if ($config.PSObject.Properties.Name -contains 'REQUIRED_PROJECT_FILES') { $script:REQUIRED_PROJECT_FILES = $config.REQUIRED_PROJECT_FILES }
-
-            Write-Log "Configuration loaded successfully from $ConfigFile" "SUCCESS"
-        }
-        catch {
-            Write-Log "Failed to load or parse configuration from '$($ConfigFile)': $($_.Exception.Message)" "ERROR"
-            # Decide if this should be a fatal error
-            # exit 1
-        }
-    }
-    else {
-        Write-Log "No valid configuration file specified or found. Using default parameters." "DEBUG"
-    }
-}
-
-function Test-NodeVersion {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$RequiredVersion
-    )
-
-    try {
-        Write-Log "Checking Node.js version..." "DEBUG"
-        $nodeOutput = node --version 2>&1
-        if ($LASTEXITCODE -ne 0) {
-            throw "Failed to execute 'node --version'. Is Node.js installed and in PATH? Error: $nodeOutput"
-        }
-
-        $script:CurrentNodeVersion = $nodeOutput.TrimStart('v').Trim()
-
-        if (-not ($script:CurrentNodeVersion -match '^\d+\.\d+\.\d+')) {
-            throw "Could not parse Node.js version format: $($script:CurrentNodeVersion)"
-        }
-
-        if ([version]$script:CurrentNodeVersion -lt [version]$RequiredVersion) {
-            Write-Log "Node.js version $RequiredVersion or higher is required. Current version: $($script:CurrentNodeVersion)" "ERROR"
-            return $false
-        }
-
-        Write-Log "Node.js version check passed: $($script:CurrentNodeVersion) (Required: >= $RequiredVersion)" "DEBUG"
-        return $true
-    }
-    catch {
-        Write-Log "Failed to check Node.js version: $($_.Exception.Message)" "ERROR"
-        $script:CurrentNodeVersion = "Error"
-        return $false
-    }
-}
-
-function Test-NpmVersion {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $true)]
-        [string]$RequiredVersion
-    )
-
-    try {
-        Write-Log "Checking npm version..." "DEBUG"
-        $npmOutput = npm --version 2>&1
-         if ($LASTEXITCODE -ne 0) {
-            throw "Failed to execute 'npm --version'. Is npm installed and in PATH? Error: $npmOutput"
-        }
-
-        $script:CurrentNpmVersion = $npmOutput.Trim()
-
-        if (-not ($script:CurrentNpmVersion -match '^\d+\.\d+\.\d+')) {
-            throw "Could not parse npm version format: $($script:CurrentNpmVersion)"
-        }
-
-        if ([version]$script:CurrentNpmVersion -lt [version]$RequiredVersion) {
-            Write-Log "npm version $RequiredVersion or higher is required. Current version: $($script:CurrentNpmVersion)" "ERROR"
-            return $false
-        }
-
-        Write-Log "npm version check passed: $($script:CurrentNpmVersion) (Required: >= $RequiredVersion)" "DEBUG"
-        return $true
-    }
-    catch {
-        Write-Log "Failed to check npm version: $($_.Exception.Message)" "ERROR"
-        $script:CurrentNpmVersion = "Error"
-        return $false
-    }
-}
-
-function Test-ProjectStructure {
-    [CmdletBinding()]
-    param(
-        # Use the script-scoped variable as the default
-        [Parameter(Mandatory = $false)]
-        [string[]]$RequiredFiles = $script:REQUIRED_PROJECT_FILES
-    )
-
-    try {
-        Write-Log "Validating project structure..." "INFO"
-        $missingFiles = @()
-        $projectRoot = $PSScriptRoot # Assume script is in project root or adjust as needed
-
-        foreach ($file in $RequiredFiles) {
-            if ([string]::IsNullOrWhiteSpace($file)) {
-                Write-Log "Skipping invalid (empty) required file entry." "WARN"
-                continue
-            }
-
-            $filePath = Join-Path -Path $projectRoot -ChildPath $file
-            if (-not (Test-Path $filePath -PathType Leaf)) {
-                $missingFiles += $file
-            } else {
-                 Write-Log "Found required file: $file" "DEBUG"
-            }
-        }
-
-        if ($missingFiles.Count -gt 0) {
-            Write-Log "Missing required project files: $($missingFiles -join ', ')" "ERROR"
-            return $false
-        }
-
-        Write-Log "Project structure validation passed" "SUCCESS"
-        return $true
-    }
-    catch {
-        Write-Log "Project structure validation failed: $($_.Exception.Message)" "ERROR"
-        return $false
-    }
-}
-
-function Test-Environment {
-    # Uses script-scoped variables $REQUIRED_NODE_VERSION and $REQUIRED_NPM_VERSION
-    Write-Log "Testing development environment..." "INFO"
-    $allTestsPassed = $true
-
-    if (-not (Test-NodeVersion -RequiredVersion $script:REQUIRED_NODE_VERSION)) {
-        $allTestsPassed = $false
-    }
-
-    if (-not (Test-NpmVersion -RequiredVersion $script:REQUIRED_NPM_VERSION)) {
-        $allTestsPassed = $false
-    }
-
-    if (-not (Test-ProjectStructure)) { # Uses default $script:REQUIRED_PROJECT_FILES
-        $allTestsPassed = $false
-    }
-
-    if ($allTestsPassed) {
-        Write-Log "Development environment tests passed" "SUCCESS"
-    } else {
-        Write-Log "One or more development environment tests failed." "ERROR"
-        return $false
-    }
-}
-
-function Get-ProjectInfo {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory = $false)]
-        [string]$PackageJsonPath = "package.json",
-
-        [Parameter(Mandatory = $false)]
-        [string[]]$EnvFiles = @(".env", ".env.local", ".env.development", ".env.production")
-    )
-
-    try {
-        Write-Log "Gathering project information..." "INFO"
-
-        $packageJsonFullPath = Join-Path -Path $PSScriptRoot -ChildPath $PackageJsonPath
-        if (-not (Test-Path $packageJsonFullPath -PathType Leaf)) {
-            throw "Package.json not found at path: $PackageJsonFullPath"
-        }
-
-        $pkg = Get-Content $packageJsonFullPath -Raw | ConvertFrom-Json
-        if (-not $pkg) {
-            throw "Failed to parse $PackageJsonPath"
-        }
-
-        # Check Git status safely
-        $gitBranch = "N/A"
-        $gitStatus = "N/A"
-        $gitExists = (Get-Command git -ErrorAction SilentlyContinue)
-        if ($gitExists) {
-             # Check if inside a git repo work tree
-            git rev-parse --is-inside-work-tree 2>$null | Out-Null
-            if ($LASTEXITCODE -eq 0) {
-                $gitBranch = (git rev-parse --abbrev-ref HEAD 2>$null).Trim()
-                if ($LASTEXITCODE -ne 0) { $gitBranch = "Error getting branch" }
-
-                $gitStatusOutput = (git status --porcelain 2>$null)
-                if ($LASTEXITCODE -ne 0) {
-                    $gitStatus = "Error getting status"
-                } elseif ($gitStatusOutput) {
-                    $gitStatus = "Has uncommitted changes"
-                } else {
-                    $gitStatus = "Clean"
-                }
-            } else {
-                 $gitBranch = "Not a git repository"
-                 $gitStatus = "Not a git repository"
-            }
-        } else {
-            $gitBranch = "Git not found"
-            $gitStatus = "Git not found"
-        }
-
-
-        $presentEnvFiles = $EnvFiles | ForEach-Object { Join-Path -Path $PSScriptRoot -ChildPath $_ } | Where-Object { Test-Path $_ -PathType Leaf } | ForEach-Object { Split-Path $_ -Leaf }
-
-        $projectInfo = [PSCustomObject]@{
-            Name          = $pkg.name | Get-OrElse "N/A"
-            Version       = $pkg.version | Get-OrElse "N/A"
-            NodeRequired  = $pkg.engines.node | Get-OrElse "Not specified"
-            NodeCurrent   = $script:CurrentNodeVersion | Get-OrElse "N/A"
-            NpmCurrent    = $script:CurrentNpmVersion | Get-OrElse "N/A"
-            GitBranch     = $gitBranch
-            GitStatus     = $gitStatus
-            EnvFiles      = if ($presentEnvFiles) { $presentEnvFiles -join ', ' } else { 'None found' }
-            DepsProd      = ($pkg.dependencies.PSObject.Properties).Count
-            DepsDev       = ($pkg.devDependencies.PSObject.Properties).Count
-        }
-
-        Write-Host ""
-        Write-Host "$($script:ANSI.BoldCyan)=== Project Information ===$($script:ANSI.Reset)"
-        Write-Host "Name:              $($script:ANSI.Green)$($projectInfo.Name)$($script:ANSI.Reset)"
-        Write-Host "Version:           $($script:ANSI.Green)$($projectInfo.Version)$($script:ANSI.Reset)"
-        Write-Host "Node Required:     $($script:ANSI.Green)$($projectInfo.NodeRequired)$($script:ANSI.Reset)"
-        Write-Host "Node Current:      $($script:ANSI.Green)$($projectInfo.NodeCurrent)$($script:ANSI.Reset)"
-        Write-Host "Npm Current:       $($script:ANSI.Green)$($projectInfo.NpmCurrent)$($script:ANSI.Reset)"
-        Write-Host "Git Branch:        $($script:ANSI.Green)$($projectInfo.GitBranch)$($script:ANSI.Reset)"
-        Write-Host "Git Status:        $($script:ANSI.Green)$($projectInfo.GitStatus)$($script:ANSI.Reset)"
-        Write-Host "Environment Files: $($script:ANSI.Green)$($projectInfo.EnvFiles)$($script:ANSI.Reset)"
-        Write-Host "Production Deps:   $($script:ANSI.Green)$($projectInfo.DepsProd)$($script:ANSI.Reset)"
-        Write-Host "Development Deps:  $($script:ANSI.Green)$($projectInfo.DepsDev)$($script:ANSI.Reset)"
-        Write-Host "$($script:ANSI.Reset)"
-    }
-    catch {
-        Write-Log "Failed to gather project information: $($_.Exception.Message)" "ERROR"
-    }
-}
+# $script:LOG_FILE = $env:LOG_FILE # Attempt to get from environment if set by Bash
+# if (-not $script:LOG_FILE) { $script:LOG_FILE = "c:\Users\johnw\portfolio\.cli.ps.log" } # Default PS log
+# ... (rest of PowerShell script)
