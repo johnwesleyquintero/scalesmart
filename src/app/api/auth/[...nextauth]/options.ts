@@ -6,16 +6,25 @@ import GithubProvider from 'next-auth/providers/github';
 export const authOptions: NextAuthOptions = {
   adapter: SupabaseAdapter({
     url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    secret: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+    secret: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
   }),
   providers: [
     GithubProvider({
-      clientId: 'Ov23liRMBuL7lRtK6yvf',
-      clientSecret: 'ee4d59a12e9d64f3dd3fdb0abf0980b7747cd638',
+      clientId: process.env.GITHUB_ID || '',
+      clientSecret: process.env.GITHUB_SECRET || '',
       authorization: {
         params: {
           scope: 'read:user user:email',
         },
+      },
+      profile(profile) {
+        return {
+          id: profile.id.toString(),
+          name: profile.name ?? profile.login,
+          email: profile.email,
+          image: profile.avatar_url,
+          user_name: profile.login, // Ensure GitHub username is passed
+        };
       },
     }),
   ],

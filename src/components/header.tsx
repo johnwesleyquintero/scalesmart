@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 import { Menu, Moon, Sun, X } from 'lucide-react'; // Removed FileText, Loader2
-import { signIn, useSession } from 'next-auth/react'; // Removed signOut
+import { signIn, signOut, useSession } from 'next-auth/react'; // Added signOut for potential future use or logout
 import { useScroll } from '@/hooks/use-scroll';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
@@ -273,20 +273,25 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => signIn()}
-              className="text-sm font-medium hidden md:inline-flex"
-            >
-              Log In
-            </Button>
-            <Button
-              onClick={() => signIn()}
-              className="text-sm font-medium hidden md:inline-flex"
-            >
-              Sign Up
-            </Button>
+            {session ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => signOut()}
+                className="text-sm font-medium hidden md:inline-flex"
+              >
+                Log Out
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => signIn('github')} // Directly initiates GitHub OAuth
+                className="text-sm font-medium hidden md:inline-flex"
+              >
+                Sign In
+              </Button>
+            )}
 
             {mounted && (
               <Button
@@ -382,25 +387,36 @@ export default function Header() {
                   );
                 })}
                 <hr className="my-4" />
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    signIn();
-                    toggleMenu();
-                  }}
-                  className="w-full"
-                >
-                  Log In
-                </Button>
-                <Button
-                  onClick={() => {
-                    signIn();
-                    toggleMenu();
-                  }}
-                  className="w-full"
-                >
-                  Sign Up
-                </Button>
+                {session ? (
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      signOut();
+                      toggleMenu();
+                    }}
+                    className="w-full"
+                  >
+                    Log Out
+                  </Button>
+                ) : (
+                  <>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        signIn('github');
+                        toggleMenu();
+                      }}
+                      className="w-full"
+                    >
+                      Sign In
+                    </Button>
+                    {/* The original code had a "Sign Up" button as well.
+                       If "Sign Up" navigates to the same auth flow, a single "Sign In" is often sufficient.
+                       If a separate "Sign Up" flow is intended for this button (e.g., custom form),
+                       it should be configured accordingly. For now, we consolidate to a single "Sign In" as per common practice.
+                   */}
+                  </>
+                )}
               </nav>
             </div>
           )}
