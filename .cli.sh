@@ -1139,7 +1139,7 @@ show_menu() {
     local border_thin_sep="╟$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '─')╢"
     local border_bottom="╚$(printf '%*s' "$CONTENT_WIDTH" '' | tr ' ' '═')╝"
 
-    local title_core="Wescore Project CLI v${VERSION}"
+    local title_core="WesCLI v${VERSION}"
     local title_len=${#title_core}
     local total_padding=$((CONTENT_WIDTH - title_len))
     local pad_left=$((total_padding / 2))
