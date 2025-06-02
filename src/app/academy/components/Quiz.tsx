@@ -7,6 +7,7 @@ import useUserProfile from '@/hooks/use-user-profile';
 import { ModuleType, QuizResult } from '@/types';
 import { useAcademy } from '@/context/AcademyContext';
 import CertificateDisplay from './CertificateDisplay';
+import { UserProfile } from '@/lib/models/user'; // Ensure UserProfile is imported for typing
 
 interface QuestionInput {
   id?: number; // Optional, as MDX might not provide it
@@ -43,26 +44,6 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
   );
   const [attempts, setAttempts] = useState(0);
   const [certificateAwarded, setCertificateAwarded] = useState<boolean>(false);
-  const [customCertificateName, setCustomCertificateName] =
-    useState<string>('');
-
-  useEffect(() => {
-    // Load custom name from localStorage or default to profile name
-    const storedName = localStorage.getItem('customCertificateName');
-    if (storedName) {
-      setCustomCertificateName(storedName);
-    } else if (userProfile?.name) {
-      setCustomCertificateName(userProfile.name);
-    }
-  }, [userProfile?.name]); // Re-run if profile name becomes available
-
-  const handleCustomCertificateNameChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const newName = event.target.value;
-    setCustomCertificateName(newName);
-    localStorage.setItem('customCertificateName', newName);
-  };
 
   const userId = userProfile?.id || 'defaultUserId';
   const courseId = activeCourse?.id || 'defaultCourseId';
@@ -73,9 +54,6 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
     if (savedResult) {
       setQuizScore(savedResult.score);
       setAttempts(savedResult.attempts);
-      // The progress should reflect the saved score.
-      // This line can cause a loop if markModuleProgress or courseId are unstable
-      // and cause this effect to re-run.
       setCertificateAwarded(savedResult.certificateAwarded || false);
       markModuleProgress(courseId, moduleId, savedResult.score);
     } else {
@@ -175,8 +153,8 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
     updateQuizResult,
     attempts,
     userProfile,
-    certificateAwarded, // Added
-    updateUserProfile, // Added
+    certificateAwarded,
+    updateUserProfile,
   ]);
 
   // Helper layout component
@@ -195,18 +173,37 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
     score: number;
     attempts: number;
     totalAttempts: number;
-    isCertificateEarned: boolean; // Renamed from certificateAwarded for clarity in this component
-    currentCustomName: string;
-    onCustomNameChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    isCertificateEarned: boolean;
+    userProfile: UserProfile | null; // Corrected: userProfile is passed from parent
   }
   const QuizCompletedView: React.FC<QuizCompletedViewProps> = ({
     score,
     attempts,
     totalAttempts,
     isCertificateEarned,
-    currentCustomName,
-    onCustomNameChange,
+    userProfile, // Destructure userProfile
   }) => {
+    const { activeCourse } = useAcademy(); // Get activeCourse from context
+    const [customCertificateName, setCustomCertificateName] =
+      useState<string>('');
+
+    useEffect(() => {
+      const storedName = localStorage.getItem('customCertificateName');
+      if (storedName) {
+        setCustomCertificateName(storedName);
+      } else if (userProfile?.name) {
+        setCustomCertificateName(userProfile.name);
+      }
+    }, [userProfile?.name]);
+
+    const handleCustomCertificateNameChange = (
+      event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+      const newName = event.target.value;
+      setCustomCertificateName(newName);
+      localStorage.setItem('customCertificateName', newName);
+    };
+
     const passedCurrentAttempt = score >= PASS_THRESHOLD;
     const attemptsRemainingForCert = MAX_CERTIFICATE_ATTEMPTS - totalAttempts;
     const courseName = activeCourse?.title || 'This Course';
@@ -226,21 +223,25 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
         {isCertificateEarned ? (
           <>
             <p className="mt-4 font-medium text-emerald-600 dark:text-emerald-400 text-lg">
-              🎉 Congratulations! You&apos;ve earned the certificate for this
-              quiz! 🎉
+              Congratulations! You&apos;ve earned the certificate for this quiz!
             </p>
             <input
               type="text"
               placeholder="Enter your name"
-              value={currentCustomName}
-              onChange={onCustomNameChange}
-              className="mt-2 p-2 border rounded-md text-black dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
+              value={customCertificateName}
+              onChange={handleCustomCertificateNameChange}
+              maxLength={100}
+              className="mt-2 p-2 border rounded-md text-gray-900 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600"
             />
             <CertificateDisplay
               userName={
-                currentCustomName || userProfile?.name || 'Valued Learner'
+                customCertificateName || userProfile?.name || 'Valued Learner'
               }
               courseName={courseName}
+              courseCompletionDate={new Date().toLocaleDateString()}
+              certificateId="QUIZ-CERT-001" // Placeholder ID
+              instructorName="John Wesley Quintero" // Example instructor name
+              instructorTitle="Lead Instructor" // Example instructor title
             />
           </>
         ) : passedCurrentAttempt && totalAttempts > MAX_CERTIFICATE_ATTEMPTS ? (
@@ -401,9 +402,8 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
           score={quizScore}
           attempts={attempts}
           totalAttempts={attempts}
-          isCertificateEarned={certificateAwarded} // Pass down certificateAwarded
-          currentCustomName={customCertificateName}
-          onCustomNameChange={handleCustomCertificateNameChange}
+          isCertificateEarned={certificateAwarded}
+          userProfile={userProfile}
         />
       ) : currentQuestionIndex < questions.length ? (
         <ActiveQuestionDisplay

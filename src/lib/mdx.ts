@@ -178,7 +178,6 @@ function deriveContentTitle(
   if (slug === INTRODUCTION_SLUG && fileType === 'doc') {
     return INTRODUCTION_TITLE;
   }
-  // Handle the root docs page title if slug is empty (for 'index.mdx' mapping to '/')
   if (slug === '' && fileType === 'doc') {
     return DEFAULT_DOC_TITLE;
   }
@@ -364,7 +363,6 @@ function findContentFile(
   baseDir: string,
   fileType: 'doc' | 'academy',
 ): string | undefined {
-  // For docs and academy, now we expect a flat structure
   for (const ext of MARKDOWN_FILE_EXTENSIONS) {
     const filePath = path.join(baseDir, `${slug}${ext}`);
     if (fs.existsSync(filePath)) {
