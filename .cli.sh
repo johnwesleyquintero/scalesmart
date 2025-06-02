@@ -469,7 +469,7 @@ show_menu() {
     print_bordered_line " ${ANSI_Bold}${ANSI_Red}[q]${ANSI_Reset} Exit                    - Quit application"
 
     echo -e "${ANSI_Bold}${ANSI_Cyan}${border_bottom}${ANSI_Reset}"
-    echo -e "${ANSI_Yellow}  Use number or shortcut key in [brackets]${ANSI_Reset}"
+    echo -e "${ANSI_Yellow}  Use shortcut key in [brackets]${ANSI_Reset}"
 }
 
 generate_secret_key() {
