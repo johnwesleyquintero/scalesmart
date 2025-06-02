@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -21,6 +21,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
+// Type definitions
+interface PromptData {
+  category: string;
+  customCategory: string;
+  context: string;
+  request: string;
+  codeInput: string;
+}
+
 const CATEGORIES = [
   'Code Refinement',
   'Error Fixing',
@@ -30,18 +39,29 @@ const CATEGORIES = [
   'Optimization',
   'Debugging',
   'Feature Implementation',
-];
+] as const;
 
 export default function PromptRequestGenerator() {
-  const [category, setCategory] = useState('');
-  const [customCategory, setCustomCategory] = useState('');
-  const [context, setContext] = useState('');
-  const [request, setRequest] = useState('');
-  const [codeInput, setCodeInput] = useState('');
+  const [promptData, setPromptData] = useState<PromptData>({
+    category: '',
+    customCategory: '',
+    context: '',
+    request: '',
+    codeInput: '',
+  });
   const [output, setOutput] = useState('');
   const [copied, setCopied] = useState(false);
 
-  const generatePrompt = () => {
+  const handleChange = useCallback(
+    (field: keyof PromptData) => (value: string) => {
+      setPromptData((prev) => ({ ...prev, [field]: value }));
+    },
+    [],
+  );
+
+  const generatePrompt = useCallback(() => {
+    const { category, customCategory, context, request, codeInput } =
+      promptData;
     let prompt = '';
 
     // Add category section
@@ -65,23 +85,28 @@ export default function PromptRequestGenerator() {
     }
 
     setOutput(prompt);
-  };
+  }, [promptData]);
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(output);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleCategoryChange = (value: string) => {
-    setCategory(value);
-    if (value !== 'custom') {
-      setCustomCategory('');
+  const copyToClipboard = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(output);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
     }
-  };
+  }, [output]);
+
+  const handleCategoryChange = useCallback((value: string) => {
+    setPromptData((prev) => ({
+      ...prev,
+      category: value,
+      customCategory: value !== 'custom' ? '' : prev.customCategory,
+    }));
+  }, []);
 
   return (
-    <div className="min-h-screen p-4 md:p-8">
+    <div className="min-h-screen p-4 md:p-8 bg-background text-foreground">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold">Prompt Request Generator</h1>
@@ -90,10 +115,10 @@ export default function PromptRequestGenerator() {
           </p>
         </div>
 
-        <Card>
+        <Card className="bg-card border-border">
           <CardHeader>
             <CardTitle>Request Details</CardTitle>
-            <CardDescription>
+            <CardDescription className="text-muted-foreground">
               Fill in the sections below to generate a well-structured prompt
             </CardDescription>
           </CardHeader>
@@ -101,11 +126,14 @@ export default function PromptRequestGenerator() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
-                <Select value={category} onValueChange={handleCategoryChange}>
-                  <SelectTrigger>
+                <Select
+                  value={promptData.category}
+                  onValueChange={handleCategoryChange}
+                >
+                  <SelectTrigger className="bg-background border-border">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border-border">
                     {CATEGORIES.map((cat) => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
@@ -116,16 +144,17 @@ export default function PromptRequestGenerator() {
                 </Select>
               </div>
 
-              {category === 'custom' && (
+              {promptData.category === 'custom' && (
                 <div className="space-y-2">
                   <Label htmlFor="customCategory">Custom Category</Label>
                   <Input
                     id="customCategory"
                     placeholder="Enter your custom category"
-                    value={customCategory}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setCustomCategory(e.target.value)
+                    value={promptData.customCategory}
+                    onChange={(e) =>
+                      handleChange('customCategory')(e.target.value)
                     }
+                    className="bg-background border-border"
                   />
                 </div>
               )}
@@ -136,11 +165,10 @@ export default function PromptRequestGenerator() {
               <Textarea
                 id="context"
                 placeholder="Provide background information about your project or problem..."
-                value={context}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setContext(e.target.value)
-                }
+                value={promptData.context}
+                onChange={(e) => handleChange('context')(e.target.value)}
                 rows={3}
+                className="bg-background border-border"
               />
             </div>
 
@@ -149,12 +177,11 @@ export default function PromptRequestGenerator() {
               <Textarea
                 id="request"
                 placeholder="Clearly describe what you need help with..."
-                value={request}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setRequest(e.target.value)
-                }
+                value={promptData.request}
+                onChange={(e) => handleChange('request')(e.target.value)}
                 rows={3}
                 required
+                className="bg-background border-border"
               />
             </div>
 
@@ -163,15 +190,18 @@ export default function PromptRequestGenerator() {
               <Textarea
                 id="codeInput"
                 placeholder="Paste any relevant code snippets..."
-                value={codeInput}
-                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setCodeInput(e.target.value)
-                }
+                value={promptData.codeInput}
+                onChange={(e) => handleChange('codeInput')(e.target.value)}
                 rows={5}
+                className="bg-background border-border font-mono"
               />
             </div>
 
-            <Button onClick={generatePrompt} className="w-full md:w-auto">
+            <Button
+              onClick={generatePrompt}
+              className="w-full md:w-auto"
+              aria-label="Generate prompt"
+            >
               <Wand2 className="mr-2 h-4 w-4" />
               Generate Prompt
             </Button>
@@ -179,25 +209,30 @@ export default function PromptRequestGenerator() {
         </Card>
 
         {output && (
-          <Card>
+          <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
                 <CardTitle>Generated Prompt</CardTitle>
-                <CardDescription>Ready to copy and use</CardDescription>
+                <CardDescription className="text-muted-foreground">
+                  Ready to copy and use
+                </CardDescription>
               </div>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={copyToClipboard}
                 disabled={!output}
+                aria-label="Copy to clipboard"
               >
                 <Copy className="mr-2 h-4 w-4" />
                 {copied ? 'Copied!' : 'Copy'}
               </Button>
             </CardHeader>
             <CardContent>
-              <div className="bg-gray-100 p-4 rounded-md font-mono text-sm">
-                <pre className="whitespace-pre-wrap">{output}</pre>
+              <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-md font-mono text-sm">
+                <pre className="whitespace-pre-wrap text-gray-800 dark:text-gray-200">
+                  {output}
+                </pre>
               </div>
             </CardContent>
           </Card>
