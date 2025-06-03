@@ -59,7 +59,9 @@ export default async function AdminPage() {
 
   // Check if the user is authenticated and if their GitHub username is in the admin list
   // Uses optional chaining for safer access to nested properties.
-  const currentUserGitHubUsername = session?.user?.user_metadata?.user_name as string | undefined; // Explicitly type for clarity
+  const currentUserGitHubUsername = session?.user?.user_metadata?.user_name as
+    | string
+    | undefined; // Explicitly type for clarity
 
   if (
     !session?.user || // Check if user exists in session
@@ -86,7 +88,9 @@ export default async function AdminPage() {
 
       <h1 className="text-3xl font-bold my-6">Admin Dashboard</h1>
       <p>
-        Welcome, <span className="font-semibold">{currentUserGitHubUsername}</span>! You are authenticated as an admin.
+        Welcome,{' '}
+        <span className="font-semibold">{currentUserGitHubUsername}</span>! You
+        are authenticated as an admin.
       </p>
 
       {/*
@@ -114,7 +118,9 @@ export default async function AdminPage() {
           // This onClick handler runs on the client-side.
           // For sensitive actions, call a Server Action or API route
           // that performs authorization checks *server-side* again.
-          alert('Client-side action triggered. Call a Server Action or API here.');
+          alert(
+            'Client-side action triggered. Call a Server Action or API here.',
+          );
         }}
       >
         Perform Admin Action (Client Trigger)
