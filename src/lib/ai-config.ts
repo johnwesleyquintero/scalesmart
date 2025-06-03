@@ -1,24 +1,33 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
- * AI Service Configuration
- * Centralizes AI service initialization and configuration management
+ * Initializes the Google Generative AI client.
+ * Retrieves the API key from environment variables and throws an error if it's not found.
+ * @returns An instance of GoogleGenerativeAI.
+ * @throws {Error} If GEMINI_API_KEY is not defined.
  */
-
-// Initialize Gemini AI client
-export const initGeminiAI = () => {
+export const initGeminiAI = (): GoogleGenerativeAI => {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error('GEMINI_API_KEY is not defined in the environment');
-    throw new Error('Missing GEMINI_API_KEY environment variable');
+    // Log the error for debugging purposes
+    console.error(
+      'Configuration Error: GEMINI_API_KEY is not defined in environment variables.',
+    );
+    throw new Error(
+      'Missing GEMINI_API_KEY environment variable. Please configure your environment.',
+    );
   }
+  // Return a new instance of the AI client
   return new GoogleGenerativeAI(apiKey);
 };
 
-// AI model configurations
+/**
+ * Centralized AI model configurations.
+ * Defines default settings for different AI models.
+ */
 export const AI_MODELS = {
   gemini: {
-    default: 'gemini-2.0-flash-001',
+    default: 'gemini-1.5-flash-latest', // Using a potentially more up-to-date model identifier if available and suitable
     config: {
       maxOutputTokens: 1000,
       temperature: 0.7,
@@ -26,37 +35,68 @@ export const AI_MODELS = {
       topK: 40,
     },
   },
+  // Add configurations for other models here if needed
 } as const;
 
-// AI feature configurations for different tools
+/**
+ * AI feature-specific configurations.
+ * Overrides or extends default model configurations for specific use cases.
+ */
 export const AI_FEATURES = {
   keywordAnalyzer: {
-    model: AI_MODELS.gemini.default,
+    model: AI_MODELS.gemini.default, // Explicitly referencing the default model
     config: {
-      ...AI_MODELS.gemini.config,
-      temperature: 0.5, // More focused for keyword analysis
+      ...AI_MODELS.gemini.config, // Start with default settings
+      temperature: 0.5, // More focused for keyword analysis (override)
+      maxOutputTokens: 800, // Potentially smaller output needed
     },
   },
   listingOptimizer: {
     model: AI_MODELS.gemini.default,
     config: {
       ...AI_MODELS.gemini.config,
-      temperature: 0.6, // Balanced creativity for listings
+      temperature: 0.6, // Balanced creativity for listings (override)
+      maxOutputTokens: 1200, // Potentially larger output needed
     },
   },
   ppcCampaign: {
     model: AI_MODELS.gemini.default,
     config: {
       ...AI_MODELS.gemini.config,
-      temperature: 0.3, // More conservative for PPC suggestions
+      temperature: 0.3, // More conservative for PPC suggestions (override)
+      topP: 0.7, // Tighter sampling
     },
   },
   seoAnalyzer: {
     model: AI_MODELS.gemini.default,
     config: {
       ...AI_MODELS.gemini.config,
-      temperature: 0.4, // Balanced for SEO analysis
-      maxOutputTokens: 1500, // Allow more detailed SEO reports
+      temperature: 0.4, // Balanced for SEO analysis (override)
+      maxOutputTokens: 1500, // Allow more detailed SEO reports (override)
     },
   },
-};
+  // Add configurations for other features here
+} as const;
+
+// Example of how these configurations might be used (not part of the refactored export)
+/*
+import { initGeminiAI, AI_FEATURES } from './this-file';
+
+async function analyzeKeywords(prompt: string) {
+  try {
+    const genAI = initGeminiAI(); // Initialize the client
+    const featureConfig = AI_FEATURES.keywordAnalyzer;
+    const model = genAI.getGenerativeModel({
+      model: featureConfig.model,
+      generationConfig: featureConfig.config,
+    });
+
+    const result = await model.generateContent(prompt);
+    const response = result.response;
+    console.log(response.text());
+  } catch (error) {
+    console.error('Error during keyword analysis:', error);
+    // Handle the error appropriately
+  }
+}
+*/

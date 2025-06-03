@@ -2,24 +2,26 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { DragEndEvent } from '@dnd-kit/core';
 import ReactFlow, {
-  Node as ReactFlowNode,
+  Node as ReactFlowNode, // Alias Node from reactflow to avoid conflict
   Edge as ReactFlowEdge,
   OnNodesChange,
   OnEdgesChange,
   OnConnect,
-  useReactFlow, // Import useReactFlow
-  ReactFlowProvider, // Import ReactFlowProvider
+  useReactFlow,
+  NodeMouseHandler, // Import NodeMouseHandler for onNodeClick
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Node, Edge } from '@/lib/workflow/types';
 
 interface WorkflowCanvasProps {
-  nodes: (Node | ReactFlowNode)[];
-  edges: (Edge | ReactFlowEdge)[];
+  nodes: Node[];
+  edges: Edge[];
   onNodesChange: OnNodesChange;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
-  onNodeDrop: (type: string, position: { x: number; y: number }) => void; // New prop
+  onNodeDrop: (type: string, position: { x: number; y: number }) => void;
+  onNodeClick: NodeMouseHandler;
+  onPaneClick: (event: React.MouseEvent) => void; // Corrected: Using React.MouseEvent for pane click
 }
 
 const WorkflowCanvas = ({
@@ -28,16 +30,18 @@ const WorkflowCanvas = ({
   onNodesChange,
   onEdgesChange,
   onConnect,
-  onNodeDrop, // Destructure new prop
+  onNodeDrop,
+  onNodeClick,
+  onPaneClick,
 }: WorkflowCanvasProps) => {
   const { setNodeRef } = useDroppable({
     id: 'workflow-canvas',
   });
 
-  const reactFlowInstance = useReactFlow(); // Get reactFlowInstance from hook
+  const reactFlowInstance = useReactFlow();
 
   const handleDragOver = (event: React.DragEvent) => {
-    event.preventDefault(); // Essential to allow dropping
+    event.preventDefault();
     if (event.dataTransfer.types.includes('nodeType')) {
       event.dataTransfer.dropEffect = 'move';
     }
@@ -46,36 +50,35 @@ const WorkflowCanvas = ({
   const handleDrop = (event: React.DragEvent) => {
     event.preventDefault();
 
-    const type = event.dataTransfer.getData('nodeType'); // Get the node type
-    // Use the screen coordinates and convert to flow coordinates
+    const type = event.dataTransfer.getData('nodeType');
     const position = reactFlowInstance.screenToFlowPosition({
       x: event.clientX,
       y: event.clientY,
     });
 
     if (type) {
-      onNodeDrop(type, position); // Call the onNodeDrop callback with type and position
+      onNodeDrop(type, position);
     }
   };
 
   return (
-    <ReactFlowProvider>
-      <div
-        ref={setNodeRef}
-        style={{ width: '100%', height: '100%', border: '1px dashed gray' }}
-        onDragOver={handleDragOver} // Handle drag over
-        onDrop={handleDrop} // Handle drop
-      >
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
-          fitView
-        />
-      </div>
-    </ReactFlowProvider>
+    <div
+      ref={setNodeRef}
+      style={{ width: '100%', height: '100%', border: '1px dashed gray' }}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
+      <ReactFlow
+        nodes={nodes as ReactFlowNode[]} // Cast to ReactFlowNode[] to resolve type incompatibility
+        edges={edges as ReactFlowEdge[]} // Cast edges similarly
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onNodeClick={onNodeClick}
+        onPaneClick={onPaneClick}
+        fitView
+      />
+    </div>
   );
 };
 

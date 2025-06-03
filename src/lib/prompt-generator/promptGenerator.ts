@@ -3,7 +3,38 @@
  * @description Provides utilities for generating structured prompts based on user input.
  */
 
-// Type definitions - duplicated here for clarity, consider importing from a shared types file if exists.
+// Constants for markdown headings
+const TASK_CATEGORY_HEADING = '### Task Category:';
+const CONTEXT_HEADING = '#### Context';
+const REQUEST_HEADING = '#### Request';
+const CODE_HEADING = '#### Code';
+
+// Map for introduction phrases based on category
+const INTRODUCTION_PHRASES: Map<string, string> = new Map([
+  ['Code Refinement', 'I need assistance with refining existing code. '],
+  [
+    'Error Fixing',
+    'I am encountering an error in my code and require help with debugging. ',
+  ],
+  ['Code Generation', 'I need help generating new code. '],
+  ['Code Review', 'I am requesting a review of the following code. '],
+  [
+    'Documentation',
+    'I require documentation for the following code or concept. ',
+  ],
+  [
+    'Optimization',
+    'I am looking for ways to optimize the provided code for performance or efficiency. ',
+  ],
+  ['Debugging', 'I need help debugging an issue. '],
+  [
+    'Feature Implementation',
+    'I am planning to implement a new feature and need guidance. ',
+  ],
+  // Add more standard categories here as needed
+]);
+
+// Type definitions - Ideally imported from a shared types file if one exists.
 interface PromptData {
   category: string;
   customCategory: string;
@@ -18,10 +49,14 @@ interface PromptData {
  * @returns {string | null} An error message if validation fails, otherwise null.
  */
 function validatePromptData(data: PromptData): string | null {
-  if (!data.request.trim()) {
+  if (!data.request || !data.request.trim()) {
     return 'The request field is mandatory and cannot be empty.';
   }
-  if (data.category === 'custom' && !data.customCategory.trim()) {
+  if (
+    data.category === 'Custom' &&
+    (!data.customCategory || !data.customCategory.trim())
+  ) {
+    // Assuming 'Custom' is the value used to indicate a custom category
     return 'Custom category cannot be empty when "Custom" is selected.';
   }
   return null;
@@ -29,85 +64,119 @@ function validatePromptData(data: PromptData): string | null {
 
 /**
  * Determines the introductory phrase based on the given category.
- * @param {string} category - The category of the prompt.
+ * Falls back to a generic phrase if the category is not in the map.
+ * @param {string} category - The category of the prompt (expected to be a standard category key).
  * @returns {string} The appropriate introductory phrase.
  */
 function getIntroductionPhrase(category: string): string {
-  switch (category) {
-    case 'Code Refinement':
-      return 'I need assistance with refining existing code. ';
-    case 'Error Fixing':
-      return 'I am encountering an error in my code and require help with debugging. ';
-    case 'Code Generation':
-      return 'I need help generating new code. ';
-    case 'Code Review':
-      return 'I am requesting a review of the following code. ';
-    case 'Documentation':
-      return 'I require documentation for the following code or concept. ';
-    case 'Optimization':
-      return 'I am looking for ways to optimize the provided code for performance or efficiency. ';
-    case 'Debugging':
-      return 'I need help debugging an issue. ';
-    case 'Feature Implementation':
-      return 'I am planning to implement a new feature and need guidance. ';
-    default:
-      return `Regarding ${category}, `;
-  }
+  return INTRODUCTION_PHRASES.get(category) || `Regarding ${category}, `;
 }
 
+// Define language detection rules as an array for clarity and maintainability
+const languageDetectionRules: {
+  check: (code: string) => boolean;
+  language: string;
+}[] = [
+  // Order matters - put more common/specific checks first after JSON special case below
+  {
+    check: (code) =>
+      code.includes('import ') ||
+      code.includes('function ') ||
+      code.includes('const ') ||
+      code.includes('let ') ||
+      code.includes('class ') ||
+      code.includes('interface ') ||
+      code.includes('export '),
+    language: 'typescript',
+  }, // Covers JavaScript/TypeScript keywords
+  {
+    check: (code) =>
+      code.includes('def ') ||
+      code.includes('print(') ||
+      (code.includes('import ') && code.includes(' as ')),
+    language: 'python',
+  },
+  {
+    check: (code) =>
+      code.includes('public static void main') ||
+      code.includes('System.out.println'),
+    language: 'java',
+  },
+  {
+    check: (code) =>
+      code.startsWith('<?php') ||
+      (code.includes('function ') && code.includes('echo ')),
+    language: 'php',
+  },
+  {
+    check: (code) => code.includes('#include <') || code.includes('int main()'),
+    language: 'c',
+  }, // Basic C/C++ check
+  {
+    check: (code) =>
+      code.includes('SELECT ') ||
+      code.includes('FROM ') ||
+      code.includes('WHERE '),
+    language: 'sql',
+  },
+  {
+    check: (code) =>
+      code.startsWith('<') &&
+      code.endsWith('>') &&
+      (code.includes('<div') ||
+        code.includes('<html') ||
+        code.includes('<body') ||
+        code.includes('<template') ||
+        code.includes('</')),
+    language: 'html',
+  }, // Basic HTML check including common tags/closers
+  // Add more rules here
+];
+
 /**
- * Attempts to detect the programming language of the provided code input.
+ * Attempts to detect the programming language of the provided code input using basic heuristics.
+ * Note: This detection is not exhaustive, perfectly accurate, or robust. It's a simple guesser.
  * @param {string} codeInput - The code string to analyze.
- * @param {string} currentCategory - The current selected category, used for better guessing.
  * @returns {string} The detected language (e.g., 'typescript', 'html', 'json'), or 'plaintext' as a fallback.
  */
-function detectLanguage(codeInput: string, currentCategory: string): string {
-  let language = 'plaintext'; // Default to plaintext
-  if (currentCategory.includes('Code') || currentCategory.includes('Script')) {
-    // Basic heuristics for language detection
-    if (codeInput.includes('<div') || codeInput.includes('<html')) {
-      language = 'html';
-    } else if (
-      codeInput.includes('{') &&
-      codeInput.includes('}') &&
-      !codeInput.includes('import ') &&
-      !codeInput.includes('function ')
-    ) {
-      language = 'json';
-    } else if (
-      codeInput.includes('import ') ||
-      codeInput.includes('function ') ||
-      codeInput.includes('const ') ||
-      codeInput.includes('let ') ||
-      codeInput.includes('class ') ||
-      codeInput.includes('interface ')
-    ) {
-      language = 'typescript';
-    } else if (
-      codeInput.includes('def ') ||
-      (codeInput.includes('import ') && codeInput.includes(' as '))
-    ) {
-      // python style imports
-      language = 'python';
-    } else if (codeInput.includes('public static void main')) {
-      language = 'java';
-    }
-    // Add more language heuristics as needed
+function detectLanguage(codeInput: string): string {
+  const trimmedCode = codeInput.trim();
+  if (!trimmedCode) {
+    return 'plaintext'; // No code means no language to detect
   }
-  return language;
+
+  // Special case for JSON - attempt parsing for accuracy as it's more reliable than heuristics
+  if (
+    (trimmedCode.startsWith('{') && trimmedCode.endsWith('}')) ||
+    (trimmedCode.startsWith('[') && trimmedCode.endsWith(']'))
+  ) {
+    try {
+      JSON.parse(trimmedCode);
+      return 'json';
+    } catch (e) {
+      // Not valid JSON, continue with heuristic checks
+    }
+  }
+
+  // Iterate through defined rules and return the first match
+  for (const rule of languageDetectionRules) {
+    if (rule.check(trimmedCode)) {
+      return rule.language;
+    }
+  }
+
+  return 'plaintext'; // Default fallback
 }
 
 /**
- * Generates a sophisticated prompt based on the provided data.
- * Enhancements include:
- * - More structured category headings.
- * - Dynamic introductory remarks based on category.
- * - Improved handling of code input with language suggestions (if relevant to category).
- * - Error handling for invalid or missing required inputs.
- * - Ensures robust output even with partial inputs.
+ * Generates a structured prompt based on the provided data.
+ * Includes sections for category, context, request, and code input.
+ * Performs basic validation before generation.
+ * Throws an error if validation fails.
  *
  * @param {PromptData} data - The input data for prompt generation.
  * @returns {string} The generated structured prompt.
+ * @throws {Error} If validation fails.
  */
 export function generatePrompt(data: PromptData): string {
   const validationError = validatePromptData(data);
@@ -116,30 +185,42 @@ export function generatePrompt(data: PromptData): string {
   }
 
   const { category, customCategory, context, request, codeInput } = data;
-  let prompt = '';
-  const currentCategory = customCategory || category;
+  const promptParts: string[] = [];
 
-  // Add category and a dynamic introductory phrase
-  if (currentCategory) {
-    prompt += `### Task Category: ${currentCategory}\n\n${getIntroductionPhrase(currentCategory)}`;
-  }
+  // Determine the category name to display (use custom if provided, otherwise standard, default to 'General')
+  const displayCategory =
+    customCategory?.trim() || category?.trim() || 'General';
+  // Determine the category key for looking up the intro phrase (always use the standard category if available, default to 'General' for fallback phrase)
+  const lookupCategory = category?.trim() || 'General';
+
+  // Add category heading and introductory phrase
+  const introPhrase = getIntroductionPhrase(lookupCategory);
+  promptParts.push(
+    `${TASK_CATEGORY_HEADING} ${displayCategory}\n\n${introPhrase.trim()}`,
+  );
 
   // Add context section if provided
-  if (context.trim()) {
-    prompt += `#### Context\n\n${context.trim()}\n\n`;
+  const trimmedContext = context?.trim();
+  if (trimmedContext) {
+    promptParts.push(`${CONTEXT_HEADING}\n\n${trimmedContext}`);
   }
 
-  // Add request section - mandatory
-  prompt += `#### Request\n\n${request.trim()}\n\n`;
+  // Add request section - mandatory, validated earlier
+  const trimmedRequest = request.trim();
+  promptParts.push(`${REQUEST_HEADING}\n\n${trimmedRequest}`);
 
   // Add code input section if provided, with language placeholder for clarity
-  if (codeInput.trim()) {
-    const language = detectLanguage(codeInput, currentCategory);
-    prompt += `#### Code\n\n\`\`\`${language}\n${codeInput.trim()}\n\`\`\`\n`;
+  const trimmedCodeInput = codeInput?.trim();
+  if (trimmedCodeInput) {
+    const language = detectLanguage(trimmedCodeInput);
+    promptParts.push(
+      `${CODE_HEADING}\n\n\`\`\`${language}\n${trimmedCodeInput}\n\`\`\``,
+    );
   }
 
-  // Add a polite closing statement
-  prompt += '\nThank you for your assistance!';
+  // Add a polite closing statement as a final part
+  promptParts.push('Thank you for your assistance!');
 
-  return prompt;
+  // Join all parts with double newlines to create the final prompt string
+  return promptParts.join('\n\n');
 }
