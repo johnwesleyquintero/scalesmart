@@ -1,40 +1,16 @@
 ---
-title: useToast Hook Documentation (src/app/hooks/use-toast.ts)
-slug: hooks/use-toast/documentation
-description: The `src/app/hooks/use-toast.ts` file defines a custom hook that provides a toast notification system. It allows components to display temporary messages to the user.
-date: 2025-05-31
-tags: ['hooks', 'toast', 'documentation']
+title: Guide for UseToast hook from Shadcn
+slug: hooks/use-toast
+description: Great way or tutorial to understanding each of the props in toast and other settings that apply in nextjs component
+date: 2025-06-01
+tags: ['component based', 'hooks', 'ui framework']
 readingTime: '1 min read'
 author: 'Wesley Quintero'
 type: 'doc'
+category: hooks
+order: 3
 ---
 
-# useToast Hook Documentation (`src/app/hooks/use-toast.ts`)
+# This Area is mostly understanding Shadcn but in more deeep
 
-## Overview
-
-The `src/app/hooks/use-toast.ts` file defines a custom hook that provides a toast notification system. It allows components to display temporary messages to the user.
-
-## Functionality
-
-- **Displays Toast Notifications:** Allows components to display temporary messages to the user.
-- **Manages Toast State:** Manages the state of the toast notifications, including adding, updating, dismissing, and removing toasts.
-- **Provides Toast Context:** Provides a context for accessing the toast notification system.
-
-## Technical Details
-
-- The hook uses the `React.useState` and `React.useEffect` hooks to manage the state and side effects.
-- The hook uses a reducer function to update the state.
-- The hook uses a `Map` to store the toast timeouts.
-- The hook uses a `listeners` array to notify components of state changes.
-
-## Data Flow
-
-1.  The `useToast` hook is called in a component.
-2.  The hook initializes the state with the initial state from memory.
-3.  The component subscribes to the state changes by adding a listener to the `listeners` array.
-4.  The `toast` function is called to add a new toast notification.
-5.  The `dispatch` function is called to update the state.
-6.  The reducer function updates the state based on the action type.
-7.  The listeners are notified of the state change.
-8.  The component re-renders with the updated state.
+This way is not basic like website more a deep look on what we should do when setting new elements in scaleSMART website with UI Framework with components ready or configured or not, details!

@@ -1,32 +1,22 @@
 ---
-title: useIsMobile Hook Documentation (src/app/hooks/use-mobile.tsx)
-slug: hooks/use-mobile/documentation
-description: The `src/app/hooks/use-mobile.tsx` file defines a custom hook that detects whether the user is on a mobile device based on the screen width.
-date: 2025-05-31
-tags: ['hooks', 'mobile', 'documentation']
+title: IsUserAgent Check for UseMobile or what ever it implies?
+slug: hooks/use-mobile
+description: See logic and all around impl
+date: 2025-06-01
+tags:
+  [
+    'component based',
+    'hooks',
+    'responsiveness',
+    'boilerplate',
+    'cross platforms',
+  ]
 readingTime: '1 min read'
 author: 'Wesley Quintero'
 type: 'doc'
+category: hooks
+order: 1
 ---
 
-# useIsMobile Hook Documentation (`src/app/hooks/use-mobile.tsx`)
-
-## Overview
-
-The `src/app/hooks/use-mobile.tsx` file defines a custom hook that detects whether the user is on a mobile device based on the screen width.
-
-## Functionality
-
-- **Detects Mobile Device:** Detects whether the user is on a mobile device based on the screen width.
-
-## Technical Details
-
-- The hook uses the `window.matchMedia` API to detect the screen width.
-- The hook uses the `React.useState` and `React.useEffect` hooks to manage the state and side effects.
-- The hook defines a `MOBILE_BREAKPOINT` constant to determine the maximum screen width for mobile devices.
-
-## Data Flow
-
-1.  The `useIsMobile` hook is called in a component.
-2.  The hook uses the `window.matchMedia` API to detect the screen width.
-3.  The hook returns a boolean value indicating whether the user is on a mobile device.
+###This uses platform check and gives all boilerplate that could apply so they know more that way.
+QuickStart!

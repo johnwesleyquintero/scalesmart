@@ -1,24 +1,60 @@
 ---
-title: Scripts Documentation
+title: all global helper scripts
 slug: scripts
-description: Documentation for various scripts used in the project.
+description: main to contain other helpers to read this section of site with all the base helper types details
 date: 2025-06-01
-tags: ['scripts', 'automation', 'utilities']
+tags: ['testing', 'functions helper with client interaction!']
 readingTime: '1 min read'
 author: 'Wesley Quintero'
 type: 'doc'
+category: utils
+order: 8
 ---
 
-# Scripts Documentation
+Document in where the other function that helpers that does
+local
+export async function downloadBase64StringAsImage(base64String: string, filename: string = "image") {
+if (typeof window === 'undefined') {
+console.error("You are calling this function outside of the Browser.");
+return;
+}
+// Credit:
+// https://stackoverflow.com/a/74482141
+const parts = base64String.match(/^data:(._?);base64,(._)$/);
+if (!parts || parts.length !== 3) {
+throw new Error('Invalid base64 string');
+}
+const [, mimeType, base64Data] = parts;
 
-This directory is intended to contain documentation for various scripts used throughout the project.
+    const byteCharacters = atob(base64Data);
+    const byteArrays = [];
 
-## Purpose
+    for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+        const slice = byteCharacters.slice(offset, offset + 512);
 
-- **Automation Scripts:** Documentation for scripts that automate tasks such as deployment, testing, or data processing.
-- **Utility Scripts:** Explanations for helper scripts that perform common utility functions.
-- **Setup Scripts:** Instructions for scripts used in project setup or environment configuration.
+        const byteNumbers = new Array(slice.length);
+        for (let i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
 
-## Current Status
+        const byteArray = new Uint8Array(byteNumbers);
+        byteArrays.push(byteArray);
+    }
 
-Currently, this directory is a placeholder. Future documentation will be added here as scripts are formalized and require detailed explanations.
+    const blob = new Blob(byteArrays, { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    // Create a temporary download link
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename; // You can provide a desired file name here
+
+    // Programmatically trigger the download
+    document.body.appendChild(a);
+    a.click();
+
+    // Clean up: remove the temporary link and revoke the URL
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+}
+Details what helps

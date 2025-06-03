@@ -1,34 +1,16 @@
 ---
-title: Error Guide API Endpoint Documentation
-slug: error-guide/route/documentation
-description: Documentation for the Error Guide API endpoint.
-date: 2025-05-31
-tags: ['error', 'api', 'endpoint']
+title: Error Route Specifics
+slug: error-guide/route
+description: All routing to take user from being uncaught/ not exist or other unforeseen consequences for not reaching the server
+date: 2025-06-01
+tags: ['guides', 'routes', 'api', 'edge']
 readingTime: '1 min read'
 author: 'Wesley Quintero'
 type: 'doc'
+category: error-guide
+order: 2
 ---
 
-# Error Guide API Endpoint Documentation (`src/app/error-guide/route.ts`)
+# Details of how the API handles un expected or route based edge-cases or 404/500s cases
 
-## Overview
-
-The `src/app/error-guide/route.ts` file defines an API endpoint that serves the content of the `src/docs/error-guide.mdx` file as HTML. It uses `remark` and `rehype-react` to transform the MDX content into React components.
-
-## Functionality
-
-- **Serves Error Guide Content:** Serves the content of the `src/docs/error-guide.mdx` file as HTML.
-- **Transforms MDX to React:** Uses `remark` and `rehype-react` to transform the MDX content into React components.
-
-## Technical Details
-
-- The endpoint uses the `fs` module to read the MDX file.
-- The endpoint uses the `remark` and `rehype-react` libraries to transform the MDX content into React components.
-- The endpoint sets the `Content-Type` header to `text/html`.
-
-## Data Flow
-
-1.  A GET request is made to the `/error-guide` endpoint.
-2.  The endpoint reads the MDX file from the file system.
-3.  The endpoint transforms the MDX content into React components using `remark` and `rehype-react`.
-4.  The endpoint returns the transformed content as an HTML response.
+What user sees, any edge side processing/considerations.

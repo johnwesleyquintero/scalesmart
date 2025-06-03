@@ -4,6 +4,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { DocArticleMetadata } from '@/lib/docs-data/static-docs';
+import { GETTING_STARTED_SLUG } from '@/config/docs'; // Import the new constant
 import {
   Accordion,
   AccordionContent,
@@ -61,7 +62,6 @@ function groupAndSortDocs(
     {},
   );
 
-  // Sort each category's documents by order
   for (const category in grouped) {
     grouped[category].sort((a, b) => (a.order || 0) - (b.order || 0));
   }
@@ -69,8 +69,6 @@ function groupAndSortDocs(
   return grouped;
 }
 
-// Re-using StatusMessage from DocSearch, but simplified for reusability.
-// In a real application, you might define this in a shared utility component.
 function StatusMessage({
   message,
   type = 'info',
@@ -89,7 +87,6 @@ function StatusMessage({
   );
 }
 
-// UI Components
 function DocLink({
   doc,
   isActive,
@@ -128,7 +125,7 @@ function SidebarSection({
     const shouldBeOpen = docs.some(
       (doc) =>
         currentPath === `/docs/${doc.slug}` ||
-        (doc.slug === 'getting-started' && currentPath === '/docs'),
+        (doc.slug === GETTING_STARTED_SLUG && currentPath === '/docs'),
     );
     setIsOpen(shouldBeOpen);
   }, [currentPath, docs]);
@@ -153,7 +150,7 @@ function SidebarSection({
                 doc={doc}
                 isActive={
                   currentPath === `/docs/${doc.slug}` ||
-                  (doc.slug === 'getting-started' && currentPath === '/docs')
+                  (doc.slug === GETTING_STARTED_SLUG && currentPath === '/docs')
                 }
               />
             ))}
@@ -164,7 +161,37 @@ function SidebarSection({
   );
 }
 
-// Main Component
+const DOC_CATEGORY_ORDER = [
+  GETTING_STARTED_SLUG, // Use the constant
+  'introduction',
+  'api',
+  'data-storage',
+  'architecture',
+  'error-guide',
+  'hooks',
+  'utils',
+  'implementation',
+  'strategies',
+  'blog',
+  'chat',
+  'crm',
+  'project-management',
+  'amazon-seller-tools',
+  'academy',
+  'admin',
+  'ats',
+  'workflow-builder',
+  'privacy-policy',
+  'metadata',
+  'page',
+  'scripts',
+  'sitemap',
+  'layout',
+  'loading',
+  'not-found',
+  'supabase',
+];
+
 export default function DocsSidebar() {
   const pathname = usePathname();
   const { data, loading, error } = useDocsMetadata();
@@ -179,9 +206,23 @@ export default function DocsSidebar() {
   if (!data.length) return <StatusMessage message="No documentation found." />;
 
   return (
-    <nav className="space-y-2">
+    <nav className="space-y-2 overflow-y-auto pr-2 pb-8">
       {Object.keys(categorizedDocs)
-        .sort()
+        .sort((a, b) => {
+          const indexA = DOC_CATEGORY_ORDER.indexOf(a);
+          const indexB = DOC_CATEGORY_ORDER.indexOf(b);
+
+          if (indexA === -1 && indexB === -1) {
+            return a.localeCompare(b);
+          }
+          if (indexA === -1) {
+            return 1;
+          }
+          if (indexB === -1) {
+            return -1;
+          }
+          return indexA - indexB;
+        })
         .map((category) => (
           <SidebarSection
             key={category}

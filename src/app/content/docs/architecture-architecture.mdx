@@ -7,6 +7,8 @@ tags: ['architecture', 'overview']
 readingTime: '5 min read'
 author: 'Wesley Quintero'
 type: 'doc'
+category: architecture
+order: 1
 ---
 
 ## 1. High-Level System Architecture
@@ -113,13 +115,3 @@ A crucial aspect of the middleware's functionality is the identification of "pub
 
 - **Token Retrieval**: The `middleware.ts` file utilizes the `getToken` function from `next-auth/jwt` to securely retrieve and parse the JSON Web Token (JWT) from the request. This token contains the user's session information.
 - **Path Matching**: The `publicPaths.ts` file exports an array containing string patterns and regular expressions (`RegExp`) to flexibly define which routes are exempt from authentication checks. The middleware iteratively matches incoming request URLs against these patterns.
-
-## 4. Suggested Visual Aids for Future Enhancements
-
-While this documentation provides a detailed textual overview, incorporating visual aids would significantly enhance clarity and understanding, especially for complex interactions. If further architectural documentation is pursued, consider the following diagram types:
-
-- **System Context Diagram**: Illustrating the main external integrations (e.g., GitHub OAuth, Supabase, Vercel/Netlify for deployment) and how they interact with the core application boundary.
-- **Container Diagram**: Showing the main "containers" of the application (e.g., Next.js Frontend, Next.js API Routes, Supabase Database, Auth Service) and the technology choices within each, along with communication protocols.
-- **Component Diagram (High-Level)**: Depicting major logical components within the Next.js application (e.g., Authentication Module, Blog Content Management, API Handlers for specific features, Shared UI Components) and their primary relationships.
-- **Sequence Diagram (Authentication Flow)**: A detailed visual representation of the authentication flow outlined in section 2.2, showing the chronological sequence of interactions between the user, application, GitHub, and Supabase.
-- **Data Flow Diagram**: Illustrating how data moves through the system, from user input, through API routes, to the database, and back to the user interface.

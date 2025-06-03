@@ -1,108 +1,16 @@
 ---
-title: Data Visualization Component Library Framework
-slug: data-visualization-framework/documentation
-description: Strategic and technical approach for designing, developing, and governing a scalable and accessibility-first data visualization component library.
-date: 2025-05-31
-tags: ['data visualization', 'framework', 'accessibility']
-readingTime: '4 min read'
+title: Visualization Frameork data-visualization-framework.mdx
+slug: data/data-visualization-framework
+description: All documentations to what can be accomplished on setting it all up with chartjs as a baseline for that framework
+date: 2025-06-01
+tags: ['data', 'Data Viz']
+readingTime: '1 min read'
 author: 'Wesley Quintero'
 type: 'doc'
+category: data
+order: 4
 ---
 
-# Data Visualization Component Library Framework
+# data-visualization-framework
 
-## 1. Introduction
-
-This document outlines a strategic and technical framework for designing, developing, and governing a scalable, accessibility-first data visualization component library. The library aims to deliver performant, thematically consistent, and adaptable visualizations that support diverse user preferences and conditions, including dynamic light and dark modes. It prioritizes robust assistive technology integration, intuitive keyboard navigation, clear semantic hierarchies, and simplified complex data interactions.
-
-## 2. Core Principles
-
-- **Universal Usability:** Components are designed for intuitive use by the widest possible range of users.
-- **Accessibility-First (WCAG 2.2 AA/AAA Compliance):** Accessibility is embedded from conception through development and testing.
-- **Scalability:** Components are designed for performance with large datasets and easy extension.
-- **Thematic Consistency:** A unified design language supports dynamic themes.
-- **Performance:** Rendering, data processing, and interactions are optimized for a smooth user experience.
-
-## 3. Design Principles
-
-### 3.1. Visual Presentation
-
-- **Color Palettes:** Use perceptually uniform color palettes for clear distinction, maintaining sufficient contrast ratios. Provide distinct color states for interactive elements and offer customizable color schemes.
-- **Typography:** Employ legible and accessible fonts, ensuring appropriate sizes and line heights. Support user-scalable text without loss of functionality.
-- **Layout and Responsiveness:** Utilize responsive design for various screen sizes and orientations, implementing fluid layouts and flexible grid systems with clear visual hierarchy.
-- **Iconography:** Use easily recognizable and contextually relevant icons, providing clear `alt` text or ARIA labels for all informational icons.
-
-### 3.2. Theming
-
-- **Design Tokens:** Establish a comprehensive set of design tokens.
-- **Semantic Naming:** Use semantic names for colors and other design properties.
-- **CSS Variables:** Leverage CSS custom properties for theme-aware styling.
-- **Automated Theme Switching:** Components must adapt their visual appearance based on the active theme.
-
-### 3.3. Simplifying Data Interactions
-
-- **Progressive Disclosure:** Present critical information first, with options for users to reveal more details.
-- **Filtering and Sorting:** Implement intuitive mechanisms for tables and interactive charts.
-- **Drill-Downs:** Support multi-level drill-down capabilities for exploring hierarchical data.
-- **Annotations and Highlighting:** Enable users to annotate or highlight specific data points for deeper analysis.
-- **Interactive Legends:** Allow legends to function as interactive filters for chart data.
-- **Zooming and Panning:** Provide accessible zooming and panning functionalities for detailed data exploration.
-
-## 4. Technical Implementation
-
-### 4.1. Component Architecture
-
-- **Modularity and Reusability:** Develop self-contained, independent components that are highly reusable across the application.
-- **Technology Stack Considerations:**
-  - **Core Libraries:** React, Vue, or Angular.
-  - **Charting Libraries:** D3.js, Chart.js, ApexCharts, ECharts.
-  - **State Management:** Redux, Zustand, React Context.
-- **API Design:** Define clear, consistent, and well-documented APIs for all components.
-
-### 4.2. Accessibility & Semantic Structure
-
-- **Semantic Structure and ARIA:** Use native HTML5 elements and supplement with ARIA attributes where necessary to ensure screen reader compatibility and magnifier support.
-- **Keyboard Navigation:** Guarantee logical tab order and clear visual focus indicators. Allow full keyboard control over all interactive elements.
-- **Dynamic Theming Implementation:** Implement theme-aware styling using CSS-in-JS or Styled Components, along with a theme context for dynamic theme injection.
-- **Performance Optimization:** Implement virtualization and memoization techniques. Apply debouncing/throttling to intensive event handlers. Utilize data caching strategies and server-side rendering when appropriate.
-- **Structure for Complex Charts:** Provide summaries and detailed views for complex charts. Use ARIA live regions for dynamic updates and offer accessible descriptions for SVG and Canvas elements.
-- **Headings and Landmarks:** Use HTML headings and landmark roles to establish a clear and navigable document structure.
-- **Focusable Elements with Labels:** Ensure every interactive element is focusable and adequately labeled for accessibility.
-
-## 5. Framework Governance
-
-### 5.1. Documentation
-
-- **Component Usage Documentation:** Provide clear examples and API references for all components.
-- **Accessibility Guidelines:** Document best practices and testing procedures for accessibility compliance.
-- **Design Tokens & Guidelines:** Centralize documentation for all design tokens and their usage.
-- **Version Control and Changelog:** Maintain detailed changelogs for all releases.
-- **Contribution Guidelines:** Establish clear guidelines for internal and external contributions to the library.
-
-### 5.2. Testing Strategy
-
-- **Unit Testing:** Implement robust unit tests for individual components and utilities.
-- **Integration Testing:** Conduct integration tests to ensure components work correctly together.
-- **Visual Regression Testing:** Use tools like Storybook or Percy to prevent unintended visual changes.
-- **Accessibility Testing:** Integrate automated tools into CI/CD pipelines. Conduct manual accessibility audits and involve users with disabilities in User Acceptance Testing (UAT).
-- **Performance Testing:** Implement performance testing under various data load and environmental conditions.
-
-### 5.3. Version Control and Release Management
-
-- **Semantic Versioning:** Adhere to semantic versioning for all releases.
-- **Component Registry/Monorepo:** Manage components within a monorepo for simplified dependency management and development.
-- **Automated Builds and Releases:** Automate the build, test, and release processes to ensure consistency and efficiency.
-
-### 5.4. Feedback and Iteration
-
-- **Dedicated Feedback Channels:** Establish clear channels for gathering feedback from users and stakeholders.
-- **Regular Review Meetings:** Conduct regular review meetings with design and development teams to discuss feedback and plan iterations.
-- **Design Sprints:** Utilize design sprints for rapid prototyping and validation of new features or improvements.
-
-### 5.5. Enhancement and Modernization
-
-- **Technology Watch:** Continuously monitor new web standards, technologies, and trends in data visualization.
-- **Technical Debt Management:** Allocate resources for identifying and addressing technical debt.
-- **Deprecation Strategy:** Provide clear deprecation strategies for components or features that are being phased out.
-- **Migration Path:** Offer guidelines and tools to facilitate seamless migration to newer versions or components.
-- **A/B Testing:** Consider A/B testing for significant design or functionality changes to validate their impact.
+What does and what not
