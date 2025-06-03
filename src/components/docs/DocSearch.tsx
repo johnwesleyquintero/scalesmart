@@ -1,9 +1,38 @@
 'use client';
 
-import React, { useMemo, useState, useEffect, useTransition } from 'react';
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useTransition,
+  useCallback,
+} from 'react';
 import { useRouter } from 'next/navigation';
 import { DocArticleMetadata } from '@/lib/docs-data/static-docs';
-import useDebounceCallback from '@/hooks/use-debounce-callback'; // Correct import
+import useDebounceCallback from '@/hooks/use-debounce-callback';
+
+// Utility function for fuzzy matching (simple implementation for demonstration)
+function fuzzyMatch(text: string, query: string): number {
+  if (!query) return 1; // Empty query matches everything perfectly
+  text = text.toLowerCase();
+  query = query.toLowerCase();
+
+  let score = 0;
+  let queryIndex = 0;
+  for (let i = 0; i < text.length; i++) {
+    if (queryIndex < query.length && text[i] === query[queryIndex]) {
+      score++;
+      queryIndex++;
+    }
+  }
+
+  if (queryIndex === query.length) {
+    // If all query characters are found,
+    // give higher score for exact matches and shorter texts
+    return score / text.length + score / query.length;
+  }
+  return 0; // No match
+}
 
 // Custom hook for search logic
 function useDocSearch() {
@@ -12,7 +41,7 @@ function useDocSearch() {
   const [error, setError] = useState<string | null>(null);
 
   // Fetch all docs once on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchAllDocs = async () => {
       try {
         const response = await fetch('/api/docs-menu');
@@ -27,25 +56,36 @@ function useDocSearch() {
     fetchAllDocs();
   }, []);
 
-  // Memoized search function with useCallback, handling potential undefined query
-  const searchFunction = React.useCallback(
+  const searchFunction = useCallback(
     (queryParam: string | undefined | null) => {
-      const currentQuery = queryParam || ''; // Ensure query is always a string
+      const currentQuery = queryParam?.trim() || '';
       if (currentQuery.length < 2) return [];
 
-      const q = currentQuery.toLowerCase();
-      return allDocs.filter(
-        (doc) =>
-          doc.title.toLowerCase().includes(q) ||
-          doc.description.toLowerCase().includes(q) ||
-          doc.category.toLowerCase().includes(q) ||
-          doc.tags?.some((tag) => tag.toLowerCase().includes(q)),
-      );
+      const resultsWithScores = allDocs
+        .map((doc) => {
+          const titleMatch = fuzzyMatch(doc.title, currentQuery);
+          const descriptionMatch = fuzzyMatch(doc.description, currentQuery);
+          const categoryMatch = fuzzyMatch(doc.category, currentQuery);
+          const tagsMatch =
+            doc.tags?.some((tag) => fuzzyMatch(tag, currentQuery)) || false;
+
+          const score =
+            titleMatch * 3 + // Higher weight for title matches
+            descriptionMatch * 1.5 + // Medium weight for description
+            categoryMatch * 2 + // Medium weight for category
+            (tagsMatch ? 1 : 0); // Lower weight for tag match
+
+          return { doc, score };
+        })
+        .filter((item) => item.score > 0) // Only include relevant results
+        .sort((a, b) => b.score - a.score) // Sort by score descending
+        .map((item) => item.doc); // Return original doc objects
+
+      return resultsWithScores;
     },
     [allDocs],
-  ); // Dependency on allDocs
+  );
 
-  // Export searchFunction as search
   return { allDocs, loading, error, search: searchFunction };
 }
 
@@ -59,22 +99,19 @@ const SearchInput = ({
 }) => {
   const [internalValue, setInternalValue] = useState(externalValue);
   const [isPending, startTransition] = useTransition();
-  const debouncedOnChange = useDebounceCallback(onChange, 300); // Use the new hook
+  const debouncedOnChange = useDebounceCallback(onChange, 300);
 
-  // Sync internal state with external prop value
-  // This is crucial for keeping the internal input value up-to-date when the external `query` changes
-  // for example, when the search is cleared (`setQuery('')`).
   useEffect(() => {
     if (externalValue !== internalValue) {
       setInternalValue(externalValue);
     }
-  }, [externalValue, internalValue]); // Added internalValue to dependencies for useEffect, important for controlling re-renders of the input field
+  }, [externalValue, internalValue]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
-    setInternalValue(newValue); // Update internal state immediately for smooth UX
+    setInternalValue(newValue);
     startTransition(() => {
-      debouncedOnChange(newValue); // Debounce the external state update
+      debouncedOnChange(newValue);
     });
   };
 
@@ -83,7 +120,7 @@ const SearchInput = ({
       type="text"
       placeholder={`Search documentation... ${isPending ? '⌛' : ''}`}
       className="w-full p-2 border rounded-md"
-      value={internalValue} // Input is controlled by internal state
+      value={internalValue}
       onChange={handleChange}
     />
   );
@@ -132,13 +169,12 @@ export default function DocSearch() {
   const [query, setQuery] = useState('');
   const { loading, error, search: searchFunction } = useDocSearch();
 
-  const queryToSearch = query || ''; // Ensure query is always a string for safe length access
+  const queryToSearch = query || '';
 
-  // Memoized results to prevent unnecessary re-renders, only if not loading
   const results = useMemo(() => {
-    if (loading || error) return []; // Don't try to search if still loading or has an error
+    if (loading || error) return [];
     return searchFunction(queryToSearch);
-  }, [queryToSearch, searchFunction, loading, error]); // Add queryToSearch to dependencies, remove query
+  }, [queryToSearch, searchFunction, loading, error]);
 
   const handleSelectResult = (slug: string) => {
     router.push(`/docs/${slug}`);
@@ -156,7 +192,7 @@ export default function DocSearch() {
         (results.length > 0 ? (
           <ResultsList results={results} onSelect={handleSelectResult} />
         ) : (
-          <StatusMessage message="No results found" />
+          <StatusMessage message="No results found." />
         ))}
     </div>
   );

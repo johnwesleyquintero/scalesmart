@@ -2,139 +2,139 @@
 
 import { AcademyContentClient } from '@/app/academy/components/AcademyContentClient';
 import { Course } from '@/types';
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react'; // Removed useEffect, useState
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { AcademyProvider } from '@/context/AcademyContext';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   getAllCourses,
-  createCourse,
   updateCourse,
-  deleteCoursesByIds, // Import deleteCoursesByIds
+  deleteCoursesByIds,
 } from '@/lib/indexeddb-service';
-import { useSearchParams } from 'next/navigation'; // Import useSearchParams
+import { useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query'; // Import useQuery
 
 const DURATION_DESCENDING_SORT = 'Duration (descending)';
 const sortOptions = ['Title', 'Duration', 'Level', DURATION_DESCENDING_SORT];
 
+// Combined fetch and sync function for React Query
+const fetchAndSyncCourses = async (): Promise<Course[]> => {
+  const [indexedDBCourses, serverResponse] = await Promise.all([
+    getAllCourses(),
+    fetch('/api/academy/courses'),
+  ]);
+
+  if (!serverResponse.ok) {
+    throw new Error(`HTTP error! status: ${serverResponse.status}`);
+  }
+  const serverCourses: Course[] = await serverResponse.json();
+
+  const serverCourseIds = new Set(serverCourses.map((c) => c.id));
+  const coursesToDelete = indexedDBCourses.filter(
+    (c) => !serverCourseIds.has(c.id),
+  );
+
+  if (coursesToDelete.length > 0) {
+    await deleteCoursesByIds(coursesToDelete.map((c) => c.id));
+  }
+
+  const updatePromises = serverCourses.map(async (serverCourse) => {
+    const existingCourse = indexedDBCourses.find(
+      (c) => c.id === serverCourse.id,
+    );
+
+    if (
+      !existingCourse ||
+      (serverCourse.updateTimestamp &&
+        existingCourse.updateTimestamp &&
+        new Date(serverCourse.updateTimestamp).getTime() >
+          new Date(existingCourse.updateTimestamp).getTime())
+    ) {
+      await updateCourse(serverCourse);
+    }
+  });
+
+  await Promise.all(updatePromises);
+
+  return await getAllCourses(); // Return the updated local courses
+};
+
 export function AcademyPageContent() {
-  const [courses, setCourses] = useState<Course[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('All');
   const [sort, setSort] = useState('Title');
-  const searchParams = useSearchParams(); // Get search params
+  const searchParams = useSearchParams();
 
-  const fetchAndStoreCourses = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [indexedDBCourses, serverResponse] = await Promise.all([
-        getAllCourses(),
-        fetch('/api/academy/courses'),
-      ]);
+  // Use useQuery for data fetching and state management
+  const {
+    data: courses = [], // Initialize with an empty array
+    isLoading,
+    isError,
+    error,
+  } = useQuery<Course[], Error>({
+    queryKey: ['academyCourses'],
+    queryFn: fetchAndSyncCourses,
+    staleTime: 5 * 60 * 1000, // Data is considered fresh for 5 minutes
+    retry: false, // Don't retry on error, handle explicitly
+  });
 
-      if (indexedDBCourses.length > 0) {
-        setCourses(indexedDBCourses);
-      }
-
-      if (!serverResponse.ok) {
-        throw new Error(`HTTP error! status: ${serverResponse.status}`);
-      }
-      const serverCourses: Course[] = await serverResponse.json();
-
-      const serverCourseIds = new Set(serverCourses.map((c) => c.id));
-      const coursesToDelete = indexedDBCourses.filter(
-        (c) => !serverCourseIds.has(c.id),
-      );
-
-      if (coursesToDelete.length > 0) {
-        await deleteCoursesByIds(coursesToDelete.map((c) => c.id));
-      }
-
-      const updatePromises = serverCourses.map(async (serverCourse) => {
-        const existingCourse = indexedDBCourses.find(
-          (c) => c.id === serverCourse.id,
-        );
-
-        if (
-          !existingCourse ||
-          (serverCourse.updateTimestamp &&
-            existingCourse.updateTimestamp &&
-            new Date(serverCourse.updateTimestamp).getTime() >
-              new Date(existingCourse.updateTimestamp).getTime())
-        ) {
-          await updateCourse(serverCourse);
+  // categoryOptions derived from fetched courses
+  const categoryOptions = useMemo(() => {
+    const categories = new Set<string>();
+    if (courses) {
+      courses.forEach((course: Course) => {
+        if (course.metadata?.category) {
+          categories.add(course.metadata.category);
         }
       });
-
-      await Promise.all(updatePromises);
-
-      const updatedCourses = await getAllCourses();
-      setCourses(updatedCourses);
-    } catch (e) {
-      setError('Failed to load academy courses. Please try again later.');
-    } finally {
-      setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchAndStoreCourses();
-  }, [fetchAndStoreCourses]);
+    return ['All', ...Array.from(categories).sort()];
+  }, [courses]);
 
   const handleSortChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSort(event.target.value);
   };
 
-  const categoryOptions = useMemo(() => {
-    const categories = new Set<string>();
-    courses.forEach((course) => {
-      if (course.metadata?.category) {
-        categories.add(course.metadata.category);
+  const parseDuration = useCallback(
+    (durationString: string | null | undefined): number => {
+      if (!durationString) return 0;
+      const parts = durationString.toLowerCase().split(' ');
+      let totalMinutes = 0;
+      for (let i = 0; i < parts.length; i += 2) {
+        const value = parseInt(parts[i]);
+        const unit = parts[i + 1];
+        if (isNaN(value)) continue;
+        if (
+          unit === 'minutes' ||
+          unit === 'minute' ||
+          unit === 'mins' ||
+          unit === 'min'
+        ) {
+          totalMinutes += value;
+        } else if (
+          unit === 'hours' ||
+          unit === 'hour' ||
+          unit === 'hrs' ||
+          unit === 'hr'
+        ) {
+          totalMinutes += value * 60;
+        } else if (unit === 'days' || unit === 'day') {
+          totalMinutes += value * 60 * 24;
+        }
       }
-    });
-    return ['All', ...Array.from(categories).sort()];
-  }, [courses]);
-
-  const parseDuration = (durationString: string | undefined): number => {
-    if (!durationString) return 0;
-    const parts = durationString.toLowerCase().split(' ');
-    let totalMinutes = 0;
-    for (let i = 0; i < parts.length; i += 2) {
-      const value = parseInt(parts[i]);
-      const unit = parts[i + 1];
-      if (isNaN(value)) continue;
-      if (
-        unit === 'minutes' ||
-        unit === 'minute' ||
-        unit === 'mins' ||
-        unit === 'min'
-      ) {
-        totalMinutes += value;
-      } else if (
-        unit === 'hours' ||
-        unit === 'hour' ||
-        unit === 'hrs' ||
-        unit === 'hr'
-      ) {
-        totalMinutes += value * 60;
-      } else if (unit === 'days' || unit === 'day') {
-        totalMinutes += value * 60 * 24;
-      }
-    }
-    return totalMinutes;
-  };
+      return totalMinutes;
+    },
+    [],
+  );
 
   const filteredAndSortedCourses = useMemo(() => {
-    let currentCourses = courses || [];
+    let currentCourses: Course[] = courses; // `courses` is already defaulted to `[]` if no data yet
 
-    currentCourses = currentCourses.filter((course) => {
+    currentCourses = currentCourses.filter((course: Course) => {
       if (activeTab === 'All') return true;
       return course.metadata?.category === activeTab;
     });
 
-    currentCourses = currentCourses.sort((a, b) => {
+    currentCourses = currentCourses.sort((a: Course, b: Course) => {
       if (sort === 'Title') {
         return (a.title || '').localeCompare(b.title || '');
       } else if (sort === 'Level') {
@@ -147,12 +147,12 @@ export function AcademyPageContent() {
           ? durationB - durationA
           : durationA - durationB;
       }
-      return 0; // Default return for other sort types or if logic falls through
+      return 0;
     });
     return currentCourses;
-  }, [courses, activeTab, sort]);
+  }, [courses, activeTab, sort, parseDuration]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="container mx-auto p-4 text-center">
         Loading courses...
@@ -160,25 +160,25 @@ export function AcademyPageContent() {
     );
   }
 
-  if (error) {
+  if (isError) {
+    // Corrected to handle error safely, assuming `error` is `unknown` by default for type inference issues
     return (
       <div className="container mx-auto p-4 text-center text-red-500">
-        {error}
-      </div>
-    );
-  }
-
-  if (filteredAndSortedCourses.length === 0 && !loading) {
-    return (
-      <div className="container mx-auto p-4 text-center text-gray-600">
-        No courses found for the selected category.
+        Error:{' '}
+        {error instanceof Error
+          ? error.message
+          : 'Failed to load academy courses. Please try again later.'}
       </div>
     );
   }
 
   return (
     <div className="p-4 flex flex-col items-stretch bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-      <div className="flex justify-center space-x-4 mb-4">
+      {filteredAndSortedCourses.length === 0 ? (
+        <div className="flex justify-center items-center min-h-[200px] text-gray-600 dark:text-gray-300">
+          No courses found for the selected category.
+        </div>
+      ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-4 flex flex-wrap h-auto justify-center bg-gray-100 dark:bg-gray-700">
             {categoryOptions.map((category) => (
@@ -216,7 +216,7 @@ export function AcademyPageContent() {
             </AcademyProvider>
           </TabsContent>
         </Tabs>
-      </div>
+      )}
     </div>
   );
 }

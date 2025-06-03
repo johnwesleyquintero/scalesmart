@@ -6,7 +6,12 @@ import { deleteTask } from '@/lib/indexeddb-service';
 import TaskForm from './TaskForm';
 import { useState } from 'react';
 import Modal from '@/components/Modal';
-import { Button } from '@/components/ui/button'; // Import Button
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Draggable from '@/components/ui/Draggable';
+import Droppable from '@/components/ui/Droppable';
+import { CalendarIcon, UserRound, Tag } from 'lucide-react';
+
 interface TaskListProps {
   tasks: Task[];
   setTasks: (tasks: Task[]) => void;
@@ -31,80 +36,119 @@ const TaskList = ({ tasks, setTasks }: TaskListProps) => {
     setSelectedTask(null);
   };
 
-  const renderTaskSection = (
-    title: string,
-    filteredTasks: Task[],
-    status: string,
-  ) => (
-    <div key={status} className="mb-8">
-      <h2 className="text-2xl font-semibold mb-4">{title}</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredTasks.map((task) => (
-          <div
-            key={task.id}
-            className="bg-card shadow-md dark:shadow-lg rounded-lg p-4"
-          >
-            <h3 className="text-xl font-bold mb-2">{task.title}</h3>
-            <p className="text-muted-foreground mb-2">{task.description}</p>
-            <p className="text-muted-foreground text-sm">
-              Assignee: {task.assignee}
-            </p>
-            <p className="text-muted-foreground text-sm">
-              Status: {task.status}
-            </p>
-            {task.dueDate && (
-              <p className="text-muted-foreground text-sm">
-                Due: {new Date(task.dueDate).toLocaleDateString()}
-              </p>
-            )}
-            <div className="mt-4 flex space-x-2">
-              <Button onClick={() => handleEditClick(task)} variant="outline">
-                Edit
-              </Button>
-              <Button
-                onClick={() => handleDeleteTask(task.id)}
-                variant="destructive"
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
   const sections = [
-    { title: 'To Do', status: 'to-do' },
-    { title: 'In Progress', status: 'in-progress' },
-    { title: 'Completed', status: 'completed' },
+    { title: 'To Do', status: 'to-do', id: 'to-do' },
+    { title: 'In Progress', status: 'in-progress', id: 'in-progress' },
+    { title: 'Completed', status: 'completed', id: 'completed' },
   ];
 
   return (
-    <div>
-      {sections.map((section) =>
-        renderTaskSection(
-          section.title,
-          tasks.filter((task) => task.status === section.status),
-          section.status,
-        ),
-      )}
+    <Card className="flex-1">
+      <CardHeader>
+        <CardTitle>Task Board</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {sections.map((section) => (
+            <Droppable key={section.id} id={section.id}>
+              <div className="bg-muted p-4 rounded-lg shadow-inner h-full min-h-[200px]">
+                <h2 className="text-xl font-bold mb-4 flex items-center">
+                  {section.title}
+                  <span className="ml-2 text-sm bg-primary/20 text-primary-foreground px-2 py-1 rounded-full">
+                    {
+                      tasks.filter((task) => task.status === section.status)
+                        .length
+                    }
+                  </span>
+                </h2>
+                <div className="space-y-3">
+                  {tasks
+                    .filter((task) => task.status === section.status)
+                    .map((task) => (
+                      <Draggable key={task.id} id={task.id} type="task">
+                        <div className="bg-card p-3 rounded-md shadow-sm border border-border">
+                          <h3 className="font-semibold text-base mb-1">
+                            {task.title}
+                          </h3>
+                          {task.description && (
+                            <p className="text-sm text-muted-foreground mb-2">
+                              {task.description}
+                            </p>
+                          )}
+                          <div className="flex items-center text-xs text-gray-500 mb-1">
+                            <UserRound className="h-3 w-3 mr-1" />
+                            <span>{task.assignee || 'Unassigned'}</span>
+                          </div>
+                          <div className="flex items-center text-xs text-gray-500 mb-2">
+                            <CalendarIcon className="h-3 w-3 mr-1" />
+                            <span>
+                              {task.dueDate
+                                ? new Date(task.dueDate).toLocaleDateString()
+                                : 'No due date'}
+                            </span>
+                          </div>
+                          <div className="flex items-center text-xs text-gray-500 mb-2">
+                            <Tag className="h-3 w-3 mr-1" />
+                            <span>
+                              {task.projectId ? (
+                                <span className="font-medium text-primary">
+                                  Project:{' '}
+                                  {
+                                    (
+                                      sections.find(
+                                        (s) => s.id === task.projectId,
+                                      ) || {}
+                                    ).title
+                                  }
+                                </span>
+                              ) : (
+                                'No Project'
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex space-x-2 mt-2">
+                            <Button
+                              onClick={() => handleEditClick(task)}
+                              variant="outline"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() => handleDeleteTask(task.id)}
+                              variant="destructive"
+                              size="sm"
+                              className="text-xs"
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      </Draggable>
+                    ))}
+                </div>
+              </div>
+            </Droppable>
+          ))}
+        </div>
 
-      {selectedTask && (
-        <Modal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          title="Edit Task"
-        >
-          <TaskForm
-            task={selectedTask}
-            setTasks={setTasks}
-            tasks={tasks}
-            onTaskUpdated={handleCloseModal}
-          />
-        </Modal>
-      )}
-    </div>
+        {selectedTask && (
+          <Modal
+            isOpen={isModalOpen}
+            onClose={handleCloseModal}
+            title="Edit Task"
+          >
+            <TaskForm
+              task={selectedTask}
+              setTasks={setTasks}
+              tasks={tasks}
+              onTaskUpdated={handleCloseModal}
+            />
+          </Modal>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

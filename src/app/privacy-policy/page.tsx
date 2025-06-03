@@ -69,22 +69,33 @@ export default function PrivacyPolicyPage() {
                 </p>
                 <p>
                   We use Vercel Analytics to understand general traffic patterns
-                  and improve our website. Vercel Analytics is designed to be
-                  privacy-focused and collects anonymized, aggregated data. It
-                  does not track individual users or use cookies for tracking
-                  purposes.
+                  and improve our website experience. For detailed information
+                  on Vercel&apos;s privacy practices regarding their analytics,
+                  please visit their{' '}
+                  <Link
+                    href="https://vercel.com/legal/privacy-policy"
+                    className="text-primary hover:underline"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Privacy Policy
+                  </Link>
+                  . Vercel Analytics is designed to be privacy-focused and
+                  collects anonymized, aggregated data; it does not track
+                  individual users or use cookies for tracking purposes.
                 </p>
               </section>
             </div>{' '}
             {/* End of wrapped policy points */}
             <p className="text-sm text-center text-gray-500 pt-4">
-              We may update this policy periodically. Any significant changes
-              will be communicated to users through the application or via
-              email.
+              We reserve the right to update this Privacy Policy periodically.
+              Significant changes will be announced prominently within the
+              application and via email to registered users, ensuring you are
+              always informed of how your information is handled.
             </p>
             <p className="text-sm text-center text-gray-500 pt-4">
               For any questions or concerns regarding this Privacy Policy,
-              please contact us at johnwesleyquintero@gmail.com.
+              please contact us at privacy@scalesmart.com.
             </p>
             <div className="text-center pt-4">
               <Link href="/" className="text-primary hover:underline">

@@ -1,189 +1,51 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import useAcademyStorage from '@/hooks/use-academy-storage';
 import useUserProfile from '@/hooks/use-user-profile';
 
 import { ModuleType, QuizResult } from '@/types';
 import { useAcademy } from '@/context/AcademyContext';
 import CertificateDisplay from './CertificateDisplay';
-import { UserProfile } from '@/lib/models/user'; // Ensure UserProfile is imported for typing
+import { UserProfile } from '@/lib/models/user';
 
 interface QuestionInput {
-  id?: number; // Optional, as MDX might not provide it
-  question: string; // Matches 'question' field from MDX
+  id?: number;
+  question: string;
   options: string[];
-  correctAnswer: number; // Expecting index from MDX
-  explanation?: string; // Optional, as MDX might not provide it
+  correctAnswer: number;
+  explanation?: string;
 }
 
 const MAX_CERTIFICATE_ATTEMPTS = 3;
-const PASS_THRESHOLD = 70;
+const PASS_THRESHOLD = 70; // Only one definition, top-level
 
 interface QuizProps {
   questions: QuestionInput[];
   moduleId: string;
 }
 
-const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
-  const { activeCourse } = useAcademy();
-  const { userProfile, updateUserProfile } = useUserProfile();
-  const { updateQuizResult, getQuizResult } = useAcademyStorage();
+// Moved child components outside for better organization and memoization
+interface QuizLayoutProps {
+  title: string;
+  children: React.ReactNode;
+}
+const QuizLayout: React.FC<QuizLayoutProps> = ({ title, children }) => (
+  <div className="quiz-container p-4 text-gray-900 dark:text-gray-100">
+    <h2 className="text-2xl font-bold mb-4">{title}</h2>
+    {children}
+  </div>
+);
 
-  const markModuleProgress = useCallback(
-    useAcademyStorage().markModuleProgress,
-    [],
-  );
-
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [quizScore, setQuizScore] = useState<number | null>(null);
-  const [userAnswers, setUserAnswers] = useState<(string | null)[]>(() =>
-    Array(questions.length).fill(null),
-  );
-  const [attempts, setAttempts] = useState(0);
-  const [certificateAwarded, setCertificateAwarded] = useState<boolean>(false);
-
-  const userId = userProfile?.id || 'defaultUserId';
-  const courseId = activeCourse?.id || 'defaultCourseId';
-
-  // Effect for loading initial quiz data and setting progress
-  useEffect(() => {
-    const savedResult = getQuizResult(moduleId);
-    if (savedResult) {
-      setQuizScore(savedResult.score);
-      setAttempts(savedResult.attempts);
-      setCertificateAwarded(savedResult.certificateAwarded || false);
-      markModuleProgress(courseId, moduleId, savedResult.score);
-    } else {
-      // Initialize for a fresh quiz if no saved data
-      setQuizScore(null);
-      setAttempts(0);
-      setCertificateAwarded(false);
-    }
-  }, [moduleId, courseId, getQuizResult, markModuleProgress]);
-
-  // Effect for resetting userAnswers when questions change (e.g., different quiz loaded)
-  useEffect(() => {
-    setUserAnswers(Array(questions.length).fill(null));
-  }, [questions.length]);
-
-  const handleAnswerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedAnswer(event.target.value);
-    // Also update the userAnswers array for the current question
-    setUserAnswers((prevAnswers) => {
-      const newAnswers = [...prevAnswers];
-      newAnswers[currentQuestionIndex] = event.target.value;
-      return newAnswers;
-    });
-  };
-
-  const handleSubmitAnswer = useCallback(() => {
-    setShowFeedback(true);
-    // The user's answer for the current question is already stored in userAnswers
-    // by handleAnswerChange. selectedAnswer holds the UI state for the current question.
-  }, []);
-
-  const handleNextQuestion = useCallback(() => {
-    setShowFeedback(false);
-    setSelectedAnswer(null);
-    setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-  }, []);
-
-  const handleQuizCompletion = useCallback(async () => {
-    let correctAnswersCount = 0;
-    questions.forEach((question, index) => {
-      const selectedOpt = userAnswers[index];
-      const correctOpt = question.options[question.correctAnswer];
-      if (selectedOpt === correctOpt) {
-        correctAnswersCount++;
-      }
-    });
-
-    const finalScore =
-      questions.length > 0
-        ? Math.round((correctAnswersCount / questions.length) * 100)
-        : 0;
-
-    setQuizScore(finalScore);
-
-    const PASS_THRESHOLD = 70; // Example: 70% to pass
-    const passed = finalScore >= PASS_THRESHOLD;
-    const updatedAttempts = attempts + 1;
-
-    const passedThisAttempt = finalScore >= PASS_THRESHOLD;
-    let newCertificateStatus = certificateAwarded;
-
-    // Check if certificate can be awarded
-    if (
-      !newCertificateStatus &&
-      passedThisAttempt &&
-      updatedAttempts <= MAX_CERTIFICATE_ATTEMPTS
-    ) {
-      newCertificateStatus = true;
-    }
-    setCertificateAwarded(newCertificateStatus);
-
-    const result: QuizResult = {
-      score: finalScore,
-      attempts: updatedAttempts,
-      pass: passedThisAttempt,
-      certificateAwarded: newCertificateStatus,
-    };
-
-    await markModuleProgress(courseId, moduleId, finalScore);
-    updateQuizResult(moduleId, result);
-
-    // Award badge upon course completion (if applicable)
-    const badgeId = 'quiz-master-badge'; // Example badge
-    if (userProfile && passed && !userProfile.badges?.includes(badgeId)) {
-      const updatedProfile = {
-        ...userProfile,
-        badges: [...(userProfile.badges || []), badgeId],
-      };
-      await updateUserProfile(updatedProfile);
-    }
-  }, [
-    courseId,
-    questions,
-    userAnswers,
-    moduleId,
-    markModuleProgress,
-    updateQuizResult,
-    attempts,
-    userProfile,
-    certificateAwarded,
-    updateUserProfile,
-  ]);
-
-  // Helper layout component
-  const QuizLayout: React.FC<{ title: string; children: React.ReactNode }> = ({
-    title,
-    children,
-  }) => (
-    <div className="quiz-container p-4 text-gray-900 dark:text-gray-100">
-      <h2 className="text-2xl font-bold mb-4">{title}</h2>
-      {children}
-    </div>
-  );
-
-  // Component for displaying the completed quiz view
-  interface QuizCompletedViewProps {
-    score: number;
-    attempts: number;
-    totalAttempts: number;
-    isCertificateEarned: boolean;
-    userProfile: UserProfile | null; // Corrected: userProfile is passed from parent
-  }
-  const QuizCompletedView: React.FC<QuizCompletedViewProps> = ({
-    score,
-    attempts,
-    totalAttempts,
-    isCertificateEarned,
-    userProfile, // Destructure userProfile
-  }) => {
-    const { activeCourse } = useAcademy(); // Get activeCourse from context
+interface QuizCompletedViewProps {
+  score: number;
+  totalAttempts: number;
+  isCertificateEarned: boolean;
+  userProfile: UserProfile | null;
+}
+const QuizCompletedView: React.FC<QuizCompletedViewProps> = React.memo(
+  ({ score, totalAttempts, isCertificateEarned, userProfile }) => {
+    const { activeCourse } = useAcademy();
     const [customCertificateName, setCustomCertificateName] =
       useState<string>('');
 
@@ -239,9 +101,9 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
               }
               courseName={courseName}
               courseCompletionDate={new Date().toLocaleDateString()}
-              certificateId="QUIZ-CERT-001" // Placeholder ID
-              instructorName="John Wesley Quintero" // Example instructor name
-              instructorTitle="Lead Instructor" // Example instructor title
+              certificateId="QUIZ-CERT-001"
+              instructorName="John Wesley Quintero"
+              instructorTitle="Lead Instructor"
             />
           </>
         ) : passedCurrentAttempt && totalAttempts > MAX_CERTIFICATE_ATTEMPTS ? (
@@ -262,27 +124,33 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
           </p>
         )}
         <p
-          className={`mt-2 font-medium ${passedCurrentAttempt ? 'text-success dark:text-success-dark' : 'text-red-600 dark:text-red-400'}`}
+          className={`mt-2 font-medium ${
+            passedCurrentAttempt
+              ? 'text-success dark:text-success-dark'
+              : 'text-red-600 dark:text-red-400'
+          }`}
         >
           Module marked as {score}% complete for this attempt.
         </p>
       </div>
     );
-  };
+  },
+);
+QuizCompletedView.displayName = 'QuizCompletedView';
 
-  // Component for displaying the active question
-  interface ActiveQuestionDisplayProps {
-    currentQuestion: QuestionInput;
-    currentQuestionIndex: number;
-    totalQuestions: number;
-    selectedAnswer: string | null;
-    showFeedback: boolean;
-    onAnswerChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    onSubmitAnswer: () => void;
-    onNextQuestion: () => void;
-    onFinishQuiz: () => void;
-  }
-  const ActiveQuestionDisplay: React.FC<ActiveQuestionDisplayProps> = ({
+interface ActiveQuestionDisplayProps {
+  currentQuestion: QuestionInput;
+  currentQuestionIndex: number;
+  totalQuestions: number;
+  selectedAnswer: string | null;
+  showFeedback: boolean;
+  onAnswerChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onSubmitAnswer: () => void;
+  onNextQuestion: () => void;
+  onFinishQuiz: () => void;
+}
+const ActiveQuestionDisplay: React.FC<ActiveQuestionDisplayProps> = React.memo(
+  ({
     currentQuestion,
     currentQuestionIndex,
     totalQuestions,
@@ -372,35 +240,173 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
         </button>
       )}
     </div>
-  );
+  ),
+);
+ActiveQuestionDisplay.displayName = 'ActiveQuestionDisplay';
 
-  // Component for the "View Results" screen
-  interface QuizPendingResultsDisplayProps {
-    onViewResults: () => void;
-  }
-  const QuizPendingResultsDisplay: React.FC<QuizPendingResultsDisplayProps> = ({
-    onViewResults,
-  }) => (
+interface QuizPendingResultsDisplayProps {
+  onShowResults: () => void;
+}
+const QuizPendingResultsDisplay: React.FC<QuizPendingResultsDisplayProps> =
+  React.memo(({ onShowResults }) => (
     <div className="text-center">
       <h3 className="text-xl font-semibold mb-2">Quiz Finished!</h3>
-      <p className="text-lg mb-4">
-        Click below to see your final results and mark the module complete.
-      </p>
+      <p className="text-lg mb-4">Click below to see your final results.</p>
       <button
-        onClick={onViewResults}
+        onClick={onShowResults}
         className="px-6 py-3 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors text-lg"
       >
         View Results
       </button>
     </div>
+  ));
+QuizPendingResultsDisplay.displayName = 'QuizPendingResultsDisplay';
+
+const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
+  const { activeCourse } = useAcademy();
+  const { userProfile, updateUserProfile } = useUserProfile();
+  const { updateQuizResult, getQuizResult, markModuleProgress } =
+    useAcademyStorage();
+
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [quizScore, setQuizScore] = useState<number | null>(null);
+  const [userAnswers, setUserAnswers] = useState<(string | null)[]>(() =>
+    Array(questions.length).fill(null),
   );
+  const [attempts, setAttempts] = useState(0);
+  const [certificateAwarded, setCertificateAwarded] = useState<boolean>(false);
+  const [showResults, setShowResults] = useState(false);
+
+  const userId = userProfile?.id;
+  const courseId = activeCourse?.id;
+
+  useEffect(() => {
+    const savedResult = getQuizResult(moduleId);
+    if (savedResult) {
+      setQuizScore(savedResult.score);
+      setAttempts(savedResult.attempts);
+      setCertificateAwarded(savedResult.certificateAwarded || false);
+      if (courseId && moduleId) {
+        markModuleProgress(courseId, moduleId, savedResult.score);
+      }
+    } else {
+      setQuizScore(null);
+      setAttempts(0);
+      setCertificateAwarded(false);
+    }
+  }, [moduleId, courseId, getQuizResult, markModuleProgress]);
+
+  useEffect(() => {
+    setUserAnswers(Array(questions.length).fill(null));
+  }, [questions.length]);
+
+  const handleAnswerChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSelectedAnswer(event.target.value);
+    setUserAnswers((prevAnswers) => {
+      const newAnswers = [...prevAnswers];
+      newAnswers[currentQuestionIndex] = event.target.value;
+      return newAnswers;
+    });
+  };
+
+  const handleSubmitAnswer = useCallback(() => {
+    setShowFeedback(true);
+  }, []);
+
+  const handleNextQuestion = useCallback(() => {
+    setShowFeedback(false);
+    setSelectedAnswer(null);
+    setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+  }, []);
+
+  const handleQuizCompletion = useCallback(async () => {
+    let correctAnswersCount = 0;
+    questions.forEach((question, index) => {
+      const selectedOpt = userAnswers[index];
+      const correctOpt = question.options[question.correctAnswer];
+      if (selectedOpt === correctOpt) {
+        correctAnswersCount++;
+      }
+    });
+
+    const finalScore =
+      questions.length > 0
+        ? Math.round((correctAnswersCount / questions.length) * 100)
+        : 0;
+
+    setQuizScore(finalScore);
+
+    const passedThisAttempt = finalScore >= PASS_THRESHOLD;
+    const updatedAttempts = attempts + 1;
+
+    let newCertificateStatus = certificateAwarded;
+
+    if (
+      !newCertificateStatus &&
+      passedThisAttempt &&
+      updatedAttempts <= MAX_CERTIFICATE_ATTEMPTS
+    ) {
+      newCertificateStatus = true;
+    }
+    setCertificateAwarded(newCertificateStatus);
+    setAttempts(updatedAttempts);
+
+    const result: QuizResult = {
+      score: finalScore,
+      attempts: updatedAttempts,
+      pass: passedThisAttempt,
+      certificateAwarded: newCertificateStatus,
+    };
+
+    if (userId && courseId && moduleId) {
+      await markModuleProgress(courseId, moduleId, finalScore);
+      updateQuizResult(moduleId, result);
+
+      const badgeId = 'quiz-master-badge';
+      if (
+        userProfile &&
+        passedThisAttempt &&
+        !userProfile.badges?.includes(badgeId)
+      ) {
+        const updatedProfile = {
+          ...userProfile,
+          badges: [...(userProfile.badges || []), badgeId],
+        };
+        await updateUserProfile(updatedProfile);
+      }
+    } else {
+      console.warn(
+        'Skipping quiz result save: User ID or Course ID not available.',
+      );
+    }
+  }, [
+    questions,
+    userAnswers,
+    moduleId,
+    markModuleProgress,
+    updateQuizResult,
+    attempts,
+    userProfile,
+    certificateAwarded,
+    updateUserProfile,
+    userId,
+    courseId,
+  ]);
+
+  const handleShowResults = useCallback(() => {
+    // This is called when "View Results" button is clicked.
+    // We *do not* want to re-run handleQuizCompletion here, as it's already done.
+    // Instead, just set the state to show the results.
+    setShowResults(true);
+  }, []);
 
   return (
     <QuizLayout title="Quiz">
-      {quizScore !== null ? (
+      {showResults && quizScore !== null ? (
         <QuizCompletedView
           score={quizScore}
-          attempts={attempts}
           totalAttempts={attempts}
           isCertificateEarned={certificateAwarded}
           userProfile={userProfile}
@@ -418,7 +424,7 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
           onFinishQuiz={handleQuizCompletion}
         />
       ) : (
-        <QuizPendingResultsDisplay onViewResults={handleQuizCompletion} />
+        <QuizPendingResultsDisplay onShowResults={handleShowResults} />
       )}
     </QuizLayout>
   );

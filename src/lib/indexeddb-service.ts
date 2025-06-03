@@ -1,6 +1,6 @@
 import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
-import { Contact, Category } from '@/app/crm/types'; // Import Category
+import { Contact, Category, CommunicationLog } from '@/app/crm/types'; // Import Category, CommunicationLog
 import { Course } from '@/types'; // Import Course
 
 // Interface for chat messages stored in IndexedDB
@@ -54,6 +54,7 @@ class ChatDatabase extends Dexie {
   public tasks!: Table<Task, string>;
   public projects!: Table<Project, string>;
   public categories!: Table<Category, string>; // Add categories table
+  public communicationLogs!: Table<CommunicationLog, string>; // Add communicationLogs table
   public courses!: Table<Course, string>; // Add courses table
   public moduleProgress!: Table<ModuleProgressRecord, [string, string, string]>; // Add module progress table
 
@@ -94,6 +95,9 @@ class ChatDatabase extends Dexie {
     });
     this.version(9).stores({
       moduleProgress: '[userId+courseId+moduleId], progress, lastUpdated', // Composite primary key
+    });
+    this.version(10).stores({
+      communicationLogs: 'id, customerId, type, date, subject, notes',
     });
   }
 }
@@ -656,6 +660,152 @@ export const getAllContacts = async (): Promise<Contact[]> => {
       'IndexedDBService',
     );
     return [];
+  }
+};
+
+// Communication Log methods
+
+/**
+ * Creates a new communication log entry in IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param log - The communication log data to create.
+ */
+export const createCommunicationLog = async (
+  log: Omit<CommunicationLog, 'id'>,
+): Promise<string | undefined> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const id = crypto.randomUUID();
+    const logToStore = { ...log, id, date: Date.now() }; // Automatically set current timestamp
+    await db.communicationLogs.put(logToStore);
+
+    // Also update the customer's communication logs
+    const customer = await db.contacts.get(log.customerId);
+    if (customer) {
+      const updatedLogs = [...(customer.communicationLogs || []), logToStore];
+      // Update the customer in the database directly. Dexie allows partial updates
+      // for objects already retrieved or by passing an UpdateSpec.
+      await db.contacts.update(log.customerId, {
+        communicationLogs: updatedLogs,
+      });
+    }
+
+    console.log('Communication log added to IndexedDB:', logToStore);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error adding communication log to IndexedDB for customer ${log.customerId}`,
+      'IndexedDBService',
+    );
+    return undefined;
+  }
+};
+
+/**
+ * Retrieves all communication logs for a specific customer from IndexedDB, sorted by date.
+ * @remarks Used by WesCRM.
+ * @param customerId - The ID of the customer whose logs to retrieve.
+ */
+export const getCommunicationLogsByCustomerId = async (
+  customerId: string,
+): Promise<CommunicationLog[]> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const logs = await db.communicationLogs
+      .where('customerId')
+      .equals(customerId)
+      .sortBy('date');
+    console.log(
+      `Communication logs retrieved for customer ${customerId}:`,
+      logs,
+    );
+    return logs;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting communication logs for customer ${customerId} from IndexedDB`,
+      'IndexedDBService',
+    );
+    return [];
+  }
+};
+
+/**
+ * Updates an existing communication log entry in IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param log - The communication log data to update.
+ */
+export const updateCommunicationLog = async (
+  log: CommunicationLog,
+): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    const updatedLog = { ...log, date: Date.now() }; // Update timestamp
+    await db.communicationLogs.put(updatedLog);
+
+    // Also update the customer's communication logs array
+    const customer = await db.contacts.get(log.customerId);
+    if (customer) {
+      const updatedLogs = (customer.communicationLogs || []).map(
+        (existingLog) =>
+          existingLog.id === updatedLog.id ? updatedLog : existingLog,
+      );
+      await db.contacts.update(log.customerId, {
+        communicationLogs: updatedLogs,
+      });
+    }
+
+    console.log('Communication log updated in IndexedDB:', updatedLog);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating communication log in IndexedDB: ${log.id}`,
+      'IndexedDBService',
+    );
+  }
+};
+
+/**
+ * Deletes a communication log entry by ID from IndexedDB.
+ * @remarks Used by WesCRM.
+ * @param id - The ID of the communication log to delete.
+ * @param customerId - The ID of the customer the log belongs to.
+ */
+export const deleteCommunicationLog = async (
+  id: string,
+  customerId: string,
+): Promise<void> => {
+  if (!db) {
+    await initializeDB();
+  }
+  try {
+    await db.communicationLogs.delete(id);
+
+    // Also remove the log from the customer's communication logs array
+    const customer = await db.contacts.get(customerId);
+    if (customer) {
+      const updatedLogs = (customer.communicationLogs || []).filter(
+        (logEntry) => logEntry.id !== id,
+      );
+      await db.contacts.update(customerId, {
+        communicationLogs: updatedLogs,
+      });
+    }
+
+    console.log('Communication log deleted from IndexedDB:', id);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting communication log from IndexedDB: ${id}`,
+      'IndexedDBService',
+    );
   }
 };
 

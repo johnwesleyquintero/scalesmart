@@ -6,6 +6,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useState } from 'react';
+import { Label } from '@/components/ui/label';
 
 export interface Currency {
   label: string;
@@ -39,20 +40,23 @@ export function CurrencySelector({ onCurrencyChange }: CurrencySelectorProps) {
   };
 
   return (
-    <Select
-      onValueChange={handleCurrencyChange}
-      defaultValue={selectedCurrency.value}
-    >
-      <SelectTrigger className="w-[180px]">
-        <SelectValue placeholder="Select currency" />
-      </SelectTrigger>
-      <SelectContent>
-        {currencies.map((currency) => (
-          <SelectItem key={currency.value} value={currency.value}>
-            {currency.label} ({currency.symbol})
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
+    <div>
+      <Label htmlFor="currency-select">Select Currency</Label>
+      <Select
+        onValueChange={handleCurrencyChange}
+        defaultValue={selectedCurrency.value}
+      >
+        <SelectTrigger className="w-[180px]">
+          <SelectValue placeholder="Select currency" />
+        </SelectTrigger>
+        <SelectContent>
+          {currencies.map((currency) => (
+            <SelectItem key={currency.value} value={currency.value}>
+              {currency.label} ({currency.symbol})
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
   );
 }

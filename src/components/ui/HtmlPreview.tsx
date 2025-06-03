@@ -1,5 +1,4 @@
-'use client';
-
+import { Spinner } from '@/components/ui/Spinner';
 import React, {
   useRef,
   useEffect,
@@ -302,9 +301,7 @@ const HtmlPreview: React.FC<HtmlPreviewProps> = ({
           <div className="relative flex-1 min-h-[300px]">
             {isLoadingIframe && (
               <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-gray-900">
-                <div className="animate-pulse text-gray-500 dark:text-gray-400">
-                  Loading preview...
-                </div>
+                <Spinner className="text-gray-500 dark:text-gray-400" />
               </div>
             )}
             <iframe

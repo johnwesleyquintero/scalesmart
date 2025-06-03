@@ -8,8 +8,11 @@ import {
 } from '@/components/ui/card';
 import { useSearchParams } from 'next/navigation';
 import Logo from '@/components/Logo';
-import LoginForm from './login-form'; // Assuming login-form.tsx is in the same directory
-import { signIn, signUp } from '../auth/actions'; // Server actions
+import LoginForm from './login-form';
+import { signIn, signUp, forgotPassword } from '../auth/actions';
+
+const PRIVACY_POLICY_HREF = '/privacy-policy';
+const TERMS_OF_SERVICE_HREF = '/terms-of-service';
 
 const SEARCH_PARAM_ERROR_KEY = 'error';
 const SEARCH_PARAM_MESSAGE_KEY = 'message';
@@ -34,13 +37,14 @@ export default function LoginPage() {
           </div>
 
           {(errorMessage || infoMessage) && (
-            <div className="my-4 space-y-2 px-4 sm:px-0">
-              {' '}
-              {/* Added horizontal padding for messages on small screens */}
+            <div
+              className="my-4 space-y-2 px-4 sm:px-0"
+              role="status"
+              aria-live="polite"
+            >
               {errorMessage && (
                 <p className="rounded-md bg-destructive/15 p-3 text-sm text-destructive border border-destructive/30">
-                  {/* Slightly more subtle error styling */}
-                  Authentication failed: {errorMessage}. Please try again.
+                  {errorMessage}
                 </p>
               )}
               {infoMessage && (
@@ -51,8 +55,13 @@ export default function LoginPage() {
             </div>
           )}
         </CardHeader>
-        {/* LoginForm is rendered here, and it contains its own CardContent */}
-        <LoginForm signInAction={signIn} signUpAction={signUp} />
+        <LoginForm
+          signInAction={signIn}
+          signUpAction={signUp}
+          forgotPasswordAction={forgotPassword}
+          privacyPolicyHref={PRIVACY_POLICY_HREF}
+          termsOfServiceHref={TERMS_OF_SERVICE_HREF}
+        />
       </Card>
     </main>
   );

@@ -20,6 +20,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from 'sonner'; // For displaying user feedback
+
+// Import the new modular prompt generation utility
+import { generatePrompt as generatePromptUtility } from '@/lib/prompt-generator/promptGenerator';
 
 // Type definitions
 interface PromptData {
@@ -60,31 +64,20 @@ export default function PromptRequestGenerator() {
   );
 
   const generatePrompt = useCallback(() => {
-    const { category, customCategory, context, request, codeInput } =
-      promptData;
-    let prompt = '';
-
-    // Add category section
-    if (category || customCategory) {
-      prompt += `### ${customCategory || category}\n\n`;
+    try {
+      const generated = generatePromptUtility(promptData);
+      setOutput(generated);
+      toast.success('Prompt generated successfully!');
+    } catch (error) {
+      if (error instanceof Error) {
+        toast.error(`Error generating prompt: ${error.message}`);
+      } else {
+        toast.error(
+          'An unexpected error occurred while generating the prompt.',
+        );
+      }
+      setOutput(''); // Clear output on error
     }
-
-    // Add context section
-    if (context.trim()) {
-      prompt += `#### Context\n\n${context}\n\n`;
-    }
-
-    // Add request section
-    if (request.trim()) {
-      prompt += `#### Request\n\n${request}\n\n`;
-    }
-
-    // Add code input section
-    if (codeInput.trim()) {
-      prompt += `#### Code\n\n\`\`\`\n${codeInput}\n\`\`\`\n`;
-    }
-
-    setOutput(prompt);
   }, [promptData]);
 
   const copyToClipboard = useCallback(async () => {
@@ -92,8 +85,10 @@ export default function PromptRequestGenerator() {
       await navigator.clipboard.writeText(output);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      toast.success('Prompt copied to clipboard!');
     } catch (err) {
       console.error('Failed to copy text: ', err);
+      toast.error('Failed to copy prompt to clipboard.');
     }
   }, [output]);
 

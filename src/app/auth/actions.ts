@@ -41,16 +41,14 @@ export async function signUp(formData: FormData) {
 
   // Create a profile entry for the new user
   if (data.user) {
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .insert([
-        {
-          id: data.user.id,
-          email: data.user.email,
-          full_name: '',
-          avatar_url: '',
-        },
-      ]);
+    const { error: profileError } = await supabase.from('profiles').insert([
+      {
+        id: data.user.id,
+        email: data.user.email,
+        full_name: '',
+        avatar_url: '',
+      },
+    ]);
 
     if (profileError) {
       console.error('Error creating user profile:', profileError);
@@ -59,4 +57,24 @@ export async function signUp(formData: FormData) {
   }
 
   return redirect('/login?message=Check email to continue sign in process');
+}
+
+export async function forgotPassword(formData: FormData) {
+  const email = formData.get('email') as string;
+  const origin = (await headers()).get('origin');
+  const supabase = await createClient();
+
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${origin}/auth/callback?next=/reset-password`,
+  });
+
+  if (error) {
+    return redirect(
+      '/login?message=Could not send reset password link: ' + error.message,
+    );
+  }
+
+  return redirect(
+    '/login?message=Password reset email sent. Please check your inbox.',
+  );
 }

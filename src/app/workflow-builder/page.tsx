@@ -5,14 +5,8 @@ import WorkflowCanvas from '@/components/ui/WorkflowCanvas';
 import nodeRegistry from '@/lib/workflow/node-registry';
 import { NodeType } from '@/lib/workflow/types';
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  DndContext,
-  useSensors,
-  useSensor,
-  MouseSensor,
-  TouchSensor,
-  DragEndEvent,
-} from '@dnd-kit/core';
+// Remove DndContext, useSensors, useSensor, MouseSensor, TouchSensor as they are no longer directly used here for canvas drops
+// import { DndContext, useSensors, useSensor, MouseSensor, TouchSensor } from '@dnd-kit/core';
 import { setItem, getItem } from '@/lib/indexeddb-service';
 import {
   addEdge,
@@ -23,29 +17,40 @@ import {
   Edge,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Button } from '@/components/ui/button'; // Import Button component
+import { Button } from '@/components/ui/button';
+import { Toaster } from '@/components/ui/toaster';
+import { useToast } from '@/app/hooks/use-toast.tsx';
 
 import styles from './WorkflowBuilderPage.module.css';
 
+// Define constants for node labels and messages to avoid duplication
+const NODE_LABEL_START = 'Start Node';
+const NODE_LABEL_LOG = 'Log Node';
+const NODE_LABEL_END = 'End Node';
+const NODE_LABEL_DEFAULT = 'Default Node';
+const NODE_MESSAGE_HELLO = 'Hello, world!';
+
 const WorkflowBuilderPage = () => {
+  const { toast } = useToast();
+
   const [nodes, setNodes, onNodesChange] = useNodesState([
     {
       id: '1',
       type: 'start',
       position: { x: 50, y: 50 },
-      data: { label: 'Start Node' },
+      data: { label: NODE_LABEL_START },
     },
     {
       id: '2',
       type: 'log',
       position: { x: 250, y: 50 },
-      data: { label: 'Log Node', message: 'Hello, world!' },
+      data: { label: NODE_LABEL_LOG, message: NODE_MESSAGE_HELLO },
     },
     {
       id: '3',
       type: 'end',
       position: { x: 450, y: 50 },
-      data: { label: 'End Node' },
+      data: { label: NODE_LABEL_END },
     },
   ]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([
@@ -68,11 +73,27 @@ const WorkflowBuilderPage = () => {
     [],
   );
 
-  // Register a default node type
   useEffect(() => {
-    const defaultNodeType: NodeType = {
+    nodeRegistry.registerNodeType({
+      type: 'start',
+      label: NODE_LABEL_START,
+      properties: [],
+    });
+    nodeRegistry.registerNodeType({
+      type: 'log',
+      label: NODE_LABEL_LOG,
+      properties: [
+        { name: 'message', label: 'Message', type: 'string', defaultValue: '' },
+      ],
+    });
+    nodeRegistry.registerNodeType({
+      type: 'end',
+      label: NODE_LABEL_END,
+      properties: [],
+    });
+    nodeRegistry.registerNodeType({
       type: 'default',
-      label: 'Default Node',
+      label: NODE_LABEL_DEFAULT,
       properties: [
         {
           name: 'name',
@@ -80,7 +101,12 @@ const WorkflowBuilderPage = () => {
           type: 'string',
           defaultValue: 'Default Name',
         },
-        { name: 'description', label: 'Description', type: 'string' },
+        {
+          name: 'description',
+          label: 'Description',
+          type: 'string',
+          defaultValue: '',
+        },
         {
           name: 'enabled',
           label: 'Enabled',
@@ -88,92 +114,38 @@ const WorkflowBuilderPage = () => {
           defaultValue: true,
         },
       ],
-    };
-    nodeRegistry.registerNodeType(defaultNodeType);
+    });
 
-    // Example: Register other basic node types if they have specific structures
-    // or if you want them to appear in a list fetched from the registry.
-    // For now, we'll just fetch what's registered.
-    // nodeRegistry.registerNodeType({ type: 'start', label: 'Start', properties: [] });
-    // nodeRegistry.registerNodeType({ type: 'log', label: 'Log', properties: [{ name: 'message', label: 'Message', type: 'string' }] });
-    // nodeRegistry.registerNodeType({ type: 'end', label: 'End', properties: [] });
-
-    // Assuming nodeRegistry has a method to get all registered types
     if (typeof nodeRegistry.getNodeTypes === 'function') {
       setRegisteredNodeTypes(nodeRegistry.getNodeTypes());
     } else {
-      // Fallback if getAllNodeTypes doesn't exist, just use the one we registered
-      setRegisteredNodeTypes([defaultNodeType]);
+      console.warn(
+        'nodeRegistry.getNodeTypes is not a function. Fallback to basic nodes.',
+      );
+      setRegisteredNodeTypes([
+        { type: 'start', label: NODE_LABEL_START, properties: [] },
+        {
+          type: 'log',
+          label: NODE_LABEL_LOG,
+          properties: [{ name: 'message', label: 'Message', type: 'string' }],
+        },
+        { type: 'end', label: NODE_LABEL_END, properties: [] },
+        { type: 'default', label: NODE_LABEL_DEFAULT, properties: [] },
+      ]);
     }
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, []);
 
-  const sensors = useSensors(useSensor(MouseSensor), useSensor(TouchSensor));
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-
-      // If a draggable item is dropped over the workflow canvas
-      if (over?.id === 'workflow-canvas') {
-        const newNode = {
-          id: String(Math.random()), // Generate a unique ID for the new node
-          type: active.id.toString(), // The type of the node comes from the draggable's ID
-          position: { x: event.delta.x, y: event.delta.y }, // Use delta for relative positioning
-          data: { label: `${active.id} Node` }, // Set a label based on the type
-        };
-        setNodes((nds) => nds.concat(newNode));
-      }
+  const onNodeDrop = useCallback(
+    (type: string, position: { x: number; y: number }) => {
+      const newNode: Node = {
+        id: String(Math.random()),
+        type: type,
+        position: position,
+        data: { label: `${type} Node` },
+      };
+      setNodes((nds) => nds.concat(newNode));
     },
     [setNodes],
-  );
-
-  return (
-    <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-      <div className={styles.pageContainer}>
-        <header className={styles.header}>
-          <h1>Workflow Builder</h1>
-          <div className={styles.headerButtons}>
-            <Button onClick={() => saveWorkflow(nodes, edges)}>Save</Button>
-            <Button onClick={loadWorkflow}>Load</Button>
-          </div>
-        </header>
-        <div className={styles.contentWrapper}>
-          <aside className={styles.sidebar}>
-            <h2>Nodes</h2>
-            {/* Manually add basic nodes for dragging */}
-            <DraggableNode label="Start Node" type="start" />
-            <DraggableNode label="Log Node" type="log" />
-            <DraggableNode label="End Node" type="end" />
-            {/* Add nodes from the registry */}
-            {registeredNodeTypes.map((nodeType) => (
-              <DraggableNode
-                key={nodeType.type}
-                label={nodeType.label}
-                type={nodeType.type}
-              />
-            ))}
-          </aside>
-          <main className={styles.mainContent}>
-            <WorkflowCanvas
-              nodes={nodes}
-              edges={edges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onConnect={onConnect}
-            />
-            <Button
-              onClick={() => {
-                import('@/lib/workflow/engine').then((module) => {
-                  module.executeWorkflow(nodes, edges);
-                });
-              }}
-            >
-              Execute Workflow
-            </Button>
-          </main>
-        </div>
-      </div>
-    </DndContext>
   );
 
   async function saveWorkflow(currentNodes: Node[], currentEdges: Edge[]) {
@@ -185,23 +157,25 @@ const WorkflowBuilderPage = () => {
       console.time('Save workflow to IndexedDB');
       const workflow = { nodes: currentNodes, edges: currentEdges };
       const stringifiedWorkflow = JSON.stringify(workflow);
-      console.log('Saving stringified workflow:', stringifiedWorkflow);
       await setItem('currentWorkflow', stringifiedWorkflow);
       console.timeEnd('Save workflow to IndexedDB');
-      // Consider using a toast notification here for better UX
-      alert('Workflow saved successfully!');
+      toast({
+        title: 'Workflow Saved',
+        description: 'Your workflow has been successfully saved!',
+        variant: 'success',
+      });
     } catch (error) {
       console.error('Failed to save workflow to IndexedDB:', error);
-      console.log('Workflow saving failed to IndexedDB');
-      // Display an error message to the user
-      alert('Failed to save workflow. Please check the console for details.');
+      toast({
+        title: 'Save Failed',
+        description: 'Failed to save workflow. Please check the console.',
+        variant: 'destructive',
+      });
     }
   }
 
   async function loadWorkflow() {
     try {
-      // Load data from IndexedDB
-      console.log('Loading workflow from IndexedDB');
       console.time('Load workflow from IndexedDB');
       const workflow = await getItem('currentWorkflow');
       if (typeof workflow === 'string' && workflow !== null) {
@@ -212,27 +186,81 @@ const WorkflowBuilderPage = () => {
         ) {
           setNodes((parsedWorkflow as { nodes: Node[] }).nodes);
           setEdges((parsedWorkflow as { edges: Edge[] }).edges);
-          console.log('Workflow loaded successfully from IndexedDB');
           console.timeEnd('Load workflow from IndexedDB');
-          // Consider using a toast notification here
-          alert('Workflow loaded successfully!');
+          toast({
+            title: 'Workflow Loaded',
+            description: 'Your workflow has been successfully loaded!',
+            variant: 'success',
+          });
         } else {
           console.error('Invalid workflow data in IndexedDB:', workflow);
-          console.log('Workflow loading failed from IndexedDB');
-          alert(
-            'Failed to load workflow: Invalid data format. Please check the console for details.',
-          );
+          toast({
+            title: 'Load Failed',
+            description: 'Invalid workflow data. Please check the console.',
+            variant: 'destructive',
+          });
         }
+      } else {
+        toast({
+          title: 'No Workflow Found',
+          description: 'No saved workflow found in storage.',
+          variant: 'info',
+        });
       }
     } catch (error) {
       console.error('Failed to load workflow from IndexedDB:', error);
-      // Display an error message to the user
-      alert('Failed to load workflow. Please check the console for details.');
+      toast({
+        title: 'Load Failed',
+        description: 'Failed to load workflow. Please check the console.',
+        variant: 'destructive',
+      });
     }
   }
+
+  return (
+    // Removed DndContext wrapping
+    <div className={styles.pageContainer}>
+      <header className={styles.header}>
+        <h1>Workflow Builder</h1>
+        <div className={styles.headerButtons}>
+          <Button onClick={() => saveWorkflow(nodes, edges)}>Save</Button>
+          <Button onClick={loadWorkflow}>Load</Button>
+        </div>
+      </header>
+      <div className={styles.contentWrapper}>
+        <aside className={styles.sidebar}>
+          <h2>Nodes</h2>
+          {registeredNodeTypes.map((nodeType) => (
+            <DraggableNode
+              key={nodeType.type}
+              label={nodeType.label}
+              type={nodeType.type}
+            />
+          ))}
+        </aside>
+        <main className={styles.mainContent}>
+          <WorkflowCanvas
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeDrop={onNodeDrop}
+          />
+          <Button
+            onClick={() => {
+              import('@/lib/workflow/engine').then((module) => {
+                module.executeWorkflow(nodes, edges);
+              });
+            }}
+          >
+            Execute Workflow
+          </Button>
+        </main>
+      </div>
+      <Toaster />
+    </div>
+  );
 };
 
 export default WorkflowBuilderPage;
-
-// Rollback strategy: To revert to the previous version, simply remove the IndexedDB code
-// and the console.time statements.

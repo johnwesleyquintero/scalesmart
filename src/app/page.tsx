@@ -3,8 +3,12 @@
 import dynamic from 'next/dynamic';
 
 // Only disable SSR for components that truly need client-side features
+const CardLoading = dynamic(() => import('@/components/shared/CardLoading'), {
+  ssr: false,
+});
+
 const ErrorBoundary = dynamic(() => import('@/components/ui/error-boundary'), {
-  loading: () => <div className="min-h-[400px]" />,
+  loading: () => <CardLoading />,
 });
 
 const ClientChatInterface = dynamic(
@@ -12,42 +16,39 @@ const ClientChatInterface = dynamic(
   { ssr: false },
 );
 
-// Enable SSR for static content sections
-const loadingComponent = () => <div className="min-h-[400px]" />;
-
 const HeroSection = dynamic(() => import('@/components/hero-section'), {
   ssr: true,
-  loading: loadingComponent,
+  loading: () => <CardLoading />,
 });
 
 const ProjectsSection = dynamic(() => import('@/components/projects-section'), {
   ssr: true,
-  loading: loadingComponent,
+  loading: () => <CardLoading />,
 });
 
 const AboutSection = dynamic(() => import('@/components/about-section'), {
   ssr: true,
-  loading: loadingComponent,
+  loading: () => <CardLoading />,
 });
 
 const CertificationsSection = dynamic(
   () => import('@/components/certifications-section'),
-  { ssr: true, loading: loadingComponent },
+  { ssr: true, loading: () => <CardLoading /> },
 );
 
 const BlogSection = dynamic(() => import('@/components/blog-section'), {
   ssr: true,
-  loading: loadingComponent,
+  loading: () => <CardLoading />,
 });
 
 const ContactSection = dynamic(() => import('@/components/contact-section'), {
   ssr: true,
-  loading: loadingComponent,
+  loading: () => <CardLoading />,
 });
 
 const InAppProjects = dynamic(() => import('@/components/In-App-Project'), {
   ssr: true,
-  loading: loadingComponent,
+  loading: () => <CardLoading />,
 });
 
 export default function Home() {

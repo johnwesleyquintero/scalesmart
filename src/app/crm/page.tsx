@@ -11,7 +11,7 @@ import useDebounce from '@/hooks/use-debounce';
 import { CustomerForm } from './components/CustomerForm';
 import { CustomerListItem } from './components/CustomerListItem';
 import CategoryManager from './components/CategoryManager';
-import type { Category, Contact, Customer } from './types';
+import type { Category, Contact, Customer, CommunicationLog } from './types';
 import {
   createContact,
   updateContact,
@@ -19,6 +19,9 @@ import {
   getAllContacts,
   getAllCategories,
   updateCategory,
+  createCommunicationLog,
+  updateCommunicationLog,
+  deleteCommunicationLog,
 } from '@/lib/indexeddb-service';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'; // Import Tabs
 
@@ -88,6 +91,12 @@ interface CustomerListContentProps {
   onCopyNotes: (notes: string) => void;
   itemsPerPage: number;
   currentPage: number;
+  onCommunicationLogSave: (log: Omit<CommunicationLog, 'id'>) => Promise<void>;
+  onCommunicationLogUpdate: (log: CommunicationLog) => Promise<void>;
+  onCommunicationLogDelete: (
+    logId: string,
+    customerId: string,
+  ) => Promise<void>;
 }
 
 const CustomerListContent: React.FC<CustomerListContentProps> = ({
@@ -99,6 +108,9 @@ const CustomerListContent: React.FC<CustomerListContentProps> = ({
   onCopyNotes,
   itemsPerPage,
   currentPage,
+  onCommunicationLogSave,
+  onCommunicationLogUpdate,
+  onCommunicationLogDelete,
 }) => {
   const startIndex = currentPage * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -114,6 +126,9 @@ const CustomerListContent: React.FC<CustomerListContentProps> = ({
             onEdit={onEdit}
             onDelete={onDelete}
             onCopyNotes={onCopyNotes}
+            onCommunicationLogSave={onCommunicationLogSave}
+            onCommunicationLogUpdate={onCommunicationLogUpdate}
+            onCommunicationLogDelete={onCommunicationLogDelete}
           />
         ))}
       </div>
@@ -158,6 +173,7 @@ export default function CRMComponent() {
               ...contact,
               id: contact.id!,
               category: contact.category || '', // Ensure category is set
+              communicationLogs: contact.communicationLogs || [], // Initialize communication logs
             }) as Customer,
         );
         setCustomers(allCustomers);
@@ -189,7 +205,11 @@ export default function CRMComponent() {
         setCustomers(
           customers.map((customer: Customer) =>
             customer.id === editingCustomer.id
-              ? { ...customer, ...updatedCustomer }
+              ? {
+                  ...customer,
+                  ...updatedCustomer,
+                  communicationLogs: customer.communicationLogs,
+                } // Preserve existing communication logs
               : customer,
           ),
         );
@@ -215,6 +235,7 @@ export default function CRMComponent() {
           ...newCustomer,
           id: newId,
           category: newCustomer.category || '', // Ensure category is passed
+          communicationLogs: [], // Initialize empty array for new customer
         } as Customer;
         setCustomers([...customers, completeNewCustomer]);
         toast.success('Customer added successfully!');
@@ -357,6 +378,80 @@ export default function CRMComponent() {
 
   const pageCount = Math.ceil(filteredCustomers.length / itemsPerPage);
 
+  const handleCreateCommunicationLog = async (
+    log: Omit<CommunicationLog, 'id'>,
+  ) => {
+    try {
+      const newLogId = await createCommunicationLog(log);
+      if (newLogId) {
+        // Update the customer in the state with the new log
+        setCustomers((prevCustomers) =>
+          prevCustomers.map((cust) =>
+            cust.id === log.customerId
+              ? {
+                  ...cust,
+                  communicationLogs: [
+                    ...(cust.communicationLogs || []),
+                    { ...log, id: newLogId },
+                  ],
+                }
+              : cust,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error('Error creating communication log:', error);
+      toast.error('Failed to create communication log.');
+    }
+  };
+
+  const handleUpdateCommunicationLog = async (log: CommunicationLog) => {
+    try {
+      await updateCommunicationLog(log);
+      setCustomers((prevCustomers) =>
+        prevCustomers.map((cust) =>
+          cust.id === log.customerId
+            ? {
+                ...cust,
+                communicationLogs: (cust.communicationLogs || []).map(
+                  (existingLog) =>
+                    existingLog.id === log.id ? log : existingLog,
+                ),
+              }
+            : cust,
+        ),
+      );
+    } catch (error) {
+      console.error('Error updating communication log:', error);
+      toast.error('Failed to update communication log.');
+    }
+  };
+
+  const handleDeleteCommunicationLog = async (
+    logId: string,
+    customerId: string,
+  ) => {
+    try {
+      await deleteCommunicationLog(logId, customerId);
+      setCustomers((prevCustomers) =>
+        prevCustomers.map((cust) =>
+          cust.id === customerId
+            ? {
+                ...cust,
+                communicationLogs: (cust.communicationLogs || []).filter(
+                  (existingLog) => existingLog.id !== logId,
+                ),
+              }
+            : cust,
+        ),
+      );
+      toast.info('Communication log deleted.');
+    } catch (error) {
+      console.error('Error deleting communication log:', error);
+      toast.error('Failed to delete communication log.');
+    }
+  };
+
   return (
     <>
       <Toaster position="top-right" richColors />
@@ -386,6 +481,12 @@ export default function CRMComponent() {
               className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
             >
               Categories
+            </TabsTrigger>
+            <TabsTrigger
+              value="communication-logs"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+            >
+              Communication Logs (Overall)
             </TabsTrigger>
           </TabsList>
 
@@ -477,6 +578,9 @@ export default function CRMComponent() {
                   onCopyNotes={handleCopyToClipboard}
                   itemsPerPage={itemsPerPage}
                   currentPage={currentPage}
+                  onCommunicationLogSave={handleCreateCommunicationLog}
+                  onCommunicationLogUpdate={handleUpdateCommunicationLog}
+                  onCommunicationLogDelete={handleDeleteCommunicationLog}
                 />
                 <ReactPaginate
                   previousLabel={'Previous'}
@@ -501,6 +605,52 @@ export default function CRMComponent() {
               onCategoryRenamed={handleCategoryRenamed}
               customerCounts={customerCounts}
             />
+          </TabsContent>
+
+          {/* New Tab for Overall Communication Logs */}
+          <TabsContent value="communication-logs" className="space-y-4 mt-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>All Communication Logs</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {customers.flatMap(
+                  (customer) => customer.communicationLogs || [],
+                ).length === 0 ? (
+                  <p className="text-muted-foreground">
+                    No communication logs recorded across all customers.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {customers
+                      .flatMap((customer) =>
+                        (customer.communicationLogs || []).map((log) => ({
+                          ...log,
+                          customerName: customer.name,
+                        })),
+                      )
+                      .sort((a, b) => b.date - a.date) // Sort by date descending
+                      .map((log) => (
+                        <Card
+                          key={`${log.customerId}-${log.id}`}
+                          className="p-4"
+                        >
+                          {' '}
+                          {/* Changed key to be unique per customer+logId */}
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(log.date).toLocaleString()} - {log.type}{' '}
+                            for <strong>{log.customerName}</strong>
+                          </p>
+                          {log.subject && (
+                            <p className="font-semibold">{log.subject}</p>
+                          )}
+                          <p className="whitespace-pre-wrap">{log.notes}</p>
+                        </Card>
+                      ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

@@ -14,6 +14,16 @@ export interface Contact {
   creationTimestamp?: number; // milliseconds since epoch
   updateTimestamp?: number; // milliseconds since epoch
   address?: string;
+  communicationLogs?: CommunicationLog[]; // Array to store communication logs for a customer
 }
 
-export interface Customer extends Contact {} // Customer now directly extends Contact with category
+export interface CommunicationLog {
+  id?: string; // Unique ID for the log entry
+  customerId: string; // ID of the customer this communication relates to
+  type: 'Call' | 'Email' | 'Meeting' | 'Other'; // Type of communication
+  date: number; // Timestamp of the communication (e.g., milliseconds since epoch)
+  subject?: string; // Subject of the communication
+  notes: string; // Detailed notes about the communication
+}
+
+export interface Customer extends Contact {} // Customer now extends Contact, which includes communicationLogs

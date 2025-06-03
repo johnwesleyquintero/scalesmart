@@ -1,64 +1,64 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { components as components } from '../../../components/MdxRenderer';
+import {
+  useQuery,
+  QueryKey,
+  QueryFunctionContext,
+} from '@tanstack/react-query'; // Import QueryKey
 
 interface ArticleModuleProps {
   contentSlug: string;
 }
 
-const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
-  const [mdxSource, setMdxSource] = useState<MDXRemoteSerializeResult | null>(
-    null,
-  );
-  interface Frontmatter {
+interface ArticleData {
+  source: MDXRemoteSerializeResult;
+  frontmatter: {
     title?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any; // Allow for other arbitrary frontmatter properties
-  }
-  const [frontmatter, setFrontmatter] = useState<Frontmatter>({});
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  };
+}
 
-  useEffect(() => {
-    const fetchMdxContent = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(
-          `/api/academy/academy-article/${contentSlug}`,
-        );
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        setMdxSource(data.source);
-        setFrontmatter(data.frontmatter || {});
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : 'An unknown error occurred.';
-        console.error('Could not fetch MDX content:', err);
-        setError(errorMessage || 'Failed to load article content.');
-      } finally {
-        setLoading(false);
+const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
+  // Use QueryKey for the parameter and assert type internally
+  const fetchArticleContent = useCallback(
+    async ({ queryKey }: QueryFunctionContext<QueryKey>) => {
+      // Assert the type of queryKey to be a string tuple
+      const [_key, slug] = queryKey as [string, string];
+      const response = await fetch(`/api/academy/academy-article/${slug}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    };
+      const data: ArticleData = await response.json();
+      return data;
+    },
+    [],
+  );
 
-    fetchMdxContent();
-  }, [contentSlug]);
+  const { data, isLoading, isError, error } = useQuery<ArticleData, Error>({
+    queryKey: ['articleContent', contentSlug],
+    queryFn: fetchArticleContent,
+    enabled: !!contentSlug, // Only run the query if contentSlug is available
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+  });
 
-  if (loading) {
+  if (isLoading) {
     return <p>Loading article content...</p>;
   }
 
-  if (error) {
-    return <p className="text-red-500">Error: {error}</p>;
+  if (isError) {
+    return <p className="text-red-500">Error: {error?.message}</p>;
   }
 
-  if (!mdxSource) {
-    return <p>No article content available.</p>;
+  if (!data || !data.source || !data.frontmatter) {
+    return <p>No article content available or missing data.</p>;
   }
+
+  const { source: mdxSource, frontmatter } = data;
 
   return (
     <div>

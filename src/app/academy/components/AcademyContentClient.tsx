@@ -11,15 +11,15 @@ import {
 import useUserProfile from '@/hooks/use-user-profile';
 import { getRecommendedCourses } from '@/lib/course-recommendations';
 import { Module, ModuleType, Course } from '@/types';
-import useAcademyStorage from '@/hooks/use-academy-storage'; // Import the hook
+import useAcademyStorage from '@/hooks/use-academy-storage';
 
 import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import ArticleModule from './ArticleModule';
 import VideoModule from './VideoModule';
-import CaseStudyModule from '../../../components/CaseStudyModule';
+import CaseStudyModule from '@/components/CaseStudyModule';
 import Quiz from './Quiz';
 import ClientCourseList from '@/app/academy/components/ClientCourseList';
-import { UserProfile } from '@/lib/models/user'; // Corrected import for UserProfile type
+import { UserProfile } from '@/lib/models/user';
 
 interface AcademyContentProps {
   courses: Course[];
@@ -28,12 +28,12 @@ interface AcademyContentProps {
 
 interface ModuleSpecificContentProps {
   activeModule: Module;
-  userProfile: UserProfile | null; // Pass userProfile as a prop
+  userProfile: UserProfile | null;
 }
 
 const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
   activeModule,
-  userProfile, // Destructure userProfile
+  userProfile,
 }) => {
   const { activeCourse } = useAcademy();
 
@@ -52,23 +52,33 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
       return activeModule.quiz && activeModule.quiz.questions.length > 0 ? (
         <Quiz
           questions={activeModule.quiz.questions.map((q) => {
-            // q's type is inferred from activeModule.quiz.questions
-            // Cast q to its own type intersected with potential 'question' and 'title' fields.
-            // This avoids 'any' and provides better type safety for accessing these optional fields.
             const questionData = q as typeof q & {
               question?: string;
               title?: string;
+              correctAnswer?: string | number;
             };
+            let parsedCorrectAnswer: number;
+            if (typeof questionData.correctAnswer === 'string') {
+              parsedCorrectAnswer = parseInt(questionData.correctAnswer, 10);
+              // Fallback for non-numeric strings
+              if (isNaN(parsedCorrectAnswer)) {
+                // If it's a string that's not a number, maybe it's the actual answer value not an index?
+                // For now, defaulting to 0 for robustness given the problem context.
+                // A better long-term solution might involve clearer types or handling the actual string answer.
+                parsedCorrectAnswer = 0;
+              }
+            } else if (typeof questionData.correctAnswer === 'number') {
+              parsedCorrectAnswer = questionData.correctAnswer;
+            } else {
+              // Default if correctAnswer is undefined or null
+              parsedCorrectAnswer = 0;
+            }
+
             return {
               id: questionData.id,
-              question: questionData.question || questionData.title || '', // Ensure 'question' property is provided
-              options: questionData.options,
-              // Convert the string index from MDX/source to a number.
-              // The error indicates questionData.correctAnswer is a string.
-              // The Quiz component expects a number (index).
-              correctAnswer: isNaN(Number(questionData.correctAnswer))
-                ? 0
-                : Number(questionData.correctAnswer),
+              question: questionData.question || questionData.title || '',
+              options: questionData.options || [],
+              correctAnswer: parsedCorrectAnswer,
               explanation: questionData.explanation,
             };
           })}
@@ -78,7 +88,7 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
         <p>No quiz questions available for this module.</p>
       );
     case ModuleType.SIMULATION:
-      return <p>Simulation Content Here for {activeModule.title}</p>; // Placeholder for Simulation component
+      return <p>Simulation Content Here for {activeModule.title}</p>;
     default:
       return <p>Unknown Module Type: {activeModule.type}</p>;
   }
@@ -103,7 +113,6 @@ function AcademyContentClient({
 
   const initialCourseHandled = useRef(false);
 
-  // Effect to handle initial course selection from URL parameter
   useEffect(() => {
     if (
       initialCourseId &&
@@ -114,12 +123,11 @@ function AcademyContentClient({
       const courseToSelect = allCourses.find((c) => c.id === initialCourseId);
       if (courseToSelect) {
         startCourseAction(courseToSelect);
-        initialCourseHandled.current = true; // Mark as handled
+        initialCourseHandled.current = true;
       }
     }
   }, [initialCourseId, allCourses, activeCourse, startCourseAction]);
 
-  // Calculate completed course IDs based on module progress
   const completedCourseIds = useMemo(() => {
     const completed = new Set<string>();
     allCourses.forEach((course) => {
@@ -145,18 +153,13 @@ function AcademyContentClient({
     }
   }, [userProfile, completedCourseIds]);
 
-  useEffect(() => {
-    // This useEffect is no longer needed as markModuleVisited is called directly on interaction.
-  }, []);
-
   const startCourse = (selectedCourse: Course) => {
-    startCourseAction(selectedCourse); // Use the context action
-    // The context's startCourseAction will handle setting activeCourse and activeModule
+    startCourseAction(selectedCourse);
   };
 
   const handleSelectModule = (module: Module) => {
-    setActiveModule(module); // Set active module
-    markModuleVisited(module.id); // Mark module as visited when selected
+    setActiveModule(module);
+    markModuleVisited(module.id);
   };
 
   const handleBackToCourses = () => {
@@ -164,7 +167,6 @@ function AcademyContentClient({
     setActiveModule(null);
   };
 
-  // Calculate overall course progress
   const calculateCourseProgress = useCallback(
     (course: Course) => {
       if (!course.modules || course.modules.length === 0) {
@@ -178,13 +180,13 @@ function AcademyContentClient({
     [getModuleProgress],
   );
 
-  // Filter out duplicate courses based on slug
-  const courses = allCourses.filter(
-    (course: Course, index, self) =>
-      course.slug && index === self.findIndex((t) => t.slug === course.slug),
-  );
+  const uniqueCourses = useMemo(() => {
+    return allCourses.filter(
+      (course: Course, index, self) =>
+        course.slug && index === self.findIndex((t) => t.slug === course.slug),
+    );
+  }, [allCourses]);
 
-  // Add navigation functions
   const getCurrentModuleIndex = useCallback(() => {
     if (!activeCourse?.modules || !activeModule) return -1;
     return activeCourse.modules.findIndex((m) => m.id === activeModule.id);
@@ -210,30 +212,29 @@ function AcademyContentClient({
 
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      // Only handle keyboard shortcuts when a module is active
       if (!activeModule || !activeCourse) return;
 
-      // Check if user is typing in an input field
       if (
         event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement
+        event.target instanceof HTMLTextAreaElement ||
+        event.target instanceof HTMLSelectElement
       ) {
         return;
       }
 
-      switch (event.key) {
-        case 'ArrowRight':
-        case 'ArrowDown':
-          if (event.altKey) {
+      if (event.altKey) {
+        switch (event.key) {
+          case 'ArrowRight':
+          case 'ArrowDown':
             handleNextModule();
-          }
-          break;
-        case 'ArrowLeft':
-        case 'ArrowUp':
-          if (event.altKey) {
+            event.preventDefault();
+            break;
+          case 'ArrowLeft':
+          case 'ArrowUp':
             handlePreviousModule();
-          }
-          break;
+            event.preventDefault();
+            break;
+        }
       }
     };
 
@@ -242,6 +243,8 @@ function AcademyContentClient({
       window.removeEventListener('keydown', handleKeyPress);
     };
   }, [activeModule, activeCourse, handleNextModule, handlePreviousModule]);
+
+  const currentModuleIdx = activeCourse ? getCurrentModuleIndex() : -1;
 
   return (
     <div className="w-full p-4 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-md text-gray-900 dark:text-gray-100">
@@ -253,9 +256,10 @@ function AcademyContentClient({
             className="w-full p-2 mb-4 border rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            aria-label="Search courses"
           />
           <ClientCourseList
-            courses={courses.filter((course) =>
+            courses={uniqueCourses.filter((course) =>
               course.title?.toLowerCase()?.includes(searchQuery.toLowerCase()),
             )}
           />
@@ -297,7 +301,7 @@ function AcademyContentClient({
                               ? 'bg-blue-100 text-blue-700 font-medium ring-1 ring-blue-300 dark:bg-blue-700 dark:text-white dark:ring-blue-500'
                               : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                           }`}
-                          aria-label={`Select module ${module.title}`}
+                          aria-label={`Select module ${module.title || module.id}`}
                           title={module.title || `Module ${module.id}`}
                         >
                           <span>{module.title || `Module ${module.id}`}</span>
@@ -341,7 +345,7 @@ function AcademyContentClient({
                             <Button
                               onClick={handlePreviousModule}
                               variant="outline"
-                              disabled={getCurrentModuleIndex() <= 0}
+                              disabled={currentModuleIdx <= 0}
                               aria-label="Previous Module"
                             >
                               &larr; Previous Module
@@ -358,7 +362,7 @@ function AcademyContentClient({
                               onClick={handleNextModule}
                               variant="outline"
                               disabled={
-                                getCurrentModuleIndex() >=
+                                currentModuleIdx >=
                                 (activeCourse.modules?.length || 0) - 1
                               }
                               aria-label="Next Module"

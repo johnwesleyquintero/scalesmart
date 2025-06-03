@@ -2,14 +2,11 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 
 interface DroppableProps {
-  type: string;
-  onDrop: (item: string) => void;
+  id: string; // Add id to DroppableProps
   children: React.ReactNode;
 }
 
-import { useCallback } from 'react';
-
-const Droppable: React.FC<DroppableProps> = ({ onDrop, children }) => {
+const Droppable: React.FC<DroppableProps> = ({ id, children }) => {
   const { isOver, setNodeRef } = useDroppable({
     id: 'droppable-area', // A unique ID for the droppable area
   });

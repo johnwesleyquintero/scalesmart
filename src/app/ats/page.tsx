@@ -12,8 +12,10 @@ import { Progress } from '@/components/ui/progress';
 import { AlertCircle, Check, Upload, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
+import { useToast } from '@/components/ui/use-toast';
 import { MDXRemote } from 'next-mdx-remote';
 import { components as components } from '@/components/MdxRenderer';
+import { useMutation } from '@tanstack/react-query'; // Import useMutation
 
 interface ResumeAnalysis {
   score: number;
@@ -30,93 +32,121 @@ interface ResumeAnalysis {
   };
 }
 
+/**
+ * Validates a selected file against predefined types and size limits.
+ * This function improves code clarity by centralizing file validation,
+ * making the `handleFileChange` function more concise and readable.
+ * It promotes scalability by providing a single point for updating file
+ * validation rules, ensuring consistency across the application if other
+ * file uploads were introduced.
+ *
+ * @param file The file object to validate.
+ * @returns An object indicating whether the file is valid and a message.
+ */
+const validateFile = (file: File): { isValid: boolean; message: string } => {
+  const allowedTypes = [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  ];
+  const maxSize = 5 * 1024 * 1024; // 5MB
+
+  if (!allowedTypes.includes(file.type)) {
+    return {
+      isValid: false,
+      message: 'Only PDF, DOC, or DOCX files are allowed.',
+    };
+  }
+
+  if (file.size > maxSize) {
+    return { isValid: false, message: 'File size must not exceed 5MB.' };
+  }
+
+  return { isValid: true, message: '' };
+};
+
+// Async function to analyze resume
+const analyzeResumeFn = async (file: File): Promise<ResumeAnalysis> => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const response = await fetch('/api/resume/analyze', {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error(`HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
+
 export default function ResumeScanner() {
   const [file, setFile] = useState<File | null>(null);
-  const [analysis, setAnalysis] = useState<ResumeAnalysis | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
-  // Analyze resume function (placeholder for API call)
-  const analyzeResume = async () => {
-    if (!file) return;
-
-    setIsAnalyzing(true);
-    setAnalysis(null); // Clear previous analysis
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/resume/analyze', {
-        method: 'POST',
-        body: formData,
+  const {
+    mutate: analyzeResume,
+    data: analysis,
+    isPending: isAnalyzing, // Renamed isLoading to isPending for consistency with @tanstack/react-query v5
+    isError,
+    error,
+    reset: resetMutation,
+  } = useMutation<ResumeAnalysis, Error, File>({
+    mutationFn: analyzeResumeFn,
+    onSuccess: () => {
+      // Any additional success handling if needed
+    },
+    onError: (err: Error) => {
+      console.error('Error analyzing resume:', err);
+      toast({
+        title: 'Analysis Failed',
+        description:
+          err.message || 'An unexpected error occurred during resume analysis.',
+        variant: 'destructive',
       });
+    },
+  });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data: ResumeAnalysis = await response.json();
-      setAnalysis(data);
-    } catch (error: unknown) {
-      console.error('Error analyzing resume:', error);
-      // Provide user feedback on the error
-      setAnalysis({
-        score: 0,
-        strengths: [],
-        weaknesses: ['An error occurred during analysis. Please try again.'],
-        suggestions: [],
-        keywords: { present: [], missing: [] },
-        sections: { present: [], missing: [] },
-      });
-    } finally {
-      setIsAnalyzing(false);
+  const handleAnalyzeClick = () => {
+    if (file) {
+      analyzeResume(file);
     }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const selectedFile = e.target.files?.[0];
 
-    if (!file) {
+    if (!selectedFile) {
       setFile(null);
-      setAnalysis(null);
+      resetMutation(); // Reset mutation state as well
       return;
     }
 
-    const allowedTypes = [
-      'application/pdf',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    ];
-    const maxSize = 5 * 1024 * 1024; // 5MB
-
-    if (!allowedTypes.includes(file.type)) {
-      alert('Invalid file type. Please upload a PDF, DOC, or DOCX file.');
+    const validationResult = validateFile(selectedFile);
+    if (!validationResult.isValid) {
+      toast({
+        title: 'Invalid File',
+        description: validationResult.message,
+        variant: 'destructive',
+      });
       if (fileInputRef.current) {
         fileInputRef.current.value = ''; // Clear the input
       }
       setFile(null);
-      setAnalysis(null);
+      resetMutation(); // Reset mutation state as well
       return;
     }
 
-    if (file.size > maxSize) {
-      alert('File size exceeds the limit (5MB).');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''; // Clear the input
-      }
-      setFile(null);
-      setAnalysis(null);
-      return;
-    }
-
-    setFile(file);
-    setAnalysis(null); // Reset previous analysis
+    setFile(selectedFile);
+    resetMutation(); // Reset previous analysis when a new file is selected
   };
 
   const resetScanner = () => {
     setFile(null);
-    setAnalysis(null);
+    resetMutation(); // Reset mutation state to clear analysis data and errors
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -186,7 +216,7 @@ export default function ResumeScanner() {
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-                <Button onClick={analyzeResume} disabled={isAnalyzing}>
+                <Button onClick={handleAnalyzeClick} disabled={isAnalyzing}>
                   {isAnalyzing ? 'Analyzing...' : 'Analyze Resume'}
                 </Button>
               </div>
@@ -207,6 +237,17 @@ export default function ResumeScanner() {
           </CardContent>
         </Card>
       )}
+
+      {isError && (
+        <Alert variant="destructive" className="mt-4">
+          <AlertCircle className="h-4 w-4" />
+          <p>
+            An error occurred during analysis:{' '}
+            {error?.message || 'Unknown error'}. Please try again.
+          </p>
+        </Alert>
+      )}
+
       {analysis && (
         <div className="space-y-6">
           <Card>
@@ -296,18 +337,6 @@ export default function ResumeScanner() {
                 <MDXRemote {...suggestionsMdxSource} components={components} />
               </CardContent>
             </Card>
-          )}
-          {/* Display generic error message if analysis failed and weaknesses array contains the error message */}
-          {analysis?.weaknesses.some((w) =>
-            w.includes('An error occurred during analysis'),
-          ) && (
-            <Alert variant="destructive" className="mt-4">
-              <AlertCircle className="h-4 w-4" />
-              <p>
-                There was an issue analyzing your resume. Please check the
-                weaknesses section for details.
-              </p>
-            </Alert>
           )}
         </div>
       )}

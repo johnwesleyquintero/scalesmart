@@ -13,14 +13,17 @@ import experienceData from '@/data/portfolio-data/experience.json';
 import skillsData from '@/data/portfolio-data/skills.json';
 import { Briefcase, GraduationCap, Lightbulb } from 'lucide-react';
 
+import styles from './about-section.module.css';
 // Define the constant for the repeated string
 
 export default function AboutSection() {
   return (
-    <section id="about" className="py-20 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <div className="mb-16 text-center">
-          <h2 className="section-heading text-3xl font-bold tracking-tight sm:text-4xl">
+    <section id="about" className={styles.aboutSection}>
+      <div className={`${styles.container} container mx-auto px-4`}>
+        <div className={`${styles.headingContainer} mb-16 text-center`}>
+          <h2
+            className={`${styles.sectionHeading} text-3xl font-bold tracking-tight sm:text-4xl`}
+          >
             About Me
           </h2>
           <p className="mx-auto mt-4 max-w-3xl text-lg text-muted-foreground">
@@ -53,11 +56,11 @@ export default function AboutSection() {
                       <Badge
                         key={skill.name}
                         variant="secondary"
-                        className="px-3 py-1 text-sm hover:bg-primary/20 transition-colors"
+                        className={`${styles.skillBadge} px-3 py-1 text-sm hover:bg-primary/20 transition-colors`}
                       >
                         {skill.name}
                         {skill.level && (
-                          <span className="ml-1.5 opacity-75 text-xs">
+                          <span className={styles.skillLevel}>
                             ({skill.level})
                           </span>
                         )}
@@ -99,24 +102,22 @@ export default function AboutSection() {
                   ) => (
                     <div
                       key={index}
-                      className="relative pl-10 pb-4 last:pb-0 border-l border-border/50 ml-3 pt-1"
+                      className={`${styles.experienceItem} relative pl-10 pb-4 last:pb-0 border-l border-border/50 ml-3 pt-1`}
                     >
-                      <div className="absolute -left-[15px] top-0 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                      <div
+                        className={`${styles.iconContainer} absolute -left-[15px] top-0 flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground`}
+                      >
                         <Briefcase className="h-4 w-4" />
                       </div>
-                      <h3 className="text-lg font-semibold text-foreground">
-                        {exp.title}
-                      </h3>
-                      <p className="text-base font-medium text-muted-foreground">
-                        {exp.company}
-                      </p>
+                      <h3 className={styles.experienceTitle}>{exp.title}</h3>
+                      <p className={styles.experienceCompany}>{exp.company}</p>
                       {(exp.startDate || exp.endDate) && (
-                        <p className="text-xs text-muted-foreground/80 mb-1">
+                        <p className={styles.experiencePeriod}>
                           {exp.startDate ? exp.startDate : ''}
                           {exp.endDate ? ` - ${exp.endDate}` : ' - Present'}
                         </p>
                       )}
-                      <p className="text-sm text-foreground/80">
+                      <p className={styles.experienceDescription}>
                         {exp.description}
                       </p>
                     </div>

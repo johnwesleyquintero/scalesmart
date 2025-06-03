@@ -43,6 +43,8 @@ export interface Message {
   retryLimit?: number; // Maximum number of retries allowed
   id?: string; // Unique identifier for the message
   isGreeting?: boolean; // Flag for the initial greeting message
+  isEdited?: boolean; // Flag if the message has been edited
+  editedAt?: number; // Timestamp of when the message was last edited
 }
 
 interface MessageBubbleProps {
@@ -50,6 +52,7 @@ interface MessageBubbleProps {
   onRetry?: (message: Message) => void;
   onDelete?: (timestamp: number) => void;
   onPromptClick?: (promptText: string) => void; // For "Prompts to Try"
+  onEdit?: (message: Message) => void;
 }
 
 type ChatState = {
@@ -58,6 +61,7 @@ type ChatState = {
   isLoading: boolean; // True when waiting for AI response
   isChatOpen: boolean; // Controls visibility of the chat window
   isFullScreen: boolean; // New state for fullscreen mode
+  editingMessage: Message | null; // New state to hold the message being edited
 };
 
 type ChatAction =
@@ -76,7 +80,8 @@ type ChatAction =
       };
     }
   | { type: 'REMOVE_MESSAGE'; payload: number }
-  | { type: 'CLEAR_MESSAGES' };
+  | { type: 'CLEAR_MESSAGES' }
+  | { type: 'SET_EDITING_MESSAGE'; payload: Message | null };
 
 // --- Helper Functions ---
 
@@ -117,6 +122,7 @@ export const initialState: ChatState = {
   isLoading: false,
   isChatOpen: false,
   isFullScreen: false, // Initialize to false
+  editingMessage: null, // Initialize to null
 };
 
 export function chatReducer(state: ChatState, action: ChatAction): ChatState {
@@ -170,6 +176,12 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       };
     case 'TOGGLE_FULLSCREEN':
       return { ...state, isFullScreen: !state.isFullScreen };
+    case 'SET_EDITING_MESSAGE':
+      return {
+        ...state,
+        editingMessage: action.payload,
+        input: action.payload ? action.payload.content : '',
+      };
     default:
       // Ensure exhaustive check for action types if using TypeScript 4.9+
       // const _exhaustiveCheck: never = action;
@@ -413,7 +425,14 @@ const processAiContentRaw = (rawContent: AiContentRaw): string => {
 // --- Main Chat Component ---
 export default function ChatInterface() {
   const [state, dispatch] = useReducer(chatReducer, initialState);
-  const { messages, input, isLoading, isChatOpen, isFullScreen } = state;
+  const {
+    messages,
+    input,
+    isLoading,
+    isChatOpen,
+    isFullScreen,
+    editingMessage,
+  } = state;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -501,7 +520,15 @@ export default function ChatInterface() {
               sender: mapMessageRoleToSender(message.role),
               text: message.content,
               timestamp: message.timestamp,
-              // Potential future enhancement: store message.status, .error, .retryCount in metadata
+              metadata: {
+                status: message.status,
+                error: message.error,
+                retryCount: message.retryCount,
+                retryLimit: message.retryLimit,
+                isGreeting: message.isGreeting,
+                isEdited: message.isEdited,
+                editedAt: message.editedAt,
+              },
             };
             await setItem(chatSessionIdRef.current, messageDataPayload);
           } catch (error) {
@@ -672,11 +699,24 @@ export default function ChatInterface() {
   const handleMessageSubmit = useCallback(
     async (messageOrContent: Message | string) => {
       const isRetry = typeof messageOrContent !== 'string';
-      const content = isRetry ? messageOrContent.content : messageOrContent;
-      const timestampToUse = isRetry ? messageOrContent.timestamp : Date.now();
-      const initialRetryCountForCall = isRetry
-        ? (messageOrContent.retryCount ?? 0)
-        : 0;
+      let content = '';
+      let timestampToUse: number;
+      let initialRetryCountForCall: number;
+      let isEditing = false;
+
+      if (typeof messageOrContent !== 'string') {
+        // This is a retry or an edit submission
+        content = messageOrContent.content;
+        timestampToUse = messageOrContent.timestamp;
+        initialRetryCountForCall = messageOrContent.retryCount ?? 0;
+        isEditing = messageOrContent.isEdited || false;
+      } else {
+        // This is a brand new message
+        content = messageOrContent;
+        timestampToUse = Date.now();
+        initialRetryCountForCall = 0;
+      }
+
       const effectiveRetryLimit = determineEffectiveRetryLimit(
         isRetry ? messageOrContent : undefined,
       );
@@ -711,7 +751,25 @@ export default function ChatInterface() {
       };
 
       // --- Optimistic UI Update ---
-      if (isRetry) {
+      if (editingMessage) {
+        // If editing, update the existing message directly
+        dispatch({
+          type: 'UPDATE_MESSAGE',
+          payload: {
+            timestamp: editingMessage.timestamp,
+            role: 'user',
+            updates: {
+              content: content.trim(),
+              status: 'sent', // Mark as sent after edit, clear any errors
+              error: undefined,
+              isEdited: true, // Mark as edited
+              editedAt: Date.now(),
+            },
+          },
+        });
+        dispatch({ type: 'SET_EDITING_MESSAGE', payload: null }); // Clear editing state
+        dispatch({ type: 'SET_INPUT', payload: '' }); // Clear input after edit
+      } else if (isRetry) {
         // If retrying, update the existing message's status
         dispatch({
           type: 'UPDATE_MESSAGE',
@@ -744,6 +802,10 @@ export default function ChatInterface() {
   // --- Delete Handler ---
   const handleDeleteMessage = useCallback((timestamp: number) => {
     dispatch({ type: 'REMOVE_MESSAGE', payload: timestamp });
+  }, []);
+
+  const handleEditMessage = useCallback((message: Message) => {
+    dispatch({ type: 'SET_EDITING_MESSAGE', payload: message });
   }, []);
 
   // --- Render ---
@@ -843,6 +905,7 @@ export default function ChatInterface() {
                 onRetry={handleMessageSubmit}
                 onDelete={handleDeleteMessage}
                 onPromptClick={handleMessageSubmit} // Pass submit handler for prompts
+                onEdit={handleEditMessage} // Pass the new edit handler
               />
             ))}
             {/* Typing Indicator */}
@@ -888,7 +951,9 @@ export default function ChatInterface() {
                     handleMessageSubmit(input);
                   }
                 }}
-                placeholder="Type your message..."
+                placeholder={
+                  editingMessage ? 'Editing message...' : 'Type your message...'
+                }
                 disabled={isLoading} // Disable input while loading
                 rows={1} // Start with one row
                 className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 disabled:opacity-70 disabled:cursor-not-allowed resize-none overflow-hidden max-h-24" // Added resize-none and max-h-24
@@ -898,10 +963,25 @@ export default function ChatInterface() {
                   minHeight: '42px', // Approximate height of a single line input
                 }}
               />
+              {editingMessage && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() =>
+                    dispatch({ type: 'SET_EDITING_MESSAGE', payload: null })
+                  }
+                  aria-label="Cancel editing"
+                  className="px-2 py-1"
+                >
+                  Cancel
+                </Button>
+              )}
               <Button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                aria-label="Send message"
+                aria-label={
+                  editingMessage ? 'Save edited message' : 'Send message'
+                }
               >
                 {isLoading ? (
                   // Loading Spinner Icon
