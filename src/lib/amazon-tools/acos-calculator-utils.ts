@@ -31,3 +31,18 @@ export const calculateLocalMetrics = (
     currencySymbol,
   };
 };
+
+export const calculateAcosRoas = (adSpend: number, sales: number) => {
+  let acos: number | undefined;
+  let roas: number | undefined;
+
+  if (sales === 0) {
+    acos = Infinity;
+    roas = 0;
+  } else {
+    acos = (adSpend / sales) * 100;
+    roas = sales / adSpend;
+  }
+
+  return { acos, roas };
+};

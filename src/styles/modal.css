@@ -1,46 +1,98 @@
+/*
+  CSS Refinement for ScaleSmart Platform Modal
+
+  Key Enhancements:
+  - Uses CSS variables for colors, spacing, border-radius, and box-shadow for improved maintainability and consistency.
+  - Changed `border: none;` to `border: 0;` for slight clarity and conventional use.
+  - Added a comment suggesting replacing generic `h2` with a specific class for the modal title for better control and specificity.
+  - Included comments explaining the purpose of each section and specific rules.
+  - Added padding: 0; and a transition to the close button for better default styling and hover effect.
+*/
+
+/* Define CSS Variables for easier maintenance */
+:root {
+  --modal-padding: 20px;
+  --modal-border-radius: 8px;
+  --modal-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Using rgba for shadow color */
+  --modal-bg: white;
+  --modal-max-width: 500px;
+  --modal-backdrop-color: rgba(0, 0, 0, 0.5);
+  --modal-header-margin-bottom: 15px;
+  --modal-title-font-size: 1.5em;
+  --modal-close-font-size: 1.5em;
+  --modal-close-color: #333; /* Dark grey */
+  --modal-close-color-hover: #000; /* Black */
+  --modal-transition-speed: 0.2s;
+  --modal-transition-timing: ease-in-out;
+}
+
+/* Base Modal styles */
+/* The modal element itself (often a <dialog> or div) */
 .modal {
-  border: none;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  background-color: white;
-  max-width: 500px;
-  width: 90%;
+  border: 0; /* Changed from border: none; for clarity and conventional use */
+  padding: var(--modal-padding);
+  border-radius: var(--modal-border-radius);
+  box-shadow: var(--modal-box-shadow);
+  background-color: var(--modal-bg);
+  max-width: var(--modal-max-width);
+  width: 90%; /* Responsive width */
+  /* Note: Centering the modal is often handled by the display mechanism (e.g., flex/grid on a container, or browser default for <dialog>) */
 }
 
+/* Styles for the backdrop element behind the modal */
+/* Applies to the ::backdrop pseudo-element on <dialog> or a separate backdrop div */
 .modal::backdrop {
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--modal-backdrop-color);
+  /* Optional: Add backdrop filter for blur/effects */
+  /* backdrop-filter: blur(5px); */
 }
 
+/* Container for the main modal content, useful for flex/grid layout of sections */
 .modal-content {
   display: flex;
   flex-direction: column;
 }
 
+/* Header section containing title and close button */
 .modal-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
+  justify-content: space-between; /* Pushes title and button to opposite ends */
+  align-items: center; /* Vertically centers items */
+  margin-bottom: var(--modal-header-margin-bottom);
 }
 
+/* Title within the header */
+/* Suggestion: Use a specific class like .modal-title instead of targeting generic h2
+   for better maintainability and specificity control. */
 .modal-header h2 {
-  margin: 0;
-  font-size: 1.5em;
+  margin: 0; /* Reset default h2 margin */
+  font-size: var(--modal-title-font-size);
+  line-height: 1.2; /* Improve readability */
+  /* font-weight: bold; /* Or inherit */
+  /* color: #333; /* Or define a variable */
 }
 
+/* Styles for the close button */
 .modal-close-button {
-  background: none;
-  border: none;
-  font-size: 1.5em;
+  background: none; /* Ensure no background */
+  border: 0; /* Changed from border: none; */
+  padding: 0; /* Remove default button padding */
+  font-size: var(--modal-close-font-size);
   cursor: pointer;
-  color: #333;
+  color: var(--modal-close-color);
+  /* Optional: Add transition for smoother hover effect */
+  transition: color var(--modal-transition-speed) var(--modal-transition-timing);
+  /* Add accessibility focus styles if needed */
+  /* &:focus { outline: ...; } */
 }
 
+/* Hover state for the close button */
 .modal-close-button:hover {
-  color: #000;
+  color: var(--modal-close-color-hover);
 }
 
+/* Body section styles where main content goes */
 .modal-body {
   /* Add any specific styling for the body content here */
+  /* e.g., overflow-y: auto; max-height: ...; */
 }

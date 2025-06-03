@@ -1,89 +1,53 @@
+/*
+  Overall Refinements:
+  - Removed CSS rules that directly override Tailwind utility classes (like md:grid-cols-2, text-4xl)
+    within a fixed media query. This approach fights Tailwind's responsive system.
+    Responsive behavior should typically be applied using Tailwind's built-in prefixes (sm:, md:, etc.)
+    directly on the HTML elements.
+  - Addressed the conflicting width/max-width issue on the search input.
+  - Removed duplicate rules.
+  - Minimized the use of !important.
+  - Organized the code into relevant layers and sections.
+*/
+
+/*
+  Base Tailwind layers:
+  - These imports are necessary for Tailwind to build the final CSS.
+*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/*
+  Custom Utilities Layer:
+  - Add or extend Tailwind utilities here using the @layer utilities directive.
+*/
 @layer utilities {
+  /*
+    Explanation: text-balance utility (modern CSS)
+    - Keeps this utility as it correctly uses the @layer utilities directive
+      to add a custom CSS property as a utility.
+    - text-wrap: balance is useful for preventing awkward single words on the last line of text headings.
+  */
   .text-balance {
     text-wrap: balance;
   }
-}
 
-@layer base {
-  body {
-    font-family: Arial, Helvetica, sans-serif;
-  }
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-  body {
-    font-size: 14px;
-  }
-
-  .search-container {
-    width: 100%; /* Make the search container full width */
-  }
-
-  .search-container input {
-    width: 100%; /* Make the input full width */
-    max-width: 200px; /* Limit the maximum width of the input */
-    font-size: 14px; /* Reduce the font size */
-  }
-
-  .search-container kbd {
-    display: none !important; /* Hide the keyboard shortcut */
-  }
-
-  .md\:hidden {
-    display: flex !important; /* Show the menu button on smaller screens */
-  }
-
-  .md\:grid-cols-2 {
-    grid-template-columns: 1fr; /* Stack the columns vertically */
-  }
-
-  .text-4xl {
-    font-size: 2.5rem; /* Reduce the font size */
-  }
-
-  .text-xl {
-    font-size: 1.2rem; /* Reduce the font size */
-  }
-
-  .space-y-8 {
-    space-y: 1.5rem; /* Reduce the spacing */
-  }
-
-  .container {
-    padding-left: 1rem; /* Reduce the padding */
-    padding-right: 1rem; /* Reduce the padding */
-  }
-
-  .lg\:grid-cols-3 {
-    grid-template-columns: 1fr; /* One column on smaller screens */
-  }
-
-  .md\:grid-cols-2 {
-    grid-template-columns: 1fr; /* One column on smaller screens */
-  }
-
-  .md\:grid-cols-3 {
-    grid-template-columns: 1fr; /* One column on smaller screens */
-  }
-
-  .md\:grid-cols-2 {
-    grid-template-columns: 1fr; /* One column on smaller screens */
-  }
-  /* Add more mobile-specific styles here */
-}
-@layer utilities {
+  /*
+    Explanation: scrollbar-thin utility
+    - Keeps the custom scrollbar styles as a utility.
+    - This provides cross-browser custom scrollbar styling and correctly uses
+      theme() to pull colors from the Tailwind config, ensuring consistency.
+    - Defined within @layer utilities as it's a reusable visual style.
+  */
   .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: theme('colors.gray.300') theme('colors.gray.100');
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: theme('colors.gray.300') theme('colors.gray.100'); /* Firefox */
   }
   .dark .scrollbar-thin {
-    scrollbar-color: theme('colors.gray.600') theme('colors.gray.800');
+    scrollbar-color: theme('colors.gray.600') theme('colors.gray.800'); /* Firefox dark mode */
   }
+  /* Webkit browsers (Chrome, Safari) scrollbar styles */
   .scrollbar-thin::-webkit-scrollbar {
     width: 8px;
   }
@@ -92,7 +56,7 @@
     border-radius: 4px;
   }
   .dark .scrollbar-thin::-webkit-scrollbar-track {
-    background: theme('colors.gray.800');
+    background: theme('colors.gray.800'); /* Webkit track dark mode */
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: theme('colors.gray.300');
@@ -101,10 +65,113 @@
   }
   .dark .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: theme('colors.gray.600');
-    border: 2px solid theme('colors.gray.800');
+    border: 2px solid theme('colors.gray.800'); /* Webkit thumb dark mode */
   }
 }
 
+/*
+  Base Layer:
+  - Contains global, element-specific styles or resets.
+*/
+@layer base {
+  /*
+    Explanation: Base body font
+    - Keeps the base font-family definition for the body.
+  */
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+  }
+}
+
+/*
+  Custom Component Adjustments (Non-Tailwind Overrides):
+  - Use standard CSS media queries for custom adjustments to specific components
+    that don't involve overriding standard Tailwind utilities.
+*/
+@media (max-width: 768px) {
+  /*
+    Explanation: Mobile body font size adjustment
+    - Adjusts the base font size for smaller screens. This is a reasonable
+      base adjustment within a media query.
+  */
+  body {
+    font-size: 14px;
+  }
+
+  /*
+    Explanation: Search container width adjustment
+    - Ensures the search container is full width on small screens.
+  */
+  .search-container {
+    width: 100%;
+  }
+
+  /*
+    Explanation: Search input width adjustment and removed conflict
+    - Sets the input to take 100% width of its container (which is 100% on mobile).
+    - Removed the conflicting `max-width: 200px;` rule. When the container is already
+      set to 100%, applying max-width to the input within it usually isn't the
+      intended responsive pattern and can cause confusion or unexpected wrapping.
+      A more typical pattern is `width: 100%` on the input and `max-width` on the container if needed.
+  */
+  .search-container input {
+    width: 100%;
+    font-size: 14px; /* Adjust font size for mobile */
+  }
+
+  /*
+    Explanation: Hide keyboard shortcut
+    - Hides the KBD element within the search container on small screens.
+    - Removed the `!important` flag as it's generally preferred to avoid it.
+      If necessary to override other styles, a responsive utility class (e.g., `hidden`)
+      on the KBD element in HTML is the more idiomatic Tailwind approach.
+  */
+  .search-container kbd {
+    display: none;
+  }
+
+  /*
+    Explanation: Removed redundant Tailwind overrides
+    - The following rules were overriding standard Tailwind utility classes
+      (like md:grid-cols-2, text-4xl, space-y-8, container padding) within a
+      fixed media query.
+    - This approach breaks the predictability of Tailwind's utility-first
+      and responsive design system.
+    - Instead of defining these overrides in CSS, you should apply the
+      appropriate responsive utility classes directly to your HTML elements.
+      For example:
+      - For grid columns: `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">...</div>`
+      - For font sizes: `<h1 class="text-4xl md:text-3xl">...</h1>`
+      - For spacing: `<div class="space-y-8 md:space-y-4">...</div>`
+      - For container padding: `<div class="container px-4 md:px-6">...</div>`
+    - These CSS rules have been removed entirely.
+
+  .md\:hidden { display: flex !important; } // This rule actively fights md:hidden utility
+  .md\:grid-cols-2 { grid-template-columns: 1fr; }
+  .text-4xl { font-size: 2.5rem; }
+  .text-xl { font-size: 1.2rem; }
+  .space-y-8 { space-y: 1.5rem; }
+  .container { padding-left: 1rem; padding-right: 1rem; }
+  .lg\:grid-cols-3 { grid-template-columns: 1fr; }
+  .md\:grid-cols-3 { grid-template-columns: 1fr; }
+  .md\:grid-cols-2 { grid-template-columns: 1fr; } // Duplicate rule removed
+  .md\:grid-cols-2 { grid-template-columns: 1fr; } // Duplicate rule removed
+  */
+
+  /* Add more mobile-specific custom styles here if needed */
+}
+
+/*
+  Specific Component Styles:
+  - Styles for individual components that don't fit neatly into utilities or base styles.
+  - Could optionally be moved to @layer components if preferred for larger projects.
+*/
+
+/*
+  Explanation: Code block wrapper style
+  - Keeps the specific background color for the code block wrapper.
+  - Placed outside layers for a simple, specific rule, or could be in @layer components.
+*/
 .code-block-wrapper {
   background-color: black;
 }

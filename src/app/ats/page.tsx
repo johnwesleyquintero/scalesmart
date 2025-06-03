@@ -14,8 +14,19 @@ import { useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { MDXRemote } from 'next-mdx-remote';
-import { components as components } from '@/components/MdxRenderer';
-import { useMutation } from '@tanstack/react-query'; // Import useMutation
+// Ensure components is correctly imported and structured for MDX rendering
+import { components as mdxComponents } from '@/components/MdxRenderer';
+import { useMutation } from '@tanstack/react-query';
+
+// Define constants for validation rules and API endpoint
+const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+];
+const MAX_FILE_SIZE_MB = 5;
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024; // 5MB
+const API_ANALYZE_ENDPOINT = '/api/resume/analyze';
 
 interface ResumeAnalysis {
   score: number;
@@ -34,49 +45,52 @@ interface ResumeAnalysis {
 
 /**
  * Validates a selected file against predefined types and size limits.
- * This function improves code clarity by centralizing file validation,
- * making the `handleFileChange` function more concise and readable.
- * It promotes scalability by providing a single point for updating file
- * validation rules, ensuring consistency across the application if other
- * file uploads were introduced.
+ * Uses constants for allowed types and size, improving maintainability.
  *
  * @param file The file object to validate.
  * @returns An object indicating whether the file is valid and a message.
  */
 const validateFile = (file: File): { isValid: boolean; message: string } => {
-  const allowedTypes = [
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  ];
-  const maxSize = 5 * 1024 * 1024; // 5MB
-
-  if (!allowedTypes.includes(file.type)) {
+  if (!ALLOWED_FILE_TYPES.includes(file.type)) {
     return {
       isValid: false,
-      message: 'Only PDF, DOC, or DOCX files are allowed.',
+      message: `Only ${ALLOWED_FILE_TYPES.map((type) => type.split('/').pop()?.toUpperCase()).join(', ')} files are allowed.`,
     };
   }
 
-  if (file.size > maxSize) {
-    return { isValid: false, message: 'File size must not exceed 5MB.' };
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return {
+      isValid: false,
+      message: `File size must not exceed ${MAX_FILE_SIZE_MB}MB.`,
+    };
   }
 
   return { isValid: true, message: '' };
 };
 
-// Async function to analyze resume
+/**
+ * Sends the file to the backend API for analysis.
+ * Uses FormData for file upload and handles potential HTTP errors.
+ *
+ * @param file The file to upload.
+ * @returns A promise resolving to the ResumeAnalysis data.
+ * @throws An error if the HTTP response is not OK.
+ */
 const analyzeResumeFn = async (file: File): Promise<ResumeAnalysis> => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const response = await fetch('/api/resume/analyze', {
+  const response = await fetch(API_ANALYZE_ENDPOINT, {
     method: 'POST',
     body: formData,
   });
 
   if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    // Attempt to read error message from response body if available, otherwise use status text
+    const errorText = await response
+      .text()
+      .catch(() => `HTTP error! status: ${response.status}`);
+    throw new Error(errorText || `HTTP error! status: ${response.status}`);
   }
 
   return response.json();
@@ -90,15 +104,13 @@ export default function ResumeScanner() {
   const {
     mutate: analyzeResume,
     data: analysis,
-    isPending: isAnalyzing, // Renamed isLoading to isPending for consistency with @tanstack/react-query v5
+    isPending: isAnalyzing,
     isError,
     error,
     reset: resetMutation,
   } = useMutation<ResumeAnalysis, Error, File>({
     mutationFn: analyzeResumeFn,
-    onSuccess: () => {
-      // Any additional success handling if needed
-    },
+    // onSuccess: (data) => { /* Optional: handle success state updates or side effects here */ },
     onError: (err: Error) => {
       console.error('Error analyzing resume:', err);
       toast({
@@ -111,7 +123,7 @@ export default function ResumeScanner() {
   });
 
   const handleAnalyzeClick = () => {
-    if (file) {
+    if (file && !isAnalyzing) {
       analyzeResume(file);
     }
   };
@@ -119,9 +131,14 @@ export default function ResumeScanner() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
 
+    // If no file is selected (e.g., cancelled file picker)
     if (!selectedFile) {
       setFile(null);
-      resetMutation(); // Reset mutation state as well
+      resetMutation(); // Reset previous analysis state
+      if (fileInputRef.current) {
+        // Clear the input value so selecting the same file again triggers change
+        fileInputRef.current.value = '';
+      }
       return;
     }
 
@@ -132,42 +149,51 @@ export default function ResumeScanner() {
         description: validationResult.message,
         variant: 'destructive',
       });
+      // Clear the input value so selecting the same file again triggers change
       if (fileInputRef.current) {
-        fileInputRef.current.value = ''; // Clear the input
+        fileInputRef.current.value = '';
       }
-      setFile(null);
-      resetMutation(); // Reset mutation state as well
+      setFile(null); // Clear the selected file state
+      resetMutation(); // Reset previous analysis state
       return;
     }
 
+    // File is valid
     setFile(selectedFile);
-    resetMutation(); // Reset previous analysis when a new file is selected
+    // Reset previous analysis when a new valid file is selected
+    resetMutation();
   };
 
   const resetScanner = () => {
     setFile(null);
     resetMutation(); // Reset mutation state to clear analysis data and errors
     if (fileInputRef.current) {
+      // Clear the input value so selecting the same file again triggers change
       fileInputRef.current.value = '';
     }
   };
 
-  const getScoreColor = (score: number) => {
+  // Determines the background and text color class based on the score
+  const getScoreColorClass = (score: number): string => {
     if (score >= 80) return 'bg-success text-success-foreground';
     if (score >= 60) return 'bg-warning text-warning-foreground';
     return 'bg-destructive text-destructive-foreground';
   };
 
+  // Memoize the MDX source creation to avoid recreating it on every render
   const suggestionsMdxSource = useMemo(() => {
     if (analysis && analysis.suggestions.length > 0) {
+      // Format suggestions as a markdown list
+      const markdown = analysis.suggestions.map((s) => `- ${s}`).join('\n');
       return {
-        compiledSource: analysis.suggestions.map((s) => `- ${s}`).join('\n'),
-        scope: {}, // Provide empty scope
-        frontmatter: {}, // Provide empty frontmatter
+        compiledSource: markdown,
+        scope: {}, // Provide empty scope if no variables are needed in MDX
+        frontmatter: {}, // Provide empty frontmatter if not used
       };
     }
-    return null;
-  }, [analysis]);
+    return null; // Return null if no suggestions
+  }, [analysis]); // Depend only on the analysis data
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 bg-background">
       <h1 className="text-3xl font-bold my-6 text-center">
@@ -193,6 +219,7 @@ export default function ResumeScanner() {
                 <p className="text-sm text-muted-foreground">
                   Upload your resume (PDF or DOCX)
                 </p>
+                {/* Hidden file input triggered by button click */}
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -204,7 +231,7 @@ export default function ResumeScanner() {
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  {file ? 'Change File' : 'Select File'}
+                  Select File
                 </Button>
               </div>
             ) : (
@@ -212,10 +239,12 @@ export default function ResumeScanner() {
                 <div className="flex items-center space-x-2">
                   <Check className="h-5 w-5 text-success" />
                   <span className="font-medium">{file.name}</span>
+                  {/* Button to clear the selected file and reset */}
                   <Button variant="ghost" size="icon" onClick={resetScanner}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
+                {/* Button to trigger analysis mutation */}
                 <Button onClick={handleAnalyzeClick} disabled={isAnalyzing}>
                   {isAnalyzing ? 'Analyzing...' : 'Analyze Resume'}
                 </Button>
@@ -225,10 +254,12 @@ export default function ResumeScanner() {
         </CardContent>
       </Card>
 
+      {/* Loading state indicator */}
       {isAnalyzing && (
         <Card className="mb-6">
           <CardContent className="p-6">
             <div className="flex flex-col items-center space-y-4">
+              {/* Static progress value as a simple loading bar */}
               <Progress className="w-full" value={30} />
               <p className="text-muted-foreground">
                 Analyzing your resume... This may take a few seconds.
@@ -238,9 +269,11 @@ export default function ResumeScanner() {
         </Card>
       )}
 
+      {/* Error state display */}
       {isError && (
         <Alert variant="destructive" className="mt-4">
           <AlertCircle className="h-4 w-4" />
+          {/* Display specific error message if available */}
           <p>
             An error occurred during analysis:{' '}
             {error?.message || 'Unknown error'}. Please try again.
@@ -248,14 +281,16 @@ export default function ResumeScanner() {
         </Alert>
       )}
 
+      {/* Display analysis results */}
       {analysis && (
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>Resume Score</CardTitle>
+                {/* Score display with dynamic background/text color */}
                 <div
-                  className={`px-3 py-1 rounded-full ${getScoreColor(analysis.score)} text-sm font-medium`}
+                  className={`px-3 py-1 rounded-full ${getScoreColorClass(analysis.score)} text-sm font-medium`}
                 >
                   {analysis.score}/100
                 </div>
@@ -265,7 +300,9 @@ export default function ResumeScanner() {
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Progress bar showing the score */}
               <Progress value={analysis.score} className="h-3" />
+              {/* Score details */}
               <div className="grid grid-cols-3 gap-4 mt-4 text-sm">
                 <div className="text-center">
                   <div className="font-medium">ATS Score</div>
@@ -303,6 +340,9 @@ export default function ResumeScanner() {
               <CardContent>
                 <ul className="space-y-3">
                   {analysis.strengths.map((strength, index) => (
+                    // Using index as key as unique IDs are not available in the data structure.
+                    // Prefer unique IDs if possible for better list rendering performance
+                    // with reordering/filtering.
                     <li key={index} className="flex items-start">
                       <Check className="h-5 w-5 text-success mr-2 mt-0.5 flex-shrink-0" />
                       <span>{strength}</span>
@@ -319,6 +359,8 @@ export default function ResumeScanner() {
               <CardContent>
                 <ul className="space-y-3">
                   {analysis.weaknesses.map((weakness, index) => (
+                    // Using index as key as unique IDs are not available in the data structure.
+                    // Prefer unique IDs if possible.
                     <li key={index} className="flex items-start">
                       <AlertCircle className="h-5 w-5 text-warning mr-2 mt-0.5 flex-shrink-0" />
                       <span>{weakness}</span>
@@ -328,13 +370,18 @@ export default function ResumeScanner() {
               </CardContent>
             </Card>
           </div>
+          {/* Display suggestions rendered via MDXRemote */}
           {suggestionsMdxSource && (
             <Card>
               <CardHeader>
                 <CardTitle>Optimization Suggestions</CardTitle>
               </CardHeader>
               <CardContent>
-                <MDXRemote {...suggestionsMdxSource} components={components} />
+                {/* Pass memoized source and components to MDXRemote */}
+                <MDXRemote
+                  {...suggestionsMdxSource}
+                  components={mdxComponents}
+                />
               </CardContent>
             </Card>
           )}

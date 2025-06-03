@@ -1,142 +1,364 @@
+/*
+  ScaleSmart Platform CSS Refinement
+
+  This stylesheet defines CSS variables for theming (light and dark mode),
+  imports other stylesheets, sets global base styles using `@layer base`,
+  and defines various custom classes.
+
+  Refinements focus on:
+  - Harmonizing base styles with potential Tailwind usage.
+  - Improving clarity and maintainability.
+  - Enhancing performance and accessibility practices.
+*/
+
+/* --- CSS Variables: Light Theme Defaults --- */
 :root {
-  --primary-blue: 270 50% 60%; /* A specific purple color for primary-blue */
-  --font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
-  --background: 0 0% 100%;
-  --foreground: 222.2 84% 4.9%;
-  --card: 0 0% 100%;
-  --card-foreground: 222.2 84% 4.9%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222.2 84% 4.9%;
+  /* Base Colors */
+  --background: 0 0% 100%; /* White */
+  --foreground: 222.2 84% 4.9%; /* Dark foreground */
+
+  /* Surface Colors */
+  --card: 0 0% 100%; /* White */
+  --card-foreground: 222.2 84% 4.9%; /* Dark foreground */
+  --popover: 0 0% 100%; /* White */
+  --popover-foreground: 222.2 84% 4.9%; /* Dark foreground */
+
+  /* Primary Accent */
+  --primary-blue: 270 50% 60%; /* A specific purple color */
   --primary: 270 65% 35%; /* Adjusted for better contrast in light mode */
-  --primary-foreground: 0 0% 100%; /* White for better contrast in light mode */
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --muted: 210 40% 96.1%;
-  --muted-foreground: 215.4 16.3% 25%; /* Adjusted for better contrast in light mode */
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --destructive: 0 84.2% 60.2%;
-  --destructive-foreground: 210 40% 98%;
-  --border: 214.3 31.8% 91.4%;
-  --input: 214.3 31.8% 91.4%;
-  --ring: 270 80% 70%; /* Light Purple */
+  --primary-foreground: 0 0% 100%; /* White for better contrast */
+
+  /* Secondary Accent */
+  --secondary: 210 40% 96.1%; /* Light gray */
+  --secondary-foreground: 222.2 47.4% 11.2%; /* Dark foreground */
+
+  /* Muted/Subtle */
+  --muted: 210 40% 96.1%; /* Light gray */
+  --muted-foreground: 215.4 16.3% 25%; /* Adjusted for better contrast */
+
+  /* Interactive/Accent */
+  --accent: 210 40% 96.1%; /* Light gray */
+  --accent-foreground: 222.2 47.4% 11.2%; /* Dark foreground */
+  --ring: 270 80% 70%; /* Light Purple ring/focus color */
+
+  /* State Colors */
+  --destructive: 0 84.2% 60.2%; /* Red */
+  --destructive-foreground: 210 40% 98%; /* White */
+  --success: 142.1 76.2% 36.3%; /* Darker green */
+  --success-foreground: 210 40% 98%; /* White text */
+  --warning: 40 80% 70%; /* Yellow */
+  --warning-foreground: 222.2 47.4% 11.2%; /* Dark text */
+
+  /* Component Specific */
+  --user-bubble: 270 80% 90%; /* Light purple for user messages */
+  --user-bubble-foreground: 270 80% 20%; /* Dark text */
+  --typing-indicator: 210 40% 96.1%; /* Light gray */
+  --typing-indicator-foreground: 215.4 16.3% 25%; /* Dark text */
+
+  /* Borders & Inputs */
+  --border: 214.3 31.8% 91.4%; /* Light gray border */
+  --input: 214.3 31.8% 91.4%; /* Light gray input border */
+
+  /* Spacing & Radius */
   --radius: 0.75rem;
-  --success: 142.1 76.2% 36.3%; /* Darker green for light mode */
-  --success-foreground: 210 40% 98%; /* White text on success background */
-  --warning: 40 80% 70%; /* Yellow for warning */
-  --warning-foreground: 222.2 47.4% 11.2%; /* Dark text on warning background */
-  --user-bubble: 270 80% 90%; /* Light purple for user messages in light mode */
-  --user-bubble-foreground: 270 80% 20%; /* Dark text for contrast */
-  --typing-indicator: 210 40% 96.1%; /* Light gray for typing indicator in light mode */
-  --typing-indicator-foreground: 215.4 16.3% 25%; /* Dark text for contrast */
+
+  /* Typography */
+  --font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
 }
 
+/* --- CSS Variables: Dark Theme Overrides --- */
 .dark {
-  --background: 222.2 84% 4.9%;
-  --foreground: 210 20% 90%; /* Adjusted for better contrast */
-  --card: 222.2 84% 4.9%;
-  --card-foreground: 210 20% 90%;
-  --popover: 222.2 84% 4.9%;
-  --popover-foreground: 210 20% 90%;
-  --primary: 250 80% 70%;
-  --primary-foreground: 210 20% 90%; /* Light gray for better contrast in dark mode */
-  --secondary: 217.2 32.6% 17.5%;
-  --secondary-foreground: 210 20% 90%;
-  --muted: 217.2 32.6% 17.5%;
-  --muted-foreground: 215 10% 85%; /* Adjusted for better contrast */
-  --accent: 217.2 32.6% 17.5%;
-  --accent-foreground: 210 20% 90%;
-  --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 20% 90%;
-  --border: 217.2 32.6% 17.5%;
-  --input: 217.2 32.6% 17.5%;
-  --ring: 224.3 76.3% 48%;
-  --success: 142.1 70.2% 70%; /* Adjusted for better contrast in dark mode */
-  --success-foreground: 222.2 47.4% 11.2%;
-  --warning: 40 80% 50%; /* Darker yellow for warning in dark mode */
-  --warning-foreground: 222.2 47.4% 11.2%; /* Dark text on warning background */
-  --user-bubble: 270 40% 30%; /* Darker purple for user messages in dark mode */
-  --user-bubble-foreground: 270 80% 90%; /* Lighter text for contrast */
-  --typing-indicator: 217.2 32.6% 17.5%; /* Dark gray for typing indicator in dark mode */
-  --typing-indicator-foreground: 215 10% 85%; /* Light text for contrast */
+  /* Base Colors */
+  --background: 222.2 84% 4.9%; /* Dark background */
+  --foreground: 210 20% 90%; /* Adjusted light gray foreground */
+
+  /* Surface Colors */
+  --card: 222.2 84% 4.9%; /* Dark */
+  --card-foreground: 210 20% 90%; /* Adjusted light gray */
+  --popover: 222.2 84% 4.9%; /* Dark */
+  --popover-foreground: 210 20% 90%; /* Adjusted light gray */
+
+  /* Primary Accent */
+  --primary: 250 80% 70%; /* Lighter primary for dark mode */
+  --primary-foreground: 210 20% 90%; /* Light gray */
+
+  /* Secondary Accent */
+  --secondary: 217.2 32.6% 17.5%; /* Darker gray */
+  --secondary-foreground: 210 20% 90%; /* Light gray */
+
+  /* Muted/Subtle */
+  --muted: 217.2 32.6% 17.5%; /* Darker gray */
+  --muted-foreground: 215 10% 85%; /* Adjusted lighter gray */
+
+  /* Interactive/Accent */
+  --accent: 217.2 32.6% 17.5%; /* Darker gray */
+  --accent-foreground: 210 20% 90%; /* Light gray */
+  --ring: 224.3 76.3% 48%; /* Blue ring/focus color */
+
+  /* State Colors */
+  --destructive: 0 62.8% 30.6%; /* Darker red */
+  --destructive-foreground: 210 20% 90%; /* Light gray */
+  --success: 142.1 70.2% 70%; /* Adjusted lighter green */
+  --success-foreground: 222.2 47.4% 11.2%; /* Dark text */
+  --warning: 40 80% 50%; /* Darker yellow */
+  --warning-foreground: 222.2 47.4% 11.2%; /* Dark text */
+
+  /* Component Specific */
+  --user-bubble: 270 40% 30%; /* Darker purple */
+  --user-bubble-foreground: 270 80% 90%; /* Lighter text */
+  --typing-indicator: 217.2 32.6% 17.5%; /* Dark gray */
+  --typing-indicator-foreground: 215 10% 85%; /* Lighter text */
+
+  /* Borders & Inputs */
+  --border: 217.2 32.6% 17.5%; /* Darker gray border */
+  --input: 217.2 32.6% 17.5%; /* Darker gray input border */
 }
 
+/*
+  Note: Using @import can sometimes cause performance issues in older setups.
+  Modern build tools typically handle these efficiently during compilation.
+*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 @import 'prismjs/themes/prism-okaidia.css';
-
 @import '../styles/modal.css';
-
 @import '../styles/premium.css';
 
+/* --- Base Styles using @layer base ---
+  Styles within @layer base are typically applied before component and utility
+  layers, allowing utilities to override them.
+*/
 @layer base {
-  * {
+  /*
+    Basic Reset & Box Sizing
+    Removed universal margin/padding reset to rely more on Tailwind's Preflight
+    (based on Normalize.css) for better consistency.
+  */
+  *,
+  ::before,
+  ::after {
     box-sizing: border-box;
+    /* Apply border color variable */
     border-color: hsl(var(--border));
-    margin: 0;
-    padding: 0;
+  }
+
+  /*
+    HTML & Body Base Styles
+    Setting font, background, and text colors from variables.
+    Improving paint performance and preventing layout shifts.
+    Added scrollbar-gutter for modern CLS prevention.
+  */
+  html {
+    -webkit-text-size-adjust: 100%; /* Prevent iOS text zoom */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+    scroll-behavior: smooth; /* Smooth scrolling */
+    height: 100%; /* Ensure html takes full viewport height */
   }
 
   body {
+    min-height: 100%; /* Ensure body takes minimum full height */
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
-    /* Optimize paint performance */
+    font-family: var(--font-family);
+    overflow-x: hidden; /* Prevent horizontal scroll */
+    /* Prevent content jumps when scrollbar appears (modern & fallback) */
+    scrollbar-gutter: stable;
+    padding-right: calc(100vw - 100%);
+
+    /* Performance optimizations */
     backface-visibility: hidden;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
 
-  /* Base styles for better mobile experience */
-  html {
-    -webkit-text-size-adjust: 100%;
-    -webkit-tap-highlight-color: transparent;
-    scroll-behavior: smooth;
-    height: 100%;
-  }
-
-  body {
-    min-height: 100%;
-    /* Prevent content jumps */
-    overflow-x: hidden;
-    /* Reserve space for dynamic content */
-    padding-right: calc(100vw - 100%);
-  }
-
-  /* Content height reservations to prevent CLS */
+  /*
+    Layout Structure & CLS Prevention
+    Reserving space for key layout elements.
+  */
   .content-wrapper {
-    min-height: 100vh;
+    min-height: 100vh; /* Ensure wrapper fills viewport height */
     display: flex;
     flex-direction: column;
   }
 
-  /* Footer placement */
   footer {
-    margin-top: auto;
-    /* Prevent layout shift from footer */
-    position: relative;
+    margin-top: auto; /* Push footer to the bottom */
     width: 100%;
-    min-height: 100px; /* Reserve space for footer to prevent CLS */
+    min-height: 100px; /* Reserve space to prevent CLS */
   }
 
-  /* Header optimization */
   header {
     position: sticky;
     top: 0;
-    z-index: 50;
+    z-index: 50; /* Ensure header is above other content */
     height: 64px; /* Fixed height to prevent CLS */
-    backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px); /* Apply blur effect */
   }
 
-  /* Image optimizations */
+  /* Image optimization - removed universal aspect-ratio */
   img {
-    aspect-ratio: attr(width) / attr(height);
     object-fit: cover;
+    /* Consider setting aspect-ratio via utility classes or component styles */
   }
 
-  /* Tab interface improvements for accessibility and contrast */
+  /*
+    Accessibility & Interaction Improvements
+    Ensuring sufficient touch target sizes and preventing unwanted mobile behaviors.
+  */
+  button,
+  a[role='button'],
+  input,
+  select,
+  textarea {
+    min-height: 44px; /* Minimum touch target size */
+    min-width: 44px; /* Minimum touch target size */
+    line-height: 1.15; /* Standardize line height */
+    font-size: 16px; /* Prevent auto-zoom on iOS form fields */
+    touch-action: manipulation; /* Improve responsiveness of touch events */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight */
+  }
+
+  /* Specific touch target spacing - could also use Tailwind spacing utilities */
+  .tap-target {
+    padding: 0.75rem;
+    margin: 0.25rem;
+  }
+
+  /*
+    Font Loading Optimization
+    Using font-display: swap for better perceived performance.
+    Loading WOFF2 for optimal file size and support.
+  */
+  @font-face {
+    font-family: 'Open Sans';
+    font-display: swap; /* Swap fallback font until custom font loads */
+    src:
+      local('Open Sans'),
+      url('/fonts/OpenSans-Regular.woff2') format('woff2');
+  }
+
+  /*
+    Accessibility: Reduced Motion Preference
+    Disabling animations for users who prefer reduced motion.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /*
+    Performance: Will-Change
+    Hinting browser about expected transformations for performance,
+    used sparingly on elements with critical animations.
+  */
+  .animate-critical {
+    will-change: transform;
+    transform: translateZ(
+      0
+    ); /* Creates a new stacking context, can help performance */
+  }
+
+  /*
+    Base Typography Scaling within @layer base
+    Consolidated responsive typography definitions.
+    Note: For complex applications, defining these scales in tailwind.config.js
+    and using utilities like `text-xl md:text-2xl` might be more maintainable.
+  */
+  h1 {
+    font-size: 1.5rem; /* Default mobile size */
+    line-height: 2rem;
+    font-weight: 700;
+  }
+  h2 {
+    font-size: 1.25rem; /* Default mobile size */
+    line-height: 1.75rem;
+    font-weight: 600;
+  }
+  h3 {
+    font-size: 1.125rem; /* Default mobile size */
+    line-height: 1.5rem;
+    font-weight: 600;
+  }
+  p,
+  li {
+    font-size: 1rem; /* Default mobile size */
+    line-height: 1.625;
+  }
+
+  /* Responsive typography adjustments at common breakpoints (approximate Tailwind) */
+  @media (min-width: 640px) {
+    /* sm breakpoint */
+    h1 {
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+    h2 {
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+    h3 {
+      font-size: 1.25rem;
+      line-height: 1.75rem;
+    }
+    p,
+    li {
+      font-size: 1.125rem;
+      line-height: 1.75;
+    }
+  }
+
+  @media (min-width: 768px) {
+    /* md breakpoint */
+    h1 {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+    h2 {
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+    h3 {
+      font-size: 1.5rem;
+      line-height: 2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    /* lg breakpoint */
+    h1 {
+      font-size: 3rem;
+      line-height: 1;
+    }
+    h2 {
+      font-size: 2.25rem;
+      line-height: 2.5rem;
+    }
+    h3 {
+      font-size: 1.875rem;
+      line-height: 2.25rem;
+    }
+  }
+
+  /*
+    Removed extensive custom responsive classes from @layer base
+    like .mobile-container, .section-*, .card responsive styles, etc.
+    These often conflict with Tailwind's utility-first responsive system.
+    It's recommended to handle these using Tailwind's built-in utilities
+    (e.g., `max-w-xl lg:max-w-screen-lg`, `px-4 md:px-6`, `flex md:grid`)
+    or configure responsive values via tailwind.config.js.
+  */
+
+  /* Tab Interface Styles - Kept as a specific component class example */
   .tab-button {
-    /* Improved contrast for tab buttons */
+    /* Improved contrast for tab buttons using local variables */
     --tab-inactive-bg: hsl(var(--secondary));
     --tab-inactive-text: hsl(var(--secondary-foreground));
     --tab-active-bg: hsl(var(--primary));
@@ -157,230 +379,33 @@
     background-color: var(--tab-inactive-bg);
     color: var(--tab-inactive-text);
   }
-
-  /* Font loading optimization */
-  @font-face {
-    font-family: 'Open Sans';
-    font-display: swap;
-    src:
-      local('Open Sans'),
-      url('/fonts/OpenSans-Regular.woff2') format('woff2');
-  }
-
-  /* Performance optimizations for animations */
-  @media (prefers-reduced-motion: reduce) {
-    * {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-
-  /* Critical above-the-fold animations only */
-  .animate-critical {
-    will-change: transform;
-    transform: translateZ(0);
-  }
-
-  /* Responsive typography */
-  @media (max-width: 640px) {
-    h1 {
-      font-size: 1.5rem;
-      line-height: 2rem;
-      font-weight: 700;
-    }
-
-    h2 {
-      font-size: 1.25rem;
-      line-height: 1.75rem;
-      font-weight: 600;
-    }
-
-    h3 {
-      font-size: 1.125rem;
-      line-height: 1.5rem;
-      font-weight: 600;
-    }
-
-    p,
-    li {
-      font-size: 1rem;
-      line-height: 1.625;
-    }
-
-    /* Improved touch targets */
-    button,
-    a[role='button'],
-    input,
-    select,
-    textarea {
-      min-height: 44px;
-      min-width: 44px;
-      padding: 0.5rem;
-      line-height: 1.15;
-      font-size: 16px; /* Prevent auto-zoom on iOS */
-    }
-
-    /* Optimize tap targets spacing */
-    .tap-target {
-      padding: 0.75rem;
-      margin: 0.25rem;
-    }
-
-    /* Responsive containers and spacing */
-    .mobile-container {
-      padding-left: 1rem;
-      padding-right: 1rem;
-      width: 100%;
-      margin-left: auto;
-      margin-right: auto;
-      max-width: 540px;
-    }
-
-    .mobile-section {
-      padding-top: 2rem;
-      padding-bottom: 2rem;
-    }
-
-    /* Table optimizations */
-    .table-container {
-      width: 100%;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    /* Modal optimizations */
-    .modal-content {
-      width: 95%;
-      max-height: 90vh;
-      overflow-y: auto;
-      margin: 1rem auto;
-      border-radius: 0.5rem;
-    }
-
-    /* Navigation optimizations */
-    .mobile-nav {
-      padding: 0.5rem;
-    }
-
-    .mobile-nav-item {
-      display: block;
-      padding: 0.75rem 1rem;
-      margin: 0.25rem 0;
-    }
-
-    /* Card optimizations */
-    .card {
-      border-radius: 0.5rem;
-      padding: 1rem;
-      margin-bottom: 1rem;
-    }
-
-    /* Form field optimizations */
-    .form-field {
-      margin-bottom: 1rem;
-    }
-
-    .form-label {
-      display: block;
-      margin-bottom: 0.5rem;
-    }
-
-    .form-input {
-      width: 100%;
-      border-radius: 0.375rem;
-    }
-  }
-
-  /* Tablet optimizations */
-  @media (min-width: 641px) and (max-width: 1024px) {
-    .container {
-      padding: 0 1.5rem;
-    }
-
-    .grid {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.5rem;
-    }
-
-    /* Tablet-specific text adjustments */
-    h1 {
-      font-size: 2rem;
-    }
-
-    h2 {
-      font-size: 1.5rem;
-    }
-
-    h3 {
-      font-size: 1.25rem;
-    }
-  }
-
-  /* Responsive design using media queries */
-  @media (max-width: 640px) {
-    /* Styles for small screens (e.g., mobile phones) */
-    .section-container {
-      padding: 2rem 0.5rem;
-    }
-
-    .section-heading {
-      font-size: 1.5rem;
-    }
-
-    .section-subheading {
-      font-size: 1.125rem;
-    }
-  }
-
-  @media (min-width: 641px) and (max-width: 1024px) {
-    /* Styles for medium screens (e.g., tablets) */
-    .section-container {
-      padding: 3rem 1rem;
-    }
-
-    .section-heading {
-      font-size: 1.875rem;
-    }
-
-    .section-subheading {
-      font-size: 1.25rem;
-    }
-  }
-
-  @media (min-width: 1025px) {
-    /* Styles for large screens (e.g., desktops) */
-    .section-container {
-      padding: 4rem 1.5rem;
-    }
-
-    .section-heading {
-      font-size: 2.25rem;
-    }
-
-    .section-subheading {
-      font-size: 1.5rem;
-    }
-  }
 }
 
+/* --- Custom Component & Utility Classes (Outside @layer base) --- */
+
+/* Hover effect for project cards */
 .project-card-hover {
   transition: all 0.3s ease;
 }
 
 .project-card-hover:hover {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); /* Use standard box-shadow */
   transform: translateY(-2px);
 }
 
+/* Gradient text effect */
 .gradient-text {
-  background: linear-gradient(to right, hsl(var(--primary)), #9333ea);
+  background: linear-gradient(
+    to right,
+    hsl(var(--primary)),
+    #9333ea
+  ); /* Specific color hardcoded */
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
+/* Blink animation for indicators */
 @keyframes blink {
   0%,
   100% {
@@ -395,6 +420,7 @@
   animation: blink 1.2s ease-in-out infinite;
 }
 
+/* Hubspot Pagination Component Styles */
 .hubspot-pagination {
   display: flex;
   justify-content: center;
@@ -410,6 +436,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  /* Ensured sufficient touch target size */
   min-width: 44px;
   min-height: 44px;
   padding: 0.5rem;
@@ -420,10 +447,12 @@
   transition: all 0.2s ease-in-out;
   border-radius: 0.375rem;
   font-size: 0.875rem;
+  /* Improved touch responsiveness */
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Responsive padding adjustment for pagination links on small screens */
 @media (max-width: 640px) {
   .hubspot-pagination__link {
     padding: 0.75rem;
@@ -432,18 +461,18 @@
 }
 
 .hubspot-pagination__link:hover {
-  background-color: var(--muted);
-  transform: translateY(-1px);
+  background-color: hsl(var(--muted)); /* Use muted color for hover */
+  transform: translateY(-1px); /* Slight hover lift */
 }
 
 .hubspot-pagination__link:active {
-  transform: translateY(0);
+  transform: translateY(0); /* Reset on active */
 }
 
 .hubspot-pagination__link--disabled {
   opacity: 0.5;
   cursor: not-allowed;
-  pointer-events: none;
+  pointer-events: none; /* Disable interaction */
 }
 
 .hubspot-pagination__link--active {

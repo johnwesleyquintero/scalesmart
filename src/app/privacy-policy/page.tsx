@@ -2,6 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
+import ArticleModule from '@/app/academy/components/ArticleModule';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -14,89 +15,11 @@ export default function PrivacyPolicyPage() {
             </CardTitle>
           </CardHeader>
           <p className="text-sm text-center text-gray-500 mb-6">
+            {/* Last Updated: <TimeStamp date="2025-05-21" relative /> */}
             Last Updated: May 21, 2025
           </p>
           <CardContent className="space-y-6 text-gray-700">
-            <p className="text-lg font-semibold">
-              This Privacy Policy describes how we collect, use, and protect
-              your information when you use this application.
-            </p>
-            {/* Wrap the main policy points in a div to apply shared styling */}
-            <div className="space-y-6 pl-4 border-l-4 border-primary">
-              <section className="space-y-3">
-                <h3 className="font-semibold">Data Storage</h3>
-                <p>
-                  Currently, your data is stored locally within your web
-                  browser&apos;s IndexedDB. This is part of our free tier
-                  service. We do not collect or store any personal data on our
-                  servers at this time.
-                </p>
-              </section>
-
-              <section className="space-y-3">
-                <h3 className="font-semibold">Data Usage</h3>
-                <p>
-                  The stored data is used solely to provide the
-                  application&apos;s core functionality and improve your user
-                  experience. We do not share your data with any third parties.
-                </p>
-              </section>
-
-              <section className="space-y-3">
-                <h3 className="font-semibold">User Rights</h3>
-                <p>
-                  You have the right to access, modify, and delete your data.
-                  You can do this by clearing your browser&apos;s site data. We
-                  also encourage you to use any available &quot;Export&quot;
-                  features to back up your data.
-                </p>
-              </section>
-
-              <section className="space-y-3">
-                <h3 className="font-semibold">Future Plans</h3>
-                <p>
-                  We are planning to introduce a paid tier with cloud storage.
-                  We will update this policy to reflect any changes in data
-                  handling practices when this feature is available.
-                </p>
-              </section>
-
-              <section className="space-y-3">
-                <h3 className="font-semibold">Third-Party Services</h3>
-                <p>
-                  For the core functionality of this application, we do not
-                  utilize third-party services that collect your personal data.
-                </p>
-                <p>
-                  We use Vercel Analytics to understand general traffic patterns
-                  and improve our website experience. For detailed information
-                  on Vercel&apos;s privacy practices regarding their analytics,
-                  please visit their{' '}
-                  <Link
-                    href="https://vercel.com/legal/privacy-policy"
-                    className="text-primary hover:underline"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Privacy Policy
-                  </Link>
-                  . Vercel Analytics is designed to be privacy-focused and
-                  collects anonymized, aggregated data; it does not track
-                  individual users or use cookies for tracking purposes.
-                </p>
-              </section>
-            </div>{' '}
-            {/* End of wrapped policy points */}
-            <p className="text-sm text-center text-gray-500 pt-4">
-              We reserve the right to update this Privacy Policy periodically.
-              Significant changes will be announced prominently within the
-              application and via email to registered users, ensuring you are
-              always informed of how your information is handled.
-            </p>
-            <p className="text-sm text-center text-gray-500 pt-4">
-              For any questions or concerns regarding this Privacy Policy,
-              please contact us at privacy@scalesmart.com.
-            </p>
+            <ArticleModule contentSlug="privacy-policy" />
             <div className="text-center pt-4">
               <Link href="/" className="text-primary hover:underline">
                 &larr; Back to Home

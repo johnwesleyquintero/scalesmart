@@ -1,20 +1,36 @@
-/* Premium Design System */
+/* Premium Design System - Refined */
 
 /* Base Variables */
+/* These HSL values define the core palette for the design system. */
+/* The hue (270) remains constant for a consistent purple theme. */
+/* Lightness and saturation vary for different shades and modes. */
 :root {
-  --premium-accent-1: 270 80% 95%; /* Light Purple */
-  --premium-accent-2: 270 80% 90%; /* Light Purple */
-  --premium-gradient-1: 270 80% 70%; /* Light Purple */
-  --premium-gradient-2: 270 60% 70%; /* Light Purple */
-  --premium-shadow: 270 60% 50%; /* Light Purple */
+  /* Accent Colors (Light Mode) */
+  --premium-accent-1: 270 80% 95%; /* Primary Accent - Very Light */
+  --premium-accent-2: 270 80% 90%; /* Primary Accent - Light */
+
+  /* Gradient Colors (Light Mode) */
+  --premium-gradient-1: 270 80% 70%; /* Primary Gradient Color 1 */
+  --premium-gradient-2: 270 60% 70%; /* Primary Gradient Color 2 */
+
+  /* Shadow Color (Light Mode) */
+  --premium-shadow: 270 60% 50%; /* Primary Shadow Color */
 }
 
+/* Dark Mode Overrides */
+/* Adjusts HSL values for better visibility and feel in dark environments. */
 .dark {
-  --premium-accent-1: 270 50% 15%; /* Light Purple */
-  --premium-accent-2: 270 50% 10%; /* Light Purple */
-  --premium-gradient-1: 270 80% 70%; /* Light Purple */
-  --premium-gradient-2: 270 60% 70%; /* Light Purple */
-  --premium-shadow: 270 40% 2%; /* Light Purple */
+  /* Accent Colors (Dark Mode) */
+  --premium-accent-1: 270 50% 15%; /* Primary Accent - Dark */
+  --premium-accent-2: 270 50% 10%; /* Primary Accent - Very Dark */
+
+  /* Gradient Colors (Dark Mode) */
+  /* Note: These are currently the same as light mode. Review if separate dark mode gradients are needed. */
+  --premium-gradient-1: 270 80% 70%; /* Primary Gradient Color 1 (Dark Mode) */
+  --premium-gradient-2: 270 60% 70%; /* Primary Gradient Color 2 (Dark Mode) */
+
+  /* Shadow Color (Dark Mode) */
+  --premium-shadow: 270 40% 2%; /* Primary Shadow Color (Dark Mode) */
 }
 
 /* Premium Background Utilities */
@@ -23,11 +39,8 @@
 }
 
 .bg-premium-dark {
+  /* Note: Requires --background CSS variable defined elsewhere (e.g., in base styles or by framework). */
   @apply bg-gradient-to-br from-[hsl(var(--premium-accent-1))] via-[hsl(var(--background))] to-[hsl(var(--premium-accent-2))];
-}
-
-.bg-accent-overlay {
-  @apply bg-gradient-to-r from-[hsl(var(--premium-gradient-1))] to-[hsl(var(--premium-gradient-2))] bg-clip-text text-transparent;
 }
 
 /* Premium Effects */
@@ -67,6 +80,7 @@
 }
 
 /* Premium Text Effects */
+/* Utility for applying a gradient fill to text */
 .gradient-text {
   @apply bg-gradient-to-r from-[hsl(var(--premium-gradient-1))] to-[hsl(var(--premium-gradient-2))] bg-clip-text text-transparent;
 }

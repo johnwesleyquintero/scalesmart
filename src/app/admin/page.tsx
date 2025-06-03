@@ -39,19 +39,17 @@ export default async function AdminPage() {
     sessionError = error;
   } catch (e: unknown) {
     // Catch any unexpected errors during the getSupabaseSession function call itself (e.g., network issues)
-    console.error(
-      'Unexpected error during getSupabaseSession:',
-      e instanceof Error ? e : e, // Log the error object if it's an Error instance
-    );
-    // Redirect on unexpected error during session fetch
-    return redirect('/error?message=session_fetch_failed');
+    // Simplified logging to let console.error handle the object type
+    console.error('Unexpected error during getSupabaseSession:', e);
+    // Redirect on unexpected error during session fetch - removed specific message for security/generality
+    return redirect('/error');
   }
 
   // Handle specific errors returned by getSupabaseSession utility (e.g., misconfiguration)
   if (sessionError) {
     console.error('Error fetching session:', sessionError.message);
-    // Redirect on specific error returned by the session utility
-    return redirect('/error?message=session_error'); // Or perhaps redirect('/error') or redirect('/')
+    // Redirect on specific error returned by the session utility - removed specific message
+    return redirect('/error'); // Or perhaps redirect('/') or redirect('/permission-denied')
   }
 
   // Retrieve authorized admin usernames
@@ -105,6 +103,8 @@ export default async function AdminPage() {
       {/*
         Example: Button to trigger a server action or client-side API call
         For actions modifying data, prefer Server Actions that re-verify admin status server-side.
+        Any sensitive operation triggered from a client-side handler MUST call
+        a Server Action or API route that re-validates authorization on the server.
       */}
       {/* Example using a hypothetical Server Action: */}
       {/*

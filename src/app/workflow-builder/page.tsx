@@ -75,11 +75,73 @@ const TOAST_VARIANT_SUCCESS: ToastProps['variant'] = 'success';
 const TOAST_VARIANT_DESTRUCTIVE: ToastProps['variant'] = 'destructive';
 const TOAST_VARIANT_INFO: ToastProps['variant'] = 'info';
 
+// --- Initial State Definitions (Moved outside component) ---
+
+/**
+ * Creates the initial set of nodes for a new workflow.
+ * Defined outside the component to prevent recreation on every render.
+ */
+const createInitialNodes = (): ReactFlowNode[] => [
+  {
+    id: uuidv4(),
+    type: 'start',
+    position: { x: 50, y: 50 },
+    data: {
+      label: nodeRegistry.getNodeType('start')?.label || NODE_LABEL_START,
+    },
+  },
+  {
+    id: uuidv4(),
+    type: 'log',
+    position: { x: 250, y: 50 },
+    data: {
+      label: nodeRegistry.getNodeType('log')?.label || NODE_LABEL_LOG,
+      message:
+        nodeRegistry
+          .getNodeType('log')
+          ?.properties.find((p) => p.name === 'message')?.defaultValue ||
+        NODE_MESSAGE_HELLO,
+    },
+  },
+  {
+    id: uuidv4(),
+    type: 'end',
+    position: { x: 450, y: 50 },
+    data: { label: nodeRegistry.getNodeType('end')?.label || NODE_LABEL_END },
+  },
+];
+
+/**
+ * Creates the initial set of edges connecting the initial nodes.
+ * Requires the initial nodes to get their IDs.
+ * Defined outside the component to prevent recreation on every render.
+ */
+const createInitialEdges = (initialNodes: ReactFlowNode[]): Edge[] => {
+  // Find nodes by type to ensure correct connections even if array order changes
+  const startNode = initialNodes.find((node) => node.type === 'start');
+  const logNode = initialNodes.find((node) => node.type === 'log');
+  const endNode = initialNodes.find((node) => node.type === 'end');
+
+  const edges: Edge[] = [];
+
+  if (startNode && logNode) {
+    edges.push({ id: uuidv4(), source: startNode.id, target: logNode.id });
+  }
+  if (logNode && endNode) {
+    edges.push({ id: uuidv4(), source: logNode.id, target: endNode.id });
+  }
+
+  return edges;
+};
+
 // --- Type Definitions ---
 
 // Define an interface for the expected structure of loaded workflow data
 interface SavedWorkflowData {
-  nodes: CustomNodeType[]; // Use CustomNodeType here for internal data
+  // Although ReactFlow internally uses ReactFlowNode,
+  // our custom logic (like nodeRegistry) works with CustomNodeType.
+  // We assert/cast when converting between the two representations.
+  nodes: Omit<ReactFlowNode, 'data'> & { data: CustomNodeType['data'] }[];
   edges: Edge[];
 }
 
@@ -111,35 +173,65 @@ const isSavedWorkflowData = (data: unknown): data is SavedWorkflowData => {
   }
 
   // Perform deeper checks on array contents for expected essential structure and types
+  // Check nodes array for minimal ReactFlowNode structure with CustomNodeType data constraints
   const nodesValid = potentialData.nodes.every((node) => {
-    const isValid =
-      typeof node === 'object' &&
-      node !== null &&
-      'id' in node &&
-      typeof node.id === 'string' && // Node must have a string id
-      'type' in node &&
-      typeof node.type === 'string' && // Node must have a string type
-      'position' in node &&
-      typeof node.position === 'object' &&
-      node.position !== null && // Node must have a non-null position object
-      'x' in node.position &&
-      typeof node.position.x === 'number' && // Position must have number x
-      'y' in node.position &&
-      typeof node.position.y === 'number' && // Position must have number y
-      'data' in node &&
-      typeof node.data === 'object' &&
-      node.data !== null; // Node must have a non-null data object (can add deeper data checks if structure is fixed)
-
-    if (!isValid) {
-      console.error('Validation failed: Invalid node structure found.', node);
+    // Check if node is an object, not null, and has essential ReactFlowNode properties
+    if (
+      !(
+        typeof node === 'object' &&
+        node !== null &&
+        'id' in node &&
+        typeof node.id === 'string' &&
+        'type' in node &&
+        typeof node.type === 'string' &&
+        'position' in node &&
+        typeof node.position === 'object' &&
+        node.position !== null &&
+        'x' in node.position &&
+        typeof node.position.x === 'number' &&
+        'y' in node.position &&
+        typeof node.position.y === 'number'
+      )
+    ) {
+      console.error(
+        'Validation failed: Invalid basic node structure found.',
+        node,
+      );
+      return false;
     }
-    return isValid;
+
+    // Check if node.data exists, is an object, not null
+    if (
+      !('data' in node) ||
+      typeof node.data !== 'object' ||
+      node.data === null
+    ) {
+      console.error(
+        'Validation failed: Node data property is missing, not an object, or is null.',
+        node,
+      );
+      return false;
+    }
+
+    // Add deeper checks for essential data properties expected by CustomNodeType['data']
+    // For example, check if 'label' exists and is a string
+    if (!('label' in node.data) || typeof node.data.label !== 'string') {
+      console.error(
+        'Validation failed: Node data is missing "label" property or it is not a string.',
+        node,
+      );
+      // This check could be made more rigorous based on specific node types if needed
+      // For simplicity, we'll accept any object data with a string label for now.
+    }
+
+    return true; // If all checks pass for this node
   });
 
   if (!nodesValid) {
     return false; // Detailed error already logged in the every loop
   }
 
+  // Check edges array for minimal Edge structure
   const edgesValid = potentialData.edges.every((edge) => {
     const isValid =
       typeof edge === 'object' &&
@@ -170,42 +262,12 @@ const isSavedWorkflowData = (data: unknown): data is SavedWorkflowData => {
 const WorkflowBuilderPage: React.FC = () => {
   const { toast } = useToast();
 
-  // Define initial nodes as ReactFlowNode[] to be compatible with useNodesState
-  const initialNodes: ReactFlowNode[] = [
-    {
-      id: uuidv4(),
-      type: 'start',
-      position: { x: 50, y: 50 },
-      data: {
-        label: nodeRegistry.getNodeType('start')?.label || NODE_LABEL_START,
-      },
-    },
-    {
-      id: uuidv4(),
-      type: 'log',
-      position: { x: 250, y: 50 },
-      data: {
-        label: nodeRegistry.getNodeType('log')?.label || NODE_LABEL_LOG,
-        message:
-          nodeRegistry
-            .getNodeType('log')
-            ?.properties.find((p) => p.name === 'message')?.defaultValue ||
-          NODE_MESSAGE_HELLO,
-      },
-    },
-    {
-      id: uuidv4(),
-      type: 'end',
-      position: { x: 450, y: 50 },
-      data: { label: nodeRegistry.getNodeType('end')?.label || NODE_LABEL_END },
-    },
-  ];
-
-  // Link initial edges using the IDs generated above
-  const initialEdges: Edge[] = [
-    { id: uuidv4(), source: initialNodes[0].id, target: initialNodes[1].id },
-    { id: uuidv4(), source: initialNodes[1].id, target: initialNodes[2].id },
-  ];
+  // Generate initial nodes and edges once when the component mounts
+  const initialNodes = React.useMemo(() => createInitialNodes(), []);
+  const initialEdges = React.useMemo(
+    () => createInitialEdges(initialNodes),
+    [initialNodes],
+  );
 
   // useNodesState works with ReactFlowNode type, useNodesState's nodes array should be ReactFlowNode
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -215,6 +277,7 @@ const WorkflowBuilderPage: React.FC = () => {
   );
 
   // State for selected node using our CustomNodeType, and its type definition
+  // We store the selected node as CustomNodeType to match how we use its `data`
   const [selectedNode, setSelectedNode] = useState<CustomNodeType | null>(null);
   const [selectedNodeTypeDef, setSelectedNodeTypeDef] =
     useState<NodeType | null>(null);
@@ -222,6 +285,7 @@ const WorkflowBuilderPage: React.FC = () => {
   // --- Effects ---
 
   useEffect(() => {
+    // Load registered node types from the registry
     if (nodeRegistry && typeof nodeRegistry.getNodeTypes === 'function') {
       try {
         const types = nodeRegistry.getNodeTypes();
@@ -236,34 +300,37 @@ const WorkflowBuilderPage: React.FC = () => {
       );
       setRegisteredNodeTypes([]);
     }
-  }, []);
+  }, []); // Empty dependency array means this runs once on mount
 
   // Update selected node type definition when selectedNode changes
   useEffect(() => {
     if (selectedNode) {
-      // Ensure selectedNode.type is defined before passing to getNodeType
+      // selectedNode.type is guaranteed to be a string if selectedNode is not null
+      // based on the isSavedWorkflowData guard and the way nodes are created/handled.
       setSelectedNodeTypeDef(
         nodeRegistry.getNodeType(selectedNode.type) || null,
       );
     } else {
       setSelectedNodeTypeDef(null);
     }
-  }, [selectedNode]);
+  }, [selectedNode]); // Re-run when selectedNode changes
 
   // --- Callbacks and Event Handlers ---
 
+  // Handle connecting nodes
   const onConnect = useCallback(
     (connection: Connection): void => {
       setEdges((eds) => addEdge(connection, eds));
     },
-    [setEdges],
+    [setEdges], // Dependency: setEdges (stable hook function)
   );
 
+  // Handle dropping a new node onto the canvas
   const onNodeDrop = useCallback(
     (type: string, position: { x: number; y: number }): void => {
       const nodeDef = nodeRegistry.getNodeType(type);
       const nodeLabel = nodeDef?.label || `${type} Node`;
-      const initialNodeData: Record<string, unknown> = { label: nodeLabel };
+      const initialNodeData: CustomNodeType['data'] = { label: nodeLabel }; // Use CustomNodeType['data'] type
 
       if (nodeDef && nodeDef.properties) {
         nodeDef.properties.forEach((prop: NodeProperty) => {
@@ -274,84 +341,113 @@ const WorkflowBuilderPage: React.FC = () => {
       }
 
       const newNode: ReactFlowNode = {
-        // Create as ReactFlowNode
         id: uuidv4(),
         type: type,
         position: position,
-        data: initialNodeData,
+        data: initialNodeData, // data adheres to CustomNodeType['data']
       };
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [setNodes],
+    [setNodes], // Dependency: setNodes (stable hook function)
   );
 
-  // Custom onNodesChange handler to detect selection
+  // Custom onNodesChange handler to detect selection and update selectedNode state
   const onNodesChangeWithSelection = useCallback(
     (changes: NodeChange[]) => {
+      // First, let ReactFlow handle the changes (position, selection, etc.)
       onNodesChange(changes);
+
+      // Then, check if any selection change occurred
       const selectionChange = changes.find(
         (c) => c.type === 'select' && c.selected !== undefined,
-      ) as NodeChange & { type: 'select'; id: string; selected: boolean };
+      ) as
+        | (NodeChange & { type: 'select'; id: string; selected: boolean })
+        | undefined; // Explicitly type potential find result
 
       if (selectionChange) {
         const nodeId = selectionChange.id;
         if (selectionChange.selected) {
-          // Find the node in the current nodes state and cast it to CustomNodeType
+          // Find the node in the current nodes state (which is ReactFlowNode[])
           const foundNode = nodes.find((node) => node.id === nodeId);
+          // Assert it to CustomNodeType if found and type is a string (basic check)
+          // The deeper data structure validation is handled by isSavedWorkflowData on load.
+          // Assuming nodes created via onNodeDrop or loaded via loadWorkflow
+          // and passed the type guard conform to CustomNodeType['data'] structure.
           if (foundNode && typeof foundNode.type === 'string') {
-            // Ensure type is string
             setSelectedNode(foundNode as CustomNodeType);
           } else {
+            // Should not happen if state is managed correctly, but good defensive practice
+            console.warn(
+              `Selected node with id ${nodeId} not found or has invalid type in state.`,
+            );
             setSelectedNode(null);
           }
         } else {
-          setSelectedNode(null); // Node was unselected
+          // Node was unselected - clear the selected node state
+          setSelectedNode(null);
         }
       }
+      // Note: If a node is removed while selected, selectedNode should ideally also be cleared.
+      // ReactFlow's 'remove' change type could be checked here.
+      const removeChange = changes.find(
+        (c) => c.type === 'remove' && c.id === selectedNode?.id,
+      );
+      if (removeChange) {
+        setSelectedNode(null);
+      }
     },
-    [nodes, onNodesChange],
+    [nodes, onNodesChange, selectedNode?.id], // Dependencies: nodes (to access the latest state), onNodesChange (stable hook function), selectedNode?.id (to clear selection if the selected node is removed)
   );
 
   // Handler for updating node data from NodeConfigForm
   const handleNodeDataChange = useCallback(
     (propertyName: string, value: unknown) => {
-      setNodes((nds) =>
-        nds.map((node) => {
-          if (node.id === selectedNode?.id) {
-            return {
-              ...node,
-              data: {
-                ...node.data,
-                [propertyName]: value,
-              },
-            };
-          }
-          return node;
-        }),
-      );
+      // Ensure a node is selected before attempting to update
+      if (!selectedNode) return;
+
+      const updatedNodes = nodes.map((node) => {
+        if (node.id === selectedNode.id) {
+          // Update the data immutably
+          return {
+            ...node,
+            data: {
+              ...node.data,
+              [propertyName]: value,
+            } as CustomNodeType['data'], // Assert updated data conforms to our type
+          };
+        }
+        return node;
+      });
+
+      setNodes(updatedNodes);
+
       // Also update selectedNode's data for immediate feedback in the form
+      // This avoids a re-render cycle waiting for setNodes to update the ReactFlow canvas state first.
       setSelectedNode((prevNode) => {
-        if (prevNode) {
+        if (prevNode && prevNode.id === selectedNode.id) {
           return {
             ...prevNode,
             data: {
               ...prevNode.data,
               [propertyName]: value,
-            },
+            } as CustomNodeType['data'],
           };
         }
-        return null;
+        return prevNode; // Return previous state if somehow the wrong node is selected
       });
     },
-    [selectedNode, setNodes],
+    [selectedNode, nodes, setNodes], // Dependencies: selectedNode (to know which node to update), nodes (to map over), setNodes (stable hook function)
   );
 
+  // Save workflow to IndexedDB
   const saveWorkflow = useCallback(async (): Promise<void> => {
     try {
-      // Cast nodes to CustomNodeType[] for saving
+      // Construct the data to save. Nodes are currently ReactFlowNode[].
+      // We assert their 'data' property adheres to CustomNodeType['data']
+      // based on how nodes are created and loaded.
       const workflow: SavedWorkflowData = {
-        nodes: nodes as CustomNodeType[],
+        nodes: nodes as unknown as SavedWorkflowData['nodes'], // Assert structure matches SavedWorkflowData nodes array
         edges: edges,
       };
       const stringifiedWorkflow = JSON.stringify(workflow);
@@ -369,8 +465,9 @@ const WorkflowBuilderPage: React.FC = () => {
         variant: TOAST_VARIANT_DESTRUCTIVE,
       });
     }
-  }, [nodes, edges, toast]);
+  }, [nodes, edges, toast]); // Dependencies: nodes, edges (state to save), toast (stable hook function)
 
+  // Load workflow from IndexedDB
   const loadWorkflow = useCallback(async (): Promise<void> => {
     try {
       const workflowData = await getItem(STORAGE_KEY);
@@ -392,20 +489,25 @@ const WorkflowBuilderPage: React.FC = () => {
           return;
         }
 
+        // Use the type guard to validate the structure
         if (isSavedWorkflowData(parsedData)) {
           const loadedData: SavedWorkflowData = parsedData;
 
-          // When setting nodes from loaded data, convert CustomNodeType[] to ReactFlowNode[]
-          setNodes(loadedData.nodes as ReactFlowNode[]);
+          // When setting nodes from loaded data, assert it conforms to ReactFlowNode[]
+          // because useNodesState expects ReactFlowNode[].
+          // The isSavedWorkflowData guard checked that the data structure is compatible.
+          setNodes(loadedData.nodes as unknown as ReactFlowNode[]);
           setEdges(loadedData.edges);
           toast({
             title: TOAST_TITLE_LOAD_SUCCESS,
             description: TOAST_DESC_LOAD_SUCCESS,
             variant: TOAST_VARIANT_SUCCESS,
           });
+          // Clear selected node state after loading a new workflow
           setSelectedNode(null);
           setSelectedNodeTypeDef(null);
         } else {
+          // isSavedWorkflowData logs specific validation errors
           toast({
             title: TOAST_TITLE_LOAD_FAILED,
             description: TOAST_DESC_LOAD_FAILED_INVALID,
@@ -434,20 +536,24 @@ const WorkflowBuilderPage: React.FC = () => {
       console.error('Failed to load workflow from IndexedDB:', error);
       toast({
         title: TOAST_TITLE_LOAD_FAILED,
-        description: TOAST_DESC_SAVE_FAILED,
+        description: TOAST_DESC_SAVE_FAILED, // Using save failed desc as a generic failure message
         variant: TOAST_VARIANT_DESTRUCTIVE,
       });
     }
-  }, [setNodes, setEdges, toast]);
+  }, [setNodes, setEdges, toast]); // Dependencies: setNodes, setEdges (stable hook functions), toast
 
+  // Handle workflow execution
   const handleExecuteWorkflow = useCallback(async (): Promise<void> => {
     try {
+      // Dynamically import the engine only when needed
       const workflowEngineModule = await import('@/lib/workflow/engine');
 
       if (typeof workflowEngineModule.executeWorkflow === 'function') {
-        // Pass nodes typed as CustomNodeType for the engine's expectation
+        // Pass nodes typed as CustomNodeType[] for the engine's expectation.
+        // We assert here, assuming the nodes state (ReactFlowNode[])
+        // contains data structured according to CustomNodeType['data'].
         workflowEngineModule.executeWorkflow(
-          nodes as CustomNodeType[],
+          nodes as CustomNodeType[], // Assert ReactFlowNode[] is compatible with CustomNodeType[] for engine
           edges,
           nodeRegistry,
         );
@@ -474,7 +580,7 @@ const WorkflowBuilderPage: React.FC = () => {
         variant: TOAST_VARIANT_DESTRUCTIVE,
       });
     }
-  }, [nodes, edges, toast]);
+  }, [nodes, edges, toast]); // Dependencies: nodes, edges (workflow structure), toast
 
   // --- Render ---
 
@@ -503,7 +609,7 @@ const WorkflowBuilderPage: React.FC = () => {
             ) : (
               <p>Loading nodes or none available...</p>
             )}
-            {/* Display configuration form if a node is selected and has properties */}
+            {/* Display configuration form if a node is selected and has configurable properties */}
             {selectedNode &&
               selectedNodeTypeDef &&
               selectedNodeTypeDef.properties.length > 0 && (
@@ -513,9 +619,10 @@ const WorkflowBuilderPage: React.FC = () => {
                     {(selectedNode.data.label as string) || selectedNode.type}{' '}
                     Node
                   </h3>
+                  {/* Pass selectedNodeTypeDef and selectedNode.data */}
                   <NodeConfigForm
                     nodeType={selectedNodeTypeDef}
-                    values={selectedNode.data}
+                    values={selectedNode.data} // Pass the data object
                     onChange={handleNodeDataChange}
                   />
                 </div>
@@ -523,16 +630,34 @@ const WorkflowBuilderPage: React.FC = () => {
           </aside>
           <main className={styles.mainContent}>
             <WorkflowCanvas
-              nodes={nodes as CustomNodeType[]} // Pass nodes typed as CustomNodeType for WorkflowCanvas prop type
+              nodes={nodes as CustomNodeType[]} // Assert ReactFlowNode[] is compatible with WorkflowCanvas's expected CustomNodeType[] prop
               edges={edges}
-              onNodesChange={onNodesChangeWithSelection}
+              onNodesChange={onNodesChangeWithSelection} // Use custom handler
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
               onNodeDrop={onNodeDrop}
-              onNodeClick={(_event, node) =>
-                setSelectedNode(node as CustomNodeType)
-              } // Cast to CustomNodeType
-              onPaneClick={() => setSelectedNode(null)}
+              // When a node is clicked, find it in the current state and set it as selectedNode
+              onNodeClick={useCallback(
+                (_event, node: ReactFlowNode) => {
+                  // Find the node in the current nodes state to ensure we have the latest data
+                  const foundNode = nodes.find((n) => n.id === node.id);
+                  if (foundNode && typeof foundNode.type === 'string') {
+                    setSelectedNode(foundNode as CustomNodeType); // Assert it to CustomNodeType
+                  } else {
+                    // Should not happen if ReactFlow is providing a valid node click event,
+                    // but defensive check.
+                    console.warn(
+                      `Clicked node with id ${node.id} not found or has invalid type in state.`,
+                    );
+                    setSelectedNode(null);
+                  }
+                },
+                [nodes, setSelectedNode],
+              )} // Dependency on nodes state and setSelectedNode setter
+              onPaneClick={useCallback(
+                () => setSelectedNode(null),
+                [setSelectedNode],
+              )} // Dependency on setSelectedNode setter
             />
           </main>
         </div>
