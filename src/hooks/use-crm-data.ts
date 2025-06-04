@@ -120,8 +120,18 @@ export const useCRMData = () => {
   }, []);
 
   const handleCategoriesUpdate = useCallback(
-    (updatedCategories: Category[]) => {
-      setCategories(updatedCategories);
+    async (updatedCategories: Category[]) => {
+      try {
+        // Persist each category to IndexedDB
+        for (const category of updatedCategories) {
+          await updateCategory(category); // updateCategory uses put, which handles both add and update
+        }
+        setCategories(updatedCategories);
+        toast.success('Categories updated successfully!');
+      } catch (error) {
+        console.error('Error updating categories in IndexedDB:', error);
+        toast.error('Failed to save categories. See console for details.');
+      }
     },
     [],
   );
