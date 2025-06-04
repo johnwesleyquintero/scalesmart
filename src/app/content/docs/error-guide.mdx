@@ -1,20 +1,119 @@
 ---
-title: Error Indexing for the Guide
+title: Comprehensive Error Guide
 slug: error-guide
-description: higher node with basic settings, please go to that
+description: 'A comprehensive guide to understanding and resolving common errors in the ScaleSmart Platform.'
 date: 2025-06-01
 tags: ['guides', 'all']
 readingTime: '1 min read'
 author: 'Wesley Quintero'
 type: 'doc'
 category: error-guide
-order: 1
+order: 4
 ---
 
-###Please find more to guide details related to more context below to debug
-General Read me
+# Comprehensive Error Guide
 
-Please view to each to debug issues. Please narrow these items:
+This guide provides detailed explanations and solutions for various error codes and types you might encounter while using the ScaleSmart Platform. Understanding these errors will help you diagnose and resolve issues more efficiently.
 
-1.  `Guides and solutions relating with different Errors codes or types go here`
-2.  This Section contains how to trouble shoot specific code in more detail
+## How to Use This Guide
+
+1.  **Identify the Error:** Note the exact error message, code, and any accompanying stack trace from your terminal, application logs, or API responses.
+2.  **Search This Guide:** Use the search functionality (if available) or browse the categories below to find the relevant error.
+3.  **Apply Solutions:** Follow the suggested solutions and troubleshooting steps.
+
+## Common Error Categories
+
+### 1. Authentication Errors (AUTH_XXX)
+
+These errors relate to issues with user authentication, API keys, and access permissions.
+
+- **`AUTH_001: Invalid API Key`**
+
+  - **Description:** The provided API key is either incorrect, expired, or revoked.
+  - **Solution:**
+    1.  Verify your API key in your ScaleSmart account dashboard.
+    2.  Reconfigure your CLI or application with the correct API key: `scalesmart config set api_key YOUR_API_KEY`.
+    3.  If the issue persists, generate a new API key from your dashboard.
+
+- **`AUTH_002: Unauthorized Access`**
+  - **Description:** Your account does not have the necessary permissions to perform the requested action.
+  - **Solution:**
+    1.  Check your account's role and permissions in the ScaleSmart dashboard.
+    2.  Contact your administrator or ScaleSmart support to request elevated permissions if needed.
+
+### 2. Network and Connectivity Errors (NET_XXX)
+
+These errors occur when there are problems communicating with ScaleSmart servers or external services.
+
+- **`NET_001: Connection Refused`**
+
+  - **Description:** The client could not establish a connection to the server.
+  - **Solution:**
+    1.  Check your internet connection.
+    2.  Ensure `api.scalesmart.com` is reachable (e.g., `ping api.scalesmart.com`).
+    3.  Temporarily disable firewalls or VPNs to rule them out as a cause.
+    4.  Check the [ScaleSmart Status Page](https://status.scalesmart.com) for service outages.
+
+- **`NET_002: Request Timeout`**
+  - **Description:** The server did not respond within the expected time frame.
+  - **Solution:**
+    1.  Retry the operation.
+    2.  Check your network latency.
+    3.  The server might be under heavy load; try again later.
+
+### 3. Validation Errors (VAL_XXX)
+
+These errors indicate that the input data provided does not meet the required format or constraints.
+
+- **`VAL_001: Invalid Input Format`**
+
+  - **Description:** The request body or parameters are not in the expected format (e.g., malformed JSON, incorrect data types).
+  - **Solution:**
+    1.  Review the API documentation for the specific endpoint to ensure your request matches the expected schema.
+    2.  Validate your JSON payload using a JSON linter or validator.
+
+- **`VAL_002: Missing Required Field`**
+  - **Description:** A mandatory field was omitted from the request.
+  - **Solution:**
+    1.  Refer to the API documentation to identify all required fields for the operation.
+    2.  Ensure all necessary fields are present in your request.
+
+### 4. Server-Side Errors (SRV_XXX)
+
+These are general errors occurring on the server, often indicating an unexpected condition or internal issue.
+
+- **`SRV_001: Internal Server Error`**
+  - **Description:** A generic error indicating an unexpected condition on the server.
+  - **Solution:**
+    1.  This usually indicates a problem on our end. Please report the issue to ScaleSmart support with the exact time, command/request, and any error IDs if provided.
+    2.  Check the [ScaleSmart Status Page](https://status.scalesmart.com) for known issues.
+
+### 5. CLI Specific Errors (CLI_XXX)
+
+Errors related to the ScaleSmart Command Line Interface itself.
+
+- **`CLI_001: Command Not Found`**
+
+  - **Description:** The `scalesmart` command is not recognized by your system.
+  - **Solution:** Refer to the [CLI Installation Guide](/docs/cli-installation) and the "CLI Installation Issues" section in the [Troubleshooting Guide](/docs/troubleshooting).
+
+- **`CLI_002: Configuration File Error`**
+  - **Description:** The CLI's configuration file is corrupted or inaccessible.
+  - **Solution:**
+    1.  Check permissions for your `.scalesmart` directory and `config.json` file in your home directory.
+    2.  You might need to delete the `config.json` file and reconfigure the CLI.
+
+## Reporting Issues
+
+When reporting an issue to ScaleSmart support, please include as much of the following information as possible:
+
+- **Error Message:** The full error message, including any error codes.
+- **Steps to Reproduce:** A clear, concise set of steps that lead to the error.
+- **Environment Details:**
+  - Operating System and version.
+  - Node.js and npm versions (`node -v`, `npm -v`).
+  - ScaleSmart CLI version (`scalesmart --version`).
+- **Context:** What you were trying to achieve when the error occurred.
+- **Screenshots/Logs:** Any relevant screenshots or log file contents.
+
+Providing detailed information helps us diagnose and resolve your issue more quickly.

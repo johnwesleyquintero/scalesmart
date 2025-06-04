@@ -29,13 +29,12 @@ async function generateDocsJson() {
     if (MARKDOWN_FILE_EXTENSIONS.some((ext) => file.endsWith(ext))) {
       const fullPath = path.join(DOCS_CONTENT_PATH, file);
       const fileContents = fs.readFileSync(fullPath, 'utf8');
-      const { data, content } = matter(fileContents);
+      const { data } = matter(fileContents);
 
       const slug = file.replace(MARKDOWN_FILE_REGEX, '');
 
       allDocsData.push({
         slug: slug,
-        content: content,
         title: data.title || slug,
         description: data.description || '',
         category: data.category || 'Uncategorized',

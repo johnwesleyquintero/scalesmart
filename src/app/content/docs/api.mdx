@@ -1,6 +1,6 @@
 ---
 title: API Documentation Overview
-slug: api
+slug: api-overview
 description: This document provides an overview of the API endpoints for the ScaleSmart application.
 date: 2025-06-01
 tags: ['api', 'endpoints', 'documentation']
@@ -8,10 +8,12 @@ readingTime: '3 min read'
 author: 'Wesley Quintero'
 type: 'doc'
 category: api
-order: 1
+order: 0
 ---
 
 # API Documentation Overview
+
+This document provides a high-level overview of the API endpoints for the ScaleSmart application. For detailed information on specific endpoints, please refer to the [API Reference](/docs/api-reference).
 
 This directory contains documentation for the various API endpoints used in the ScaleSmart application.
 
@@ -24,21 +26,22 @@ The API documentation provides details on how to interact with the application's
 - Available parameters
 - Error handling
 
-## Subdirectories
+## Key API Categories
 
-- **academy-article/:** API endpoints for managing academy articles.
-- **academy-courses/:** API endpoints for managing academy courses.
-- **amazon/:** API endpoints for Amazon integrations.
-- **auth/:** API endpoints for authentication.
-- **chat/:** API endpoints for chat functionality.
-- **contact/:** API endpoints for contact forms.
-- **content/:** API endpoints for content management.
-- **download/:** API endpoints for file downloads.
-- **module-progress/:** API endpoints for tracking module progress.
-- **prohibited-keywords/:** API endpoints for managing prohibited keywords.
-- **redis/:** API endpoints for Redis interactions.
-- **resume/:** API endpoints for resume management.
-- **search/:** API endpoints for search functionality.
+The ScaleSmart API is organized into several categories to provide a clear structure for different functionalities:
+
+- **Academy:** Manages educational content, courses, and user progress.
+- **Amazon Tools:** Integrates with Amazon services for various business operations.
+- **Authentication:** Handles user login, registration, and session management.
+- **Chat:** Powers AI-driven conversational interfaces.
+- **Contact:** Facilitates communication through contact forms.
+- **Content Management:** Manages dynamic content within the application.
+- **Download:** Enables file downloads from the platform.
+- **Prohibited Keywords:** Manages a list of restricted terms.
+- **Redis:** Interacts with Redis for caching and data storage.
+- **Resume:** Manages user resume data.
+- **Search:** Provides search capabilities across the platform.
+- **API Cache:** Manages caching mechanisms for API responses.
 
 ## General Guidelines
 
@@ -46,4 +49,4 @@ The API documentation provides details on how to interact with the application's
 - Request and response formats are typically JSON.
 - Error responses will include appropriate HTTP status codes and error messages.
 
-Further details on each endpoint can be found in the respective subdirectory.
+For detailed documentation on each endpoint, including request/response formats, parameters, and examples, please refer to the [API Reference](/docs/api-reference).

@@ -1,9 +1,9 @@
 ---
 title: API Reference
-slug: api/documentation
+slug: api-reference
 description: Detailed documentation for our API endpoints.
 category: api
-order: 0
+order: 2
 ---
 
 # API Reference
@@ -14,25 +14,63 @@ This section provides comprehensive details on how to interact with our RESTful 
 
 All API requests must be authenticated. Use your API key in the `Authorization` header.
 
-### Endpoint: `/api/users`
+### General API Structure
 
-`GET /api/users` - Retrieve a list of users.
+All API endpoints are prefixed with `/api/`. Requests and responses are typically in JSON format.
 
-### Response Example:
+### Authentication
 
-```json
-[
-  {
-    "id": "user_123",
-    "name": "John Doe",
-    "email": "john.doe@example.com"
-  },
-  {
-    "id": "user_456",
-    "name": "Jane Smith",
-    "email": "jane.smith@example.com"
-  }
-]
+All API requests must be authenticated using an API key. Include your API key in the `Authorization` header as a Bearer token:
+
+```
+Authorization: Bearer YOUR_API_KEY
 ```
 
-Please note that this is a **beta** feature.
+### Error Handling
+
+API errors are returned with appropriate HTTP status codes and a JSON body containing an `error` message and a `code` for specific error types.
+
+```json
+{
+  "error": "Unauthorized",
+  "code": "AUTH_001"
+}
+```
+
+## Available API Endpoints
+
+Below is a summary of the main API categories. For detailed documentation on each endpoint, refer to the specific `.mdx` files within the `api/` directory.
+
+- **Academy:** Endpoints for managing courses, modules, and user progress.
+  - [`/api/academy/courses`](/docs/api-academy-courses)
+  - [`/api/academy/articles`](/docs/api-academy-article)
+  - [`/api/academy/article-slug`](/docs/api-academy-article-slug)
+  - [`/api/module-progress`](/docs/api-module-progress)
+- **Amazon Tools:** Endpoints for various Amazon-related functionalities.
+  - [`/api/amazon/competitor-analysis`](/docs/api-amazon-competitor-analysis)
+  - [`/api/amazon/inventory`](/docs/api-amazon-inventory)
+  - [`/api/amazon/keyword-trends`](/docs/api-amazon-keyword-trends)
+  - [`/api/amazon/pricing`](/docs/api-amazon-pricing)
+- **Authentication:** Endpoints for user authentication and session management.
+  - [`/api/auth/nextauth`](/docs/api-auth-nextauth)
+  - [`/api/auth/nextauth-options`](/docs/api-auth-nextauth-options)
+- **Chat:** Endpoints for AI-powered chat interactions.
+  - [`/api/chat`](/docs/api-chat)
+- **Contact:** Endpoint for submitting contact form data.
+  - [`/api/contact`](/docs/api-contact)
+- **Content Management:** Endpoints for dynamic content.
+  - [`/api/content`](/docs/api-content)
+- **Download:** Endpoint for file downloads.
+  - [`/api/download`](/docs/api-download)
+- **Prohibited Keywords:** Endpoints for managing a list of prohibited keywords.
+  - [`/api/prohibited-keywords`](/docs/api-prohibited-keywords)
+- **Redis:** Endpoints for Redis cache interactions.
+  - [`/api/redis`](/docs/api-redis)
+- **Resume:** Endpoints for resume-related data.
+  - [`/api/resume`](/docs/api-resume)
+- **Search:** Endpoints for search functionality.
+  - [`/api/search`](/docs/api-search)
+- **API Cache:** Endpoints for managing API caching.
+  - [`/api/api-cache`](/docs/api-api-cache)
+
+This reference provides a high-level overview. For detailed request/response schemas, parameters, and examples, please navigate to the specific API documentation links provided above.

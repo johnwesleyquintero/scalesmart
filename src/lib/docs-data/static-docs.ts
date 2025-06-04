@@ -62,12 +62,12 @@ export function getDocBySlug(slug: string): {
         content: doc.content || '', // Provide fallback for content
         data: {
           slug: doc.slug,
-          title: doc.title || 'Untitled Document', // Provide fallback for title
-          description: doc.description || '', // Provide fallback for description
-          category: doc.category || 'Uncategorized', // Provide fallback for category
-          order: doc.order || 0, // Provide fallback for order
-          tags: doc.tags || [], // Ensure tags is an array
-        } as DocArticleMetadata,
+          title: doc.title || 'Untitled Document',
+          description: doc.description || '',
+          category: doc.category || 'Uncategorized',
+          order: doc.order || 0,
+          tags: doc.tags || [],
+        },
       };
     } else {
       throw new Error(`Doc with slug ${slug} not found in JSON data.`);
@@ -106,7 +106,7 @@ export function getAllDocsMetadata(): DocArticleMetadata[] {
     const slug = filename.replace(/\.mdx$/, '');
     const fullPath = join(DOCS_CONTENT_PATH, filename);
     const fileContents = readFileSync(fullPath, 'utf8');
-    const { data } = matter(fileContents);
+    const { data, content } = matter(fileContents); // Destructure content
 
     const metadata = data as DocArticleMetadata;
     return {

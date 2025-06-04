@@ -1,0 +1,76 @@
+---
+title: Prerequisites for ScaleSmart Platform
+slug: prerequisites
+description: 'Essential software and configurations required before using the ScaleSmart Platform.'
+date: 2025-06-04
+tags: ['general', 'setup']
+readingTime: '3 min read'
+author: 'Wesley Quintero'
+type: 'doc'
+category: getting-started
+order: 1
+---
+
+# Prerequisites for ScaleSmart Platform
+
+Before you begin using the ScaleSmart Platform, ensure your system meets the following prerequisites. Meeting these requirements will help you avoid common setup issues and ensure a smooth experience.
+
+## 1. Operating System
+
+The ScaleSmart CLI and platform components are designed to run on the following operating systems:
+
+- **Windows:** Windows 10 or later (64-bit)
+- **macOS:** macOS 10.15 (Catalina) or later
+- **Linux:** Ubuntu 20.04 LTS, Debian 11, or Fedora 34 (64-bit)
+
+## 2. Node.js and npm
+
+The ScaleSmart CLI is built with Node.js. You will need Node.js (LTS version recommended) and npm (Node Package Manager) installed on your system.
+
+- **Node.js Version:** 18.x or higher
+- **npm Version:** 8.x or higher
+
+To check if Node.js and npm are installed, open your terminal or command prompt and run:
+
+```bash
+node -v
+npm -v
+```
+
+If they are not installed, or if your versions are older, please download and install the latest LTS version from the [official Node.js website](https://nodejs.org/).
+
+## 3. Git
+
+Git is required for cloning repositories and managing source code.
+
+To check if Git is installed, open your terminal or command prompt and run:
+
+```bash
+git --version
+```
+
+If Git is not installed, you can download it from the [official Git website](https://git-scm.com/downloads).
+
+## 4. Internet Connectivity
+
+A stable internet connection is required for:
+
+- Downloading the ScaleSmart CLI and its dependencies.
+- Authenticating with the ScaleSmart Platform.
+- Accessing remote services and APIs.
+
+## 5. Account Credentials
+
+To fully utilize the ScaleSmart Platform, you will need an active ScaleSmart account and an API key.
+
+- **ScaleSmart Account:** Register for an account on the [ScaleSmart Platform website](https://www.scalesmart.com/signup).
+- **API Key:** Generate your API key from your account dashboard. This key will be used to authenticate your CLI and API requests.
+
+## 6. Recommended Tools
+
+While not strictly required, the following tools are recommended for a better development experience:
+
+- **Visual Studio Code:** A popular code editor with excellent support for Node.js, Markdown, and various development extensions.
+- **Docker (Optional):** If you plan to run certain platform components or services locally in isolated containers, Docker will be necessary.
+
+By ensuring all these prerequisites are met, you'll be ready to proceed with the [CLI Installation Guide](/docs/cli-installation) and begin your journey with the ScaleSmart Platform.

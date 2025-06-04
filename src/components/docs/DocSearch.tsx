@@ -10,29 +10,7 @@ import React, {
 import { useRouter } from 'next/navigation';
 import { DocArticleMetadata } from '@/lib/docs-data/static-docs';
 import useDebounceCallback from '@/hooks/use-debounce-callback';
-
-// Utility function for fuzzy matching (simple implementation for demonstration)
-function fuzzyMatch(text: string, query: string): number {
-  if (!query) return 1; // Empty query matches everything perfectly
-  text = text.toLowerCase();
-  query = query.toLowerCase();
-
-  let score = 0;
-  let queryIndex = 0;
-  for (let i = 0; i < text.length; i++) {
-    if (queryIndex < query.length && text[i] === query[queryIndex]) {
-      score++;
-      queryIndex++;
-    }
-  }
-
-  if (queryIndex === query.length) {
-    // If all query characters are found,
-    // give higher score for exact matches and shorter texts
-    return score / text.length + score / query.length;
-  }
-  return 0; // No match
-}
+import Fuse from 'fuse.js'; // Import Fuse.js
 
 // Custom hook for search logic
 function useDocSearch() {
@@ -56,34 +34,31 @@ function useDocSearch() {
     fetchAllDocs();
   }, []);
 
+  // Initialize Fuse.js
+  const fuse = useMemo(() => {
+    return new Fuse(allDocs, {
+      keys: [
+        { name: 'title', weight: 0.7 },
+        { name: 'description', weight: 0.4 },
+        { name: 'category', weight: 0.3 },
+        { name: 'tags', weight: 0.2 },
+        { name: 'content', weight: 0.8 }, // Higher weight for content matches
+      ],
+      includeScore: true,
+      threshold: 0.3, // Adjust as needed for fuzziness
+      ignoreLocation: true, // Search anywhere in the string
+    });
+  }, [allDocs]);
+
   const searchFunction = useCallback(
     (queryParam: string | undefined | null) => {
-      const currentQuery = queryParam?.trim() || '';
-      if (currentQuery.length < 2) return [];
+      const currentQuery = queryParam?.trim();
+      if (!currentQuery || currentQuery.length < 2) return [];
 
-      const resultsWithScores = allDocs
-        .map((doc) => {
-          const titleMatch = fuzzyMatch(doc.title, currentQuery);
-          const descriptionMatch = fuzzyMatch(doc.description, currentQuery);
-          const categoryMatch = fuzzyMatch(doc.category, currentQuery);
-          const tagsMatch =
-            doc.tags?.some((tag) => fuzzyMatch(tag, currentQuery)) || false;
-
-          const score =
-            titleMatch * 3 + // Higher weight for title matches
-            descriptionMatch * 1.5 + // Medium weight for description
-            categoryMatch * 2 + // Medium weight for category
-            (tagsMatch ? 1 : 0); // Lower weight for tag match
-
-          return { doc, score };
-        })
-        .filter((item) => item.score > 0) // Only include relevant results
-        .sort((a, b) => b.score - a.score) // Sort by score descending
-        .map((item) => item.doc); // Return original doc objects
-
-      return resultsWithScores;
+      const results = fuse.search(currentQuery).map((result) => result.item);
+      return results;
     },
-    [allDocs],
+    [fuse],
   );
 
   return { allDocs, loading, error, search: searchFunction };
@@ -93,9 +68,15 @@ function useDocSearch() {
 const SearchInput = ({
   value: externalValue,
   onChange,
+  onFocus,
+  onKeyDown,
+  inputRef,
 }: {
   value: string;
   onChange: (value: string) => void;
+  onFocus: () => void;
+  onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
 }) => {
   const [internalValue, setInternalValue] = useState(externalValue);
   const [isPending, startTransition] = useTransition();
@@ -122,6 +103,9 @@ const SearchInput = ({
       className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
       value={internalValue}
       onChange={handleChange}
+      onFocus={onFocus}
+      onKeyDown={onKeyDown}
+      ref={inputRef}
     />
   );
 };
@@ -129,15 +113,24 @@ const SearchInput = ({
 const ResultsList = ({
   results,
   onSelect,
+  selectedIndex,
+  resultsListRef,
 }: {
   results: DocArticleMetadata[];
   onSelect: (slug: string) => void;
+  selectedIndex: number;
+  resultsListRef: React.RefObject<HTMLUListElement | null>;
 }) => (
-  <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-    {results.map((result) => (
+  <ul
+    className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto"
+    ref={resultsListRef}
+  >
+    {results.map((result, index) => (
       <li
         key={result.slug}
-        className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
+        className={`px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer ${
+          index === selectedIndex ? 'bg-accent text-accent-foreground' : ''
+        }`}
         onClick={() => onSelect(result.slug)}
       >
         <div className="font-semibold text-foreground">{result.title}</div>
@@ -167,6 +160,50 @@ const StatusMessage = ({
 
 // Main Component
 export default function DocSearch() {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const resultsListRef = React.useRef<HTMLUListElement>(null);
+
+  const handleOutsideClick = useCallback(
+    (event: MouseEvent) => {
+      if (
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target as Node) &&
+        resultsListRef.current &&
+        !resultsListRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+        setSelectedIndex(-1);
+      }
+    },
+    [searchInputRef, resultsListRef],
+  );
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [handleOutsideClick]);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (results.length === 0) return;
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      setSelectedIndex((prevIndex) =>
+        Math.min(prevIndex + 1, results.length - 1),
+      );
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      setSelectedIndex((prevIndex) => Math.max(prevIndex - 1, -1));
+    } else if (event.key === 'Enter' && selectedIndex !== -1) {
+      event.preventDefault();
+      handleSelectResult(results[selectedIndex].slug);
+    }
+  };
+
   const router = useRouter();
   const [query, setQuery] = useState('');
   const { loading, error, search: searchFunction } = useDocSearch();
@@ -181,18 +218,29 @@ export default function DocSearch() {
   const handleSelectResult = (slug: string) => {
     router.push(`/docs/${slug}`);
     setQuery('');
+    setIsDropdownOpen(false);
+    setSelectedIndex(-1);
   };
-
-  if (loading) return <StatusMessage message="Loading search index..." />;
-  if (error) return <StatusMessage message={`Error: ${error}`} type="error" />;
 
   return (
     <div className="relative w-full">
-      <SearchInput value={query} onChange={setQuery} />
+      <SearchInput
+        value={query}
+        onChange={setQuery}
+        onFocus={() => setIsDropdownOpen(true)}
+        onKeyDown={handleKeyDown}
+        inputRef={searchInputRef}
+      />
 
       {queryToSearch.length > 1 &&
+        isDropdownOpen &&
         (results.length > 0 ? (
-          <ResultsList results={results} onSelect={handleSelectResult} />
+          <ResultsList
+            results={results}
+            onSelect={handleSelectResult}
+            selectedIndex={selectedIndex}
+            resultsListRef={resultsListRef}
+          />
         ) : (
           <StatusMessage message="No results found." />
         ))}

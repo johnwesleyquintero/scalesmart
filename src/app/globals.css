@@ -177,11 +177,7 @@
     Layout Structure & CLS Prevention
     Reserving space for key layout elements.
   */
-  .content-wrapper {
-    min-height: 100vh; /* Ensure wrapper fills viewport height */
-    display: flex;
-    flex-direction: column;
-  }
+  /* Removed .content-wrapper as it conflicts with docs layout */
 
   footer {
     margin-top: auto; /* Push footer to the bottom */
