@@ -11,14 +11,19 @@ import {
 import { Course } from '@/types';
 import { useContext } from 'react';
 import { AcademyContext, AcademyContextType } from '@/context/AcademyContext';
+import { CheckCircle } from 'lucide-react'; // Import CheckCircle icon
 
 const moduleItemStyle = 'text-gray-700 dark:text-gray-200';
 
 interface ClientCourseListProps {
   courses: Course[];
+  completedCourseIds: string[]; // Add this prop
 }
 
-export default function ClientCourseList({ courses }: ClientCourseListProps) {
+export default function ClientCourseList({
+  courses,
+  completedCourseIds,
+}: ClientCourseListProps) {
   const context = useContext<AcademyContextType | undefined>(AcademyContext);
 
   const handleStartCourseClick = (course: Course) => {
@@ -39,6 +44,7 @@ export default function ClientCourseList({ courses }: ClientCourseListProps) {
         // The try-catch here is a safeguard for individual card rendering errors.
         // Ideally, data integrity should be ensured upstream.
         try {
+          const isCompleted = completedCourseIds.includes(course.id); // Check if course is completed
           return (
             <Card
               key={course.id || course.slug} // Prefer course.id if available and unique, otherwise slug.
@@ -46,13 +52,20 @@ export default function ClientCourseList({ courses }: ClientCourseListProps) {
                 course.locked
                   ? 'opacity-75 bg-gray-100 dark:bg-gray-700'
                   : 'bg-white dark:bg-gray-800'
-              } border border-gray-200 dark:border-gray-700 shadow-md premium-shadow hover:shadow-lg transition-shadow duration-300 flex flex-col`}
+              } border ${
+                isCompleted
+                  ? 'border-green-500 ring-2 ring-green-500' // Green border for completed courses
+                  : 'border-gray-200 dark:border-gray-700'
+              } shadow-md premium-shadow hover:shadow-lg transition-shadow duration-300 flex flex-col`}
             >
               <CardHeader className="flex-grow">
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle className="text-gray-900 dark:text-gray-100">
                       {course.title}
+                      {isCompleted && (
+                        <CheckCircle className="ml-2 inline-block h-5 w-5 text-green-500" /> // Checkmark icon
+                      )}
                     </CardTitle>
                     <CardDescription className="mt-1 text-gray-600 dark:text-gray-400">
                       {course.description}

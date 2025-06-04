@@ -1,13 +1,20 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
-import { components as components } from '@/components/MdxRenderer'; // Adjusted path
+import { components as mdxComponents } from '@/components/MdxRenderer'; // Renamed to avoid conflict
 import {
   useQuery,
   QueryKey,
   QueryFunctionContext,
-} from '@tanstack/react-query'; // Import QueryKey
+} from '@tanstack/react-query';
+import { TableOfContents } from './TableOfContents'; // Import TableOfContents
+
+interface Heading {
+  id: string;
+  text: string;
+  level: number;
+}
 
 interface ArticleModuleProps {
   contentSlug: string;
@@ -18,15 +25,15 @@ interface ArticleData {
   frontmatter: {
     title?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any; // Allow for other arbitrary frontmatter properties
+    [key: string]: any;
   };
 }
 
 const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
-  // Use QueryKey for the parameter and assert type internally
+  const [headings, setHeadings] = useState<Heading[]>([]);
+
   const fetchArticleContent = useCallback(
     async ({ queryKey }: QueryFunctionContext<QueryKey>) => {
-      // Assert the type of queryKey to be a string tuple
       const [_key, slug] = queryKey as [string, string];
       const response = await fetch(`/api/static-content/${slug}`);
       if (!response.ok) {
@@ -41,10 +48,27 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
   const { data, isLoading, isError, error } = useQuery<ArticleData, Error>({
     queryKey: ['articleContent', contentSlug],
     queryFn: fetchArticleContent,
-    enabled: !!contentSlug, // Only run the query if contentSlug is available
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
+    enabled: !!contentSlug,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
+
+  useEffect(() => {
+    if (data) {
+      // Extract headings after MDX content has rendered
+      const extractedHeadings: Heading[] = [];
+      document.querySelectorAll('h2, h3, h4').forEach((heading) => {
+        if (heading.id && heading.textContent) {
+          extractedHeadings.push({
+            id: heading.id,
+            text: heading.textContent,
+            level: parseInt(heading.tagName.substring(1)), // 'H2' -> 2
+          });
+        }
+      });
+      setHeadings(extractedHeadings);
+    }
+  }, [data]); // Re-run when data changes (i.e., content loads)
 
   if (isLoading) {
     return <p>Loading article content...</p>;
@@ -61,15 +85,18 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
   const { source: mdxSource, frontmatter } = data;
 
   return (
-    <div>
-      {frontmatter.title && (
-        <h2 className="text-gray-900 dark:text-gray-100">
-          {frontmatter.title}
-        </h2>
-      )}
-      <div className="prose dark:prose-invert">
-        <MDXRemote {...mdxSource} components={components} />
+    <div className="flex">
+      <div className="flex-grow">
+        {frontmatter.title && (
+          <h2 className="text-gray-900 dark:text-gray-100">
+            {frontmatter.title}
+          </h2>
+        )}
+        <div className="prose dark:prose-invert">
+          <MDXRemote {...mdxSource} components={mdxComponents} />
+        </div>
       </div>
+      <TableOfContents headings={headings} />
     </div>
   );
 };

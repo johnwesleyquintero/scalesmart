@@ -130,16 +130,25 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-          <Button
-            variant="outline"
-            onClick={handleExportData}
-            aria-label="Export Data"
-            disabled={metricsLength === 0 || isLoading || isParsing}
-            className="border-gray-300  text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
-          >
-            <Download className="mr-2 h-4 w-4" />
-            Export
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={handleExportData}
+                  aria-label="Export Data"
+                  disabled={metricsLength === 0 || isLoading || isParsing}
+                  className="border-gray-300  text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Export current data as CSV.</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           <Button
             variant="outline"
             onClick={handlePrint}

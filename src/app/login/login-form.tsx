@@ -473,7 +473,7 @@ export default function LoginForm({
               <Button
                 variant="link"
                 type="button" // Important: Prevents button from submitting the form
-                className="w-full justify-center px-0 mt-2 text-xs sm:text-sm font-medium text-primary hover:text-primary/80"
+                className="w-full justify-center px-0 mt-2 text-sm sm:text-base font-semibold text-primary hover:text-primary/80"
                 onClick={() => {
                   setCurrentForm('forgotPassword'); // Switch view to forgot password form
                   loginForm.reset(); // Clear login form fields when switching

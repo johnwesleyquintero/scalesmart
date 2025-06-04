@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
 import {
   Copy,
   Edit,
@@ -13,6 +14,9 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'; // Import Collapsible components
+import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
+import { serialize } from 'next-mdx-remote/serialize';
+import { components as mdxComponents } from '@/components/MdxRenderer'; // Renamed to avoid conflict
 
 import type { Customer, CommunicationLog } from '../types';
 import CommunicationLogComponent from './CommunicationLog'; // Import the new component
@@ -28,6 +32,8 @@ interface CustomerListItemProps {
     logId: string,
     customerId: string,
   ) => Promise<void>;
+  onSelect: (id: string, isSelected: boolean) => void; // Add onSelect prop
+  isSelected: boolean; // Add isSelected prop
 }
 
 const CustomerListItem: React.FC<CustomerListItemProps> = ({
@@ -38,13 +44,48 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
   onCommunicationLogSave,
   onCommunicationLogUpdate,
   onCommunicationLogDelete,
+  onSelect, // Include in destructuring
+  isSelected, // Include in destructuring
 }) => {
   const [isLogOpen, setIsLogOpen] = useState(false);
+  const [serializedNotes, setSerializedNotes] =
+    useState<MDXRemoteSerializeResult | null>(null);
+
+  React.useEffect(() => {
+    const serializeContent = async () => {
+      if (customer.notes) {
+        try {
+          const mdx = await serialize(customer.notes);
+          setSerializedNotes(mdx);
+        } catch (error) {
+          console.error('Error serializing MDX content:', error);
+          setSerializedNotes(null); // Handle error by not rendering MDX
+        }
+      } else {
+        setSerializedNotes(null);
+      }
+    };
+
+    serializeContent();
+  }, [customer.notes]);
 
   return (
     <Card className="w-full">
-      <CardContent className="grid grid-cols-1 gap-2 pt-6">
-        <h3 className="text-lg font-semibold text-foreground">
+      <CardContent className="grid grid-cols-1 gap-2 pt-6 relative">
+        {' '}
+        {/* Added relative for checkbox positioning */}
+        <div className="absolute top-2 left-2">
+          {' '}
+          {/* Position checkbox */}
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={(checked) => onSelect(customer.id!, !!checked)}
+            aria-label={`Select customer ${customer.name}`}
+          />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground pl-8">
+          {' '}
+          {/* Added padding to title */}
           {customer.name}
         </h3>
         <p className="text-muted-foreground">{customer.email}</p>
@@ -61,7 +102,13 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
         {customer.notes && (
           <>
             <p className="font-semibold mt-2">Notes:</p>
-            <p className="text-sm text-muted-foreground">{customer.notes}</p>
+            {serializedNotes ? (
+              <div className="prose dark:prose-invert text-sm text-muted-foreground">
+                <MDXRemote {...serializedNotes} components={mdxComponents} />
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{customer.notes}</p>
+            )}
           </>
         )}
       </CardContent>

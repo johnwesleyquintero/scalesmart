@@ -4,13 +4,38 @@ import React from 'react';
 import Quiz from '../app/academy/components/Quiz';
 import { clsx } from 'clsx'; // Import clsx
 
+// Utility function to slugify text for IDs
+const slugify = (text: string) => {
+  return text
+    .toString()
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-') // Replace spaces with -
+    .replace(/[^\w-]+/g, '') // Remove all non-word chars
+    .replace(/--+/g, '-') // Replace multiple - with single -
+    .replace(/^-+/, '') // Trim - from start of text
+    .replace(/-+$/, ''); // Trim - from end of text
+};
+
 // Define custom components to be used within MDX
 // These components will override default HTML elements or provide custom functionality
 export const components = {
-  h1: ({ children }: { children: React.ReactNode }) => <h1>{children}</h1>,
-  h2: ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>,
-  h3: ({ children }: { children: React.ReactNode }) => <h3>{children}</h3>,
-  h4: ({ children }: { children: React.ReactNode }) => <h4>{children}</h4>,
+  h1: ({ children }: { children: React.ReactNode }) => {
+    const id = slugify(React.Children.toArray(children).join(''));
+    return <h1 id={id}>{children}</h1>;
+  },
+  h2: ({ children }: { children: React.ReactNode }) => {
+    const id = slugify(React.Children.toArray(children).join(''));
+    return <h2 id={id}>{children}</h2>;
+  },
+  h3: ({ children }: { children: React.ReactNode }) => {
+    const id = slugify(React.Children.toArray(children).join(''));
+    return <h3 id={id}>{children}</h3>;
+  },
+  h4: ({ children }: { children: React.ReactNode }) => {
+    const id = slugify(React.Children.toArray(children).join(''));
+    return <h4 id={id}>{children}</h4>;
+  },
   p: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
   ul: ({ children }: { children: React.ReactNode }) => <ul>{children}</ul>,
   ol: ({ children }: { children: React.ReactNode }) => <ol>{children}</ol>,

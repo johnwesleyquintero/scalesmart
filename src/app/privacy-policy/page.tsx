@@ -8,8 +8,12 @@ import TimeStamp from '@/components/TimeStamp';
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
-      <div className="max-w-3xl mx-auto">
-        <Card className="shadow-lg">
+      <div className="mx-auto flex max-w-6xl gap-8">
+        {' '}
+        {/* Adjusted max-width and added flex */}
+        <Card className="shadow-lg flex-grow">
+          {' '}
+          {/* Added flex-grow to card */}
           <CardHeader>
             <CardTitle className="text-2xl sm:text-3xl font-bold text-center text-primary">
               Privacy Policy

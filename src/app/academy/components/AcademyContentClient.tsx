@@ -271,13 +271,17 @@ function AcademyContentClient({
             courses={uniqueCourses.filter((course) =>
               course.title?.toLowerCase()?.includes(searchQuery.toLowerCase()),
             )}
+            completedCourseIds={completedCourseIds}
           />
           {recommendedCourses.length > 0 && (
             <div className="mt-8">
               <h2 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
                 Recommended Courses
               </h2>
-              <ClientCourseList courses={recommendedCourses} />
+              <ClientCourseList
+                courses={recommendedCourses}
+                completedCourseIds={completedCourseIds}
+              />
             </div>
           )}
         </>
@@ -308,7 +312,9 @@ function AcademyContentClient({
                           className={`w-full text-left p-2.5 rounded-md transition-colors duration-150 flex justify-between items-center text-sm ${
                             activeModule?.id === module.id
                               ? 'bg-blue-100 text-blue-700 font-medium ring-1 ring-blue-300 dark:bg-blue-700 dark:text-white dark:ring-blue-500'
-                              : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
+                              : getModuleProgress(module.id) === 100
+                                ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 font-medium' // Style for completed modules
+                                : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
                           }`}
                           aria-label={`Select module ${module.title || module.id}`}
                           title={module.title || `Module ${module.id}`}

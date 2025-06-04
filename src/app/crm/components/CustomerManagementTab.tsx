@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Download, Loader2 } from 'lucide-react';
+import { Download, Loader2, Trash2 } from 'lucide-react';
 import ReactPaginate from 'react-paginate';
 import { toast } from 'sonner';
 import useDebounce from '@/hooks/use-debounce';
@@ -85,6 +85,8 @@ interface CustomerListContentProps {
     logId: string,
     customerId: string,
   ) => Promise<void>;
+  selectedCustomerIds: string[]; // Add selectedCustomerIds prop
+  onSelect: (id: string, isSelected: boolean) => void; // Add onSelect prop
 }
 
 const CustomerListContent: React.FC<CustomerListContentProps> = ({
@@ -99,6 +101,8 @@ const CustomerListContent: React.FC<CustomerListContentProps> = ({
   onCommunicationLogSave,
   onCommunicationLogUpdate,
   onCommunicationLogDelete,
+  selectedCustomerIds, // Include in destructuring
+  onSelect, // Include in destructuring
 }) => {
   const startIndex = currentPage * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -117,6 +121,10 @@ const CustomerListContent: React.FC<CustomerListContentProps> = ({
             onCommunicationLogSave={onCommunicationLogSave}
             onCommunicationLogUpdate={onCommunicationLogUpdate}
             onCommunicationLogDelete={onCommunicationLogDelete}
+            onSelect={onSelect} // Pass onSelect
+            isSelected={
+              customer.id ? selectedCustomerIds.includes(customer.id) : false
+            } // Pass isSelected, handle undefined id
           />
         ))}
       </div>
@@ -170,6 +178,7 @@ export const CustomerManagementTab: React.FC<CustomerManagementTabProps> = ({
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(5);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]); // Track selected customer IDs
 
   const handlePageClick = (selectedObject: { selected: number }) => {
     setCurrentPage(selectedObject.selected);
@@ -242,6 +251,44 @@ export const CustomerManagementTab: React.FC<CustomerManagementTabProps> = ({
 
   const pageCount = Math.ceil(filteredCustomers.length / itemsPerPage);
 
+  const handleSelectCustomer = (id: string, isSelected: boolean) => {
+    setSelectedCustomerIds((prev) => {
+      if (isSelected) {
+        return [...prev, id];
+      } else {
+        return prev.filter((customerId) => customerId !== id);
+      }
+    });
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedCustomerIds.length === 0) {
+      toast.info('No customers selected for deletion.');
+      return;
+    }
+
+    // Confirm with the user before deleting
+    if (
+      !window.confirm(
+        `Are you sure you want to delete ${selectedCustomerIds.length} customers?`,
+      )
+    ) {
+      return;
+    }
+
+    // Delete the selected customers
+    for (const id of selectedCustomerIds) {
+      await handleDeleteCustomer(id);
+      if (editingCustomer?.id === id) {
+        setEditingCustomer(null);
+      }
+    }
+
+    // Clear the selected customer IDs
+    setSelectedCustomerIds([]);
+    toast.success('Selected customers deleted successfully!');
+  };
+
   return (
     <>
       <div className="flex flex-col gap-6 lg:flex-row">
@@ -309,6 +356,15 @@ export const CustomerManagementTab: React.FC<CustomerManagementTabProps> = ({
             >
               <Download className="mr-2 h-4 w-4" /> Export CSV
             </Button>
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              disabled={selectedCustomerIds.length === 0}
+              title="Delete selected customers"
+              className="w-full sm:w-auto"
+            >
+              <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -324,6 +380,8 @@ export const CustomerManagementTab: React.FC<CustomerManagementTabProps> = ({
             onCommunicationLogSave={handleCreateCommunicationLog}
             onCommunicationLogUpdate={handleUpdateCommunicationLog}
             onCommunicationLogDelete={handleDeleteCommunicationLog}
+            selectedCustomerIds={selectedCustomerIds} // Pass selectedCustomerIds
+            onSelect={handleSelectCustomer} // Pass handleSelectCustomer
           />
           <ReactPaginate
             previousLabel={'Previous'}

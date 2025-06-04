@@ -32,34 +32,27 @@ export default function HeroSection() {
               </span>
             </h1>
             <p className="text-xl font-medium text-gray-700 dark:text-gray-200 md:text-2xl opacity-0 animate-[fadeIn_0.5s_ease-out_0.3s_forwards]">
-              Empowering Amazon Sellers with
-              <span className="font-semibold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent">
-                {' '}
-                ScaleSmart Data-driven Solutions
-              </span>{' '}
-              and
-              <span className="font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
-                {' '}
-                AI-powered Tools
-              </span>
-              .
+              Empowering your business with intelligent solutions and seamless
+              workflows.
             </p>
           </div>
 
           <div className="flex flex-col gap-4 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="#projects">
-                View Projects
+              <Link href="/login">
+                Get Started Free
                 <span className="ml-2 group-hover:translate-x-1 duration-500">
                   →
                 </span>
               </Link>
             </Button>
-            <Button asChild variant="outline" size="lg">
-              <Link href="/amazon-seller-tools">Amazon Tools</Link>
-            </Button>
-            <Button asChild variant="ghost" size="lg">
-              <Link href="#contact">Contact Me</Link>
+            <Button asChild size="lg" variant="outline">
+              <Link href="/amazon-seller-tools">
+                Explore Our Tools
+                <span className="ml-2 group-hover:translate-x-1 duration-500">
+                  →
+                </span>
+              </Link>
             </Button>
           </div>
 

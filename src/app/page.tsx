@@ -10,6 +10,7 @@ import {
   ContactSectionClient,
   InAppProjectsClient,
 } from '../components/client-components';
+import FeatureHighlightsSection from '../components/feature-highlights-section';
 
 // Only disable SSR for components that truly need client-side features
 const CardLoading = CardLoadingClient;
@@ -39,6 +40,7 @@ export default function Home() {
       <div className="relative flex flex-col items-center gap-4">
         <ErrorBoundary>
           <HeroSection />
+          <FeatureHighlightsSection />
           <InAppProjects />
           <ProjectsSection />
           <AboutSection />
