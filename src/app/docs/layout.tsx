@@ -31,7 +31,7 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
       <DocsLayoutClient>
         {/* Sidebar Area - Fixed on desktop, hidden on mobile */}
         <aside
-          className="sticky top-14 z-30 hidden h-[calc(100vh-3.5rem)] shrink-0 md:block"
+          className="sticky top-14 z-30 hidden h-[calc(100vh-3.5rem)] shrink-0 md:block overflow-y-auto"
           aria-label="Documentation navigation"
         >
           <div className="relative h-full py-6 pr-6 lg:py-8">
