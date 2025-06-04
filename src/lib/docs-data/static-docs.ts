@@ -26,8 +26,10 @@ export interface DocArticleMetadata {
 export function getAllDocSlugs() {
   // In production, direct file system access to content files might fail.
   // We check if the directory exists. If not, we fall back to pre-generated JSON data.
-  if (!existsSync(DOCS_CONTENT_PATH)) {
-    console.log('[Docs Data] Falling back to JSON data for doc slugs.');
+  // In production, always use the pre-generated JSON data.
+  // In development, we can still read from the file system for convenience.
+  if (process.env.NODE_ENV === 'production' || !existsSync(DOCS_CONTENT_PATH)) {
+    console.log('[Docs Data] Using JSON data for doc slugs.');
     return docsData.docs.map((doc: DocPost) => ({
       params: {
         slug: doc.slug,
@@ -50,8 +52,10 @@ export function getDocBySlug(slug: string): {
 } {
   // In production, direct file system access to content files might fail.
   // We check if the directory exists. If not, we fall back to pre-generated JSON data.
-  if (!existsSync(DOCS_CONTENT_PATH)) {
-    console.log(`[Docs Data] Falling back to JSON data for doc slug: ${slug}`);
+  // In production, always use the pre-generated JSON data.
+  // In development, we can still read from the file system for convenience.
+  if (process.env.NODE_ENV === 'production' || !existsSync(DOCS_CONTENT_PATH)) {
+    console.log(`[Docs Data] Using JSON data for doc slug: ${slug}`);
     const doc = docsData.docs.find((d: DocPost) => d.slug === slug);
     if (doc) {
       return {
@@ -82,6 +86,20 @@ export function getDocBySlug(slug: string): {
 }
 
 export function getAllDocsMetadata(): DocArticleMetadata[] {
+  // In production, always use the pre-generated JSON data.
+  // In development, we can still read from the file system for convenience.
+  if (process.env.NODE_ENV === 'production' || !existsSync(DOCS_CONTENT_PATH)) {
+    console.log('[Docs Data] Using JSON data for all docs metadata.');
+    return docsData.docs.map((doc: DocPost) => ({
+      slug: doc.slug,
+      title: doc.title || 'Untitled Document',
+      description: doc.description || '',
+      category: doc.category || 'Uncategorized',
+      order: doc.order || 0,
+      tags: doc.tags || [],
+    }));
+  }
+
   const files = readdirSync(DOCS_CONTENT_PATH);
 
   const allDocsData = files.map((filename) => {
