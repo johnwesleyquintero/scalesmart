@@ -184,10 +184,10 @@ export default function ResumeScanner() {
   const suggestionsMdxSource = useMemo(() => {
     if (analysis && analysis.suggestions.length > 0) {
       // Format suggestions as a markdown list
-      const markdown = analysis.suggestions.map((s) => `- ${s}`).join('\n');
+      const markdown = `### Here are some suggestions to improve your resume:\n${analysis.suggestions.map((s) => `- ${s}`).join('\n')}`;
       return {
         compiledSource: markdown,
-        scope: {}, // Provide empty scope if no variables are needed in MDX
+        scope: {},
         frontmatter: {}, // Provide empty frontmatter if not used
       };
     }

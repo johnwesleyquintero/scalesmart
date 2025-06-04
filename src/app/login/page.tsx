@@ -9,7 +9,7 @@ import {
 import { useSearchParams } from 'next/navigation';
 import Logo from '@/components/Logo';
 import LoginForm from './login-form';
-import { signIn, signUp, forgotPassword } from '../auth/actions';
+import { signIn, signUp, forgotPassword, mfaVerify } from '../auth/actions'; // Assuming mfaVerify is the action
 import { DevLogin } from './dev-login';
 
 const PRIVACY_POLICY_HREF = '/privacy-policy';
@@ -60,6 +60,7 @@ export default function LoginPage() {
           signInAction={signIn}
           signUpAction={signUp}
           forgotPasswordAction={forgotPassword}
+          mfaVerifyAction={mfaVerify}
           privacyPolicyHref={PRIVACY_POLICY_HREF}
           termsOfServiceHref={TERMS_OF_SERVICE_HREF}
         />

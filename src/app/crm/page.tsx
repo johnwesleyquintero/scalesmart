@@ -174,7 +174,9 @@ export default function CRMComponent() {
     <>
       <Toaster position="top-right" richColors />
       <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold my-6 text-center text-foreground">CRM Dashboard</h1>
+        <h1 className="text-3xl font-bold my-6 text-center text-foreground">
+          CRM Dashboard
+        </h1>
         <p className="text-lg text-muted-foreground text-center mb-8">
           Manage your customer relationships, track interactions, and organize
           contact information.

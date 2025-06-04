@@ -5,6 +5,7 @@ import { Course } from '@/types';
 interface CachedResponse {
   url: string;
   data: Course[];
+  expiry: number;
 }
 
 interface RequestInit {
@@ -34,12 +35,13 @@ interface RequestInit {
 async function cachedFetch(
   url: string,
   options?: RequestInit,
+  ttl: number = 3600, // Default TTL of 1 hour
 ): Promise<Response> {
   try {
     console.time(`Load ${url} from cache`);
     const cachedResponse = await getItem<CachedResponse>(url);
     console.timeEnd(`Load ${url} from cache`);
-    if (cachedResponse) {
+    if (cachedResponse && cachedResponse.expiry > Date.now()) {
       console.log(`Returning cached response for ${url}`);
       return new Response(JSON.stringify(cachedResponse.data), {
         headers: { 'content-type': 'application/json' },
@@ -53,8 +55,9 @@ async function cachedFetch(
 
     const responseClone = response.clone(); // Clone the response
     const data = await responseClone.json(); // Read the body from the clone
+    const expiry = Date.now() + ttl * 1000; // Calculate expiry time
     console.time(`Save ${url} to cache`);
-    await setItem(url, { url: url, data: data });
+    await setItem(url, { url: url, data: data, expiry: expiry });
     console.timeEnd(`Save ${url} to cache`);
     console.log(`Caching response for ${url}`);
     return response; // Return the original response

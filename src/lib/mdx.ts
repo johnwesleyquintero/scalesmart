@@ -298,6 +298,7 @@ interface ContentData {
   title: string;
   description: string;
   slug: string;
+  date: string; // Added date property
   tags?: string[];
 }
 
@@ -323,6 +324,7 @@ export async function getBlogPostBySlug(
         slug: p.id,
         title: p.title,
         description: p.description,
+        date: p.date, // Added date property
       }));
 
     return {
@@ -357,11 +359,13 @@ export async function getBlogPostBySlug(
           ),
       )
       .slice(0, 2)
-      .map((p: ContentData) => ({
+      .map((p: BlogPost) => ({
+        // Changed type to BlogPost for clarity and correct property access
         id: p.id,
         slug: p.slug,
         title: p.title,
         description: p.description,
+        date: p.date, // Added date property
       }));
 
     return {

@@ -64,7 +64,11 @@ const WorkflowCanvas = ({
   return (
     <div
       ref={setNodeRef}
-      style={{ width: '100%', height: '100%', border: '1px dashed var(--border)' }}
+      style={{
+        width: '100%',
+        height: '100%',
+        border: '1px dashed var(--border)',
+      }}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >

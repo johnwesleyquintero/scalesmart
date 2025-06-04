@@ -847,9 +847,7 @@ export default function ChatInterface() {
         >
           {/* Header */}
           <div className="flex justify-between items-center p-3 border-b border-border bg-muted">
-            <h3 className="font-semibold text-foreground">
-              WesAI
-            </h3>
+            <h3 className="font-semibold text-foreground">WesAI</h3>
             <div className="flex items-center gap-1">
               <Button
                 onClick={() => dispatch({ type: 'TOGGLE_FULLSCREEN' })}

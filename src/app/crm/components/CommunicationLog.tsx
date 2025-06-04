@@ -137,8 +137,12 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
                 <p className="text-sm text-muted-foreground">
                   {new Date(log.date).toLocaleString()} - {log.type}
                 </p>
-                {log.subject && <p className="font-semibold text-foreground">{log.subject}</p>}
-                <p className="whitespace-pre-wrap text-foreground">{log.notes}</p>
+                {log.subject && (
+                  <p className="font-semibold text-foreground">{log.subject}</p>
+                )}
+                <p className="whitespace-pre-wrap text-foreground">
+                  {log.notes}
+                </p>
                 <div className="flex gap-2 mt-2">
                   <Button
                     variant="ghost"

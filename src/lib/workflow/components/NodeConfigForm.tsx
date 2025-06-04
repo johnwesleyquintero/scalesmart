@@ -1,5 +1,14 @@
 import React from 'react';
 import { NodeProperty, NodeType } from '../types';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/select';
 
 interface NodeConfigFormProps {
   nodeType: NodeType;
@@ -16,51 +25,55 @@ const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
     <div>
       {nodeType.properties.map((property: NodeProperty) => (
         <div key={property.name}>
-          <label htmlFor={property.name} className="text-foreground">{property.label}</label>
+          <Label htmlFor={property.name}>{property.label}</Label>
           {property.type === 'string' && (
-            <input
-              type="text"
+            <Input
               id={property.name}
+              type="text"
+              aria-label={property.label}
               value={(values[property.name] as string) || ''}
               onChange={(e) => onChange(property.name, e.target.value)}
-              className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground placeholder-muted-foreground"
             />
           )}
           {property.type === 'number' && (
-            <input
-              type="number"
+            <Input
               id={property.name}
+              type="number"
+              aria-label={property.label}
               value={(values[property.name] as number) || 0}
               onChange={(e) =>
                 onChange(property.name, parseFloat(e.target.value))
               }
-              className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
             />
           )}
           {property.type === 'boolean' && (
             <input
               type="checkbox"
               id={property.name}
+              aria-label={property.label}
               checked={(values[property.name] as boolean) || false}
               onChange={(e) => onChange(property.name, e.target.checked)}
               className="text-primary focus:ring-primary"
             />
           )}
           {property.type === 'select' && (
-            <select
-              id={property.name}
+            <Select
               value={
                 (values[property.name] as string) || property.options?.[0] || ''
               }
-              onChange={(e) => onChange(property.name, e.target.value)}
-              className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
+              onValueChange={(value) => onChange(property.name, value)}
             >
-              {property.options?.map((option: string) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger id={property.name} aria-label={property.label}>
+                <SelectValue placeholder={property.label} />
+              </SelectTrigger>
+              <SelectContent>
+                {property.options?.map((option: string) => (
+                  <SelectItem key={option} value={option}>
+                    {option}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           )}
         </div>
       ))}

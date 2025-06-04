@@ -8,6 +8,7 @@
     "locked": false,
     "progress": 0,
     "type": "ARTICLE",
+    "category": "Amazon SEO",
     "modules": [
       {
         "id": "101",
@@ -36,6 +37,7 @@
     "locked": true,
     "progress": 0,
     "type": "ARTICLE",
+    "category": "Amazon PPC",
     "modules": [
       {
         "id": "201",
@@ -64,6 +66,7 @@
     "locked": false,
     "progress": 0,
     "type": "ARTICLE",
+    "category": "Amazon FBA",
     "modules": [
       {
         "id": "301",
@@ -116,6 +119,7 @@
     "locked": true,
     "progress": 0,
     "type": "ARTICLE",
+    "category": "Amazon SEO",
     "modules": [
       {
         "id": "401",
@@ -168,6 +172,7 @@
     "locked": false,
     "progress": 0,
     "type": "ARTICLE",
+    "category": "Amazon Brand Protection",
     "modules": [
       {
         "id": "501",
@@ -212,6 +217,7 @@
     "locked": false,
     "progress": 0,
     "type": "ARTICLE",
+    "category": "Amazon Product Research",
     "modules": [
       {
         "id": "601",
@@ -256,6 +262,7 @@
     "locked": false,
     "progress": 0,
     "type": "ARTICLE",
+    "category": "Amazon PPC",
     "modules": [
       {
         "id": "701",

@@ -21,9 +21,18 @@ import Quiz from './Quiz';
 import ClientCourseList from '@/app/academy/components/ClientCourseList';
 import { UserProfile } from '@/lib/models/user';
 
-interface AcademyContentProps {
+export interface AcademyStorageData {
+  lastVisitedCourse?: string | null;
+  lastVisitedModule?: string | null;
+  // Add other specific properties here if useAcademyStorage returns them
+  // and they are needed. Avoid [key: string]: any;
+  // unless absolutely necessary, prefer [key: string]: unknown; or specific types.
+}
+
+export interface AcademyContentProps {
   courses: Course[];
   initialCourseId?: string | null;
+  academyData: AcademyStorageData | undefined; // Add academyData prop
 }
 
 interface ModuleSpecificContentProps {

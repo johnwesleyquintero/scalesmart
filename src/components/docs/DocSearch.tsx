@@ -47,6 +47,10 @@ function useDocSearch() {
       includeScore: true,
       threshold: 0.3, // Adjust as needed for fuzziness
       ignoreLocation: true, // Search anywhere in the string
+      // Add fuzzy matching options
+      isCaseSensitive: false,
+      minMatchCharLength: 2,
+      findAllMatches: true,
     });
   }, [allDocs]);
 

@@ -89,6 +89,13 @@ export default function RootLayout({
           <Toaster />
         </div>
         <Analytics />
+        {/* Accessibility Enhancement Reminder:
+          1. Conduct regular accessibility audits using tools like Axe or Lighthouse.
+          2. Track the impact of these changes using the following metrics:
+            * Accessibility audit scores (e.g., Lighthouse score)
+            * User feedback on accessibility
+            * Reduction in accessibility-related support tickets
+        */}
       </body>
     </html>
   );

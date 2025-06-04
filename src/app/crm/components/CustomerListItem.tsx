@@ -44,7 +44,9 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
   return (
     <Card className="w-full">
       <CardContent className="grid grid-cols-1 gap-2 pt-6">
-        <h3 className="text-lg font-semibold text-foreground">{customer.name}</h3>
+        <h3 className="text-lg font-semibold text-foreground">
+          {customer.name}
+        </h3>
         <p className="text-muted-foreground">{customer.email}</p>
         <p className="text-muted-foreground">{customer.phone}</p>
         {customer.company && (

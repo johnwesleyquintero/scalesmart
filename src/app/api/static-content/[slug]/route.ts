@@ -5,7 +5,10 @@ import matter from 'gray-matter';
 import { serialize } from 'next-mdx-remote/serialize';
 import { handleApiError } from '@/lib/api-error-handler';
 
-const staticContentDirectory = path.join(process.cwd(), 'src/app/content/static');
+const staticContentDirectory = path.join(
+  process.cwd(),
+  'src/app/content/static',
+);
 
 export async function GET(
   request: Request,

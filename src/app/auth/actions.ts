@@ -164,3 +164,42 @@ export async function forgotPassword(formData: FormData) {
     '/login?message=Password reset email sent. Please check your inbox.',
   );
 }
+
+/**
+ * Handles MFA code verification.
+ * Validates input and verifies the MFA code using Supabase.
+ *
+ * @param formData - The FormData object containing the MFA code.
+ */
+export async function mfaVerify(formData: FormData) {
+  const mfaCode = formData.get('mfaCode');
+  const phone = formData.get('phone'); // Assuming phone is also passed via formData
+
+  if (!mfaCode || typeof mfaCode !== 'string') {
+    return redirect('/login?message=MFA code is required.');
+  }
+
+  // If using 'sms' type, 'phone' is required.
+  if (!phone || typeof phone !== 'string') {
+    return redirect(
+      '/login?message=Phone number is required for SMS verification.',
+    );
+  }
+
+  const supabase = await createClient();
+
+  // Verify the OTP. For 'sms' type, both token and phone are required.
+  const { error } = await supabase.auth.verifyOtp({
+    phone,
+    token: mfaCode,
+    type: 'sms', // Or 'email', 'phone', 'totp' depending on your MFA setup
+  });
+
+  if (error) {
+    console.error('Supabase MFA verification error:', error);
+    return redirect('/login?message=Invalid MFA code. Please try again.');
+  }
+
+  // On successful MFA verification, redirect to the dashboard or intended page.
+  return redirect('/');
+}

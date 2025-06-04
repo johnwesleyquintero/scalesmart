@@ -22,9 +22,18 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
 } from '@tanstack/react-table';
 import { ArrowDownUp, Columns } from 'lucide-react';
 import React from 'react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -41,13 +50,16 @@ export function PpcTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
   return (
     <div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-4">
         <Input
           placeholder="Filter campaigns..."
+          aria-label="Filter campaigns"
           value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
           onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
             table
@@ -56,9 +68,35 @@ export function PpcTable<TData, TValue>({
           }
           className="max-w-sm"
         />
+        {/* Add a filter for 'status' column if it exists */}
+        {table.getColumn('status') && (
+          <Select
+            value={
+              (table.getColumn('status')?.getFilterValue() as string) ?? ''
+            }
+            onValueChange={(value) =>
+              table.getColumn('status')?.setFilterValue(value)
+            }
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Statuses</SelectItem>
+              {Array.from(
+                table.getColumn('status')?.getFacetedUniqueValues().keys() ||
+                  [],
+              ).map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <div className="flex items-center space-x-2">
           <DropdownMenu>
-            <DropdownMenuTrigger>
+            <DropdownMenuTrigger aria-haspopup="true">
               <Columns className="mr-2 h-4 w-4" /> Columns
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -99,6 +137,8 @@ export function PpcTable<TData, TValue>({
                       {header.column.getCanSort() ? (
                         <button
                           className="ml-2"
+                          tabIndex={0}
+                          aria-label={`Sort by ${header.column.id} ${header.column.getSortIndex() === 0 ? 'ascending' : 'descending'}`}
                           onClick={() => {
                             table.setSorting(
                               header.column.getSortIndex() === 0
@@ -140,6 +180,8 @@ export function PpcTable<TData, TValue>({
             table.previousPage();
           }}
           disabled={!table.getCanPreviousPage()}
+          aria-label="Previous page"
+          tabIndex={0}
         >
           Previous
         </button>
@@ -148,6 +190,8 @@ export function PpcTable<TData, TValue>({
             table.nextPage();
           }}
           disabled={!table.getCanNextPage()}
+          aria-label="Next page"
+          tabIndex={0}
         >
           Next
         </button>

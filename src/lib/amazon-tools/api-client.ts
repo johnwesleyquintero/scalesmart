@@ -95,7 +95,17 @@ class ApiClient {
     reviewCount: number;
     bsr: number;
   }> {
-    return this.request(`/asin/${asin}`);
+    try {
+      return await this.request(`/asin/${asin}`);
+    } catch (error) {
+      logError({
+        message: `Failed to get ASIN data for ASIN: ${asin}`,
+        component: 'ApiClient',
+        severity: 'medium',
+        error: error as Error,
+      });
+      throw error; // Re-throw the error to be handled by the component
+    }
   }
 
   // Competition Analysis API

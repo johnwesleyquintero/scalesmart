@@ -181,7 +181,7 @@ export type BlogPost = {
   /** Optional full content of the blog post. */
   content?: string;
   /** Optional array of related posts. */
-  relatedPosts?: unknown[];
+  relatedPosts?: BlogPost[];
   /** Type of the blog post (e.g., 'blog', 'article', 'case-study'). */
   type?: 'blog' | 'article' | 'case-study';
 };

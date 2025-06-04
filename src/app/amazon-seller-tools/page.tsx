@@ -137,6 +137,7 @@ const SalesEstimator = dynamic(
 import DashboardHeader from '@/components/amazon-seller-tools/DashboardHeader';
 import OverviewTab from '@/components/amazon-seller-tools/OverviewTab';
 import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
+import { exportToCSV } from '@/lib/amazon-tools/export-utils'; // Import exportToCSV
 
 // Import types
 import type { DashboardMetrics } from '@/lib/amazon-tools/types';
@@ -239,12 +240,50 @@ export default function UnifiedDashboard() {
     setInitialKeyword(null);
   }, []); // Dependencies removed as setters are stable
 
-  // Placeholder for export functionality
+  /**
+   * Handles the data export functionality.
+   * Exports the current metrics data to a CSV file.
+   * @remarks This callback is memoized using `useCallback`.
+   * @returns {void}
+   */
+  /**
+   * Handles the data export functionality.
+   * Exports the current metrics data to a CSV file after transforming it.
+   * @remarks This callback is memoized using `useCallback`.
+   * @returns {void}
+   */
   const handleExport = useCallback(() => {
-    console.log('Export functionality not yet implemented.');
-    setError('Export functionality not yet implemented.');
-    // TODO: Implement data export logic
-  }, []);
+    if (metrics.length > 0) {
+      // Transform metrics to a format compatible with exportToCSV
+      const exportableMetrics = metrics.map((metric) => {
+        const exportableMetric: {
+          [key: string]: string | number | boolean | null | undefined;
+        } = {};
+        for (const key in metric) {
+          if (Object.prototype.hasOwnProperty.call(metric, key)) {
+            const value = metric[key as keyof DashboardMetrics]; // Access value with type assertion
+            // Convert non-primitive types to string for CSV compatibility
+            if (typeof value === 'object' && value !== null) {
+              exportableMetric[key] = JSON.stringify(value);
+            } else {
+              exportableMetric[key] = value as
+                | string
+                | number
+                | boolean
+                | null
+                | undefined; // Cast primitive types
+            }
+          }
+        }
+        return exportableMetric;
+      });
+
+      exportToCSV(exportableMetrics, 'amazon_seller_tools_data.csv');
+      setError(null); // Clear any previous export error
+    } else {
+      setError('No data available to export.');
+    }
+  }, [metrics]); // Dependency array includes metrics
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">

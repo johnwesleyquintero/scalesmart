@@ -23,9 +23,7 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ type, label }) => {
         padding: '10px',
       };
 
-  const backgroundColorClass = isDragging
-    ? 'bg-muted'
-    : 'bg-card';
+  const backgroundColorClass = isDragging ? 'bg-muted' : 'bg-card';
 
   return (
     <div

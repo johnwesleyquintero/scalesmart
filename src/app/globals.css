@@ -15,7 +15,7 @@
 :root {
   /* Base Colors */
   --background: 0 0% 100%; /* White */
-  --foreground: 222.2 84% 4.9%; /* Dark foreground */
+  --foreground: 222.2 84% 15%; /* Dark foreground */
 
   /* Surface Colors */
   --card: 0 0% 100%; /* White */
@@ -25,7 +25,7 @@
 
   /* Primary Accent */
   --primary-blue: 270 50% 60%; /* A specific purple color */
-  --primary: 270 65% 35%; /* Adjusted for better contrast in light mode */
+  --primary: 270 65% 25%; /* Adjusted for better contrast in light mode */
   --primary-foreground: 0 0% 100%; /* White for better contrast */
 
   /* Secondary Accent */
@@ -34,7 +34,7 @@
 
   /* Muted/Subtle */
   --muted: 210 40% 96.1%; /* Light gray */
-  --muted-foreground: 215.4 16.3% 25%; /* Adjusted for better contrast */
+  --muted-foreground: 215.4 16.3% 35%; /* Adjusted for better contrast */
 
   /* Interactive/Accent */
   --accent: 210 40% 96.1%; /* Light gray */
@@ -79,15 +79,15 @@
   --popover-foreground: 210 20% 90%; /* Adjusted light gray */
 
   /* Primary Accent */
-  --primary: 250 80% 70%; /* Lighter primary for dark mode */
+  --primary: 250 80% 60%; /* Lighter primary for dark mode */
   --primary-foreground: 210 20% 90%; /* Light gray */
 
   /* Secondary Accent */
-  --secondary: 217.2 32.6% 17.5%; /* Darker gray */
+  --secondary: 217.2 32.6% 27.5%; /* Darker gray */
   --secondary-foreground: 210 20% 90%; /* Light gray */
 
   /* Muted/Subtle */
-  --muted: 217.2 32.6% 17.5%; /* Darker gray */
+  --muted: 217.2 32.6% 27.5%; /* Darker gray */
   --muted-foreground: 215 10% 85%; /* Adjusted lighter gray */
 
   /* Interactive/Accent */
