@@ -7,7 +7,7 @@ test/
 .wescore
 lighthouse-reports
 docs
-scripts
+
 _.log
 _.md
 !README.md
