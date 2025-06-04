@@ -34,7 +34,7 @@ const InAppProjects = InAppProjectsClient;
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="relative min-h-screen bg-gradient-to-br from-background via-muted/50 to-background">
       <div className="grid-background"></div>
       <div className="relative flex flex-col items-center gap-4">
         <ErrorBoundary>

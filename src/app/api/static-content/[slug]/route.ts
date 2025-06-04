@@ -2,24 +2,24 @@ import fs from 'fs';
 import path from 'path';
 import { NextResponse } from 'next/server';
 import matter from 'gray-matter';
-import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
+import { handleApiError } from '@/lib/api-error-handler';
 
-const academyDirectory = path.join(process.cwd(), 'src/app/content/academy');
+const staticContentDirectory = path.join(process.cwd(), 'src/app/content/static');
 
 export async function GET(
   request: Request,
   { params }: { params: { slug: string } },
 ) {
   const { slug } = params;
-  const fullPath = path.join(academyDirectory, `${slug}.mdx`);
+  const fullPath = path.join(staticContentDirectory, `${slug}.mdx`);
 
   try {
     const fileContents = fs.readFileSync(fullPath, 'utf8');
     const { data, content } = matter(fileContents);
-    const keywords = data.keywords as string[];
-    return NextResponse.json({ content, keywords });
+    // You can add more robust validation for frontmatter here if needed
+    return NextResponse.json({ source: { compiledSource: content }, frontmatter: data });
   } catch (error) {
-    console.error('Error reading MDX file:', error);
+    console.error(`Error reading static MDX file for slug ${slug}:`, error);
     return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

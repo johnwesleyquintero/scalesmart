@@ -42,30 +42,30 @@
   */
   .scrollbar-thin {
     scrollbar-width: thin; /* Firefox */
-    scrollbar-color: theme('colors.gray.300') theme('colors.gray.100'); /* Firefox */
+    scrollbar-color: theme('colors.muted.DEFAULT') theme('colors.background'); /* Firefox */
   }
   .dark .scrollbar-thin {
-    scrollbar-color: theme('colors.gray.600') theme('colors.gray.800'); /* Firefox dark mode */
+    scrollbar-color: theme('colors.muted.foreground') theme('colors.card'); /* Firefox dark mode */
   }
   /* Webkit browsers (Chrome, Safari) scrollbar styles */
   .scrollbar-thin::-webkit-scrollbar {
     width: 8px;
   }
   .scrollbar-thin::-webkit-scrollbar-track {
-    background: theme('colors.gray.100');
+    background: theme('colors.background');
     border-radius: 4px;
   }
   .dark .scrollbar-thin::-webkit-scrollbar-track {
-    background: theme('colors.gray.800'); /* Webkit track dark mode */
+    background: theme('colors.card'); /* Webkit track dark mode */
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: theme('colors.gray.300');
+    background-color: theme('colors.muted.DEFAULT');
     border-radius: 4px;
-    border: 2px solid theme('colors.gray.100');
+    border: 2px solid theme('colors.background');
   }
   .dark .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: theme('colors.gray.600');
-    border: 2px solid theme('colors.gray.800'); /* Webkit thumb dark mode */
+    background-color: theme('colors.muted.foreground');
+    border: 2px solid theme('colors.card'); /* Webkit thumb dark mode */
   }
 }
 
@@ -174,4 +174,59 @@
 */
 .code-block-wrapper {
   background-color: black;
+}
+
+/*
+  Pagination Styles for ReactPaginate (HubSpot-like theme)
+  - These styles are specifically for the ReactPaginate component used in CRM.
+  - They are placed outside @layer directives as they are specific component styles
+    that don't necessarily extend Tailwind's utility system.
+*/
+.pagination {
+  display: flex;
+  justify-content: center;
+  list-style: none;
+  padding: 0;
+  margin-top: 1.5rem;
+}
+
+.hubspot-pagination li {
+  margin: 0 0.25rem;
+}
+
+.hubspot-pagination__link {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: theme('borderRadius.md');
+  color: theme('colors.foreground');
+  background-color: theme('colors.background');
+  border: 1px solid theme('colors.border');
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.hubspot-pagination__link:hover {
+  background-color: theme('colors.muted.DEFAULT');
+  color: theme('colors.foreground');
+  border-color: theme('colors.primary.DEFAULT');
+}
+
+.hubspot-pagination__link--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: theme('colors.muted.foreground');
+  background-color: theme('colors.background');
+  border-color: theme('colors.border');
+}
+
+.hubspot-pagination__link--active {
+  background-color: theme('colors.primary.DEFAULT');
+  color: theme('colors.primary.foreground');
+  border-color: theme('colors.primary.DEFAULT');
+}
+
+.hubspot-pagination__link--active:hover {
+  background-color: theme('colors.primary.DEFAULT');
+  color: theme('colors.primary.foreground');
+  border-color: theme('colors.primary.DEFAULT');
 }

@@ -59,7 +59,7 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
           {projects.map((project) => (
             <Card key={project.id} className="w-full">
               <CardContent className="grid grid-cols-1 gap-2 p-4">
-                <h3 className="text-lg font-semibold">{project.name}</h3>
+                <h3 className="text-lg font-semibold text-foreground">{project.name}</h3>
                 {project.description && (
                   <p className="text-sm text-muted-foreground">
                     {project.description}

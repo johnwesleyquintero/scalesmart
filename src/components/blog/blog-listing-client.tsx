@@ -90,7 +90,7 @@ export default function BlogListingClient({
         {postsToRender.map((post) => (
           <Card
             key={post.slug}
-            className="overflow-hidden transition-all duration-300 hover:shadow-lg"
+            className="overflow-hidden transition-all duration-300 hover:shadow-lg bg-card text-foreground"
           >
             <div className="aspect-video overflow-hidden">
               <BlogImage
@@ -167,10 +167,10 @@ export default function BlogListingClient({
   };
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 min-h-screen">
+    <div className="bg-background min-h-screen">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center">
-          <h1 className="text-3xl font-bold my-6">
+          <h1 className="text-3xl font-bold my-6 text-foreground">
             Blogs | Articles | Case Studies
           </h1>
           <p className="mx-auto max-w-2xl text-muted-foreground text-lg">
@@ -184,28 +184,28 @@ export default function BlogListingClient({
           className="w-full mt-8"
           onValueChange={setActiveTab}
         >
-          <TabsList className="mb-4 flex flex-wrap h-auto justify-center bg-gray-100 dark:bg-gray-700">
+          <TabsList className="mb-4 flex flex-wrap h-auto justify-center bg-muted">
             <TabsTrigger
               value="all"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               All Posts
             </TabsTrigger>
             <TabsTrigger
               value="blog"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               Blog Posts
             </TabsTrigger>
             <TabsTrigger
               value="article"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               Articles
             </TabsTrigger>
             <TabsTrigger
               value="case-study"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               Case Studies
             </TabsTrigger>

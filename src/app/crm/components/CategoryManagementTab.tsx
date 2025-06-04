@@ -34,7 +34,7 @@ export const CategoryManagementTab: React.FC<CategoryManagementTabProps> = ({
   return (
     <Card className="flex-1">
       <CardHeader>
-        <CardTitle>Manage Categories</CardTitle>
+        <CardTitle className="text-foreground">Manage Categories</CardTitle>
       </CardHeader>
       <CardContent>
         <CategoryManager

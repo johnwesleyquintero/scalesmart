@@ -177,7 +177,7 @@ export default function PromptRequestGenerator() {
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Header Section */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold">Prompt Request Generator</h1>
+          <h1 className="text-3xl font-bold text-foreground">Prompt Request Generator</h1>
           <p className="text-muted-foreground mt-2">
             Create structured prompts for code assistance requests
           </p>
@@ -186,7 +186,7 @@ export default function PromptRequestGenerator() {
         {/* Input Card */}
         <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle>Request Details</CardTitle>
+            <CardTitle className="text-foreground">Request Details</CardTitle>
             <CardDescription className="text-muted-foreground">
               Fill in the sections below to generate a well-structured prompt
             </CardDescription>
@@ -325,7 +325,7 @@ export default function PromptRequestGenerator() {
           <Card className="bg-card border-border">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Generated Prompt</CardTitle>
+                <CardTitle className="text-foreground">Generated Prompt</CardTitle>
                 <CardDescription className="text-muted-foreground">
                   Ready to copy and use
                 </CardDescription>

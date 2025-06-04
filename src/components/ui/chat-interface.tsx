@@ -839,15 +839,15 @@ export default function ChatInterface() {
       {isChatOpen && (
         <div
           className={cn(
-            'flex flex-col bg-white dark:bg-gray-900 shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden',
+            'flex flex-col bg-background shadow-xl border border-border overflow-hidden',
             isFullScreen
               ? 'fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-screen-lg h-full z-[60] rounded-none' // z-index 60, above parent's z-50
               : 'w-96 max-h-[80vh] rounded-lg',
           )}
         >
           {/* Header */}
-          <div className="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-            <h3 className="font-semibold text-gray-800 dark:text-gray-100">
+          <div className="flex justify-between items-center p-3 border-b border-border bg-muted">
+            <h3 className="font-semibold text-foreground">
               WesAI
             </h3>
             <div className="flex items-center gap-1">
@@ -855,7 +855,7 @@ export default function ChatInterface() {
                 onClick={() => dispatch({ type: 'TOGGLE_FULLSCREEN' })}
                 variant="ghost"
                 size="sm"
-                className="p-1.5 h-auto text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200"
+                className="p-1.5 h-auto text-muted-foreground hover:text-foreground"
                 aria-label={
                   isFullScreen ? 'Exit full screen' : 'Enter full screen'
                 }
@@ -870,14 +870,14 @@ export default function ChatInterface() {
                 onClick={resetChat}
                 variant="ghost"
                 size="sm"
-                className="text-xs px-2 py-1 h-auto text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-xs px-2 py-1 h-auto text-muted-foreground hover:text-foreground"
                 aria-label="Start new chat"
               >
                 New Chat
               </Button>
               <button
                 onClick={() => dispatch({ type: 'TOGGLE_CHAT' })}
-                className="p-1.5 text-foreground hover:text-primary-foreground dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primary rounded"
+                className="p-1.5 text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary rounded"
                 aria-label="Close chat"
               >
                 {/* Close Icon */}
@@ -933,7 +933,7 @@ export default function ChatInterface() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
+          <div className="border-t border-border p-4 bg-background">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -956,7 +956,7 @@ export default function ChatInterface() {
                 }
                 disabled={isLoading} // Disable input while loading
                 rows={1} // Start with one row
-                className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400 disabled:opacity-70 disabled:cursor-not-allowed resize-none overflow-hidden max-h-24" // Added resize-none and max-h-24
+                className="flex-1 rounded-lg border border-border p-2 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-input text-foreground placeholder-muted-foreground disabled:opacity-70 disabled:cursor-not-allowed resize-none overflow-hidden max-h-24" // Added resize-none and max-h-24
                 aria-label="Chat input"
                 style={{
                   height: 'auto',
@@ -1134,7 +1134,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
               </span>
             )}
             {/* Timestamp */}
-            <span className="block text-right text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <span className="block text-right text-xs text-muted-foreground mt-1">
               {new Intl.DateTimeFormat('en-US', {
                 hour: 'numeric',
                 minute: 'numeric',
@@ -1144,7 +1144,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
             {/* "Prompts to Try" section for greeting message */}
             {message.isGreeting && onPromptClick && (
-              <div className="mt-3 pt-3 border-t border-border dark:border-gray-600/50">
+              <div className="mt-3 pt-3 border-t border-border/50">
                 {/* <p className="text-sm font-semibold mb-2 text-foreground/80 dark:text-gray-300/80">Prompts to Try:</p> */}
                 <div className="flex flex-wrap gap-2">
                   {promptsToTry.map((prompt, index) => (
@@ -1229,7 +1229,7 @@ const PreElementRenderer: FC<PreElementRendererProps> = ({
   // Default pre rendering for other code blocks (including HTML if not caught by renderMessage)
   return (
     <div className="code-block-wrapper group/codeblock relative my-4">
-      <pre className="bg-black text-white">{children}</pre>
+      <pre className="bg-muted text-foreground">{children}</pre>
     </div>
   );
 };

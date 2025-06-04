@@ -252,7 +252,7 @@ export default function UnifiedDashboard() {
         <h1 className="text-3xl font-bold my-6 text-center text-gray-900 dark:text-gray-100">
           Amazon Seller Tools Dashboard
         </h1>
-        <div className="text-lg text-muted-foreground text-center mb-8 min-h-[3rem] flex items-center justify-center text-gray-700 dark:text-gray-300">
+        <div className="text-lg text-muted-foreground text-center mb-8 min-h-[3rem] flex items-center justify-center">
           <span className="sr-only">
             Access a suite of tools designed to help Amazon sellers analyze
             data, optimize listings, and improve performance.

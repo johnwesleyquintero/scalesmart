@@ -71,7 +71,7 @@ const WorkflowBuilderPage: React.FC = () => {
     <ReactFlowProvider>
       <div className={styles.pageContainer}>
         <header className={styles.header}>
-          <h1>Workflow Builder</h1>
+          <h1 className="text-foreground">Workflow Builder</h1>
           <div className={styles.headerButtons}>
             <Button onClick={saveWorkflow}>Save</Button>
             <Button onClick={loadWorkflow}>Load</Button>
@@ -80,7 +80,7 @@ const WorkflowBuilderPage: React.FC = () => {
         </header>
         <div className={styles.contentWrapper}>
           <aside className={styles.sidebar}>
-            <h2>Nodes</h2>
+            <h2 className="text-foreground">Nodes</h2>
             {registeredNodeTypes.length > 0 ? (
               registeredNodeTypes.map((nodeType) => (
                 <DraggableNode
@@ -97,7 +97,7 @@ const WorkflowBuilderPage: React.FC = () => {
               selectedNodeTypeDef &&
               selectedNodeTypeDef.properties.length > 0 && (
                 <div className={styles.configPanel}>
-                  <h3>
+                  <h3 className="text-foreground">
                     Configure{' '}
                     {(selectedNode.data.label as string) || selectedNode.type}{' '}
                     Node

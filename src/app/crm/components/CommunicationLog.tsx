@@ -78,7 +78,7 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
   return (
     <Card className="mb-4">
       <CardHeader>
-        <CardTitle>Communication History</CardTitle>
+        <CardTitle className="text-foreground">Communication History</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4 space-y-3">
@@ -123,7 +123,7 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
           </div>
         </div>
 
-        <h3 className="text-xl font-semibold mb-3 border-b pb-2">
+        <h3 className="text-xl font-semibold mb-3 border-b border-border pb-2 text-foreground">
           Recent Interactions
         </h3>
         {sortedLogs.length === 0 ? (
@@ -137,8 +137,8 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
                 <p className="text-sm text-muted-foreground">
                   {new Date(log.date).toLocaleString()} - {log.type}
                 </p>
-                {log.subject && <p className="font-semibold">{log.subject}</p>}
-                <p className="whitespace-pre-wrap">{log.notes}</p>
+                {log.subject && <p className="font-semibold text-foreground">{log.subject}</p>}
+                <p className="whitespace-pre-wrap text-foreground">{log.notes}</p>
                 <div className="flex gap-2 mt-2">
                   <Button
                     variant="ghost"
@@ -151,7 +151,7 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onDelete(log.id!, customerId)}
-                    className="text-red-500"
+                    className="text-destructive"
                   >
                     Delete
                   </Button>

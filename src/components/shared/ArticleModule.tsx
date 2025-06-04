@@ -28,7 +28,7 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
     async ({ queryKey }: QueryFunctionContext<QueryKey>) => {
       // Assert the type of queryKey to be a string tuple
       const [_key, slug] = queryKey as [string, string];
-      const response = await fetch(`/api/academy/academy-article/${slug}`);
+      const response = await fetch(`/api/static-content/${slug}`);
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

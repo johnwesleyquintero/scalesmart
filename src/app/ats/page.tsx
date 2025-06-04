@@ -314,7 +314,7 @@ export default function ResumeScanner() {
                 </div>
                 <div className="text-center">
                   <div className="font-medium">Keywords Match</div>
-                  <div className="text-gray-600 dark:text-gray-300">
+                  <div className="text-muted-foreground">
                     {analysis.keywords.present.length}/
                     {analysis.keywords.present.length +
                       analysis.keywords.missing.length}
@@ -322,7 +322,7 @@ export default function ResumeScanner() {
                 </div>
                 <div className="text-center">
                   <div className="font-medium">Sections</div>
-                  <div className="text-gray-600 dark:text-gray-300">
+                  <div className="text-muted-foreground">
                     {analysis.sections.present.length}/
                     {analysis.sections.present.length +
                       analysis.sections.missing.length}

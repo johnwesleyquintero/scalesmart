@@ -45,14 +45,14 @@ const TaskList = ({ tasks, setTasks }: TaskListProps) => {
   return (
     <Card className="flex-1">
       <CardHeader>
-        <CardTitle>Task Board</CardTitle>
+        <CardTitle className="text-foreground">Task Board</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {sections.map((section) => (
             <Droppable key={section.id} id={section.id}>
               <div className="bg-muted p-4 rounded-lg shadow-inner h-full min-h-[200px]">
-                <h2 className="text-xl font-bold mb-4 flex items-center">
+                <h2 className="text-xl font-bold mb-4 flex items-center text-foreground">
                   {section.title}
                   <span className="ml-2 text-sm bg-primary/20 text-primary-foreground px-2 py-1 rounded-full">
                     {
@@ -67,7 +67,7 @@ const TaskList = ({ tasks, setTasks }: TaskListProps) => {
                     .map((task) => (
                       <Draggable key={task.id} id={task.id} type="task">
                         <div className="bg-card p-3 rounded-md shadow-sm border border-border">
-                          <h3 className="font-semibold text-base mb-1">
+                          <h3 className="font-semibold text-base mb-1 text-foreground">
                             {task.title}
                           </h3>
                           {task.description && (
@@ -75,11 +75,11 @@ const TaskList = ({ tasks, setTasks }: TaskListProps) => {
                               {task.description}
                             </p>
                           )}
-                          <div className="flex items-center text-xs text-gray-500 mb-1">
+                          <div className="flex items-center text-xs text-muted-foreground mb-1">
                             <UserRound className="h-3 w-3 mr-1" />
                             <span>{task.assignee || 'Unassigned'}</span>
                           </div>
-                          <div className="flex items-center text-xs text-gray-500 mb-2">
+                          <div className="flex items-center text-xs text-muted-foreground mb-2">
                             <CalendarIcon className="h-3 w-3 mr-1" />
                             <span>
                               {task.dueDate
@@ -87,7 +87,7 @@ const TaskList = ({ tasks, setTasks }: TaskListProps) => {
                                 : 'No due date'}
                             </span>
                           </div>
-                          <div className="flex items-center text-xs text-gray-500 mb-2">
+                          <div className="flex items-center text-xs text-muted-foreground mb-2">
                             <Tag className="h-3 w-3 mr-1" />
                             <span>
                               {task.projectId ? (

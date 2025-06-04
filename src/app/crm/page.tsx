@@ -174,35 +174,35 @@ export default function CRMComponent() {
     <>
       <Toaster position="top-right" richColors />
       <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold my-6 text-center">CRM Dashboard</h1>
+        <h1 className="text-3xl font-bold my-6 text-center text-foreground">CRM Dashboard</h1>
         <p className="text-lg text-muted-foreground text-center mb-8">
           Manage your customer relationships, track interactions, and organize
           contact information.
         </p>
 
         <Tabs defaultValue="add-customer" className="w-full">
-          <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-gray-100 dark:bg-gray-700">
+          <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-muted">
             <TabsTrigger
               value="add-customer"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               Add Customer
             </TabsTrigger>
             <TabsTrigger
               value="customer-list"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               Customer List
             </TabsTrigger>
             <TabsTrigger
               value="categories"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               Categories
             </TabsTrigger>
             <TabsTrigger
               value="communication-logs"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               Communication Logs (Overall)
             </TabsTrigger>

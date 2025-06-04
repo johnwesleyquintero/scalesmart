@@ -173,19 +173,19 @@ export function AcademyPageContent() {
   }
 
   return (
-    <div className="p-4 flex flex-col items-stretch bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+    <div className="p-4 flex flex-col items-stretch bg-card rounded-xl shadow-lg">
       {filteredAndSortedCourses.length === 0 ? (
-        <div className="flex justify-center items-center min-h-[200px] text-gray-600 dark:text-gray-300">
+        <div className="flex justify-center items-center min-h-[200px] text-muted-foreground">
           No courses found for the selected category.
         </div>
       ) : (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="mb-4 flex flex-wrap h-auto justify-center bg-gray-100 dark:bg-gray-700">
+          <TabsList className="mb-4 flex flex-wrap h-auto justify-center bg-muted">
             {categoryOptions.map((category) => (
               <TabsTrigger
                 key={category}
                 value={category}
-                className="data-[state=active]:bg-[hsl(var(--primary))] data-[state=active]:text-white dark:data-[state=active]:bg-[hsl(var(--primary))] dark:data-[state=active]:text-white text-gray-700 dark:text-gray-200"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
               >
                 {category}
               </TabsTrigger>
@@ -196,7 +196,7 @@ export function AcademyPageContent() {
               <select
                 value={sort}
                 onChange={handleSortChange}
-                className="border rounded px-2 py-1 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600"
+                className="border rounded px-2 py-1 bg-background text-foreground border-border"
                 aria-label="Sort by"
               >
                 {sortOptions.map((option) => (

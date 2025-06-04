@@ -69,19 +69,19 @@ const TaskForm = ({
         value={title}
         onChange={(e) => setTitle(e.target.value)}
         required
-        className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground placeholder-muted-foreground"
       />
       <textarea
         placeholder="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground placeholder-muted-foreground"
         rows={3}
       />
       <select
         value={status}
         onChange={(e) => setStatus(e.target.value)}
-        className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
       >
         <option value="to-do">To Do</option>
         <option value="in-progress">In Progress</option>
@@ -92,13 +92,13 @@ const TaskForm = ({
         placeholder="Assignee"
         value={assignee}
         onChange={(e) => setAssignee(e.target.value)}
-        className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground placeholder-muted-foreground"
       />
       <input
         type="date"
         value={dueDate ? dueDate.toISOString().split('T')[0] : ''}
         onChange={(e) => setDueDate(new Date(e.target.value))}
-        className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
       />
       <Button type="submit">{initialTask ? 'Update Task' : 'Add Task'}</Button>
     </form>

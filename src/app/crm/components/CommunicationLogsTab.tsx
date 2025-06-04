@@ -14,7 +14,7 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>All Communication Logs</CardTitle>
+        <CardTitle className="text-foreground">All Communication Logs</CardTitle>
       </CardHeader>
       <CardContent>
         {customers.flatMap((customer) => customer.communicationLogs || [])
@@ -39,9 +39,9 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
                     <strong>{log.customerName}</strong>
                   </p>
                   {log.subject && (
-                    <p className="font-semibold">{log.subject}</p>
+                    <p className="font-semibold text-foreground">{log.subject}</p>
                   )}
-                  <p className="whitespace-pre-wrap">{log.notes}</p>
+                  <p className="whitespace-pre-wrap text-foreground">{log.notes}</p>
                 </Card>
               ))}
           </div>

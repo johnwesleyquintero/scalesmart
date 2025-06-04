@@ -33,22 +33,22 @@ const ProjectManagementPage = () => {
       onDragEnd={handleDragEnd}
     >
       <div className="container mx-auto p-4">
-        <h1 className="text-3xl font-bold text-center my-6">Project Board</h1>
+        <h1 className="text-3xl font-bold text-center my-6 text-foreground">Project Board</h1>
         <p className="text-lg text-muted-foreground text-center mb-8">
           Manage your projects and tasks efficiently.
         </p>
 
         <Tabs defaultValue="tasks" className="w-full">
-          <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-gray-100 dark:bg-gray-700">
+          <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-muted">
             <TabsTrigger
               value="tasks"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               Tasks
             </TabsTrigger>
             <TabsTrigger
               value="projects"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-gray-700 dark:text-gray-200"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
             >
               Projects
             </TabsTrigger>
@@ -59,7 +59,7 @@ const ProjectManagementPage = () => {
               <div className="flex flex-col gap-6 flex-1">
                 <Card className="flex-1">
                   <CardHeader>
-                    <CardTitle>Add New Task</CardTitle>
+                    <CardTitle className="text-foreground">Add New Task</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <TaskForm setTasks={setTasks} tasks={tasks} />
@@ -75,7 +75,7 @@ const ProjectManagementPage = () => {
               <div className="flex flex-col gap-6 flex-1">
                 <Card className="flex-1">
                   <CardHeader>
-                    <CardTitle>Add New Project</CardTitle>
+                    <CardTitle className="text-foreground">Add New Project</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ProjectForm
@@ -87,7 +87,7 @@ const ProjectManagementPage = () => {
 
                 <Card className="flex-1">
                   <CardHeader>
-                    <CardTitle>Project List</CardTitle>
+                    <CardTitle className="text-foreground">Project List</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ProjectList

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CardHeader, CardTitle, CardContent } from '@/components/ui/card'; // Import Card components
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'; // Import Card components
 import {
   Table,
   TableBody,
@@ -142,9 +142,9 @@ const CategoryManager = ({
   };
 
   return (
-    <div className="card flex-1">
+    <Card className="flex-1">
       <CardHeader>
-        <CardTitle>Category Management</CardTitle>
+        <CardTitle className="text-foreground">Category Management</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -196,7 +196,7 @@ const CategoryManager = ({
                 <TableRow key={category.id}>
                   <TableCell className="font-medium">{category.name}</TableCell>
                   <TableCell className="text-center">
-                    <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
+                    <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded-full text-xs">
                       {customerCounts.get(category.name) || 0}
                     </span>
                   </TableCell>
@@ -226,7 +226,7 @@ const CategoryManager = ({
                   Uncategorized
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full text-xs">
+                  <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded-full text-xs">
                     {customerCounts.get(null) || 0}
                   </span>
                 </TableCell>
@@ -237,7 +237,7 @@ const CategoryManager = ({
           </Table>
         </div>
       </CardContent>
-    </div>
+    </Card>
   );
 };
 

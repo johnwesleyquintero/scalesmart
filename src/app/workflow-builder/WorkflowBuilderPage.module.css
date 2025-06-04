@@ -30,7 +30,7 @@
 .header h1 {
   margin: 0; /* Remove default margin */
   font-size: 1.5em; /* Font size for title */
-  color: var(--card-foreground); /* Text color */
+  color: var(--foreground); /* Text color */
 }
 
 /* Container for header buttons */

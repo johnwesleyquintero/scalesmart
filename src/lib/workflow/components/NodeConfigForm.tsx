@@ -16,13 +16,14 @@ const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
     <div>
       {nodeType.properties.map((property: NodeProperty) => (
         <div key={property.name}>
-          <label htmlFor={property.name}>{property.label}</label>
+          <label htmlFor={property.name} className="text-foreground">{property.label}</label>
           {property.type === 'string' && (
             <input
               type="text"
               id={property.name}
               value={(values[property.name] as string) || ''}
               onChange={(e) => onChange(property.name, e.target.value)}
+              className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground placeholder-muted-foreground"
             />
           )}
           {property.type === 'number' && (
@@ -33,6 +34,7 @@ const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
               onChange={(e) =>
                 onChange(property.name, parseFloat(e.target.value))
               }
+              className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
             />
           )}
           {property.type === 'boolean' && (
@@ -41,6 +43,7 @@ const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
               id={property.name}
               checked={(values[property.name] as boolean) || false}
               onChange={(e) => onChange(property.name, e.target.checked)}
+              className="text-primary focus:ring-primary"
             />
           )}
           {property.type === 'select' && (
@@ -50,6 +53,7 @@ const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
                 (values[property.name] as string) || property.options?.[0] || ''
               }
               onChange={(e) => onChange(property.name, e.target.value)}
+              className="w-full p-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-input text-foreground"
             >
               {property.options?.map((option: string) => (
                 <option key={option} value={option}>

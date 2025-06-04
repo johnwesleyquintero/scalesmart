@@ -7,7 +7,7 @@ import TimeStamp from '@/components/TimeStamp';
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-8">
+    <div className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
       <div className="max-w-3xl mx-auto">
         <Card className="shadow-lg">
           <CardHeader>
@@ -15,10 +15,10 @@ export default function PrivacyPolicyPage() {
               Privacy Policy
             </CardTitle>
           </CardHeader>
-          <p className="text-sm text-center text-gray-500 mb-6">
+          <p className="text-sm text-center text-muted-foreground mb-6">
             Last Updated: <TimeStamp date="2025-05-21" relative />
           </p>
-          <CardContent className="space-y-6 text-gray-700">
+          <CardContent className="space-y-6 text-foreground">
             <ArticleModule contentSlug="privacy-policy" />
             <div className="text-center pt-4">
               <Link href="/" className="text-primary hover:underline">

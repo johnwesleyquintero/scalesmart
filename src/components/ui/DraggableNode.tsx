@@ -24,8 +24,8 @@ const DraggableNode: React.FC<DraggableNodeProps> = ({ type, label }) => {
       };
 
   const backgroundColorClass = isDragging
-    ? 'bg-gray-200 dark:bg-gray-600'
-    : 'bg-gray-100 dark:bg-gray-700';
+    ? 'bg-muted'
+    : 'bg-card';
 
   return (
     <div
