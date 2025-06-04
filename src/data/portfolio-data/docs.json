@@ -1,3 +1,1017 @@
 {
-  "docs": []
+  "docs": [
+    {
+      "slug": "academy-course-list-server",
+      "content": "\n# CourseListServer Documentation (`src/app/academy/CourseListServer.tsx`)\n\n## Overview\n\nThe `CourseListServer` (`src/app/academy/CourseListServer.tsx`) component fetches and displays a list of courses from an API endpoint. It is a server component, meaning it fetches the data on the server before rendering the component. The `CourseList` component is wrapped in an `ErrorBoundary` to handle errors.\n\n## Functionality\n\n- **Fetches Courses from API:** Fetches a list of courses from the API endpoint defined in the `NEXT_PUBLIC_API_URL` environment variable.\n- **Displays Course List:** Renders a list of courses using the `CourseList` component.\n\n## Technical Details\n\n- The component is a server component, meaning it fetches the data on the server before rendering the component.\n- The component uses the `cachedFetch` function to make the API request.\n- The component dynamically constructs the base URL for the API endpoint based on the environment (development or production). In development, it uses `http://localhost:3000`, and in production, it uses `https://wescode.vercel.app`.\n\n## Components\n\n- `CourseListServer`: The main component that fetches and displays the list of courses.\n- `CourseList`: A component that renders the list of courses.\n\n## Data Flow\n\n1.  The `CourseListServer` component is rendered.\n2.  The component calls the `fetchCourses` function to fetch the list of courses from the API endpoint.\n3.  The `fetchCourses` function makes an API request to the endpoint defined in the `NEXT_PUBLIC_API_URL` environment variable.\n4.  The API returns a list of courses.\n5.  The `CourseListServer` component then renders the `CourseList` component within an `ErrorBoundary`, passing the list of courses as the `courses` prop.\n6.  The `CourseList` component renders a list of courses, displaying the title, description, duration, and level of each course.\n",
+      "title": "CourseListServer Documentation",
+      "description": "Documentation for the CourseListServer component.",
+      "category": "academy",
+      "order": 1,
+      "tags": [
+        "academy",
+        "course-list-server"
+      ],
+      "date": "2025-05-30"
+    },
+    {
+      "slug": "academy",
+      "content": "\n# Academy Content Update Process\n\nThis document outlines the process for updating content in the ScaleSmart Academy and details the data storage mechanisms.\n\n## Content Creation\n\n1.  Create new content as MDX files in the `src/app/content/academy` directory.\n2.  Ensure each file includes the following metadata:\n    - `title`: The title of the module.\n    - `description`: A brief description of the module.\n    - `moduleType`: The type of module (`article`, `video`, `exercise`, `caseStudy`, `quiz`, `simulation`).\n\n## Content Integration\n\n1.  Import the new MDX files into the relevant course component.\n2.  Update the course's module list to include the new module.\n\n## Content Review\n\n1.  All content updates must be reviewed and approved by the content team.\n2.  Ensure the content is accurate, up-to-date, and relevant.\n\n## Content Updates\n\n1.  Regularly review existing content to ensure it remains accurate and up-to-date.\n2.  Update content as needed to reflect changes in the Amazon marketplace.\n\n## Data Structures and Storage\n\nAcademy data, including courses and module progress, is primarily stored and managed using IndexedDB for robust client-side persistence.\n\n### IndexedDB Tables\n\nThe following tables in IndexedDB are used for Academy data:\n\n- **`courses`**: Stores `Course` objects, which represent the available courses in the academy. Each course has a unique ID, title, description, duration, level, and metadata (category, tags).\n  - **Schema:** `id, title, description, duration, level, metadata.category, metadata.tags, creationTimestamp, updateTimestamp`\n- **`moduleProgress`**: Stores `ModuleProgressRecord` objects, tracking the completion status and progress for each module per user. This table uses a composite primary key `[userId+courseId+moduleId]`.\n  - **Schema:** `[userId+courseId+moduleId], progress, lastUpdated`\n\n### Data Operations (IndexedDB)\n\nThe `src/lib/indexeddb-service.ts` file provides the core functions for interacting with the IndexedDB for Academy data:\n\n- `createCourse(courseData: Course)`: Adds a new course to the `courses` table.\n- `getCourse(id: string)`: Retrieves a specific course by its ID.\n- `getAllCourses()`: Retrieves all courses from the `courses` table.\n- `updateCourse(course: Course)`: Updates an existing course.\n- `deleteCourse(id: string)`: Deletes a course by its ID.\n- `deleteCoursesByIds(ids: string[])`: Deletes multiple courses by their IDs.\n- `updateModuleProgress(userId: string, courseId: string, moduleId: string, progress: number)`: Updates a user's progress for a specific module.\n- `getModuleProgress(userId: string, courseId: string, moduleId: string)`: Retrieves a user's progress for a specific module.\n- `getCourseModuleProgress(userId: string, courseId: string)`: Retrieves all module progress records for a given user and course.\n\n## Components and Hooks\n\n### `useAcademyStorage` Hook\n\nThe `useAcademyStorage` hook (located in `src/hooks/use-academy-storage.ts`) is responsible for managing the academy data. It abstracts the IndexedDB operations and provides a convenient interface for components to interact with course data and module progress.\n\n### Activity Components (e.g., `Quiz`)\n\nComponents like `Quiz` (if applicable) interact with the `moduleProgress` table via the `useAcademyStorage` hook to store and retrieve quiz results and completion status.\n\n### `ClientCourseList` Component\n\nThe `ClientCourseList` component is responsible for rendering the list of courses. It fetches course data using the IndexedDB service functions and displays courses based on `filter` and `sort` props.\n\n### `startCourseAction` Function\n\nThe `startCourseAction` function is used to initiate the process of starting a course. It is available through the `AcademyContext` and is used to set the active course, potentially interacting with IndexedDB to log course access or initial progress.\n",
+      "title": "Academy Content Update Process",
+      "description": "This document outlines the process for updating content in the ScaleSmart Academy.",
+      "category": "academy",
+      "order": 2,
+      "tags": [
+        "academy",
+        "content",
+        "indexeddb"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "admin",
+      "content": "\n# Admin Page Documentation (`src/app/admin/page.tsx`)\n\n## Overview\n\nThe Admin Page (`src/app/admin/page.tsx`) serves as the secure entry point for administrative functionalities within the application. It ensures that only authorized users can access the admin dashboard.\n\n## Functionality\n\n- **User Authentication:** Verifies the user's authentication status using Supabase.\n- **User Authorization:** Checks if the authenticated user possesses the required authorization (specifically, a matching GitHub username configured in the application).\n- **Unauthorized Access Handling:** Automatically redirects users who are not authenticated or authorized to the application's home page, ensuring security.\n- **Admin Dashboard Display:** Renders the administrative dashboard for successfully authenticated and authorized users.\n\n## Technical Details\n\n- **Supabase Integration:** Utilizes the `@supabase/supabase-js` library to interact with the Supabase backend for authentication.\n  - `createClient`: Initializes the Supabase client using environment variables (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`).\n  - `getSession`: Fetches the current user session from Supabase authentication.\n- **Next.js Redirection:** Employs `next/navigation`'s `redirect` function to programmatically send unauthorized users to a different route.\n- **Environment Variables:** Relies on environment variables for secure configuration of Supabase credentials and the authorized GitHub username.\n\n## Components\n\n- `AdminPage`: The primary React component responsible for rendering the admin interface and handling authentication/authorization logic.\n- `Header`: (Optional) A common header component that might be included on the admin page for consistent navigation.\n- `Button`: A reusable UI component from `components/ui/button` used for various actions within the admin dashboard.\n\n## Data Flow\n\n1.  The `AdminPage` component is requested and begins rendering on the server.\n2.  It asynchronously calls `getSession()` to retrieve the current user's Supabase session.\n3.  Upon receiving the session data, it performs two checks:\n    - Verifies if a `session.user` object exists (authentication check).\n    - Compares `session.user.user_metadata?.user_name` against a predefined `yourGitHubUsername` (authorization check).\n4.  If either the authentication or authorization check fails, the `redirect('/')` function is invoked, sending the user to the homepage.\n5.  If both checks pass, the component proceeds to render the `Admin Dashboard` content, granting access to administrative features.\n",
+      "title": "Admin Page Documentation",
+      "description": "The Admin Page (src/app/admin/page.tsx) is the main page for the admin section of the application.",
+      "category": "admin",
+      "order": 0,
+      "tags": [
+        "admin",
+        "page",
+        "authentication",
+        "authorization",
+        "supabase"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "amazon-seller-tools",
+      "content": "\n# Amazon Seller Tools Page Documentation\n\n## Overview\n\nThe Amazon Seller Tools page (`src/app/amazon-seller-tools/page.tsx`) is a comprehensive dashboard designed for Amazon sellers. It allows users to upload Amazon Business Report data in CSV format, visualize key performance indicators (KPIs), analyze trends, and access specialized tools for keyword research, listing optimization, financial calculations, PPC analysis, and competitor research.\n\n## Key Features\n\n- **CSV Data Upload and Mapping:** Upload and map CSV files to predefined DashboardMetrics fields.\n- **Dashboard Visualization:** KPI cards and data tables for visualizing metrics.\n- **Time Granularity Control:** Aggregate data daily, weekly, monthly, quarterly, or yearly.\n- **Time Range Filtering:** Filter data by specific time ranges.\n- **Period-over-Period Comparison:** Compare key metrics across different periods.\n- **Specialized Tool Suite:** Tools organized into tabs for Keywords, Listing Optimization, Financials, PPC & Ads, and Competition.\n- **Data Export:** Export processed data as CSV.\n- **Print and Download PDF:** Share dashboard insights easily.\n- **Sample Data:** Load sample data to explore functionality without uploading personal data.\n- **Keyword Performance Overview Table:** Toggleable table for granular keyword performance insights.\n\n## How to Use the Overview Dashboard\n\n1. **Navigate to the Page:** Access via main navigation.\n2. **Upload CSV Data:** Click \"Upload CSV\" and select your file.\n3. **Map CSV Columns:** Use the OverviewDataMapper to map CSV columns to DashboardMetrics fields.\n4. **View Dashboard:** Interact with charts, tables, and filters to analyze data.\n5. **Interact with Data:** Sort, filter, export, and refresh data as needed.\n\n## Data Models & Interfaces\n\n### DashboardMetrics Interface\n\nThe dashboard processes uploaded data into a standardized `DashboardMetrics` object for each data row/period. Key fields include:\n\n- `date`\n- `sales`\n- `orders`\n- `conversionRate`\n- `acos`\n- `roas`\n\n### CampaignData Interface\n\nThe dashboard processes uploaded data and manual input into a standardized `CampaignData` object. Key fields include:\n\n- `campaignName`\n- `adSpend`\n- `sales`\n- `impressions`\n- `clicks`\n\n## Specialized Tool Tabs\n\n- **Keywords:** Tools for keyword research and analysis.\n- **Listing Optimization:** Tools to improve product listings.\n- **Financials:** Calculators for financial metrics.\n- **PPC & Ads:** Tools for managing and auditing PPC campaigns.\n- **Competition:** Tools for analyzing competitors.\n\n## ACoS Calculator Details\n\nThe ACoS Calculator (`src/components/amazon-seller-tools/acos-calculator.tsx`) calculates the Advertising Cost of Sales. It allows manual data input and displays ACoS and RoAS.\n\n### Input Methods\n\n- **Manual Entry:** Enter data for a single campaign using the `ManualCalculationForm` component.\n\n### Manual Calculation Form\n\nThe `ManualCalculationForm` component includes fields for:\n\n- `Campaign Name`\n- `Ad Spend ($)`\n- `Sales ($)`\n- `Impressions`\n- `Clicks`\n- `Clear History`\n\n### ACoS Rating Guide\n\nThe `AcosRatingGuide` component displays ratings for interpreting ACoS values:\n\n- **Excellent:** ACoS < 15%\n- **Good:** 15% ≤ ACoS ≤ 25%\n- **Okay:** 25% < ACoS ≤ 35%\n- **Poor:** ACoS > 35%\n\n### Calculation History Table\n\nThe `CalculationHistoryTable` component displays:\n\n- `Campaign`\n- `Date`\n- `Ad Spend`\n- `Sales`\n- `ACoS`\n- `RoAS`\n\n### ACoS Trend Chart\n\nThe `AcosTrendChart` component visualizes ACoS over time using a line chart.\n\n## Core Components\n\n### ReusableChart Component\n\nThe `ReusableChart` component renders various types of charts.\n\n**Props:**\n\n- `sortedMetrics`\n- `granularity`\n- `chartType`\n- `xAxisDataKey`\n- `yAxisDataKeys`\n- `colors`\n- `labels`\n- `title`\n- `yAxisFormatter`\n- `tooltipFormatter`\n- `timeRange`\n- `setTimeRange`\n- `events`\n\n### DashboardHeader Component\n\nThe `DashboardHeader` component displays the header for the dashboard.\n\n**Props:**\n\n- `isLoading`\n- `isParsing`\n- `error`\n- `metricsLength`\n- `handleRefresh`\n- `handleExport`\n- `metrics`\n- `onSearch`\n\n### OverviewTab Component\n\nThe `OverviewTab` component handles CSV upload, data mapping, and displays charts and data summaries.\n\n**Props:**\n\n- `metrics`\n- `setMetrics`\n- `isLoading`, `setIsLoading`\n- `isParsing`, `setIsParsing`\n- `isUploading`, `setIsUploading`\n- `isMapping`, `setIsMapping`\n- `isProcessing`, `setIsProcessing`\n- `error`\n- `setError`\n- `TARGET_METRICS_CONFIG`\n- `searchTerm`\n\n### Button Component\n\nThe `Button` component is a reusable UI element for creating buttons.\n\n**Props:**\n\n- `children`\n- `onClick`\n- `className`\n\n## Technical Overview\n\n- **Frontend:** TypeScript and React (Next.js).\n- **UI Components:** ShadcnUI components.\n- **Charting:** Recharts library.\n- **CSV Parsing:** PapaParse library.\n- **Date Manipulation:** date-fns library.\n- **State Management:** React hooks.\n- **IndexedDB:** Local data storage.\n- **Supabase:** Cloud storage for configurations.\n- **Logging:** Added to `handleDownloadSampleCsv` function.\n\n## Utility Functions\n\n- `src/lib/amazon-tools/acos-calculator-utils.ts`\n- `src/lib/utils/amazon/data-aggregation.ts`\n- `src/lib/utils/amazon/data-transformation.ts`\n- `src/lib/utils/formatting.ts`\n- `src/lib/utils/clipboard.ts`\n",
+      "title": "Amazon Seller Tools Page Documentation",
+      "description": "Documentation for the Amazon Seller Tools page.",
+      "category": "amazon-seller-tools",
+      "order": 0,
+      "tags": [
+        "amazon",
+        "seller",
+        "tools"
+      ],
+      "date": "2025-05-30"
+    },
+    {
+      "slug": "analytics",
+      "content": "\n# Vercel Analytics Integration\n\nThis document describes the integration of Vercel Analytics into the application.\n\n## Overview\n\nVercel Analytics is used to track page views and other user interactions within the application. This data helps in understanding user behavior and improving the overall user experience.\n\n## Implementation\n\n1.  **Installation:**\n    The `@vercel/analytics` package was installed using npm:\n\n    ```bash\n    npm install @vercel/analytics --legacy-peer-deps\n    ```\n\n    Note: Due to dependency conflicts, the installation used the `--legacy-peer-deps` flag. The user should review and address any reported vulnerabilities.\n\n2.  **Component Integration:**\n    The `<Analytics />` component from `@vercel/analytics/next` was imported and added to the `src/app/layout.tsx` file.\n\n    ```typescript\n    import { Analytics } from \"@vercel/analytics/next\";\n\n    // ... inside the RootLayout component\n    <body>\n      <ClientProviders>\n        <Header />\n        <main id=\"main\" className=\"flex-1\">\n          <div className=\"pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]\"></div>\n          {children}\n        </main>\n        <Footer />\n      </ClientProviders>\n      <Analytics />\n    </body>\n    ```\n\n3.  **Deployment:**\n    After deploying the changes, visit the deployment to collect page views.\n\n## Further Information\n\nFor more information, refer to the [Vercel Analytics documentation](https://vercel.com/docs/analytics).\n",
+      "title": "Vercel Analytics Integration",
+      "description": "Documentation for integrating Vercel Analytics.",
+      "category": "analytics",
+      "order": 0,
+      "tags": [
+        "analytics",
+        "documentation"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-academy-article-slug",
+      "content": "\n# Academy Article API Endpoint Documentation (`src/app/api/academy-article/[slug]/route.ts`)\n\n## Overview\n\nThe Academy Article API endpoint (`src/app/api/academy-article/[slug]/route.ts`) retrieves academy articles from MDX files based on their slug. It reads the MDX file, parses the frontmatter, serializes the content, and returns the serialized MDX source and frontmatter as a JSON response.\n\n## Functionality\n\n- **Retrieves Academy Articles by Slug:** Retrieves academy articles from MDX files based on their slug.\n- **Parses Frontmatter:** Parses the frontmatter from the MDX file.\n- **Serializes MDX Content:** Serializes the MDX content using `next-mdx-remote/serialize`.\n- **Returns JSON Response:** Returns the serialized MDX source and frontmatter as a JSON response.\n\n## Technical Details\n\n- The endpoint uses the `fs` module to read the MDX file.\n- The endpoint uses the `matter` library to parse the frontmatter.\n- The endpoint uses the `next-mdx-remote/serialize` library to serialize the MDX content.\n- The endpoint uses the `NextResponse` object from `next/server` to return the JSON response.\n- The endpoint defines the directory where the MDX blog/article content is stored.\n\n## Data Flow\n\n1.  A request is made to the `/api/academy-article/[slug]` endpoint, where `[slug]` is the slug of the academy article.\n2.  The endpoint validates the slug to ensure it only contains allowed characters (alphanumeric, hyphens, and underscores).\n3.  The endpoint reads the MDX file from the file system.\n4.  The endpoint parses the frontmatter from the MDX file using the `matter` library.\n5.  The endpoint serializes the MDX content using the `next-mdx-remote/serialize` library.\n6.  The endpoint returns the serialized MDX source and frontmatter as a JSON response.\n",
+      "title": "Academy Article API Endpoint Documentation",
+      "description": "Documentation for the Academy Article API endpoint.",
+      "category": "api",
+      "order": 0,
+      "tags": [
+        "api",
+        "academy",
+        "article",
+        "slug"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-reference",
+      "content": "\n# API Reference\n\nThis section provides comprehensive details on how to interact with our RESTful API.\n\n## Authentication\n\nAll API requests must be authenticated. Use your API key in the `Authorization` header.\n\n### Endpoint: `/api/users`\n\n`GET /api/users` - Retrieve a list of users.\n\n### Response Example:\n\n```json\n[\n  {\n    \"id\": \"user_123\",\n    \"name\": \"John Doe\",\n    \"email\": \"john.doe@example.com\"\n  },\n  {\n    \"id\": \"user_456\",\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane.smith@example.com\"\n  }\n]\n```\n\nPlease note that this is a **beta** feature.\n",
+      "title": "API Reference",
+      "description": "Detailed documentation for our API endpoints.",
+      "category": "api",
+      "order": 0,
+      "tags": [],
+      "date": "2025-06-04"
+    },
+    {
+      "slug": "api-academy-article",
+      "content": "\n# Academy Article API Documentation (`src/app/api/academy-article/[slug]/route.ts`)\n\n## Overview\n\nThe Academy Article API (`src/app/api/academy-article/[slug]/route.ts`) is responsible for fetching article content for the academy modules. It retrieves the content from MDX files stored in the `src/app/content/academy` directory.\n\n## Functionality\n\n- **Retrieves Article Content:** The API fetches the content of an MDX file based on the provided slug.\n\n## Technical Details\n\n- The API uses the `fs` module to read the MDX file.\n- It constructs the file path by joining the `academyDirectory` with the slug and the `.mdx` extension.\n- It returns the file content in the response.\n\n## Request\n\n### Endpoint\n\n`/api/academy-article/[slug]`\n\n### Method\n\n`GET`\n\n### Parameters\n\n- `slug`: The slug of the article to retrieve. This is a required parameter and should match the name of the MDX file (without the extension) in the `src/app/content/academy` directory.\n\n## Response\n\n### Success\n\n- **Status Code:** `200 OK`\n- **Content Type:** `application/json`\n- **Body:**\n\n```json\n{\n  \"content\": \"string\" // The content of the MDX file.\n}\n```\n\n### Error\n\n- **Status Code:** `500 Internal Server Error`\n- **Content Type:** `application/json`\n- **Body:**\n\n```json\n{\n  \"error\": \"Failed to load article\"\n}\n```\n\n## Example\n\n### Request\n\n`/api/academy-article/example-article`\n\n### Response\n\n```json\n{\n  \"content\": \"# Example Article Content\"\n}\n```\n",
+      "title": "Academy Article API Documentation",
+      "description": "Documentation for the Academy Article API.",
+      "category": "api",
+      "order": 1,
+      "tags": [
+        "academy",
+        "article",
+        "api"
+      ],
+      "date": "2025-05-30"
+    },
+    {
+      "slug": "api",
+      "content": "\n# API Documentation Overview\n\nThis directory contains documentation for the various API endpoints used in the ScaleSmart application.\n\n## Purpose\n\nThe API documentation provides details on how to interact with the application's backend services, including:\n\n- Request and response formats\n- Authentication requirements\n- Available parameters\n- Error handling\n\n## Subdirectories\n\n- **academy-article/:** API endpoints for managing academy articles.\n- **academy-courses/:** API endpoints for managing academy courses.\n- **amazon/:** API endpoints for Amazon integrations.\n- **auth/:** API endpoints for authentication.\n- **chat/:** API endpoints for chat functionality.\n- **contact/:** API endpoints for contact forms.\n- **content/:** API endpoints for content management.\n- **download/:** API endpoints for file downloads.\n- **module-progress/:** API endpoints for tracking module progress.\n- **prohibited-keywords/:** API endpoints for managing prohibited keywords.\n- **redis/:** API endpoints for Redis interactions.\n- **resume/:** API endpoints for resume management.\n- **search/:** API endpoints for search functionality.\n\n## General Guidelines\n\n- All API endpoints require proper authentication.\n- Request and response formats are typically JSON.\n- Error responses will include appropriate HTTP status codes and error messages.\n\nFurther details on each endpoint can be found in the respective subdirectory.\n",
+      "title": "API Documentation Overview",
+      "description": "This document provides an overview of the API endpoints for the ScaleSmart application.",
+      "category": "api",
+      "order": 1,
+      "tags": [
+        "api",
+        "endpoints",
+        "documentation"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "api-academy-courses",
+      "content": "\n# Academy Courses API Endpoint Documentation (`src/app/api/academy-courses/route.ts`)\n\n## Overview\n\nThe Academy Courses API endpoint (`src/app/api/academy-courses/route.ts`) is responsible for reading academy course data, including metadata and content, from MDX files stored in the `c:\\Users\\johnw\\portfolio\\src\\app\\content\\academy` directory.\n\n## Functionality\n\n- **Reads and Serves Course Data:** Fetches all MDX files from `c:\\Users\\johnw\\portfolio\\src\\app\\content\\academy`, parses their frontmatter (metadata) using `gray-matter`, and potentially includes the MDX content itself.\n- **Provides Standardized Course Information:** Returns a structured list of courses with standardized metadata fields.\n\n## Technical Details\n\n- The endpoint uses the `NextResponse` object from `next/server` to return the JSON response.\n- The endpoint reads MDX files from the `c:\\Users\\johnw\\portfolio\\src\\app\\content\\academy` directory.\n- Metadata is parsed from the MDX frontmatter using `gray-matter`.\n- The endpoint uses the `Cache-Control` header for caching.\n\n## Data Flow\n\n1.  A request is made to the `/api/academy-courses` endpoint.\n2.  The endpoint reads all MDX files from `c:\\Users\\johnw\\portfolio\\src\\app\\content\\academy`.\n3.  For each file, it parses the frontmatter (metadata) and extracts the MDX content.\n4.  The endpoint returns an array of course objects, including their metadata and potentially the MDX content, as a JSON response.\n\n## Request Methods\n\n### `GET`\n\nReturns a list of academy courses from MDX files located in `c:\\Users\\johnw\\portfolio\\src\\app\\content\\academy`.\n\n#### Query Parameters\n\n- `slug` (optional): If provided, returns only the course with the specified slug.\n\n#### Success Response\n\n- **Code:** 200 OK\n\n#### Example\n\n````json\n[\n  {\n    \"slug\": \"example-course\",\n    \"title\": \"Example Course\",\n    \"description\": \"This is an example course.\",\n    \"duration\": \"1h 30m\",\n    \"level\": \"Beginner\",\n    \"category\": \"Amazon Basics\",\n    \"tags\": [\"FBA\", \"Product Listing\"],\n    \"author\": \"ScaleSmart Team\",\n    \"interactive\": false,\n    \"content\": \"## Module 1: Introduction to SEO\",\n    \"modules\": [\n      {\n        \"slug\": \"module-1\",\n        \"title\": \"Module 1: Introduction\",\n        \"content\": \"MDX content for module 1...\"\n      }\n    ]\n  }\n]\n\n### `POST`\n\nCreates a new academy course.\n\n#### Request Body\n\n```json\n{\n  \"title\": \"New Course Title\",\n  \"description\": \"New course description\",\n  \"duration\": \"2h 0m\",\n  \"level\": \"Intermediate\",\n  \"category\": \"Marketing\",\n  \"tags\": [\"SEO\", \"Content Marketing\"],\n  \"author\": \"Marketing Team\",\n  \"interactive\": true,\n  \"content\": \"## Module 1: Introduction to SEO\"\n}\n````\n\n#### Success Response\n\n- **Code:** 201 Created\n- **Content:**\n\n```json\n{\n  \"message\": \"Course created successfully\",\n  \"slug\": \"new-course-title\"\n}\n```\n\n### `PUT`\n\nUpdates an existing academy course.\n\n#### Request Body\n\n```json\n{\n  \"title\": \"Updated Course Title\",\n  \"description\": \"Updated course description\",\n  \"duration\": \"2h 30m\",\n  \"level\": \"Advanced\",\n  \"category\": \"Marketing\",\n  \"tags\": [\"SEO\", \"Content Marketing\", \"Analytics\"],\n  \"author\": \"Marketing Team\",\n  \"interactive\": true,\n  \"content\": \"## Module 1: Advanced SEO Techniques\"\n}\n```\n\n#### Success Response\n\n- **Code:** 200 OK\n- **Content:**\n\n```json\n{\n  \"message\": \"Course updated successfully\",\n  \"slug\": \"updated-course-title\"\n}\n```\n\n### `DELETE`\n\nDeletes an academy course.\n\n#### Request Body\n\n```json\n{\n  \"slug\": \"course-to-delete\"\n}\n```\n\n#### Success Response\n\n- **Code:** 200 OK\n- **Content:**\n\n```json\n{\n  \"message\": \"Course deleted successfully\",\n  \"slug\": \"course-to-delete\"\n}\n```\n",
+      "title": "Academy Courses API Documentation",
+      "description": "Documentation for the Academy Courses API endpoint.",
+      "category": "api",
+      "order": 2,
+      "tags": [
+        "academy",
+        "courses",
+        "api"
+      ],
+      "date": "2025-05-30"
+    },
+    {
+      "slug": "api-amazon-competitor-analysis",
+      "content": "\n# Amazon Competitor Analysis API Endpoint Documentation (`src/app/api/amazon/competitor-analysis/route.ts`)\n\n## Overview\n\nThe Amazon Competitor Analysis API endpoint (`src/app/api/amazon/competitor-analysis/route.ts`) performs competitor analysis based on uploaded CSV data. It processes the CSV data, extracts metrics, and currently returns static case study data.\n\n## Functionality\n\n- **Processes CSV Data:** Processes uploaded CSV data for seller and competitor information, converting it into a structured format.\n- **Extracts Metrics (Internal):** Extracts specified metrics (e.g., price, reviews) from the processed CSV data internally for analysis.\n- **Returns Static Response:** Currently returns static 'case-studies' data as a JSON response. Note that the internally extracted competitor metrics are not currently included in the API response.\n\n## Technical Details\n\n- The endpoint uses the `zod` library to validate the request body.\n- It expects CSV data containing headers like `asin`, `price`, `reviews`, `rating`, `conversion_rate`, and `click_through_rate`.\n- The `processCSVData` function (defined within [`src/app/api/amazon/competitor-analysis/route.ts`](src/app/api/amazon/competitor-analysis/route.ts)) is used to parse the CSV data, handling type conversions for numerical fields and defaulting invalid numbers to 0.\n- The `loadStaticData` function is used to fetch static case study data, which is currently returned by the API.\n\n## Request Body\n\nThe API accepts a `POST` request with a JSON body containing the following parameters:\n\n| Parameter        | Type       | Description                                                                                                                                                                                                                                                    | Required | Example                                          |\n| :--------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------- | :----------------------------------------------- |\n| `sellerData`     | `string[]` | An array of strings, where each string is a line from the CSV file representing the seller's product data. The first line should be the header row.                                                                                                            | Yes      | `[\"asin,price,reviews\", \"B09ABCDEFG,25.99,150\"]` |\n| `competitorData` | `string[]` | An array of strings, where each string is a line from the CSV file representing competitor product data. The first line should be the header row.                                                                                                              | Yes      | `[\"asin,price,reviews\", \"B08HIJKLM,24.50,300\"]`  |\n| `metrics`        | `string[]` | (Optional, but recommended for internal processing) An array of strings specifying which metrics to extract from the CSV data (e.g., \"price\", \"reviews\", \"rating\"). If provided, metrics are processed internally, but not currently returned in the response. | No       | `[\"price\", \"reviews\"]`                           |\n| `asin`           | `string`   | (Optional) A single ASIN for direct product analysis. While accepted, the primary analysis currently relies on `sellerData` and `competitorData` CSV uploads.                                                                                                  | No       | `\"B07ZYW34RT\"`                                   |\n\n### Example Request\n\n```json\nPOST /api/amazon/competitor-analysis\nContent-Type: application/json\n\n{\n  \"sellerData\": [\n    \"asin,price,reviews,rating,conversion_rate,click_through_rate\",\n    \"B09ABCDEDF,25.99,150,4.2,0.05,0.02\"\n  ],\n  \"competitorData\": [\n    \"asin,price,reviews,rating,conversion_rate,click_through_rate\",\n    \"B08HIJKLM,24.50,300,4.5,0.06,0.03\",\n    \"B07QRSTUV,26.00,100,4.0,0.04,0.01\"\n  ],\n  \"metrics\": [\"price\", \"reviews\", \"rating\"]\n}\n```\n\n## Response\n\nUpon successful processing, the API currently returns a JSON object containing static 'case-studies' data.\n\n### Success Response Example (200 OK)\n\n```json\n{\n  \"data\": [\n    {\n      \"title\": \"Case Study: Optimizing Listing Images for Higher Conversion\",\n      \"slug\": \"optimizing-listing-images\",\n      \"date\": \"2023-03-10\",\n      \"content\": \"This case study examines how optimizing product images on Amazon led to a 15% increase in conversion rate for a new electronics product.\"\n    },\n    {\n      \"title\": \"Case Study: Leveraging Customer Reviews for Product Improvement\",\n      \"slug\": \"leveraging-customer-reviews\",\n      \"date\": \"2023-04-01\",\n      \"content\": \"An analysis of how feedback from Amazon customer reviews can be effectively used to refine product features and increase customer satisfaction.\"\n    }\n  ]\n}\n```\n\n### Error Response Example (400 Bad Request / 500 Internal Server Error)\n\n```json\n{\n  \"message\": \"Error description here\",\n  \"errorCode\": \"ERROR_CODE\",\n  \"details\": \"Additional error details or issues\"\n}\n```\n\nCommon `errorCode` values:\n\n- `VALIDATION_ERROR`: When the request body does not conform to the expected schema (e.g., missing required fields, invalid types).\n- `MISSING_DATA`: When `sellerData` or `competitorData` is missing.\n- `UNKNOWN_ERROR`: For any other unexpected server-side errors.\n\n## Data Flow\n\n1.  A POST request is made to the `/api/amazon/competitor-analysis` endpoint with seller and competitor CSV data in the request body.\n2.  The endpoint validates the request body using the `zod` library.\n3.  The `sellerData` and `competitorData` CSV strings are processed by the `processCSVData` function to parse the data into structured arrays of product objects.\n4.  If specified in the request, metrics are internally extracted from the combined seller and competitor data for potential future use.\n5.  The endpoint retrieves static 'case-studies' data using `loadStaticData('case-studies')`.\n6.  The endpoint returns the static 'case-studies' data as a JSON response.\n",
+      "title": "Amazon Competitor Analysis API Endpoint Documentation",
+      "description": "Documentation for the Amazon Competitor Analysis API endpoint.",
+      "category": "api",
+      "order": 3,
+      "tags": [
+        "api",
+        "amazon",
+        "competitor-analysis"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-amazon-inventory",
+      "content": "\n# Amazon Inventory API Endpoint Documentation (`src/app/api/amazon/inventory/route.ts`)\n\n## Overview\n\nThe Amazon Inventory API endpoint (`src/app/api/amazon/inventory/route.ts`) calculates inventory recommendations based on the provided inventory data. It validates the input data using `zod` and uses the `AmazonAlgorithms.calculateInventoryRecommendation` function to calculate the recommendation.\n\n## Functionality\n\n- **Calculates Inventory Recommendation:** Calculates an inventory recommendation based on the provided inventory data.\n- **Validates Input Data:** Validates the input data using the `zod` library.\n- **Returns JSON Response:** Returns the inventory recommendation and analysis as a JSON response.\n\n## Technical Details\n\n- The endpoint uses the `zod` library to validate the request body.\n- The endpoint defines an interface for the inventory data.\n- The endpoint uses the `AmazonAlgorithms.calculateInventoryRecommendation` function to calculate the recommendation.\n\n## Data Flow\n\n1.  A POST request is made to the `/api/amazon/inventory` endpoint with the inventory data.\n2.  The endpoint validates the request body using the `zod` library.\n3.  The endpoint calculates the inventory recommendation using the `AmazonAlgorithms.calculateInventoryRecommendation` function.\n4.  The endpoint returns the inventory recommendation and analysis as a JSON response.\n",
+      "title": "Amazon Inventory API Endpoint Documentation",
+      "description": "Documentation for the Amazon Inventory API endpoint.",
+      "category": "api",
+      "order": 4,
+      "tags": [
+        "api",
+        "amazon",
+        "inventory"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-amazon-keyword-trends",
+      "content": "\n# Amazon Keyword Trends API Endpoint Documentation (`src/app/api/amazon/keyword-trends/route.ts`)\n\n## Overview\n\nThe Amazon Keyword Trends API endpoint (`src/app/api/amazon/keyword-trends/route.ts`) processes keyword trend data from a CSV file and stores it in a Supabase database. It then retrieves and formats the data for analysis.\n\n## Functionality\n\n- **Processes CSV Data:** Processes keyword trend data from a CSV file.\n- **Stores Data in Supabase:** Stores the processed data in a Supabase database.\n- **Retrieves and Formats Data:** Retrieves and formats the data for analysis.\n- **Caches Data:** Caches the keyword trend data to improve performance.\n- **Returns JSON Response:** Returns the formatted keyword trend data as a JSON response.\n\n## Technical Details\n\n- The endpoint uses the `createClient` function from `@supabase/supabase-js` to create a Supabase client.\n- The endpoint defines interfaces for the keyword trend data.\n- The endpoint uses the `processCSVData` function to process the CSV data.\n- The endpoint uses a caching mechanism to store and retrieve keyword trend data, improving performance.\n- The endpoint uses the `supabase` client to interact with the Supabase database.\n\n## Data Flow\n\n1.  A POST request is made to the `/api/amazon/keyword-trends` endpoint with the CSV data.\n2.  The endpoint processes the CSV data using the `processCSVData` function.\n3.  The endpoint stores the processed data in a Supabase database.\n4.  The endpoint retrieves and formats the data for analysis.\n5.  The endpoint returns the formatted keyword trend data as a JSON response.\n",
+      "title": "Amazon Keyword Trends API Endpoint Documentation",
+      "description": "Documentation for the Amazon Keyword Trends API endpoint.",
+      "category": "api",
+      "order": 5,
+      "tags": [
+        "api",
+        "amazon",
+        "keyword-trends"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-amazon-pricing",
+      "content": "\n# Amazon Pricing API Endpoint Documentation (`src/app/api/amazon/pricing/route.ts`)\n\n## Overview\n\nThe Amazon Pricing API endpoint (`src/app/api/amazon/pricing/route.ts`) calculates the optimal price for a product based on the provided base price, competition data, and demand factor. It validates the input data using `zod` and uses the `AmazonAlgorithms.calculateOptimalPrice` function to calculate the optimal price.\n\n## Functionality\n\n- **Calculates Optimal Price:** Calculates the optimal price for a product based on the provided input data.\n- **Validates Input Data:** Validates the input data using the `zod` library.\n- **Returns JSON Response:** Returns the optimal price and analysis as a JSON response.\n\n## Technical Details\n\n- The endpoint uses the `zod` library to validate the request body.\n- The endpoint uses the `AmazonAlgorithms.calculateOptimalPrice` function to calculate the optimal price.\n\n## Data Flow\n\n1.  A POST request is made to the `/api/amazon/pricing` endpoint with the base price, competition data, and demand factor.\n2.  The endpoint validates the request body using the `zod` library.\n3.  The endpoint calculates the optimal price using the `AmazonAlgorithms.calculateOptimalPrice` function.\n4.  The endpoint returns the optimal price and analysis as a JSON response.\n",
+      "title": "Amazon Pricing API",
+      "description": "Documentation for the Amazon Pricing API in Amazon Seller Tools.",
+      "category": "api",
+      "order": 6,
+      "tags": [
+        "api",
+        "amazon",
+        "pricing"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-chat",
+      "content": "\n# Chat API Endpoint Documentation (`src/app/api/chat/route.ts`)\n\n## Overview\n\nThe `src/app/api/chat/route.ts` file defines an API endpoint that handles chat requests using the Google Gemini AI model. It retrieves a message from the request body, constructs a context-aware prompt, sends the prompt to the Gemini model, and returns the response. It also implements rate limiting to prevent abuse.\n\n## Functionality\n\n- **Handles Chat Requests:** Receives chat requests from the client.\n- **Implements Rate Limiting:** Implements rate limiting to prevent abuse.\n- **Constructs Context-Aware Prompt:** Constructs a context-aware prompt that includes portfolio information and previous conversation history.\n- **Sends Prompt to Gemini AI Model:** Sends the prompt to the Google Gemini AI model.\n- **Returns AI Response:** Returns the response from the Gemini AI model as a JSON response.\n- **Includes Improved Error Handling:** Includes improved error handling, logging detailed error information.\n\n## Technical Details\n\n- The endpoint uses the `rateLimiter` from `@/lib/api/rate-limiter` to implement rate limiting.\n- The endpoint uses the `GoogleGenerativeAI` from `@google/generative-ai` to interact with the Gemini AI model.\n- The endpoint uses environment variables to store the Gemini API key.\n- The endpoint loads portfolio context from a JSON file.\n\n## Data Flow\n\n1.  A POST request is made to the `/api/chat` endpoint with the user's message and conversation history.\n2.  The endpoint implements rate limiting to prevent abuse.\n3.  The endpoint constructs a context-aware prompt that includes portfolio information and previous conversation history.\n4.  The endpoint sends the prompt to the Google Gemini AI model.\n5.  The endpoint returns the response from the Gemini AI model as a JSON response.\n",
+      "title": "Chat API Endpoint Documentation",
+      "description": "Documentation for the Chat API endpoint.",
+      "category": "api",
+      "order": 7,
+      "tags": [
+        "api",
+        "chat",
+        "documentation"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-contact",
+      "content": "\n# Contact API Endpoint Documentation (`src/app/api/contact/route.ts`)\n\n## Overview\n\nThe `src/app/api/contact/route.ts` file defines an API endpoint that handles contact form submissions. It validates the input data, sends an email using Nodemailer, and returns a JSON response indicating success or failure.\n\n## Functionality\n\n- **Handles Contact Form Submissions:** Receives contact form submissions from the client.\n- **Validates Input Data:** Validates the input data to ensure that all required fields are present.\n- **Sends Email using Nodemailer:** Sends an email using Nodemailer with the contact form data.\n- **Returns JSON Response:** Returns a JSON response indicating success or failure.\n\n## Technical Details\n\n- The endpoint uses the `nodemailer` library to send emails.\n- The endpoint uses environment variables to store the SMTP host, user, password, and contact email address.\n\n## Data Flow\n\n1.  A POST request is made to the `/api/contact` endpoint with the contact form data.\n2.  The endpoint validates the input data to ensure that all required fields are present.\n3.  The endpoint sends an email using Nodemailer with the contact form data.\n4.  The endpoint returns a JSON response indicating success or failure.\n",
+      "title": "Contact API Endpoint Documentation",
+      "description": "Documentation for the Contact API endpoint.",
+      "category": "api",
+      "order": 8,
+      "tags": [
+        "api",
+        "contact",
+        "documentation"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-content",
+      "content": "\n# Content API Endpoint Documentation (`src/app/api/content/route.ts`)\n\n## Overview\n\nThe `src/app/api/content/route.ts` file defines an API endpoint that fetches content data, including skills from a JSON file and projects from the GitHub API.\n\n## Functionality\n\n- **Fetches Skills Data:** Fetches skills data from the `src/data/portfolio-data/skills.json` file.\n- **Fetches GitHub Projects:** Fetches project data from the GitHub API.\n- **Returns JSON Response:** Returns the skills and projects data as a JSON response.\n\n## Technical Details\n\n- The endpoint uses the `getGitHubProjects` function from `@/lib/github` to fetch project data from the GitHub API.\n- The endpoint imports the skills data from the `src/data/portfolio-data/skills.json` file.\n\n## Data Flow\n\n1.  A GET request is made to the `/api/content` endpoint.\n2.  The endpoint fetches skills data from the `src/data/portfolio-data/skills.json` file.\n3.  The endpoint fetches project data from the GitHub API using the `getGitHubProjects` function.\n4.  The endpoint returns the skills and projects data as a JSON response.\n",
+      "title": "Content API Endpoint Documentation",
+      "description": "Documentation for the Content API endpoint.",
+      "category": "api",
+      "order": 9,
+      "tags": [
+        "api",
+        "content",
+        "documentation"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-download",
+      "content": "\n# Download API Endpoint Documentation (`src/app/api/download/route.ts`)\n\n## Overview\n\nThe `src/app/api/download/route.ts` file defines an API endpoint that serves the `sample_amazon_data.csv` file for download.\n\n## Functionality\n\n- **Serves CSV File for Download:** Serves the `sample_amazon_data.csv` file from the `src/data/amazon-tools-sample-data` directory for download.\n\n## Technical Details\n\n- The endpoint uses the `readFile` function from `fs/promises` to read the CSV file.\n- The endpoint uses the `NextResponse` object from `next/server` to return the file with the appropriate headers.\n- The `Content-Type` header is set to `text/csv`.\n- The `Content-Disposition` header is set to `attachment; filename=\"sample_amazon_data.csv\"` to force the browser to download the file.\n\n## Data Flow\n\n1.  A GET request is made to the `/api/download` endpoint.\n2.  The endpoint reads the CSV file from the file system.\n3.  The endpoint returns the CSV file with the appropriate headers.\n",
+      "title": "Download API Endpoint Documentation",
+      "description": "Documentation for the Download API endpoint.",
+      "category": "api",
+      "order": 10,
+      "tags": [
+        "api",
+        "download",
+        "documentation"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-module-progress",
+      "content": "\n# Module Progress API Endpoint Documentation (`src/app/api/module-progress/route.ts`)\n\n## Overview\n\nThe `src/app/api/module-progress/route.ts` file defines an API endpoint that currently only returns a success response. It likely serves as a placeholder for future module progress functionality.\n\n## Functionality\n\n- **Returns Success Response:** Currently only returns a success response.\n\n## Technical Details\n\n- The endpoint uses the `NextResponse` object from `next/server` to return the JSON response.\n\n## Data Flow\n\n1.  A POST request is made to the `/api/module-progress` endpoint.\n2.  The endpoint returns a JSON response with a success message.\n",
+      "title": "Module Progress API Endpoint Documentation",
+      "description": "Documentation for the Module Progress API endpoint.",
+      "category": "api",
+      "order": 11,
+      "tags": [
+        "api",
+        "module-progress"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-prohibited-keywords",
+      "content": "\n# Prohibited Keywords API Endpoint Documentation (`src/app/api/prohibited-keywords/route.ts`)\n\n## Overview\n\nThis documentation describes the server action for managing prohibited keywords.\n\n## Functionality\n\n- **Adds Prohibited Keywords:** Adds a prohibited keyword to the database.\n- **Validates Input Data:** Validates the input data using Zod.\n\n## Technical Details\n\n- The server action uses Supabase to interact with the database.\n- The server action uses the `zod` library to validate the input data.\n\n## Data Flow\n\n1.  The `addProhibitedKeyword` server action is called with the keyword.\n2.  The input data is validated using Zod.\n3.  The server action attempts to add the keyword to the database.\n",
+      "title": "Prohibited Keywords API Endpoint Documentation",
+      "description": "Documentation for the Prohibited Keywords API endpoint.",
+      "category": "api",
+      "order": 12,
+      "tags": [
+        "api",
+        "prohibited-keywords"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-redis",
+      "content": "\n# Redis API Endpoint Documentation (`src/app/api/redis/route.ts`)\n\n## Overview\n\nThe `src/app/api/redis/route.ts` file defines an API endpoint that connects to a Redis database and retrieves a value associated with the key \"myKey\".\n\n## Functionality\n\n- **Connects to Redis Database:** Connects to a Redis database using the URL specified in the `REDIS_URL` environment variable.\n- **Retrieves Value from Redis:** Retrieves the value associated with the key \"myKey\" from the Redis database.\n- **Returns JSON Response:** Returns the retrieved value as a JSON response.\n\n## Technical Details\n\n- The endpoint uses the `createClient` function from `redis` to create a Redis client.\n- The endpoint uses the `REDIS_URL` environment variable to connect to the Redis database.\n\n## Data Flow\n\n1.  A GET request is made to the `/api/redis` endpoint.\n2.  The endpoint connects to the Redis database using the URL specified in the `REDIS_URL` environment variable.\n3.  The endpoint retrieves the value associated with the key \"myKey\" from the Redis database.\n4.  The endpoint returns the retrieved value as a JSON response.\n",
+      "title": "Redis API Endpoint Documentation",
+      "description": "Documentation for the Redis API endpoint.",
+      "category": "api",
+      "order": 13,
+      "tags": [
+        "api",
+        "redis",
+        "documentation"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "architecture-architecture_analysis",
+      "content": "\n# Architecture Analysis\n\nThis document describes the architectural changes introduced in recent updates to the codebase.\n\n## src/actions/keywordActions.ts\n\nThis file has been updated to improve error handling and address a unique constraint violation. The `addProhibitedKeyword` function now includes more robust error handling, specifically catching database-related errors and providing more informative error messages. It also handles unique constraint violations (when a keyword already exists) by returning a user-friendly message. These changes enhance the reliability and user experience of the keyword management functionality.\n\n## src/app/page.tsx\n\nThis file has been updated to improve the loading experience of the application's main page. It utilizes the `next/dynamic` import with a `loading` component for various sections. This approach allows for lazy loading of components, preventing the entire page from blocking while individual components are loaded, resulting in a smoother and more responsive user interface.\n\n## src/components/ui/button.tsx\n\nThe `Button` component has been updated to allow it to be rendered as a different element, such as a `Link` from `react-router-dom`. This is achieved using the `asChild` prop and the `Slot` component from `@radix-ui/react-slot`. This change provides greater flexibility in how the button can be used within the application, allowing for more versatile integration with other components and libraries.\n\n## src/lib/utils.ts\n\nThis file has been updated to remove leading and trailing hyphens from the generated slugs. This ensures that the generated slugs are cleaner, more consistent, and adheres to best practices for URL structures.\n\n## src/lib/workflow/engine.ts\n\nThis file has been updated to include a node registry. This change introduces a mechanism for registering and managing different node types within the workflow engine. This enhances the engine's extensibility and maintainability, making it easier to add new node types and customize the workflow behavior.\n\n## src/middleware.ts\n\nThis file has been updated to improve error handling within the middleware. Specifically, it addresses token expiration and other authentication errors. When a token expires or an authentication error occurs, the user is redirected to an appropriate page (e.g., the sign-in page or an error page), providing a better user experience and more graceful handling of authentication failures.\n",
+      "title": "Architecture Analysis",
+      "description": "Analysis of recent architectural changes.",
+      "category": "architecture",
+      "order": 0,
+      "tags": [
+        "architecture",
+        "analysis"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "architecture-architecture",
+      "content": "\n## 1. High-Level System Architecture\n\nThis project is built using the Next.js framework, leveraging its capabilities for both frontend rendering and backend API routes. The application's architecture is broadly categorized into:\n\n- **Frontend (UI/UX):** Developed with React.js components and Next.js for server-side rendering (SSR) and static site generation (SSG) where appropriate, ensuring a fast and responsive user experience.\n- **Backend (API Routes):** Implemented using Next.js API routes (`src/app/api/**/*.ts`), serving as the interface for client-side requests and handling business logic. These routes interact with external services and the database.\n- **Database:** Supabase serves as the primary data store, offering a PostgreSQL database, authentication services, and real-time capabilities. This choice provides a robust and scalable backend foundation.\n- **Authentication:** Managed via NextAuth.js, integrated with GitHub OAuth for secure user registration and sign-in.\n- **Content Management:** Markdown (`.mdx`) files are used for documentation and blog content, providing a flexible and developer-friendly way to manage static content.\n\nThe core principle behind this architecture is a modular, scalable, and secure application that can evolve efficiently.\n\n## 2. Authentication and Authorization\n\nThis section details the implementation of user registration and sign-in, including API endpoints, the authentication flow, and data models.\n\n### 2.1 API Endpoints\n\n- **/api/register**: This endpoint initiates the user registration process by redirecting to the configured OAuth provider (GitHub). It acts as a gateway to the external authentication service.\n- **/api/sign-in**: Similar to registration, this endpoint facilitates user sign-in by redirecting to the GitHub OAuth provider.\n- **/api/auth/[...nextauth]**: This is the dynamic catch-all route managed by NextAuth.js. It handles all authentication-related callbacks (e.g., OAuth redirects), session management, and user data persistence with the database.\n\n### 2.2 Authentication Flow\n\n1.  **User Initiation**: A user attempts to register or sign in by navigating to `/api/register` or `/api/sign-in` (or clicking a respective UI button).\n2.  **OAuth Redirection**: The application redirects the user to the GitHub OAuth provider's authorization page. This offloads authentication to a trusted external service.\n3.  **GitHub Authentication**: The user authenticates directly with GitHub, granting permission for the application to access their profile information.\n4.  **Authorization Code Callback**: GitHub redirects the user back to the application's NextAuth.js callback URL (e.g., `/api/auth/callback/github`) with an authorization code.\n5.  **Token Exchange & Profile Retrieval**: NextAuth.js intercepts this callback, exchanges the authorization code for an access token with GitHub, and retrieves the user's profile information (e.g., email, name, image).\n6.  **User Synchronization (Database)**: NextAuth.js interacts with the Supabase adapter (`@next-auth/supabase-adapter`) to check for an existing user. If the user does not exist, a new user record is created in the database.\n7.  **Session Creation**: A secure session is established for the authenticated user, typically stored as a cookie.\n8.  **Application Redirection**: The user is finally redirected to the main application, now authenticated and ready to access protected content.\n\n### 2.3 GitHub OAuth Integration\n\nThe application leverages [NextAuth.js](https://next-auth.js.org/) for a streamlined and secure GitHub OAuth implementation. NextAuth.js simplifies the complex aspects of authentication, including token management, session handling, and adapter integration with various databases.\n\nConfiguration involves setting up a GitHub OAuth application to obtain client ID and secret, which are then provided to NextAuth.js. The callback URL must be precisely configured to `https://your-app-domain.com/api/auth/[...nextauth]`.\n\n### 2.4 Data Models\n\nThe `User` model is central to authentication and user management:\n\n- **User**: Represents an authenticated user within the system. The definition, including key properties like email, name, and role, is found in [`src/lib/models/user.ts`](src/lib/models/user.ts).\n\n  ```typescript\n  export interface User {\n    email: string;\n    name?: string;\n    image?: string;\n    emailVerified?: Date;\n    role: 'user' | 'admin'; // Role-based access control (RBAC) is implemented\n    createdAt: Date;\n    updatedAt: Date;\n  }\n  ```\n\n  _Insight:_ The `role` field is crucial for implementing role-based access control (RBAC), allowing different levels of permissions within the application (e.g., 'user' for general access, 'admin' for administrative functions).\n\n### 2.5 Database Schema\n\nSupabase (PostgreSQL) is the chosen database. The `users` table is fundamental for storing user authentication and profile data, seamlessly integrated via the `@next-auth/supabase-adapter`.\n\n```sql\n-- Example users table schema\n-- This schema aligns with NextAuth.js's default user model expectations\nCREATE TABLE users (\n  id UUID PRIMARY KEY,\n  email VARCHAR(255) UNIQUE NOT NULL,\n  name VARCHAR(255),\n  image VARCHAR(255),\n  emailVerified TIMESTAMPTZ,\n  role VARCHAR(255) DEFAULT 'user',\n  createdAt TIMESTAMPTZ DEFAULT NOW(),\n  updatedAt TIMESTAMPTZ DEFAULT NOW()\n);\n```\n\n_Insight:_ Using `UUID` for `id` provides globally unique identifiers, which is a good practice for distributed systems or when merging data from different sources. The `DEFAULT NOW()` for `createdAt` and `updatedAt` simplifies timestamp management.\n\n## 3. Middleware and Public Path Management\n\nThe application employs a robust middleware (`src/middleware.ts`) for centralized authentication and authorization checks.\n\n### 3.1 Role of Middleware\n\nThe middleware acts as a gatekeeper, intercepting requests before they reach Next.js pages or API routes. Its primary responsibilities include:\n\n- **Authentication Check**: Verifying the presence and validity of an authentication token (session).\n- **Authorization**: Ensuring that authenticated users have the necessary permissions (e.g., based on their `role`) to access specific resources.\n- **Redirection**: Redirecting unauthenticated or unauthorized users to designated pages (e.g., sign-in or a 403 Forbidden page).\n\n### 3.2 Public Paths Configuration\n\nA crucial aspect of the middleware's functionality is the identification of \"public paths\" — routes that do not require authentication. These paths are explicitly defined in [`src/config/publicPaths.ts`](src/config/publicPaths.ts). This centralized configuration promotes:\n\n- **Maintainability**: Easily add or remove public routes without modifying core middleware logic.\n- **Security**: Prevents accidental exposure of protected routes.\n- **Clarity**: Provides a clear overview of publicly accessible endpoints.\n\n### 3.3 Implementation Details\n\n- **Token Retrieval**: The `middleware.ts` file utilizes the `getToken` function from `next-auth/jwt` to securely retrieve and parse the JSON Web Token (JWT) from the request. This token contains the user's session information.\n- **Path Matching**: The `publicPaths.ts` file exports an array containing string patterns and regular expressions (`RegExp`) to flexibly define which routes are exempt from authentication checks. The middleware iteratively matches incoming request URLs against these patterns.\n",
+      "title": "Architecture Overview",
+      "description": "Comprehensive architectural documentation for the project, covering key components, data flows, and design principles.",
+      "category": "architecture",
+      "order": 1,
+      "tags": [
+        "architecture",
+        "overview"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "ats",
+      "content": "\n# Applicant Tracking System (ATS) Documentation\n\nThis directory contains documentation related to the Applicant Tracking System (ATS) integration or features within the ScaleSmart application.\n\n## Overview\n\nThe ATS integration allows for seamless management of job applicants and recruitment processes.\n\n## Key Features (if applicable)\n\n- **Applicant Data Storage:** Secure storage of applicant information.\n- **Job Posting Integration:** Integration with job posting platforms.\n- **Workflow Automation:** Automated workflows for applicant screening and interview scheduling.\n- **Reporting and Analytics:** Tools for tracking key recruitment metrics.\n\n## Technical Details (if applicable)\n\n- API endpoints for accessing and managing applicant data.\n- Data models for representing applicant information.\n- Integration with third-party ATS providers.\n\nFurther details on specific features and functionalities can be found in the relevant sections below.\n",
+      "title": "Applicant Tracking System (ATS) Documentation",
+      "description": "Documentation for the Applicant Tracking System (ATS) integration or features.",
+      "category": "ats",
+      "order": 0,
+      "tags": [
+        "ats",
+        "applicant tracking",
+        "integration"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "api-auth-nextauth-options",
+      "content": "\n# NextAuth.js Options Documentation (`src/app/api/auth/[...nextauth]/options.ts`)\n\n## Overview\n\nThe `src/app/api/auth/[...nextauth]/options.ts` file defines the options for NextAuth.js, including the adapter, providers, session strategy, pages, and callbacks.\n\n## Functionality\n\n- **Configures Supabase Adapter:** Configures the Supabase adapter for storing user data.\n- **Configures Authentication Providers:** Defines the authentication providers for the application, such as GitHub.\n- **Configures Session Strategy:** Configures the session strategy to use JWT (JSON Web Tokens).\n- **Configures Pages:** Configures the pages for sign-in and error handling.\n- **Defines Callbacks:** Defines callbacks for handling session and JWT data.\n\n## Technical Details\n\n- The file uses the `SupabaseAdapter` from `@next-auth/supabase-adapter` to configure the Supabase adapter.\n- The file uses the `GithubProvider` from `next-auth/providers/github` to configure the GitHub authentication provider.\n- The file uses environment variables to store the Supabase URL, API key, GitHub client ID, and GitHub client secret.\n\n## Data Flow\n\n1.  The `authOptions` object is exported from the `src/app/api/auth/[...nextauth]/options.ts` file.\n2.  The `NextAuth` function in `src/app/api/auth/[...nextauth]/route.ts` imports the `authOptions` object and uses it to configure the authentication.\n3.  The authentication provider authenticates the user.\n4.  The JWT callbacks are called to handle the JWT data.\n5.  The session callbacks are called to handle the session data.\n6.  The user is authenticated and redirected to the appropriate page.\n",
+      "title": "NextAuth.js Options Documentation",
+      "description": "Documentation for the NextAuth.js options.",
+      "category": "auth",
+      "order": 0,
+      "tags": [
+        "api",
+        "auth",
+        "nextauth",
+        "options"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-auth-nextauth",
+      "content": "\n# NextAuth.js API Route Documentation (`src/app/api/auth/[...nextauth]/route.ts`)\n\n## Overview\n\nThe `src/app/api/auth/[...nextauth]/route.ts` file configures the NextAuth.js authentication for the application. It defines the authentication providers, session strategy, secret, and callbacks for handling JWT and session data.\n\n## Functionality\n\n- **Configures Authentication Providers:** Defines the authentication providers for the application, such as GitHub.\n- **Configures Session Strategy:** Configures the session strategy to use JWT (JSON Web Tokens).\n- **Defines JWT Callbacks:** Defines callbacks for handling JWT data, such as adding the access token to the JWT.\n- **Defines Session Callbacks:** Defines callbacks for handling session data, such as adding the access token to the session.\n\n## Technical Details\n\n- The file uses the `NextAuth` function from `next-auth` to configure the authentication.\n- The file uses the `GithubProvider` from `next-auth/providers/github` to configure the GitHub authentication provider.\n- The file uses environment variables to store the GitHub client ID, client secret, and NextAuth secret.\n\n## Data Flow\n\n1.  A request is made to the `/api/auth/[...nextauth]` endpoint.\n2.  The `NextAuth` function handles the authentication request.\n3.  The authentication provider authenticates the user.\n4.  The JWT callbacks are called to handle the JWT data.\n5.  The session callbacks are called to handle the session data.\n6.  The user is authenticated and redirected to the appropriate page.\n",
+      "title": "NextAuth.js API Route Documentation",
+      "description": "Documentation for the NextAuth.js API route.",
+      "category": "auth",
+      "order": 1,
+      "tags": [
+        "api",
+        "auth",
+        "nextauth"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "blog-layout",
+      "content": "\n# Blog Layout Documentation (`src/app/blog/layout.tsx`)\n\n## Overview\n\nThe `src/app/blog/layout.tsx` file defines the layout for the blog section of the application. It sets the metadata and viewport configurations for the blog pages.\n\n## Functionality\n\n- **Defines Metadata:** Sets the title and description for the blog pages.\n- **Configures Viewport:** Defines the viewport settings for different devices.\n\n## Technical Details\n\n- The file uses the `Metadata` and `Viewport` types from `next`.\n\n## Data Flow\n\n1.  The `BlogLayout` component is rendered for all pages under the `/blog` route.\n2.  The component sets the metadata and viewport configurations for the blog pages.\n3.  The `children` prop is rendered within the `<main>` element, displaying the content of the specific blog page.\n",
+      "title": "Blog Layout Documentation",
+      "description": "Documentation for the Blog layout.",
+      "category": "blog",
+      "order": 0,
+      "tags": [
+        "blog",
+        "layout"
+      ],
+      "date": "2025-05-30"
+    },
+    {
+      "slug": "blog-slug",
+      "content": "\n# Blog Post Page Documentation (`src/app/blog/[slug]/page.tsx`)\n\n## Overview\n\nThe `src/app/blog/[slug]/page.tsx` file defines the individual blog post page. It fetches the blog post data based on the slug and renders the content using `next-mdx-remote/rsc`. It also generates metadata for the page and handles the case where the post is not found.\n\n## Functionality\n\n- **Fetches Blog Post by Slug:** Fetches the blog post data based on the slug using the `getPostBySlug` function from `@/lib/mdx`.\n- **Renders MDX Content:** Renders the blog post content using `next-mdx-remote/rsc`.\n- **Generates Metadata:** Generates metadata for the page, including the title, description, and Open Graph properties.\n- **Handles Not Found Case:** Handles the case where the blog post is not found using the `notFound` function from `next/navigation`.\n\n## Technical Details\n\n- The page uses the `getPostBySlug` function from `@/lib/mdx` to fetch the blog post data.\n- The page uses the `MDXRemote` component from `next-mdx-remote/rsc` to render the MDX content.\n- The page uses the `Metadata` type from `next` to generate metadata for the page.\n- The page uses the `notFound` function from `next/navigation` to handle the case where the blog post is not found.\n\n## Data Flow\n\n1.  The `BlogPostPage` component is rendered with the `slug` parameter.\n2.  The component calls the `getPostBySlug` function to fetch the blog post data based on the slug.\n3.  If the blog post is not found, the `notFound` function is called, which renders the `not-found.tsx` page.\n4.  If the blog post is found, the component renders the blog post content using the `MDXRemote` component.\n5.  The `generateMetadata` function is called to generate metadata for the page.\n",
+      "title": "Blog Post Page Documentation (src/app/blog/[slug]/page.tsx)",
+      "description": "The `src/app/blog/[slug]/page.tsx` file defines the individual blog post page.",
+      "category": "blog",
+      "order": 1,
+      "tags": [
+        "blog",
+        "page"
+      ],
+      "date": "2025-05-30"
+    },
+    {
+      "slug": "blog",
+      "content": "\n# Blog Documentation\n\nThis directory contains documentation related to the blog section of the ScaleSmart application.\n\n## Overview\n\nThe blog section provides a platform for publishing articles, updates, and insights related to the Amazon marketplace and e-commerce strategies.\n\n## Key Areas\n\n- **Content Management:** Details on how blog content is created, stored, and managed.\n- **Layout Configuration:** Information on the structure and design of blog pages.\n- **Slug Generation:** Explanation of how URL-friendly slugs are generated for blog posts.\n\n## Subdirectories\n\n- **layout/:** Documentation for the overall layout of the blog section.\n- **slug/:** Documentation for the slug generation process.\n\nFurther details on each aspect can be found in the respective subdirectory.\n",
+      "title": "Blog Documentation",
+      "description": "Documentation for the blog section of the project, including layout and slug configurations.",
+      "category": "blog",
+      "order": 2,
+      "tags": [
+        "blog",
+        "content management",
+        "layout",
+        "slug"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "blog-slug-not-found",
+      "content": "\n# Blog Post Not Found Page Documentation (`src/app/blog/[slug]/not-found.tsx`)\n\n## Overview\n\nThe `src/app/blog/[slug]/not-found.tsx` file defines a custom not-found page for individual blog posts. It is displayed when a blog post with the specified slug does not exist.\n\n## Functionality\n\n- **Displays Not Found Message:** Displays a message indicating that the requested blog post could not be found.\n- **Provides Back to Blog Link:** Provides a link to navigate back to the main blog page.\n\n## Technical Details\n\n- The page uses the `ui/button` component from the `@/components/ui` library.\n- The page uses the `lucide-react` library for icons.\n- The page uses the `next/link` component for navigation.\n\n## Data Flow\n\n1.  The `BlogNotFound` component is rendered when a blog post with the specified slug does not exist.\n2.  The component displays the not-found message and a link to navigate back to the main blog page.\n",
+      "title": "Blog Post Not Found Page Documentation (src/app/blog/[slug]/not-found.tsx)",
+      "description": "The `src/app/blog/[slug]/not-found.tsx` file defines a custom not-found page for individual blog posts.",
+      "category": "blog",
+      "order": 4,
+      "tags": [
+        "blog",
+        "not found",
+        "page"
+      ],
+      "date": "2025-05-30"
+    },
+    {
+      "slug": "chat",
+      "content": "\n# Chat Documentation\n\nThis directory contains documentation related to the chat functionality within the ScaleSmart application.\n\n## Overview\n\nThe chat functionality enables real-time communication between users.\n\n## Key Features (if applicable)\n\n- **Real-time Messaging:** Instant message delivery.\n- **User Presence:** Display of online/offline status.\n- **Chat History:** Storage and retrieval of past conversations.\n- **Group Chat:** Support for multi-user conversations.\n\n## Technical Details (if applicable)\n\n- API endpoints for sending and receiving messages.\n- Data models for representing chat messages and user information.\n- Real-time communication protocols (e.g., WebSockets).\n- Database schema for storing chat history.\n\nFurther details on specific features and functionalities can be found in the relevant sections below.\n",
+      "title": "Chat Documentation",
+      "description": "Documentation for the chat functionality of the project.",
+      "category": "chat",
+      "order": 0,
+      "tags": [
+        "chat",
+        "realtime",
+        "communication"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "content-blog",
+      "content": "\n# Blog Content Directory Documentation (`src/app/content/blog`)\n\n## Overview\n\nThe `src/app/content/blog` directory contains the MDX files that provide the content for the blog posts. Each MDX file represents a single blog post and includes the content, metadata, and formatting for that post.\n\n## Functionality\n\n- **Stores Blog Post Content:** Stores the content, metadata, and formatting for each blog post in MDX files.\n\n## Technical Details\n\n- The directory contains MDX files, which are a combination of Markdown and JSX.\n- Each MDX file represents a single blog post.\n- The MDX files are used by the `src/app/blog/[slug]/page.tsx` file to render the blog post content.\n\n## Data Flow\n\n1.  The `src/app/blog/[slug]/page.tsx` file fetches the content of a blog post from the corresponding MDX file in the `src/app/content/blog` directory.\n2.  The `MDXRemote` component is used to render the MDX content.\n",
+      "title": "Blog Content Directory Documentation (src/app/content/blog)",
+      "description": "The `src/app/content/blog` directory contains the MDX files that provide the content for the blog posts.",
+      "category": "content",
+      "order": 0,
+      "tags": [
+        "blog",
+        "content"
+      ],
+      "date": "2025-05-30"
+    },
+    {
+      "slug": "content",
+      "content": "\n# Content Management Documentation\n\nThis directory contains documentation related to content management within the ScaleSmart application, specifically for the blog.\n\n## Overview\n\nThis documentation outlines the processes and tools used to create, manage, and publish content for the blog section.\n\n## Key Areas\n\n- **Content Creation Workflow:** Steps for creating new blog posts.\n- **Content Storage:** Details on where blog content is stored (e.g., file system, database).\n- **Content Formatting:** Guidelines for formatting blog posts using MDX.\n- **Image Management:** Procedures for handling images within blog content.\n\n## Subdirectories\n\n- **blog/:** Contains specific blog content files.\n\nFurther details on each aspect can be found in the relevant sections below.\n",
+      "title": "Content Management Documentation",
+      "description": "Documentation related to content management, specifically for the blog.",
+      "category": "content",
+      "order": 0,
+      "tags": [
+        "content",
+        "management",
+        "blog"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "crm",
+      "content": "\n# CRM Documentation\n\nThis directory contains documentation related to the Customer Relationship Management (CRM) features within the ScaleSmart application.\n\n## Overview\n\nThe CRM features enable users to manage customer interactions, track leads, and streamline sales processes.\n\n## Key Features (if applicable)\n\n- **Contact Management:** Tools for creating, updating, and organizing customer contacts.\n- **Lead Tracking:** Functionality for tracking potential customers through the sales funnel.\n- **Sales Automation:** Automated tasks and workflows to improve sales efficiency.\n- **Reporting and Analytics:** Dashboards and reports for analyzing customer data and sales performance.\n\n## Technical Details (if applicable)\n\n- API endpoints for accessing and managing customer data.\n- Data models for representing contacts, leads, and sales opportunities.\n- Integration with other services (e.g., email marketing platforms).\n\nFurther details on specific features and functionalities can be found in the relevant sections below.\n",
+      "title": "CRM Documentation",
+      "description": "Documentation for the Customer Relationship Management (CRM) features of the project.",
+      "category": "crm",
+      "order": 0,
+      "tags": [
+        "crm",
+        "customer relationship management"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "data",
+      "content": "\n# Overview Documentation all goes here\n\nData visualization is what drives frontend UI. That will not be as important so long we organize our documents well and maintain\n",
+      "title": "Data",
+      "description": "high level documentation for anything dealing with client data",
+      "category": "data",
+      "order": 0,
+      "tags": [
+        "data"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "data-visualization-framework",
+      "content": "\n# data-visualization-framework\n\nWhat does and what not\n",
+      "title": "Visualization Frameork data-visualization-framework.mdx",
+      "description": "All documentations to what can be accomplished on setting it all up with chartjs as a baseline for that framework",
+      "category": "data",
+      "order": 4,
+      "tags": [
+        "data",
+        "Data Viz"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "data-storage-indexeddb_integration_plan",
+      "content": "\n# IndexedDB Integration Plan\n\nA design spec that covers integrating indexedDB client data store solution\n",
+      "title": "IndexedDB Integration Plan",
+      "description": "Plan on integrating indexeddb as the Data store",
+      "category": "data-storage",
+      "order": 0,
+      "tags": [
+        "data",
+        "data-storage",
+        "indexeddb",
+        "planning"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "data-storage",
+      "content": "\n# Groupings for client based details\n\nOverview\n",
+      "title": "data-storage",
+      "description": "Details documentation on what is related to data storage",
+      "category": "data-storage",
+      "order": 0,
+      "tags": [
+        "data",
+        "data-storage"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "data-storage-indexeddb",
+      "content": "\n# Core indexedDB details\n\nTalk more generally about why to integrate into indexedDB. This needs further refining for higher relevance but demonstrates that docs can be organized recursively.\n",
+      "title": "Core indexedDB Details",
+      "description": "Details about using indexedDB data store solution",
+      "category": "data-storage",
+      "order": 1,
+      "tags": [
+        "data",
+        "data-storage",
+        "indexeddb"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "data-storage-indexeddb_integration",
+      "content": "\n# IndexedDB Integration details\n\nThis will get very specific on data management choices of indexedDB in this application\n",
+      "title": "IndexedDB Integration details",
+      "description": "more specific implementation points on integrating with IndexedDB client data store solution",
+      "category": "data-storage",
+      "order": 1,
+      "tags": [
+        "data",
+        "data-storage",
+        "indexeddb"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "data-storage-indexeddb-service",
+      "content": "\n# IndexedDB Service Details\n\nExplores functions like creating entries updating progress\n",
+      "title": "IndexedDB Service details",
+      "description": "Focused on indexedDB Service functions",
+      "category": "data-storage",
+      "order": 2,
+      "tags": [
+        "data",
+        "data-storage",
+        "indexeddb"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "error-guide-error-guide",
+      "content": "\n## main Error Guide Documentation File!\n\nDetails all what h happens to have something all messed up!\n",
+      "title": "ErrorGuide Root Document",
+      "description": "What errors will happen when things mess up.",
+      "category": "error-guide",
+      "order": 0,
+      "tags": [
+        "guides",
+        "testing"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "error-guide",
+      "content": "\n###Please find more to guide details related to more context below to debug\nGeneral Read me\n\nPlease view to each to debug issues. Please narrow these items:\n\n1.  `Guides and solutions relating with different Errors codes or types go here`\n2.  This Section contains how to trouble shoot specific code in more detail\n",
+      "title": "Error Indexing for the Guide",
+      "description": "higher node with basic settings, please go to that",
+      "category": "error-guide",
+      "order": 1,
+      "tags": [
+        "guides",
+        "all"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "error-guide-route",
+      "content": "\n# Details of how the API handles un expected or route based edge-cases or 404/500s cases\n\nWhat user sees, any edge side processing/considerations.\n",
+      "title": "Error Route Specifics",
+      "description": "All routing to take user from being uncaught/ not exist or other unforeseen consequences for not reaching the server",
+      "category": "error-guide",
+      "order": 2,
+      "tags": [
+        "guides",
+        "routes",
+        "api",
+        "edge"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "error",
+      "content": "\n# This component takes place when errors on page happens. Here it displays specific code on how error components function in UI side of thingies\n\nThis one is specific in components that catch UI\n",
+      "title": "Error boundary Component details",
+      "description": "Details surrounding different error boundary situations that happen when rendered in web environment",
+      "category": "error-guide",
+      "order": 3,
+      "tags": [
+        "data",
+        "ErrorView"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "getting-started",
+      "content": "\n# Instructions to become familiar quickly\n\ndetails so we can set up what should go up from the CLI local steps. And general troubleshooting, all goes here or linked properly in a heirarchy with this parent directory\n",
+      "title": "To be as root for dev local flow to help get anyone going to deploy/implementing the design, patterns",
+      "description": "Instructions and advice needed or local operations ",
+      "category": "getting-started",
+      "order": 0,
+      "tags": [
+        "general",
+        "implementation"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "index",
+      "content": "\n# Documentation Overview\n\nWelcome to the documentation section. Here you can find detailed information about various features and modules of the application.\n\n## Available Documentation\n\n- [Academy](/docs/academy)\n- [Admin](/docs/admin)\n- [Amazon Seller Tools](/docs/amazon-seller-tools)\n- [Analytics](/docs/analytics)\n- [API](/docs/api)\n- [ATS](/docs/ats)\n- [Blog](/docs/blog)\n- [Chat](/docs/chat)\n- [Content](/docs/content)\n- [CRM](/docs/crm)\n- [Data](/docs/data)\n- [Data Storage](/docs/data-storage)\n- [Data Visualization Framework](/docs/data-visualization-framework)\n- [Error Guide](/docs/error-guide)\n- [Hooks](/docs/hooks)\n- [Implementation](/docs/implementation)\n- [Introduction](/docs/introduction)\n- [Layout](/docs/layout)\n- [Loading](/docs/loading)\n- [Local Storage](/docs/local-storage)\n- [Metadata](/docs/metadata)\n- [Not Found](/docs/not-found)\n- [Page](/docs/page)\n- [Privacy Policy](/docs/privacy-policy)\n- [Project Management](/docs/project-management)\n- [Robots](/docs/robots)\n- [Scripts](/docs/scripts)\n- [Sitemap](/docs/sitemap)\n- [Strategies](/docs/strategies)\n- [Supabase](/docs/supabase)\n- [Utils](/docs/utils)\n- [Workflow Builder](/docs/workflow-builder)\n",
+      "title": "Documentation Overview",
+      "description": "Welcome to the documentation section. Here you can find detailed information about various features and modules of the application.",
+      "category": "getting-started",
+      "order": 0,
+      "tags": [],
+      "date": "2025-06-04"
+    },
+    {
+      "slug": "getting-started-getting-started",
+      "content": "\n# Steps in local Machine\n\nStart doing what these says here to be up quick for project!\n\n## NPM Config\n\nrun npm\n",
+      "title": "Welcome for Developers in Scalesmart",
+      "description": "To setup you needs this information as local dev dependency in NextJs applications to be ready on a working model",
+      "category": "getting-started",
+      "order": 1,
+      "tags": [
+        "about"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "introduction",
+      "content": "\n## Congratulations in viewing this site, in it\n\nThis serves to document each section as properly so we have no concerns on the direction being pulled at any scenario! Follow by good architectural patterns from day first!!!\n",
+      "title": "Nextjs Architecture Introduction",
+      "description": "High level introduction documentation to begin with the scaleSmart WebProject!",
+      "category": "getting-started",
+      "order": 2,
+      "tags": [
+        "introduction",
+        "guides"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "hooks",
+      "content": "\n###All subDetails relating around each. Is what we need all going\nThat could have worked to great a great start section guide or not too but more as documentation of our system overall structure. A overview of everything under hook umbrella\n",
+      "title": "Details Surrounding folder HOOKS",
+      "description": "UseHooks main entry page or documentation root page for that grouping, as we use on SHadcn UI, makes great practice!",
+      "category": "hooks",
+      "order": 0,
+      "tags": [
+        "section guide"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "hooks-use-local-storage",
+      "content": "\n###UseLocalStorage works with react on any page for each browser so its only meant to set settings that has value only per browser and the other data doesnt mean much else then local machine setup. Great for configurations set one way and they stays set way.\nDetails how to create such a utility\n",
+      "title": "How useLocalStorage is leveraged",
+      "description": "Details surrounding useLocalStorage custom hooks for data settings like preferences/history that need not have been sent on server",
+      "category": "hooks",
+      "order": 1,
+      "tags": [
+        "guides",
+        "custom hooks",
+        "localstorage",
+        "settings"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "hooks-use-mobile",
+      "content": "\n###This uses platform check and gives all boilerplate that could apply so they know more that way.\nQuickStart!\n",
+      "title": "IsUserAgent Check for UseMobile or what ever it implies?",
+      "description": "See logic and all around impl",
+      "category": "hooks",
+      "order": 1,
+      "tags": [
+        "component based",
+        "hooks",
+        "responsiveness",
+        "boilerplate",
+        "cross platforms"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "hooks-use-toast",
+      "content": "\n# This Area is mostly understanding Shadcn but in more deeep\n\nThis way is not basic like website more a deep look on what we should do when setting new elements in scaleSMART website with UI Framework with components ready or configured or not, details!\n",
+      "title": "Guide for UseToast hook from Shadcn",
+      "description": "Great way or tutorial to understanding each of the props in toast and other settings that apply in nextjs component",
+      "category": "hooks",
+      "order": 3,
+      "tags": [
+        "component based",
+        "hooks",
+        "ui framework"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "implementation",
+      "content": "\nDetails for various frameworks with next and general\n\n# Implementatoin and Data Storage details\n\nAll files how client/ and third party get the implementd\n\nThere could be better organization when i comes down\n",
+      "title": "This will details the subdirectories that contains whats implementation used!",
+      "description": "Top document all around implementation concerns of the architecture itself",
+      "category": "implementation",
+      "order": 0,
+      "tags": [
+        "data"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "implementation-background-implementation",
+      "content": "\n#### Explain all implementation frameworks work here\n\nOverview\n",
+      "title": "How these are being used on different framework of impl background",
+      "description": "Under what can be implemented background code",
+      "category": "implementation",
+      "order": 1,
+      "tags": [
+        "guide",
+        "implement"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "project-management",
+      "content": "\nHigh base in file details about it here.\n\nA brief information of that tree and to further make great folder\nThis could of organized more when\n#Lets see great structure after more tests in website with\n-A\n-B\n-C\n\nIn that all document all\nwe want is good and clear base and the top then in sub we get more. More great to find easy navigation on all or anything easy navigation\n\nall will use navigation set up quick to all things there with that easy system that easy make all get that all works correctly\n",
+      "title": "high node folder on base details. Used by main",
+      "description": "main node base under file tree on projects folder guide",
+      "category": "project-management",
+      "order": 0,
+      "tags": [
+        "base nodes of site with a solid approach",
+        "documentatoin-leveling"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "strategies-synchronization_strategy",
+      "content": "\nA general plan and documentations how can we sync and how so it makes great strategy between cloud databases + service in general for all of to make great all times over again and\neach device client or more will still working\n",
+      "title": "details as they synchrony between each details to cloud dbs. and service on client browser in general to keep UI to scale always",
+      "description": "high details to be made when and at all places or types, we dont need always what make sync right",
+      "category": "strategies",
+      "order": 0,
+      "tags": [
+        "detail"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "strategies",
+      "content": "\nThis document serves as the main foundation and starting point for new developers on the project.\nIt provides a basic understanding of the strategies, establishing a solid foundation from which everything else operates.\nIt is recommended to read this first to get a comprehensive overview.\nThis guide aims to clarify and improve understanding of these essential concepts.\n",
+      "title": "Strategies: A Foundational Guide for Project Development",
+      "description": "This guide provides a foundational understanding of project strategies, serving as a starting point for new developers.",
+      "category": "strategies",
+      "order": 0,
+      "tags": [
+        "guides",
+        "code-patterns",
+        "development-methodologies"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "api-resume",
+      "content": "\n# Resume Analysis API Endpoint Documentation (`src/app/api/resume/analyze/route.ts`)\n\n## Overview\n\nThe `src/app/api/resume/analyze/route.ts` file defines an API endpoint that analyzes a resume file and returns a JSON response with analysis results.\n\n## Functionality\n\n- **Analyzes Resume:** Accepts a resume file as input and analyzes it.\n- **Returns Analysis Results:** Returns a JSON response containing a score, strengths, weaknesses, suggestions, present keywords, missing keywords, present sections, and missing sections.\n\n## Technical Details\n\n- The endpoint uses the `NextResponse` object from `next/server` to return the JSON response.\n- The endpoint accepts a `file` in the `multipart/form-data` format.\n- The endpoint simulates resume analysis with a 2-second delay.\n- The analysis results include a score (between 60 and 90), strengths, weaknesses, suggestions, present keywords, missing keywords, present sections, and missing sections.\n\n## Data Flow\n\n1.  A POST request is made to the `/api/resume/analyze` endpoint with a `file` in the `multipart/form-data` format.\n2.  The endpoint analyzes the resume file.\n3.  The endpoint returns a JSON response with the analysis results.\n\n## Example Response\n\n```json\n{\n  \"score\": 75,\n  \"strengths\": [\n    \"Strong work experience\",\n    \"Good skills section\",\n    \"Clear communication skills\"\n  ],\n  \"weaknesses\": [\n    \"Missing keywords\",\n    \"Poor formatting\",\n    \"Lack of quantifiable results\"\n  ],\n  \"suggestions\": [\n    \"Add more keywords related to the job description\",\n    \"Improve formatting to be more ATS-friendly\",\n    \"Quantify your achievements with numbers and data\"\n  ],\n  \"keywords\": {\n    \"present\": [\"JavaScript\", \"React\", \"Node.js\", \"HTML\", \"CSS\"],\n    \"missing\": [\"TypeScript\", \"Next.js\", \"Redux\", \"GraphQL\"]\n  },\n  \"sections\": {\n    \"present\": [\"Experience\", \"Skills\", \"Education\", \"Summary\"],\n    \"missing\": [\"Projects\", \"Awards\", \"Certifications\"]\n  }\n}\n```\n",
+      "title": "Resume Analysis API Endpoint Documentation",
+      "description": "Documentation for the Resume Analysis API endpoint.",
+      "category": "Uncategorized",
+      "order": 0,
+      "tags": [
+        "api",
+        "resume"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-search",
+      "content": "\n# Search API Endpoint Documentation (`src/app/api/search/route.ts`)\n\n## Overview\n\nThe `src/app/api/search/route.ts` file defines an API endpoint that performs a search across blog posts and tools data. It loads the data from static files and filters the results based on a predefined query (\"seo\").\n\n## Functionality\n\n- **Searches Blog Posts:** Searches blog posts for the predefined query (\"seo\").\n- **Searches Tools Data:** Searches tools data for the predefined query (\"seo\").\n- **Returns JSON Response:** Returns the search results for blog posts and tools as a JSON response.\n\n## Technical Details\n\n- The endpoint uses the `loadStaticData` function from `../../../lib/load-static-data` to load the blog posts and tools data.\n- The endpoint filters the data based on a predefined query (\"seo\").\n\n## Data Flow\n\n1.  A GET request is made to the `/api/search` endpoint.\n2.  The endpoint loads the blog posts and tools data from static files.\n3.  The endpoint filters the data based on the predefined query (\"seo\").\n4.  The endpoint returns the search results for blog posts and tools as a JSON response.\n",
+      "title": "Search API Endpoint Documentation",
+      "description": "Documentation for the Search API endpoint.",
+      "category": "Uncategorized",
+      "order": 0,
+      "tags": [
+        "search",
+        "api",
+        "endpoint"
+      ],
+      "date": "2025-05-30"
+    },
+    {
+      "slug": "not-found",
+      "content": "\n# Not Found Page Documentation\n\nThis directory contains documentation related to the 404 (Not Found) page within the ScaleSmart application.\n\n## Overview\n\nThe 404 page is displayed when a user attempts to access a resource that does not exist. This documentation outlines the design and functionality of the custom 404 page.\n\n## Key Areas\n\n- **User Experience:** Guidelines for providing a user-friendly 404 experience.\n- **Custom Component:** Implementation details for the custom 404 page component.\n- **Error Handling:** How the application handles and redirects to the 404 page.\n\nFurther details on each aspect can be found in the relevant sections below.\n",
+      "title": "Not Found Page Documentation",
+      "description": "Documentation for the 404 (Not Found) page.",
+      "category": "Uncategorized",
+      "order": 0,
+      "tags": [
+        "not found",
+        "404",
+        "error page"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "page",
+      "content": "\n# General Pages Documentation\n\nThis directory contains documentation related to general pages within the ScaleSmart application.\n\n## Overview\n\nThis documentation outlines the structure and conventions for creating and managing general pages within the application.\n\n## Key Areas\n\n- **Page Structure:** Guidelines for the basic structure of a page (e.g., header, content, footer).\n- **Component Usage:** Recommended components for building page layouts.\n- **Routing:** How pages are routed and accessed within the application.\n\nFurther details on each aspect can be found in the relevant sections below.\n",
+      "title": "General Pages Documentation",
+      "description": "Documentation for general pages within the application.",
+      "category": "Uncategorized",
+      "order": 0,
+      "tags": [
+        "page",
+        "general",
+        "structure"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "supabase",
+      "content": "\n## Row Level Security and Policies Setup\n\n**Key Changes Made:**\n\n- Function Definition First: The public.validate_verification_token function is now defined before any policies that reference it, ensuring that it exists when the policies are created.\n\n```sql\n-- Enable Row Level Security for all tables\nALTER TABLE public.users ENABLE ROW LEVEL SECURITY;\nALTER TABLE public.accounts ENABLE ROW LEVEL SECURITY;\nALTER TABLE public.sessions ENABLE ROW LEVEL SECURITY;\nALTER TABLE public.verification_tokens ENABLE ROW LEVEL SECURITY;\n\n-- Updated validate_verification_token Function\nCREATE OR REPLACE FUNCTION public.validate_verification_token(token TEXT, identifier TEXT)\nRETURNS BOOLEAN AS $$\nBEGIN\n  RETURN EXISTS (\n    SELECT 1\n    FROM public.verification_tokens\n    WHERE public.verification_tokens.token = token\n      AND public.verification_tokens.identifier = identifier\n      AND public.verification_tokens.expires > NOW()\n  );\nEND;\n$$ LANGUAGE plpgsql SECURITY DEFINER;\n\n-- Users Table Policies\nCREATE POLICY \"Users can select their own user data.\" ON public.users\nAS PERMISSIVE FOR SELECT\nTO public\nUSING (id = auth.uid());\n\nCREATE POLICY \"Users can update their own user data.\" ON public.users\nAS PERMISSIVE FOR UPDATE\nTO public\nUSING (id = auth.uid())\nWITH CHECK (updated_at IS NOT NULL);  -- Restrict updates to only the updated_at field\n\nDROP POLICY IF EXISTS \"Users can delete their own user data.\" ON public.users;\n\n-- Accounts Table Policies\nCREATE POLICY \"Users can select accounts associated with their user ID.\" ON public.accounts\nAS PERMISSIVE FOR SELECT\nTO public\nUSING (user_id = auth.uid());\n\nCREATE POLICY \"Users can insert accounts associated with their user ID.\" ON public.accounts\nAS PERMISSIVE FOR INSERT\nTO public\nWITH CHECK (user_id = auth.uid());\n\nCREATE POLICY \"Users can update accounts associated with their user ID.\" ON public.accounts\nAS PERMISSIVE FOR UPDATE\nTO public\nUSING (user_id = auth.uid())\nWITH CHECK (\n    (oauth_token IS NULL OR oauth_token IS NOT NULL) AND\n    (oauth_scopes IS NULL OR oauth_scopes IS NOT NULL)\n);  -- Ensure only oauth_token and oauth_scopes can be updated\n\nCREATE POLICY \"Users can delete accounts associated with their user ID.\" ON public.accounts\nAS PERMISSIVE FOR DELETE\nTO public\nUSING (user_id = auth.uid());\n\n-- Sessions Table Policies\nCREATE POLICY \"Users can select sessions associated with their user ID.\" ON public.sessions\nAS PERMISSIVE FOR SELECT\nTO public\nUSING (user_id = auth.uid());\n\nCREATE POLICY \"Users can insert sessions associated with their user ID.\" ON public.sessions\nAS PERMISSIVE FOR INSERT\nTO public\nWITH CHECK (user_id = auth.uid());\n\n-- If updates are needed, implement a similar policy as accounts\nCREATE POLICY \"Users can update sessions associated with their user ID.\" ON public.sessions\nAS PERMISSIVE FOR UPDATE\nTO public\nUSING (user_id = auth.uid())\nWITH CHECK (TRUE);  -- Adjust as necessary to restrict specific fields\n\nCREATE POLICY \"Users can delete sessions associated with their user ID.\" ON public.sessions\nAS PERMISSIVE FOR DELETE\nTO public\nUSING (user_id = auth.uid());\n\n-- Verification Tokens Table Policies\nCREATE POLICY \"Allow inserts for anyone.\" ON public.verification_tokens\nAS PERMISSIVE FOR INSERT\nTO public\nWITH CHECK (true);  -- Consider restricting this policy\n\nCREATE POLICY \"Allow selects only for valid tokens.\" ON public.verification_tokens\nAS PERMISSIVE FOR SELECT\nTO public\nUSING (public.validate_verification_token(token, identifier));\n\n-- Trigger function for users table\nCREATE OR REPLACE FUNCTION public.check_user_update()\nRETURNS TRIGGER AS $$\nBEGIN\n  IF TG_OP = 'UPDATE' THEN\n    IF NEW.id <> OLD.id OR NEW.email <> OLD.email OR NEW.created_at <> OLD.created_at THEN\n      RAISE EXCEPTION 'Cannot update id, email, or created_at fields';\n    END IF;\n  END IF;\n  RETURN NEW;\nEND;\n$$ LANGUAGE plpgsql SECURITY DEFINER;\n\n-- Trigger for users table\nCREATE TRIGGER check_user_update_trigger\nBEFORE UPDATE ON public.users\nFOR EACH ROW\nEXECUTE FUNCTION public.check_user_update();\n\n-- Trigger function for accounts table\nCREATE OR REPLACE FUNCTION public.check_account_update()\nRETURNS TRIGGER AS $$\nBEGIN\n  IF TG_OP = 'UPDATE' THEN\n    IF NEW.id <> OLD.id OR NEW.user_id <> OLD.user_id OR NEW.provider_type <> OLD.provider_type OR NEW.provider_id <> OLD.provider_id OR NEW.provider_account_id <> OLD.provider_account_id OR NEW.created_at <> OLD.created_at THEN\n      RAISE EXCEPTION 'Cannot update id, user_id, provider_type, provider_id, provider_account_id, or created_at fields';\n    END IF;\n  END IF;\n  RETURN NEW;\nEND;\n$$ LANGUAGE plpgsql SECURITY DEFINER;\n\n-- Trigger for accounts table\nCREATE TRIGGER check_account_update_trigger\nBEFORE UPDATE ON public.accounts\nFOR EACH ROW\nEXECUTE FUNCTION public.check_account_update();\n```\n",
+      "title": "Supabase Integration Documentation",
+      "description": "Documentation related to Supabase integration, including RLS (Row Level Security) policies.",
+      "category": "Uncategorized",
+      "order": 0,
+      "tags": [
+        "supabase",
+        "database",
+        "authentication",
+        "rls",
+        "postgresql"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "utils",
+      "content": "\n# Utility Functions Documentation (`src/lib/utils.ts`)\n\nThis document provides an overview and usage details for the utility functions defined in `src/lib/utils.ts`.\n\n## `cn`\n\nThe `cn` function is a utility for conditionally joining CSS class names together. It leverages `clsx` and `tailwind-merge` to efficiently combine class strings, resolve conflicts, and ensure proper Tailwind CSS class ordering.\n\n### Function Signature\n\n```typescript\nfunction cn(...inputs: ClassValue[]): string;\n```\n\n### Parameters\n\n- `inputs`: An array of `ClassValue` (which can be strings, objects, or arrays of `ClassValue`).\n\n### Return Value\n\nA single string containing merged and optimized CSS class names.\n\n### Example\n\n```typescript\nimport { cn } from '@/lib/utils';\n\nconst isActive = true;\nconst buttonClasses = cn(\n  'p-2',\n  'bg-blue-500',\n  isActive && 'text-white',\n  { 'font-bold': isActive },\n  'hover:bg-blue-700',\n);\nconsole.log(buttonClasses); // Output: \"p-2 bg-blue-500 text-white font-bold hover:bg-blue-700\"\n```\n\n## `generateSlug`\n\nThe `generateSlug` function generates a URL-friendly slug from a given title string. It converts the title to lowercase, replaces spaces with hyphens, removes non-alphanumeric characters (except hyphens), and trims leading/trailing hyphens.\n\n### Function Signature\n\n```typescript\nfunction generateSlug(title: string): string;\n```\n\n### Parameters\n\n- `title`: The input string (title) to be converted into a slug.\n\n### Return Value\n\nA string representing the generated slug.\n\n### Example\n\n```typescript\nimport { generateSlug } from '@/lib/utils';\n\nconst title = 'My Awesome Course Title!';\nconst slug = generateSlug(title);\nconsole.log(slug); // Output: \"my-awesome-course-title\"\n```\n",
+      "title": "Utility Functions Documentation (src/lib/utils.ts)",
+      "description": "Documentation for utility functions.",
+      "category": "Uncategorized",
+      "order": 0,
+      "tags": [
+        "utility",
+        "functions"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "workflow-builder",
+      "content": "\n# Workflow Builder Documentation\n\n## Overview\n\nThe Workflow Builder page is a React component that allows users to create and manage workflows visually. It uses the `reactflow` library to provide a drag-and-drop interface for building workflows.\n\n## Functionality\n\n- **Node Creation:** Users can drag nodes from the sidebar onto the canvas to add them to the workflow.\n- **Node Connection:** Users can connect nodes by dragging edges between them.\n- **Workflow Saving:** Users can save the current workflow to IndexedDB.\n- **Workflow Loading:** Users can load a previously saved workflow from IndexedDB.\n- **Workflow Execution:** Users can execute the workflow, which will run the logic defined by the nodes and edges.\n",
+      "title": "Workflow Builder Documentation",
+      "description": "Documentation for the Workflow Builder.",
+      "category": "Uncategorized",
+      "order": 0,
+      "tags": [
+        "workflow",
+        "builder"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "api-api-cache",
+      "content": "\n# API Cache Documentation (`src/lib/api-cache.ts`)\n\n## Overview\n\nThe `src/lib/api-cache.ts` file defines a utility function `cachedFetch` that provides a simple caching mechanism for API requests. This function is designed to improve performance by reducing the number of API calls made to the server.\n\n## Functionality\n\n- **Cache API Responses:** Caches the responses from API requests to reduce the number of calls to the server.\n- **Automatic Cache Invalidation:** Automatically invalidates the cache after a specified time period.\n- **Error Handling:** Handles errors gracefully and returns the error response to the client.\n\n## Technical Details\n\n- The function uses IndexedDB for caching.\n- The function uses the URL as the key for caching.\n- The function uses the `fetch` API to make the API request.\n\n## Usage\n\n```typescript\nimport { cachedFetch } from '@/lib/api-cache';\n\nconst MyComponent = async () => {\n  const response = await cachedFetch('/api/my-endpoint');\n  const data = await response.json();\n\n  return (\n    <div>\n      {data.map((item) => (\n        <p key={item.id}>{item.name}</p>\n      ))}\n    </div>\n  );\n};\n```\n\n## Parameters\n\n- `url`: The URL of the API endpoint to fetch.\n- `options`: The options to pass to the `fetch` API.\n\n## Return Value\n\nThe function returns a promise that resolves to a `Response` object.\n",
+      "title": "API Cache Documentation",
+      "description": "Documentation for the API Cache utility.",
+      "category": "utils",
+      "order": 0,
+      "tags": [
+        "api",
+        "cache",
+        "documentation"
+      ],
+      "date": "2025-05-31"
+    },
+    {
+      "slug": "docs-directory-overview",
+      "content": "\n# This area goes for showing all what the data provides\n\nTalk about static versus the need for api, maybe that the information exists locally\n",
+      "title": "Docs Overview Layout",
+      "description": "high level documentation describing folder layout and where what should exit",
+      "category": "utils",
+      "order": 1,
+      "tags": [
+        "docs",
+        "layout"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "metadata",
+      "content": "\nDetails all what h happen to get set metadata quickly from all our settings from project.\n",
+      "title": "Where configurations that go outside other settings go under root MDX",
+      "description": "general settings file to put and other configuration/specific set up of each document for search engines like what meta they require per documentation style to each website.",
+      "category": "utils",
+      "order": 2,
+      "tags": [
+        "all"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "layout",
+      "content": "\nDetails more of global application layout level\nAnd be more descriptive overall more details\n\nGreat document all we can make better so people have an accurate reading about layouts and its uses\n\nThis helps describe where we extend base html elements through those layout. also which third parties also depend such to style things in those frameworks on different frameworks and UI\n",
+      "title": "Base Layout of the general",
+      "description": "Explanations surrounding root or other Layout usage details with meta and other related properties to it.",
+      "category": "utils",
+      "order": 3,
+      "tags": [
+        "guides",
+        "implementations"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "loading",
+      "content": "\nLoading screens and details behind data or content pre rendered or user based as quick action\nHere code exmaple of this section is added on how to leverage load and all benefits of server usage/side, pre render user expectations, set it up before time, not do it after. Quick for each client, so long. details of UI matters and those points comes after here\n",
+      "title": "This section is based code spliting example based all",
+      "description": "loading - with what going with SSR and that ",
+      "category": "utils",
+      "order": 4,
+      "tags": [
+        "detailings to make code function proper on how to operate page faster or user expectations set up time frame on web pages"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "scripts",
+      "content": "\nDocument in where the other function that helpers that does\nlocal\nexport async function downloadBase64StringAsImage(base64String: string, filename: string = \"image\") {\nif (typeof window === 'undefined') {\nconsole.error(\"You are calling this function outside of the Browser.\");\nreturn;\n}\n// Credit:\n// https://stackoverflow.com/a/74482141\nconst parts = base64String.match(/^data:(._?);base64,(._)$/);\nif (!parts || parts.length !== 3) {\nthrow new Error('Invalid base64 string');\n}\nconst [, mimeType, base64Data] = parts;\n\n    const byteCharacters = atob(base64Data);\n    const byteArrays = [];\n\n    for (let offset = 0; offset < byteCharacters.length; offset += 512) {\n        const slice = byteCharacters.slice(offset, offset + 512);\n\n        const byteNumbers = new Array(slice.length);\n        for (let i = 0; i < slice.length; i++) {\n            byteNumbers[i] = slice.charCodeAt(i);\n        }\n\n        const byteArray = new Uint8Array(byteNumbers);\n        byteArrays.push(byteArray);\n    }\n\n    const blob = new Blob(byteArrays, { type: mimeType });\n    const url = URL.createObjectURL(blob);\n    // Create a temporary download link\n    const a = document.createElement('a');\n    a.href = url;\n    a.download = filename; // You can provide a desired file name here\n\n    // Programmatically trigger the download\n    document.body.appendChild(a);\n    a.click();\n\n    // Clean up: remove the temporary link and revoke the URL\n    document.body.removeChild(a);\n    URL.revokeObjectURL(url);\n\n}\nDetails what helps\n",
+      "title": "all global helper scripts",
+      "description": "main to contain other helpers to read this section of site with all the base helper types details",
+      "category": "utils",
+      "order": 8,
+      "tags": [
+        "testing",
+        "functions helper with client interaction!"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "local-storage",
+      "content": "\n# details for using storage side from clients. Browser things\n\nDetails examples\n",
+      "title": "Base information as local like configurations and quick actions",
+      "description": "details and examples surrounding local setups",
+      "category": "utils",
+      "order": 10,
+      "tags": [
+        "about"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "privacy-policy",
+      "content": "\n## Privacy Policy\n\nLast Updated: May 21, 2025\n\nThis Privacy Policy describes how we collect, use, and protect your information when you use this application.\n\n### Data Storage\n\nCurrently, your data is stored locally within your web browser's IndexedDB. This is part of our free tier service. We do not collect or store any personal data on our servers at this time.\n\n### Data Usage\n\nThe stored data is used solely to provide the application's core functionality and improve your user experience. We do not share your data with any third parties.\n\n### User Rights\n\nYou have the right to access, modify, and delete your data. You can do this by clearing your browser's site data. We also encourage you to use any available \"Export\" features to back up your data.\n\n### Future Plans\n\nWe are planning to introduce a paid tier with cloud storage. We will update this policy to reflect any changes in data handling practices when this feature is available.\n\n### Third-Party Services\n\nFor the core functionality of this application, we do not utilize third-party services that collect your personal data.\n\nWe use Vercel Analytics to understand general traffic patterns and improve our website experience. Vercel Analytics collects anonymized and aggregated data, including metrics such as page views, visit durations, browser types, operating systems, and general geographic locations (derived from IP addresses but anonymized). This data helps us understand how users interact with our site and identify areas for improvement. For detailed information on Vercel's privacy practices regarding their analytics, please visit their [Privacy Policy](https://vercel.com/legal/privacy-policy). Vercel Analytics is designed to be privacy-focused and collects anonymized, aggregated data; it does not track individual users or use cookies for tracking purposes.\n\nWe reserve the right to update this Privacy Policy periodically. Significant changes will be announced prominently within the application and via email to registered users, ensuring you are always informed of how your information is handled.\n\nFor any questions or concerns regarding this Privacy Policy, please contact us at privacy@scalesmart.com.\n",
+      "title": "Privacy Policy",
+      "description": "Our commitment to your data privacy.",
+      "category": "utils",
+      "order": 21,
+      "tags": [
+        "policy",
+        "privacy"
+      ],
+      "date": "2025-06-03"
+    },
+    {
+      "slug": "robots",
+      "content": "\n# robots.txt Documentation\n\nThis directory contains documentation related to the `robots.txt` file within the ScaleSmart application.\n\n## Overview\n\nThe `robots.txt` file provides instructions to web crawlers (e.g., Googlebot) about which parts of the site they are allowed to access. This documentation outlines the purpose and configuration of the `robots.txt` file.\n\n## Key Areas\n\n- **File Structure:** Explanation of the syntax and directives used in `robots.txt`.\n- **Crawler Directives:** Details on how to allow or disallow specific crawlers from accessing certain parts of the site.\n- **SEO Implications:** Best practices for using `robots.txt` to optimize search engine crawling.\n\nFurther details on each aspect can be found in the relevant sections below.\n",
+      "title": "robots.txt Documentation",
+      "description": "Documentation for the robots.txt file.",
+      "category": "utils",
+      "order": 22,
+      "tags": [
+        "robots.txt",
+        "seo",
+        "crawler"
+      ],
+      "date": "2025-06-01"
+    },
+    {
+      "slug": "sitemap",
+      "content": "\nBase info to look\nThis just links so all in this documentation file is more what makes it good\n\nPlease look sub so we dont lost. In web so all understand those sites set you can learn on page quickly or know or fix things up. Great example!\n",
+      "title": "file is meant here and more with sitemap",
+      "description": "A document on base that contains code here. What and base is great",
+      "category": "utils",
+      "order": 23,
+      "tags": [
+        "web details",
+        "localsetup",
+        "to load fast sites",
+        "basic next setup"
+      ],
+      "date": "2025-06-01"
+    }
+  ]
 }
