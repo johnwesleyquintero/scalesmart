@@ -3,7 +3,14 @@
 import typography from '@tailwindcss/typography';
 import tailwindcssAnimate from 'tailwindcss-animate';
 
-const headingColor = 'var(--tw-prose-headings)';
+// Define frequently used color variables as constants
+const foregroundColor = 'hsl(var(--foreground))';
+const borderColor = 'hsl(var(--border))';
+const mutedColor = 'hsl(var(--muted))';
+const mutedForegroundColor = 'hsl(var(--muted-foreground))';
+const primaryColor = 'hsl(var(--primary))';
+const primaryForegroundColor = 'hsl(var(--primary-foreground))';
+
 const config = {
   darkMode: ['class'],
   content: [
@@ -46,14 +53,14 @@ const config = {
         black: '900',
       },
       colors: {
-        border: 'hsl(var(--border))',
+        border: borderColor,
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
-        foreground: 'hsl(var(--foreground))',
+        foreground: foregroundColor,
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: primaryColor,
+          foreground: primaryForegroundColor,
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -64,8 +71,8 @@ const config = {
           foreground: 'hsl(var(--destructive-foreground))',
         },
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--muted-foreground))',
+          DEFAULT: mutedColor,
+          foreground: mutedForegroundColor,
         },
         accent: {
           DEFAULT: 'hsl(var(--accent))',
@@ -135,28 +142,126 @@ const config = {
         DEFAULT: {
           css: {
             maxWidth: '100%',
-            color: 'var(--tw-prose-body)',
-            a: {
-              color: 'var(--tw-prose-links)',
-              '&:hover': {
-                color: 'var(--tw-prose-links-hover)',
+            color: foregroundColor,
+            fontSize: '1rem',
+            lineHeight: '1.75rem',
+            h1: {
+              color: foregroundColor,
+              fontSize: '2.25rem',
+              lineHeight: '2.5rem',
+              marginTop: '2rem',
+              marginBottom: '1rem',
+              fontWeight: '700',
+              scrollMarginTop: '2rem',
+              '&:first-child': {
+                marginTop: '0',
               },
             },
-            h1: {
-              color: headingColor,
-            },
             h2: {
-              color: headingColor,
+              color: foregroundColor,
+              fontSize: '1.875rem',
+              lineHeight: '2.25rem',
+              marginTop: '2rem',
+              marginBottom: '1rem',
+              fontWeight: '600',
+              scrollMarginTop: '2rem',
+              borderBottom: `1px solid ${borderColor}`,
+              paddingBottom: '0.5rem',
+              '&:first-child': {
+                marginTop: '0',
+              },
             },
             h3: {
-              color: headingColor,
+              color: foregroundColor,
+              fontSize: '1.5rem',
+              lineHeight: '2rem',
+              marginTop: '1.5rem',
+              marginBottom: '0.75rem',
+              fontWeight: '600',
+              scrollMarginTop: '2rem',
             },
             h4: {
-              color: headingColor,
+              color: foregroundColor,
+              fontSize: '1.25rem',
+              lineHeight: '1.75rem',
+              marginTop: '1.5rem',
+              marginBottom: '0.75rem',
+              fontWeight: '600',
+              scrollMarginTop: '2rem',
+            },
+            p: {
+              marginTop: '1rem',
+              marginBottom: '1rem',
+              '&:first-child': {
+                marginTop: '0',
+              },
+            },
+            a: {
+              color: primaryColor,
+              textDecoration: 'underline',
+              textUnderlineOffset: '4px',
+              fontWeight: '500',
+              '&:hover': {
+                color: primaryForegroundColor,
+              },
+            },
+            ul: {
+              listStyleType: 'disc',
+              marginLeft: '1.5rem',
+              paddingLeft: '0.5rem',
+              marginTop: '1rem',
+              marginBottom: '1rem',
+              '& > li': {
+                marginTop: '0.5rem',
+              },
+            },
+            ol: {
+              listStyleType: 'decimal',
+              marginLeft: '1.5rem',
+              paddingLeft: '0.5rem',
+              marginTop: '1rem',
+              marginBottom: '1rem',
+              '& > li': {
+                marginTop: '0.5rem',
+              },
+            },
+            li: {
+              marginTop: '0.25rem',
+              marginBottom: '0.25rem',
+            },
+            blockquote: {
+              borderLeftColor: borderColor,
+              borderLeftWidth: '4px',
+              paddingLeft: '1rem',
+              fontStyle: 'italic',
+              color: mutedForegroundColor,
+              marginTop: '1.5rem',
+              marginBottom: '1.5rem',
+            },
+            table: {
+              width: '100%',
+              marginTop: '1.5rem',
+              marginBottom: '1.5rem',
+              borderCollapse: 'collapse',
+              textAlign: 'left',
+              fontSize: '0.875rem',
+              lineHeight: '1.25rem',
+              'th, td': {
+                padding: '0.75rem',
+                border: `1px solid ${borderColor}`,
+              },
+              th: {
+                backgroundColor: mutedColor,
+                fontWeight: '600',
+                color: foregroundColor,
+              },
+              'tbody tr:nth-child(even)': {
+                backgroundColor: mutedColor,
+              },
             },
             code: {
-              color: 'var(--tw-prose-code)',
-              backgroundColor: 'var(--tw-prose-code-bg)',
+              color: foregroundColor,
+              backgroundColor: mutedColor,
               padding: '0.2em 0.4em',
               borderRadius: '0.25rem',
               fontWeight: '500',
@@ -167,9 +272,83 @@ const config = {
             'code::after': {
               content: '""',
             },
+            pre: {
+              backgroundColor: mutedColor,
+              color: foregroundColor,
+              padding: '1rem',
+              borderRadius: '0.375rem',
+              overflowX: 'auto',
+              marginTop: '1.5rem',
+              marginBottom: '1.5rem',
+            },
+            kbd: {
+              backgroundColor: mutedColor,
+              color: foregroundColor,
+              padding: '0.2em 0.4em',
+              borderRadius: '0.25rem',
+              fontFamily: 'monospace',
+              fontSize: '0.875rem',
+            },
+            hr: {
+              marginTop: '2rem',
+              marginBottom: '2rem',
+              borderTopWidth: '1px',
+              borderColor: borderColor,
+            },
+          },
+        },
+        dark: {
+          css: {
+            color: mutedForegroundColor,
+            a: {
+              color: primaryColor,
+              '&:hover': {
+                color: primaryForegroundColor,
+              },
+            },
+            h1: {
+              color: foregroundColor,
+            },
+            h2: {
+              color: foregroundColor,
+              borderBottomColor: borderColor,
+            },
+            h3: {
+              color: foregroundColor,
+            },
+            h4: {
+              color: foregroundColor,
+            },
             blockquote: {
-              color: 'var(--tw-prose-quotes)',
-              borderLeftColor: 'var(--tw-prose-quote-borders)',
+              borderLeftColor: borderColor,
+              color: mutedForegroundColor,
+            },
+            table: {
+              'th, td': {
+                borderColor: borderColor,
+              },
+              th: {
+                backgroundColor: mutedColor,
+                color: foregroundColor,
+              },
+              'tbody tr:nth-child(even)': {
+                backgroundColor: mutedColor,
+              },
+            },
+            code: {
+              color: foregroundColor,
+              backgroundColor: mutedColor,
+            },
+            pre: {
+              backgroundColor: mutedColor,
+              color: foregroundColor,
+            },
+            kbd: {
+              backgroundColor: mutedColor,
+              color: foregroundColor,
+            },
+            hr: {
+              borderColor: borderColor,
             },
           },
         },

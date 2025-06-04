@@ -7,61 +7,27 @@ import { clsx } from 'clsx'; // Import clsx
 // Define custom components to be used within MDX
 // These components will override default HTML elements or provide custom functionality
 export const components = {
-  h1: ({ children }: { children: React.ReactNode }) => (
-    <h1 className="mt-8 scroll-m-20 text-3xl font-bold tracking-tight first:mt-0">
-      {children}
-    </h1>
-  ),
-  h2: ({ children }: { children: React.ReactNode }) => (
-    <h2 className="mt-10 scroll-m-20 border-b pb-1 text-2xl font-semibold tracking-tight first:mt-0">
-      {children}
-    </h2>
-  ),
-  h3: ({ children }: { children: React.ReactNode }) => (
-    <h3 className="mt-8 scroll-m-20 text-xl font-semibold tracking-tight">
-      {children}
-    </h3>
-  ),
-  h4: ({ children }: { children: React.ReactNode }) => (
-    <h4 className="mt-8 scroll-m-20 text-lg font-semibold tracking-tight">
-      {children}
-    </h4>
-  ),
-  p: ({ children }: { children: React.ReactNode }) => (
-    <p className="leading-7 [&:not(:first-child)]:mt-6">{children}</p>
-  ),
-  ul: ({ children }: { children: React.ReactNode }) => (
-    <ul className="my-6 ml-6 list-disc [&>li]:mt-2">{children}</ul>
-  ),
-  ol: ({ children }: { children: React.ReactNode }) => (
-    <ol className="my-6 ml-6 list-decimal [&>li]:mt-2">{children}</ol>
-  ),
+  h1: ({ children }: { children: React.ReactNode }) => <h1>{children}</h1>,
+  h2: ({ children }: { children: React.ReactNode }) => <h2>{children}</h2>,
+  h3: ({ children }: { children: React.ReactNode }) => <h3>{children}</h3>,
+  h4: ({ children }: { children: React.ReactNode }) => <h4>{children}</h4>,
+  p: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
+  ul: ({ children }: { children: React.ReactNode }) => <ul>{children}</ul>,
+  ol: ({ children }: { children: React.ReactNode }) => <ol>{children}</ol>,
   li: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
   blockquote: ({ children }: { children: React.ReactNode }) => (
-    <blockquote className="mt-6 border-l-2 pl-6 italic">{children}</blockquote>
+    <blockquote>{children}</blockquote>
   ),
   table: ({ children }: { children: React.ReactNode }) => (
     <div className="my-6 w-full overflow-y-auto">
-      <table className="w-full">{children}</table>
+      <table>{children}</table>
     </div>
   ),
-  tr: ({ children }: { children: React.ReactNode }) => (
-    <tr className="m-0 border-t p-0 even:bg-muted">{children}</tr>
-  ),
-  th: ({ children }: { children: React.ReactNode }) => (
-    <th className="border px-4 py-2 text-left font-bold [&[align=center]]:text-center [&[align=right]]:text-right">
-      {children}
-    </th>
-  ),
-  td: ({ children }: { children: React.ReactNode }) => (
-    <td className="border px-4 py-2 text-left [&[align=center]]:text-center [&[align=right]]:text-right">
-      {children}
-    </td>
-  ),
+  tr: ({ children }: { children: React.ReactNode }) => <tr>{children}</tr>,
+  th: ({ children }: { children: React.ReactNode }) => <th>{children}</th>,
+  td: ({ children }: { children: React.ReactNode }) => <td>{children}</td>,
   a: ({ children, href }: { children: React.ReactNode; href?: string }) => (
-    <a href={href} className="font-medium underline underline-offset-4">
-      {children}
-    </a>
+    <a href={href}>{children}</a>
   ),
   code: ({
     children,
@@ -71,9 +37,9 @@ export const components = {
     <code
       className={clsx(
         'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm',
-        className, // Allow incoming classNames from rehype-prism-plus
+        className,
       )}
-      {...props} // Spread any other props, e.g., language-xxx
+      {...props}
     >
       {children}
     </code>
@@ -81,44 +47,31 @@ export const components = {
   pre: ({
     children,
     className,
-    // The raw tabindex attribute from server might conflict with React's camelCase tabIndex prop.
-    // Filter it out from 'props' and apply it explicitly for code blocks if present or implied.
     ...rest
   }: React.ComponentPropsWithoutRef<'pre'>) => {
     const isCodeBlock = className && className.includes('language-');
-    // Ensure tabIndex is explicitly set to 0 for code blocks, mirroring rehype-prism-plus behavior.
-    // If a tabIndex prop already exists and is not 'undefined', prefer that value.
     const effectiveTabIndex = isCodeBlock ? 0 : rest.tabIndex || undefined;
 
-    // Remove tabIndex from `rest` to avoid passing it twice if it came in both forms
-    // and to let our explicit `tabIndex={effectiveTabIndex}` control it.
     const cleanedProps = { ...rest };
     if ('tabIndex' in cleanedProps) {
       delete cleanedProps.tabIndex;
     }
-    // You may add a console.log here to observe `className` and `effectiveTabIndex`
-    // during hydration if further debugging is needed, but for now we'll proceed with the fix.
 
     return (
       <pre
-        // Apply the calculated tabIndex explicitly
         tabIndex={effectiveTabIndex}
         className={clsx(
           'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm overflow-x-auto my-4 p-4 rounded-md',
-          className, // Ensure language- classes are preserved
+          className,
         )}
-        {...cleanedProps} // Spread any other remaining props
+        {...cleanedProps}
       >
         {children}
       </pre>
     );
   },
-  kbd: ({ children }: { children: React.ReactNode }) => (
-    <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-      {children}
-    </kbd>
-  ),
-  hr: () => <hr className="my-4 md:my-8" />,
+  kbd: ({ children }: { children: React.ReactNode }) => <kbd>{children}</kbd>,
+  hr: () => <hr />,
   Quiz: Quiz,
   // Add any other custom components you want to use in your MDX files
 };

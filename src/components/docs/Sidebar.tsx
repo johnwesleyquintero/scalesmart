@@ -100,8 +100,8 @@ function DocLink({
         href={`/docs/${doc.slug}`}
         className={`relative block py-1.5 transition-colors duration-200 ${
           isActive
-            ? 'text-blue-600 font-semibold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-full before:w-[3px] before:bg-blue-600'
-            : 'text-gray-700 hover:text-blue-600'
+            ? 'text-primary font-semibold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-full before:w-[3px] before:bg-primary'
+            : 'text-muted-foreground hover:text-foreground'
         }`}
       >
         {doc.title}
@@ -143,7 +143,7 @@ function SidebarSection({
           {category.replace(/-/g, ' ')}
         </AccordionTrigger>
         <AccordionContent className="pb-0">
-          <ul className="space-y-1 pl-4 border-l">
+          <ul className="space-y-1 pl-4 border-l border-border">
             {docs.map((doc) => (
               <DocLink
                 key={doc.slug}

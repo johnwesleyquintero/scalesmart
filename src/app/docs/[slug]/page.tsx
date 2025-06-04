@@ -19,7 +19,7 @@ export async function generateStaticParams() {
 export default async function DocPage({ params }: DocPageProps) {
   // Await params here based on the Next.js 15.3.3 experimental version feedback
   // For stable Next.js versions, `params` is usually directly accessible
-  const { slug } = params;
+  const { slug } = await params;
 
   let content;
   let metadata;
@@ -36,7 +36,7 @@ export default async function DocPage({ params }: DocPageProps) {
 
   // Pass the components from MdxRenderer to MDXRemote
   return (
-    <div className="prose dark:prose-invert max-w-none">
+    <div className="dark:prose-invert max-w-none">
       {/* Optionally display metadata like title, description */}
       {metadata && <h1>{metadata.title}</h1>}
       {metadata && metadata.description && <p>{metadata.description}</p>}

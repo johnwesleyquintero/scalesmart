@@ -119,7 +119,7 @@ const SearchInput = ({
     <input
       type="text"
       placeholder={`Search documentation... ${isPending ? '⌛' : ''}`}
-      className="w-full p-2 border rounded-md"
+      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
       value={internalValue}
       onChange={handleChange}
     />
@@ -133,15 +133,17 @@ const ResultsList = ({
   results: DocArticleMetadata[];
   onSelect: (slug: string) => void;
 }) => (
-  <ul className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+  <ul className="absolute z-10 w-full bg-popover border border-border rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
     {results.map((result) => (
       <li
         key={result.slug}
-        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+        className="px-4 py-2 hover:bg-accent hover:text-accent-foreground cursor-pointer"
         onClick={() => onSelect(result.slug)}
       >
-        <div className="font-semibold">{result.title}</div>
-        <div className="text-sm text-gray-600">{result.description}</div>
+        <div className="font-semibold text-foreground">{result.title}</div>
+        <div className="text-sm text-muted-foreground">
+          {result.description}
+        </div>
       </li>
     ))}
   </ul>
@@ -156,7 +158,7 @@ const StatusMessage = ({
 }) => (
   <div
     className={`p-4 text-center ${
-      type === 'error' ? 'text-red-500' : 'text-gray-500'
+      type === 'error' ? 'text-destructive' : 'text-muted-foreground'
     }`}
   >
     {message}
@@ -185,7 +187,7 @@ export default function DocSearch() {
   if (error) return <StatusMessage message={`Error: ${error}`} type="error" />;
 
   return (
-    <div className="relative w-full max-w-md mx-auto">
+    <div className="relative w-full">
       <SearchInput value={query} onChange={setQuery} />
 
       {queryToSearch.length > 1 &&

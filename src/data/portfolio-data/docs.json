@@ -7,10 +7,7 @@
       "description": "Documentation for the CourseListServer component.",
       "category": "academy",
       "order": 1,
-      "tags": [
-        "academy",
-        "course-list-server"
-      ],
+      "tags": ["academy", "course-list-server"],
       "date": "2025-05-30"
     },
     {
@@ -20,11 +17,7 @@
       "description": "This document outlines the process for updating content in the ScaleSmart Academy.",
       "category": "academy",
       "order": 2,
-      "tags": [
-        "academy",
-        "content",
-        "indexeddb"
-      ],
+      "tags": ["academy", "content", "indexeddb"],
       "date": "2025-06-01"
     },
     {
@@ -34,13 +27,7 @@
       "description": "The Admin Page (src/app/admin/page.tsx) is the main page for the admin section of the application.",
       "category": "admin",
       "order": 0,
-      "tags": [
-        "admin",
-        "page",
-        "authentication",
-        "authorization",
-        "supabase"
-      ],
+      "tags": ["admin", "page", "authentication", "authorization", "supabase"],
       "date": "2025-06-01"
     },
     {
@@ -50,11 +37,7 @@
       "description": "Documentation for the Amazon Seller Tools page.",
       "category": "amazon-seller-tools",
       "order": 0,
-      "tags": [
-        "amazon",
-        "seller",
-        "tools"
-      ],
+      "tags": ["amazon", "seller", "tools"],
       "date": "2025-05-30"
     },
     {
@@ -64,10 +47,7 @@
       "description": "Documentation for integrating Vercel Analytics.",
       "category": "analytics",
       "order": 0,
-      "tags": [
-        "analytics",
-        "documentation"
-      ],
+      "tags": ["analytics", "documentation"],
       "date": "2025-05-31"
     },
     {
@@ -77,12 +57,7 @@
       "description": "Documentation for the Academy Article API endpoint.",
       "category": "api",
       "order": 0,
-      "tags": [
-        "api",
-        "academy",
-        "article",
-        "slug"
-      ],
+      "tags": ["api", "academy", "article", "slug"],
       "date": "2025-05-31"
     },
     {
@@ -102,11 +77,7 @@
       "description": "Documentation for the Academy Article API.",
       "category": "api",
       "order": 1,
-      "tags": [
-        "academy",
-        "article",
-        "api"
-      ],
+      "tags": ["academy", "article", "api"],
       "date": "2025-05-30"
     },
     {
@@ -116,11 +87,7 @@
       "description": "This document provides an overview of the API endpoints for the ScaleSmart application.",
       "category": "api",
       "order": 1,
-      "tags": [
-        "api",
-        "endpoints",
-        "documentation"
-      ],
+      "tags": ["api", "endpoints", "documentation"],
       "date": "2025-06-01"
     },
     {
@@ -130,11 +97,7 @@
       "description": "Documentation for the Academy Courses API endpoint.",
       "category": "api",
       "order": 2,
-      "tags": [
-        "academy",
-        "courses",
-        "api"
-      ],
+      "tags": ["academy", "courses", "api"],
       "date": "2025-05-30"
     },
     {
@@ -144,11 +107,7 @@
       "description": "Documentation for the Amazon Competitor Analysis API endpoint.",
       "category": "api",
       "order": 3,
-      "tags": [
-        "api",
-        "amazon",
-        "competitor-analysis"
-      ],
+      "tags": ["api", "amazon", "competitor-analysis"],
       "date": "2025-05-31"
     },
     {
@@ -158,11 +117,7 @@
       "description": "Documentation for the Amazon Inventory API endpoint.",
       "category": "api",
       "order": 4,
-      "tags": [
-        "api",
-        "amazon",
-        "inventory"
-      ],
+      "tags": ["api", "amazon", "inventory"],
       "date": "2025-05-31"
     },
     {
@@ -172,11 +127,7 @@
       "description": "Documentation for the Amazon Keyword Trends API endpoint.",
       "category": "api",
       "order": 5,
-      "tags": [
-        "api",
-        "amazon",
-        "keyword-trends"
-      ],
+      "tags": ["api", "amazon", "keyword-trends"],
       "date": "2025-05-31"
     },
     {
@@ -186,11 +137,7 @@
       "description": "Documentation for the Amazon Pricing API in Amazon Seller Tools.",
       "category": "api",
       "order": 6,
-      "tags": [
-        "api",
-        "amazon",
-        "pricing"
-      ],
+      "tags": ["api", "amazon", "pricing"],
       "date": "2025-05-31"
     },
     {
@@ -200,11 +147,7 @@
       "description": "Documentation for the Chat API endpoint.",
       "category": "api",
       "order": 7,
-      "tags": [
-        "api",
-        "chat",
-        "documentation"
-      ],
+      "tags": ["api", "chat", "documentation"],
       "date": "2025-05-31"
     },
     {
@@ -214,11 +157,7 @@
       "description": "Documentation for the Contact API endpoint.",
       "category": "api",
       "order": 8,
-      "tags": [
-        "api",
-        "contact",
-        "documentation"
-      ],
+      "tags": ["api", "contact", "documentation"],
       "date": "2025-05-31"
     },
     {
@@ -228,11 +167,7 @@
       "description": "Documentation for the Content API endpoint.",
       "category": "api",
       "order": 9,
-      "tags": [
-        "api",
-        "content",
-        "documentation"
-      ],
+      "tags": ["api", "content", "documentation"],
       "date": "2025-05-31"
     },
     {
@@ -242,11 +177,7 @@
       "description": "Documentation for the Download API endpoint.",
       "category": "api",
       "order": 10,
-      "tags": [
-        "api",
-        "download",
-        "documentation"
-      ],
+      "tags": ["api", "download", "documentation"],
       "date": "2025-05-31"
     },
     {
@@ -256,10 +187,7 @@
       "description": "Documentation for the Module Progress API endpoint.",
       "category": "api",
       "order": 11,
-      "tags": [
-        "api",
-        "module-progress"
-      ],
+      "tags": ["api", "module-progress"],
       "date": "2025-05-31"
     },
     {
@@ -269,10 +197,7 @@
       "description": "Documentation for the Prohibited Keywords API endpoint.",
       "category": "api",
       "order": 12,
-      "tags": [
-        "api",
-        "prohibited-keywords"
-      ],
+      "tags": ["api", "prohibited-keywords"],
       "date": "2025-05-31"
     },
     {
@@ -282,11 +207,7 @@
       "description": "Documentation for the Redis API endpoint.",
       "category": "api",
       "order": 13,
-      "tags": [
-        "api",
-        "redis",
-        "documentation"
-      ],
+      "tags": ["api", "redis", "documentation"],
       "date": "2025-05-31"
     },
     {
@@ -296,10 +217,7 @@
       "description": "Analysis of recent architectural changes.",
       "category": "architecture",
       "order": 0,
-      "tags": [
-        "architecture",
-        "analysis"
-      ],
+      "tags": ["architecture", "analysis"],
       "date": "2025-05-31"
     },
     {
@@ -309,10 +227,7 @@
       "description": "Comprehensive architectural documentation for the project, covering key components, data flows, and design principles.",
       "category": "architecture",
       "order": 1,
-      "tags": [
-        "architecture",
-        "overview"
-      ],
+      "tags": ["architecture", "overview"],
       "date": "2025-05-31"
     },
     {
@@ -322,11 +237,7 @@
       "description": "Documentation for the Applicant Tracking System (ATS) integration or features.",
       "category": "ats",
       "order": 0,
-      "tags": [
-        "ats",
-        "applicant tracking",
-        "integration"
-      ],
+      "tags": ["ats", "applicant tracking", "integration"],
       "date": "2025-06-01"
     },
     {
@@ -336,12 +247,7 @@
       "description": "Documentation for the NextAuth.js options.",
       "category": "auth",
       "order": 0,
-      "tags": [
-        "api",
-        "auth",
-        "nextauth",
-        "options"
-      ],
+      "tags": ["api", "auth", "nextauth", "options"],
       "date": "2025-05-31"
     },
     {
@@ -351,11 +257,7 @@
       "description": "Documentation for the NextAuth.js API route.",
       "category": "auth",
       "order": 1,
-      "tags": [
-        "api",
-        "auth",
-        "nextauth"
-      ],
+      "tags": ["api", "auth", "nextauth"],
       "date": "2025-05-31"
     },
     {
@@ -365,10 +267,7 @@
       "description": "Documentation for the Blog layout.",
       "category": "blog",
       "order": 0,
-      "tags": [
-        "blog",
-        "layout"
-      ],
+      "tags": ["blog", "layout"],
       "date": "2025-05-30"
     },
     {
@@ -378,10 +277,7 @@
       "description": "The `src/app/blog/[slug]/page.tsx` file defines the individual blog post page.",
       "category": "blog",
       "order": 1,
-      "tags": [
-        "blog",
-        "page"
-      ],
+      "tags": ["blog", "page"],
       "date": "2025-05-30"
     },
     {
@@ -391,12 +287,7 @@
       "description": "Documentation for the blog section of the project, including layout and slug configurations.",
       "category": "blog",
       "order": 2,
-      "tags": [
-        "blog",
-        "content management",
-        "layout",
-        "slug"
-      ],
+      "tags": ["blog", "content management", "layout", "slug"],
       "date": "2025-06-01"
     },
     {
@@ -406,11 +297,7 @@
       "description": "The `src/app/blog/[slug]/not-found.tsx` file defines a custom not-found page for individual blog posts.",
       "category": "blog",
       "order": 4,
-      "tags": [
-        "blog",
-        "not found",
-        "page"
-      ],
+      "tags": ["blog", "not found", "page"],
       "date": "2025-05-30"
     },
     {
@@ -420,11 +307,7 @@
       "description": "Documentation for the chat functionality of the project.",
       "category": "chat",
       "order": 0,
-      "tags": [
-        "chat",
-        "realtime",
-        "communication"
-      ],
+      "tags": ["chat", "realtime", "communication"],
       "date": "2025-06-01"
     },
     {
@@ -434,10 +317,7 @@
       "description": "The `src/app/content/blog` directory contains the MDX files that provide the content for the blog posts.",
       "category": "content",
       "order": 0,
-      "tags": [
-        "blog",
-        "content"
-      ],
+      "tags": ["blog", "content"],
       "date": "2025-05-30"
     },
     {
@@ -447,11 +327,7 @@
       "description": "Documentation related to content management, specifically for the blog.",
       "category": "content",
       "order": 0,
-      "tags": [
-        "content",
-        "management",
-        "blog"
-      ],
+      "tags": ["content", "management", "blog"],
       "date": "2025-06-01"
     },
     {
@@ -461,10 +337,7 @@
       "description": "Documentation for the Customer Relationship Management (CRM) features of the project.",
       "category": "crm",
       "order": 0,
-      "tags": [
-        "crm",
-        "customer relationship management"
-      ],
+      "tags": ["crm", "customer relationship management"],
       "date": "2025-06-01"
     },
     {
@@ -474,9 +347,7 @@
       "description": "high level documentation for anything dealing with client data",
       "category": "data",
       "order": 0,
-      "tags": [
-        "data"
-      ],
+      "tags": ["data"],
       "date": "2025-06-01"
     },
     {
@@ -486,10 +357,7 @@
       "description": "All documentations to what can be accomplished on setting it all up with chartjs as a baseline for that framework",
       "category": "data",
       "order": 4,
-      "tags": [
-        "data",
-        "Data Viz"
-      ],
+      "tags": ["data", "Data Viz"],
       "date": "2025-06-01"
     },
     {
@@ -499,12 +367,7 @@
       "description": "Plan on integrating indexeddb as the Data store",
       "category": "data-storage",
       "order": 0,
-      "tags": [
-        "data",
-        "data-storage",
-        "indexeddb",
-        "planning"
-      ],
+      "tags": ["data", "data-storage", "indexeddb", "planning"],
       "date": "2025-06-01"
     },
     {
@@ -514,10 +377,7 @@
       "description": "Details documentation on what is related to data storage",
       "category": "data-storage",
       "order": 0,
-      "tags": [
-        "data",
-        "data-storage"
-      ],
+      "tags": ["data", "data-storage"],
       "date": "2025-06-01"
     },
     {
@@ -527,11 +387,7 @@
       "description": "Details about using indexedDB data store solution",
       "category": "data-storage",
       "order": 1,
-      "tags": [
-        "data",
-        "data-storage",
-        "indexeddb"
-      ],
+      "tags": ["data", "data-storage", "indexeddb"],
       "date": "2025-06-01"
     },
     {
@@ -541,11 +397,7 @@
       "description": "more specific implementation points on integrating with IndexedDB client data store solution",
       "category": "data-storage",
       "order": 1,
-      "tags": [
-        "data",
-        "data-storage",
-        "indexeddb"
-      ],
+      "tags": ["data", "data-storage", "indexeddb"],
       "date": "2025-06-01"
     },
     {
@@ -555,11 +407,7 @@
       "description": "Focused on indexedDB Service functions",
       "category": "data-storage",
       "order": 2,
-      "tags": [
-        "data",
-        "data-storage",
-        "indexeddb"
-      ],
+      "tags": ["data", "data-storage", "indexeddb"],
       "date": "2025-06-01"
     },
     {
@@ -569,10 +417,7 @@
       "description": "What errors will happen when things mess up.",
       "category": "error-guide",
       "order": 0,
-      "tags": [
-        "guides",
-        "testing"
-      ],
+      "tags": ["guides", "testing"],
       "date": "2025-06-01"
     },
     {
@@ -582,10 +427,7 @@
       "description": "higher node with basic settings, please go to that",
       "category": "error-guide",
       "order": 1,
-      "tags": [
-        "guides",
-        "all"
-      ],
+      "tags": ["guides", "all"],
       "date": "2025-06-01"
     },
     {
@@ -595,12 +437,7 @@
       "description": "All routing to take user from being uncaught/ not exist or other unforeseen consequences for not reaching the server",
       "category": "error-guide",
       "order": 2,
-      "tags": [
-        "guides",
-        "routes",
-        "api",
-        "edge"
-      ],
+      "tags": ["guides", "routes", "api", "edge"],
       "date": "2025-06-01"
     },
     {
@@ -610,10 +447,7 @@
       "description": "Details surrounding different error boundary situations that happen when rendered in web environment",
       "category": "error-guide",
       "order": 3,
-      "tags": [
-        "data",
-        "ErrorView"
-      ],
+      "tags": ["data", "ErrorView"],
       "date": "2025-06-01"
     },
     {
@@ -623,10 +457,7 @@
       "description": "Instructions and advice needed or local operations ",
       "category": "getting-started",
       "order": 0,
-      "tags": [
-        "general",
-        "implementation"
-      ],
+      "tags": ["general", "implementation"],
       "date": "2025-06-01"
     },
     {
@@ -646,9 +477,7 @@
       "description": "To setup you needs this information as local dev dependency in NextJs applications to be ready on a working model",
       "category": "getting-started",
       "order": 1,
-      "tags": [
-        "about"
-      ],
+      "tags": ["about"],
       "date": "2025-06-01"
     },
     {
@@ -658,10 +487,7 @@
       "description": "High level introduction documentation to begin with the scaleSmart WebProject!",
       "category": "getting-started",
       "order": 2,
-      "tags": [
-        "introduction",
-        "guides"
-      ],
+      "tags": ["introduction", "guides"],
       "date": "2025-06-01"
     },
     {
@@ -671,9 +497,7 @@
       "description": "UseHooks main entry page or documentation root page for that grouping, as we use on SHadcn UI, makes great practice!",
       "category": "hooks",
       "order": 0,
-      "tags": [
-        "section guide"
-      ],
+      "tags": ["section guide"],
       "date": "2025-06-01"
     },
     {
@@ -683,12 +507,7 @@
       "description": "Details surrounding useLocalStorage custom hooks for data settings like preferences/history that need not have been sent on server",
       "category": "hooks",
       "order": 1,
-      "tags": [
-        "guides",
-        "custom hooks",
-        "localstorage",
-        "settings"
-      ],
+      "tags": ["guides", "custom hooks", "localstorage", "settings"],
       "date": "2025-06-01"
     },
     {
@@ -714,11 +533,7 @@
       "description": "Great way or tutorial to understanding each of the props in toast and other settings that apply in nextjs component",
       "category": "hooks",
       "order": 3,
-      "tags": [
-        "component based",
-        "hooks",
-        "ui framework"
-      ],
+      "tags": ["component based", "hooks", "ui framework"],
       "date": "2025-06-01"
     },
     {
@@ -728,9 +543,7 @@
       "description": "Top document all around implementation concerns of the architecture itself",
       "category": "implementation",
       "order": 0,
-      "tags": [
-        "data"
-      ],
+      "tags": ["data"],
       "date": "2025-06-01"
     },
     {
@@ -740,10 +553,7 @@
       "description": "Under what can be implemented background code",
       "category": "implementation",
       "order": 1,
-      "tags": [
-        "guide",
-        "implement"
-      ],
+      "tags": ["guide", "implement"],
       "date": "2025-06-01"
     },
     {
@@ -766,9 +576,7 @@
       "description": "high details to be made when and at all places or types, we dont need always what make sync right",
       "category": "strategies",
       "order": 0,
-      "tags": [
-        "detail"
-      ],
+      "tags": ["detail"],
       "date": "2025-06-01"
     },
     {
@@ -778,11 +586,7 @@
       "description": "This guide provides a foundational understanding of project strategies, serving as a starting point for new developers.",
       "category": "strategies",
       "order": 0,
-      "tags": [
-        "guides",
-        "code-patterns",
-        "development-methodologies"
-      ],
+      "tags": ["guides", "code-patterns", "development-methodologies"],
       "date": "2025-06-01"
     },
     {
@@ -792,10 +596,7 @@
       "description": "Documentation for the Resume Analysis API endpoint.",
       "category": "Uncategorized",
       "order": 0,
-      "tags": [
-        "api",
-        "resume"
-      ],
+      "tags": ["api", "resume"],
       "date": "2025-05-31"
     },
     {
@@ -805,11 +606,7 @@
       "description": "Documentation for the Search API endpoint.",
       "category": "Uncategorized",
       "order": 0,
-      "tags": [
-        "search",
-        "api",
-        "endpoint"
-      ],
+      "tags": ["search", "api", "endpoint"],
       "date": "2025-05-30"
     },
     {
@@ -819,11 +616,7 @@
       "description": "Documentation for the 404 (Not Found) page.",
       "category": "Uncategorized",
       "order": 0,
-      "tags": [
-        "not found",
-        "404",
-        "error page"
-      ],
+      "tags": ["not found", "404", "error page"],
       "date": "2025-06-01"
     },
     {
@@ -833,11 +626,7 @@
       "description": "Documentation for general pages within the application.",
       "category": "Uncategorized",
       "order": 0,
-      "tags": [
-        "page",
-        "general",
-        "structure"
-      ],
+      "tags": ["page", "general", "structure"],
       "date": "2025-06-01"
     },
     {
@@ -847,13 +636,7 @@
       "description": "Documentation related to Supabase integration, including RLS (Row Level Security) policies.",
       "category": "Uncategorized",
       "order": 0,
-      "tags": [
-        "supabase",
-        "database",
-        "authentication",
-        "rls",
-        "postgresql"
-      ],
+      "tags": ["supabase", "database", "authentication", "rls", "postgresql"],
       "date": "2025-06-01"
     },
     {
@@ -863,10 +646,7 @@
       "description": "Documentation for utility functions.",
       "category": "Uncategorized",
       "order": 0,
-      "tags": [
-        "utility",
-        "functions"
-      ],
+      "tags": ["utility", "functions"],
       "date": "2025-06-01"
     },
     {
@@ -876,10 +656,7 @@
       "description": "Documentation for the Workflow Builder.",
       "category": "Uncategorized",
       "order": 0,
-      "tags": [
-        "workflow",
-        "builder"
-      ],
+      "tags": ["workflow", "builder"],
       "date": "2025-05-31"
     },
     {
@@ -889,11 +666,7 @@
       "description": "Documentation for the API Cache utility.",
       "category": "utils",
       "order": 0,
-      "tags": [
-        "api",
-        "cache",
-        "documentation"
-      ],
+      "tags": ["api", "cache", "documentation"],
       "date": "2025-05-31"
     },
     {
@@ -903,10 +676,7 @@
       "description": "high level documentation describing folder layout and where what should exit",
       "category": "utils",
       "order": 1,
-      "tags": [
-        "docs",
-        "layout"
-      ],
+      "tags": ["docs", "layout"],
       "date": "2025-06-01"
     },
     {
@@ -916,9 +686,7 @@
       "description": "general settings file to put and other configuration/specific set up of each document for search engines like what meta they require per documentation style to each website.",
       "category": "utils",
       "order": 2,
-      "tags": [
-        "all"
-      ],
+      "tags": ["all"],
       "date": "2025-06-01"
     },
     {
@@ -928,10 +696,7 @@
       "description": "Explanations surrounding root or other Layout usage details with meta and other related properties to it.",
       "category": "utils",
       "order": 3,
-      "tags": [
-        "guides",
-        "implementations"
-      ],
+      "tags": ["guides", "implementations"],
       "date": "2025-06-01"
     },
     {
@@ -953,10 +718,7 @@
       "description": "main to contain other helpers to read this section of site with all the base helper types details",
       "category": "utils",
       "order": 8,
-      "tags": [
-        "testing",
-        "functions helper with client interaction!"
-      ],
+      "tags": ["testing", "functions helper with client interaction!"],
       "date": "2025-06-01"
     },
     {
@@ -966,9 +728,7 @@
       "description": "details and examples surrounding local setups",
       "category": "utils",
       "order": 10,
-      "tags": [
-        "about"
-      ],
+      "tags": ["about"],
       "date": "2025-06-01"
     },
     {
@@ -978,10 +738,7 @@
       "description": "Our commitment to your data privacy.",
       "category": "utils",
       "order": 21,
-      "tags": [
-        "policy",
-        "privacy"
-      ],
+      "tags": ["policy", "privacy"],
       "date": "2025-06-03"
     },
     {
@@ -991,11 +748,7 @@
       "description": "Documentation for the robots.txt file.",
       "category": "utils",
       "order": 22,
-      "tags": [
-        "robots.txt",
-        "seo",
-        "crawler"
-      ],
+      "tags": ["robots.txt", "seo", "crawler"],
       "date": "2025-06-01"
     },
     {
