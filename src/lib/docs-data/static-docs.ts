@@ -1,6 +1,16 @@
-import { readFileSync, readdirSync } from 'fs';
+import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import matter from 'gray-matter';
+import { DocPost, DocsJsonData } from '@/types'; // Import DocsJsonData
+
+// IMPORTANT: This import assumes a docs.json file will be generated at build time
+// containing all documentation content. This file is crucial for production deployments
+// where direct file system access to MDX files might not be available.
+// The structure of docs.json should be { "docs": DocPost[] }.
+import rawDocsData from '@/data/portfolio-data/docs.json';
+
+// Assert the type of the imported JSON data.
+const docsData: DocsJsonData = rawDocsData as DocsJsonData;
 
 const DOCS_CONTENT_PATH = join(process.cwd(), 'src/app/content/docs');
 
@@ -14,6 +24,17 @@ export interface DocArticleMetadata {
 }
 
 export function getAllDocSlugs() {
+  // In production, direct file system access to content files might fail.
+  // We check if the directory exists. If not, we fall back to pre-generated JSON data.
+  if (!existsSync(DOCS_CONTENT_PATH)) {
+    console.log('[Docs Data] Falling back to JSON data for doc slugs.');
+    return docsData.docs.map((doc: DocPost) => ({
+      params: {
+        slug: doc.slug,
+      },
+    }));
+  }
+
   const files = readdirSync(DOCS_CONTENT_PATH);
 
   return files.map((filename) => ({
@@ -27,6 +48,28 @@ export function getDocBySlug(slug: string): {
   content: string;
   data: DocArticleMetadata;
 } {
+  // In production, direct file system access to content files might fail.
+  // We check if the directory exists. If not, we fall back to pre-generated JSON data.
+  if (!existsSync(DOCS_CONTENT_PATH)) {
+    console.log(`[Docs Data] Falling back to JSON data for doc slug: ${slug}`);
+    const doc = docsData.docs.find((d: DocPost) => d.slug === slug);
+    if (doc) {
+      return {
+        content: doc.content || '', // Provide fallback for content
+        data: {
+          slug: doc.slug,
+          title: doc.title || 'Untitled Document', // Provide fallback for title
+          description: doc.description || '', // Provide fallback for description
+          category: doc.category || 'Uncategorized', // Provide fallback for category
+          order: doc.order || 0, // Provide fallback for order
+          tags: doc.tags || [], // Ensure tags is an array
+        } as DocArticleMetadata,
+      };
+    } else {
+      throw new Error(`Doc with slug ${slug} not found in JSON data.`);
+    }
+  }
+
   const fullPath = join(DOCS_CONTENT_PATH, `${slug}.mdx`);
   const fileContents = readFileSync(fullPath, 'utf8');
 

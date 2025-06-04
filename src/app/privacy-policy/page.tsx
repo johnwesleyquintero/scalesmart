@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import ArticleModule from '@/app/academy/components/ArticleModule';
+import ArticleModule from '@/components/shared/ArticleModule';
+import TimeStamp from '@/components/TimeStamp';
 
 export default function PrivacyPolicyPage() {
   return (
@@ -15,8 +16,7 @@ export default function PrivacyPolicyPage() {
             </CardTitle>
           </CardHeader>
           <p className="text-sm text-center text-gray-500 mb-6">
-            {/* Last Updated: <TimeStamp date="2025-05-21" relative /> */}
-            Last Updated: May 21, 2025
+            Last Updated: <TimeStamp date="2025-05-21" relative />
           </p>
           <CardContent className="space-y-6 text-gray-700">
             <ArticleModule contentSlug="privacy-policy" />

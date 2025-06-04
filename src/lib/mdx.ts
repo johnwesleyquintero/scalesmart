@@ -1,8 +1,8 @@
-import fs from 'fs';
+import fs, { existsSync } from 'fs'; // Add existsSync
 import matter from 'gray-matter';
 import path from 'path';
 import { z } from 'zod';
-import { BlogPost, DocPost } from '@/types';
+import { BlogPost, DocPost, AcademyJsonData } from '@/types'; // Add AcademyJsonData
 import {
   DEFAULT_DOC_TITLE,
   INTRODUCTION_SLUG,
@@ -11,9 +11,17 @@ import {
   DEFAULT_DOC_VERSION,
 } from '@/config/docs';
 
+// IMPORTANT: This import assumes an academy.json file will be generated at build time
+// containing all academy content. This file is crucial for production deployments
+// where direct file system access to MDX files might not be available.
+// The structure of academy.json should be { "academy": DocPost[] }.
+import rawAcademyData from '@/data/portfolio-data/academy.json';
+const academyData: AcademyJsonData = rawAcademyData as AcademyJsonData;
+
 const EMPTY_STRING = '';
 const DEFAULT_READING_TIME = '5 min read';
 const DEFAULT_AUTHOR = 'Wesley Quintero';
+const DEFAULT_ACADEMY_ARTICLE_TITLE = 'Untitled Academy Article';
 
 const STR_MDX = 'mdx';
 const STR_MD = 'md';
@@ -137,6 +145,24 @@ export async function getAllDocPosts(): Promise<DocPost[]> {
 }
 
 export async function getAllAcademyArticles(): Promise<DocPost[]> {
+  // In production, direct file system access to content files might fail.
+  // We check if the directory exists. If not, we fall back to pre-generated JSON data.
+  if (!existsSync(academyArticlesDirectory)) {
+    console.log(
+      '[Academy Data] Falling back to JSON data for academy articles.',
+    );
+    return academyData.academy.map((article: DocPost) => ({
+      ...article,
+      // Ensure required fields are present, provide fallbacks if necessary
+      title: article.title || DEFAULT_ACADEMY_ARTICLE_TITLE,
+      description: article.description || '',
+      date: article.date || new Date().toISOString().split('T')[0],
+      content: article.content || '',
+      slug: article.slug,
+      id: article.id,
+    }));
+  }
+
   const academyFiles: string[] = [];
   readFilesFlat(academyArticlesDirectory, academyFiles); // Use readFilesFlat for academy
 
@@ -183,7 +209,7 @@ function deriveContentTitle(
   }
 
   const defaultTitle =
-    fileType === 'academy' ? 'Untitled Academy Article' : DEFAULT_DOC_TITLE;
+    fileType === 'academy' ? DEFAULT_ACADEMY_ARTICLE_TITLE : DEFAULT_DOC_TITLE;
 
   const titleFromSlug =
     slug
@@ -394,6 +420,30 @@ export async function getDocPostBySlug(
 export async function getAcademyArticleBySlug(
   slug: string,
 ): Promise<DocPost | undefined> {
+  // In production, direct file system access to content files might fail.
+  // We check if the directory exists. If not, we fall back to pre-generated JSON data.
+  if (!existsSync(academyArticlesDirectory)) {
+    console.log(
+      `[Academy Data] Falling back to JSON data for academy slug: ${slug}`,
+    );
+    const article = academyData.academy.find((a: DocPost) => a.slug === slug);
+    if (article) {
+      return {
+        ...article,
+        // Ensure required fields are present, provide fallbacks if necessary
+        title: article.title || DEFAULT_ACADEMY_ARTICLE_TITLE,
+        description: article.description || '',
+        date: article.date || new Date().toISOString().split('T')[0],
+        content: article.content || '',
+        slug: article.slug,
+        id: article.id,
+      };
+    } else {
+      console.warn(`Academy article with slug ${slug} not found in JSON data.`);
+      return undefined;
+    }
+  }
+
   const fullPath = findContentFile(slug, academyArticlesDirectory, 'academy');
 
   if (!fullPath) {

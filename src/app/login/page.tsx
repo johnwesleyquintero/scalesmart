@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import Logo from '@/components/Logo';
 import LoginForm from './login-form';
 import { signIn, signUp, forgotPassword } from '../auth/actions';
+import { DevLogin } from './dev-login';
 
 const PRIVACY_POLICY_HREF = '/privacy-policy';
 const TERMS_OF_SERVICE_HREF = '/terms-of-service';
@@ -63,6 +64,7 @@ export default function LoginPage() {
           termsOfServiceHref={TERMS_OF_SERVICE_HREF}
         />
       </Card>
+      {process.env.NODE_ENV === 'development' && <DevLogin />}
     </main>
   );
 }

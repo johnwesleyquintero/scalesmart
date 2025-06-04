@@ -74,7 +74,7 @@ export async function signUp(formData: FormData) {
     password, // Now safe to use as checked above
     options: {
       // Email confirmation redirect URL
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: '',
     },
   });
 
@@ -120,8 +120,8 @@ export async function signUp(formData: FormData) {
     );
   }
 
-  // Redirect on successful sign-up, instructing the user to check their email for confirmation
-  return redirect('/login?message=Check email to continue sign up process.');
+  // Redirect on successful sign-up to the homepage
+  return redirect('/');
 }
 
 /**

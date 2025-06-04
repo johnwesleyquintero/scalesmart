@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Github, Loader2 } from 'lucide-react';
+import { Github, Loader2, Eye, EyeOff, Check, X } from 'lucide-react';
 import { signIn as NextAuthSignIn } from 'next-auth/react';
 import Link from 'next/link';
 import { useFormStatus } from 'react-dom';
@@ -18,7 +18,14 @@ const formSchema = z.object({
   password: z
     .string()
     .min(8, 'Password must be at least 8 characters long.')
-    .max(50, 'Password must not exceed 50 characters.'),
+    .max(50, 'Password must not exceed 50 characters.')
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(
+      /[^A-Za-z0-9]/,
+      'Password must contain at least one special character',
+    ),
 });
 
 interface LoginFormProps {
@@ -67,6 +74,33 @@ function SignUpButton({ action, label, variant = 'outline' }: AuthButtonProps) {
   );
 }
 
+function PasswordStrengthIndicator({ password }: { password: string }) {
+  const requirements = [
+    { regex: /.{8,}/, text: 'At least 8 characters' },
+    { regex: /[A-Z]/, text: 'One uppercase letter' },
+    { regex: /[a-z]/, text: 'One lowercase letter' },
+    { regex: /[0-9]/, text: 'One number' },
+    { regex: /[^A-Za-z0-9]/, text: 'One special character' },
+  ];
+
+  return (
+    <div className="space-y-2 mt-2">
+      {requirements.map((requirement, index) => (
+        <div key={index} className="flex items-center space-x-2">
+          {requirement.regex.test(password) ? (
+            <Check className="h-4 w-4 text-green-500" />
+          ) : (
+            <X className="h-4 w-4 text-destructive" />
+          )}
+          <span className="text-sm text-muted-foreground">
+            {requirement.text}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function LoginForm({
   signInAction,
   signUpAction,
@@ -76,6 +110,7 @@ export default function LoginForm({
 }: LoginFormProps) {
   const [isGitHubLoading, setIsGitHubLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -83,6 +118,7 @@ export default function LoginForm({
       email: '',
       password: '',
     },
+    mode: 'onChange',
   });
 
   const handleGitHubSignIn = async () => {
@@ -98,12 +134,9 @@ export default function LoginForm({
 
   const onSubmit = async (
     values: z.infer<typeof formSchema>,
-    event: React.FormEvent,
+    event: React.FormEvent<HTMLFormElement>,
   ) => {
-    const formData = new FormData(event.currentTarget as HTMLFormElement);
-    // Determine which action to call based on the button clicked, if needed
-    // For now, let's assume default action is signIn
-    // The server actions can then handle specific errors from NextAuth or DB
+    const formData = new FormData(event.currentTarget);
     await signInAction(formData);
   };
 
@@ -137,9 +170,10 @@ export default function LoginForm({
         {!showForgotPassword ? (
           <form
             onSubmit={form.handleSubmit((values, event) =>
-              onSubmit(values, event as React.FormEvent),
+              onSubmit(values, event as React.FormEvent<HTMLFormElement>),
             )}
             className="flex flex-col gap-4 text-foreground"
+            noValidate
           >
             {/* Email Field */}
             <div className="flex flex-col space-y-2">
@@ -151,7 +185,9 @@ export default function LoginForm({
                 type="email"
                 placeholder="m@example.com"
                 className="h-10"
+                autoComplete="email"
                 {...form.register('email')}
+                aria-invalid={form.formState.errors.email ? 'true' : 'false'}
               />
               {form.formState.errors.email && (
                 <p
@@ -169,22 +205,43 @@ export default function LoginForm({
               <Label htmlFor="password" className="text-sm font-medium">
                 Password
               </Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                className="mt-2 h-10"
-                {...form.register('password')}
-              />
+              <div className="relative mt-2">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  className="h-10 pr-10"
+                  autoComplete="current-password"
+                  {...form.register('password')}
+                  aria-invalid={
+                    form.formState.errors.password ? 'true' : 'false'
+                  }
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-10 w-10 px-3 py-2"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4" />
+                  ) : (
+                    <Eye className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
               {form.formState.errors.password && (
                 <p
-                  className="text-sm text-destructive"
+                  className="text-sm text-destructive mt-2"
                   role="alert"
                   aria-live="polite"
                 >
                   {form.formState.errors.password.message}
                 </p>
               )}
+              <PasswordStrengthIndicator password={form.watch('password')} />
               <Button
                 variant="link"
                 type="button"
@@ -203,51 +260,47 @@ export default function LoginForm({
             action={forgotPasswordAction}
             className="flex flex-col gap-4 text-foreground"
           >
-            <p className="text-sm text-muted-foreground">
-              Enter your email address to receive a password reset link.
-            </p>
             <div className="flex flex-col space-y-2">
-              <Label htmlFor="forgot-email" className="text-sm font-medium">
+              <Label htmlFor="email" className="text-sm font-medium">
                 Email
               </Label>
               <Input
-                id="forgot-email"
-                type="email"
+                id="email"
                 name="email"
+                type="email"
                 placeholder="m@example.com"
-                required
                 className="h-10"
+                required
               />
             </div>
-            <SignInButton
-              action={forgotPasswordAction}
-              label="Send Reset Link"
-            />
+            <Button type="submit" className="w-full">
+              Reset Password
+            </Button>
             <Button
-              variant="link"
               type="button"
-              className="w-full justify-center px-0 mt-2 text-xs sm:text-sm font-medium text-primary hover:text-primary/80"
+              variant="ghost"
+              className="mt-2"
               onClick={() => setShowForgotPassword(false)}
             >
-              Back to login
+              Back to Login
             </Button>
           </form>
         )}
 
-        <p className="px-0 text-center text-sm text-muted-foreground">
-          By clicking continue, you agree to our{' '}
-          <Link
-            href={privacyPolicyHref}
-            className="underline underline-offset-4 hover:text-primary"
-          >
-            Privacy Policy
-          </Link>
-          {' and '}
+        <p className="text-center text-sm text-muted-foreground">
+          By continuing, you agree to our{' '}
           <Link
             href={termsOfServiceHref}
             className="underline underline-offset-4 hover:text-primary"
           >
             Terms of Service
+          </Link>{' '}
+          and{' '}
+          <Link
+            href={privacyPolicyHref}
+            className="underline underline-offset-4 hover:text-primary"
+          >
+            Privacy Policy
           </Link>
           .
         </p>

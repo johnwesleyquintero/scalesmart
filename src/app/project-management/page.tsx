@@ -3,18 +3,10 @@
 
 import TaskList from '@/app/project-management/components/TaskList';
 import TaskForm from '@/app/project-management/components/TaskForm';
-import { useState, useEffect } from 'react';
-import { Task, Project } from '@/lib/indexeddb-service'; // Import Project
-import {
-  getAllTasks,
-  getAllProjects,
-  updateTask,
-} from '@/lib/indexeddb-service';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ProjectForm from './components/ProjectForm'; // Import ProjectForm
-import ProjectList from './components/ProjectList'; // Import ProjectList
-import DndProviderWrapper from '@/components/ui/DndProvider';
+import ProjectForm from './components/ProjectForm';
+import ProjectList from './components/ProjectList';
 import {
   DndContext,
   closestCorners,
@@ -22,51 +14,17 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
 } from '@dnd-kit/core';
+import { useProjectManagementData } from '@/hooks/use-project-management-data';
 
 const ProjectManagementPage = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]); // State for projects
-
-  useEffect(() => {
-    const fetchData = async () => {
-      const allTasks = await getAllTasks();
-      setTasks(allTasks);
-      const allProjects = await getAllProjects();
-      setProjects(allProjects);
-    };
-
-    fetchData();
-  }, []);
+  const { tasks, setTasks, projects, setProjects, handleDragEnd } =
+    useProjectManagementData();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor),
   );
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (active.id && over?.id) {
-      const draggedTaskId = String(active.id);
-      const newStatus = String(over.id);
-
-      // Update the task status in IndexedDB
-      const taskToUpdate = tasks.find((task) => task.id === draggedTaskId);
-      if (taskToUpdate && taskToUpdate.status !== newStatus) {
-        const updatedTask = { ...taskToUpdate, status: newStatus };
-        await updateTask(updatedTask); // Update in IndexedDB
-
-        // Update the local state
-        setTasks((prevTasks) =>
-          prevTasks.map((task) =>
-            task.id === draggedTaskId ? updatedTask : task,
-          ),
-        );
-      }
-    }
-  };
 
   return (
     <DndContext

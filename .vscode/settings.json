@@ -21,5 +21,6 @@
     "net"
   ],
   "editor.codeActionsOnSave": {},
-  "liveServer.settings.port": 5501
+  "liveServer.settings.port": 5501,
+  "cSpell.words": ["devpassword", "Uncategorized"]
 }

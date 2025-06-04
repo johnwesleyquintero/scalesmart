@@ -356,6 +356,17 @@
     or configure responsive values via tailwind.config.js.
   */
 
+  /* Grid background pattern */
+  .grid-background {
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, #80808012 1px, transparent 1px),
+      linear-gradient(to bottom, #80808012 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
   /* Tab Interface Styles - Kept as a specific component class example */
   .tab-button {
     /* Improved contrast for tab buttons using local variables */

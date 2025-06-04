@@ -238,7 +238,29 @@ export type DocPost = {
   type?: 'doc' | 'academy'; // Modified to include 'academy'
   /** File name for internal processing. */
   fileName?: string;
+  /** Optional category of the documentation or academy post. */
+  category?: string;
+  /** Optional order for sorting documentation or academy posts. */
+  order?: number;
 };
+
+/**
+ * @typedef {object} DocsJsonData
+ * @property {DocPost[]} docs - An array of documentation posts.
+ */
+export interface DocsJsonData {
+  /** An array of documentation posts. */
+  docs: DocPost[];
+}
+
+/**
+ * @typedef {object} AcademyJsonData
+ * @property {DocPost[]} academy - An array of academy articles.
+ */
+export interface AcademyJsonData {
+  /** An array of academy articles. */
+  academy: DocPost[];
+}
 
 /**
  * @typedef {object} Question

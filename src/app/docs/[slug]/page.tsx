@@ -19,7 +19,7 @@ export async function generateStaticParams() {
 export default async function DocPage({ params }: DocPageProps) {
   // Await params here based on the Next.js 15.3.3 experimental version feedback
   // For stable Next.js versions, `params` is usually directly accessible
-  const { slug } = await params;
+  const { slug } = params;
 
   let content;
   let metadata;
