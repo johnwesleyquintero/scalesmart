@@ -2,10 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import matter from 'gray-matter';
 
-const DOCS_CONTENT_PATH = path.join(process.cwd(), 'src/app/content/docs');
+const DOCS_CONTENT_PATH = path.resolve(__dirname, '../src/app/content/docs');
 const OUTPUT_FILE_PATH = path.join(
-  process.cwd(),
-  'src/data/portfolio-data/docs.json',
+  __dirname,
+  '../src/data/portfolio-data/docs.json',
 );
 
 const MARKDOWN_FILE_EXTENSIONS = ['.mdx', '.md'];
