@@ -1,7 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const DOCS_CONTENT_PATH = path.resolve(__dirname, '../src/app/content/docs');
 const OUTPUT_FILE_PATH = path.join(
   __dirname,
