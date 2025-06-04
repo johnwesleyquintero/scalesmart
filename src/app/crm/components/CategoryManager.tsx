@@ -37,36 +37,32 @@ const CategoryManager = ({
   onCategoryRenamed,
   customerCounts, // Destructure the new prop
 }: CategoryManagerProps) => {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<Category[]>(initialCategories);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const allCategories = await getAllCategories();
-        setCategories(allCategories);
-      } catch (error) {
-        console.error('Error loading categories:', error);
-        toast.error('Failed to load categories. See console for details.');
-      }
-    };
-
-    loadCategories();
-  }, []); // Still load initially for its own display, parent will also load
-
-  useEffect(() => {
     setCategories(initialCategories);
   }, [initialCategories]);
-
   const handleAddCategory = async () => {
-    if (!newCategoryName.trim()) {
+    const trimmedCategoryName = newCategoryName.trim();
+    if (!trimmedCategoryName) {
+      return;
+    }
+
+    // Check if a category with the same name already exists (case-insensitive)
+    const categoryExists = categories.some(
+      (category) => category.name.toLowerCase() === trimmedCategoryName.toLowerCase()
+    );
+
+    if (categoryExists) {
+      toast.error(`Category "${trimmedCategoryName}" already exists.`);
       return;
     }
 
     const newCategory: Category = {
       id: Date.now().toString(),
-      name: newCategoryName.trim(),
+      name: trimmedCategoryName,
     };
 
     try {
