@@ -6,7 +6,6 @@ test/
 .lighthouseci
 .wescore
 lighthouse-reports
-docs
 
 _.log
 _.md
