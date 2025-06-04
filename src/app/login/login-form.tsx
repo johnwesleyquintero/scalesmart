@@ -49,7 +49,7 @@ function SignInButton({ action, label, variant = 'default' }: AuthButtonProps) {
       type="submit"
       formAction={action}
       disabled={pending}
-      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground hidden md:inline-flex"
       variant={variant}
     >
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
