@@ -83,6 +83,24 @@ export default function CRMComponent() {
     handleDeleteCommunicationLog,
   } = useCRMData();
 
+  // Category Management Handlers for CustomerManagementTab
+  const handleAddCategory = async (categoryName: string) => {
+    // Generate a simple unique ID for the new category
+    const newCategory: Category = {
+      id: `cat-${Date.now()}`,
+      name: categoryName,
+    };
+    await handleCategoriesUpdate([...categories, newCategory]);
+  };
+
+  const handleEditCategory = async (categoryId: string, newName: string) => {
+    await handleCategoryRenamed(categoryId, newName);
+  };
+
+  const handleDeleteCategory = async (categoryId: string) => {
+    await handleCategorySuccessfullyDeleted(categoryId);
+  };
+
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
@@ -220,6 +238,9 @@ export default function CRMComponent() {
               handleCreateCommunicationLog={handleCreateCommunicationLog}
               handleUpdateCommunicationLog={handleUpdateCommunicationLog}
               handleDeleteCommunicationLog={handleDeleteCommunicationLog}
+              onAddCategory={handleAddCategory}
+              onEditCategory={handleEditCategory}
+              onDeleteCategory={handleDeleteCategory}
             />
           </TabsContent>
 
@@ -233,6 +254,9 @@ export default function CRMComponent() {
               handleCreateCommunicationLog={handleCreateCommunicationLog}
               handleUpdateCommunicationLog={handleUpdateCommunicationLog}
               handleDeleteCommunicationLog={handleDeleteCommunicationLog}
+              onAddCategory={handleAddCategory}
+              onEditCategory={handleEditCategory}
+              onDeleteCategory={handleDeleteCategory}
             />
           </TabsContent>
 

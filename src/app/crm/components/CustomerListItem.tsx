@@ -17,9 +17,19 @@ import {
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { serialize } from 'next-mdx-remote/serialize';
 import { components as mdxComponents } from '@/components/MdxRenderer'; // Renamed to avoid conflict
+import dynamic from 'next/dynamic'; // Import dynamic
 
 import type { Customer, CommunicationLog } from '../types';
 import CommunicationLogComponent from './CommunicationLog'; // Import the new component
+
+// Dynamically import MDXRemote to ensure it's client-side rendered
+const ClientSideMDXRemote = dynamic(
+  async () => {
+    const { MDXRemote } = await import('next-mdx-remote');
+    return MDXRemote;
+  },
+  { ssr: false },
+);
 
 interface CustomerListItemProps {
   customer: Customer;
@@ -104,7 +114,10 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
             <p className="font-semibold mt-2">Notes:</p>
             {serializedNotes ? (
               <div className="prose dark:prose-invert text-sm text-muted-foreground">
-                <MDXRemote {...serializedNotes} components={mdxComponents} />
+                <ClientSideMDXRemote
+                  {...serializedNotes}
+                  components={mdxComponents}
+                />
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">{customer.notes}</p>
