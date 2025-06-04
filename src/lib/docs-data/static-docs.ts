@@ -6,7 +6,7 @@ import { DocPost, DocsJsonData } from '@/types'; // Import DocsJsonData
 // IMPORTANT: This import assumes a docs.json file will be generated at build time
 // containing all documentation content. This file is crucial for production deployments
 // where direct file system access to MDX files might not be available.
-// The structure of docs.json should be { "docs": DocPost[] }.
+// The structure of the imported JSON data should be { "docs": DocPost[] }.
 import rawDocsData from '@/data/portfolio-data/docs.json';
 
 // Assert the type of the imported JSON data.
