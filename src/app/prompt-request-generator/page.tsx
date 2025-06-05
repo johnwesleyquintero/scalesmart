@@ -64,15 +64,17 @@ export default function PromptRequestGenerator() {
   >({});
 
   // Debounced handler for text input fields to reduce frequent state updates and perform validation.
+  // Debounced handler for text input fields to reduce frequent state updates and perform validation.
   const debouncedHandleInputChange = useDebounceCallback(
     (field: keyof Omit<PromptData, 'category'>, value: string) => {
-      // Trim the value before setting state (optional, based on suggestion)
-      const trimmedValue = value.trim();
-      setPromptData((prev) => ({ ...prev, [field]: trimmedValue }));
+      // Set the state with the raw value. Trimming is handled in generatePromptHandler.
+      setPromptData((prev) => ({ ...prev, [field]: value }));
 
       // Perform validation for required fields on debounce
       setValidationErrors((prev) => {
         const newErrors = { ...prev };
+        // Use the trimmed value for validation checks
+        const trimmedValue = value.trim();
         if (field === 'request' && !trimmedValue) {
           newErrors.request = "The 'Request' field is required.";
         } else if (
