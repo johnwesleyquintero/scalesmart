@@ -75,7 +75,7 @@ export function useLocalStorage<T>(
         console.log(error);
       }
     },
-    [key, storedValue],
+    [storedValue], // Removed 'key' as it's not used in active code
   );
 
   // Function to remove value from localStorage
@@ -91,7 +91,7 @@ export function useLocalStorage<T>(
       // A more advanced implementation would handle the error case
       console.log(error);
     }
-  }, [key]);
+  }, []); // Removed 'key' as it's not used in active code
 
   useEffect(() => {
     const loadInitialValue = async () => {
@@ -122,7 +122,7 @@ export function useLocalStorage<T>(
     };
 
     loadInitialValue();
-  }, [key]);
+  }, [key, initialValue]); // Added 'initialValue' as it's used in the effect
 
   return [storedValue, setValue, removeValue, hasAttemptedInitialLoad];
 }

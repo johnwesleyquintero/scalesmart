@@ -18,7 +18,7 @@
     "deploy": "npx vercel deploy",
     "lint": "eslint --config eslint.config.mjs .",
     "clean": "rimraf .next",
-    "check": "npm run format && npm run lint && npm run typecheck"
+    "check": "node scripts/code-checker.mjs"
   },
   "dependencies": {
     "@auth/supabase-adapter": "^1.9.1",

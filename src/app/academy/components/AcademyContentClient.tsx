@@ -166,10 +166,13 @@ function AcademyContentClient({
     startCourseAction(selectedCourse);
   };
 
-  const handleSelectModule = (module: Module) => {
-    setActiveModule(module);
-    markModuleVisited(module.id);
-  };
+  const handleSelectModule = useCallback(
+    (module: Module) => {
+      setActiveModule(module);
+      markModuleVisited(module.id);
+    },
+    [setActiveModule, markModuleVisited],
+  );
 
   const handleBackToCourses = () => {
     setActiveCourse(null);

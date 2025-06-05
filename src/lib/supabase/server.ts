@@ -17,7 +17,10 @@ if (!supabaseAnonKey) {
 
 // Create a single instance of the Supabase client for server-side use.
 // This ensures the client is initialized only once per module.
-const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { persistSession: false },
+  db: { schema: 'public' }, // Explicitly set the schema for the database client
+});
 
 /**
  * Retrieves the current user session from Supabase.

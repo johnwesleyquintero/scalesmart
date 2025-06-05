@@ -15,15 +15,19 @@ interface UseDebounce {
 }
 
 /**
- * Internal implementation of the useDebounce hook.
- * This function uses a single generic parameter `TParam`. TypeScript's overload
- * resolution mechanism will map `TValue` or `TFunc` (from the `UseDebounce` interface)
- * to `TParam` based on how the hook is called.
+ * A custom React Hook for debouncing values or functions.
+ * It provides overloaded behavior:
+ * - When debouncing a value, it returns the debounced value.
+ * - When debouncing a function, it returns a debounced version of the function.
+ *
+ * @param valueOrFunction The value or function to debounce.
+ * @param delay The debounce delay in milliseconds (default: 500).
+ * @returns The debounced value or function.
  */
-function actualUseDebounce<TParam>(
+const useDebounce: UseDebounce = (<TParam>(
   valueOrFunction: TParam,
   delay: number = 500,
-): TParam {
+): TParam => {
   // --- Case 1: Debouncing a value ---
   if (typeof valueOrFunction !== 'function') {
     // In this branch, TParam represents the type of the value (e.g., string, number).
@@ -103,10 +107,6 @@ function actualUseDebounce<TParam>(
   // This resolves the TypeScript errors you reported by ensuring internal types
   // are consistent, but this final cast carries assumptions.
   return debouncedFunction as TParam;
-}
-
-// Assign the implementation to `useDebounce` and type it with the `UseDebounce` interface.
-// This connects the flexible implementation to the strict, overloaded public API.
-const useDebounce: UseDebounce = actualUseDebounce;
+}) as UseDebounce;
 
 export default useDebounce;

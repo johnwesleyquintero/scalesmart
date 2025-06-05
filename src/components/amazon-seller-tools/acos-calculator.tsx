@@ -404,17 +404,7 @@ export default function AcosCalculator() {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    selectedCurrency,
-    manualCampaign,
-    isManualInputValid,
-    handleManualInputChange,
-    setManualCampaign,
-    setError,
-    setIsLoading,
-    setCampaigns,
-    calculateLocalMetrics,
-  ]);
+  }, [selectedCurrency, manualCampaign, setError, setIsLoading, setCampaigns]);
 
   // --- Render ---
   return (

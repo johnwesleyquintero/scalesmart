@@ -3,6 +3,7 @@ import { UserProfile } from '../lib/models/user';
 import { useCallback, useState, useEffect } from 'react';
 import { useLocalStorage } from './use-local-storage';
 import { useSession } from 'next-auth/react';
+import { x64 } from 'crypto-js';
 
 const USER_PROFILE_KEY = 'userProfile';
 
@@ -65,7 +66,12 @@ const useUserProfile = () => {
     };
 
     fetchUserProfile();
-  }, [session?.user?.email, setLocalStorageProfile, localStorageProfile]);
+  }, [
+    session?.user?.email,
+    session?.user?.id,
+    session?.user?.name,
+    localStorageProfile,
+  ]); // Added session.user.id and session.user.name, removed setLocalStorageProfile
 
   const updateUserProfile = useCallback(
     async (updatedProfile: UserProfile) => {

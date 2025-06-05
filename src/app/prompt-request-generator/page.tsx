@@ -90,7 +90,7 @@ export default function PromptRequestGenerator() {
     return (
       categoryNotSelected || requestIsEmpty || customCategoryIsEmptyWhenRequired
     );
-  }, [promptData.category, promptData.customCategory, promptData.request]); // Dependencies on specific fields
+  }, [promptData]); // Depend on the entire promptData object
 
   // Handler function to generate the prompt string.
   const generatePromptHandler = useCallback(() => {

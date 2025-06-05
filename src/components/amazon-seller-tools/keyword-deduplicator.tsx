@@ -350,7 +350,7 @@ export default function KeywordDeduplicator() {
         context: { manualProduct, manualKeywords },
       });
     }
-  }, [products, toast]);
+  }, [manualKeywords, manualProduct, products, toast]);
 
   const clearData = useCallback(() => {
     setProducts([]);

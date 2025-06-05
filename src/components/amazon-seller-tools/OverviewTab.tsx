@@ -679,108 +679,112 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     ],
   );
 
-  const processCsvData = async (
-    file: File,
-    mapping: CsvColumnMapping,
-  ): Promise<{
-    validMetrics: DashboardMetrics[];
-    collectedErrors: TransformationError[];
-    totalRows: number;
-  }> => {
-    const allRows: Record<string, string>[] = [];
-    return new Promise((resolve, reject) => {
-      Papa.parse<Record<string, string>>(file, {
-        header: true,
-        skipEmptyLines: true,
-        step: (rowParseResult) => {
-          if (rowParseResult.data) {
-            allRows.push(rowParseResult.data);
-          }
-          processedRowsRef.current = allRows.length;
-        },
-        complete: () => {
-          totalRowsRef.current = allRows.length;
-          const validMetrics: DashboardMetrics[] = [];
-          const collectedErrors: TransformationError[] = [];
-
-          allRows.forEach((row, i) => {
-            const result: CsvRowTransformationResult = transformCsvRow(
-              row,
-              mapping,
-              i,
-              TARGET_METRICS_CONFIG,
-            );
-            if (result.data) {
-              validMetrics.push(result.data);
-            }
-            collectedErrors.push(...result.errors);
-          });
-          resolve({ validMetrics, collectedErrors, totalRows: allRows.length });
-        },
-        error: (error: Error) => reject(error),
-      });
-    });
-  };
-
-  const generateProcessingStatus = useCallback(
-    (
-      validMetrics: DashboardMetrics[],
-      totalRows: number,
-      collectedErrors: TransformationError[],
-    ): {
-      message: string;
-      variant: 'success' | 'warning' | 'destructive' | 'info';
-      title: string;
-    } => {
-      let statusMessage = '';
-      let toastVariant: 'success' | 'warning' | 'destructive' | 'info' = 'info';
-      let toastTitle = 'Data Processing Complete';
-
-      if (validMetrics.length > 0) {
-        statusMessage = `Successfully processed ${validMetrics.length} of ${totalRows} rows.`;
-        toastVariant = 'success';
-      } else {
-        statusMessage = `No valid data extracted from ${totalRows} rows.`;
-        toastVariant = 'warning';
-      }
-
-      const skippedRows = totalRows - validMetrics.length;
-      if (skippedRows > 0) {
-        statusMessage += ` ${skippedRows} row(s) were skipped due to critical errors.`;
-        toastVariant = 'warning';
-      }
-
-      const errorCount = collectedErrors.filter(
-        (e) => e.type === 'error',
-      ).length;
-      const warningCount = collectedErrors.filter(
-        (e) => e.type === 'warning',
-      ).length;
-
-      if (errorCount > 0) {
-        statusMessage += ` Found ${errorCount} transformation error(s).`;
-        toastVariant = 'destructive';
-        toastTitle = 'Data Processing with Errors';
-      }
-      if (warningCount > 0) {
-        statusMessage += ` Found ${warningCount} warning(s).`;
-        if (toastVariant !== 'destructive') {
-          toastVariant = 'warning';
-          toastTitle = 'Data Processing with Warnings';
-        }
-      }
-
-      return {
-        message: statusMessage,
-        variant: toastVariant,
-        title: toastTitle,
-      };
-    },
-    [],
-  );
-
   const handleMappingComplete = useCallback(
     async (mapping: CsvColumnMapping) => {
+      // Define processCsvData inside useCallback to ensure it's stable
+      const processCsvData = async (
+        file: File,
+        currentMapping: CsvColumnMapping,
+      ): Promise<{
+        validMetrics: DashboardMetrics[];
+        collectedErrors: TransformationError[];
+        totalRows: number;
+      }> => {
+        const allRows: Record<string, string>[] = [];
+        return new Promise((resolve, reject) => {
+          Papa.parse<Record<string, string>>(file, {
+            header: true,
+            skipEmptyLines: true,
+            step: (rowParseResult) => {
+              if (rowParseResult.data) {
+                allRows.push(rowParseResult.data);
+              }
+              processedRowsRef.current = allRows.length;
+            },
+            complete: () => {
+              totalRowsRef.current = allRows.length;
+              const validMetrics: DashboardMetrics[] = [];
+              const collectedErrors: TransformationError[] = [];
+
+              allRows.forEach((row, i) => {
+                const result: CsvRowTransformationResult = transformCsvRow(
+                  row,
+                  currentMapping,
+                  i,
+                  TARGET_METRICS_CONFIG,
+                );
+                if (result.data) {
+                  validMetrics.push(result.data);
+                }
+                collectedErrors.push(...result.errors);
+              });
+              resolve({
+                validMetrics,
+                collectedErrors,
+                totalRows: allRows.length,
+              });
+            },
+            error: (error: Error) => reject(error),
+          });
+        });
+      };
+
+      // Define generateProcessingStatus inside useCallback to ensure it's stable
+      const generateProcessingStatus = (
+        validMetrics: DashboardMetrics[],
+        totalRows: number,
+        collectedErrors: TransformationError[],
+      ): {
+        message: string;
+        variant: 'success' | 'warning' | 'destructive' | 'info';
+        title: string;
+      } => {
+        let statusMessage = '';
+        let toastVariant: 'success' | 'warning' | 'destructive' | 'info' =
+          'info';
+        let toastTitle = 'Data Processing Complete';
+
+        if (validMetrics.length > 0) {
+          statusMessage = `Successfully processed ${validMetrics.length} of ${totalRows} rows.`;
+          toastVariant = 'success';
+        } else {
+          statusMessage = `No valid data extracted from ${totalRows} rows.`;
+          toastVariant = 'warning';
+        }
+
+        const skippedRows = totalRows - validMetrics.length;
+        if (skippedRows > 0) {
+          statusMessage += ` ${skippedRows} row(s) were skipped due to critical errors.`;
+          toastVariant = 'warning';
+        }
+
+        const errorCount = collectedErrors.filter(
+          (e) => e.type === 'error',
+        ).length;
+        const warningCount = collectedErrors.filter(
+          (e) => e.type === 'warning',
+        ).length;
+
+        if (errorCount > 0) {
+          statusMessage += ` Found ${errorCount} transformation error(s).`;
+          toastVariant = 'destructive';
+          toastTitle = 'Data Processing with Errors';
+        }
+        if (warningCount > 0) {
+          statusMessage += ` Found ${warningCount} warning(s).`;
+          if (toastVariant !== 'destructive') {
+            toastVariant = 'warning';
+            toastTitle = 'Data Processing with Warnings';
+          }
+        }
+
+        return {
+          message: statusMessage,
+          variant: toastVariant,
+          title: toastTitle,
+        };
+      };
+
       if (!selectedFile) {
         setError('No file selected for processing.');
         setShowMapper(false);
@@ -855,9 +859,8 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
       setMetrics,
       toast,
       fileInputRef,
-      generateProcessingStatus,
-      processCsvData,
       selectedFile,
+      TARGET_METRICS_CONFIG, // Add TARGET_METRICS_CONFIG as a dependency
     ],
   );
 

@@ -399,7 +399,7 @@ export default function MessageBubble({
         {content}
       </ReactMarkdown>
     );
-  }, [message.content]); // Dependency array: re-run memoization if message.content changes
+  }, [message]); // Dependency array: re-run memoization if the message object changes
 
   // Conditional rendering for the "Edited" badge.
   // Memoization isn't strictly necessary here as it's simple JSX,

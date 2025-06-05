@@ -496,7 +496,7 @@ export default function DescriptionEditor() {
     fetchKeywords();
 
     // We only want this to run once on mount.
-  }, []);
+  }, [toast]); // Add toast to dependencies
 
   // Find the active product object based on the ID
   const activeProduct = useMemo(
@@ -652,7 +652,7 @@ export default function DescriptionEditor() {
         description: `"${data.product}" added successfully.`,
       });
     },
-    [products, prohibitedKeywords, toast], // Include prohibitedKeywords and toast
+    [products, prohibitedKeywords, toast],
   );
 
   // Called by ProductEditorArea when description changes
@@ -677,15 +677,18 @@ export default function DescriptionEditor() {
     [prohibitedKeywords],
   );
 
-  const handleSave = useCallback((productToSave: ProductDescription) => {
-    // In a real app, this would be an API call
-    console.log('Saving product:', productToSave);
-    toast({
-      title: 'Changes Saved (Locally)',
-      description: `Changes for "${productToSave.product}" are reflected in the list.`,
-    });
-    // No actual state change needed here as it's updated live
-  }, []);
+  const handleSave = useCallback(
+    (productToSave: ProductDescription) => {
+      // In a real app, this would be an API call
+      console.log('Saving product:', productToSave);
+      toast({
+        title: 'Changes Saved (Locally)',
+        description: `Changes for "${productToSave.product}" are reflected in the list.`,
+      });
+      // No actual state change needed here as it's updated live
+    },
+    [toast],
+  );
 
   const handleExport = useCallback(() => {
     if (products.length === 0) {

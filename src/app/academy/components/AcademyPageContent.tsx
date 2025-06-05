@@ -179,8 +179,9 @@ export function AcademyPageContent() {
   });
 
   // Use courseList as a stable reference for memoization dependencies
-  // Provides an empty array as default while loading or if data is null/undefined
-  const courseList: Course[] = courses ?? [];
+  // Memoize courseList to ensure a stable reference for memoization dependencies.
+  // Provides an empty array as default while loading or if data is null/undefined.
+  const courseList: Course[] = useMemo(() => courses ?? [], [courses]);
 
   const lastVisitedCourseId = academyData?.lastVisitedCourse;
   const lastVisitedModuleId = academyData?.lastVisitedModule;

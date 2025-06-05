@@ -3,15 +3,38 @@ import { type NextAuthOptions, type Session } from 'next-auth';
 import { type JWT } from 'next-auth/jwt';
 import GithubProvider from 'next-auth/providers/github';
 
+// Ensure environment variables are defined for GitHub OAuth
+const githubId = process.env.GITHUB_ID;
+const githubSecret = process.env.GITHUB_SECRET;
+
+if (!githubId) {
+  throw new Error('GITHUB_ID is not defined. Please check your .env file.');
+}
+if (!githubSecret) {
+  throw new Error('GITHUB_SECRET is not defined. Please check your .env file.');
+}
+
 export const authOptions: NextAuthOptions = {
-  adapter: SupabaseAdapter({
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-  }),
+  adapter: SupabaseAdapter(
+    {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      secret: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+    },
+    // The schema option is typically configured directly on the Supabase client,
+    // not directly on the SupabaseAdapter. The error "The schema must be one of
+    // the following: public, graphql_public" (PGRST106) suggests a database-level
+    // schema access issue, or an incompatibility with the adapter's internal
+    // Supabase client initialization.
+    // Assuming the Supabase client in `src/lib/supabase/server.ts` is correctly
+    // configured with `db: { schema: 'public' }`, this adapter might be creating
+    // its own client or the service role key lacks necessary permissions.
+    // No direct fix for PGRST106 within this file without modifying the adapter
+    // or Supabase project settings.
+  ),
   providers: [
     GithubProvider({
-      clientId: process.env.GITHUB_ID || '',
-      clientSecret: process.env.GITHUB_SECRET || '',
+      clientId: githubId,
+      clientSecret: githubSecret,
       authorization: {
         params: {
           scope: 'read:user user:email',
@@ -38,63 +61,50 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   callbacks: {
-    async signIn({ user, account, profile, email, credentials }) {
-      console.log('[NextAuth] signIn callback START', { user: user?.id });
-      // Add logging for any specific operations here
-      // e.g., console.log("[NextAuth] signIn: About to query database...");
-      // await someDbOperation();
-      // console.log("[NextAuth] signIn: Database query complete.");
-      console.log('[NextAuth] signIn callback END');
+    async signIn({ user }) {
+      // Removed verbose logging for cleaner console output
       return true;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
-      console.log('[NextAuth] session callback START', { userId: token?.sub });
-      console.time('NextAuth Session Callback');
+      // Removed verbose logging for cleaner console output
       if (session?.user && token.sub) {
         session.user.id = token.sub;
       }
       if (token.accessToken) {
         session.accessToken = token.accessToken as string;
       }
-      console.timeEnd('NextAuth Session Callback');
-      console.log('[NextAuth] session callback END');
       return session;
     },
     async jwt({ token, user, account }) {
-      console.log('[NextAuth] jwt callback START', {
-        userId: user?.id,
-        accountProvider: account?.provider,
-      });
-      console.time('NextAuth JWT Callback');
+      // Removed verbose logging for cleaner console output
       if (user) {
         token.sub = user.id;
       }
       if (account?.access_token) {
         token.accessToken = account.access_token;
       }
-      console.timeEnd('NextAuth JWT Callback');
-      console.log('[NextAuth] jwt callback END');
       return token;
     },
   },
   events: {
+    // Removed verbose logging from events for cleaner console output
     async signIn(message) {
-      console.log('[NextAuth] signIn event', message);
+      /* console.log('[NextAuth] signIn event', message); */
     },
     async signOut(message) {
-      console.log('[NextAuth] signOut event', message);
+      /* console.log('[NextAuth] signOut event', message); */
     },
     async createUser(message) {
-      console.log('[NextAuth] createUser event', message);
+      /* console.log('[NextAuth] createUser event', message); */
     },
     async updateUser(message) {
-      console.log('[NextAuth] updateUser event', message);
+      /* console.log('[NextAuth] updateUser event', message); */
     },
     async linkAccount(message) {
-      console.log('[NextAuth] linkAccount event', message);
+      /* console.log('[NextAuth] linkAccount event', message); */
     },
     async session(message) {
-      console.log('[NextAuth] session event', message);
+      /* console.log('[NextAuth] session event', message); */
     },
   },
 };
