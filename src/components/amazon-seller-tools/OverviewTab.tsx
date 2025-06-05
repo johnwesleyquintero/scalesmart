@@ -144,7 +144,7 @@ interface OverviewTabProps {
   setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
-  TARGET_METRICS_CONFIG: TargetMetricConfig[];
+  TARGET_METRICS_CONFIG: readonly TargetMetricConfig[];
   searchTerm: string;
 }
 
@@ -182,7 +182,7 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     isLoading: boolean;
     metrics: DashboardMetrics[];
     overviewDataMapperKey: number;
-    TARGET_METRICS_CONFIG: TargetMetricConfig[];
+    TARGET_METRICS_CONFIG: readonly TargetMetricConfig[];
     handleMappingComplete: (mapping: CsvColumnMapping) => Promise<void>;
     firstCsvDataRow?: Record<string, string>;
     handleMappingCancel: () => void;

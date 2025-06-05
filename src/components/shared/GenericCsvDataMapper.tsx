@@ -569,7 +569,7 @@ const MappingRow: React.FC<MappingRowProps> = memo(
 
 interface GenericCsvDataMapperProps {
   csvHeaders: string[];
-  targetMetrics: {
+  targetMetrics: readonly {
     key: keyof DashboardMetrics;
     label: string;
     required: boolean;

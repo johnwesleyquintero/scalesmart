@@ -6,7 +6,7 @@ import type { TargetMetricConfig } from '@/lib/amazon-tools/types';
 
 interface OverviewDataMapperProps {
   csvHeaders: string[];
-  targetMetrics: TargetMetricConfig[]; // Use the imported or defined type
+  targetMetrics: readonly TargetMetricConfig[]; // Use the imported or defined type
   onApplyMapping: (mapping: CsvColumnMapping) => void;
   sampleDataRow?: Record<string, string>;
   onCancel: () => void;

@@ -142,7 +142,7 @@ export const getDateFromRow = (
   row: Record<string, string>,
   mappedHeader: keyof DashboardMetrics | null,
   rowNumber: number,
-  targetMetricsConfig: TargetMetricConfig[],
+  targetMetricsConfig: readonly TargetMetricConfig[],
 ): {
   value: string | undefined;
   errors: TransformationError[];
@@ -217,7 +217,7 @@ export const getStringValueFromRow = (
   row: Record<string, string>,
   mappedHeader: keyof DashboardMetrics | null | undefined,
   rowNumber: number,
-  targetMetricsConfig: TargetMetricConfig[],
+  targetMetricsConfig: readonly TargetMetricConfig[],
 ): {
   value: string | undefined;
   errors: TransformationError[];
@@ -343,7 +343,7 @@ export const getNumericValueFromRow = (
   row: Record<string, string>,
   mappedHeader: keyof DashboardMetrics | null | undefined,
   rowNumber: number,
-  targetMetricsConfig: TargetMetricConfig[],
+  targetMetricsConfig: readonly TargetMetricConfig[],
   fallbackHeaders: string[] = [],
 ): {
   value: number | undefined;
@@ -407,7 +407,7 @@ export const transformCsvRow = (
   row: Record<string, string>,
   mapping: CsvColumnMapping,
   rowNumber: number,
-  targetMetricsConfig: TargetMetricConfig[],
+  targetMetricsConfig: readonly TargetMetricConfig[],
 ): CsvRowTransformationResult => {
   const allErrors: TransformationError[] = [];
   let dashboardMetrics: DashboardMetrics | null = null;

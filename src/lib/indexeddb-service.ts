@@ -178,19 +178,31 @@ function logError(error: unknown, message: string, component: string) {
  * @remarks General cache utility.
  * @param key - The key of the item to retrieve.
  */
-export async function getItem<T>(key: string): Promise<T | undefined> {
+/**
+ * Retrieves an item from a specified IndexedDB store (table).
+ * @remarks General cache utility.
+ * @param key - The key of the item to retrieve.
+ * @param storeName - The name of the store (table) to retrieve from. Defaults to 'cache'.
+ * @returns A promise that resolves to the retrieved item or `undefined` if not found or an error occurs.
+ */
+export async function getItem<T>(
+  key: string,
+  storeName: string = 'cache',
+): Promise<T | undefined> {
   if (!db) {
     await initializeDB();
   }
   try {
-    return (await db.cache.get(key).then((item) => item?.value)) as
-      | T
-      | undefined;
+    // Dynamically select the store based on storeName
+    const store = db.table(storeName) as Table<
+      { key: string; value: unknown },
+      string
+    >;
+    return (await store.get(key).then((item) => item?.value)) as T | undefined;
   } catch (error) {
-    logError(
+    console.error(
+      `IndexedDBService: Error getting item from store "${storeName}" with key "${key}":`,
       error,
-      `Error getting item from IndexedDB: ${key}`,
-      'IndexedDBService',
     );
     return undefined;
   }
@@ -207,6 +219,7 @@ export async function saveCalculation(data: CalculationData): Promise<void> {
   }
 
   try {
+    // Use the 'cache' store for calculation history
     await db.transaction('rw', db.cache, async () => {
       await db.cache.put({
         key: `${INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY}-${data.campaignName}-${data.date}`,
@@ -215,31 +228,40 @@ export async function saveCalculation(data: CalculationData): Promise<void> {
       console.log('Calculation saved to IndexedDB:', data);
     });
   } catch (error) {
-    logError(
+    console.error(
+      `IndexedDBService: Error saving calculation to IndexedDB for campaign "${data.campaignName}":`,
       error,
-      `Error saving calculation to IndexedDB: ${data.campaignName}`,
-      'IndexedDBService',
     );
   }
 }
 
 /**
- * Sets an item in the IndexedDB cache.
+ * Sets an item in a specified IndexedDB store (table).
  * @remarks General cache utility.
  * @param key - The key of the item to set.
  * @param value - The value of the item to set.
+ * @param storeName - The name of the store (table) to set the item in. Defaults to 'cache'.
+ * @returns A promise that resolves when the item is successfully set.
  */
-export async function setItem<T>(key: string, value: T): Promise<void> {
+export async function setItem<T>(
+  key: string,
+  value: T,
+  storeName: string = 'cache',
+): Promise<void> {
   if (!db) {
     await initializeDB();
   }
   try {
-    await db.cache.put({ key: key, value: value });
+    // Dynamically select the store based on storeName
+    const store = db.table(storeName) as Table<
+      { key: string; value: unknown },
+      string
+    >;
+    await store.put({ key: key, value: value });
   } catch (error) {
-    logError(
+    console.error(
+      `IndexedDBService: Error setting item in store "${storeName}" with key "${key}":`,
       error,
-      `Error setting item in IndexedDB: ${key}`,
-      'IndexedDBService',
     );
   }
 }

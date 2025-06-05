@@ -34,7 +34,7 @@ import KeywordVsAdSalesDonutChart from '../charts/KeywordVsAdSalesDonutChart';
 
 interface OverviewDataViewProps {
   metrics: DashboardMetrics[];
-  targetMetricsConfig: TargetMetricConfig[];
+  targetMetricsConfig: readonly TargetMetricConfig[];
   onDeleteMetric: (metricDate: string, metricIdentifier?: string) => void;
   aggregatedAndSortedMetrics: DashboardMetrics[];
   timeGranularity: 'daily' | 'weekly' | 'monthly' | 'quarterly' | 'yearly'; // Add timeGranularity prop

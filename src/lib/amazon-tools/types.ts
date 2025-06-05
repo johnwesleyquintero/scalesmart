@@ -64,37 +64,22 @@ export interface DashboardMetrics {
   keyword_validation_warning?: boolean;
 }
 
-export type MetricKey =
-  | 'date'
-  | 'unique_identifier'
-  | 'total_sales'
-  | 'total_orders'
-  | 'total_sessions'
-  | 'total_page_views'
-  | 'ad_impressions'
-  | 'ad_clicks'
-  | 'ad_spend'
-  | 'ad_sales'
-  | 'ad_orders'
-  | 'profit'
-  | 'inventory_level'
-  | 'review_rating'
-  | 'cac'
-  | 'ltv'
-  | 'targeted_keyword'
-  | 'keyword_ad_impressions'
-  | 'keyword_ad_clicks'
-  | 'keyword_ad_spend'
-  | 'keyword_ad_sales_7_day'
-  | 'keyword_ad_orders_7_day'
-  | 'asin'
-  | 'keyword';
+import {
+  TARGET_METRICS_CONFIG,
+  MetricTypes,
+} from '@/config/amazon-tools-config';
+
+/**
+ * Defines the union of all possible metric keys based on the TARGET_METRICS_CONFIG.
+ * This ensures type safety and consistency with the defined metrics.
+ */
+export type MetricKey = (typeof TARGET_METRICS_CONFIG)[number]['key'];
 
 export interface TargetMetricConfig {
   key: MetricKey;
   label: string;
   required: boolean;
-  expectedType: 'date' | 'string' | 'number';
+  expectedType: (typeof MetricTypes)[keyof typeof MetricTypes];
   hint?: string;
   group?: string;
 }

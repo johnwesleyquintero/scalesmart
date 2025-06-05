@@ -6,141 +6,159 @@
 import type { TargetMetricConfig } from '@/lib/amazon-tools/types';
 
 // Constants for TargetMetricConfig
-export const DATE_TYPE = 'date';
-export const STRING_TYPE = 'string';
-export const NUMBER_TYPE = 'number';
-export const CORE_GROUP = 'Core';
-export const OVERALL_PERFORMANCE_GROUP = 'Overall Performance';
-export const ADVERTISING_GROUP = 'Advertising';
-export const OPERATIONS_GROUP = 'Operations';
-export const PRODUCT_HEALTH_GROUP = 'Product Health';
-export const GROUP_FINANCIALS = 'Financials'; // Also used in page.tsx, keep here for config consistency
+/**
+ * Defines the expected data types for target metrics.
+ * Using `as const` ensures literal types are inferred, providing stronger type checking.
+ */
+export const MetricTypes = {
+  DATE: 'date',
+  STRING: 'string',
+  NUMBER: 'number',
+} as const;
 
-export const TARGET_METRICS_CONFIG_RAW: TargetMetricConfig[] = [
+/**
+ * Defines the logical groups for organizing target metrics.
+ * This enum improves readability and prevents typos compared to raw strings.
+ */
+export enum MetricGroups {
+  CORE = 'Core',
+  OVERALL_PERFORMANCE = 'Overall Performance',
+  ADVERTISING = 'Advertising',
+  OPERATIONS = 'Operations',
+  PRODUCT_HEALTH = 'Product Health',
+  FINANCIALS = 'Financials', // Used across components for consistency
+}
+
+/**
+ * Configuration array for Amazon Seller Tools target metrics.
+ * Each object defines a metric's key, label, requirements, expected type, hint, and group.
+ * The array is marked as `readonly` to ensure immutability after initialization.
+ */
+export const TARGET_METRICS_CONFIG = [
   {
     key: 'date',
     label: 'Date/Period',
     required: true,
-    expectedType: DATE_TYPE,
+    expectedType: MetricTypes.DATE,
     hint: 'e.g., YYYY-MM-DD or MM/DD/YYYY',
-    group: CORE_GROUP,
+    group: MetricGroups.CORE,
   },
   {
     key: 'unique_identifier',
     label: 'ASIN / SKU (Unique ID)',
     required: false,
-    expectedType: STRING_TYPE,
+    expectedType: MetricTypes.STRING,
     hint: 'Product identifier like B00EXAMPLE. Essential for multi-report merging.',
-    group: CORE_GROUP,
+    group: MetricGroups.CORE,
   },
   {
     key: 'total_sales',
     label: 'Total Sales ($)',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Overall sales for the ASIN (e.g., from Business Report "Ordered product sales")',
-    group: OVERALL_PERFORMANCE_GROUP,
+    group: MetricGroups.OVERALL_PERFORMANCE,
   },
   {
     key: 'total_orders',
     label: 'Total Orders/Units',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Overall orders/units for the ASIN (e.g., "Total order items")',
-    group: OVERALL_PERFORMANCE_GROUP,
+    group: MetricGroups.OVERALL_PERFORMANCE,
   },
   {
     key: 'total_sessions',
     label: 'Total Sessions',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Overall sessions for the ASIN (e.g., "(Parent ASIN) Sessions" from Business Report)',
-    group: OVERALL_PERFORMANCE_GROUP,
+    group: MetricGroups.OVERALL_PERFORMANCE,
   },
   {
     key: 'total_page_views',
     label: 'Total Page Views',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Overall page views for the ASIN (e.g., "(Parent ASIN) Page Views" from Business Report)',
-    group: OVERALL_PERFORMANCE_GROUP,
+    group: MetricGroups.OVERALL_PERFORMANCE,
   },
   {
     key: 'ad_impressions',
     label: 'Ad Impressions',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Impressions from advertising reports',
-    group: ADVERTISING_GROUP,
+    group: MetricGroups.ADVERTISING,
   },
   {
     key: 'ad_clicks',
     label: 'Ad Clicks',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Clicks from advertising reports',
-    group: ADVERTISING_GROUP,
+    group: MetricGroups.ADVERTISING,
   },
   {
     key: 'ad_spend',
     label: 'Ad Spend ($)',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Total advertising spend from reports',
-    group: ADVERTISING_GROUP,
+    group: MetricGroups.ADVERTISING,
   },
   {
     key: 'ad_sales',
     label: 'Ad Sales ($)',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Sales attributed to ads from reports',
-    group: ADVERTISING_GROUP,
+    group: MetricGroups.ADVERTISING,
   },
   {
     key: 'ad_orders',
     label: 'Ad Orders',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Orders attributed to ads from reports',
-    group: ADVERTISING_GROUP,
+    group: MetricGroups.ADVERTISING,
   },
   {
     key: 'profit',
     label: 'Profit ($)',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Manually calculated or from specific profit reports',
-    group: GROUP_FINANCIALS,
+    group: MetricGroups.FINANCIALS,
   },
   {
     key: 'inventory_level',
     label: 'Inventory Level',
     required: false,
-    expectedType: NUMBER_TYPE,
-    group: OPERATIONS_GROUP,
+    expectedType: MetricTypes.NUMBER,
+    group: MetricGroups.OPERATIONS,
   },
   {
     key: 'review_rating',
     label: 'Review Rating',
     required: false,
-    expectedType: NUMBER_TYPE,
-    group: PRODUCT_HEALTH_GROUP,
+    expectedType: MetricTypes.NUMBER,
+    group: MetricGroups.PRODUCT_HEALTH,
   },
   {
     key: 'cac',
     label: 'CAC ($)',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Customer Acquisition Cost',
-    group: GROUP_FINANCIALS,
+    group: MetricGroups.FINANCIALS,
   },
   {
     key: 'ltv',
     label: 'LTV ($)',
     required: false,
-    expectedType: NUMBER_TYPE,
+    expectedType: MetricTypes.NUMBER,
     hint: 'Customer Lifetime Value',
-    group: GROUP_FINANCIALS,
+    group: MetricGroups.FINANCIALS,
   },
-];
+] as const;

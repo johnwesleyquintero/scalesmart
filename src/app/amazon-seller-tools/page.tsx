@@ -142,7 +142,7 @@ import { exportToCSV } from '@/lib/amazon-tools/export-utils'; // Import exportT
 // Import types
 import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 import type { TargetMetricConfig } from '@/lib/amazon-tools/types';
-import { TARGET_METRICS_CONFIG_RAW as TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
+import { TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
 
 /**
  * `UnifiedDashboard` is the main page component for the Amazon Seller Tools.

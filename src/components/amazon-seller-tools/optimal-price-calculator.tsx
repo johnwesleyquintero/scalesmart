@@ -150,34 +150,40 @@ export default function OptimalPriceCalculator() {
       }
 
       // Strict null checks for validated inputs
-      // FIX: Renamed to avoid conflict with variable name later
       // validationResult.data is guaranteed to exist if success is true
-      if (!validationResult.data)
+      if (!validationResult.data) {
         throw new Error('Validation failed - no data returned');
+      }
       const validatedData = validationResult.data;
+
+      // Ensure competitorPrices is strictly number[] by filtering out any potential undefined values
+      // Although the schema refines for numbers, the transform step using safeParseNumber
+      // can introduce undefined types in the intermediate step, leading to TS errors.
+      const competitorPricesStrict: number[] =
+        validatedData.competitorPrices.filter(
+          (price): price is number => typeof price === 'number',
+        );
 
       // Calculate product score with validated inputs
       const productScore = AmazonAlgorithms.calculateProductScore({
         // Ensure reviews is number | null
-        reviews: validatedData?.reviews ?? undefined,
-        rating: validatedData?.reviewRating,
-        salesRank: validatedData?.salesRank,
-        price: validatedData?.price,
-        category: validatedData?.category,
+        reviews: validatedData.reviews ?? undefined, // Use validatedData directly
+        rating: validatedData.reviewRating, // Use validatedData directly
+        salesRank: validatedData.salesRank, // Use validatedData directly
+        price: validatedData.price, // Use validatedData directly
+        category: validatedData.category, // Use validatedData directly
       });
 
       // Calculate optimal price
-      // FIX: Moved optimalPrice calculation before profit calculation
       const optimalPrice = AmazonAlgorithms.calculateOptimalPrice({
         currentPrice: validatedData.currentPrice,
-        competitorPrices: validatedData.competitorPrices,
+        competitorPrices: competitorPricesStrict, // Use the strictly typed array
         productScore: productScore / 100, // Assuming score is 0-100
       });
 
       // Calculate profit and margin
-      // FIX: Removed duplicate 'const' and moved calculation here
-      const profit = optimalPrice - (validatedData?.cost ?? 0);
-      // FIX: Use helper function to avoid nested ternary
+      const profit = optimalPrice - (validatedData.cost ?? 0); // Use validatedData directly
+      // Use helper function to avoid nested ternary
       const margin = calculateMargin(profit, optimalPrice);
 
       // Log successful calculation
