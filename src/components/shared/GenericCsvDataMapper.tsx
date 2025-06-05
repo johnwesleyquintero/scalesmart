@@ -1,19 +1,13 @@
 'use client';
 
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
-  memo, // Import memo for the child component
-} from 'react';
+import React, { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { toast } from 'sonner';
 import type {
   CsvColumnMapping,
   ColumnTransformationRules,
-} from 'types/data-mapping'; // Assuming types are here
+} from 'types/data-mapping';
 import stringSimilarity from 'string-similarity';
-import type { DashboardMetrics } from 'lib/amazon-tools/types'; // Assuming type definition here
+import type { DashboardMetrics } from 'lib/amazon-tools/types';
 
 import {
   Tooltip,
@@ -32,6 +26,7 @@ import { Label } from 'components/ui/label';
 import { Loader2, Edit2 } from 'lucide-react';
 import { Button } from 'components/ui/button';
 import styles from './GenericCsvDataMapper.module.css';
+import TransformationModalContent from './TransformationModalContent';
 
 import { db } from 'lib/indexeddb/amazon-tools-db';
 import {
@@ -52,13 +47,12 @@ const SIMILARITY_THRESHOLD = 0.2;
 // to satisfy the CsvColumnMapping type structure. Use Object.freeze for stability.
 // This structure is critical for initializing state and ensuring type consistency,
 // especially when merging with loaded data from DB or props.
-// It ensures that even if the targetMetrics array doesn't list *all* possible keys,
-// the mapping state and DB record schema are complete.
+// It ensures that that the mapping state and DB record schema are complete.
+// TODO: If DashboardMetrics can be dynamically introspected (e.g., from a Zod schema),
+// this could be generated automatically to ensure it always matches the latest type definition.
+// This is a potential future enhancement outside the scope of this refactor.
 const DEFAULT_INITIAL_MAPPING: CsvColumnMapping = Object.freeze(
-  // This needs to be dynamically generated or explicitly defined based on DashboardMetrics keys
-  // Assuming DashboardMetrics is a type with known keys, we can create an object
-  // with all those keys mapped to null. Example structure:
-  ({
+  {
     date: null,
     unique_identifier: null,
     total_sales: null,
@@ -83,14 +77,20 @@ const DEFAULT_INITIAL_MAPPING: CsvColumnMapping = Object.freeze(
     asin: null,
     keyword: null,
     targeted_keyword: null,
-    // ADD ANY OTHER DashboardMetrics KEYS HERE, INITIALIZED TO null
-    // ENSURE THIS OBJECT'S KEYS EXACTLY MATCH ALL KEYS OF DashboardMetrics
-  } as CsvColumnMapping), // Cast to ensure type correctness
+    // Ensure all keys from DashboardMetrics are present here, initialized to null.
+  } as CsvColumnMapping, // Cast to ensure type correctness
 );
 
 // --- Helper Functions (Moved outside component for clarity) ---
 
-// Helper function to calculate similarity between a header and a target label/synonym
+/**
+ * Calculates the similarity between a header string and a target label,
+ * considering optional user-provided synonyms.
+ * @param header The CSV header string.
+ * @param targetLabel The target metric label (e.g., "Total Sales").
+ * @param userSynonyms Optional map of target labels to arrays of synonym strings.
+ * @returns A similarity score between 0 and 1.
+ */
 const calculateSimilarity = (
   header: string,
   targetLabel: string,
@@ -122,7 +122,13 @@ const calculateSimilarity = (
   return baseSimilarity;
 };
 
-// Helper function to apply find/replace transformations
+/**
+ * Applies a series of find/replace rules to a string value.
+ * Uses global regex replacement for all occurrences.
+ * @param value The input string value.
+ * @param findReplaceRules An array of find/replace rule objects.
+ * @returns The transformed string value.
+ */
 const applyFindReplace = (
   value: string,
   findReplaceRules: { find: string; replace: string }[],
@@ -145,7 +151,13 @@ const applyFindReplace = (
   return transformedValue;
 };
 
-// Helper function to apply transformations
+/**
+ * Applies a set of transformation rules (trim, case, find/replace) to a value.
+ * Handles null/undefined/empty string input gracefully.
+ * @param value The input value (string, null, or undefined).
+ * @param transformations Optional transformation rules to apply.
+ * @returns The transformed string value. Returns empty string for null/undefined/empty input.
+ */
 const applyTransformations = (
   value: string | null | undefined,
   transformations?: ColumnTransformationRules,
@@ -206,8 +218,16 @@ const isValidBoolean = (value: string): boolean => {
   return lowerCaseValue === 'true' || lowerCaseValue === 'false';
 };
 
-// Helper function to validate a single value against its expected type
-// Returns an error message string or null if valid
+/**
+ * Validates a single value against its expected type after applying transformations.
+ * Returns an error message string or null if valid.
+ * @param value The original sample value string.
+ * @param expectedType The expected data type ('string', 'number', 'date', 'boolean').
+ * @param label The label of the target metric field.
+ * @param header The CSV header string the value came from.
+ * @param appliedTransformations Optional transformation rules applied to the value.
+ * @returns An error message string or null.
+ */
 const validateValue = (
   value: string,
   expectedType: string,
@@ -220,14 +240,13 @@ const validateValue = (
   // If transformedValue is empty after trimming/transforming, it's invalid for non-string types (or required strings)
   // However, required check is done elsewhere. Here, we only check format if value is not empty.
   if (transformedValue === '' && expectedType !== 'string') {
-     // For non-string types, an empty transformed value is invalid data.
-     // The 'required' check for mapping existence is handled in validateFieldMapping.
-     // This check ensures that *if* a column is mapped for a non-string type, the sample data is not empty after transformations.
-     // Let's refine: The core `required` check is for the *mapping*. If mapped, we validate the *value*.
-     // If the value transforms to empty, it *is* an invalid value for number/date/boolean.
-     return `"${label}" expects a ${expectedType}. Value "${value}" (transformed: "${transformedValue}") from column "${header}" is empty after transformations.`;
+    // For non-string types, an empty transformed value is invalid data.
+    // The 'required' check for mapping existence is handled in validateFieldMapping.
+    // This check ensures that *if* a column is mapped for a non-string type, the sample data is not empty after transformations.
+    // Let's refine: The core `required` check is for the *mapping*. If mapped, we validate the *value*.
+    // If the value transforms to empty, it *is* an invalid value for number/date/boolean.
+    return `"${label}" expects a ${expectedType}. Value "${value}" (transformed: "${transformedValue}") from column "${header}" is empty after transformations.`;
   }
-
 
   switch (expectedType) {
     case 'number':
@@ -252,9 +271,18 @@ const validateValue = (
   return null; // No error
 };
 
-
-// Helper function to validate a single field's mapping and value
-// Returns an error message string or null if valid
+/**
+ * Validates a single field's mapping and the corresponding sample value.
+ * Checks for required fields being unmapped and mapped values matching the expected type.
+ * Returns an error message string or null if valid.
+ * @param field The target metric field definition.
+ * @param currentMapping The current CsvColumnMapping state.
+ * @param sampleDataRow The first row of sample data from the CSV (or undefined if not available).
+ * @param csvHeaders An array of available CSV headers.
+ * @param columnTransformations A map of column-specific transformation rules.
+ * @param defaultTransformations Default transformation rules applied if no column-specific rules exist.
+ * @returns An error message string or null.
+ */
 const validateFieldMapping = (
   field: {
     key: keyof DashboardMetrics;
@@ -302,9 +330,9 @@ const validateFieldMapping = (
     // Check if the mapped header exists as a key in the sample data row
     // This is a safeguard, should align with csvHeaders check, but confirms data structure.
     if (sampleValue === undefined) {
-       // This indicates an inconsistency between the header list and the sample data row keys.
-       // While unlikely if generated correctly, it's a necessary check.
-       return `Sample data value missing for mapped column "${mappedHeader}" (${field.label}).`;
+      // This indicates an inconsistency between the header list and the sample data row keys.
+      // While unlikely if generated correctly, it's a necessary check.
+      return `Sample data value missing for mapped column "${mappedHeader}" (${field.label}).`;
     }
 
     // Get column-specific transformations, fallback to default prop transformations
@@ -325,7 +353,6 @@ const validateFieldMapping = (
   // If mappedHeader is null and field is *not* required, it's validly unmapped.
   return null; // No error for this field
 };
-
 
 // --- Child Component for a Single Mapping Row ---
 // Extracted to reduce the parent's render method complexity and allow memoization
@@ -376,7 +403,8 @@ const MappingRow: React.FC<MappingRowProps> = memo(
 
     // Determine the value to display/use in the Select component
     // Select component expects a string value. Use UNMAPPED_SELECT_VALUE for null.
-    const selectValue = mappedHeader === null ? UNMAPPED_SELECT_VALUE : mappedHeader;
+    const selectValue =
+      mappedHeader === null ? UNMAPPED_SELECT_VALUE : mappedHeader;
 
     // Get the value from the sample row using the mapped header string (if mapped)
     const rawSampleValue =
@@ -414,11 +442,6 @@ const MappingRow: React.FC<MappingRowProps> = memo(
         ? // Ensure it's a string before replacing, handle undefined gracefully
           String(rawSampleValue).replace(/"/g, '"')
         : 'N/A';
-
-    // Determine if there's a required field error for this specific field
-    // (We can pass this more directly from the parent's validationErrors map)
-    const isRequiredError =
-      validationError !== null && validationError.includes('Required field');
 
     return (
       <div key={field.key} className={styles.mappingRow}>
@@ -629,7 +652,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
       setCurrentTransformField(field); // Set the field for which transformations are being configured
       setIsTransformModalOpen(true); // Open the modal
     },
-    [setCurrentTransformField, setIsTransformModalOpen], // Dependencies: State setters
+    [], // Dependencies: State setters are stable
   );
 
   // Effect to load saved mapping and transformations from IndexedDB on mount
@@ -678,45 +701,60 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
       // This ensures all keys exist and DB/prop take precedence.
       const newMapping: CsvColumnMapping = { ...DEFAULT_INITIAL_MAPPING };
 
-      // Overlay DB mapping if loaded
-      if (loadedDbMapping) {
-        // Ensure loaded DB mapping doesn't introduce keys not in DEFAULT_INITIAL_MAPPING (though TS should help)
-        // Filter out any mapping entries where the header doesn't exist in the current csvHeaders
-        // This prevents mapping to non-existent columns if CSV structure changes.
-        Object.keys(loadedDbMapping).forEach((key) => {
-             const k = key as keyof CsvColumnMapping;
-             const mappedHeader = loadedDbMapping[k];
-             if (mappedHeader === null || (typeof mappedHeader === 'string' && csvHeaders.includes(mappedHeader))) {
-                 newMapping[k] = mappedHeader; // Keep null or valid existing header
-             } else {
-                 // If mapped header doesn't exist in current CSV, reset mapping for this key
-                 newMapping[k] = null;
-                 console.warn(`CSV header "${mappedHeader}" for field "${String(k)}" not found in current CSV. Resetting mapping for this field.`);
-             }
+      // Helper to apply a source mapping (from DB or prop) to the newMapping
+      const applySourceMapping = (sourceMapping: CsvColumnMapping) => {
+        Object.keys(sourceMapping).forEach((key) => {
+          const k = key as keyof CsvColumnMapping;
+          const mappedHeader = sourceMapping[k];
+          // Only apply if the mappedHeader is null or exists in current csvHeaders
+          if (
+            mappedHeader === null ||
+            (typeof mappedHeader === 'string' &&
+              csvHeaders.includes(mappedHeader))
+          ) {
+            newMapping[k] = mappedHeader;
+          } else if (typeof mappedHeader === 'string') {
+            // If mapped header doesn't exist in current CSV, log a warning and reset mapping for this field
+            console.warn(
+              `CSV header "${mappedHeader}" for field "${String(k)}" not found in current CSV. Resetting mapping for this field.`,
+            );
+            newMapping[k] = null; // Reset to unmapped
+          }
         });
+      };
+
+      // Apply DB mapping first (highest precedence)
+      if (loadedDbMapping) {
+        applySourceMapping(loadedDbMapping);
       }
 
-      // Overlay initialMapping prop if provided (lower precedence than DB, intended for temporary/external initial state)
-      // Only overlay if the prop value is explicitly defined (not just undefined) and is not the default object itself
-      if (initialMapping !== DEFAULT_INITIAL_MAPPING && initialMapping) {
-        Object.keys(initialMapping).forEach((key) => {
-          const k = key as keyof CsvColumnMapping;
-          // Check if the prop value is not undefined and if it's null or a valid current header
-          const propMappedHeader = initialMapping[k];
-           if (propMappedHeader !== undefined && (propMappedHeader === null || (typeof propMappedHeader === 'string' && csvHeaders.includes(propMappedHeader)))) {
-              newMapping[k] = propMappedHeader;
-           } else if (propMappedHeader !== undefined && typeof propMappedHeader === 'string') {
-              // If prop header doesn't exist in current CSV, log a warning and keep existing mapping (from DB or default)
-               console.warn(`Initial mapping prop header "${propMappedHeader}" for field "${String(k)}" not found in current CSV. Ignoring prop value for this field.`);
-           }
-        });
+      // Apply initialMapping prop (lower precedence than DB, intended for temporary/external initial state)
+      // Only overlay if the prop value is explicitly defined and is not the default object itself
+      if (initialMapping && initialMapping !== DEFAULT_INITIAL_MAPPING) {
+        // Create a temporary mapping from initialMapping to apply,
+        // ensuring it doesn't overwrite valid DB-loaded mappings unless explicitly intended.
+        // For simplicity, we'll let it overwrite if the key exists, assuming prop is "latest external state".
+        // Current order: DEFAULT -> DB -> PROP
+        applySourceMapping(initialMapping);
       }
 
       setCurrentMapping(newMapping);
 
       // Initialize transformations state from DB or empty object
-      // TODO: Need to filter out transformations for keys that are no longer mapped or exist in targetMetrics?
-      setColumnTransformations(loadedDbTransformations || {}); // Initialize transformations from DB
+      // Filter out transformations for keys that are no longer in targetMetrics
+      const filteredTransformations: Record<
+        keyof DashboardMetrics,
+        ColumnTransformationRules | undefined
+      > = {};
+      if (loadedDbTransformations) {
+        targetMetrics.forEach((field) => {
+          if (loadedDbTransformations[field.key]) {
+            filteredTransformations[field.key] =
+              loadedDbTransformations[field.key];
+          }
+        });
+      }
+      setColumnTransformations(filteredTransformations);
 
       setIsMappingConfigLoading(false);
     };
@@ -724,17 +762,18 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     // Only run this effect on initial mount or if toolName or csvHeaders change significantly.
     // Adding csvHeaders as a dependency ensures that if the user uploads a new CSV,
     // we re-evaluate saved mappings against the new headers.
-  }, [toolName, csvHeaders]); // Dependency: toolName, csvHeaders
+    loadMapping(); // Call the async function
+  }, [toolName, csvHeaders, initialMapping, targetMetrics]); // Dependency: toolName, csvHeaders, initialMapping, targetMetrics
 
   // Memoize the validation function
   const validateMapping = useCallback(() => {
     // Cannot validate if essential data is missing after loading, or if headers are missing
     if (csvHeaders.length === 0) {
-       // If headers are missing, the component renders a "No headers" message,
-       // so validation errors related to mapping/values are not relevant.
-       // Clear errors in this state.
-       setValidationErrorsMap({});
-       return { isValid: false, errors: {} }; // Cannot proceed without headers
+      // If headers are missing, the component renders a "No headers" message,
+      // so validation errors related to mapping/values are not relevant.
+      // Clear errors in this state.
+      setValidationErrorsMap({});
+      return { isValid: false, errors: {} }; // Cannot proceed without headers
     }
 
     // If sample data is missing, we can only validate required fields being mapped.
@@ -777,8 +816,8 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     // Don't validate until mapping configuration is loaded from DB/initialized
     // and essential CSV data (headers and potentially sample data) is available.
     if (isMappingConfigLoading || csvHeaders.length === 0) {
-       setValidationErrorsMap({}); // Clear errors while loading or if headers missing
-       return;
+      setValidationErrorsMap({}); // Clear errors while loading or if headers missing
+      return;
     }
     // Debounce validation if it becomes expensive? Not needed for single row sample validation.
     validateMapping();
@@ -811,8 +850,8 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
         return newMapping;
       });
     },
-    [],
-  ); // No external dependencies for this setter logic itself
+    [], // No external dependencies for this setter logic itself
+  );
 
   // Helper function to save mapping and transformations to DB
   const saveMappingToDb = useCallback(
@@ -845,6 +884,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
         const transformationsToPersist = transformationsToSave;
 
         // TODO: Ensure IndexedDB schema 'userCsvMappings' includes 'transformations' field
+        // This is a note for the IndexedDB schema definition file, not this component.
         await db.userCsvMappings.put({
           toolName,
           mapping: fullMappingObject, // Save the full mapping object
@@ -928,7 +968,7 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
       isMappingConfigLoading || // Disable if mapping config is loading from DB
       csvHeaders.length === 0 || // Disable if no headers loaded
       Object.values(validationErrorsMap).some((error) => error !== null), // Disable if ANY validation errors exist
-      // currentMapping is always initialized now, no need to check !currentMapping
+    // currentMapping is always initialized now, no need to check !currentMapping
     [
       isSaving,
       isLoading,
@@ -938,13 +978,13 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
     ],
   );
 
-  // Handler for applying transformations from the modal (Placeholder)
+  // Handler for applying transformations from the modal
   const handleApplyTransformations = useCallback(
     (fieldKey: keyof DashboardMetrics, rules: ColumnTransformationRules) => {
       setColumnTransformations((prev) => {
         const newTrans = { ...prev };
-        // If rules are empty or all defaults, maybe delete the key?
-        // For simplicity, let's just store the rules.
+        // Store the rules. If rules object is empty, we could potentially delete the key
+        // for cleaner state/storage, but storing empty rules is also fine and simpler.
         newTrans[fieldKey] = rules;
         return newTrans;
       });
@@ -1130,6 +1170,9 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
 
         {/* Transformation Configuration Modal */}
         {/* TODO: Implement actual transformation configuration UI */}
+        {/* TODO: Implement UI to configure transformations for currentTransformField */}
+        {/* These TODOs refer to the content of TransformationModalContent, which is a separate component. */}
+        {/* The integration logic here seems correct, passing necessary props. */}
         <Dialog
           open={isTransformModalOpen}
           onOpenChange={setIsTransformModalOpen}
@@ -1143,56 +1186,21 @@ const GenericCsvDataMapper: React.FC<GenericCsvDataMapperProps> = ({
               </DialogTitle>
             </DialogHeader>
             <div className="py-4">
-              {/* TODO: Implement UI to configure transformations for currentTransformField */}
-              {/* This UI should allow defining rules like { trim: true, case: 'lower', findReplace: [{ find: ',', replace: '.' }] } */}
-              {/* Access current rules for this field: `columnTransformations[currentTransformField?.key]` */}
-              {/* UI components would update temporary state within the modal */}
-              {/* An "Apply" or "Save Rules" button would trigger `handleApplyTransformations` */}
-
-              {currentTransformField ? (
-                 <div>
-                   <p>
-                     Transformation settings UI (e.g., trim, case change,
-                     find/replace) for the &quot;
-                     {currentTransformField.label}&quot; field will be
-                     implemented here.
-                   </p>
-                   {/* Example: Display current rules for the field */}
-                   <h5>Current Rules:</h5>
-                   <pre>
-                     {JSON.stringify(columnTransformations[currentTransformField.key] || {}, null, 2)}
-                   </pre>
-                   {/* TODO: Add actual input fields/checkboxes here */}
-                 </div>
-              ) : (
-                <p>Loading transformation settings...</p>
+              {currentTransformField && (
+                <TransformationModalContent
+                  fieldLabel={currentTransformField.label}
+                  initialRules={
+                    columnTransformations[currentTransformField.key]
+                  }
+                  onApplyRules={(rules) =>
+                    handleApplyTransformations(currentTransformField.key, rules)
+                  }
+                  onCancel={() => setIsTransformModalOpen(false)}
+                />
               )}
-
             </div>
             <DialogFooter>
-              {/* TODO: Add a button here to save/apply rules configured in the modal */}
-              {/* This button would call `handleApplyTransformations` with the field key and the new rules */}
-               <Button
-                 onClick={() => {
-                    // Placeholder: Apply some dummy rules and close
-                    if(currentTransformField) {
-                       const dummyRules: ColumnTransformationRules = { trim: true, case: 'upper' }; // Replace with actual modal UI state
-                       handleApplyTransformations(currentTransformField.key, dummyRules);
-                    } else {
-                       setIsTransformModalOpen(false); // Just close if no field selected unexpectedly
-                    }
-                 }}
-               >
-                 Apply Rules (Placeholder)
-               </Button>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsTransformModalOpen(false);
-                }}
-              >
-                Close
-              </Button>
+              {/* Buttons are now handled within TransformationModalContent */}
             </DialogFooter>
           </DialogContent>
         </Dialog>

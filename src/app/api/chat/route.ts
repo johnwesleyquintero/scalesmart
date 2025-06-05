@@ -266,6 +266,7 @@ interface PortfolioContext {
 interface ChatRequest {
   message: string;
   history?: ChatHistoryMessage[];
+  mode?: 'default' | 'content'; // Add mode to the request interface
 }
 
 interface ChatHistoryMessage {
@@ -660,7 +661,11 @@ const _formatSystemDirectives = (
   ].filter(Boolean) as string[];
 };
 
-const buildSystemInstruction = (portfolioContext: PortfolioContext): string => {
+// --- System Instruction Builder (Modified to accept mode) ---
+const buildSystemInstruction = (
+  portfolioContext: PortfolioContext,
+  mode: 'default' | 'content', // Accept mode parameter
+): string => {
   const {
     personalContext,
     webappContext,
@@ -683,6 +688,8 @@ const buildSystemInstruction = (portfolioContext: PortfolioContext): string => {
   const familyInfo = personalInfo?.familyInfo;
 
   const instructionParts = [
+    `Carefully read and utilize the following context about Wesley Quintero to answer the user's questions. Refer to the relevant sections based on the query.`, // New directive
+    `When appropriate, suggest your interactive capabilities (e.g., generating HTML, Mermaid diagrams, explaining tech concepts) based on the user's needs.`, // New directive
     systemDirectives?.greeting ||
       `You are Wesley Quintero, a skilled and experienced software engineer. Your personality is ${systemDirectives?.persona || 'professional, friendly, and helpful'}. Respond in the first person, using "I", "me", "my". You have access to the following information about yourself:`,
     ..._formatPersonalInfo(personalInfo, socialLinks, familyInfo),
@@ -702,6 +709,20 @@ const buildSystemInstruction = (portfolioContext: PortfolioContext): string => {
     ..._formatSystemDirectives(systemDirectives),
     `\n[End of Context. Primary directive: Always assist the user based on the information above and your capabilities.]`,
   ];
+
+  // Add mode-specific instruction if in 'content' mode
+  if (mode === 'content') {
+    instructionParts.push(`\n\n--- Content Mode Active ---
+Your primary goal in this mode is to assist with crafting job application responses and dynamic content based on the provided context. Focus on generating:
+- Concise answers to job application questions (max 3 sentences per question).
+- Dynamic content like headlines, summaries, cover letters, and LinkedIn messages.
+- Highlight relevant skills, achievements, and experience in Amazon account management, SEO, PPC, and e-commerce.
+- Adhere to the formatting guidelines provided in the context.
+- Do NOT mention SP API unless specifically asked.
+- Avoid placeholder brackets.
+- Tailor responses to the specific job description and company (assume job description/company details will be provided in the user's message).
+---`);
+  }
 
   return instructionParts.filter(Boolean).join('\n\n');
 };
@@ -767,7 +788,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { message, history = [] } = body;
+  const { message, history = [], mode = 'default' } = body; // Extract mode with a default value
 
   try {
     // 4. Load Portfolio Context (memoized)
@@ -775,7 +796,10 @@ export async function POST(request: NextRequest) {
 
     // 5. Initialize Gemini AI Model
     const genAI = new GoogleGenerativeAI(apiKey);
-    const systemInstructionString = buildSystemInstruction(portfolioContext);
+    const systemInstructionString = buildSystemInstruction(
+      portfolioContext,
+      mode, // Pass the mode to the system instruction builder
+    );
     // For debugging the generated prompt:
     // console.log("System Instruction Length:", systemInstructionString.length);
     // console.log("System Instruction (first 500 chars):", systemInstructionString.substring(0, 500));

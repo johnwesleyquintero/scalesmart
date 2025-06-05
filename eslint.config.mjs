@@ -5,6 +5,7 @@ import parser from '@typescript-eslint/parser';
 import sonarjs from 'eslint-plugin-sonarjs';
 import globals from 'globals';
 import eslintPluginReact from 'eslint-plugin-react';
+import eslintPluginReactHooks from 'eslint-plugin-react-hooks'; // Import react-hooks plugin
 import eslintConfigNext from '@next/eslint-plugin-next';
 
 export default [
@@ -74,11 +75,13 @@ export default [
     plugins: {
       sonarjs,
       react: eslintPluginReact, // Ensure react plugin is available and correctly referenced
+      'react-hooks': eslintPluginReactHooks, // Add react-hooks plugin
       '@next/next': eslintConfigNext, // Add Next.js plugin correctly as an object
     },
     rules: {
       ...eslintPluginReact.configs.recommended.rules, // Include recommended react rules
       ...eslintPluginReact.configs['jsx-runtime'].rules, // Include react jsx-runtime rules
+      ...eslintPluginReactHooks.configs.recommended.rules, // Add recommended react-hooks rules
       ...eslintConfigNext.configs.recommended.rules, // Include recommended Next.js rules
       ...eslintConfigNext.configs['core-web-vitals'].rules, // Include Next.js core-web-vitals rules
       'react/prop-types': 'off', // Disable prop-types for React components
@@ -131,11 +134,13 @@ export default [
       '@typescript-eslint': tseslint,
       sonarjs,
       react: eslintPluginReact, // Add react plugin for TS/TSX files
+      'react-hooks': eslintPluginReactHooks, // Add react-hooks plugin for TS/TSX files
       '@next/next': eslintConfigNext, // Add Next.js plugin correctly as an object for TS/TSX
     },
     rules: {
       ...eslintPluginReact.configs.recommended.rules, // Include recommended react rules for TS/TSX
       ...eslintPluginReact.configs['jsx-runtime'].rules, // Include react jsx-runtime rules for TS/TSX
+      ...eslintPluginReactHooks.configs.recommended.rules, // Add recommended react-hooks rules for TS/TSX
       ...eslintConfigNext.configs.recommended.rules, // Include recommended Next.js rules for TS/TSX
       ...eslintConfigNext.configs['core-web-vitals'].rules, // Include Next.js core-web-vitals rules for TS/TSX
       'no-unused-vars': 'off',
