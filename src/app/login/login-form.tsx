@@ -473,7 +473,6 @@ export default function LoginForm({
             {/* Sign Up Link */}
             {/* Provides a link to the signup page. Using next/link for client-side navigation. */}
             <Link href="/signup" passHref legacyBehavior>
-              {' '}
               {/* Assuming /signup is the signup page */}
               <Button
                 variant="outline"
