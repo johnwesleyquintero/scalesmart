@@ -13,6 +13,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner'; // Import toast
+import { logger } from '@/lib/logger'; // Import logger for enhanced debugging
+
+// Debugging Improvement: Define a constant for the "no project" value
+// to avoid duplicating literals and improve maintainability, addressing ESLint warning.
+const NO_PROJECT_VALUE = 'no-project-selected';
 
 interface TaskFormProps {
   setTasks: (tasks: Task[]) => void;
@@ -40,7 +45,12 @@ const TaskForm = ({
       ? new Date(initialTask.dueDate).toISOString().split('T')[0]
       : '',
   );
-  const [projectId, setProjectId] = useState(initialTask?.projectId || ''); // State for project assignment
+  // Debugging Improvement: Changed default projectId to NO_PROJECT_VALUE
+  // to avoid the Radix UI Select.Item error for empty string values.
+  // The empty string value is reserved for clearing the Select component's value.
+  const [projectId, setProjectId] = useState(
+    initialTask?.projectId || NO_PROJECT_VALUE,
+  ); // State for project assignment
 
   // Effect to update form fields when initialTask changes (for editing)
   useEffect(() => {
@@ -62,7 +72,7 @@ const TaskForm = ({
       setStatus('to-do');
       setAssignee('');
       setDueDate('');
-      setProjectId('');
+      setProjectId(NO_PROJECT_VALUE); // Debugging Improvement: Reset to NO_PROJECT_VALUE
     }
   }, [initialTask]);
 
@@ -74,13 +84,17 @@ const TaskForm = ({
       return;
     }
 
+    // Debugging Improvement: Convert NO_PROJECT_VALUE back to an empty string
+    // for database storage, as an empty string typically signifies no project.
+    const finalProjectId = projectId === NO_PROJECT_VALUE ? '' : projectId;
+
     const taskData = {
       title: title.trim(),
       description: description.trim(),
       status,
       assignee: assignee.trim(),
       dueDate: dueDate ? new Date(dueDate).getTime() : undefined,
-      projectId: projectId || '', // Assign project ID
+      projectId: finalProjectId, // Assign project ID
     };
 
     if (initialTask) {
@@ -122,7 +136,7 @@ const TaskForm = ({
           setStatus('to-do');
           setAssignee('');
           setDueDate('');
-          setProjectId('');
+          setProjectId(NO_PROJECT_VALUE); // Debugging Improvement: Reset to NO_PROJECT_VALUE
           onTaskUpdated?.(); // Call the callback if provided
         } else {
           toast.error('Failed to add task. See console for details.');
@@ -202,18 +216,41 @@ const TaskForm = ({
             <SelectValue placeholder="Select project" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="" label="No Project">
+            {/*
+              Debugging Improvement: Changed the value for "No Project" from an empty string
+              to "no-project-selected". Radix UI's Select.Item explicitly disallows empty string
+              values for individual items, reserving it for the parent Select's value to clear selection.
+              This change resolves the runtime error.
+            */}
+            <SelectItem value={NO_PROJECT_VALUE} label="No Project">
               No Project
             </SelectItem>
-            {projects.map((project) => (
-              <SelectItem
-                key={project.id}
-                value={project.id}
-                label={project.name}
-              >
-                {project.name}
-              </SelectItem>
-            ))}
+            {/*
+              Iterate over projects to create SelectItem components.
+              Debugging Improvement: Added validation to ensure project.id is a non-empty string.
+              The original error "A <Select.Item /> must have a value prop that is not an empty string"
+              indicates that `project.id` might be empty for some projects.
+              This check prevents rendering SelectItem with an invalid value,
+              and logs a warning for easier debugging.
+            */}
+            {projects.map((project) => {
+              if (!project.id || project.id.trim() === '') {
+                logger.warn(
+                  `Skipping project with invalid or empty ID: ${JSON.stringify(project)}`,
+                  { component: 'TaskForm', context: 'ProjectSelect' }
+                );
+                return null; // Skip rendering this item if ID is invalid
+              }
+              return (
+                <SelectItem
+                  key={project.id}
+                  value={project.id}
+                  label={project.name}
+                >
+                  {project.name}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
       </div>
