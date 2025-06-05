@@ -29,10 +29,11 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('nameAsc'); // 'nameAsc', 'nameDesc', 'dateAsc', 'dateDesc'
 
+  // Memoize filtered and sorted projects for performance
   const filteredAndSortedProjects = useMemo(() => {
     let filteredProjects = projects;
 
-    // Filter by search query
+    // Filter by search query (case-insensitive)
     if (searchQuery) {
       const lowerCaseQuery = searchQuery.toLowerCase();
       filteredProjects = filteredProjects.filter(
@@ -42,27 +43,30 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
       );
     }
 
-    // Sort projects
+    // Sort projects based on the selected criteria
     filteredProjects.sort((a: Project, b: Project) => {
       switch (sortBy) {
         case 'nameDesc':
           return b.name.localeCompare(a.name);
         case 'dateAsc':
-          // Assuming project has a creationTimestamp or similar field
-          // If not, we might need to add one or sort by name
+          // Sort by creation timestamp (oldest first)
           return (a.creationTimestamp || 0) - (b.creationTimestamp || 0);
         case 'dateDesc':
+          // Sort by creation timestamp (newest first)
           return (b.creationTimestamp || 0) - (a.creationTimestamp || 0);
         case 'nameAsc':
         default:
+          // Default sort by name (A-Z)
           return a.name.localeCompare(b.name);
       }
     });
 
     return filteredProjects;
-  }, [projects, searchQuery, sortBy]);
+  }, [projects, searchQuery, sortBy]); // Re-run memoization when projects, searchQuery, or sortBy changes
 
+  // Handle project deletion
   const handleDeleteProject = async (id: string) => {
+    // Use a more styled confirmation modal if available, otherwise use window.confirm
     if (
       window.confirm(
         'Are you sure you want to delete this project? This will not delete associated tasks.',
@@ -70,8 +74,10 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
     ) {
       try {
         await deleteProject(id);
+        // Remove the deleted project from the projects state
         setProjects(projects.filter((project) => project.id !== id));
         toast.info('Project deleted.');
+        // Close the modal if the deleted project was being edited
         if (selectedProject?.id === id) {
           setSelectedProject(null);
           setIsModalOpen(false);
@@ -83,11 +89,13 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
     }
   };
 
+  // Handle click on the edit button
   const handleEditClick = (project: Project) => {
     setSelectedProject(project);
     setIsModalOpen(true);
   };
 
+  // Handle closing the edit modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedProject(null);
@@ -96,12 +104,14 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
   return (
     <div>
       <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center items-center">
+        {/* Search input for filtering projects */}
         <Input
           placeholder="Search projects..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-sm"
         />
+        {/* Select input for sorting projects */}
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Sort by" />
@@ -115,9 +125,11 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
         </Select>
       </div>
 
+      {/* Display message if no projects are found */}
       {filteredAndSortedProjects.length === 0 ? (
         <p className="text-muted-foreground text-center">No projects found.</p>
       ) : (
+        // Display the list of projects
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAndSortedProjects.map((project) => (
             <Card key={project.id} className="w-full">
@@ -132,6 +144,7 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
                 )}
               </CardContent>
               <CardFooter className="flex justify-end gap-2 p-4 pt-0">
+                {/* Edit button */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -140,6 +153,7 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
                 >
                   <Edit className="mr-2 h-4 w-4" /> Edit
                 </Button>
+                {/* Delete button */}
                 <Button
                   variant="destructive"
                   size="sm"
@@ -153,6 +167,7 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
           ))}
         </div>
       )}
+      {/* Modal for editing a project */}
       {selectedProject && isModalOpen && (
         <Modal
           isOpen={isModalOpen}

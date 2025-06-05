@@ -27,6 +27,7 @@ const ProjectForm = ({
     initialProject?.description || '',
   );
 
+  // Effect to reset form when initialProject changes (for editing)
   useEffect(() => {
     if (initialProject) {
       setName(initialProject.name);
@@ -37,6 +38,7 @@ const ProjectForm = ({
     }
   }, [initialProject]);
 
+  // Handle form submission for adding or updating a project
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -59,13 +61,14 @@ const ProjectForm = ({
       };
       try {
         await updateProject(updatedProject);
+        // Update the projects state with the updated project
         setProjects(
           projects.map((p) =>
             p.id === updatedProject.id ? updatedProject : p,
           ),
         );
         toast.success('Project updated successfully!');
-        onProjectUpdated?.();
+        onProjectUpdated?.(); // Call the callback if provided
       } catch (error) {
         console.error('Error updating project:', error);
         toast.error('Failed to update project. See console for details.');
@@ -73,7 +76,9 @@ const ProjectForm = ({
     } else {
       // Create new project
       try {
-        const newProjectId = await createProject(projectData);
+        const newProjectId = await createProject({
+          ...projectData,
+        });
         if (newProjectId) {
           const newProject: Project = {
             ...projectData,
@@ -81,11 +86,13 @@ const ProjectForm = ({
             creationTimestamp: Date.now(),
             updateTimestamp: Date.now(),
           };
+          // Add the new project to the projects state
           setProjects([...projects, newProject]);
           toast.success('Project added successfully!');
+          // Clear the form fields
           setName('');
           setDescription('');
-          onProjectUpdated?.();
+          onProjectUpdated?.(); // Call the callback if provided
         } else {
           toast.error('Failed to add project. See console for details.');
         }
@@ -120,6 +127,7 @@ const ProjectForm = ({
         />
       </div>
       <div className="flex justify-end">
+        {/* Show cancel button only when editing */}
         {initialProject && onProjectUpdated && (
           <Button
             type="button"

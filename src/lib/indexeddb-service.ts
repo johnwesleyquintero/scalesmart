@@ -437,22 +437,28 @@ export const deleteContact = async (id: string): Promise<void> => {
  * @remarks Used by Project Board.
  * @param task - The task data to create.
  */
-export const createTask = async (task: Task): Promise<string | undefined> => {
+export const createTask = async (
+  taskData: Omit<Task, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
+): Promise<string | undefined> => {
   if (!db) {
     await initializeDB();
   }
   try {
     const id = crypto.randomUUID();
-    const creationTimestamp = Date.now();
-    const updateTimestamp = Date.now();
-    const taskToStore = { ...task, id, creationTimestamp, updateTimestamp };
+    const now = Date.now();
+    const taskToStore: Task = {
+      ...taskData,
+      id,
+      creationTimestamp: now,
+      updateTimestamp: now,
+    };
     await db.tasks.put(taskToStore);
-    console.log('Task added to IndexedDB:', task);
+    console.log('Task added to IndexedDB:', taskToStore);
     return id;
   } catch (error) {
     logError(
       error,
-      `Error adding task to IndexedDB: ${task.title}`,
+      `Error adding task to IndexedDB: ${taskData.title}`,
       'IndexedDBService',
     );
     return undefined;

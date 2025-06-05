@@ -14,23 +14,31 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
+  DragEndEvent,
 } from '@dnd-kit/core';
 import { useProjectManagementData } from '@/hooks/use-project-management-data';
+import { Task } from '@/lib/indexeddb-service'; // Import Task type
 
 const ProjectManagementPage = () => {
   const { tasks, setTasks, projects, setProjects, handleDragEnd } =
     useProjectManagementData();
 
+  // Configure sensors for drag and drop
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor),
   );
 
+  // Handle the end of a drag operation
+  const onDragEnd = (event: DragEndEvent) => {
+    handleDragEnd(event, tasks, setTasks); // Pass tasks and setTasks to the hook handler
+  };
+
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
-      onDragEnd={handleDragEnd}
+      onDragEnd={onDragEnd} // Use the local onDragEnd handler
     >
       <div className="container mx-auto p-4">
         <h1 className="text-3xl font-bold text-center my-6 text-foreground">
@@ -66,10 +74,20 @@ const ProjectManagementPage = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <TaskForm setTasks={setTasks} tasks={tasks} />
+                    {/* Pass projects to TaskForm for project assignment */}
+                    <TaskForm
+                      setTasks={setTasks}
+                      tasks={tasks}
+                      projects={projects}
+                    />
                   </CardContent>
                 </Card>
-                <TaskList tasks={tasks} setTasks={setTasks} />
+                {/* Pass projects to TaskList for displaying project names */}
+                <TaskList
+                  tasks={tasks}
+                  setTasks={setTasks}
+                  projects={projects}
+                />
               </div>
             </div>
           </TabsContent>
