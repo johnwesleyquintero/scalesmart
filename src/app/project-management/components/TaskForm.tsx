@@ -20,7 +20,7 @@ import { logger } from '@/lib/logger'; // Import logger for enhanced debugging
 const NO_PROJECT_VALUE = 'no-project-selected';
 
 interface TaskFormProps {
-  setTasks: (tasks: Task[]) => void;
+  setTasks: React.Dispatch<React.SetStateAction<Task[]>>; // Changed to accept functional updates
   tasks: Task[];
   task?: Task;
   onTaskUpdated?: () => void;
@@ -40,6 +40,11 @@ const TaskForm = ({
   );
   const [status, setStatus] = useState(initialTask?.status || 'to-do');
   const [assignee, setAssignee] = useState(initialTask?.assignee || '');
+  // The due date is stored as a number (timestamp) in the Task interface,
+  // but the form input uses type="date" which works with "YYYY-MM-DD" strings.
+  // new Date('YYYY-MM-DD') is parsed as UTC midnight of that date.
+  // If timezone-specific date logic is required, using libraries like date-fns
+  // or moment.js with explicit timezone handling might be necessary.
   const [dueDate, setDueDate] = useState<string>( // Change to string for input type="date"
     initialTask?.dueDate
       ? new Date(initialTask.dueDate).toISOString().split('T')[0]
@@ -64,7 +69,9 @@ const TaskForm = ({
           ? new Date(initialTask.dueDate).toISOString().split('T')[0]
           : '',
       );
-      setProjectId(initialTask.projectId || '');
+      // Debugging Improvement: Ensure projectId is set to NO_PROJECT_VALUE if initialTask.projectId is empty,
+      // preventing the Radix UI Select.Item error during edit mode.
+      setProjectId(initialTask.projectId || NO_PROJECT_VALUE);
     } else {
       // Reset form for adding new task
       setTitle('');
@@ -72,7 +79,7 @@ const TaskForm = ({
       setStatus('to-do');
       setAssignee('');
       setDueDate('');
-      setProjectId(NO_PROJECT_VALUE); // Debugging Improvement: Reset to NO_PROJECT_VALUE
+      setProjectId(NO_PROJECT_VALUE); // Reset to NO_PROJECT_VALUE for new tasks
     }
   }, [initialTask]);
 
@@ -106,12 +113,17 @@ const TaskForm = ({
       };
       try {
         await updateTask(updatedTask);
-        // Update the tasks state with the updated task
-        setTasks(tasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+        // Addressed Stale Closure Issue: Using functional update for setTasks
+        setTasks((prevTasks) =>
+          prevTasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
+        );
         toast.success('Task updated successfully!');
         onTaskUpdated?.(); // Call the callback if provided
       } catch (error) {
-        console.error('Error updating task:', error);
+        logger.error('Error updating task:', error, {
+          component: 'TaskForm',
+          context: 'handleSubmit',
+        });
         toast.error('Failed to update task. See console for details.');
       }
     } else {
@@ -127,8 +139,8 @@ const TaskForm = ({
             creationTimestamp: Date.now(),
             updateTimestamp: Date.now(),
           };
-          // Add the new task to the tasks state
-          setTasks([...tasks, newTask]);
+          // Addressed Stale Closure Issue: Using functional update for setTasks
+          setTasks((prevTasks) => [...prevTasks, newTask]);
           toast.success('Task added successfully!');
           // Clear the form fields
           setTitle('');
@@ -136,13 +148,16 @@ const TaskForm = ({
           setStatus('to-do');
           setAssignee('');
           setDueDate('');
-          setProjectId(NO_PROJECT_VALUE); // Debugging Improvement: Reset to NO_PROJECT_VALUE
+          setProjectId(NO_PROJECT_VALUE); // Reset to NO_PROJECT_VALUE for new tasks
           onTaskUpdated?.(); // Call the callback if provided
         } else {
           toast.error('Failed to add task. See console for details.');
         }
       } catch (error) {
-        console.error('Error adding task:', error);
+        logger.error('Error adding task:', error, {
+          component: 'TaskForm',
+          context: 'handleSubmit',
+        });
         toast.error('Failed to add task. See console for details.');
       }
     }
@@ -227,21 +242,22 @@ const TaskForm = ({
             </SelectItem>
             {/*
               Iterate over projects to create SelectItem components.
-              Debugging Improvement: Added validation to ensure project.id is a non-empty string.
-              The original error "A <Select.Item /> must have a value prop that is not an empty string"
-              indicates that `project.id` might be empty for some projects.
-              This check prevents rendering SelectItem with an invalid value,
+              Added validation to ensure project.id is a non-empty string.
+              This prevents rendering SelectItem with an invalid value,
               and logs a warning for easier debugging.
             */}
-            {projects.map((project) => {
-              if (!project.id || project.id.trim() === '') {
-                logger.warn(
-                  `Skipping project with invalid or empty ID: ${JSON.stringify(project)}`,
-                  { component: 'TaskForm', context: 'ProjectSelect' }
-                );
-                return null; // Skip rendering this item if ID is invalid
-              }
-              return (
+            {projects
+              .filter((project) => {
+                if (!project.id || project.id.trim() === '') {
+                  logger.warn(
+                    `Skipping project with invalid or empty ID: ${JSON.stringify(project)}`,
+                    { component: 'TaskForm', context: 'ProjectSelect' },
+                  );
+                  return false; // Skip rendering this item if ID is invalid
+                }
+                return true;
+              })
+              .map((project) => (
                 <SelectItem
                   key={project.id}
                   value={project.id}
@@ -249,8 +265,7 @@ const TaskForm = ({
                 >
                   {project.name}
                 </SelectItem>
-              );
-            })}
+              ))}
           </SelectContent>
         </Select>
       </div>
