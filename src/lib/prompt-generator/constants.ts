@@ -11,7 +11,7 @@ export const CATEGORIES = [
 ] as const; // Use 'as const' for a read-only tuple type
 
 // Define a union type from the CATEGORIES array
-export type StandardCategory = typeof CATEGORIES[number];
+export type StandardCategory = (typeof CATEGORIES)[number];
 
 export type CustomCategory = typeof CUSTOM_CATEGORY_VALUE;
 
@@ -90,7 +90,8 @@ export const CONTEXT_HEADING = 'Context';
 export const REQUEST_HEADING = 'Request';
 export const CODE_HEADING = 'Code';
 
-// Map for introduction phrases based on standard category values
+// Map for introduction phrases based on standard category values.
+// The 'custom' category value is handled separately in the getIntroductionPhrase function in utils.ts.
 export const INTRODUCTION_PHRASES = {
   '': 'I need general code assistance. ',
   'Code Refinement': 'I need assistance with refining existing code. ',

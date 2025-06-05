@@ -63,21 +63,31 @@ export default function PromptRequestGenerator() {
     Partial<Record<keyof PromptData, string>>
   >({});
 
-  // Generic handler factory for text input fields (Input and Textarea).
-  const handleInputChange = useCallback(
-    (field: keyof Omit<PromptData, 'category'>) =>
-      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        setPromptData((prev) => ({ ...prev, [field]: e.target.value }));
-      },
-    [], // Dependencies: none
-  );
-
-  // Debounced handler for text input fields to reduce frequent state updates.
+  // Debounced handler for text input fields to reduce frequent state updates and perform validation.
   const debouncedHandleInputChange = useDebounceCallback(
     (field: keyof Omit<PromptData, 'category'>, value: string) => {
-      setPromptData((prev) => ({ ...prev, [field]: value }));
-      // Clear validation error for this field when user starts typing
-      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
+      // Trim the value before setting state (optional, based on suggestion)
+      const trimmedValue = value.trim();
+      setPromptData((prev) => ({ ...prev, [field]: trimmedValue }));
+
+      // Perform validation for required fields on debounce
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        if (field === 'request' && !trimmedValue) {
+          newErrors.request = "The 'Request' field is required.";
+        } else if (
+          field === 'customCategory' &&
+          promptData.category === CUSTOM_CATEGORY_VALUE &&
+          !trimmedValue
+        ) {
+          newErrors.customCategory =
+            "Please enter a value for the 'Custom Category'.";
+        } else {
+          // Clear validation error for this field if it's now valid
+          newErrors[field] = undefined;
+        }
+        return newErrors;
+      });
     },
     300, // Debounce delay in ms
   );

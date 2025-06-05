@@ -42,7 +42,7 @@ function detectLanguage(codeInput: string): string {
   }
 
   // Basic heuristics - order matters for some cases
-  // HTML/XML check
+  // HTML/XML check: Looks for common tag structures and angle brackets.
   if (
     trimmedCode.startsWith('<') &&
     trimmedCode.endsWith('>') &&
@@ -50,7 +50,7 @@ function detectLanguage(codeInput: string): string {
   ) {
     return 'html';
   }
-  // JSON check
+  // JSON check: Looks for curly or square brackets at start/end and attempts parsing.
   if (
     (trimmedCode.startsWith('{') && trimmedCode.endsWith('}')) ||
     (trimmedCode.startsWith('[') && trimmedCode.endsWith(']'))
@@ -62,7 +62,7 @@ function detectLanguage(codeInput: string): string {
       // Not valid JSON, continue
     }
   }
-  // TypeScript/JavaScript check
+  // TypeScript/JavaScript check: Looks for common keywords like import, export, function, const, class, async, await.
   if (
     /\b(import|export|function|const|let|class|interface|async|await)\b/.test(
       trimmedCode,
@@ -70,35 +70,35 @@ function detectLanguage(codeInput: string): string {
   ) {
     return 'typescript';
   }
-  // Python check
+  // Python check: Looks for 'def', 'print', 'import' followed by colon or variable assignment without semicolon.
   if (
     /\b(def|print|import)\b.*:/.test(trimmedCode) ||
     (/^\s*\w+\s*=/.test(trimmedCode) && !trimmedCode.includes(';'))
   ) {
     return 'python';
   }
-  // Java check
+  // Java check: Looks for access modifiers, class/interface keywords, or main method signature.
   if (
     /\b(public|private|protected)\b.*\b(class|interface)\b/.test(trimmedCode) ||
     /\b(static|void|String)\b.*main\s*\(/.test(trimmedCode)
   ) {
     return 'java';
   }
-  // PHP check
+  // PHP check: Looks for '<?php' start tag or common keywords followed by semicolon.
   if (
     trimmedCode.startsWith('<?php') ||
     /\b(function|echo|namespace)\b.*;/.test(trimmedCode)
   ) {
     return 'php';
   }
-  // C/C++ check
+  // C/C++ check: Looks for include directives or main function signature.
   if (
     /#include\s*<.*>/.test(trimmedCode) ||
     /\b(int|void)\s*main\s*\(.*\)\s*\{/.test(trimmedCode)
   ) {
     return 'c';
   }
-  // SQL check
+  // SQL check: Looks for common SQL keywords like SELECT, FROM, WHERE, INSERT, UPDATE, DELETE (case-insensitive).
   if (/\b(SELECT|FROM|WHERE|INSERT|UPDATE|DELETE)\b/i.test(trimmedCode)) {
     return 'sql';
   }
@@ -122,9 +122,12 @@ export function generatePrompt(data: PromptData): string {
 
   // Determine the category name for the heading based on the selected category value.
   // Use the trimmed custom category text if 'custom' is selected, otherwise use the trimmed standard category.
+  // Determine the category name for the heading based on the selected category value.
+  // If 'custom' is selected, use the trimmed custom category text, defaulting to 'Custom' if empty.
+  // Otherwise, use the trimmed standard category name.
   const categoryName =
     category === CUSTOM_CATEGORY_VALUE
-      ? customCategory.trim()
+      ? customCategory.trim() || 'Custom'
       : category.trim();
 
   // Add category heading and an introductory phrase if a category name is determined.
