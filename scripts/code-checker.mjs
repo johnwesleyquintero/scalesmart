@@ -1,76 +1,109 @@
 /**
- * @file This script automates the execution of various code quality checks
- * such as formatting, linting, and type checking. It runs these checks in parallel
- * and reports the overall success or failure.
+ * @file Script to automate code quality checks (formatting, linting, type checking)
+ * Runs checks in parallel and provides consolidated reporting
  */
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import chalk from 'chalk';
 
 const execPromise = promisify(exec);
 
-let spinnerInterval;
-const spinnerChars = ['|', '/', '-', '\\'];
-let spinnerIndex = 0;
+// Configuration - could be moved to external config file if needed
+const CHECKS = [
+  { command: 'npm run format', name: 'Format Check' },
+  { command: 'npm run lint', name: 'Lint Check' },
+  { command: 'npm run typecheck', name: 'Type Check' },
+  // Additional checks can be added here
+  // { command: 'npm run test', name: 'Unit Tests' },
+];
 
-function startSpinner() {
-  process.stdout.write('Running checks... ');
-  spinnerInterval = setInterval(() => {
-    process.stdout.write('\b' + spinnerChars[spinnerIndex]);
-    spinnerIndex = (spinnerIndex + 1) % spinnerChars.length;
-  }, 100);
-}
+// Exit codes
+const EXIT_CODES = {
+  SUCCESS: 0,
+  CHECK_FAILED: 1,
+  UNEXPECTED_ERROR: 2,
+};
 
-function stopSpinner() {
-  clearInterval(spinnerInterval);
-  process.stdout.write('\b \n'); // Clear the spinner character and move to a new line
+/**
+ * Validates a command before execution
+ * @param {string} command - Command to validate
+ * @throws {Error} If command is invalid
+ */
+function validateCommand(command) {
+  if (typeof command !== 'string' || command.trim() === '') {
+    throw new Error(`Invalid command: ${command}`);
+  }
 }
 
 /**
- * Runs a given shell command and logs its output.
- * @param {string} command - The shell command to execute.
- * @param {string} name - A descriptive name for the command being run (e.g., "Lint Check").
- * @returns {Promise<boolean>} - True if the command succeeded, false otherwise.
+ * Formats error output for better readability
+ * @param {string} output - Raw error output
+ * @returns {string} Formatted error message
+ */
+function formatErrorOutput(output) {
+  if (!output) return '';
+
+  const lines = output.split('\n');
+  const categorizedOutput = new Map();
+  const uncategorizedLines = [];
+  const filePattern = /^(.*?):(\d+):(\d+)/; // Matches filepath:line:column
+
+  lines.forEach((line) => {
+    const match = line.match(filePattern);
+    if (match?.[1]) {
+      const filePath = match[1];
+      if (!categorizedOutput.has(filePath)) {
+        categorizedOutput.set(filePath, []);
+      }
+      categorizedOutput.get(filePath).push(line);
+    } else if (line.trim()) {
+      uncategorizedLines.push(line);
+    }
+  });
+
+  let formattedOutput = '';
+
+  // Add categorized output
+  categorizedOutput.forEach((lines, filePath) => {
+    formattedOutput += `\n${chalk.underline(filePath)}:\n`;
+    formattedOutput += lines.join('\n') + '\n';
+  });
+
+  // Add uncategorized output
+  if (uncategorizedLines.length > 0) {
+    formattedOutput += `\n${chalk.dim('General output:')}\n`;
+    formattedOutput += uncategorizedLines.join('\n') + '\n';
+  }
+
+  return formattedOutput;
+}
+
+/**
+ * Executes a shell command with improved error handling
+ * @param {string} command - The shell command to execute
+ * @param {string} name - Descriptive name for the command
+ * @returns {Promise<boolean>} True if command succeeded, false otherwise
  */
 async function runCommand(command, name) {
-  console.log(`Starting ${name}...`);
+  validateCommand(command);
+
+  console.log(chalk.blue(`\n▶ Starting ${name}...`));
+
   try {
-    await execPromise(command);
+    const { stdout } = await execPromise(command);
+    if (stdout.trim()) {
+      console.log(chalk.dim(stdout));
+    }
+    console.log(chalk.green(`✓ ${name} passed`));
     return true;
   } catch (error) {
-    console.error(`${name} failed.`);
-    let output = '';
-    if (error.stdout) output += error.stdout;
-    if (error.stderr) output += error.stderr;
+    console.error(chalk.red(`✗ ${name} failed`));
 
-    const lines = output.split('\n');
-    const categorizedOutput = {};
-    const uncategorizedLines = [];
-    const filePattern = /^(.*?):(\d+):(\d+)/; // Basic pattern for filepath:line:column
+    const output = [error.stdout, error.stderr].filter(Boolean).join('\n');
 
-    lines.forEach((line) => {
-      const match = line.match(filePattern);
-      if (match && match[1]) {
-        const filePath = match[1];
-        if (!categorizedOutput[filePath]) {
-          categorizedOutput[filePath] = [];
-        }
-        categorizedOutput[filePath].push(line);
-      } else {
-        uncategorizedLines.push(line);
-      }
-    });
-
-    // Log categorized output
-    for (const filePath in categorizedOutput) {
-      console.error(`\n--- ${name} - ${filePath} ---`);
-      categorizedOutput[filePath].forEach((line) => console.error(line));
-    }
-
-    // Log any uncategorized lines
-    if (uncategorizedLines.length > 0) {
-      console.error(`\n--- ${name} - General Output ---`);
-      uncategorizedLines.forEach((line) => console.error(line));
+    if (output) {
+      console.error(formatErrorOutput(output));
     }
 
     return false;
@@ -78,40 +111,32 @@ async function runCommand(command, name) {
 }
 
 /**
- * Orchestrates and runs multiple code quality checks in parallel.
- * Exits the process with a status code of 0 if all checks pass, or 1 if any fail.
+ * Orchestrates parallel execution of code quality checks
+ * @returns {Promise<void>}
  */
-async function checkCode() {
-  const checksToRun = [
-    { command: 'npm run format', name: 'Format Check' },
-    { command: 'npm run lint', name: 'Lint Check' },
-    { command: 'npm run typecheck', name: 'Type Check' },
-    // Add more checks here easily
-    // { command: 'npm run test', name: 'Unit Tests' },
-  ];
-
-  startSpinner();
-
+async function runQualityChecks() {
   try {
+    console.log(chalk.bold('\nRunning Code Quality Checks\n'));
+
     const results = await Promise.all(
-      checksToRun.map((check) => runCommand(check.command, check.name)),
+      CHECKS.map((check) => runCommand(check.command, check.name)),
     );
 
-    const allPassed = results.every((result) => result === true);
+    const allPassed = results.every(Boolean);
 
     if (allPassed) {
-      stopSpinner();
-      process.exit(0);
+      console.log(chalk.bold.green('\nAll checks passed!'));
+      process.exit(EXIT_CODES.SUCCESS);
     } else {
-      stopSpinner();
-      console.error('\nSome code checks failed.');
-      process.exit(1);
+      console.error(chalk.bold.red('\nSome checks failed.'));
+      process.exit(EXIT_CODES.CHECK_FAILED);
     }
   } catch (error) {
-    stopSpinner();
-    console.error('An unexpected error occurred:', error);
-    process.exit(1);
+    console.error(chalk.bold.red('\nUnexpected error:'));
+    console.error(error);
+    process.exit(EXIT_CODES.UNEXPECTED_ERROR);
   }
 }
 
-checkCode();
+// Execute the checks
+runQualityChecks();

@@ -18,7 +18,7 @@ const useUserProfile = () => {
   useEffect(() => {
     const fetchUserProfile = async () => {
       setIsLoading(true);
-      if (session?.user?.email) {
+      if (session?.user?.email && session.user.id && session.user.name) {
         // Fetch user profile from database
         try {
           const response = await fetch(
@@ -33,8 +33,8 @@ const useUserProfile = () => {
             if (response.status === 404) {
               const newUserProfile: UserProfile = {
                 id: session.user.id as string,
-                name: session.user.name as string,
-                email: session.user.email as string,
+                name: session.user.name,
+                email: session.user.email,
                 experienceLevel: 'Beginner',
                 interests: [],
                 completedCourses: [],
@@ -66,12 +66,7 @@ const useUserProfile = () => {
     };
 
     fetchUserProfile();
-  }, [
-    session?.user?.email,
-    session?.user?.id,
-    session?.user?.name,
-    localStorageProfile,
-  ]); // Added session.user.id and session.user.name, removed setLocalStorageProfile
+  }, [session, localStorageProfile, setLocalStorageProfile]);
 
   const updateUserProfile = useCallback(
     async (updatedProfile: UserProfile) => {
