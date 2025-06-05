@@ -17,10 +17,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger'; // Import logger for enhanced debugging
 
 interface ProjectListProps {
   projects: Project[];
-  setProjects: (projects: Project[]) => void;
+  setProjects: React.Dispatch<React.SetStateAction<Project[]>>; // Changed to accept functional updates
 }
 
 const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
@@ -28,8 +29,16 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('nameAsc'); // 'nameAsc', 'nameDesc', 'dateAsc', 'dateDesc'
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const [projectToDeleteId, setProjectToDeleteId] = useState<string | null>(
+    null,
+  );
 
-  // Memoize filtered and sorted projects for performance
+  /**
+   * Memoizes filtered and sorted projects for performance.
+   * Re-runs memoization when projects, searchQuery, or sortBy changes.
+   * @returns {Project[]} The filtered and sorted array of projects.
+   */
   const filteredAndSortedProjects = useMemo(() => {
     let filteredProjects = projects;
 
@@ -62,40 +71,58 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
     });
 
     return filteredProjects;
-  }, [projects, searchQuery, sortBy]); // Re-run memoization when projects, searchQuery, or sortBy changes
+  }, [projects, searchQuery, sortBy]);
 
-  // Handle project deletion
-  const handleDeleteProject = async (id: string) => {
-    // Use a more styled confirmation modal if available, otherwise use window.confirm
-    if (
-      window.confirm(
-        'Are you sure you want to delete this project? This will not delete associated tasks.',
-      )
-    ) {
+  /**
+   * Handles the click event for deleting a project, opening a confirmation modal.
+   * @param {string} id - The ID of the project to be deleted.
+   */
+  const handleDeleteProject = (id: string) => {
+    setProjectToDeleteId(id);
+    setIsConfirmModalOpen(true);
+  };
+
+  /**
+   * Confirms and proceeds with project deletion after user confirmation.
+   */
+  const confirmDeleteProject = async () => {
+    if (projectToDeleteId) {
       try {
-        await deleteProject(id);
-        // Remove the deleted project from the projects state
-        setProjects(projects.filter((project) => project.id !== id));
+        await deleteProject(projectToDeleteId);
+        setProjects((prevProjects) =>
+          prevProjects.filter((project) => project.id !== projectToDeleteId),
+        );
         toast.info('Project deleted.');
         // Close the modal if the deleted project was being edited
-        if (selectedProject?.id === id) {
+        if (selectedProject?.id === projectToDeleteId) {
           setSelectedProject(null);
           setIsModalOpen(false);
         }
       } catch (error) {
-        console.error('Error deleting project:', error);
+        logger.error('Error deleting project:', error, {
+          component: 'ProjectList',
+          context: 'confirmDeleteProject',
+        });
         toast.error('Failed to delete project. See console for details.');
+      } finally {
+        setIsConfirmModalOpen(false);
+        setProjectToDeleteId(null);
       }
     }
   };
 
-  // Handle click on the edit button
+  /**
+   * Handles the click event for editing a project, opening the ProjectForm modal.
+   * @param {Project} project - The project object to be edited.
+   */
   const handleEditClick = (project: Project) => {
     setSelectedProject(project);
     setIsModalOpen(true);
   };
 
-  // Handle closing the edit modal
+  /**
+   * Handles closing the edit project modal.
+   */
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedProject(null);
@@ -184,12 +211,36 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
         >
           <ProjectForm
             project={selectedProject}
-            setProjects={setProjects}
+            setProjects={setProjects} // This is now correctly typed
             projects={projects}
             onProjectUpdated={handleCloseModal}
+            onCancel={handleCloseModal}
           />
         </Modal>
       )}
+
+      {/* Confirmation Modal for deleting a project */}
+      <Modal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        title="Confirm Deletion"
+      >
+        <p className="mb-4 text-foreground">
+          Are you sure you want to delete this project? This action cannot be
+          undone. Note: This will not delete associated tasks.
+        </p>
+        <div className="flex justify-end space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsConfirmModalOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={confirmDeleteProject}>
+            Delete
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 };

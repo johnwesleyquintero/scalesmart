@@ -8,12 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger'; // Import logger for enhanced debugging
 
 interface ProjectFormProps {
-  setProjects: (projects: Project[]) => void;
+  setProjects: React.Dispatch<React.SetStateAction<Project[]>>; // Changed to accept functional updates
   projects: Project[];
   project?: Project; // Optional: for editing existing projects
   onProjectUpdated?: () => void; // Callback after updating/adding
+  onCancel?: () => void; // New prop for cancel action
 }
 
 const ProjectForm = ({
@@ -21,6 +23,7 @@ const ProjectForm = ({
   projects,
   project: initialProject,
   onProjectUpdated,
+  onCancel, // Destructure new prop
 }: ProjectFormProps) => {
   const [name, setName] = useState(initialProject?.name || '');
   const [description, setDescription] = useState(
@@ -61,16 +64,19 @@ const ProjectForm = ({
       };
       try {
         await updateProject(updatedProject);
-        // Update the projects state with the updated project
-        setProjects(
-          projects.map((p) =>
+        // Addressed Stale Closure Issue: Using functional update for setProjects
+        setProjects((prevProjects) =>
+          prevProjects.map((p) =>
             p.id === updatedProject.id ? updatedProject : p,
           ),
         );
         toast.success('Project updated successfully!');
         onProjectUpdated?.(); // Call the callback if provided
       } catch (error) {
-        console.error('Error updating project:', error);
+        logger.error('Error updating project:', error, {
+          component: 'ProjectForm',
+          context: 'handleSubmit',
+        });
         toast.error('Failed to update project. See console for details.');
       }
     } else {
@@ -79,25 +85,26 @@ const ProjectForm = ({
         const newProjectId = await createProject({
           ...projectData,
         });
-        if (newProjectId) {
-          const newProject: Project = {
-            ...projectData,
-            id: newProjectId,
-            creationTimestamp: Date.now(),
-            updateTimestamp: Date.now(),
-          };
-          // Add the new project to the projects state
-          setProjects([...projects, newProject]);
-          toast.success('Project added successfully!');
-          // Clear the form fields
-          setName('');
-          setDescription('');
-          onProjectUpdated?.(); // Call the callback if provided
-        } else {
-          toast.error('Failed to add project. See console for details.');
-        }
+        // Rely solely on try...catch for error handling; assuming createProject throws on failure.
+        // Convert newProjectId to string as Project.id is string.
+        const newProject: Project = {
+          ...projectData,
+          id: String(newProjectId), // Ensure ID is string
+          creationTimestamp: Date.now(),
+          updateTimestamp: Date.now(),
+        };
+        // Addressed Stale Closure Issue: Using functional update for setProjects
+        setProjects((prevProjects) => [...prevProjects, newProject]);
+        toast.success('Project added successfully!');
+        // Clear the form fields
+        setName('');
+        setDescription('');
+        onProjectUpdated?.(); // Call the callback if provided
       } catch (error) {
-        console.error('Error adding project:', error);
+        logger.error('Error adding project:', error, {
+          component: 'ProjectForm',
+          context: 'handleSubmit',
+        });
         toast.error('Failed to add project. See console for details.');
       }
     }
@@ -128,11 +135,11 @@ const ProjectForm = ({
       </div>
       <div className="flex justify-end">
         {/* Show cancel button only when editing */}
-        {initialProject && onProjectUpdated && (
+        {initialProject && onCancel && (
           <Button
             type="button"
             variant="outline"
-            onClick={onProjectUpdated}
+            onClick={onCancel} // Use the new onCancel prop
             className="mr-2"
           >
             Cancel

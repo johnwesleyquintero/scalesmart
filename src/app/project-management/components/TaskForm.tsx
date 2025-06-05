@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'; // Import useEffect
+import { useState, useEffect, Dispatch, SetStateAction } from 'react'; // Import useEffect, Dispatch, SetStateAction
 import { Task, Project } from '@/lib/indexeddb-service'; // Import Project type
 import { createTask, updateTask } from '@/lib/indexeddb-service';
 import { Button } from '@/components/ui/button';
@@ -20,19 +20,21 @@ import { logger } from '@/lib/logger'; // Import logger for enhanced debugging
 const NO_PROJECT_VALUE = 'no-project-selected';
 
 interface TaskFormProps {
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>; // Changed to accept functional updates
-  tasks: Task[];
-  task?: Task;
-  onTaskUpdated?: () => void;
+  task?: Task | null; // Allow null for new tasks
+  onTaskUpdated?: (task: Task) => void; // Changed to accept the updated/new task
+  onCancel?: () => void; // New prop for cancel action
   projects: Project[]; // Add projects prop for project assignment
+  setTasks: Dispatch<SetStateAction<Task[]>>; // Add setTasks prop
+  tasks: Task[]; // Add tasks prop
 }
 
 const TaskForm = ({
-  setTasks,
-  tasks,
   task: initialTask,
   onTaskUpdated,
+  onCancel, // Destructure new prop
   projects, // Destructure projects prop
+  setTasks, // Destructure setTasks prop
+  tasks, // Destructure tasks prop
 }: TaskFormProps) => {
   const [title, setTitle] = useState(initialTask?.title || '');
   const [description, setDescription] = useState(
@@ -113,12 +115,8 @@ const TaskForm = ({
       };
       try {
         await updateTask(updatedTask);
-        // Addressed Stale Closure Issue: Using functional update for setTasks
-        setTasks((prevTasks) =>
-          prevTasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
-        );
         toast.success('Task updated successfully!');
-        onTaskUpdated?.(); // Call the callback if provided
+        onTaskUpdated?.(updatedTask); // Call the callback with the updated task
       } catch (error) {
         logger.error('Error updating task:', error, {
           component: 'TaskForm',
@@ -139,8 +137,6 @@ const TaskForm = ({
             creationTimestamp: Date.now(),
             updateTimestamp: Date.now(),
           };
-          // Addressed Stale Closure Issue: Using functional update for setTasks
-          setTasks((prevTasks) => [...prevTasks, newTask]);
           toast.success('Task added successfully!');
           // Clear the form fields
           setTitle('');
@@ -149,7 +145,7 @@ const TaskForm = ({
           setAssignee('');
           setDueDate('');
           setProjectId(NO_PROJECT_VALUE); // Reset to NO_PROJECT_VALUE for new tasks
-          onTaskUpdated?.(); // Call the callback if provided
+          onTaskUpdated?.(newTask); // Call the callback with the new task
         } else {
           toast.error('Failed to add task. See console for details.');
         }
@@ -271,11 +267,11 @@ const TaskForm = ({
       </div>
       <div className="flex justify-end">
         {/* Show cancel button only when editing */}
-        {initialTask && onTaskUpdated && (
+        {initialTask && onCancel && (
           <Button
             type="button"
             variant="outline"
-            onClick={onTaskUpdated}
+            onClick={onCancel} // Use the new onCancel prop
             className="mr-2"
           >
             Cancel
