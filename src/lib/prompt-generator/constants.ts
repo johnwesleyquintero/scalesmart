@@ -10,6 +10,14 @@ export const CATEGORIES = [
   'Feature Implementation',
 ] as const; // Use 'as const' for a read-only tuple type
 
+// Define a union type from the CATEGORIES array
+export type StandardCategory = typeof CATEGORIES[number];
+
+export type CustomCategory = typeof CUSTOM_CATEGORY_VALUE;
+
+// You could potentially define a union for *all* possible category keys
+export type CategoryKey = StandardCategory | '' | CustomCategory;
+
 // Define a constant for the 'custom' category value used in the Select component state.
 export const CUSTOM_CATEGORY_VALUE = 'custom';
 
@@ -76,11 +84,11 @@ export const DEFAULT_PROMPT_TEXTS = {
   },
 } as const;
 
-// Constants for markdown headings
-export const TASK_CATEGORY_HEADING = '### Task Category:';
-export const CONTEXT_HEADING = '#### Context';
-export const REQUEST_HEADING = '#### Request';
-export const CODE_HEADING = '#### Code';
+// Constants for section headings (plain text, not markdown)
+export const TASK_CATEGORY_HEADING = 'Task Category:';
+export const CONTEXT_HEADING = 'Context';
+export const REQUEST_HEADING = 'Request';
+export const CODE_HEADING = 'Code';
 
 // Map for introduction phrases based on standard category values
 export const INTRODUCTION_PHRASES = {
