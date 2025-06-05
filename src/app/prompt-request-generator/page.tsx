@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import useDebounceCallback from '@/hooks/use-debounce-callback';
 import { Label } from '@/components/ui/label';
 import {
   Card,
@@ -22,6 +23,9 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import Link from 'next/link';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { components } from '@/components/MdxRenderer';
 
 import {
   CATEGORIES,
@@ -51,6 +55,14 @@ export default function PromptRequestGenerator() {
   // State for managing copy-to-clipboard button feedback.
   const [copied, setCopied] = useState(false);
 
+  // State for loading indicator during prompt generation.
+  const [loading, setLoading] = useState(false);
+
+  // State for validation errors.
+  const [validationErrors, setValidationErrors] = useState<
+    Partial<Record<keyof PromptData, string>>
+  >({});
+
   // Generic handler factory for text input fields (Input and Textarea).
   const handleInputChange = useCallback(
     (field: keyof Omit<PromptData, 'category'>) =>
@@ -58,6 +70,16 @@ export default function PromptRequestGenerator() {
         setPromptData((prev) => ({ ...prev, [field]: e.target.value }));
       },
     [], // Dependencies: none
+  );
+
+  // Debounced handler for text input fields to reduce frequent state updates.
+  const debouncedHandleInputChange = useDebounceCallback(
+    (field: keyof Omit<PromptData, 'category'>, value: string) => {
+      setPromptData((prev) => ({ ...prev, [field]: value }));
+      // Clear validation error for this field when user starts typing
+      setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
+    },
+    300, // Debounce delay in ms
   );
 
   // Handler specifically for the category select component.
@@ -71,6 +93,12 @@ export default function PromptRequestGenerator() {
       customCategory:
         value !== CUSTOM_CATEGORY_VALUE ? '' : prev.customCategory,
     }));
+    // Clear category validation error on change
+    setValidationErrors((prev) => ({ ...prev, category: undefined }));
+    // If switching to a standard category, clear custom category error
+    if (value !== CUSTOM_CATEGORY_VALUE) {
+      setValidationErrors((prev) => ({ ...prev, customCategory: undefined }));
+    }
   }, []); // Dependencies: none
 
   // Determines if the custom category input field should be rendered.
@@ -94,20 +122,30 @@ export default function PromptRequestGenerator() {
 
   // Handler function to generate the prompt string.
   const generatePromptHandler = useCallback(() => {
-    // --- Client-side Validation (Mirrors isGenerateDisabled logic) ---
+    setLoading(true); // Start loading
+    setOutput(''); // Clear previous output
+
+    // --- Client-side Validation ---
     const { category, customCategory, request, context, codeInput } =
       promptData;
+    const errors: Partial<Record<keyof PromptData, string>> = {};
 
     if (!category) {
-      toast.warning("Please select a 'Category'.");
-      return;
+      errors.category = "Please select a 'Category'.";
     }
     if (!request.trim()) {
-      toast.warning("The 'Request' field is required to generate a prompt.");
-      return;
+      errors.request = "The 'Request' field is required.";
     }
     if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
-      toast.warning("Please enter a value for the 'Custom Category'.");
+      errors.customCategory = "Please enter a value for the 'Custom Category'.";
+    }
+
+    setValidationErrors(errors); // Update validation errors state
+
+    // If there are any errors, stop the process
+    if (Object.keys(errors).length > 0) {
+      setLoading(false); // Stop loading
+      toast.warning('Please fix the errors in the form.');
       return;
     }
     // --- End Validation ---
@@ -144,6 +182,8 @@ export default function PromptRequestGenerator() {
           : 'An unexpected error occurred.';
       toast.error(`Error generating prompt: ${errorMessage}`); // Show specific or generic error message.
       setOutput(''); // Clear previous output on error to prevent showing stale data.
+    } finally {
+      setLoading(false); // Stop loading regardless of success or failure
     }
   }, [promptData]); // Dependency: Re-create if promptData changes.
 
@@ -239,10 +279,29 @@ export default function PromptRequestGenerator() {
                     id="customCategory"
                     placeholder="e.g., AI Agent Development"
                     value={promptData.customCategory}
-                    onChange={handleInputChange('customCategory')}
-                    className="bg-background border-border"
+                    onChange={(e) =>
+                      debouncedHandleInputChange(
+                        'customCategory',
+                        e.target.value,
+                      )
+                    }
+                    className={`bg-background border-border ${validationErrors.customCategory ? 'border-red-500' : ''}`}
                     aria-required={showCustomCategory} // Indicate required state for screen readers
+                    aria-invalid={!!validationErrors.customCategory} // Indicate invalid state for screen readers
+                    aria-describedby={
+                      validationErrors.customCategory
+                        ? 'custom-category-error'
+                        : undefined
+                    } // Link to error message
                   />
+                  {validationErrors.customCategory && (
+                    <p
+                      id="custom-category-error"
+                      className="text-red-500 text-sm mt-1"
+                    >
+                      {validationErrors.customCategory}
+                    </p>
+                  )}
                 </div>
               )}
             </div>
@@ -254,7 +313,9 @@ export default function PromptRequestGenerator() {
                 id="context"
                 placeholder="Provide background information about your project or problem..."
                 value={promptData.context}
-                onChange={handleInputChange('context')}
+                onChange={(e) =>
+                  debouncedHandleInputChange('context', e.target.value)
+                }
                 rows={3}
                 className="bg-background border-border"
                 aria-label="Context for the request (optional)"
@@ -271,11 +332,22 @@ export default function PromptRequestGenerator() {
                 id="request"
                 placeholder="Clearly describe what you need help with..."
                 value={promptData.request}
-                onChange={handleInputChange('request')}
+                onChange={(e) =>
+                  debouncedHandleInputChange('request', e.target.value)
+                }
                 rows={3}
-                className="bg-background border-border"
+                className={`bg-background border-border ${validationErrors.request ? 'border-red-500' : ''}`}
                 aria-required="true" // Indicate required state for screen readers
+                aria-invalid={!!validationErrors.request} // Indicate invalid state for screen readers
+                aria-describedby={
+                  validationErrors.request ? 'request-error' : undefined
+                } // Link to error message
               />
+              {validationErrors.request && (
+                <p id="request-error" className="text-red-500 text-sm mt-1">
+                  {validationErrors.request}
+                </p>
+              )}
             </div>
 
             {/* Code Input Textarea (optional) */}
@@ -285,7 +357,9 @@ export default function PromptRequestGenerator() {
                 id="codeInput"
                 placeholder="Paste any relevant code snippets..."
                 value={promptData.codeInput}
-                onChange={handleInputChange('codeInput')}
+                onChange={(e) =>
+                  debouncedHandleInputChange('codeInput', e.target.value)
+                }
                 rows={5}
                 className="bg-background border-border font-mono"
                 aria-label="Relevant code snippet (optional)"
@@ -299,10 +373,37 @@ export default function PromptRequestGenerator() {
                 onClick={generatePromptHandler} // Use the renamed handler
                 className="w-full md:w-auto"
                 aria-label="Generate prompt based on details"
-                disabled={isGenerateDisabled} // Disable based on validation state
+                disabled={isGenerateDisabled || loading} // Disable based on validation state or loading
               >
-                <Wand2 className="mr-2 h-4 w-4" />
-                Generate Prompt
+                {loading ? (
+                  'Generating...'
+                ) : (
+                  <>
+                    <Wand2 className="mr-2 h-4 w-4" />
+                    Generate Prompt
+                  </>
+                )}
+              </Button>
+
+              {/* Clear Form Button */}
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPromptData({
+                    category: '',
+                    customCategory: '',
+                    context: '',
+                    request: '',
+                    codeInput: '',
+                  });
+                  setOutput(''); // Clear output as well
+                  setValidationErrors({}); // Clear validation errors
+                  setCopied(false); // Reset copied state
+                }}
+                className="w-full md:w-auto"
+                aria-label="Clear all form fields"
+              >
+                Clear Form
               </Button>
 
               {/* Link to External AI Assistant */}
@@ -350,9 +451,12 @@ export default function PromptRequestGenerator() {
             <CardContent>
               {/* Output Display Area */}
               <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-y-auto max-h-[300px]">
-                <pre className="whitespace-pre-wrap text-muted-foreground">
+                <ReactMarkdown
+                  components={components}
+                  remarkPlugins={[remarkGfm]}
+                >
                   {output}
-                </pre>
+                </ReactMarkdown>
               </div>
             </CardContent>
           </Card>

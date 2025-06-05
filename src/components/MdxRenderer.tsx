@@ -20,39 +20,74 @@ const slugify = (text: string) => {
 // Define custom components to be used within MDX
 // These components will override default HTML elements or provide custom functionality
 export const components = {
-  h1: ({ children }: { children: React.ReactNode }) => {
+  h1: ({ children, ...props }: React.ComponentPropsWithoutRef<'h1'>) => {
     const id = slugify(React.Children.toArray(children).join(''));
-    return <h1 id={id}>{children}</h1>;
+    return (
+      <h1 id={id} {...props}>
+        {children}
+      </h1>
+    );
   },
-  h2: ({ children }: { children: React.ReactNode }) => {
+  h2: ({ children, ...props }: React.ComponentPropsWithoutRef<'h2'>) => {
     const id = slugify(React.Children.toArray(children).join(''));
-    return <h2 id={id}>{children}</h2>;
+    return (
+      <h2 id={id} {...props}>
+        {children}
+      </h2>
+    );
   },
-  h3: ({ children }: { children: React.ReactNode }) => {
+  h3: ({ children, ...props }: React.ComponentPropsWithoutRef<'h3'>) => {
     const id = slugify(React.Children.toArray(children).join(''));
-    return <h3 id={id}>{children}</h3>;
+    return (
+      <h3 id={id} {...props}>
+        {children}
+      </h3>
+    );
   },
-  h4: ({ children }: { children: React.ReactNode }) => {
+  h4: ({ children, ...props }: React.ComponentPropsWithoutRef<'h4'>) => {
     const id = slugify(React.Children.toArray(children).join(''));
-    return <h4 id={id}>{children}</h4>;
+    return (
+      <h4 id={id} {...props}>
+        {children}
+      </h4>
+    );
   },
-  p: ({ children }: { children: React.ReactNode }) => <p>{children}</p>,
-  ul: ({ children }: { children: React.ReactNode }) => <ul>{children}</ul>,
-  ol: ({ children }: { children: React.ReactNode }) => <ol>{children}</ol>,
-  li: ({ children }: { children: React.ReactNode }) => <li>{children}</li>,
-  blockquote: ({ children }: { children: React.ReactNode }) => (
-    <blockquote>{children}</blockquote>
+  p: ({ children, ...props }: React.ComponentPropsWithoutRef<'p'>) => (
+    <p {...props}>{children}</p>
   ),
-  table: ({ children }: { children: React.ReactNode }) => (
+  ul: ({ children, ...props }: React.ComponentPropsWithoutRef<'ul'>) => (
+    <ul {...props}>{children}</ul>
+  ),
+  ol: ({ children, ...props }: React.ComponentPropsWithoutRef<'ol'>) => (
+    <ol {...props}>{children}</ol>
+  ),
+  li: ({ children, ...props }: React.ComponentPropsWithoutRef<'li'>) => (
+    <li {...props}>{children}</li>
+  ),
+  blockquote: ({
+    children,
+    ...props
+  }: React.ComponentPropsWithoutRef<'blockquote'>) => (
+    <blockquote {...props}>{children}</blockquote>
+  ),
+  table: ({ children, ...props }: React.ComponentPropsWithoutRef<'table'>) => (
     <div className="my-6 w-full overflow-y-auto">
-      <table>{children}</table>
+      <table {...props}>{children}</table>
     </div>
   ),
-  tr: ({ children }: { children: React.ReactNode }) => <tr>{children}</tr>,
-  th: ({ children }: { children: React.ReactNode }) => <th>{children}</th>,
-  td: ({ children }: { children: React.ReactNode }) => <td>{children}</td>,
-  a: ({ children, href }: { children: React.ReactNode; href?: string }) => (
-    <a href={href}>{children}</a>
+  tr: ({ children, ...props }: React.ComponentPropsWithoutRef<'tr'>) => (
+    <tr {...props}>{children}</tr>
+  ),
+  th: ({ children, ...props }: React.ComponentPropsWithoutRef<'th'>) => (
+    <th {...props}>{children}</th>
+  ),
+  td: ({ children, ...props }: React.ComponentPropsWithoutRef<'td'>) => (
+    <td {...props}>{children}</td>
+  ),
+  a: ({ children, href, ...props }: React.ComponentPropsWithoutRef<'a'>) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
   ),
   code: ({
     children,
@@ -95,7 +130,9 @@ export const components = {
       </pre>
     );
   },
-  kbd: ({ children }: { children: React.ReactNode }) => <kbd>{children}</kbd>,
+  kbd: ({ children, ...props }: React.ComponentPropsWithoutRef<'kbd'>) => (
+    <kbd {...props}>{children}</kbd>
+  ),
   hr: () => <hr />,
   Quiz: Quiz,
   // Add any other custom components you want to use in your MDX files
