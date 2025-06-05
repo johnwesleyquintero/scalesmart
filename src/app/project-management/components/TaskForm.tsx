@@ -164,9 +164,15 @@ const TaskForm = ({
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="to-do">To Do</SelectItem>
-            <SelectItem value="in-progress">In Progress</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="to-do" label="To Do">
+              To Do
+            </SelectItem>
+            <SelectItem value="in-progress" label="In Progress">
+              In Progress
+            </SelectItem>
+            <SelectItem value="completed" label="Completed">
+              Completed
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -196,9 +202,15 @@ const TaskForm = ({
             <SelectValue placeholder="Select project" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">No Project</SelectItem>
+            <SelectItem value="" label="No Project">
+              No Project
+            </SelectItem>
             {projects.map((project) => (
-              <SelectItem key={project.id} value={project.id}>
+              <SelectItem
+                key={project.id}
+                value={project.id}
+                label={project.name}
+              >
                 {project.name}
               </SelectItem>
             ))}

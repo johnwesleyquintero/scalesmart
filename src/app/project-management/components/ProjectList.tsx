@@ -117,10 +117,18 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="nameAsc">Name (A-Z)</SelectItem>
-            <SelectItem value="nameDesc">Name (Z-A)</SelectItem>
-            <SelectItem value="dateDesc">Newest First</SelectItem>
-            <SelectItem value="dateAsc">Oldest First</SelectItem>
+            <SelectItem value="nameAsc" label="Name (A-Z)">
+              Name (A-Z)
+            </SelectItem>
+            <SelectItem value="nameDesc" label="Name (Z-A)">
+              Name (Z-A)
+            </SelectItem>
+            <SelectItem value="dateDesc" label="Newest First">
+              Newest First
+            </SelectItem>
+            <SelectItem value="dateAsc" label="Oldest First">
+              Oldest First
+            </SelectItem>
           </SelectContent>
         </Select>
       </div>

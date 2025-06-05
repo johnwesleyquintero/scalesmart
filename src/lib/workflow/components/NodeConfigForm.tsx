@@ -68,7 +68,7 @@ const NodeConfigForm: React.FC<NodeConfigFormProps> = ({
               </SelectTrigger>
               <SelectContent>
                 {property.options?.map((option: string) => (
-                  <SelectItem key={option} value={option}>
+                  <SelectItem key={option} value={option} label={option}>
                     {option}
                   </SelectItem>
                 ))}

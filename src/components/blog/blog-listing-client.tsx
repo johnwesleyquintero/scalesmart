@@ -250,10 +250,18 @@ export default function BlogListingClient({
               <SelectValue placeholder="Sort by" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="dateDesc">Newest First</SelectItem>
-              <SelectItem value="dateAsc">Oldest First</SelectItem>
-              <SelectItem value="titleAsc">Title (A-Z)</SelectItem>
-              <SelectItem value="titleDesc">Title (Z-A)</SelectItem>
+              <SelectItem value="dateDesc" label="Newest First">
+                Newest First
+              </SelectItem>
+              <SelectItem value="dateAsc" label="Oldest First">
+                Oldest First
+              </SelectItem>
+              <SelectItem value="titleAsc" label="Title (A-Z)">
+                Title (A-Z)
+              </SelectItem>
+              <SelectItem value="titleDesc" label="Title (Z-A)">
+                Title (Z-A)
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>

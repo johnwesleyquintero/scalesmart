@@ -169,18 +169,24 @@ export function CustomerForm({
       <div>
         <Label htmlFor="category">Category (optional)</Label>
         <Select
-          onValueChange={(value) =>
-            setValue('category', value === '__no_category__' ? '' : value)
-          }
+          onValueChange={(
+            value: string, // Explicitly type 'value' as string
+          ) => setValue('category', value === '__no_category__' ? '' : value)}
           value={initialData?.category || '__no_category__'} // Map empty string to special value for display
         >
           <SelectTrigger id="category">
             <SelectValue placeholder="Select a category" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="__no_category__">No Category</SelectItem>
+            <SelectItem value="__no_category__" label="No Category">
+              No Category
+            </SelectItem>
             {categories.map((category) => (
-              <SelectItem key={category.id} value={category.name}>
+              <SelectItem
+                key={category.id}
+                value={category.name}
+                label={category.name}
+              >
                 {category.name}
               </SelectItem>
             ))}

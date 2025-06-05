@@ -108,11 +108,21 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
               <SelectValue placeholder="Filter by Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All">All Types</SelectItem>
-              <SelectItem value="Call">Call</SelectItem>
-              <SelectItem value="Email">Email</SelectItem>
-              <SelectItem value="Meeting">Meeting</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
+              <SelectItem value="All" label="All Types">
+                All Types
+              </SelectItem>
+              <SelectItem value="Call" label="Call">
+                Call
+              </SelectItem>
+              <SelectItem value="Email" label="Email">
+                Email
+              </SelectItem>
+              <SelectItem value="Meeting" label="Meeting">
+                Meeting
+              </SelectItem>
+              <SelectItem value="Other" label="Other">
+                Other
+              </SelectItem>
             </SelectContent>
           </Select>
           <Select
@@ -125,9 +135,15 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
               <SelectValue placeholder="Sort By" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="date">Date</SelectItem>
-              <SelectItem value="type">Type</SelectItem>
-              <SelectItem value="customerName">Customer Name</SelectItem>
+              <SelectItem value="date" label="Date">
+                Date
+              </SelectItem>
+              <SelectItem value="type" label="Type">
+                Type
+              </SelectItem>
+              <SelectItem value="customerName" label="Customer Name">
+                Customer Name
+              </SelectItem>
             </SelectContent>
           </Select>
           <Select
@@ -138,8 +154,12 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
               <SelectValue placeholder="Sort Order" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="desc">Descending</SelectItem>
-              <SelectItem value="asc">Ascending</SelectItem>
+              <SelectItem value="desc" label="Descending">
+                Descending
+              </SelectItem>
+              <SelectItem value="asc" label="Ascending">
+                Ascending
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>

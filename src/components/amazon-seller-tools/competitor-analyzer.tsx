@@ -335,10 +335,10 @@ export function CompetitorAnalyzer({
 
       if (!response.ok) {
         const errorText = await response.text();
-        logger.error(
-          'API Error:',
-          `Status: ${response.status}, Error: ${errorText}`,
-        );
+        logger.error('API Error:', {
+          status: response.status,
+          error: errorText,
+        }); // Wrap string in LogMetadata object
         throw new Error(`Failed to fetch competitor data: ${errorText}`);
       }
 
@@ -351,7 +351,9 @@ export function CompetitorAnalyzer({
       try {
         data = await response.json();
         if (!data || !data.competitors || !data.metrics) {
-          logger.error('Invalid API response:', JSON.stringify(data));
+          logger.error('Invalid API response:', {
+            response: JSON.stringify(data),
+          }); // Wrap string in LogMetadata object
           throw new Error('Invalid response format from server');
         }
 
@@ -404,7 +406,10 @@ export function CompetitorAnalyzer({
 
       console.error('Error processing file:', errorMessage);
       if (error instanceof Error) {
-        logger.error('Error processing file:', error);
+        logger.error('Error processing file:', {
+          error: error.message,
+          stack: error.stack,
+        }); // Wrap error in LogMetadata object
       }
       toast({
         title: 'Error',

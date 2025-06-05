@@ -82,12 +82,14 @@ export function PpcTable<TData, TValue>({
               <SelectValue placeholder="Filter Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="" label="All Statuses">
+                All Statuses
+              </SelectItem>
               {Array.from(
                 table.getColumn('status')?.getFacetedUniqueValues().keys() ||
                   [],
               ).map((status) => (
-                <SelectItem key={status} value={status}>
+                <SelectItem key={status} value={status} label={status}>
                   {status}
                 </SelectItem>
               ))}

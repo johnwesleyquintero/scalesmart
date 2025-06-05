@@ -51,7 +51,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       // Log detailed authentication errors internally for debugging.
       logger.error(
         `[${requestId}] Authentication failed for email: ${email}. Error: ${authError.message}`,
-        authError,
+        { error: authError.message, stack: authError.stack }, // Wrap error in LogMetadata object
       );
       // Use a centralized error handler to process and potentially transform the error.
       const { status, message } = handleApiError(
@@ -88,7 +88,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(
       `[${requestId}] An unexpected error occurred during login: ${errorMessage}`,
-      error instanceof Error ? error : new Error(errorMessage),
+      {
+        error: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+      }, // Wrap error in LogMetadata object
     );
     // Use a centralized error handler to provide a consistent error response.
     const { status, message } = handleApiError(

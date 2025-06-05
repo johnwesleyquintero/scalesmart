@@ -317,7 +317,13 @@ export default function OptimalPriceCalculator() {
                 </SelectTrigger>
                 <SelectContent>
                   {Object.values(ProductCategory).map((category) => (
-                    <SelectItem key={category} value={category}>
+                    <SelectItem
+                      key={category}
+                      value={category}
+                      label={
+                        category.charAt(0).toUpperCase() + category.slice(1)
+                      }
+                    >
                       {/* Simple Capitalization */}
                       {category.charAt(0).toUpperCase() + category.slice(1)}
                     </SelectItem>
@@ -363,7 +369,7 @@ export default function OptimalPriceCalculator() {
                   Optimal Price
                 </div>
                 <div className="text-2xl font-bold text-green-800 dark:text-green-200">
-                  ${results.optimalPrice.toFixed(2)}
+                  &#36;{results.optimalPrice.toFixed(2)}
                 </div>
               </div>
               <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded">
@@ -371,7 +377,7 @@ export default function OptimalPriceCalculator() {
                   Estimated Profit
                 </div>
                 <div className="text-2xl font-bold text-blue-800 dark:text-blue-200">
-                  ${results.profit.toFixed(2)}
+                  &#36;{results.profit.toFixed(2)}
                 </div>
               </div>
               <div className="p-4 bg-purple-100 dark:bg-purple-900/30 rounded">
@@ -380,7 +386,7 @@ export default function OptimalPriceCalculator() {
                 </div>
                 <div className="text-2xl font-bold text-purple-800 dark:text-purple-200">
                   {isFinite(results.margin)
-                    ? `${results.margin.toFixed(2)}%`
+                    ? `${results.margin.toFixed(2)}&#37;`
                     : 'N/A'}
                 </div>
               </div>

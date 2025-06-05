@@ -271,12 +271,12 @@ export default function PromptRequestGenerator() {
                   <SelectContent className="bg-background border-border">
                     {/* Map over standard categories to create SelectItems */}
                     {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
+                      <SelectItem key={cat} value={cat} label={cat}>
                         {cat}
                       </SelectItem>
                     ))}
                     {/* Add the 'Custom' option */}
-                    <SelectItem value={CUSTOM_CATEGORY_VALUE}>
+                    <SelectItem value={CUSTOM_CATEGORY_VALUE} label="Custom">
                       Custom
                     </SelectItem>
                   </SelectContent>

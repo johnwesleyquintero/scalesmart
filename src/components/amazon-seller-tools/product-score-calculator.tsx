@@ -236,7 +236,9 @@ export default function ProductScoreCalculator() {
             <Label htmlFor="fulfillment">Fulfillment Type</Label>
             <Select
               value={formData.fulfillmentType}
-              onValueChange={(value) =>
+              onValueChange={(
+                value: string, // Explicitly type 'value' as string
+              ) =>
                 setFormData({
                   ...formData,
                   fulfillmentType: value as 'FBA' | 'FBM',
@@ -247,8 +249,12 @@ export default function ProductScoreCalculator() {
                 <SelectValue placeholder="Select fulfillment type" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="FBA">Fulfilled by Amazon (FBA)</SelectItem>
-                <SelectItem value="FBM">Fulfilled by Merchant (FBM)</SelectItem>
+                <SelectItem value="FBA" label="Fulfilled by Amazon (FBA)">
+                  Fulfilled by Amazon (FBA)
+                </SelectItem>
+                <SelectItem value="FBM" label="Fulfilled by Merchant (FBM)">
+                  Fulfilled by Merchant (FBM)
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>

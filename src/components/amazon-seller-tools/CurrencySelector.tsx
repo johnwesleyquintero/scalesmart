@@ -51,8 +51,12 @@ export function CurrencySelector({ onCurrencyChange }: CurrencySelectorProps) {
         </SelectTrigger>
         <SelectContent>
           {currencies.map((currency) => (
-            <SelectItem key={currency.value} value={currency.value}>
-              {currency.label} ({currency.symbol})
+            <SelectItem
+              key={currency.value}
+              value={currency.value}
+              label={`${currency.label} (&#36;{currency.symbol})`}
+            >
+              {currency.label} (&#36;{currency.symbol})
             </SelectItem>
           ))}
         </SelectContent>

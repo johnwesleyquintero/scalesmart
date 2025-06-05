@@ -1189,36 +1189,42 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               <SelectContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700">
                 <SelectItem
                   value="last_7_days"
+                  label="Last 7 Days"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Last 7 Days
                 </SelectItem>
                 <SelectItem
                   value="last_30_days"
+                  label="Last 30 Days"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Last 30 Days
                 </SelectItem>
                 <SelectItem
                   value="month_to_date"
+                  label="Month to Date"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Month to Date
                 </SelectItem>
                 <SelectItem
                   value="year_to_date"
+                  label="Year to Date"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Year to Date
                 </SelectItem>
                 <SelectItem
                   value="all_time"
+                  label="All Time"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   All Time
                 </SelectItem>
                 <SelectItem
                   value="custom"
+                  label="Custom Range"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Custom Range
@@ -1298,30 +1304,35 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
               <SelectContent className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-200 dark:border-gray-700">
                 <SelectItem
                   value="daily"
+                  label="Daily"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Daily
                 </SelectItem>
                 <SelectItem
                   value="weekly"
+                  label="Weekly"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Weekly
                 </SelectItem>
                 <SelectItem
                   value="monthly"
+                  label="Monthly"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Monthly
                 </SelectItem>
                 <SelectItem
                   value="quarterly"
+                  label="Quarterly"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Quarterly
                 </SelectItem>
                 <SelectItem
                   value="yearly"
+                  label="Yearly"
                   className="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 >
                   Yearly

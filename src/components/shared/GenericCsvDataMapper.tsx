@@ -21,7 +21,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from 'components/ui/select';
+} from '@/components/ui/select';
 import { Label } from 'components/ui/label';
 import { Loader2, Edit2 } from 'lucide-react';
 import { Button } from 'components/ui/button';
@@ -494,7 +494,10 @@ const MappingRow: React.FC<MappingRowProps> = memo(
             </SelectTrigger>
             <SelectContent>
               {/* Add the 'Not Mapped' option, value is the constant string */}
-              <SelectItem value={UNMAPPED_SELECT_VALUE}>
+              <SelectItem
+                value={UNMAPPED_SELECT_VALUE}
+                label="-- Not Mapped --"
+              >
                 -- Not Mapped --
               </SelectItem>
               {/* Map CSV headers to selectable items */}
@@ -507,7 +510,7 @@ const MappingRow: React.FC<MappingRowProps> = memo(
                 );
                 const confidence = (similarity * 100).toFixed(0);
                 return (
-                  <SelectItem key={header} value={header}>
+                  <SelectItem key={header} value={header} label={header}>
                     {header}{' '}
                     {/* Display similarity confidence if above threshold */}
                     {similarity > SIMILARITY_THRESHOLD && (
