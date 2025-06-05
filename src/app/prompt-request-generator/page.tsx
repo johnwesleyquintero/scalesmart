@@ -40,7 +40,7 @@ import { generatePrompt } from '@/lib/prompt-generator/utils';
  * Allows selecting a category, providing context, describing the request, and including code snippets.
  */
 export default function PromptRequestGenerator() {
-  // State for the prompt input data fields.
+  // State for the prompt input data fields used for generation and validation.
   const [promptData, setPromptData] = useState<PromptData>({
     category: '',
     customCategory: '',
@@ -48,6 +48,11 @@ export default function PromptRequestGenerator() {
     request: '',
     codeInput: '',
   });
+
+  // Local state for input fields to ensure smooth typing experience.
+  const [contextInput, setContextInput] = useState('');
+  const [requestInput, setRequestInput] = useState('');
+  const [codeInput, setCodeInput] = useState('');
 
   // State for the generated output prompt string.
   const [output, setOutput] = useState('');
@@ -63,11 +68,9 @@ export default function PromptRequestGenerator() {
     Partial<Record<keyof PromptData, string>>
   >({});
 
-  // Debounced handler for text input fields to reduce frequent state updates and perform validation.
-  // Debounced handler for text input fields to reduce frequent state updates and perform validation.
-  const debouncedHandleInputChange = useDebounceCallback(
+  // Debounced handler to update promptData state and perform validation based on local input state.
+  const debouncedUpdatePromptData = useDebounceCallback(
     (field: keyof Omit<PromptData, 'category'>, value: string) => {
-      // Set the state with the raw value. Trimming is handled in generatePromptHandler.
       setPromptData((prev) => ({ ...prev, [field]: value }));
 
       // Perform validation for required fields on debounce
@@ -290,12 +293,16 @@ export default function PromptRequestGenerator() {
                   <Input
                     id="customCategory"
                     placeholder="e.g., AI Agent Development"
-                    value={promptData.customCategory}
+                    value={promptData.customCategory} // This input still directly updates promptData as it's not debounced for typing smoothness
                     onChange={(e) =>
-                      debouncedHandleInputChange(
-                        'customCategory',
-                        e.target.value,
-                      )
+                      setPromptData((prev) => ({
+                        ...prev,
+                        customCategory: e.target.value,
+                      }))
+                    }
+                    onBlur={(e) =>
+                      // Trigger validation on blur for custom category
+                      debouncedUpdatePromptData('customCategory', e.target.value)
                     }
                     className={`bg-background border-border ${validationErrors.customCategory ? 'border-red-500' : ''}`}
                     aria-required={showCustomCategory} // Indicate required state for screen readers
@@ -324,10 +331,11 @@ export default function PromptRequestGenerator() {
               <Textarea
                 id="context"
                 placeholder="Provide background information about your project or problem..."
-                value={promptData.context}
-                onChange={(e) =>
-                  debouncedHandleInputChange('context', e.target.value)
-                }
+                value={contextInput}
+                onChange={(e) => {
+                  setContextInput(e.target.value);
+                  debouncedUpdatePromptData('context', e.target.value);
+                }}
                 rows={3}
                 className="bg-background border-border"
                 aria-label="Context for the request (optional)"
@@ -343,10 +351,11 @@ export default function PromptRequestGenerator() {
               <Textarea
                 id="request"
                 placeholder="Clearly describe what you need help with..."
-                value={promptData.request}
-                onChange={(e) =>
-                  debouncedHandleInputChange('request', e.target.value)
-                }
+                value={requestInput}
+                onChange={(e) => {
+                  setRequestInput(e.target.value);
+                  debouncedUpdatePromptData('request', e.target.value);
+                }}
                 rows={3}
                 className={`bg-background border-border ${validationErrors.request ? 'border-red-500' : ''}`}
                 aria-required="true" // Indicate required state for screen readers
@@ -368,10 +377,11 @@ export default function PromptRequestGenerator() {
               <Textarea
                 id="codeInput"
                 placeholder="Paste any relevant code snippets..."
-                value={promptData.codeInput}
-                onChange={(e) =>
-                  debouncedHandleInputChange('codeInput', e.target.value)
-                }
+                value={codeInput}
+                onChange={(e) => {
+                  setCodeInput(e.target.value);
+                  debouncedUpdatePromptData('codeInput', e.target.value);
+                }}
                 rows={5}
                 className="bg-background border-border font-mono"
                 aria-label="Relevant code snippet (optional)"
@@ -408,6 +418,9 @@ export default function PromptRequestGenerator() {
                     request: '',
                     codeInput: '',
                   });
+                  setContextInput(''); // Clear local state
+                  setRequestInput(''); // Clear local state
+                  setCodeInput(''); // Clear local state
                   setOutput(''); // Clear output as well
                   setValidationErrors({}); // Clear validation errors
                   setCopied(false); // Reset copied state
