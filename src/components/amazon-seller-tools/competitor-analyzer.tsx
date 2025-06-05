@@ -73,7 +73,7 @@ function processRow(row: CsvRow): ProcessedRow {
   return ProcessedRowSchema.parse(mappedRow);
 }
 
-import { error as logError, warn } from '@/lib/logger'; // Aliased 'error' to 'logError'
+import { logger } from '@/lib/logger';
 import { sanitizeHtml } from '@/lib/sanitize';
 
 interface ChartDataPoint {
@@ -302,7 +302,7 @@ export function CompetitorAnalyzer({
           }
           setChartData(formattedData);
         } else {
-          warn('Data exceeds storage limit, not saved to IndexedDB');
+          logger.warn('Data exceeds storage limit, not saved to IndexedDB');
         }
         setIsLoading(false);
         return;
@@ -335,7 +335,7 @@ export function CompetitorAnalyzer({
 
       if (!response.ok) {
         const errorText = await response.text();
-        logError(
+        logger.error(
           'API Error:',
           `Status: ${response.status}, Error: ${errorText}`,
         );
@@ -351,7 +351,7 @@ export function CompetitorAnalyzer({
       try {
         data = await response.json();
         if (!data || !data.competitors || !data.metrics) {
-          logError('Invalid API response:', JSON.stringify(data));
+          logger.error('Invalid API response:', JSON.stringify(data));
           throw new Error('Invalid response format from server');
         }
 
@@ -404,7 +404,7 @@ export function CompetitorAnalyzer({
 
       console.error('Error processing file:', errorMessage);
       if (error instanceof Error) {
-        logError('Error processing file:', error); // Use the aliased logger
+        logger.error('Error processing file:', error);
       }
       toast({
         title: 'Error',
@@ -458,7 +458,9 @@ export function CompetitorAnalyzer({
           const now = Date.now();
           const cacheTime = cacheDuration * 60 * 60 * 1000;
           if (now - cachedData.timestamp > cacheTime) {
-            warn('Cached data is older than cache duration, clearing cache');
+            logger.warn(
+              'Cached data is older than cache duration, clearing cache',
+            );
             // Clear the specific cache entry
             await setItem(CHART_DATA_KEY, null);
             return;

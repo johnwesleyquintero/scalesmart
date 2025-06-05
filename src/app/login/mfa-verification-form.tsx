@@ -59,7 +59,11 @@ export default function MfaVerificationForm({
         )}
       </div>
       {/* MFA Verify Button */}
-      <SubmitButton label="Verify Code" pending={isMfaPending} />
+      <SubmitButton
+        label="Verify Code"
+        pending={isMfaPending}
+        disabled={isMfaPending}
+      />
       {/* Cancel MFA Button */}
       <Button
         type="button"

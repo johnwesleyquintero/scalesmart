@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import bcrypt from 'bcrypt';
 import { NextResponse } from 'next/server';
 import crypto from 'node:crypto';
-import { error, info, warn } from './logger';
+import { logger } from './logger';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL || '',
@@ -57,21 +57,21 @@ export async function validateApiKey(
     if (dbError) throw dbError;
 
     if (!apiKeyRecord) {
-      warn('No active API key found for validation', { userId });
+      logger.warn('No active API key found for validation', { userId });
       return false;
     }
 
     // Compare the provided plain text key with the stored hash
     const isValid = await bcrypt.compare(plainKey, apiKeyRecord.key);
     if (!isValid) {
-      warn('API key validation failed: Mismatch', { userId });
+      logger.warn('API key validation failed: Mismatch', { userId });
       return false;
     }
 
     return true;
   } catch (e: unknown) {
     const err = e instanceof Error ? e : new Error(String(e));
-    error('API_KEY_VALIDATION_DB_ERROR', err.message, {
+    logger.error('API_KEY_VALIDATION_DB_ERROR', err.message, {
       userId,
     });
     return false;
@@ -91,7 +91,7 @@ export async function apiKeyMiddleware(request: Request) {
     const userId = requestBody.userId; // Assuming userId is present in the body
 
     if (!userId) {
-      warn('apiKeyMiddleware: Missing userId in request body');
+      logger.warn('apiKeyMiddleware: Missing userId in request body');
       return NextResponse.json(
         { error: 'Missing userId in request body' },
         { status: 400 },
@@ -100,7 +100,7 @@ export async function apiKeyMiddleware(request: Request) {
 
     // Basic validation for userId format before hitting the DB
     if (typeof userId !== 'string' || !isValidUserIdFormat(userId)) {
-      warn('apiKeyMiddleware: Invalid userId format in request body', {
+      logger.warn('apiKeyMiddleware: Invalid userId format in request body', {
         userId,
       });
       return NextResponse.json(
@@ -111,7 +111,7 @@ export async function apiKeyMiddleware(request: Request) {
 
     // Validate the API key (this involves bcrypt comparison)
     if (!(await validateApiKey(apiKey, userId))) {
-      warn('apiKeyMiddleware: Invalid or expired API key', { userId });
+      logger.warn('apiKeyMiddleware: Invalid or expired API key', { userId });
       return NextResponse.json(
         { error: 'Invalid or expired API key' },
         { status: 401 },
@@ -119,12 +119,12 @@ export async function apiKeyMiddleware(request: Request) {
     }
 
     // If validation passes, return undefined to allow the original request to proceed.
-    info('apiKeyMiddleware: API key validated successfully', { userId });
+    logger.info('apiKeyMiddleware: API key validated successfully', { userId });
     return undefined;
   } catch (e: unknown) {
     const err = e instanceof Error ? e : new Error(String(e));
     // Log the specific error if it's an Error instance
-    error('Error in apiKeyMiddleware', err.message, {
+    logger.error('Error in apiKeyMiddleware', err.message, {
       context: {
         userId: request.headers.get('x-api-key') ? 'present' : 'missing',
       }, // Add context
@@ -166,7 +166,7 @@ export async function rotateApiKeys(
       .from(API_KEY_TABLE)
       .update({ isActive: false })
       .eq('userId', userId);
-    info(`Deactivated ${count} old keys for user ${userId}`);
+    logger.info(`Deactivated ${count} old keys for user ${userId}`);
 
     // Generate new plain text key
     const plainKey = await generateApiKey();
@@ -188,22 +188,24 @@ export async function rotateApiKeys(
       .insert(newKeyRecord);
 
     if (insertError) {
-      error(
+      logger.error(
         'Error inserting new API key',
         insertError instanceof Error ? insertError : String(insertError),
       );
       throw insertError;
     }
     const duration = Date.now() - startTime;
-    info(`Inserted new API key in ${duration}ms`);
+    logger.info(`Inserted new API key in ${duration}ms`);
 
-    info(`Successfully generated and stored new API key for user ${userId}`);
+    logger.info(
+      `Successfully generated and stored new API key for user ${userId}`,
+    );
 
     // Return the record (with hashed key) AND the plain text key separately
     return { record: newKeyRecord, plainKey: plainKey };
   } catch (e: unknown) {
     const err = e instanceof Error ? e : new Error(String(e));
-    error('KeyRotationFailed', err.message, {
+    logger.error('KeyRotationFailed', err.message, {
       userId,
     });
     const errorMessage = err.message;
@@ -236,7 +238,7 @@ export async function initializeApiKeys(
       .single(); // Check for active keys
 
     if (selectError) {
-      error(
+      logger.error(
         'Error selecting API key',
         selectError instanceof Error ? selectError : String(selectError),
       );
@@ -244,13 +246,13 @@ export async function initializeApiKeys(
     }
 
     if (!existingKey) {
-      info(`No active key found for user ${userId}. Initializing...`);
+      logger.info(`No active key found for user ${userId}. Initializing...`);
       // Rotate keys will generate and store the first key
       const { plainKey } = await rotateApiKeys(userId);
-      info(`API key initialized successfully for user ${userId}.`);
+      logger.info(`API key initialized successfully for user ${userId}.`);
       return plainKey; // Return the newly generated plain key
     } else {
-      info(
+      logger.info(
         `User ${userId} already has an active API key. No initialization needed.`,
       );
       await deleteApiKeysForUser(userId);
@@ -275,7 +277,7 @@ export async function getApiKeyRecord(
   userId: string,
 ): Promise<ApiKeyRecord | undefined> {
   if (!isValidUserIdFormat(userId)) {
-    warn(`Invalid userId format or user not found: ${userId}`);
+    logger.warn(`Invalid userId format or user not found: ${userId}`);
     return undefined;
   }
 
@@ -290,15 +292,15 @@ export async function getApiKeyRecord(
       .maybeSingle(); // Use maybeSingle as it might not exist
 
     if (dbError) {
-      error(GET_API_KEY_RECORD_ERROR, String(dbError), { userId });
+      logger.error(GET_API_KEY_RECORD_ERROR, String(dbError), { userId });
       throw dbError;
     }
     const duration = Date.now() - startTime;
-    info(`Validated userId against database in ${duration}ms`);
+    logger.info(`Validated userId against database in ${duration}ms`);
     return apiKeyRecord ?? undefined;
   } catch (e: unknown) {
     const err = e instanceof Error ? e : new Error(String(e));
-    error('Error getting API key record', err.message, { userId });
+    logger.error('Error getting API key record', err.message, { userId });
     return undefined;
   }
 }
@@ -315,7 +317,7 @@ async function deleteApiKeysForUser(userId: string): Promise<void> {
       .eq('userId', userId);
 
     if (dbError) {
-      error(
+      logger.error(
         'Failed to delete API keys for user',
         dbError instanceof Error ? String(dbError) : undefined,
         {
@@ -325,10 +327,10 @@ async function deleteApiKeysForUser(userId: string): Promise<void> {
       throw dbError;
     }
 
-    info(`Deleted all API keys for user ${userId}`);
+    logger.info(`Deleted all API keys for user ${userId}`);
   } catch (e: unknown) {
     const err = e instanceof Error ? e : new Error(String(e));
-    error('Error deleting API keys', err.message, {
+    logger.error('Error deleting API keys', err.message, {
       userId,
     });
     throw new Error(

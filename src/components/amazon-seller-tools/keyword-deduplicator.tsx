@@ -24,7 +24,7 @@ import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast.ts';
 import { logError } from '@/lib/error-handling.ts'; // Import logError
-import { info } from '@/lib/logger';
+import { logger } from '@/lib/logger';
 // import SampleCsvButton from './sample-csv-button'; // Removed SampleCsvButton import
 import DataCard from './DataCard';
 
@@ -163,7 +163,7 @@ export default function KeywordDeduplicator() {
         );
 
         // Process results after Papa.parse promise resolves
-        info('Starting CSV processing for Keyword Deduplicator', {
+        logger.info('Starting CSV processing for Keyword Deduplicator', {
           fileName: file.name,
           rowCount: result.data.length,
         });
@@ -211,7 +211,7 @@ export default function KeywordDeduplicator() {
           description: `Successfully processed ${processedData.length} products.`,
           variant: 'success',
         });
-        info('CSV processing completed successfully', {
+        logger.info('CSV processing completed successfully', {
           processedCount: processedData.length,
           skippedCount: result.data.length - processedData.length,
         });

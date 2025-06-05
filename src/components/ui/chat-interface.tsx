@@ -1299,20 +1299,7 @@ const MessageBubble: React.FC<MessageBubbleProps> = ({
 
   // An array of prompts for generating different types of content
   const promptsToTry = [
-    // Create a pie chart using Mermaid syntax with specific data
-    'Create a pie chart using Mermaid syntax with the following data: AI 30%, Machine Learning 25%, Data Science 20%, and Deep Learning 25%.',
-
-    // Design a responsive dashboard for Amazon Ads with specific metrics
-    'Design a standalone html with inline css responsive dashboard for Amazon Ads displaying 100 clicks, 5000 impressions, a $500 spend, a summary of key metrics, and a table of 5 ad campaigns.',
-
-    // Generate a JSON object for a product with specific details
-    'Generate a JSON object for a product with ID 12345, named "Wireless Headphones", priced at $99.99, categorized under Electronics and Audio, including a description and an image URL.',
-
-    // Provide an analysis of an Amazon Business Report with specific sales data
-    'Provide an analysis of an Amazon Business Report with $10,000 in sales, 500 units sold, and an average rating of 4.5. Include insights on performance, trends, and customer satisfaction.',
-
-    // Create a landing page featuring a modern and sleek design
-    'Create a standalone html with inline css landing page featuring a modern and sleek design.',
+    'Help me analyze the provided code for potential readability enhancements and suggest improvements based on best practices.',
   ];
 
   // Function to render message content with Markdown support (defined outside component)

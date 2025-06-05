@@ -14,6 +14,7 @@ export const formSchema = z.object({
       /[^A-Za-z0-9]/,
       'Password must contain at least one special character',
     ),
+  rememberMe: z.boolean().default(false).optional(), // Added for "Remember Me" functionality
 });
 
 // Zod schema for the MFA form

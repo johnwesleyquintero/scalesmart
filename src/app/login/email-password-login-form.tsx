@@ -134,7 +134,11 @@ export default function EmailPasswordLoginForm({
       </div>
 
       {/* Sign In Button */}
-      <SubmitButton label="Sign In" pending={isLoginPending} />
+      <SubmitButton
+        label="Sign In"
+        pending={isLoginPending}
+        disabled={isLoginPending}
+      />
 
       {/* Sign Up Link */}
       <Link href="/signup" passHref legacyBehavior>

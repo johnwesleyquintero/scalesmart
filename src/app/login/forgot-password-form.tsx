@@ -61,7 +61,11 @@ export default function ForgotPasswordForm({
         )}
       </div>
       {/* Reset Password Button */}
-      <SubmitButton label="Send Reset Link" pending={isForgotPending} />
+      <SubmitButton
+        label="Send Reset Link"
+        pending={isForgotPending}
+        disabled={isForgotPending}
+      />
       {/* Back to Login Button */}
       <Button
         type="button"

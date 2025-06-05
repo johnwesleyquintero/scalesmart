@@ -1,36 +1,95 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Github, Eye, EyeOff, Loader2 } from 'lucide-react'; // Removed Check, X as they are in helper component
+import { Checkbox } from '@/components/ui/checkbox';
+import { Github, Loader2 } from 'lucide-react';
 import { signIn as NextAuthSignIn } from 'next-auth/react';
 import { trackEvent } from '@/lib/analytics';
 import Link from 'next/link';
-import { useForm } from 'react-hook-form';
+import {
+  useForm,
+  FieldValues,
+  UseFormRegister,
+  FieldErrors,
+} from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useToast } from '@/hooks/use-toast';
 
-// Import schemas, types, and helper components from new files
-import { z } from 'zod'; // Import z from zod for schema validation
+import { z } from 'zod';
 import {
   formSchema,
   mfaFormSchema,
   forgotPasswordFormSchema,
 } from './login-schemas';
 import {
-  SignInActionResult,
+  ServerActionResult,
   CurrentFormState,
   LoginFormProps,
+  FormFieldProps,
+  SubmitButtonProps,
 } from './login-types';
 import {
   SubmitButton,
   PasswordStrengthIndicator,
 } from './login-helper-components';
+import { FormField } from './login-form-field';
 
 // --- Constants ---
+// Analytics Labels
+const AUTH_EVENT_CATEGORY = 'authentication';
 const LOGIN_LABEL = 'Email/Password Login';
+const GITHUB_LOGIN_LABEL = 'GitHub Login';
+const MFA_VERIFY_LABEL = 'MFA Verification';
+const FORGOT_PASSWORD_LABEL = 'Forgot Password Request';
+
+// Form Default Values
+const DEFAULT_LOGIN_VALUES = {
+  email: '',
+  password: '',
+  rememberMe: false,
+};
+const DEFAULT_MFA_VALUES = {
+  mfaCode: '',
+};
+const DEFAULT_FORGOT_PASSWORD_VALUES = {
+  email: '',
+};
+
+// UI Messages and Titles (for toasts and field errors)
+const TOAST_TITLE_AUTH_FAILED = 'Authentication Failed';
+const TOAST_TITLE_FORM_ERROR = 'Form Error';
+const TOAST_TITLE_MFA_REQUIRED = 'MFA Required';
+const TOAST_TITLE_LOGIN_SUCCESS = 'Login Successful';
+const TOAST_TITLE_MFA_VERIFIED = 'MFA Verified';
+const TOAST_TITLE_MFA_FAILED = 'MFA Failed';
+const TOAST_TITLE_PASSWORD_RESET_INITIATED = 'Password Reset Initiated';
+const TOAST_TITLE_PASSWORD_RESET_FAILED = 'Reset Failed';
+
+const TOAST_DESCRIPTION_GITHUB_FAILED =
+  'Failed to sign in with GitHub. Please try again.';
+const TOAST_DESCRIPTION_FORM_SUBMISSION_ERROR =
+  'Could not submit form due to an internal error.';
+const TOAST_DESCRIPTION_MFA_REQUIRED =
+  'Please enter your MFA code to complete login.';
+const TOAST_DESCRIPTION_LOGIN_SUCCESS = 'You have been successfully logged in.';
+const TOAST_DESCRIPTION_MFA_VERIFIED =
+  'MFA code verified successfully. Redirecting...';
+const TOAST_DESCRIPTION_MFA_FAILED =
+  'MFA verification failed. Please try again.';
+const TOAST_DESCRIPTION_LOGIN_FAILED_CREDENTIALS =
+  'Invalid email or password. Please try again.';
+const TOAST_DESCRIPTION_PASSWORD_RESET_SENT =
+  'A password reset link has been sent to your email.';
+const TOAST_DESCRIPTION_PASSWORD_RESET_FAILED =
+  'Failed to send password reset email. Please try again.';
+
+const FIELD_ERROR_INVALID_MFA = 'Invalid MFA code. Please try again.';
+const FIELD_ERROR_PASSWORD_RESET_FAILED =
+  'Failed to send reset email. Please try again.';
 
 // --- Main Component ---
 /**
@@ -40,92 +99,120 @@ const LOGIN_LABEL = 'Email/Password Login';
  */
 export default function LoginForm({
   signInAction,
-  signUpAction, // Note: signUpAction is present in props but assumed to be handled elsewhere (e.g., a link) for complexity reduction within this component.
   forgotPasswordAction,
   mfaVerifyAction,
   privacyPolicyHref,
   termsOfServiceHref,
 }: LoginFormProps) {
   // --- State Management ---
-  // Manages the currently displayed form ('login', 'mfa', or 'forgotPassword').
   const [currentForm, setCurrentForm] = useState<CurrentFormState>('login');
-  // Manages the loading state specifically for the GitHub sign-in button.
   const [isGitHubLoading, setIsGitHubLoading] = useState(false);
-  // Toggles the visibility of the password input field.
-  const [showPassword, setShowPassword] = useState(false);
-  // Displays a general message to the user (e.g., success/error messages).
-  const [generalMessage, setGeneralMessage] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false); // State for password visibility toggle
+
+  // --- Toast Notification Hook ---
+  const { toast } = useToast(); // Hook for showing user notifications
 
   // --- Transitions for Server Actions ---
-  // Separate transitions for each distinct form submission flow to manage pending states independently.
+  // Manage pending states for each distinct server action flow
   const [isLoginPending, startLoginTransition] = useTransition();
   const [isMfaPending, startMfaTransition] = useTransition();
   const [isForgotPending, startForgotTransition] = useTransition();
 
+  // Determine if any form action is currently pending to disable buttons/links
+  const isAnyActionPending =
+    isGitHubLoading || isLoginPending || isMfaPending || isForgotPending;
+
   // --- React Hook Form Hooks ---
-  // --- React Hook Form Hooks ---
-  // Manages the state and validation for the main email/password login form.
+  // Setup form instances for different authentication flows
   const loginForm = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      email: '',
-      password: '',
-    },
-    mode: 'onChange', // Validate on change for better user feedback during typing.
+    resolver: zodResolver(formSchema), // Zod for schema validation
+    defaultValues: DEFAULT_LOGIN_VALUES,
+    mode: 'onChange', // Validate on change for better UX
+    // Consider adding reValidateMode: 'onSubmit' or 'onBlur' if onChange is too aggressive
   });
 
-  // Manages the state and validation for the MFA verification form.
   const mfaForm = useForm<z.infer<typeof mfaFormSchema>>({
     resolver: zodResolver(mfaFormSchema),
-    defaultValues: {
-      mfaCode: '',
-    },
-    mode: 'onSubmit', // Validate only on form submission for simplicity.
+    defaultValues: DEFAULT_MFA_VALUES,
+    mode: 'onSubmit', // Validate only on submit for MFA
   });
 
-  // Manages the state and validation for the Forgot Password request form.
   const forgotPasswordForm = useForm<z.infer<typeof forgotPasswordFormSchema>>({
     resolver: zodResolver(forgotPasswordFormSchema),
-    defaultValues: {
-      email: '',
-    },
-    mode: 'onSubmit', // Validate only on form submission.
+    defaultValues: DEFAULT_FORGOT_PASSWORD_VALUES,
+    mode: 'onSubmit', // Validate only on submit for forgot password
   });
 
-  // --- Event Handlers ---
+  // --- Helper Functions ---
+  /**
+   * Logs authentication-related events using the analytics tracking function.
+   */
+  const logAuthEvent = useCallback(
+    (action: string, label: string, value?: number) => {
+      // Ensure trackEvent is robust and handles potential errors internally
+      if (typeof trackEvent === 'function') {
+        trackEvent({
+          category: AUTH_EVENT_CATEGORY,
+          action,
+          label,
+          value,
+        });
+      } else {
+        console.warn('trackEvent function not available.');
+        // Fallback logging or no-op
+      }
+    },
+    [],
+  ); // Empty dependency array as trackEvent is assumed to be stable
+
+  /**
+   * Displays a standard form submission error toast.
+   */
+  const showFormSubmissionErrorToast = useCallback(() => {
+    toast({
+      title: TOAST_TITLE_FORM_ERROR,
+      description: TOAST_DESCRIPTION_FORM_SUBMISSION_ERROR,
+      variant: 'destructive',
+    });
+  }, [toast]); // Dependency on toast, which is assumed to be stable from useToast hook
+
+  // Function to navigate back to login form and reset its state
+  const navigateBackToLogin = useCallback(() => {
+    setCurrentForm('login');
+    loginForm.reset(DEFAULT_LOGIN_VALUES); // Reset login form state
+    loginForm.clearErrors(); // Clear any previous errors on login form
+    setShowPassword(false); // Reset password visibility state
+  }, [loginForm, setCurrentForm, setShowPassword]); // Dependencies: loginForm, setCurrentForm, setShowPassword
 
   // --- Event Handlers ---
-
   /**
    * Handles the GitHub sign-in process.
    * Sets loading state, tracks the event, and calls next-auth's signIn.
    * Includes basic error handling and analytics tracking.
    */
-  const handleGitHubSignIn = async () => {
+  const handleGitHubSignIn = useCallback(async () => {
     setIsGitHubLoading(true);
-    setGeneralMessage(null); // Clear any previous general messages
     try {
-      trackEvent({
-        category: 'authentication',
-        action: 'login_start',
-        label: 'GitHub Login',
-      });
+      logAuthEvent('login_start', GITHUB_LOGIN_LABEL);
+      // NextAuthSignIn handles redirects automatically on success/failure
       await NextAuthSignIn('github');
-      // Successful GitHub sign-in typically involves a redirect, so success tracking might happen elsewhere
     } catch (error) {
       console.error('GitHub sign-in error:', error);
-      // Provide a user-friendly error message.
-      setGeneralMessage('Failed to sign in with GitHub. Please try again.');
-      trackEvent({
-        category: 'authentication',
-        action: 'login_failure',
-        label: 'GitHub Login',
-        value: error instanceof Error ? 1 : 0, // Simple error indicator
+      toast({
+        title: TOAST_TITLE_AUTH_FAILED,
+        description: TOAST_DESCRIPTION_GITHUB_FAILED,
+        variant: 'destructive',
       });
+      // Track error, value could indicate type or code if available
+      logAuthEvent(
+        'login_failure',
+        GITHUB_LOGIN_LABEL,
+        error instanceof Error ? 1 : 0,
+      );
     } finally {
       setIsGitHubLoading(false);
     }
-  };
+  }, [logAuthEvent, toast]); // Dependencies: logAuthEvent, toast (setIsGitHubLoading is a state setter, so it's stable)
 
   /**
    * Handles submission for the main login form (Email/Password).
@@ -135,68 +222,65 @@ export default function LoginForm({
    * Includes error handling and analytics tracking.
    */
   const handleLoginSubmit = loginForm.handleSubmit(async (values, event) => {
-    // Ensure event is available to construct FormData.
-    if (!event) return;
+    // react-hook-form's handleSubmit prevents default and stops propagation automatically.
+    // We still check event/target for robustness, though usually not strictly needed with handleSubmit.
+    if (!event || !(event.currentTarget instanceof HTMLFormElement)) {
+      showFormSubmissionErrorToast();
+      console.error('Login form submission event or target is invalid.');
+      logAuthEvent('login_form_error', LOGIN_LABEL);
+      return;
+    }
     const formData = new FormData(event.currentTarget);
-    const startTime = Date.now(); // Start timing the action for performance tracking.
+    const startTime = Date.now();
 
-    // Clear any previous errors and messages before a new submission attempt.
+    // Clear previous errors before new submission
     loginForm.clearErrors();
-    setGeneralMessage(null);
 
-    // Wrap the asynchronous server action call in startTransition.
+    // Use transition for server action to keep UI responsive
     startLoginTransition(async () => {
       try {
-        // Execute the server action.
-        const result = await signInAction(formData);
-        const duration = Date.now() - startTime; // Calculate action duration.
+        const result: ServerActionResult = await signInAction(formData);
+        const duration = Date.now() - startTime;
 
-        // Handle different possible outcomes from the server action.
-        if (result?.mfaRequired) {
-          setCurrentForm('mfa'); // Switch the UI to display the MFA form.
-          loginForm.reset(); // Clear the login form fields.
-          setGeneralMessage('MFA required. Please enter your code.'); // Inform the user.
-          trackEvent({
-            category: 'authentication',
-            action: 'login_mfa_required',
-            label: LOGIN_LABEL,
-            value: duration,
+        // Handle different outcomes from the server action
+        if (result && 'mfaRequired' in result && result.mfaRequired) {
+          setCurrentForm('mfa');
+          loginForm.reset(DEFAULT_LOGIN_VALUES);
+          mfaForm.reset(DEFAULT_MFA_VALUES);
+          mfaForm.clearErrors();
+          toast({
+            title: TOAST_TITLE_MFA_REQUIRED,
+            description: TOAST_DESCRIPTION_MFA_REQUIRED,
           });
-        } else if (result?.success !== false) {
-          // Assume successful login if MFA is not required and success is not explicitly false.
-          // Note: Successful login typically involves navigation handled by next-auth or the server action itself.
-          // If the component should remain on the page after success, uncomment the line below:
-          // loginForm.reset();
-          trackEvent({
-            category: 'authentication',
-            action: 'login_success',
-            label: LOGIN_LABEL,
-            value: duration,
+          logAuthEvent('login_mfa_required', LOGIN_LABEL, duration);
+        } else if (result && 'success' in result && result.success === true) {
+          toast({
+            title: TOAST_TITLE_LOGIN_SUCCESS,
+            description: TOAST_DESCRIPTION_LOGIN_SUCCESS,
+            variant: 'success',
           });
+          logAuthEvent('login_success', LOGIN_LABEL, duration);
         } else {
-          // Handle cases where signInAction returns a non-success result without requiring MFA.
-          console.error('Login failed with unspecified result:', result);
-          // Display a general error message to the user.
-          setGeneralMessage('Login failed. Please check your credentials.');
-          trackEvent({
-            category: 'authentication',
-            action: 'login_failure',
-            label: LOGIN_LABEL,
-            value: duration,
+          console.warn('Login failed with result:', result);
+          toast({
+            title: TOAST_TITLE_AUTH_FAILED,
+            description:
+              result && 'error' in result
+                ? result.error
+                : TOAST_DESCRIPTION_LOGIN_FAILED_CREDENTIALS,
+            variant: 'destructive',
           });
+          logAuthEvent('login_failure', LOGIN_LABEL, duration);
         }
       } catch (error) {
-        // Handle unexpected errors during the server action call.
         const duration = Date.now() - startTime;
-        console.error('Login failed:', error);
-        // Display a user-friendly error message.
-        setGeneralMessage('Invalid email or password.');
-        trackEvent({
-          category: 'authentication',
-          action: 'login_failure',
-          label: LOGIN_LABEL,
-          value: duration,
+        console.error('Login action failed due to exception:', error);
+        toast({
+          title: TOAST_TITLE_AUTH_FAILED,
+          description: TOAST_DESCRIPTION_LOGIN_FAILED_CREDENTIALS,
+          variant: 'destructive',
         });
+        logAuthEvent('login_failure', LOGIN_LABEL, duration);
       }
     });
   });
@@ -208,41 +292,60 @@ export default function LoginForm({
    * Includes error handling and analytics tracking.
    */
   const handleMfaSubmit = mfaForm.handleSubmit(async (values, event) => {
-    if (!event) return;
+    if (!event || !(event.currentTarget instanceof HTMLFormElement)) {
+      showFormSubmissionErrorToast();
+      console.error('MFA form submission event or target is invalid.');
+      logAuthEvent('mfa_form_error', MFA_VERIFY_LABEL);
+      return;
+    }
     const formData = new FormData(event.currentTarget);
+    const startTime = Date.now();
 
-    // Clear any previous MFA errors and general messages.
     mfaForm.clearErrors();
-    setGeneralMessage(null);
 
-    // Wrap the asynchronous server action call in startMfaTransition.
     startMfaTransition(async () => {
       try {
-        // Execute the MFA verification server action.
-        await mfaVerifyAction(formData);
-        // Assuming successful MFA verification navigates or updates state elsewhere.
-        console.log('MFA verified successfully.');
-        mfaForm.reset(); // Clear the MFA form fields.
-        setCurrentForm('login'); // Return to the login form state (or redirect as needed).
-        setGeneralMessage('MFA verified successfully. Redirecting...'); // Inform the user.
-        trackEvent({
-          category: 'authentication',
-          action: 'mfa_verify_success',
-          label: LOGIN_LABEL, // or a specific MFA label
-        });
+        const result: ServerActionResult = await mfaVerifyAction(formData);
+        const duration = Date.now() - startTime;
+
+        if (result && 'success' in result && result.success === true) {
+          toast({
+            title: TOAST_TITLE_MFA_VERIFIED,
+            description: TOAST_DESCRIPTION_MFA_VERIFIED,
+            variant: 'success',
+          });
+          mfaForm.reset(DEFAULT_MFA_VALUES);
+          setCurrentForm('login');
+          logAuthEvent('mfa_verify_success', MFA_VERIFY_LABEL, duration);
+        } else {
+          console.warn('MFA verification failed with result:', result);
+          mfaForm.setError('mfaCode', {
+            type: 'manual',
+            message:
+              result && 'error' in result
+                ? result.error
+                : FIELD_ERROR_INVALID_MFA,
+          });
+          toast({
+            title: TOAST_TITLE_MFA_FAILED,
+            description: TOAST_DESCRIPTION_MFA_FAILED,
+            variant: 'destructive',
+          });
+          logAuthEvent('mfa_verify_failure', MFA_VERIFY_LABEL, duration);
+        }
       } catch (error) {
-        console.error('MFA verification failed:', error);
-        // Display a field-specific error message using react-hook-form's setError.
+        const duration = Date.now() - startTime;
+        console.error('MFA verification failed due to exception:', error);
         mfaForm.setError('mfaCode', {
           type: 'manual',
-          message: 'Invalid MFA code. Please try again.', // User-friendly error message.
+          message: FIELD_ERROR_INVALID_MFA,
         });
-        setGeneralMessage('MFA verification failed.'); // General feedback.
-        trackEvent({
-          category: 'authentication',
-          action: 'mfa_verify_failure',
-          label: LOGIN_LABEL, // or specific MFA label
+        toast({
+          title: TOAST_TITLE_MFA_FAILED,
+          description: TOAST_DESCRIPTION_MFA_FAILED,
+          variant: 'destructive',
         });
+        logAuthEvent('mfa_verify_failure', MFA_VERIFY_LABEL, duration);
       }
     });
   });
@@ -255,289 +358,260 @@ export default function LoginForm({
    */
   const handleForgotPasswordSubmit = forgotPasswordForm.handleSubmit(
     async (values, event) => {
-      if (!event) return;
+      if (!event || !(event.currentTarget instanceof HTMLFormElement)) {
+        showFormSubmissionErrorToast();
+        console.error(
+          'Forgot password form submission event or target is invalid.',
+        );
+        logAuthEvent('forgot_password_form_error', FORGOT_PASSWORD_LABEL);
+        return;
+      }
       const formData = new FormData(event.currentTarget);
+      const startTime = Date.now();
 
-      // Clear any previous forgot password errors and general messages.
       forgotPasswordForm.clearErrors();
-      setGeneralMessage(null);
 
-      // Wrap the asynchronous server action call in startForgotTransition.
       startForgotTransition(async () => {
         try {
-          // Execute the forgot password server action.
-          await forgotPasswordAction(formData);
-          // Assuming successful request sends email and may or may not navigate.
-          console.log('Password reset email sent successfully.');
-          // Display a success message to the user.
-          setGeneralMessage('Password reset link sent to your email.');
-          forgotPasswordForm.reset(); // Clear the form fields.
-          setCurrentForm('login'); // Return to the login form view.
-          trackEvent({
-            category: 'authentication',
-            action: 'forgot_password_request_success',
-            label: values.email,
-          });
+          const result: ServerActionResult =
+            await forgotPasswordAction(formData);
+
+          if (result && 'success' in result && result.success === true) {
+            toast({
+              title: TOAST_TITLE_PASSWORD_RESET_INITIATED,
+              description: TOAST_DESCRIPTION_PASSWORD_RESET_SENT,
+              variant: 'success',
+            });
+            forgotPasswordForm.reset(DEFAULT_FORGOT_PASSWORD_VALUES);
+            setCurrentForm('forgotPasswordConfirmation');
+            logAuthEvent(
+              'forgot_password_request_success',
+              FORGOT_PASSWORD_LABEL,
+              Date.now() - startTime,
+            );
+          } else {
+            console.warn('Forgot password request failed with result:', result);
+            forgotPasswordForm.setError('email', {
+              type: 'manual',
+              message:
+                result && 'error' in result
+                  ? result.error
+                  : FIELD_ERROR_PASSWORD_RESET_FAILED,
+            });
+            toast({
+              title: TOAST_TITLE_PASSWORD_RESET_FAILED,
+              description: TOAST_DESCRIPTION_PASSWORD_RESET_FAILED,
+              variant: 'destructive',
+            });
+            logAuthEvent(
+              'forgot_password_request_failure',
+              FORGOT_PASSWORD_LABEL,
+              Date.now() - startTime,
+            );
+          }
         } catch (error) {
-          console.error('Forgot password request failed:', error);
-          // Display a field-specific error message using react-hook-form's setError.
+          console.error(
+            'Forgot password action failed due to exception:',
+            error,
+          );
           forgotPasswordForm.setError('email', {
-            // Often displayed on the email field.
             type: 'manual',
-            message: 'Failed to send reset email. Please try again.', // User-friendly error message.
+            message: FIELD_ERROR_PASSWORD_RESET_FAILED,
           });
-          setGeneralMessage('Failed to send password reset email.'); // General feedback.
-          trackEvent({
-            category: 'authentication',
-            action: 'forgot_password_request_failure',
-            label: values.email,
+          toast({
+            title: TOAST_TITLE_PASSWORD_RESET_FAILED,
+            description: TOAST_DESCRIPTION_PASSWORD_RESET_FAILED,
+            variant: 'destructive',
           });
+          logAuthEvent(
+            'forgot_password_request_failure',
+            FORGOT_PASSWORD_LABEL,
+            Date.now() - startTime,
+          );
         }
       });
     },
   );
 
   // --- Render Logic ---
-  // Determines if any form submission or the GitHub sign-in is currently in progress.
-  // Used to disable buttons and inputs to prevent multiple submissions.
-  const isAnyActionPending =
-    isGitHubLoading || isLoginPending || isMfaPending || isForgotPending;
-
   return (
     <CardContent className="pt-0 sm:pt-2">
       <div className="flex flex-col gap-5 sm:gap-6">
         {/* GitHub Sign-in Button */}
-        {/* Always visible, provides an alternative sign-in method. */}
         <Button
           variant="outline"
           className="w-full border-muted-foreground/40 hover:border-muted-foreground"
           onClick={handleGitHubSignIn}
-          disabled={isAnyActionPending} // Disable if any other form action or GitHub is pending.
+          disabled={isAnyActionPending}
+          aria-disabled={isAnyActionPending}
         >
           {isGitHubLoading ? (
-            // Display a spinner when loading.
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2
+              className="mr-2 h-4 w-4 animate-spin"
+              aria-label="Loading..."
+            />
           ) : (
-            // Display the GitHub icon when not loading.
-            <Github className="mr-2 h-4 w-4 align-middle" />
+            <Github className="mr-2 h-4 w-4 align-middle" aria-hidden="true" />
           )}
           <span className="align-middle">Login with Github</span>
         </Button>
 
-        {/* "OR CONTINUE WITH" separator */}
-        {/* Visible only when the main login form is displayed. */}
-        {currentForm === 'login' && (
+        {/* "OR CONTINUE WITH" separator - Only show on the main login form and Forgot Password Confirmation */}
+        {(currentForm === 'login' ||
+          currentForm === 'forgotPasswordConfirmation') && (
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-muted" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background px-3 text-muted-foreground tracking-wide font-medium">
-                OR CONTINUE WITH
+                {currentForm === 'login' ? 'OR CONTINUE WITH' : 'OR'}
               </span>
             </div>
           </div>
         )}
 
-        {/* General Message Display */}
-        {/* Displays informational messages to the user (e.g., success, general errors). */}
-        {generalMessage && (
-          <div
-            className="my-2 space-y-2 px-4 sm:px-0" // Adjusted padding for better mobile view.
-            role="status" // ARIA role for live regions.
-            aria-live="polite" // Announce changes politely to screen readers.
-          >
-            <p className="rounded-md bg-muted/50 p-3 text-sm text-foreground border">
-              {generalMessage}
-            </p>
-          </div>
-        )}
-
         {/* --- Conditional Form Rendering --- */}
-        {/* Renders the appropriate form based on the currentForm state. */}
 
         {/* Login Form (Email/Password) */}
         {currentForm === 'login' && (
           <form
-            onSubmit={handleLoginSubmit} // Binds form submission to the handler.
+            onSubmit={handleLoginSubmit}
             className="flex flex-col gap-4 text-foreground"
-            noValidate // Disables default browser validation to rely on react-hook-form.
+            noValidate
           >
             {/* Email Field */}
-            <div className="flex flex-col space-y-2">
-              <Label htmlFor="email-login" className="text-sm font-medium">
-                Email
-              </Label>
-              <Input
-                id="email-login" // Unique ID to link label and input.
-                type="email"
-                placeholder="m@example.com"
-                className="h-10"
-                autoComplete="email" // Improves accessibility and user experience.
-                {...loginForm.register('email')} // Registers the input with react-hook-form for state and validation.
-                aria-invalid={
-                  loginForm.formState.errors.email ? 'true' : 'false'
-                } // ARIA attribute to indicate validation status for accessibility.
-                disabled={isLoginPending} // Disables the input while the login action is pending.
-              />
-              {/* Displays validation errors for the email field. */}
-              {loginForm.formState.errors.email && (
-                <p
-                  className="text-sm text-destructive"
-                  role="alert" // ARIA role to indicate an alert message.
-                  aria-live="polite" // ARIA attribute to announce changes politely to screen readers.
-                >
-                  {loginForm.formState.errors.email.message}
-                </p>
-              )}
-            </div>
+            <FormField<z.infer<typeof formSchema>>
+              id="email-login"
+              name="email"
+              label="Email"
+              type="email"
+              placeholder="m@example.com"
+              registerAction={loginForm.register}
+              errors={loginForm.formState.errors}
+              disabled={isLoginPending}
+              autoComplete="email"
+              required
+            />
 
             {/* Password Field */}
-            <div>
-              <Label htmlFor="password-login" className="text-sm font-medium">
-                Password
-              </Label>
-              <div className="relative mt-2">
-                <Input
-                  id="password-login" // Unique ID to link label and input.
-                  type={showPassword ? 'text' : 'password'} // Toggles input type based on showPassword state.
-                  placeholder="••••••••"
-                  className="h-10 pr-10" // Adds padding to accommodate the toggle button.
-                  autoComplete="current-password" // Improves accessibility and user experience.
-                  {...loginForm.register('password')} // Registers the input with react-hook-form.
-                  aria-invalid={
-                    loginForm.formState.errors.password ? 'true' : 'false'
-                  } // ARIA attribute for accessibility.
-                  disabled={isLoginPending} // Disables the input while the login action is pending.
-                />
-                {/* Password visibility toggle button */}
-                <Button
-                  type="button" // Explicitly set to 'button' to prevent form submission.
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-10 w-10 px-3 py-2"
-                  onClick={() => setShowPassword(!showPassword)} // Toggles password visibility state.
-                  aria-label={showPassword ? 'Hide password' : 'Show password'} // ARIA label for accessibility.
-                  disabled={isLoginPending} // Disables the button while the login action is pending.
-                >
-                  {showPassword ? (
-                    // Displays the EyeOff icon when password is visible.
-                    <EyeOff className="h-4 w-4" />
-                  ) : (
-                    // Displays the Eye icon when password is hidden.
-                    <Eye className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-              {/* Displays validation errors for the password field. */}
-              {loginForm.formState.errors.password && (
-                <p
-                  className="text-sm text-destructive mt-2"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  {loginForm.formState.errors.password.message}
-                </p>
-              )}
-              {/* Password Strength Indicator */}
-              {/* Only shown if the password input has content. */}
+            <FormField<z.infer<typeof formSchema>>
+              id="password-login"
+              name="password"
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              registerAction={loginForm.register}
+              errors={loginForm.formState.errors}
+              disabled={isLoginPending}
+              autoComplete="current-password"
+              showPasswordToggle
+              showPassword={showPassword}
+              onTogglePasswordVisibility={() => setShowPassword(!showPassword)}
+              required
+            />
+
+            {/* Additional password-related elements and "Remember Me" */}
+            <div className="flex flex-col gap-2">
+              {/* Password Strength Indicator - Only show if password field has a value */}
               {loginForm.watch('password') && (
                 <PasswordStrengthIndicator
                   password={loginForm.watch('password')}
                 />
               )}
+
+              {/* "Remember Me" Checkbox */}
+              <div className="flex items-center space-x-2 mt-2">
+                <Checkbox
+                  id="rememberMe"
+                  {...loginForm.register('rememberMe')}
+                  disabled={isLoginPending}
+                />
+                <Label
+                  htmlFor="rememberMe"
+                  className="text-sm font-medium cursor-pointer select-none"
+                >
+                  Remember me
+                </Label>
+              </div>
+
               {/* Forgot Password link/button */}
               <Button
                 variant="link"
-                type="button" // Explicitly set to 'button' to prevent form submission.
-                className="w-full justify-center px-0 mt-2 text-sm sm:text-base font-semibold text-primary hover:text-primary/80"
+                type="button"
+                className="w-full justify-center px-0 text-sm sm:text-base font-semibold text-primary hover:text-primary/80"
                 onClick={() => {
-                  setCurrentForm('forgotPassword'); // Switches the UI to the forgot password form.
-                  loginForm.reset(); // Clears the login form fields when switching.
-                  loginForm.clearErrors(); // Clears any validation errors when switching.
-                  setGeneralMessage(null); // Clears any general messages when switching.
+                  setCurrentForm('forgotPassword');
+                  loginForm.reset(DEFAULT_LOGIN_VALUES);
+                  loginForm.clearErrors();
+                  setShowPassword(false);
+                  forgotPasswordForm.reset(DEFAULT_FORGOT_PASSWORD_VALUES);
+                  forgotPasswordForm.clearErrors();
                 }}
-                disabled={isLoginPending} // Disables the button while the login action is pending.
+                disabled={isLoginPending}
+                aria-disabled={isLoginPending}
               >
                 Forgot your password?
               </Button>
             </div>
 
             {/* Sign In Button */}
-            {/* Triggers the form submission when clicked. */}
             <SubmitButton
               label="Sign In"
-              pending={isLoginPending} // Passes the login specific pending state to the SubmitButton component.
+              pending={isLoginPending}
+              disabled={isLoginPending}
             />
 
-            {/* Sign Up Link */}
-            {/* Provides a link to the signup page. Using next/link for client-side navigation. */}
-            <Link href="/signup" passHref legacyBehavior>
-              {/* Assuming /signup is the signup page */}
-              <Button
-                variant="outline"
-                className="w-full border-muted-foreground/40 hover:border-muted-foreground"
-                disabled={isAnyActionPending} // Disables the button if any other action is pending.
-              >
-                Sign Up
-              </Button>
+            {/* Sign Up Link - Styled as button but keeps link behavior */}
+            <Link
+              href="/signup"
+              className={`inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground w-full border-muted-foreground/40 hover:border-muted-foreground px-4 py-2 ${isAnyActionPending ? 'pointer-events-none opacity-50' : ''}`}
+              aria-disabled={isAnyActionPending}
+              tabIndex={isAnyActionPending ? -1 : 0}
+            >
+              Sign Up
             </Link>
           </form>
         )}
 
         {/* MFA Verification Form */}
-        {/* Renders when currentForm is 'mfa'. */}
         {currentForm === 'mfa' && (
           <form
-            onSubmit={handleMfaSubmit} // Binds form submission to the MFA handler.
+            onSubmit={handleMfaSubmit}
             className="flex flex-col gap-4 text-foreground"
             noValidate
           >
-            <div className="flex flex-col space-y-2">
-              <Label htmlFor="mfaCode" className="text-sm font-medium">
-                MFA Code
-              </Label>
-              <Input
-                id="mfaCode" // Unique ID.
-                type="text" // Using text for flexibility with different MFA code types.
-                placeholder="Enter your MFA code"
-                className="h-10"
-                autoComplete="one-time-code" // Suggests autocomplete for one-time codes.
-                {...mfaForm.register('mfaCode')} // Registers the input with react-hook-form.
-                aria-invalid={
-                  mfaForm.formState.errors.mfaCode ? 'true' : 'false'
-                } // ARIA attribute for accessibility.
-                disabled={isMfaPending} // Disables the input while the MFA action is pending.
-              />
-              {/* Displays validation/server errors for the MFA code field. */}
-              {mfaForm.formState.errors.mfaCode && (
-                <p
-                  className="text-sm text-destructive"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  {mfaForm.formState.errors.mfaCode.message}
-                </p>
-              )}
-            </div>
+            {/* Assuming FormFieldProps accepts `disabled` and `required` */}
+            <FormField<z.infer<typeof mfaFormSchema>>
+              id="mfaCode"
+              name="mfaCode"
+              label="MFA Code"
+              type="text"
+              placeholder="Enter your MFA code"
+              registerAction={mfaForm.register}
+              errors={mfaForm.formState.errors}
+              disabled={isMfaPending}
+              autoComplete="one-time-code"
+              required
+            />
             {/* MFA Verify Button */}
-            {/* Triggers the MFA form submission. */}
             <SubmitButton
               label="Verify Code"
-              pending={isMfaPending} // Passes the MFA specific pending state.
+              pending={isMfaPending}
+              disabled={isMfaPending}
             />
             {/* Cancel MFA Button */}
             <Button
-              type="button" // Explicitly set to 'button' to prevent form submission.
+              type="button"
               variant="ghost"
               className="mt-2"
               onClick={() => {
-                setCurrentForm('login'); // Returns to the login form view.
-                mfaForm.reset(); // Clears the MFA form fields on cancel.
-                mfaForm.clearErrors(); // Clears any validation errors on cancel.
-                setGeneralMessage(null); // Clears any general messages on cancel.
+                navigateBackToLogin();
+                mfaForm.reset(DEFAULT_MFA_VALUES);
+                mfaForm.clearErrors();
               }}
-              disabled={isMfaPending} // Disables the button while the MFA action is pending.
+              disabled={isMfaPending}
+              aria-disabled={isMfaPending}
             >
               Cancel
             </Button>
@@ -545,71 +619,78 @@ export default function LoginForm({
         )}
 
         {/* Forgot Password Form */}
-        {/* Renders when currentForm is 'forgotPassword'. */}
         {currentForm === 'forgotPassword' && (
           <form
-            onSubmit={handleForgotPasswordSubmit} // Binds form submission to the forgot password handler.
+            onSubmit={handleForgotPasswordSubmit}
             className="flex flex-col gap-4 text-foreground"
             noValidate
           >
-            <div className="flex flex-col space-y-2">
-              <Label htmlFor="email-forgot" className="text-sm font-medium">
-                Email
-              </Label>
-              <Input
-                id="email-forgot" // Unique ID.
-                type="email"
-                placeholder="m@example.com"
-                className="h-10"
-                autoComplete="email" // Improves accessibility and user experience.
-                {...forgotPasswordForm.register('email')} // Registers the input with react-hook-form.
-                aria-invalid={
-                  forgotPasswordForm.formState.errors.email ? 'true' : 'false'
-                } // ARIA attribute for accessibility.
-                disabled={isForgotPending} // Disables the input while the forgot password action is pending.
-              />
-              {/* Displays validation/server errors for the email field. */}
-              {forgotPasswordForm.formState.errors.email && (
-                <p
-                  className="text-sm text-destructive"
-                  role="alert"
-                  aria-live="polite"
-                >
-                  {forgotPasswordForm.formState.errors.email.message}
-                </p>
-              )}
-            </div>
-            {/* Reset Password Button */}
-            {/* Triggers the forgot password form submission. */}
+            <FormField<z.infer<typeof forgotPasswordFormSchema>>
+              id="email-forgot"
+              name="email"
+              label="Email"
+              type="email"
+              placeholder="m@example.com"
+              registerAction={forgotPasswordForm.register}
+              errors={forgotPasswordForm.formState.errors}
+              disabled={isForgotPending}
+              autoComplete="email"
+              required
+            />
+            {/* Send Reset Link Button */}
             <SubmitButton
-              label="Send Reset Link" // Clearer label for the button.
-              pending={isForgotPending} // Passes the forgot password specific pending state.
+              label="Send Reset Link"
+              pending={isForgotPending}
+              disabled={isForgotPending}
             />
             {/* Back to Login Button */}
             <Button
-              type="button" // Explicitly set to 'button' to prevent form submission.
+              type="button"
               variant="ghost"
               className="mt-2"
               onClick={() => {
-                setCurrentForm('login'); // Returns to the login form view.
-                forgotPasswordForm.reset(); // Clears the form fields on navigating back.
-                forgotPasswordForm.clearErrors(); // Clears any validation errors on navigating back.
-                setGeneralMessage(null); // Clears any general messages on navigating back.
+                navigateBackToLogin();
+                forgotPasswordForm.reset(DEFAULT_FORGOT_PASSWORD_VALUES);
+                forgotPasswordForm.clearErrors();
               }}
-              disabled={isForgotPending} // Disables the button while the forgot password action is pending.
+              disabled={isForgotPending}
+              aria-disabled={isForgotPending}
             >
               Back to Login
             </Button>
           </form>
         )}
 
-        {/* Terms and Privacy Links */}
-        {/* Always visible at the bottom of the form. */}
-        <p className="text-center text-sm text-muted-foreground">
+        {/* Forgot Password Confirmation Message State */}
+        {currentForm === 'forgotPasswordConfirmation' && (
+          <div className="flex flex-col gap-4 text-foreground text-center">
+            <p className="text-lg font-semibold">Check Your Email</p>
+            <p className="text-muted-foreground">
+              A password reset link has been sent to your email address. Please
+              check your inbox (and spam folder) to continue.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => {
+                navigateBackToLogin();
+              }}
+              disabled={isAnyActionPending}
+              aria-disabled={isAnyActionPending}
+            >
+              Back to Login
+            </Button>
+          </div>
+        )}
+
+        {/* Terms and Privacy Links - Always visible */}
+        <p className="text-center text-sm text-muted-foreground mt-auto pt-4">
           By continuing, you agree to our{' '}
           <Link
             href={termsOfServiceHref}
             className="underline underline-offset-4 hover:text-primary"
+            prefetch={false}
           >
             Terms of Service
           </Link>{' '}
@@ -617,6 +698,7 @@ export default function LoginForm({
           <Link
             href={privacyPolicyHref}
             className="underline underline-offset-4 hover:text-primary"
+            prefetch={false}
           >
             Privacy Policy
           </Link>

@@ -87,3 +87,44 @@ export const asinSchema = z
 export const productNameSchema = z
   .string()
   .min(3, 'Product name must be at least 3 characters');
+
+/**
+ * Zod schema for validating email addresses.
+ */
+export const emailSchema = z.string().email('Invalid email address');
+
+/**
+ * Zod schema for validating passwords.
+ * Requires a minimum length for security.
+ */
+export const passwordSchema = z
+  .string()
+  .min(8, 'Password must be at least 8 characters long');
+
+/**
+ * Validates login input (email and password) using Zod schemas.
+ * This centralizes login input validation, providing clear error messages
+ * and ensuring consistency across the application.
+ *
+ * @param {string} email - The user's email address.
+ * @param {string} password - The user's password.
+ * @returns {string[]} An array of error messages if validation fails, empty array otherwise.
+ */
+export const validateLoginInput = (
+  email: string,
+  password: string,
+): string[] => {
+  const errors: string[] = [];
+
+  const emailValidation = emailSchema.safeParse(email);
+  if (!emailValidation.success) {
+    errors.push(emailValidation.error.errors[0].message);
+  }
+
+  const passwordValidation = passwordSchema.safeParse(password);
+  if (!passwordValidation.success) {
+    errors.push(passwordValidation.error.errors[0].message);
+  }
+
+  return errors;
+};
