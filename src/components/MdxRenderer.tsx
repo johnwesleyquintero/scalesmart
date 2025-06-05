@@ -96,7 +96,7 @@ export const components = {
   }: React.ComponentPropsWithoutRef<'code'>) => (
     <code
       className={clsx(
-        'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm',
+        'relative rounded bg-gray-900 text-gray-200 px-[0.3rem] py-[0.2rem] font-mono text-sm', // Added dark background and light text
         className,
       )}
       {...props}
@@ -121,7 +121,7 @@ export const components = {
       <pre
         tabIndex={effectiveTabIndex}
         className={clsx(
-          'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm overflow-x-auto my-4 p-4 rounded-md',
+          'relative rounded bg-gray-900 text-gray-200 px-[0.3rem] py-[0.2rem] font-mono text-sm overflow-x-auto my-4 p-4 rounded-md', // Added dark background and light text
           className,
         )}
         {...cleanedProps}

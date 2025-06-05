@@ -115,35 +115,43 @@ function detectLanguage(codeInput: string): string {
  * @returns {string} The generated structured prompt.
  */
 export function generatePrompt(data: PromptData): string {
+  // Destructure the relevant data from the input object.
+  // This ensures we are only using the data provided by the component's state.
   const { category, customCategory, context, request, codeInput } = data;
   let prompt = '';
 
-  // Determine the category name for the heading based on the selected category value
+  // Determine the category name for the heading based on the selected category value.
+  // Use the trimmed custom category text if 'custom' is selected, otherwise use the trimmed standard category.
   const categoryName =
     category === CUSTOM_CATEGORY_VALUE
       ? customCategory.trim()
       : category.trim();
 
-  // Add category heading and an introductory phrase if a category is present
+  // Add category heading and an introductory phrase if a category name is determined.
+  // The introduction phrase is based on the selected category value.
   if (categoryName) {
     prompt += `${TASK_CATEGORY_HEADING} ${categoryName}\n\n${getIntroductionPhrase(category, customCategory)}`;
   }
 
-  // Add context section if provided (and not just whitespace)
+  // Add context section if provided and not just whitespace.
+  // Explicitly use the 'context' from the input data.
   if (context && context.trim()) {
     prompt += `${CONTEXT_HEADING}\n\n${context.trim()}\n\n`;
   }
 
-  // Add request section - assumed mandatory and non-empty based on UI validation
+  // Add request section. This is assumed mandatory and non-empty based on UI validation in the component.
+  // Explicitly use the 'request' from the input data.
   prompt += `${REQUEST_HEADING}\n\n${request.trim()}\n\n`;
 
-  // Add code input section if provided (and not just whitespace), with language placeholder
+  // Add code input section if provided and not just whitespace.
+  // Detect the programming language for syntax highlighting in the Markdown code block.
+  // Explicitly use the 'codeInput' from the input data.
   if (codeInput && codeInput.trim()) {
     const language = detectLanguage(codeInput);
     prompt += `${CODE_HEADING}\n\n\`\`\`${language}\n${codeInput.trim()}\n\`\`\`\n`;
   }
 
-  // Add a polite closing statement
+  // Add a polite closing statement to the prompt.
   prompt += '\nThank you for your assistance!';
 
   return prompt;
