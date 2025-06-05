@@ -52,7 +52,8 @@ const CategoryManager = ({
 
     // Check if a category with the same name already exists (case-insensitive)
     const categoryExists = categories.some(
-      (category) => category.name.toLowerCase() === trimmedCategoryName.toLowerCase()
+      (category) =>
+        category.name.toLowerCase() === trimmedCategoryName.toLowerCase(),
     );
 
     if (categoryExists) {

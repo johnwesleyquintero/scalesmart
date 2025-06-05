@@ -4,23 +4,29 @@ set -o pipefail
 
 # --- Function to load configuration from file ---
 load_config() {
-  local config_file=".cli.config.sh"
+  local config_file="$CONFIG_FILE_PATH" # Use the global config path variable
   if [ -f "$config_file" ]; then
     log_info "Loading configuration from $config_file"
-    while IFS='=' read -r key value || [[ -n "$key" ]]; do # Process last line even if no newline
-      # Remove leading/trailing whitespace from key
-      key=$(echo "$key" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+    while IFS='=' read -r key_raw value_raw || [[ -n "$key_raw" ]]; do # Process last line even if no newline
+      local key
+      key=$(echo "$key_raw" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
 
       # Skip empty lines or comments
       if [[ -z "$key" ]] || [[ "$key" =~ ^# ]]; then
         continue
       fi
 
-      # Process value: remove comments, then trim whitespace, then remove outer quotes
-      value=$(echo "$value" | sed 's/#.*//') # Remove comments first
-      value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//') # Trim whitespace
-      # Remove one layer of leading/trailing double or single quotes
-      value=$(echo "$value" | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/")
+      local value
+      value=$(echo "$value_raw" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//') # Trim whitespace from raw value
+
+      # Check if the value is quoted. If so, strip quotes. If not, remove trailing comments.
+      if [[ "$value" =~ ^\".*\"$ ]] || [[ "$value" =~ ^\'.*\'$ ]]; then
+          # It's quoted, remove one layer of quotes
+          value=$(echo "$value" | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/")
+      else
+          # Not quoted, remove trailing comments (e.g., MY_VAR=value # inline comment)
+          value=$(echo "$value" | sed 's/[[:space:]]*#.*//')
+      fi
 
 
       # Only set variables that are not empty and are valid bash exportable names
@@ -199,12 +205,28 @@ load_config
 
 # --- Cleanup and Spinner ---
 cleanup() {
+    local exit_status=$? # Capture the exit status of the last command
     stop_spinner
     echo -e "\n${ANSI_Yellow}[INFO]${ANSI_Reset} Cleaning up and exiting..."
     # Add any other specific cleanup tasks here
-    exit 0
+    
+    # If cleanup is triggered by a signal (e.g., Ctrl+C), $? will be 128 + signal_number
+    # Otherwise, it's the exit status of the last command.
+    # We want to exit with a non-zero status if a signal caused termination.
+    if [[ -n "$_CLEANUP_SIGNAL" ]]; then # Check if a signal was caught
+        log_warn "Script terminated by signal $_CLEANUP_SIGNAL. Exiting with non-zero status."
+        exit $((128 + _CLEANUP_SIGNAL)) # Exit with 128 + signal number
+    elif [ "$exit_status" -ne 0 ]; then
+        log_warn "Script exiting due to previous error. Exit status: $exit_status."
+        exit "$exit_status"
+    else
+        exit 0
+    fi
 }
-trap cleanup SIGINT SIGTERM
+
+# Trap signals and set a variable to indicate which signal was caught
+trap "_CLEANUP_SIGNAL=2; cleanup" SIGINT # SIGINT is typically 2
+trap "_CLEANUP_SIGNAL=15; cleanup" SIGTERM # SIGTERM is typically 15
 
 start_spinner() {
     local message="$1"
@@ -712,14 +734,20 @@ commit_and_push() {
         return 1
     fi
 
-    log_info "Staging all changes (git add .)..."
-    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Staging all changes..."
-    if ! git add .; then
-        log_error "Failed to stage changes (git add .)." "commit_and_push"
+    log_info "Staging tracked changes (git add --update)..."
+    echo -e "${ANSI_Yellow}[ACTION]${ANSI_Reset} Staging tracked changes..."
+    if ! git add --update; then
+        log_error "Failed to stage tracked changes (git add --update)." "commit_and_push"
         return 1
     fi
-    log_info "All changes staged successfully."
-    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} All changes staged."
+    log_info "Tracked changes staged successfully."
+    echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Tracked changes staged."
+    
+    # Warn about untracked files if any
+    if git status --porcelain | grep -q "^??"; then
+        log_warn "Untracked files detected. They will NOT be committed. Use 'git add <file>' manually if needed."
+        echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} Untracked files detected. They will NOT be committed. Stage them manually if needed."
+    fi
 
     # Use smart commit message system
     if ! smart_commit_message; then # This function sets GENERATED_COMMIT_MESSAGE or returns error
@@ -1060,32 +1088,65 @@ manage_vercel() {
                 log_error ".env.local file not found. Cannot push." "manage_vercel (env-push)"
                 return 1
             fi
+            log_info "Pushing environment variables from .env.local to Vercel (production)..."
+            if [ ! -f ".env.local" ]; then
+                log_error ".env.local file not found. Cannot push." "manage_vercel (env-push)"
+                return 1
+            fi
+
+            echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} You are about to push ALL variables from .env.local to Vercel Production."
+            echo -e "${ANSI_Yellow}[WARN]${ANSI_Reset} Ensure no sensitive local-only variables are present in .env.local."
+            echo -ne "${ANSI_Bold}${ANSI_Red}ARE YOU SURE you want to proceed? (y/N): ${ANSI_Reset}"
+            read -r confirmation
+            if [[ "${confirmation}" != "y" && "${confirmation}" != "Y" ]]; then
+                log_info "Vercel env push cancelled by user."
+                echo -e "${ANSI_Cyan}[INFO]${ANSI_Reset} Vercel environment variable push cancelled."
+                return 1
+            fi
+
             echo -e "${ANSI_Yellow}[INFO]${ANSI_Reset} Reading from .env.local to push to Vercel Production environment."
             local pushed_count=0
-            while IFS='=' read -r key value || [[ -n "$key" ]]; do
-                key=$(echo "$key" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+            local failed_count=0
+            while IFS='=' read -r key_raw value_raw || [[ -n "$key_raw" ]]; do
+                local key
+                key=$(echo "$key_raw" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
+
                 if [[ "$key" =~ ^#.*$ ]] || [[ -z "$key" ]]; then continue; fi
 
-                value=$(echo "$value" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//' -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/")
+                local value
+                # Robustly handle quoted values and comments for .env.local
+                value=$(echo "$value_raw" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//') # Trim whitespace from raw value
+                if [[ "$value" =~ ^\".*\"$ ]] || [[ "$value" =~ ^\'.*\'$ ]]; then
+                    value=$(echo "$value" | sed -e 's/^"\(.*\)"$/\1/' -e "s/^'\(.*\)'$/\1/")
+                else
+                    value=$(echo "$value" | sed 's/[[:space:]]*#.*//')
+                fi
 
-                if [ -n "$key" ]; then # Vercel add needs a key. Value can be empty for some cases but vercel might prompt.
-                    echo -ne "${ANSI_Cyan}[ACTION]${ANSI_Reset} Adding/Updating Vercel env var ${ANSI_Bold}'$key'${ANSI_Reset} for production. Enter value if prompted or press Enter to use from file ('$value'): "
-                    # Vercel env add <name> <value> [environment(s)]
-                    # If value is sensitive, vercel might prompt anyway.
-                    # The command `vercel env add NAME VALUE production` should be non-interactive if VALUE is provided.
-                    if vercel env add "$key" "$value" production; then
+                if [ -n "$key" ]; then
+                    echo -e "${ANSI_Cyan}[ACTION]${ANSI_Reset} Adding/Updating Vercel env var ${ANSI_Bold}'$key'${ANSI_Reset} for production..."
+                    # Use printf %q to properly quote the value for the shell command
+                    # This ensures spaces and special characters are handled correctly by vercel env add
+                    local quoted_value
+                    printf -v quoted_value '%q' "$value"
+                    
+                    if vercel env add "$key" "$quoted_value" production; then
                         log_info "Successfully added/updated Vercel env var: $key (production)"
                         echo -e "${ANSI_Green}OK${ANSI_Reset}"
                         ((pushed_count++))
                     else
                         log_error "Failed to add/update Vercel env var: $key. It might require confirmation or already exist with a different type." "manage_vercel (env-push)"
                         echo -e "${ANSI_Red}Failed for $key. Check Vercel output/dashboard.${ANSI_Reset}"
-                        # Optionally ask to continue
+                        ((failed_count++))
                     fi
                 fi
             done < ".env.local"
-            log_info "$pushed_count variables processed for Vercel env push."
-            echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Environment variable push process completed. $pushed_count variables processed."
+            log_info "$pushed_count variables successfully pushed, $failed_count failed for Vercel env push."
+            if [ "$failed_count" -eq 0 ]; then
+                echo -e "${ANSI_Green}[SUCCESS]${ANSI_Reset} Environment variable push process completed. $pushed_count variables pushed."
+            else
+                echo -e "${ANSI_Red}[ERROR]${ANSI_Reset} Environment variable push process completed with errors. $pushed_count variables pushed, $failed_count failed."
+                return 1
+            fi
             ;;
         "login") vercel login ;;
         "logout") vercel logout ;;
