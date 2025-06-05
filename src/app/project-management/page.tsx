@@ -2,15 +2,6 @@
 'use client';
 
 // Import necessary React and UI components
-import {
-  DndContext,
-  closestCorners,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-} from '@dnd-kit/core';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -21,53 +12,35 @@ import ProjectForm from '@/app/project-management/components/ProjectForm';
 import ProjectList from '@/app/project-management/components/ProjectList';
 import { useProjectManagementData } from '@/hooks/use-project-management-data';
 import { Task } from '@/lib/indexeddb-service';
-import { ErrorBoundary } from '@/components/error-boundary'; // Import ErrorBoundary for robust error handling
+import { ErrorBoundary } from '@/components/error-boundary';
 
 /**
- * ProjectManagementPage Component
+ * @component ProjectManagementPage
+ * @brief The main page component for the Project Management Dashboard.
  *
- * Serves as the main dashboard for managing projects and tasks.
- * Integrates drag-and-drop functionality and provides separate tabs for
- * task and project management.
+ * This component orchestrates the display and interaction of project and task management
+ * features. It uses Dnd-kit for drag-and-drop functionality, organizes content into tabs,
+ * and integrates various sub-components for forms and lists.
+ * It relies on the `useProjectManagementData` hook for state management and data operations.
+ *
+ * @returns {JSX.Element} The ProjectManagementPage component.
  */
 const ProjectManagementPage = () => {
   // Destructure state and handlers from the custom hook for project management data
-  const { tasks, setTasks, projects, setProjects, handleDragEnd } =
-    useProjectManagementData();
-
-  // Configure Dnd-kit sensors for various input methods (pointer and keyboard)
-  const sensors = useSensors(
-    useSensor(PointerSensor), // Enables drag and drop with mouse or touch
-    useSensor(KeyboardSensor), // Enables drag and drop with keyboard
-  );
-
-  /**
-   * Handles the end of a drag operation.
-   * This function is called by DndContext when a draggable item is dropped.
-   * It delegates the actual state update logic to the `handleDragEnd` function
-   * provided by the `useProjectManagementData` hook.
-   * @param event The DragEndEvent object containing information about the drag operation.
-   */
-  const onDragEnd = (event: DragEndEvent) => {
-    // Pass the event and state setters to the centralized handler in the hook
-    handleDragEnd(event, tasks, setTasks);
-  };
+  const { tasks, setTasks, projects, setProjects } = useProjectManagementData();
 
   return (
-    <ErrorBoundary> {/* Ensures graceful handling of rendering errors within the component tree */}
-      <DndContext
-        sensors={sensors} // Configured sensors for pointer and keyboard interactions
-        collisionDetection={closestCorners} // Optimizes drag-and-drop collision detection
-        onDragEnd={onDragEnd} // Centralized handler for drag completion
-      >
-        <div className="container mx-auto p-4">
-          {/* Page Title and Description */}
-          <h1 className="text-3xl font-bold text-center my-6 text-foreground">
-            Project Dashboard
-          </h1>
-          <p className="text-lg text-muted-foreground text-center mb-8">
-            Manage your projects and tasks efficiently.
-          </p>
+    <ErrorBoundary>
+      {' '}
+      {/* Ensures graceful handling of rendering errors within the component tree */}
+      <div className="container mx-auto p-4">
+        {/* Page Title and Description */}
+        <h1 className="text-3xl font-bold text-center my-6 text-foreground">
+          Project Dashboard
+        </h1>
+        <p className="text-lg text-muted-foreground text-center mb-8">
+          Manage your projects and tasks efficiently.
+        </p>
 
         {/* Tabs for switching between Task and Project management */}
         <Tabs defaultValue="tasks" className="w-full">
@@ -103,7 +76,6 @@ const ProjectManagementPage = () => {
                     {/* TaskForm component for creating new tasks */}
                     <TaskForm
                       setTasks={setTasks}
-                      tasks={tasks}
                       projects={projects} // Pass projects for assignment
                     />
                   </CardContent>
@@ -133,7 +105,7 @@ const ProjectManagementPage = () => {
                     {/* ProjectForm component for creating new projects */}
                     <ProjectForm
                       setProjects={setProjects}
-                      projects={projects}
+                      projects={projects} // Required by ProjectFormProps, though internal logic uses functional updates
                     />
                   </CardContent>
                 </Card>
@@ -158,7 +130,6 @@ const ProjectManagementPage = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </DndContext>
     </ErrorBoundary>
   );
 };

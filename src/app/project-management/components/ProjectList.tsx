@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Project } from '@/lib/indexeddb-service';
 import { deleteProject } from '@/lib/indexeddb-service';
 import ProjectForm from './ProjectForm';
@@ -17,13 +17,34 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { logger } from '@/lib/logger'; // Import logger for enhanced debugging
+import { logger } from '@/lib/logger';
 
+/**
+ * @interface ProjectListProps
+ * @brief Props for the ProjectList component.
+ */
 interface ProjectListProps {
+  /**
+   * @brief The array of projects to display.
+   */
   projects: Project[];
-  setProjects: React.Dispatch<React.SetStateAction<Project[]>>; // Changed to accept functional updates
+  /**
+   * @brief Function to update the list of projects.
+   * Accepts a functional update to prevent stale closure issues.
+   */
+  setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
 }
 
+/**
+ * @component ProjectList
+ * @brief Displays a filterable and sortable list of projects.
+ *
+ * This component allows users to view, search, sort, edit, and delete projects.
+ * It integrates with `ProjectForm` for editing and uses a confirmation modal for deletion.
+ *
+ * @param {ProjectListProps} props The props for the component.
+ * @returns {JSX.Element} The ProjectList component.
+ */
 const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
@@ -40,12 +61,12 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
    * @returns {Project[]} The filtered and sorted array of projects.
    */
   const filteredAndSortedProjects = useMemo(() => {
-    let filteredProjects = projects;
+    let currentProjects = [...projects]; // Create a shallow copy to avoid direct mutation
 
     // Filter by search query (case-insensitive)
     if (searchQuery) {
       const lowerCaseQuery = searchQuery.toLowerCase();
-      filteredProjects = filteredProjects.filter(
+      currentProjects = currentProjects.filter(
         (project) =>
           project.name.toLowerCase().includes(lowerCaseQuery) ||
           project.description?.toLowerCase().includes(lowerCaseQuery),
@@ -53,15 +74,15 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
     }
 
     // Sort projects based on the selected criteria
-    filteredProjects.sort((a: Project, b: Project) => {
+    currentProjects.sort((a: Project, b: Project) => {
       switch (sortBy) {
         case 'nameDesc':
           return b.name.localeCompare(a.name);
         case 'dateAsc':
-          // Sort by creation timestamp (oldest first)
+          // Sort by creation timestamp (oldest first), default to 0 if undefined
           return (a.creationTimestamp || 0) - (b.creationTimestamp || 0);
         case 'dateDesc':
-          // Sort by creation timestamp (newest first)
+          // Sort by creation timestamp (newest first), default to 0 if undefined
           return (b.creationTimestamp || 0) - (a.creationTimestamp || 0);
         case 'nameAsc':
         default:
@@ -70,63 +91,73 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
       }
     });
 
-    return filteredProjects;
+    return currentProjects;
   }, [projects, searchQuery, sortBy]);
 
   /**
-   * Handles the click event for deleting a project, opening a confirmation modal.
+   * @brief Handles the click event for deleting a project, opening a confirmation modal.
+   * Uses `useCallback` for memoization.
    * @param {string} id - The ID of the project to be deleted.
    */
-  const handleDeleteProject = (id: string) => {
+  const handleDeleteProject = useCallback((id: string) => {
     setProjectToDeleteId(id);
     setIsConfirmModalOpen(true);
-  };
+  }, []);
 
   /**
-   * Confirms and proceeds with project deletion after user confirmation.
+   * @brief Confirms and proceeds with project deletion after user confirmation.
+   * Uses `useCallback` for memoization.
    */
-  const confirmDeleteProject = async () => {
-    if (projectToDeleteId) {
-      try {
-        await deleteProject(projectToDeleteId);
-        setProjects((prevProjects) =>
-          prevProjects.filter((project) => project.id !== projectToDeleteId),
-        );
-        toast.info('Project deleted.');
-        // Close the modal if the deleted project was being edited
-        if (selectedProject?.id === projectToDeleteId) {
-          setSelectedProject(null);
-          setIsModalOpen(false);
-        }
-      } catch (error) {
-        logger.error('Error deleting project:', error, {
-          component: 'ProjectList',
-          context: 'confirmDeleteProject',
-        });
-        toast.error('Failed to delete project. See console for details.');
-      } finally {
-        setIsConfirmModalOpen(false);
-        setProjectToDeleteId(null);
-      }
+  const confirmDeleteProject = useCallback(async () => {
+    if (!projectToDeleteId) {
+      logger.warn('Attempted to confirm delete without a projectToDeleteId.');
+      toast.error('No project selected for deletion.');
+      setIsConfirmModalOpen(false);
+      return;
     }
-  };
+
+    try {
+      await deleteProject(projectToDeleteId);
+      setProjects((prevProjects) =>
+        prevProjects.filter((project) => project.id !== projectToDeleteId),
+      );
+      toast.info('Project deleted successfully.');
+      // Close the modal if the deleted project was being edited
+      if (selectedProject?.id === projectToDeleteId) {
+        setSelectedProject(null);
+        setIsModalOpen(false);
+      }
+    } catch (error) {
+      logger.error('Error deleting project:', error, {
+        component: 'ProjectList',
+        context: 'confirmDeleteProject',
+        projectId: projectToDeleteId,
+      });
+      toast.error('Failed to delete project. Please try again.');
+    } finally {
+      setIsConfirmModalOpen(false);
+      setProjectToDeleteId(null);
+    }
+  }, [projectToDeleteId, setProjects, selectedProject?.id]);
 
   /**
-   * Handles the click event for editing a project, opening the ProjectForm modal.
+   * @brief Handles the click event for editing a project, opening the ProjectForm modal.
+   * Uses `useCallback` for memoization.
    * @param {Project} project - The project object to be edited.
    */
-  const handleEditClick = (project: Project) => {
+  const handleEditClick = useCallback((project: Project) => {
     setSelectedProject(project);
     setIsModalOpen(true);
-  };
+  }, []);
 
   /**
-   * Handles closing the edit project modal.
+   * @brief Handles closing the edit project modal.
+   * Uses `useCallback` for memoization.
    */
-  const handleCloseModal = () => {
+  const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setSelectedProject(null);
-  };
+  }, []);
 
   return (
     <div>
@@ -137,10 +168,11 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-sm"
+          aria-label="Search projects"
         />
         {/* Select input for sorting projects */}
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-[180px]" aria-label="Sort projects by">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -162,7 +194,9 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
 
       {/* Display message if no projects are found */}
       {filteredAndSortedProjects.length === 0 ? (
-        <p className="text-muted-foreground text-center">No projects found.</p>
+        <p className="text-muted-foreground text-center" role="status">
+          No projects found.
+        </p>
       ) : (
         // Display the list of projects
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -185,6 +219,7 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
                   size="sm"
                   onClick={() => handleEditClick(project)}
                   title="Edit project"
+                  aria-label={`Edit project ${project.name}`}
                 >
                   <Edit className="mr-2 h-4 w-4" /> Edit
                 </Button>
@@ -194,6 +229,7 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
                   size="sm"
                   onClick={() => handleDeleteProject(project.id)}
                   title="Delete project"
+                  aria-label={`Delete project ${project.name}`}
                 >
                   <Trash2 className="mr-2 h-4 w-4" /> Delete
                 </Button>
@@ -203,16 +239,16 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
         </div>
       )}
       {/* Modal for editing a project */}
-      {selectedProject && isModalOpen && (
+      {isModalOpen && (
         <Modal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
           title="Edit Project"
         >
           <ProjectForm
-            project={selectedProject}
-            setProjects={setProjects} // This is now correctly typed
-            projects={projects}
+            project={selectedProject || undefined} // Ensure it's undefined if null
+            setProjects={setProjects}
+            projects={projects} // Still passed, but less critical due to functional updates
             onProjectUpdated={handleCloseModal}
             onCancel={handleCloseModal}
           />

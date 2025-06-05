@@ -500,8 +500,9 @@ export const updateTask = async (task: Task): Promise<void> => {
   try {
     const updateTimestamp = Date.now();
     const taskToStore = { ...task, updateTimestamp };
+    console.log('IndexedDBService: Attempting to update task:', taskToStore);
     await db.tasks.put(taskToStore);
-    console.log('Task updated in IndexedDB:', task);
+    console.log('IndexedDBService: Task successfully updated in IndexedDB:', taskToStore);
   } catch (error) {
     logError(
       error,
