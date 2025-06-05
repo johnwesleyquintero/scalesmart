@@ -302,7 +302,10 @@ export default function PromptRequestGenerator() {
                     }
                     onBlur={(e) =>
                       // Trigger validation on blur for custom category
-                      debouncedUpdatePromptData('customCategory', e.target.value)
+                      debouncedUpdatePromptData(
+                        'customCategory',
+                        e.target.value,
+                      )
                     }
                     className={`bg-background border-border ${validationErrors.customCategory ? 'border-red-500' : ''}`}
                     aria-required={showCustomCategory} // Indicate required state for screen readers
