@@ -1,5 +1,4 @@
 interface DashboardHeaderProps {
-  // title: string; // We'll set the title directly in the component
   description: string;
 }
 

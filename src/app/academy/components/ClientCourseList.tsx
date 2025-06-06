@@ -13,8 +13,6 @@ import { useContext } from 'react';
 import { AcademyContext, AcademyContextType } from '@/context/AcademyContext';
 import { CheckCircle } from 'lucide-react'; // Import CheckCircle icon
 
-const moduleItemStyle = 'text-gray-700 dark:text-gray-200';
-
 interface ClientCourseListProps {
   courses: Course[];
   completedCourseIds: string[]; // Add this prop
@@ -47,7 +45,7 @@ export default function ClientCourseList({
           const isCompleted = completedCourseIds.includes(course.id); // Check if course is completed
           return (
             <Card
-              key={course.id || course.slug} // Prefer course.id if available and unique, otherwise slug.
+              key={course.id} // Simplified key, assuming course.id is unique and stable
               className={` ${
                 course.locked
                   ? 'opacity-75 bg-gray-100 dark:bg-gray-700'
@@ -79,14 +77,14 @@ export default function ClientCourseList({
                     {course.duration}
                   </span>
                   <span
-                    className={`px-2 py-1 rounded-full text-xs ${moduleItemStyle} ${
+                    className={`px-2 py-1 rounded-full text-xs ${
                       course.level === 'Beginner'
                         ? 'bg-green-100 text-green-800 dark:bg-green-700 dark:text-green-100'
                         : course.level === 'Intermediate'
                           ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-700 dark:text-yellow-100'
                           : course.level === 'Advanced'
                             ? 'bg-red-100 text-red-800 dark:bg-red-700 dark:text-red-100'
-                            : ''
+                            : 'text-gray-700 dark:text-gray-200' // Inlined the default style
                     }`}
                   >
                     {course.level}
@@ -118,7 +116,7 @@ export default function ClientCourseList({
           console.error('Error rendering course card:', course.title, error);
           return (
             <div
-              key={course.id || course.slug}
+              key={course.id || course.slug} // Keep fallback for error case if id is truly missing
               className="p-4 border border-red-500 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
               Error loading this course.

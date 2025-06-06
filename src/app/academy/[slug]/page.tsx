@@ -24,7 +24,7 @@ export async function generateMetadata({
   params,
 }: Readonly<AcademyArticlePageProps>): Promise<Metadata> {
   try {
-    const resolvedSlug = await params.slug;
+    const resolvedSlug = params.slug; // Removed unnecessary await
     const article = await getAcademyArticleBySlug(resolvedSlug);
 
     if (!article) {
@@ -111,8 +111,7 @@ export async function generateStaticParams() {
 export default async function AcademyArticlePage({
   params,
 }: AcademyArticlePageProps) {
-  const awaitedParams = await params;
-  const slugParam = awaitedParams.slug;
+  const slugParam = params.slug; // Removed unnecessary await
 
   const article = await getAcademyArticleBySlug(slugParam);
 

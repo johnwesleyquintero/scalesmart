@@ -152,20 +152,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signatureLine: {
-    borderTopWidth: 1.5,
-    borderTopColor: certificateTheme.colors.textDark,
-    paddingTop: 6,
+    borderBottomWidth: 1.5, // Use borderBottomWidth for a line
+    borderBottomColor: certificateTheme.colors.textDark,
     width: '100%', // Line spans the width of the block
-    // Text properties for the invisible text that forces height, if any.
-    // Or, make this a <View> with border if no text is desired.
-    fontSize: 1, // Make placeholder text tiny if using <Text>
-    color: 'transparent', // Make placeholder text invisible
+    height: 0, // No height needed if it's just a border
+    marginBottom: 3, // Space between line and name
   },
   signatureName: {
     fontSize: 11,
     color: certificateTheme.colors.textDark,
     fontFamily: certificateTheme.fonts.formal,
-    marginTop: 3, // Space between line and name
+    // Removed marginTop as spacing is now handled by marginBottom on signatureLine
     marginBottom: 1,
   },
   signatureTitle: {
@@ -272,10 +269,12 @@ const CertificatePDF: React.FC<CertificatePDFProps> = ({
           {/* Signature section */}
           <View style={styles.signatureSection}>
             <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} /> {/* Render as a View */}
               <Text style={styles.signatureName}>{instructorName}</Text>
               <Text style={styles.signatureTitle}>{instructorTitle}</Text>
             </View>
             <View style={styles.signatureBlock}>
+              <View style={styles.signatureLine} /> {/* Render as a View */}
               <Text style={styles.signatureDateLabel}>Date of Issue</Text>
               <Text style={styles.signatureTitle}>{formatDate(issueDate)}</Text>
             </View>

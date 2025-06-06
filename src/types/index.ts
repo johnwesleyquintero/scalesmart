@@ -119,6 +119,8 @@ export type Module = {
   exercise?: string;
   /** Optional quiz details if the module is a quiz. */
   quiz?: {
+    instructorName: string;
+    instructorTitle: string;
     /** Array of questions in the quiz. */
     questions: Question[];
   };

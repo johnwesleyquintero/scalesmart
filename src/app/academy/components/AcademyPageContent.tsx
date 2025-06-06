@@ -155,6 +155,17 @@ const parseDuration = (durationString: string | null | undefined): number => {
  * Uses React Query for data fetching and state management, useAcademyStorage
  * for persisting user progress, and various Shadcn UI components.
  */
+
+/**
+ * AcademyPageContent Component
+ *
+ * Fetches and syncs academy course data, manages filter and sort states,
+ * and renders the appropriate content layout including "Continue Learning"
+ * and categorized/sortable course lists.
+ *
+ * Uses React Query for data fetching and state management, useAcademyStorage
+ * for persisting user progress, and various Shadcn UI components.
+ */
 export function AcademyPageContent() {
   const [activeTab, setActiveTab] = useState('All');
   const [sort, setSort] = useState('Title');

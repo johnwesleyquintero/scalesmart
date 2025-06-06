@@ -17,8 +17,8 @@ interface ArticleData {
   source: MDXRemoteSerializeResult;
   frontmatter: {
     title?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any; // Allow for other arbitrary frontmatter properties
+
+    [key: string]: unknown; // Changed from any to unknown for better type safety
   };
 }
 

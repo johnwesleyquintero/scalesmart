@@ -24,6 +24,10 @@ interface QuizProps {
   questions: QuestionInput[];
   moduleId: string;
   onQuizComplete: (result: QuizResult) => void; // Callback to report quiz completion
+  // New props for certificate
+  instructorName: string;
+  instructorTitle: string;
+  issuingOrganizationName: string;
 }
 
 // Moved child components outside for better organization and memoization
@@ -43,9 +47,21 @@ interface QuizCompletedViewProps {
   totalAttempts: number;
   isCertificateEarned: boolean;
   userProfile: UserProfile | null;
+  // New props for certificate
+  instructorName: string;
+  instructorTitle: string;
+  issuingOrganizationName: string;
 }
 const QuizCompletedView: React.FC<QuizCompletedViewProps> = React.memo(
-  ({ score, totalAttempts, isCertificateEarned, userProfile }) => {
+  ({
+    score,
+    totalAttempts,
+    isCertificateEarned,
+    userProfile,
+    instructorName, // Destructure new props
+    instructorTitle,
+    issuingOrganizationName,
+  }) => {
     const { activeCourse } = useAcademy();
     const [customCertificateName, setCustomCertificateName] =
       useState<string>('');
@@ -101,16 +117,19 @@ const QuizCompletedView: React.FC<QuizCompletedViewProps> = React.memo(
                 customCertificateName || userProfile?.name || 'Valued Learner'
               }
               courseName={courseName}
+              // TODO: Pass actual course completion date if available, currently uses current date
               courseCompletionDate={new Date().toLocaleDateString()}
+              // TODO: Generate a unique certificate ID instead of hardcoding
               certificateId="QUIZ-CERT-001"
-              instructorName="John Wesley Quintero"
-              instructorTitle="Lead Instructor"
+              instructorName={instructorName} // Pass prop
+              instructorTitle={instructorTitle} // Pass prop
+              issuingOrganizationName={issuingOrganizationName} // Pass prop
             />
           </>
         ) : passedCurrentAttempt && totalAttempts > MAX_CERTIFICATE_ATTEMPTS ? (
           <p className="mt-4 font-medium text-orange-500 dark:text-orange-400">
             Great score! However, you&apos;ve used more than{' '}
-            {MAX_CERTIFICATE_ATTEMPTS} attempts for the certificate.
+            {MAX_CERTIFICATE_ATTEMPTS} attempt&apos;s for the certificate.
           </p>
         ) : !passedCurrentAttempt &&
           totalAttempts < MAX_CERTIFICATE_ATTEMPTS ? (
@@ -263,7 +282,14 @@ const QuizPendingResultsDisplay: React.FC<QuizPendingResultsDisplayProps> =
   ));
 QuizPendingResultsDisplay.displayName = 'QuizPendingResultsDisplay';
 
-const Quiz: React.FC<QuizProps> = ({ questions, moduleId, onQuizComplete }) => {
+const Quiz: React.FC<QuizProps> = ({
+  questions,
+  moduleId,
+  onQuizComplete,
+  instructorName, // Destructure new props
+  instructorTitle,
+  issuingOrganizationName,
+}) => {
   const { activeCourse } = useAcademy();
   const { userProfile, updateUserProfile } = useUserProfile();
   const { getQuizResult } = useAcademyStorage(); // Removed updateQuizResult, markModuleProgress
@@ -400,6 +426,9 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId, onQuizComplete }) => {
           totalAttempts={attempts}
           isCertificateEarned={certificateAwarded}
           userProfile={userProfile}
+          instructorName={instructorName} // Pass prop
+          instructorTitle={instructorTitle} // Pass prop
+          issuingOrganizationName={issuingOrganizationName} // Pass prop
         />
       ) : currentQuestionIndex < questions.length ? (
         <ActiveQuestionDisplay

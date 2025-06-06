@@ -92,6 +92,9 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
           questions={activeModule.quiz.questions.map((q) => {
             const questionData = q as typeof q & {
               question?: string;
+              // Add instructor details to quiz data if available, or use defaults
+              instructorName?: string;
+              instructorTitle?: string;
               title?: string;
               correctAnswer?: string | number;
             };
@@ -103,6 +106,8 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
                 // If it's a string that's not a number, maybe it's the actual answer value not an index?
                 // For now, defaulting to 0 for robustness given the problem context.
                 // A better long-term solution might involve clearer types or handling the actual string answer.
+                // TODO: Ensure `correctAnswer` is consistently a number (index) from the data source
+                // to avoid this parsing complexity and potential errors.
                 parsedCorrectAnswer = 0;
               }
             } else if (typeof questionData.correctAnswer === 'number') {
@@ -122,6 +127,13 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
           })}
           moduleId={activeModule.id}
           onQuizComplete={(result) => onQuizComplete(activeModule.id, result)} // Pass quiz completion callback
+          instructorName={
+            activeModule.quiz.instructorName || 'ScaleSmart Academy Instructor'
+          } // Pass instructor name
+          instructorTitle={
+            activeModule.quiz.instructorTitle || 'Lead Instructor'
+          } // Pass instructor title
+          issuingOrganizationName={'ScaleSmart Academy'} // Pass issuing organization name
         />
       ) : (
         <p>No quiz questions available for this module.</p>
@@ -392,7 +404,7 @@ function AcademyContentClient({
                           <span>{module.title || `Module ${module.id}`}</span>
                           {getModuleProgress(module.id) === 100 && (
                             <span className="text-green-500 text-xs font-medium ml-2">
-                              ✓
+                              &#10003; {/* Checkmark entity */}
                             </span>
                           )}
                           <progress
