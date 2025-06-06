@@ -24,7 +24,7 @@ export async function generateMetadata({
   params,
 }: Readonly<AcademyArticlePageProps>): Promise<Metadata> {
   try {
-    const resolvedSlug = params.slug; // Removed unnecessary await
+    const resolvedSlug = params.slug;
     const article = await getAcademyArticleBySlug(resolvedSlug);
 
     if (!article) {
@@ -91,6 +91,8 @@ export async function generateMetadata({
     };
   } catch (error) {
     console.error('Error generating academy article metadata:', error);
+    // TODO: For production, consider more specific error logging (e.g., to a dedicated logging service)
+    // and potentially a more user-friendly error page or message.
     const ERROR_DESCRIPTION =
       'An error occurred while loading this academy article.';
     return {
@@ -100,10 +102,13 @@ export async function generateMetadata({
   }
 }
 
+interface ArticleSlug {
+  slug: string;
+}
+
 export async function generateStaticParams() {
   const articles = await getAllAcademyArticles();
-  return articles.map((article: { slug: string }) => ({
-    // Specify type for 'article'
+  return articles.map((article: ArticleSlug) => ({
     slug: article.slug,
   }));
 }
@@ -111,7 +116,7 @@ export async function generateStaticParams() {
 export default async function AcademyArticlePage({
   params,
 }: AcademyArticlePageProps) {
-  const slugParam = params.slug; // Removed unnecessary await
+  const slugParam = params.slug;
 
   const article = await getAcademyArticleBySlug(slugParam);
 
@@ -163,11 +168,11 @@ export default async function AcademyArticlePage({
 
               {article.image && (
                 <div className="mb-8 overflow-hidden rounded-lg">
-                  <Image // Changed <img> to <Image>
+                  <Image
                     src={article.image}
                     alt={article.title}
-                    width={1200} // Placeholder, adjust based on your typical image dimensions or content needs
-                    height={630} // Placeholder, adjust as needed
+                    width={1200} // IMPORTANT: Adjust width and height based on actual image aspect ratio and design needs for optimal performance.
+                    height={630} // These are placeholders.
                     className="w-full object-cover rounded-lg"
                   />
                 </div>

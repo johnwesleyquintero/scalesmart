@@ -113,9 +113,9 @@ const parseDuration = (durationString: string | null | undefined): number => {
   if (!durationString) return 0;
   const parts = durationString.trim().toLowerCase().split(' ');
   let totalMinutes = 0;
-  // Map of unit aliases to their value in minutes
-  const minutesPerUnit: Record<string, number> = {
-    minute: 1,
+    // Map of unit aliases to their value in minutes
+    const minutesPerUnit: Record<string, number> = {
+      minute: 1,
     minutes: 1,
     min: 1,
     mins: 1,
@@ -167,12 +167,14 @@ const parseDuration = (durationString: string | null | undefined): number => {
  * for persisting user progress, and various Shadcn UI components.
  */
 export function AcademyPageContent() {
+  // State for managing the active category tab and the selected sort option
   const [activeTab, setActiveTab] = useState('All');
   const [sort, setSort] = useState('Title');
   const searchParams = useSearchParams();
+  // Hook to access user's academy progress data
   const { academyData } = useAcademyStorage();
 
-  // Fetch and sync courses using React Query
+  // Fetch and sync courses using React Query for efficient data management
   const {
     data: courses,
     isLoading,
@@ -189,15 +191,15 @@ export function AcademyPageContent() {
     // refetchOnWindowFocus: false,
   });
 
-  // Use courseList as a stable reference for memoization dependencies
-  // Memoize courseList to ensure a stable reference for memoization dependencies.
+  // Memoize the list of courses to ensure a stable reference for memoization dependencies.
   // Provides an empty array as default while loading or if data is null/undefined.
   const courseList: Course[] = useMemo(() => courses ?? [], [courses]);
 
   const lastVisitedCourseId = academyData?.lastVisitedCourse;
   const lastVisitedModuleId = academyData?.lastVisitedModule;
 
-  // Memoize category options based on fetched courses
+  // Memoize category options based on the fetched courses.
+  // This prevents re-calculating categories unless the course list changes.
   const categoryOptions = useMemo(() => {
     const categories = new Set<string>();
     courseList.forEach((course) => {
@@ -210,8 +212,9 @@ export function AcademyPageContent() {
     return ['All', ...Array.from(categories).sort()];
   }, [courseList]); // Re-calculate only when courseList reference changes
 
-  // Memoize the sort handler function
-  // It doesn't depend on component state or props, so it's stable
+  // Memoize the sort handler function using useCallback.
+  // This ensures the function reference is stable across renders,
+  // preventing unnecessary re-renders of child components that might receive it as a prop.
   const handleSortChange = useCallback(
     (event: React.ChangeEvent<HTMLSelectElement>) => {
       setSort(event.target.value);
@@ -219,11 +222,13 @@ export function AcademyPageContent() {
     [],
   );
 
-  // Memoize the filtered and sorted course list
+  // Memoize the filtered and sorted course list using useMemo.
+  // This ensures the filtering and sorting logic only runs when
+  // the course list, active tab, or sort option changes.
   const filteredAndSortedCourses = useMemo(() => {
     let currentCourses: Course[] = courseList;
 
-    // Apply category filter
+    // Apply category filter based on the active tab
     currentCourses = currentCourses.filter((course) => {
       if (activeTab === 'All') return true;
       // Ensure metadata exists before checking category
@@ -273,14 +278,16 @@ export function AcademyPageContent() {
     return currentCourses;
   }, [courseList, activeTab, sort]); // Depend on data, filter, and sort states
 
-  // Memoize the last visited course object
+  // Memoize the last visited course object using useMemo.
+  // This prevents re-searching the course list unless the last visited ID or the course list changes.
   const lastVisitedCourse: Course | undefined | null = useMemo(() => {
     // Only search if courseList is not empty and we have a last visited ID
     if (courseList.length === 0 || !lastVisitedCourseId) return null;
     return courseList.find((course) => course.id === lastVisitedCourseId);
   }, [lastVisitedCourseId, courseList]); // Depend on last visited ID and data
 
-  // Memoize the last visited module object
+  // Memoize the last visited module object using useMemo.
+  // This prevents re-searching the modules unless the last visited course or module ID changes.
   const lastVisitedModule: Module | undefined | null = useMemo(() => {
     // Only search if lastVisitedCourse is found, has modules, and we have a last visited module ID
     if (
@@ -335,11 +342,10 @@ export function AcademyPageContent() {
             {lastVisitedCourse.title || 'Untitled Course'}&quot; - &quot;
             {lastVisitedModule.title || 'Untitled Module'}&quot;
           </p>
-          {/* Use Link with passHref and legacyBehavior for custom children */}
+          {/* Use Link with passHref for custom children (legacyBehavior is deprecated in Next.js 13+) */}
           <Link
             href={`/academy/${lastVisitedCourse.id}?moduleId=${lastVisitedModule.id}`}
             passHref
-            legacyBehavior
           >
             {/* Button component acts as a container, asChild passes props to the child */}
             <Button asChild>
