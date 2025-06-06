@@ -77,7 +77,8 @@ const ProjectManagementPage = () => {
     }
 
     // Determine the container (column) the task was dragged from and to
-    const activeContainerId = active.data.current?.sortable.containerId || taskToMove.status;
+    const activeContainerId =
+      active.data.current?.sortable.containerId || taskToMove.status;
     const overContainerId = over.data.current?.sortable.containerId || overId;
 
     // Case 1: Dragged to a different column (status change)
@@ -95,7 +96,9 @@ const ProjectManagementPage = () => {
             task.id === updatedTask.id ? updatedTask : task,
           ),
         );
-        toast.success(`Task "${updatedTask.title}" status updated to "${overContainerId}".`);
+        toast.success(
+          `Task "${updatedTask.title}" status updated to "${overContainerId}".`,
+        );
       } catch (error) {
         console.error('Failed to update task status:', error);
         toast.error(`Failed to update task status. Please try again.`);
@@ -103,16 +106,24 @@ const ProjectManagementPage = () => {
       }
     } else {
       // Case 2: Dragged within the same column (reordering)
-      const currentTasksInColumn = tasks.filter(task => task.status === activeContainerId);
-      const oldIndex = currentTasksInColumn.findIndex(task => task.id === activeId);
-      const newIndex = currentTasksInColumn.findIndex(task => task.id === overId);
+      const currentTasksInColumn = tasks.filter(
+        (task) => task.status === activeContainerId,
+      );
+      const oldIndex = currentTasksInColumn.findIndex(
+        (task) => task.id === activeId,
+      );
+      const newIndex = currentTasksInColumn.findIndex(
+        (task) => task.id === overId,
+      );
 
       if (oldIndex !== -1 && newIndex !== -1) {
         const newOrder = arrayMove(currentTasksInColumn, oldIndex, newIndex);
 
         // Update the order of tasks in the state
         setTasks((prevTasks) => {
-          const tasksWithoutMoved = prevTasks.filter(task => task.status !== activeContainerId);
+          const tasksWithoutMoved = prevTasks.filter(
+            (task) => task.status !== activeContainerId,
+          );
           return [...tasksWithoutMoved, ...newOrder];
         });
 
@@ -120,14 +131,20 @@ const ProjectManagementPage = () => {
         try {
           // Update the order of each task in the reordered list
           const updatePromises = newOrder.map((task, index) => {
-            const updatedTask = { ...task, order: index, updateTimestamp: Date.now() };
+            const updatedTask = {
+              ...task,
+              order: index,
+              updateTimestamp: Date.now(),
+            };
             return updateTask(updatedTask);
           });
           await Promise.all(updatePromises);
           toast.success(`Task "${taskToMove.title}" reordered successfully.`);
         } catch (error) {
           console.error('Failed to persist task reordering:', error);
-          toast.error(`Failed to reorder task "${taskToMove.title}". Please try again.`);
+          toast.error(
+            `Failed to reorder task "${taskToMove.title}". Please try again.`,
+          );
           // TODO: Optionally, attempt to revert the state change if the DB update fails
         }
       }
@@ -136,9 +153,18 @@ const ProjectManagementPage = () => {
 
   // Filter tasks by status for each column
   // Memoize the filtered task lists for performance
-  const todoTasks = useMemo(() => tasks.filter((task) => task.status === 'to-do'), [tasks]);
-  const inProgressTasks = useMemo(() => tasks.filter((task) => task.status === 'in-progress'), [tasks]);
-  const completedTasks = useMemo(() => tasks.filter((task) => task.status === 'completed'), [tasks]);
+  const todoTasks = useMemo(
+    () => tasks.filter((task) => task.status === 'to-do'),
+    [tasks],
+  );
+  const inProgressTasks = useMemo(
+    () => tasks.filter((task) => task.status === 'in-progress'),
+    [tasks],
+  );
+  const completedTasks = useMemo(
+    () => tasks.filter((task) => task.status === 'completed'),
+    [tasks],
+  );
 
   return (
     <ErrorBoundary>
@@ -187,6 +213,7 @@ const ProjectManagementPage = () => {
                   tasks={todoTasks}
                   setTasks={setTasks} // Pass setTasks for potential future use within column
                   projects={projects}
+                  allTasks={tasks} // Pass all tasks for dependency/subtask lookup
                   onTaskUpdated={handleTaskUpdated}
                 />
 
@@ -197,6 +224,7 @@ const ProjectManagementPage = () => {
                   tasks={inProgressTasks}
                   setTasks={setTasks}
                   projects={projects}
+                  allTasks={tasks} // Pass all tasks for dependency/subtask lookup
                   onTaskUpdated={handleTaskUpdated}
                 />
 
@@ -207,6 +235,7 @@ const ProjectManagementPage = () => {
                   tasks={completedTasks}
                   setTasks={setTasks}
                   projects={projects}
+                  allTasks={tasks} // Pass all tasks for dependency/subtask lookup
                   onTaskUpdated={handleTaskUpdated}
                 />
               </div>
@@ -225,6 +254,7 @@ const ProjectManagementPage = () => {
                     <TaskForm
                       projects={projects} // Pass projects for assignment
                       onTaskUpdated={handleTaskUpdated} // Pass handler to update state after adding
+                      allTasks={tasks} // Pass all tasks for dependency/subtask lookup
                     />
                   </CardContent>
                 </Card>

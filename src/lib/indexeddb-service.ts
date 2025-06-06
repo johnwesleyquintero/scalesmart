@@ -33,12 +33,13 @@ export interface Task {
   updateTimestamp: number;
   dependencies?: string[]; // Array of task IDs that this task depends on
   subtasks?: string[]; // Array of task IDs that are subtasks of this task
-  comments: Comment[];
+  comments: TaskComment[]; // Use TaskComment
   priority?: 'low' | 'medium' | 'high'; // Add priority field
   order?: number; // Add order field for sorting within columns
 }
 
-export interface Comment {
+export interface TaskComment {
+  // Renamed from Comment to TaskComment
   id: string;
   text: string;
   author: string;

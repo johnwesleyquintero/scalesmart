@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import CommentList from './CommentList';
 import { updateTask } from '@/lib/indexeddb-service'; // Assuming correct path
-import { Task, Project, Comment } from '@/lib/indexeddb-service'; // Import Comment type
+import { Task, Project, TaskComment } from '@/lib/indexeddb-service'; // Import TaskComment type
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button'; // Assuming correct path
 import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react'; // Import Flag icon
@@ -12,8 +12,9 @@ interface TaskItemProps {
   projects: Project[];
   onEditClick: (task: Task) => void;
   onDeleteTask: (id: string) => void;
-  tasks: Task[]; // Kept for dependency/subtask title lookup
+  allTasks: Task[]; // All tasks for dependency/subtask lookup
   onTaskUpdated: (updatedTask: Task) => void; // New prop to signal task updates to parent
+  onViewTaskDetails: (task: Task) => void; // New prop to open task details modal
 }
 
 const TaskItem: React.FC<TaskItemProps> = React.memo(
@@ -22,8 +23,9 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     projects,
     onEditClick,
     onDeleteTask,
-    tasks,
+    allTasks, // Use allTasks for dependency/subtask lookup
     onTaskUpdated, // Use the new prop
+    onViewTaskDetails, // Use the new prop
   }: TaskItemProps) => {
     const projectsMap = useMemo(() => {
       const map = new Map<string, Project>();
@@ -47,10 +49,11 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     /**
      * Handles adding a new comment to the task.
      * This function is called by the CommentList component.
-     * @param {Comment} newComment - The new comment object to add.
+     * @param {TaskComment} newComment - The new comment object to add.
      */
     const handleAddComment = useCallback(
-      async (newComment: Comment) => {
+      async (newComment: TaskComment) => {
+        // Use TaskComment
         // Ensure comments is an array before spreading
         const currentComments = Array.isArray(task.comments)
           ? task.comments
@@ -126,30 +129,15 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             <Tag className="h-3 w-3 mr-1" />
             <span>
               <span className="font-medium text-primary">
-                Dependencies:
+                Dependencies:{' '}
                 {task.dependencies
                   .map((dependencyId: string) => {
-                    const dependency = tasks.find((t) => t.id === dependencyId);
-                    return dependency ? (
-                      <a
-                        key={dependencyId}
-                        href={`#task-${dependencyId}`} // Link to the task item (assuming IDs are used as fragment identifiers)
-                        className="underline hover:no-underline"
-                        aria-label={`View dependency task ${dependency.title}`}
-                      >
-                        {dependency.title}
-                      </a>
-                    ) : (
-                      'Unknown Task'
+                    const dependency = allTasks.find(
+                      (t) => t.id === dependencyId,
                     );
+                    return dependency ? dependency.title : 'Unknown Task';
                   })
-                  .reduce((prev: (React.ReactNode | string)[], curr, index) => {
-                    if (index > 0) {
-                      prev.push(', ');
-                    }
-                    prev.push(curr);
-                    return prev;
-                  }, [])}
+                  .join(', ')}
               </span>
             </span>
           </div>
@@ -159,30 +147,13 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             <Tag className="h-3 w-3 mr-1" />
             <span>
               <span className="font-medium text-primary">
-                Subtasks:
+                Subtasks:{' '}
                 {task.subtasks
                   .map((subtaskId: string) => {
-                    const subtask = tasks.find((t) => t.id === subtaskId);
-                    return subtask ? (
-                      <a
-                        key={subtaskId}
-                        href={`#task-${subtaskId}`} // Link to the task item
-                        className="underline hover:no-underline"
-                        aria-label={`View subtask ${subtask.title}`}
-                      >
-                        {subtask.title}
-                      </a>
-                    ) : (
-                      'Unknown Task'
-                    );
+                    const subtask = allTasks.find((t) => t.id === subtaskId);
+                    return subtask ? subtask.title : 'Unknown Task';
                   })
-                  .reduce((prev: (React.ReactNode | string)[], curr, index) => {
-                    if (index > 0) {
-                      prev.push(', ');
-                    }
-                    prev.push(curr);
-                    return prev;
-                  }, [])}
+                  .join(', ')}
               </span>
             </span>
           </div>

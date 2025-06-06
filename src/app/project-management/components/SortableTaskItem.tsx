@@ -10,8 +10,9 @@ interface SortableTaskItemProps {
   projects: Project[];
   onEditClick: (task: Task) => void;
   onDeleteTask: (id: string) => void;
-  tasks: Task[]; // All tasks for dependency/subtask lookup
+  allTasks: Task[]; // All tasks for dependency/subtask lookup
   onTaskUpdated: (updatedTask: Task) => void;
+  onViewTaskDetails: (task: Task) => void; // New prop to open task details modal
 }
 
 const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
@@ -19,8 +20,9 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   projects,
   onEditClick,
   onDeleteTask,
-  tasks,
+  allTasks, // Destructure allTasks
   onTaskUpdated,
+  onViewTaskDetails, // Destructure onViewTaskDetails
 }) => {
   const {
     attributes,
@@ -45,8 +47,9 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
         projects={projects}
         onEditClick={onEditClick}
         onDeleteTask={onDeleteTask}
-        tasks={tasks}
+        allTasks={allTasks} // Pass allTasks to TaskItem
         onTaskUpdated={onTaskUpdated}
+        onViewTaskDetails={onViewTaskDetails} // Pass onViewTaskDetails to TaskItem
       />
     </div>
   );

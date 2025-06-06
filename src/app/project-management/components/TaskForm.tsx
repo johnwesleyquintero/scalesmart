@@ -59,8 +59,9 @@ interface TaskFormProps {
    */
   projects: Project[];
   /**
-   
+   * @brief All tasks across all columns, used for resolving dependencies and subtasks.
    */
+  allTasks: Task[]; // New prop
 }
 
 /**
@@ -79,6 +80,7 @@ const TaskForm = ({
   onTaskUpdated,
   onCancel,
   projects,
+  allTasks, // Destructure allTasks
 }: TaskFormProps) => {
   const formSchema = z.object({
     title: z.string().min(1, {
@@ -220,24 +222,16 @@ const TaskForm = ({
       ));
   }, [projects]);
 
-  const [allTasks, setAllTasks] = useState<Task[]>([]);
-
-  useEffect(() => {
-    const fetchTasks = async () => {
-      // Fetch all tasks from IndexedDB
-      const tasks = await getAllTasks();
-      setAllTasks(tasks);
-    };
-
-    fetchTasks();
-  }, []);
-
+  // Use allTasks prop instead of fetching internally
   const taskOptions = useMemo(() => {
-    return allTasks.map((task: Task) => ({
-      label: task.title,
-      value: task.id,
-    }));
-  }, [allTasks]);
+    // Filter out the current task from dependencies/subtasks options to prevent self-referencing
+    return allTasks
+      .filter((task: Task) => task.id !== initialTask?.id)
+      .map((task: Task) => ({
+        label: task.title,
+        value: task.id,
+      }));
+  }, [allTasks, initialTask?.id]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">

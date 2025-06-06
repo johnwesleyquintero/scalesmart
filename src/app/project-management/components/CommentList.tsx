@@ -1,13 +1,13 @@
 import React, { useState, useCallback } from 'react';
-import { Task, Comment } from '@/lib/indexeddb-service'; // Import Comment type
+import { Task, TaskComment } from '@/lib/indexeddb-service'; // Import TaskComment type
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner'; // Import toast for user feedback
 
 interface CommentListProps {
   taskId: string;
-  comments: Comment[];
-  onAddComment: (comment: Comment) => Promise<void>; // Update return type to Promise<void>
+  comments: TaskComment[]; // Use TaskComment
+  onAddComment: (comment: TaskComment) => Promise<void>; // Use TaskComment
 }
 
 const CommentList: React.FC<CommentListProps> = ({
@@ -27,7 +27,8 @@ const CommentList: React.FC<CommentListProps> = ({
       return;
     }
 
-    const newComment: Comment = {
+    const newComment: TaskComment = {
+      // Use TaskComment
       id: Math.random().toString(36).substring(7), // Simple ID generation
       text: newCommentText,
       author: 'CurrentUser', // TODO: Replace with actual current user ID/name
