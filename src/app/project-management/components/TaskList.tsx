@@ -197,6 +197,7 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
                 projects={projects}
                 onEditClick={handleEditClick}
                 onDeleteTask={handleDeleteTask}
+                tasks={tasks} // Pass tasks prop
               />
             );
           })}

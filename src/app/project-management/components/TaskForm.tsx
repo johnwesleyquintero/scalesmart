@@ -25,6 +25,8 @@ import { logger } from '@/lib/logger';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
+import { MySelectComponent } from '@/components/MySelectComponent';
+import { getAllTasks } from '@/lib/indexeddb-service';
 
 /**
  * @constant NO_PROJECT_VALUE
@@ -87,6 +89,8 @@ const TaskForm = ({
     assignee: z.string().optional(),
     dueDate: z.date().optional(),
     projectId: z.string().optional(),
+    dependencies: z.array(z.string()).optional(), // Array of task IDs
+    subtasks: z.array(z.string()).optional(), // Array of task IDs
   });
 
   type FormValues = z.infer<typeof formSchema>;
@@ -120,6 +124,8 @@ const TaskForm = ({
         initialTask.dueDate ? new Date(initialTask.dueDate) : undefined,
       );
       setValue('projectId', initialTask.projectId || NO_PROJECT_VALUE);
+      setValue('dependencies', initialTask.dependencies || []);
+      setValue('subtasks', initialTask.subtasks || []);
     }
   }, [initialTask, setValue]);
 
@@ -136,6 +142,8 @@ const TaskForm = ({
         assignee: data.assignee?.trim() || '',
         dueDate: data.dueDate ? data.dueDate.getTime() : undefined,
         projectId: finalProjectId,
+        dependencies: data.dependencies,
+        subtasks: data.subtasks,
       };
 
       try {
@@ -214,6 +222,25 @@ const TaskForm = ({
         </SelectItem>
       ));
   }, [projects]);
+
+  const [allTasks, setAllTasks] = useState<Task[]>([]);
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      // Fetch all tasks from IndexedDB
+      const tasks = await getAllTasks();
+      setAllTasks(tasks);
+    };
+
+    fetchTasks();
+  }, []);
+
+  const taskOptions = useMemo(() => {
+    return allTasks.map((task: Task) => ({
+      label: task.title,
+      value: task.id,
+    }));
+  }, [allTasks]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -311,6 +338,22 @@ const TaskForm = ({
             {projectSelectItems}
           </SelectContent>
         </Select>
+      </div>
+      <div>
+        <Label htmlFor="dependencies">Dependencies (optional)</Label>
+        <MySelectComponent
+          options={taskOptions}
+          placeholder="Select dependencies"
+          onValueChange={(value) => setValue('dependencies', [value])}
+        />
+      </div>
+      <div>
+        <Label htmlFor="subtasks">Subtasks (optional)</Label>
+        <MySelectComponent
+          options={taskOptions}
+          placeholder="Select subtasks"
+          onValueChange={(value) => setValue('subtasks', [value])}
+        />
       </div>
       <div className="flex justify-end">
         {initialTask && onCancel && (

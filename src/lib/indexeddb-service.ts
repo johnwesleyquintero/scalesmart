@@ -31,6 +31,8 @@ export interface Task {
   projectId?: string;
   creationTimestamp: number;
   updateTimestamp: number;
+  dependencies?: string[]; // Array of task IDs that this task depends on
+  subtasks?: string[]; // Array of task IDs that are subtasks of this task
 }
 
 export interface Project {
@@ -81,7 +83,7 @@ class ChatDatabase extends Dexie {
     });
     this.version(5).stores({
       tasks:
-        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp',
+        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp, dependencies, subtasks',
     });
     this.version(6).stores({
       projects: 'id, name, description, creationTimestamp, updateTimestamp',
