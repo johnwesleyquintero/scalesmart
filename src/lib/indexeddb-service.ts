@@ -876,4 +876,8 @@ export async function removeCacheItem(key: string): Promise<void> {
   }
 }
 
-export { getCacheItem as getItem, setCacheItem as setItem, removeCacheItem as removeItem };
+export {
+  getCacheItem as getItem,
+  setCacheItem as setItem,
+  removeCacheItem as removeItem,
+};

@@ -135,7 +135,9 @@ const useAcademyStorage = () => {
             }
 
             const newCourseProgress =
-              moduleCount > 0 ? Math.round(totalModuleProgress / moduleCount) : 0;
+              moduleCount > 0
+                ? Math.round(totalModuleProgress / moduleCount)
+                : 0;
 
             return { ...course, progress: newCourseProgress };
           }

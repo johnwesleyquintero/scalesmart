@@ -306,8 +306,12 @@ const Quiz: React.FC<QuizProps> = ({
   const [attempts, setAttempts] = useState(0);
   const [certificateAwarded, setCertificateAwarded] = useState<boolean>(false);
   const [showResults, setShowResults] = useState(false);
-  const [completionDate, setCompletionDate] = useState<string | undefined>(undefined);
-  const [certificateUniqueId, setCertificateUniqueId] = useState<string | undefined>(undefined);
+  const [completionDate, setCompletionDate] = useState<string | undefined>(
+    undefined,
+  );
+  const [certificateUniqueId, setCertificateUniqueId] = useState<
+    string | undefined
+  >(undefined);
 
   const userId = userProfile?.id;
   const courseId = activeCourse?.id;
@@ -436,7 +440,7 @@ const Quiz: React.FC<QuizProps> = ({
   }, []);
 
   return (
-    <QuizLayout title="Quiz">
+    <QuizLayout title={'Quiz'}>
       {showResults && quizScore !== null ? (
         <QuizCompletedView
           score={quizScore}

@@ -26,11 +26,13 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
   // Use QueryKey for the parameter and assert type internally
   const fetchArticleContent = useCallback(
     async ({ queryKey }: QueryFunctionContext<QueryKey>) => {
-      // Assert the type of queryKey to be a string tuple
       const [_key, slug] = queryKey as [string, string];
       const response = await fetch(`/api/academy/academy-article/${slug}`);
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorBody = await response.text().catch(() => 'No response body');
+        throw new Error(
+          `Failed to fetch article content for slug "${slug}". Status: ${response.status}. Details: ${errorBody}`,
+        );
       }
       const data: ArticleData = await response.json();
       return data;

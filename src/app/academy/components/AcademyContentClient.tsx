@@ -59,19 +59,21 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
 }) => {
   const { activeCourse } = useAcademy();
 
-  // Effect to mark article/video modules as complete when viewed
+  // Effect to mark article/video/case study/simulation modules as complete when viewed
   useEffect(() => {
-    if (
-      activeModule &&
-      (activeModule.type === ModuleType.ARTICLE ||
-        activeModule.type === ModuleType.VIDEO ||
-        activeModule.type === ModuleType.CASE_STUDY ||
-        activeModule.type === ModuleType.SIMULATION)
-    ) {
-      // For simplicity, mark as complete immediately upon viewing.
-      // In a real app, video completion might be based on playback percentage,
-      // and article completion on scroll depth or time spent.
-      onModuleComplete(activeModule.id);
+    if (activeModule) {
+      const typesToMarkComplete = [
+        ModuleType.ARTICLE,
+        ModuleType.VIDEO,
+        ModuleType.CASE_STUDY,
+        ModuleType.SIMULATION,
+      ];
+      if (typesToMarkComplete.includes(activeModule.type)) {
+        // For simplicity, mark as complete immediately upon viewing.
+        // In a real application, video completion might be based on playback percentage,
+        // and article completion on scroll depth or time spent.
+        onModuleComplete(activeModule.id);
+      }
     }
   }, [activeModule, onModuleComplete]);
 
@@ -205,40 +207,41 @@ function AcademyContentClient({
       setActiveModule(module);
       // When a module is selected, mark it as visited (e.g., 1% progress)
       // Actual completion (100%) will be handled by onModuleComplete/onQuizComplete
-      if (activeCourse?.id) {
-        // Ensure activeCourse.id is available
-        updateModuleProgress(activeCourse.id, module.id, 1);
+      if (!activeCourse?.id) {
+        console.warn('handleSelectModule: No active course ID found.');
+        return;
       }
+      updateModuleProgress(activeCourse.id, module.id, 1);
     },
-    [setActiveModule, updateModuleProgress, activeCourse?.id], // Add activeCourse.id to dependencies
+    [setActiveModule, updateModuleProgress, activeCourse?.id],
   );
 
   const handleModuleCompletion = useCallback(
     (moduleId: string) => {
-      if (activeCourse?.id) {
-        // Ensure activeCourse.id is available
-        updateModuleProgress(activeCourse.id, moduleId, 100);
+      if (!activeCourse?.id) {
+        console.warn('handleModuleCompletion: No active course ID found.');
+        return;
       }
+      updateModuleProgress(activeCourse.id, moduleId, 100);
     },
-    [updateModuleProgress, activeCourse?.id], // Add activeCourse.id to dependencies
+    [updateModuleProgress, activeCourse?.id],
   );
 
   const handleQuizCompletion = useCallback(
     (moduleId: string, result: QuizResult) => {
-      if (activeCourse?.id) {
-        // Ensure activeCourse.id is available
-        updateQuizResult(activeCourse.id, moduleId, result); // Pass courseId
-        // If quiz is passed, mark module as 100% complete
-        if (result.pass) {
-          updateModuleProgress(activeCourse.id, moduleId, 100);
-        } else {
-          // Optionally, set a lower progress or keep current if quiz failed
-          // For now, if quiz fails, module is not 100% complete
-          updateModuleProgress(activeCourse.id, moduleId, 50); // Example: 50% if attempted but not passed
-        }
+      if (!activeCourse?.id) {
+        console.warn('handleQuizCompletion: No active course ID found.');
+        return;
+      }
+      updateQuizResult(activeCourse.id, moduleId, result);
+      if (result.pass) {
+        updateModuleProgress(activeCourse.id, moduleId, 100);
+      } else {
+        // If quiz fails, set progress to 50% (attempted but not passed)
+        updateModuleProgress(activeCourse.id, moduleId, 50);
       }
     },
-    [updateModuleProgress, updateQuizResult, activeCourse?.id], // Add activeCourse.id to dependencies
+    [updateModuleProgress, updateQuizResult, activeCourse?.id],
   );
 
   const handleBackToCourses = () => {

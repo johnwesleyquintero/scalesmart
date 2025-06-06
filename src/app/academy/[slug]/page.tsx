@@ -89,12 +89,17 @@ export async function generateMetadata({
         images: [article.image || DEFAULT_IMAGE_URL],
       },
     };
-  } catch (error) {
-    console.error('Error generating academy article metadata:', error);
-    // TODO: For production, consider more specific error logging (e.g., to a dedicated logging service)
-    // and potentially a more user-friendly error page or message.
-    const ERROR_DESCRIPTION =
-      'An error occurred while loading this academy article.';
+  } catch (error: unknown) {
+    // Use a type guard for better error handling
+    const errorMessage =
+      error instanceof Error ? error.message : 'An unknown error occurred.';
+    console.error(
+      `Error generating academy article metadata for slug "${params.slug}":`,
+      errorMessage,
+      error,
+    );
+
+    const ERROR_DESCRIPTION = `An error occurred while loading this academy article: ${errorMessage}`;
     return {
       title: 'Error' + DEFAULT_TITLE_SUFFIX,
       description: ERROR_DESCRIPTION,

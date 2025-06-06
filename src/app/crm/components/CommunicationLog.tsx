@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { CommunicationLog } from '../types';
 import { toast } from 'sonner';
+
+const COMMUNICATION_TYPES = ['Call', 'Email', 'Meeting', 'Other'] as const;
+type CommunicationType = (typeof COMMUNICATION_TYPES)[number];
 
 interface CommunicationLogProps {
   logs: CommunicationLog[];
@@ -21,9 +24,7 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
   onUpdate,
   onDelete,
 }) => {
-  const [newLogType, setNewLogType] = useState<
-    'Call' | 'Email' | 'Meeting' | 'Other'
-  >('Call');
+  const [newLogType, setNewLogType] = useState<CommunicationType>('Call');
   const [newLogSubject, setNewLogSubject] = useState('');
   const [newLogNotes, setNewLogNotes] = useState('');
   const [editingLog, setEditingLog] = useState<CommunicationLog | null>(null);
@@ -61,7 +62,7 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
 
   const handleEdit = (log: CommunicationLog) => {
     setEditingLog(log);
-    setNewLogType(log.type);
+    setNewLogType(log.type as CommunicationType);
     setNewLogSubject(log.subject || '');
     setNewLogNotes(log.notes);
   };
@@ -73,7 +74,9 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
     setNewLogNotes('');
   };
 
-  const sortedLogs = [...logs].sort((a, b) => b.date - a.date); // Sort by date descending
+  const sortedLogs = useMemo(() => {
+    return [...logs].sort((a, b) => b.date - a.date);
+  }, [logs]);
 
   return (
     <Card className="mb-4">
@@ -84,17 +87,14 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
         <div className="mb-4 space-y-3">
           <select
             value={newLogType}
-            onChange={(e) =>
-              setNewLogType(
-                e.target.value as 'Call' | 'Email' | 'Meeting' | 'Other',
-              )
-            }
+            onChange={(e) => setNewLogType(e.target.value as CommunicationType)}
             className="w-full p-2 border rounded-md bg-background text-foreground"
           >
-            <option value="Call">Call</option>
-            <option value="Email">Email</option>
-            <option value="Meeting">Meeting</option>
-            <option value="Other">Other</option>
+            {COMMUNICATION_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
           </select>
           <Input
             placeholder="Subject (Optional)"

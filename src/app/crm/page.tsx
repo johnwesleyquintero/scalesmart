@@ -1,12 +1,13 @@
 'use client';
 
 import { Toaster } from 'sonner';
-import { useMemo } from 'react';
-import type { Customer } from './types';
+import { useMemo, useState, useCallback } from 'react';
+import type { Customer, Contact } from './types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { useCRMData } from '@/hooks/use-crm-data';
-import { CustomerManagementTab } from './components/CustomerManagementTab';
+import { AddCustomerTab } from './components/AddCustomerTab';
+import { CustomerListTab } from './components/CustomerListTab';
 import { CategoryManagementTab } from './components/CategoryManagementTab';
 import { CommunicationLogsTab } from './components/CommunicationLogsTab';
 
@@ -25,6 +26,8 @@ export default function CRMComponent() {
     handleDeleteCommunicationLog,
   } = useCRMData();
 
+  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+
   const customerCounts = useMemo(() => {
     const counts = new Map<string | null, number>();
     customers.forEach((customer) => {
@@ -33,6 +36,18 @@ export default function CRMComponent() {
     });
     return counts;
   }, [customers]);
+
+  const handleEditCustomer = useCallback((customer: Customer) => {
+    setEditingCustomer(customer);
+  }, []); // No dependencies as it only sets state
+
+  const handleSaveCustomerAndClearEdit = useCallback(
+    async (formData: Omit<Contact, 'id'>, customerToEdit: Customer | null) => {
+      await handleSaveCustomer(formData, customerToEdit);
+      setEditingCustomer(null); // Clear editing state after save
+    },
+    [handleSaveCustomer], // Dependency on handleSaveCustomer from useCRMData
+  );
 
   return (
     <>
@@ -75,28 +90,22 @@ export default function CRMComponent() {
           </TabsList>
 
           <TabsContent value="add-customer" className="space-y-4 mt-4">
-            <CustomerManagementTab
-              customers={customers}
-              hasAttemptedInitialLoad={hasAttemptedInitialLoad}
+            <AddCustomerTab
               categories={categories}
-              handleSaveCustomer={handleSaveCustomer}
-              handleDeleteCustomer={handleDeleteCustomer}
-              handleCreateCommunicationLog={handleCreateCommunicationLog}
-              handleUpdateCommunicationLog={handleUpdateCommunicationLog}
-              handleDeleteCommunicationLog={handleDeleteCommunicationLog}
+              handleSaveCustomer={handleSaveCustomerAndClearEdit}
             />
           </TabsContent>
 
           <TabsContent value="customer-list" className="space-y-4 mt-4">
-            <CustomerManagementTab
+            <CustomerListTab
               customers={customers}
               hasAttemptedInitialLoad={hasAttemptedInitialLoad}
               categories={categories}
-              handleSaveCustomer={handleSaveCustomer}
               handleDeleteCustomer={handleDeleteCustomer}
               handleCreateCommunicationLog={handleCreateCommunicationLog}
               handleUpdateCommunicationLog={handleUpdateCommunicationLog}
               handleDeleteCommunicationLog={handleDeleteCommunicationLog}
+              onEditCustomer={handleEditCustomer}
             />
           </TabsContent>
 

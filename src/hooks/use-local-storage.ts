@@ -29,7 +29,10 @@ export function useLocalStorage<T>(
       const storedData = localStorage.getItem(key); // Use localStorage for synchronous read
       return storedData ? JSON.parse(storedData) : initialValue;
     } catch (error) {
-      console.error(`Error reading initial value from localStorage for key "${key}":`, error);
+      console.error(
+        `Error reading initial value from localStorage for key "${key}":`,
+        error,
+      );
       return initialValue;
     }
   });
@@ -65,25 +68,30 @@ export function useLocalStorage<T>(
   }, [key, initialValue]); // Dependencies: key and initialValue
 
   // Function to store value in IndexedDB
-  const setValue: (value: T | ((prevValue: T | undefined) => T)) => void = useCallback(
-    (value: T | ((prevValue: T | undefined) => T)) => {
-      setStoredValue((prevValue) => {
-        const valueToStore = value instanceof Function ? value(prevValue) : value;
-        if (typeof window !== 'undefined') {
-          try {
-            // Persist to IndexedDB
-            setItem(key, valueToStore);
-            // Also update localStorage for synchronous reads on next component mount
-            localStorage.setItem(key, JSON.stringify(valueToStore));
-          } catch (error) {
-            console.error(`Error saving to IndexedDB for key "${key}":`, error);
+  const setValue: (value: T | ((prevValue: T | undefined) => T)) => void =
+    useCallback(
+      (value: T | ((prevValue: T | undefined) => T)) => {
+        setStoredValue((prevValue) => {
+          const valueToStore =
+            value instanceof Function ? value(prevValue) : value;
+          if (typeof window !== 'undefined') {
+            try {
+              // Persist to IndexedDB
+              setItem(key, valueToStore);
+              // Also update localStorage for synchronous reads on next component mount
+              localStorage.setItem(key, JSON.stringify(valueToStore));
+            } catch (error) {
+              console.error(
+                `Error saving to IndexedDB for key "${key}":`,
+                error,
+              );
+            }
           }
-        }
-        return valueToStore;
-      });
-    },
-    [key], // Dependency: key
-  );
+          return valueToStore;
+        });
+      },
+      [key], // Dependency: key
+    );
 
   // Function to remove value from IndexedDB
   const removeValue: () => void = useCallback(() => {

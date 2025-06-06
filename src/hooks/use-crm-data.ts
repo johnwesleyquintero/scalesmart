@@ -59,8 +59,8 @@ export const useCRMData = () => {
         };
         try {
           await updateContact(updatedCustomer);
-          setCustomers(
-            customers.map((customer: Customer) =>
+          setCustomers((prevCustomers) =>
+            prevCustomers.map((customer: Customer) =>
               customer.id === editingCustomer.id
                 ? {
                     ...customer,
@@ -93,7 +93,10 @@ export const useCRMData = () => {
             category: newCustomer.category || '',
             communicationLogs: [],
           } as Customer;
-          setCustomers([...customers, completeNewCustomer]);
+          setCustomers((prevCustomers) => [
+            ...prevCustomers,
+            completeNewCustomer,
+          ]);
           toast.success('Customer added successfully!');
         } catch (error) {
           console.error('Error adding customer to IndexedDB:', error);
@@ -101,21 +104,19 @@ export const useCRMData = () => {
         }
       }
     },
-    [customers],
+    [], // No dependencies needed if using functional updates for setCustomers
   );
 
   const handleDeleteCustomer = useCallback(async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this customer?')) {
-      try {
-        await deleteContact(id);
-        setCustomers((prevCustomers) =>
-          prevCustomers.filter((customer: Customer) => customer.id !== id),
-        );
-        toast.info('Customer deleted.');
-      } catch (error) {
-        console.error('Error deleting customer from IndexedDB:', error);
-        toast.error('Failed to delete customer. See console for details.');
-      }
+    try {
+      await deleteContact(id);
+      setCustomers((prevCustomers) =>
+        prevCustomers.filter((customer: Customer) => customer.id !== id),
+      );
+      toast.info('Customer deleted.');
+    } catch (error) {
+      console.error('Error deleting customer from IndexedDB:', error);
+      toast.error('Failed to delete customer. See console for details.');
     }
   }, []);
 
@@ -138,56 +139,54 @@ export const useCRMData = () => {
 
   const handleCategorySuccessfullyDeleted = useCallback(
     async (deletedCategoryName: string) => {
-      const customersToUpdate = customers.filter(
-        (customer) => customer.category === deletedCategoryName,
-      );
+      setCustomers((prevCustomers) => {
+        const customersToUpdate = prevCustomers.filter(
+          (customer) => customer.category === deletedCategoryName,
+        );
 
-      const updatePromises = customersToUpdate.map(async (customer) => {
-        const updatedCustomer = { ...customer, category: '' };
-        await updateContact(updatedCustomer);
-        return updatedCustomer;
+        // Perform async updates in the background
+        customersToUpdate.forEach(async (customer) => {
+          const updatedCustomer = { ...customer, category: '' };
+          await updateContact(updatedCustomer);
+        });
+
+        toast.info(
+          `Customers previously in "${deletedCategoryName}" are now uncategorized.`,
+        );
+        return prevCustomers.map((customer) =>
+          customer.category === deletedCategoryName
+            ? { ...customer, category: '' }
+            : customer,
+        );
       });
-
-      const updatedCustomers = await Promise.all(updatePromises);
-
-      setCustomers((prevCustomers) =>
-        prevCustomers.map(
-          (customer) =>
-            updatedCustomers.find((uc) => uc.id === customer.id) || customer,
-        ),
-      );
-      toast.info(
-        `Customers previously in "${deletedCategoryName}" are now uncategorized.`,
-      );
     },
-    [customers],
+    [], // No dependencies needed if using functional updates for setCustomers
   );
 
   const handleCategoryRenamed = useCallback(
     async (oldName: string, newName: string) => {
-      const customersToUpdate = customers.filter(
-        (customer) => customer.category === oldName,
-      );
+      setCustomers((prevCustomers) => {
+        const customersToUpdate = prevCustomers.filter(
+          (customer) => customer.category === oldName,
+        );
 
-      const updatePromises = customersToUpdate.map(async (customer) => {
-        const updatedCustomer = { ...customer, category: newName };
-        await updateContact(updatedCustomer);
-        return updatedCustomer;
+        // Perform async updates in the background
+        customersToUpdate.forEach(async (customer) => {
+          const updatedCustomer = { ...customer, category: newName };
+          await updateContact(updatedCustomer);
+        });
+
+        toast.info(
+          `Customers previously in "${oldName}" are now in "${newName}".`,
+        );
+        return prevCustomers.map((customer) =>
+          customer.category === oldName
+            ? { ...customer, category: newName }
+            : customer,
+        );
       });
-
-      const updatedCustomers = await Promise.all(updatePromises);
-
-      setCustomers((prevCustomers) =>
-        prevCustomers.map(
-          (customer) =>
-            updatedCustomers.find((uc) => uc.id === customer.id) || customer,
-        ),
-      );
-      toast.info(
-        `Customers previously in "${oldName}" are now in "${newName}".`,
-      );
     },
-    [customers],
+    [], // No dependencies needed if using functional updates for setCustomers
   );
 
   const handleCreateCommunicationLog = useCallback(

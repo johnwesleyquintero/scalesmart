@@ -8,13 +8,12 @@ import { Download, Loader2, Trash2 } from 'lucide-react';
 import ReactPaginate from 'react-paginate';
 import { toast } from 'sonner';
 import useDebounce from '@/hooks/use-debounce';
-import { CustomerForm } from './CustomerForm';
 import { CustomerListItem } from './CustomerListItem';
-import type { Contact, Customer, CommunicationLog, Category } from '../types'; // Import Category
+import type { Contact, Customer, CommunicationLog, Category } from '../types';
 import {
   filterCustomers,
   generateCustomerCSVData,
-} from '../utils/customerUtils'; // Import from utils
+} from '../utils/customerUtils';
 
 interface CustomerListContentProps {
   customers: Customer[];
@@ -89,14 +88,10 @@ const CustomerListContent: React.FC<CustomerListContentProps> = ({
   return <p className="text-muted-foreground">{emptyStateContent}</p>;
 };
 
-interface CustomerManagementTabProps {
+interface CustomerListTabProps {
   customers: Customer[];
   hasAttemptedInitialLoad: boolean;
   categories: Category[];
-  handleSaveCustomer: (
-    formData: Omit<Contact, 'id'>,
-    editingCustomer: Customer | null,
-  ) => Promise<void>;
   handleDeleteCustomer: (id: string) => Promise<void>;
   handleCreateCommunicationLog: (
     log: Omit<CommunicationLog, 'id'>,
@@ -106,21 +101,21 @@ interface CustomerManagementTabProps {
     logId: string,
     customerId: string,
   ) => Promise<void>;
+  onEditCustomer: (customer: Customer) => void; // New prop to pass customer to parent for editing
 }
 
-export const CustomerManagementTab: React.FC<CustomerManagementTabProps> = ({
+export const CustomerListTab: React.FC<CustomerListTabProps> = ({
   customers,
   hasAttemptedInitialLoad,
   categories,
-  handleSaveCustomer,
   handleDeleteCustomer,
   handleCreateCommunicationLog,
   handleUpdateCommunicationLog,
   handleDeleteCommunicationLog,
+  onEditCustomer,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(5);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -130,25 +125,8 @@ export const CustomerManagementTab: React.FC<CustomerManagementTabProps> = ({
     setCurrentPage(selectedObject.selected);
   };
 
-  const handleCancelEdit = () => {
-    setEditingCustomer(null);
-  };
-
-  const handleSave = async (formData: Omit<Contact, 'id'>) => {
-    await handleSaveCustomer(formData, editingCustomer);
-    setEditingCustomer(null);
-  };
-
-  const handleEdit = (customer: Customer) => {
-    setEditingCustomer({ ...customer });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handleDelete = async (id: string) => {
     await handleDeleteCustomer(id);
-    if (editingCustomer?.id === id) {
-      setEditingCustomer(null);
-    }
   };
 
   const handleCopyToClipboard = async (text: string) => {
@@ -213,11 +191,16 @@ export const CustomerManagementTab: React.FC<CustomerManagementTabProps> = ({
       return;
     }
 
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedCustomerIds.length} selected customers?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     for (const id of selectedCustomerIds) {
       await handleDeleteCustomer(id);
-      if (editingCustomer?.id === id) {
-        setEditingCustomer(null);
-      }
     }
 
     setSelectedCustomerIds([]);
@@ -225,112 +208,77 @@ export const CustomerManagementTab: React.FC<CustomerManagementTabProps> = ({
   };
 
   return (
-    <>
-      <div className="flex flex-col gap-6 lg:flex-row">
-        <div className="flex flex-col gap-6 flex-1">
-          <Card className="flex-1">
-            <CardHeader>
-              <CardTitle>
-                {editingCustomer ? 'Edit Customer' : 'Add New Customer'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CustomerForm
-                key={editingCustomer ? editingCustomer.id : 'add-customer-form'}
-                initialData={
-                  editingCustomer
-                    ? {
-                        name: editingCustomer.name,
-                        email: editingCustomer.email,
-                        phone: editingCustomer.phone,
-                        company: editingCustomer.company,
-                        notes: editingCustomer.notes,
-                        category: editingCustomer.category,
-                      }
-                    : null
-                }
-                onSubmitSuccessAction={handleSave}
-                onCancel={editingCustomer ? handleCancelEdit : undefined}
-                isEditing={!!editingCustomer}
-                categories={categories}
-              />
-            </CardContent>
-          </Card>
+    <Card className="flex-1">
+      <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <CardTitle className="whitespace-nowrap">Customer List</CardTitle>
+        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto md:ml-auto">
+          <Input
+            type="search"
+            placeholder="Search customers..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full sm:w-auto md:min-w-[250px] lg:min-w-[300px]"
+          />
+          <select
+            value={selectedCategory || ''}
+            onChange={(e) => setSelectedCategory(e.target.value || null)}
+            className="w-full sm:w-auto p-2 border rounded-md bg-background text-foreground"
+          >
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.name}>
+                {cat.name}
+              </option>
+            ))}
+            <option value="Uncategorized">Uncategorized</option>
+          </select>
+          <Button
+            variant="outline"
+            onClick={exportTasksToCSV}
+            title="Export customers to CSV"
+            className="w-full sm:w-auto"
+          >
+            <Download className="mr-2 h-4 w-4" /> Export CSV
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleBulkDelete}
+            disabled={selectedCustomerIds.length === 0}
+            title="Delete selected customers"
+            className="w-full sm:w-auto"
+          >
+            <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+          </Button>
         </div>
-      </div>
-
-      <Card className="flex-1">
-        <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <CardTitle className="whitespace-nowrap">Customer List</CardTitle>
-          <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto md:ml-auto">
-            <Input
-              type="search"
-              placeholder="Search customers..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-auto md:min-w-[250px] lg:min-w-[300px]"
-            />
-            <select
-              value={selectedCategory || ''}
-              onChange={(e) => setSelectedCategory(e.target.value || null)}
-              className="w-full sm:w-auto p-2 border rounded-md bg-background text-foreground"
-            >
-              <option value="">All Categories</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.name}>
-                  {cat.name}
-                </option>
-              ))}
-              <option value="Uncategorized">Uncategorized</option>
-            </select>
-            <Button
-              variant="outline"
-              onClick={exportTasksToCSV}
-              title="Export customers to CSV"
-              className="w-full sm:w-auto"
-            >
-              <Download className="mr-2 h-4 w-4" /> Export CSV
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleBulkDelete}
-              disabled={selectedCustomerIds.length === 0}
-              title="Delete selected customers"
-              className="w-full sm:w-auto"
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <CustomerListContent
-            customers={filteredCustomers}
-            searchQuery={searchQuery}
-            hasAttemptedInitialLoad={hasAttemptedInitialLoad}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-            onCopyNotes={handleCopyToClipboard}
-            itemsPerPage={itemsPerPage}
-            currentPage={currentPage}
-            onCommunicationLogSave={handleCreateCommunicationLog}
-            onCommunicationLogUpdate={handleUpdateCommunicationLog}
-            onCommunicationLogDelete={handleDeleteCommunicationLog}
-            selectedCustomerIds={selectedCustomerIds}
-            onSelect={handleSelectCustomer}
-          />
-          <ReactPaginate
-            previousLabel={'Previous'}
-            nextLabel={'Next'}
-            pageCount={pageCount}
-            onPageChange={handlePageClick}
-            containerClassName="pagination hubspot-pagination"
-            previousLinkClassName="hubspot-pagination__link"
-            nextLinkClassName="hubspot-pagination__link"
-            disabledClassName="hubspot-pagination__link--disabled"
-            activeClassName="hubspot-pagination__link--active"
-          />
-        </CardContent>
-      </Card>
-    </>
+      </CardHeader>
+      <CardContent>
+        <CustomerListContent
+          customers={filteredCustomers}
+          searchQuery={searchQuery}
+          hasAttemptedInitialLoad={hasAttemptedInitialLoad}
+          onEdit={onEditCustomer} // Pass onEditCustomer to CustomerListContent
+          onDelete={handleDelete}
+          onCopyNotes={handleCopyToClipboard}
+          itemsPerPage={itemsPerPage}
+          currentPage={currentPage}
+          onCommunicationLogSave={handleCreateCommunicationLog}
+          onCommunicationLogUpdate={handleUpdateCommunicationLog}
+          onCommunicationLogDelete={handleDeleteCommunicationLog}
+          selectedCustomerIds={selectedCustomerIds}
+          onSelect={handleSelectCustomer}
+        />
+        <ReactPaginate
+          previousLabel={'Previous'}
+          nextLabel={'Next'}
+          pageCount={pageCount}
+          onPageChange={handlePageClick}
+          containerClassName="pagination hubspot-pagination"
+          previousLinkClassName="hubspot-pagination__link"
+          nextLinkClassName="hubspot-pagination__link"
+          disabledClassName="hubspot-pagination__link--disabled"
+          activeClassName="hubspot-pagination__link--active"
+        />
+      </CardContent>
+    </Card>
   );
 };

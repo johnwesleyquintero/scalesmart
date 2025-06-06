@@ -15,7 +15,9 @@ export function cn(...inputs: ClassValue[]) {
  * @param durationString - The duration string to parse.
  * @returns The duration in minutes, or 0 if parsing fails or input is invalid.
  */
-export const parseDuration = (durationString: string | null | undefined): number => {
+export const parseDuration = (
+  durationString: string | null | undefined,
+): number => {
   if (!durationString) return 0;
   const parts = durationString.trim().toLowerCase().split(' ');
   let totalMinutes = 0;

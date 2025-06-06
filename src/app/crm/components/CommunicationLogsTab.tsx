@@ -22,18 +22,39 @@ interface CommunicationLogsTabProps {
   customers: Customer[];
 }
 
+const COMMUNICATION_TYPES_FILTER = [
+  { value: 'All', label: 'All Types' },
+  { value: 'Call', label: 'Call' },
+  { value: 'Email', label: 'Email' },
+  { value: 'Meeting', label: 'Meeting' },
+  { value: 'Other', label: 'Other' },
+] as const;
+
+const SORT_BY_OPTIONS = [
+  { value: 'date', label: 'Date' },
+  { value: 'type', label: 'Type' },
+  { value: 'customerName', label: 'Customer Name' },
+] as const;
+
+const SORT_ORDER_OPTIONS = [
+  { value: 'desc', label: 'Descending' },
+  { value: 'asc', label: 'Ascending' },
+] as const;
+
+type CommunicationTypeFilter =
+  (typeof COMMUNICATION_TYPES_FILTER)[number]['value'];
+type SortByOption = (typeof SORT_BY_OPTIONS)[number]['value'];
+type SortOrderOption = (typeof SORT_ORDER_OPTIONS)[number]['value'];
+
 export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
   customers,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  const [selectedType, setSelectedType] = useState<
-    'All' | 'Call' | 'Email' | 'Meeting' | 'Other'
-  >('All');
-  const [sortBy, setSortBy] = useState<'date' | 'type' | 'customerName'>(
-    'date',
-  );
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [selectedType, setSelectedType] =
+    useState<CommunicationTypeFilter>('All');
+  const [sortBy, setSortBy] = useState<SortByOption>('date');
+  const [sortOrder, setSortOrder] = useState<SortOrderOption>('desc');
 
   const allLogs: CommunicationLogWithCustomerName[] = useMemo(() => {
     return customers.flatMap((customer) =>
@@ -100,66 +121,61 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
           />
           <Select
             value={selectedType}
-            onValueChange={(
-              value: 'All' | 'Call' | 'Email' | 'Meeting' | 'Other',
-            ) => setSelectedType(value)}
+            onValueChange={(value: CommunicationTypeFilter) =>
+              setSelectedType(value)
+            }
           >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Filter by Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All" label="All Types">
-                All Types
-              </SelectItem>
-              <SelectItem value="Call" label="Call">
-                Call
-              </SelectItem>
-              <SelectItem value="Email" label="Email">
-                Email
-              </SelectItem>
-              <SelectItem value="Meeting" label="Meeting">
-                Meeting
-              </SelectItem>
-              <SelectItem value="Other" label="Other">
-                Other
-              </SelectItem>
+              {COMMUNICATION_TYPES_FILTER.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  label={option.label}
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select
             value={sortBy}
-            onValueChange={(value: 'date' | 'type' | 'customerName') =>
-              setSortBy(value)
-            }
+            onValueChange={(value: SortByOption) => setSortBy(value)}
           >
             <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="Sort By" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="date" label="Date">
-                Date
-              </SelectItem>
-              <SelectItem value="type" label="Type">
-                Type
-              </SelectItem>
-              <SelectItem value="customerName" label="Customer Name">
-                Customer Name
-              </SelectItem>
+              {SORT_BY_OPTIONS.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  label={option.label}
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select
             value={sortOrder}
-            onValueChange={(value: 'asc' | 'desc') => setSortOrder(value)}
+            onValueChange={(value: SortOrderOption) => setSortOrder(value)}
           >
             <SelectTrigger className="w-full sm:w-[150px]">
               <SelectValue placeholder="Sort Order" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="desc" label="Descending">
-                Descending
-              </SelectItem>
-              <SelectItem value="asc" label="Ascending">
-                Ascending
-              </SelectItem>
+              {SORT_ORDER_OPTIONS.map((option) => (
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
+                  label={option.label}
+                >
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
