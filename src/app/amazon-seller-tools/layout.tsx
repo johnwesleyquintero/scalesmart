@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+// React is implicitly available for React.ReactNode in Next.js environments
 
 export const metadata: Metadata = {
   alternates: {
@@ -6,10 +7,13 @@ export const metadata: Metadata = {
   },
 };
 
+// Use an explicit interface for props for better readability and reusability
+interface AmazonSellerToolsLayoutProps {
+  children: React.ReactNode;
+}
+
 export default function AmazonSellerToolsLayout({
   children,
-}: {
-  children: React.ReactNode;
-}) {
+}: AmazonSellerToolsLayoutProps) {
   return <>{children}</>;
 }

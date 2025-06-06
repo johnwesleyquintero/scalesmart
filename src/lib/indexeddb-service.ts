@@ -164,7 +164,10 @@ export const initializeDB = async (): Promise<void> => {
       console.log(DB_ALREADY_OPEN);
     }
   } catch (error) {
-    console.error(`${ERROR_MESSAGE_PREFIX}: Failed to initialize ChatAppDatabase`, error);
+    console.error(
+      `${ERROR_MESSAGE_PREFIX}: Failed to initialize ChatAppDatabase`,
+      error,
+    );
     throw error;
   }
 };
@@ -192,7 +195,9 @@ function logError(error: unknown, message: string, component: string) {
 
 export async function getCacheItem<T>(key: string): Promise<T | undefined> {
   try {
-    return (await db.cache.get(key).then((item) => item?.value)) as T | undefined;
+    return (await db.cache.get(key).then((item) => item?.value)) as
+      | T
+      | undefined;
   } catch (error) {
     console.error(
       `${ERROR_MESSAGE_PREFIX}: Error getting item from cache with key "${key}"`,
@@ -331,7 +336,10 @@ export const deleteContact = async (id: string): Promise<void> => {
 };
 
 export const createTask = async (
-  taskData: Omit<Task, 'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'>,
+  taskData: Omit<
+    Task,
+    'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'
+  >,
 ): Promise<Task | undefined> => {
   try {
     const id = crypto.randomUUID();

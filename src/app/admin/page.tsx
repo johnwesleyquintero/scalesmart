@@ -7,12 +7,30 @@ import { getSupabaseSession } from 'lib/supabase/server';
 import { Session } from '@supabase/supabase-js';
 
 /**
+ * Defines standard redirect paths used in the component.
+ */
+const REDIRECT_PATHS = {
+  PERMISSION_DENIED: '/permission-denied',
+  ERROR: '/error',
+  // ROOT: '/', // Potentially useful
+};
+
+/**
  * Retrieves the list of authorized admin GitHub usernames from environment variables.
  * Splits the comma-separated string, trims whitespace, and filters out empty entries.
  * @returns An array of admin GitHub usernames.
  */
 function getAdminUsernames(): string[] {
-  const adminUsernamesEnv = process.env.ADMIN_GITHUB_USERNAMES || ''; // e.g., "user1,user2,user3"
+  // Note: For better type safety and documentation, define process.env
+  // in next-env.d.ts or a custom env.d.ts file.
+  const adminUsernamesEnv = process.env.ADMIN_GITHUB_USERNAMES;
+
+  if (!adminUsernamesEnv) {
+    // This check is also performed early in the AdminPage component,
+    // but keeping the logic here robust is also good practice.
+    return [];
+  }
+
   return adminUsernamesEnv
     .split(',')
     .map((name) => name.trim())
@@ -25,60 +43,72 @@ function getAdminUsernames(): string[] {
  * is listed in the ADMIN_GITHUB_USERNAMES environment variable.
  *
  * Fetches the user session and performs authorization checks.
- * Redirects unauthorized users.
+ * Redirects unauthorized users or on error.
  */
-export default async function AdminPage() {
+export default async function AdminPage(): Promise<React.ReactElement> {
+  // --- Environment Variable Check ---
+  // Ensure the necessary environment variable is set before proceeding.
+  if (!process.env.ADMIN_GITHUB_USERNAMES) {
+    console.error(
+      'FATAL: ADMIN_GITHUB_USERNAMES environment variable is not set. Admin page is inaccessible.',
+    );
+    // Redirect or throw an error as appropriate for your application's
+    // handling of critical configuration issues. Redirecting to error page.
+    return redirect(REDIRECT_PATHS.ERROR);
+  }
+
+  // --- Session Retrieval ---
   let session: Session | null = null;
   let sessionError: Error | null = null;
 
   try {
-    // Attempt to retrieve the user session and potential errors
+    // Attempt to retrieve the user session.
     // Assuming getSupabaseSession returns { data: { session: Session | null } | null, error: Error | null }
     const { data, error } = await getSupabaseSession();
     session = data?.session ?? null; // Safely access session data
     sessionError = error;
   } catch (e: unknown) {
     // Catch any unexpected errors during the getSupabaseSession function call itself (e.g., network issues)
-    // Simplified logging to let console.error handle the object type
     console.error('Unexpected error during getSupabaseSession:', e);
-    // Redirect on unexpected error during session fetch - removed specific message for security/generality
-    return redirect('/error');
+    return redirect(REDIRECT_PATHS.ERROR);
   }
 
   // Handle specific errors returned by getSupabaseSession utility (e.g., misconfiguration)
   if (sessionError) {
-    console.error('Error fetching session:', sessionError.message);
-    // Redirect on specific error returned by the session utility - removed specific message
-    return redirect('/error'); // Or perhaps redirect('/') or redirect('/permission-denied')
+    console.error('Error fetching session for admin page:', sessionError.message);
+    return redirect(REDIRECT_PATHS.ERROR);
   }
 
-  // Retrieve authorized admin usernames
+  // --- Authorization Check ---
   const adminUsernames = getAdminUsernames();
 
-  // Check if the user is authenticated and if their GitHub username is in the admin list
+  // Retrieve the current user's GitHub username from session metadata.
   // Uses optional chaining for safer access to nested properties.
   const currentUserGitHubUsername = session?.user?.user_metadata?.user_name as
     | string
     | undefined; // Explicitly type for clarity
 
-  if (
-    !session?.user || // Check if user exists in session
-    !currentUserGitHubUsername || // Check if GitHub username exists in metadata
-    !adminUsernames.includes(currentUserGitHubUsername) // Check if username is in admin list
-  ) {
-    // Log unauthorized access attempt with more details
+  // Check if the user is authenticated and if their GitHub username is in the admin list.
+  const isAuthorizedAdmin =
+    session?.user &&
+    currentUserGitHubUsername &&
+    adminUsernames.includes(currentUserGitHubUsername);
+
+  if (!isAuthorizedAdmin) {
+    // Log unauthorized access attempt with more details for monitoring.
     console.warn(
       `Unauthorized access attempt to admin page. User ID: ${
-        session?.user?.id || 'Unknown'
+        session?.user?.id || 'Unknown/Not Authenticated'
       }, Email: ${
-        session?.user?.email || 'Unknown'
-      }, GitHub Username: ${currentUserGitHubUsername || 'Not Provided'}`,
+        session?.user?.email || 'Unknown/Not Authenticated'
+      }, GitHub Username: ${currentUserGitHubUsername || 'Not Provided/Not Authenticated'}`,
     );
-    // If not an authorized admin, redirect them to a permission denied page
-    return redirect('/permission-denied'); // More specific redirect than just '/'
+    // Redirect them to a permission denied page.
+    return redirect(REDIRECT_PATHS.PERMISSION_DENIED);
   }
 
-  // If it's an authorized admin, show the admin content
+  // --- Render Admin Content ---
+  // If execution reaches here, the user is an authorized admin.
   return (
     <div className="container mx-auto p-4">
       {/* Optional: Include the main header if desired */}
@@ -90,15 +120,6 @@ export default async function AdminPage() {
         <span className="font-semibold">{currentUserGitHubUsername}</span>! You
         are authenticated as an admin.
       </p>
-
-      {/*
-        Example: Fetching data from Supabase (replace with your actual logic)
-        Data fetching for admin pages is typically done within server components
-        or dedicated API routes/Server Actions to keep secrets server-side.
-      */}
-      {/*
-      <AdminDataDisplay /> // Example component to fetch and display admin-specific data
-      */}
 
       {/*
         Example: Button to trigger a server action or client-side API call
@@ -116,7 +137,7 @@ export default async function AdminPage() {
       <Button
         onClick={() => {
           // This onClick handler runs on the client-side.
-          // For sensitive actions, call a Server Action or API route
+          // For sensitive actions, call a Server Action or API here
           // that performs authorization checks *server-side* again.
           alert(
             'Client-side action triggered. Call a Server Action or API here.',
