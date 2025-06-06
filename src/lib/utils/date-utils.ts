@@ -16,7 +16,8 @@ export const formatDate = (
     return 'No date';
   }
   try {
-    const date = typeof dateInput === 'number' ? new Date(dateInput) : dateInput;
+    const date =
+      typeof dateInput === 'number' ? new Date(dateInput) : dateInput;
     if (isNaN(date.getTime())) {
       return INVALID_DATE_STRING;
     }
@@ -41,7 +42,8 @@ export const formatDateTime = (
     return 'No date/time';
   }
   try {
-    const date = typeof dateInput === 'number' ? new Date(dateInput) : dateInput;
+    const date =
+      typeof dateInput === 'number' ? new Date(dateInput) : dateInput;
     if (isNaN(date.getTime())) {
       return INVALID_DATE_STRING;
     }
