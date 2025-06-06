@@ -1,12 +1,12 @@
 'use client';
 
+import React, { useMemo, useCallback, useState } from 'react';
 import {
   AcademyContentClient,
-  AcademyContentProps,
-  AcademyStorageData,
+  AcademyContentProps as _AcademyContentProps, // Renamed to _AcademyContentProps
+  AcademyStorageData as _AcademyStorageData, // Renamed to _AcademyStorageData
 } from '@/app/academy/components/AcademyContentClient';
 import { Course, Module } from '@/types';
-import { useMemo, useCallback, useState } from 'react';
 import ErrorBoundary from '@/components/ui/error-boundary';
 import { AcademyProvider } from '@/context/AcademyContext'; // Assuming this is correctly implemented Context Provider
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

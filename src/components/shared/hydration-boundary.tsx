@@ -1,7 +1,7 @@
 'use client';
 
 import { HydrationBoundary as RQHydrationBoundary } from '@tanstack/react-query';
-import { Suspense, useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { getQueryClient } from '@/lib/query-client';
 
 interface HydrationBoundaryProps {

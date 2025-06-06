@@ -13,7 +13,13 @@ import { getRecommendedCourses } from '@/lib/course-recommendations';
 import { Module, ModuleType, Course } from '@/types';
 import useAcademyStorage from '@/hooks/use-academy-storage';
 
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useCallback,
+  useRef,
+} from 'react';
 import ArticleModule from './ArticleModule';
 import VideoModule from './VideoModule';
 import CaseStudyModule from '@/components/CaseStudyModule';
@@ -429,7 +435,7 @@ function AcademyContentClient({
                               disabled={currentModuleIdx <= 0}
                               aria-label="Previous Module"
                             >
-                              &larr; Previous Module
+                              &#8592; Previous Module
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
@@ -448,7 +454,7 @@ function AcademyContentClient({
                               }
                               aria-label="Next Module"
                             >
-                              Next Module &rarr;
+                              Next Module &#8594;
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>

@@ -10,7 +10,7 @@ import {
   RotateCcw,
   Trash2,
 } from 'lucide-react';
-import { ReactNode, useState } from 'react';
+import React, { ReactNode, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeKatex from 'rehype-katex';
 import rehypePrismPlus from 'rehype-prism-plus';

@@ -1,14 +1,6 @@
 {
   "extends": "./tsconfig.json",
-  "include": [
-    "src/**/*",
-    ".next/types/**/*.ts",
-    "next-env.d.ts",
-    "vitest.config.ts",
-    "postcss.config.mjs",
-    "tailwind.config.ts",
-    "eslint.config.mjs"
-  ],
+  "include": ["**/*"],
   "exclude": [
     "node_modules",
     ".next",

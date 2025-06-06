@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from 'next';
 // React is implicitly available for React.ReactNode in Next.js environments
 

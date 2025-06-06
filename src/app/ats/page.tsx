@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { AlertCircle, Check, Upload, X } from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { Alert } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
 import { MDXRemote } from 'next-mdx-remote';

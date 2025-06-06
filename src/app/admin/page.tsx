@@ -1,3 +1,4 @@
+import React from 'react';
 import Header from 'components/header'; // Assuming this path is correct
 import { Button } from 'components/ui/button'; // Assuming this path is correct
 import { redirect } from 'next/navigation';

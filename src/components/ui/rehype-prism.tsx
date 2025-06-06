@@ -1,3 +1,5 @@
+import React from 'react';
+
 interface CodeBlockProps {
   className?: string;
   children?: React.ReactNode;
