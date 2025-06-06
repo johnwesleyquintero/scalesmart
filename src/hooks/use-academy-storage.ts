@@ -111,44 +111,45 @@ const useAcademyStorage = () => {
     async (courseId: string, moduleId: string, progress: number) => {
       await updateModuleProgressDB(userId, courseId, moduleId, progress);
 
-      saveData({
-        moduleProgress: {
-          ...(academyData?.moduleProgress || {}),
+      // Update local state directly and then save
+      setAcademyDataValue((currentData) => {
+        const newModuleProgress = {
+          ...(currentData.moduleProgress || {}),
           [moduleId]: progress,
-        },
-      });
+        };
 
-      const currentCourses = academyData?.courses || [];
-      const updatedCourses = currentCourses.map((course: Course) => {
-        if (course.id === courseId) {
-          let totalModuleProgress = 0;
-          let moduleCount = 0;
+        const currentCourses = currentData.courses || [];
+        const updatedCourses = currentCourses.map((course: Course) => {
+          if (course.id === courseId) {
+            let totalModuleProgress = 0;
+            let moduleCount = 0;
 
-          if (course.modules && course.modules.length > 0) {
-            const latestModuleProgress = {
-              ...(academyData?.moduleProgress || {}),
-              [moduleId]: progress,
-            };
-            totalModuleProgress = course.modules.reduce(
-              (sum: number, m: { id: string }) => {
-                return sum + (latestModuleProgress[m.id] || 0);
-              },
-              0,
-            );
-            moduleCount = course.modules.length;
+            if (course.modules && course.modules.length > 0) {
+              totalModuleProgress = course.modules.reduce(
+                (sum: number, m: { id: string }) => {
+                  return sum + (newModuleProgress[m.id] || 0);
+                },
+                0,
+              );
+              moduleCount = course.modules.length;
+            }
+
+            const newCourseProgress =
+              moduleCount > 0 ? Math.round(totalModuleProgress / moduleCount) : 0;
+
+            return { ...course, progress: newCourseProgress };
           }
+          return course;
+        });
 
-          const newCourseProgress =
-            moduleCount > 0 ? Math.round(totalModuleProgress / moduleCount) : 0;
-
-          return { ...course, progress: newCourseProgress };
-        }
-        return course;
+        return {
+          ...currentData,
+          moduleProgress: newModuleProgress,
+          courses: updatedCourses,
+        };
       });
-
-      saveData({ courses: updatedCourses });
     },
-    [userId, saveData, academyData],
+    [userId, setAcademyDataValue],
   );
 
   const getModuleProgress = useCallback(
@@ -162,14 +163,15 @@ const useAcademyStorage = () => {
     async (courseId: string, moduleId: string, result: QuizResult) => {
       await updateQuizResultDB(userId, moduleId, result);
 
-      saveData({
+      setAcademyDataValue((currentData) => ({
+        ...currentData,
         quizResults: {
-          ...(academyData?.quizResults || {}),
+          ...(currentData.quizResults || {}),
           [moduleId]: result,
         },
-      });
+      }));
     },
-    [userId, saveData, academyData],
+    [userId, setAcademyDataValue],
   );
 
   const getQuizResult = useCallback(

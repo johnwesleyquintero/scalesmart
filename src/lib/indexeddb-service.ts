@@ -865,4 +865,15 @@ export const deleteCategory = async (id: string): Promise<void> => {
   }
 };
 
-export { getCacheItem as getItem, setCacheItem as setItem };
+export async function removeCacheItem(key: string): Promise<void> {
+  try {
+    await db.cache.delete(key);
+  } catch (error) {
+    console.error(
+      `${ERROR_MESSAGE_PREFIX}: Error removing item from cache with key "${key}"`,
+      error,
+    );
+  }
+}
+
+export { getCacheItem as getItem, setCacheItem as setItem, removeCacheItem as removeItem };

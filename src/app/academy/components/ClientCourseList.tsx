@@ -54,7 +54,7 @@ export default function ClientCourseList({
                 isCompleted
                   ? 'border-green-500 ring-2 ring-green-500' // Green border for completed courses
                   : 'border-gray-200 dark:border-gray-700'
-              } shadow-md premium-shadow hover:shadow-lg transition-shadow duration-300 flex flex-col`}
+              } shadow-md hover:shadow-lg transition-shadow duration-300 flex flex-col`}
             >
               <CardHeader className="flex-grow">
                 <div className="flex justify-between items-start">

@@ -92,30 +92,18 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
           questions={activeModule.quiz.questions.map((q) => {
             const questionData = q as typeof q & {
               question?: string;
-              // Add instructor details to quiz data if available, or use defaults
               instructorName?: string;
               instructorTitle?: string;
               title?: string;
-              correctAnswer?: string | number;
+              correctAnswer: number; // Explicitly type as number
             };
-            let parsedCorrectAnswer: number;
-            if (typeof questionData.correctAnswer === 'string') {
-              parsedCorrectAnswer = parseInt(questionData.correctAnswer, 10);
-              // Fallback for non-numeric strings
-              if (isNaN(parsedCorrectAnswer)) {
-                // If it's a string that's not a number, maybe it's the actual answer value not an index?
-                // For now, defaulting to 0 for robustness given the problem context.
-                // A better long-term solution might involve clearer types or handling the actual string answer.
-                // TODO: Ensure `correctAnswer` is consistently a number (index) from the data source
-                // to avoid this parsing complexity and potential errors.
-                parsedCorrectAnswer = 0;
-              }
-            } else if (typeof questionData.correctAnswer === 'number') {
-              parsedCorrectAnswer = questionData.correctAnswer;
-            } else {
-              // Default if correctAnswer is undefined or null
-              parsedCorrectAnswer = 0;
-            }
+
+            // Ensure correctAnswer is a number. If it comes as a string, parse it.
+            // If it's not a valid number, default to 0 or handle as an error.
+            const parsedCorrectAnswer: number =
+              typeof questionData.correctAnswer === 'string'
+                ? parseInt(questionData.correctAnswer, 10) || 0 // Parse and default to 0 if NaN
+                : questionData.correctAnswer;
 
             return {
               id: questionData.id,
@@ -272,9 +260,11 @@ function AcademyContentClient({
   );
 
   const uniqueCourses = useMemo(() => {
+    // Filter for unique courses based on their 'id' to ensure no duplicates are displayed.
+    // This is generally more robust than 'slug' for uniqueness.
     return allCourses.filter(
       (course: Course, index, self) =>
-        course.slug && index === self.findIndex((t) => t.slug === course.slug),
+        course.id && index === self.findIndex((t) => t.id === course.id),
     );
   }, [allCourses]);
 

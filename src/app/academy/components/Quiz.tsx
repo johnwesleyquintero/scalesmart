@@ -51,6 +51,8 @@ interface QuizCompletedViewProps {
   instructorName: string;
   instructorTitle: string;
   issuingOrganizationName: string;
+  courseCompletionDate: string; // Added for certificate
+  certificateId: string; // Added for certificate
 }
 const QuizCompletedView: React.FC<QuizCompletedViewProps> = React.memo(
   ({
@@ -61,6 +63,8 @@ const QuizCompletedView: React.FC<QuizCompletedViewProps> = React.memo(
     instructorName, // Destructure new props
     instructorTitle,
     issuingOrganizationName,
+    courseCompletionDate, // Destructure new prop
+    certificateId, // Destructure new prop
   }) => {
     const { activeCourse } = useAcademy();
     const [customCertificateName, setCustomCertificateName] =
@@ -117,10 +121,8 @@ const QuizCompletedView: React.FC<QuizCompletedViewProps> = React.memo(
                 customCertificateName || userProfile?.name || 'Valued Learner'
               }
               courseName={courseName}
-              // TODO: Pass actual course completion date if available, currently uses current date
-              courseCompletionDate={new Date().toLocaleDateString()}
-              // TODO: Generate a unique certificate ID instead of hardcoding
-              certificateId="QUIZ-CERT-001"
+              courseCompletionDate={courseCompletionDate}
+              certificateId={certificateId}
               instructorName={instructorName} // Pass prop
               instructorTitle={instructorTitle} // Pass prop
               issuingOrganizationName={issuingOrganizationName} // Pass prop
@@ -292,7 +294,7 @@ const Quiz: React.FC<QuizProps> = ({
 }) => {
   const { activeCourse } = useAcademy();
   const { userProfile, updateUserProfile } = useUserProfile();
-  const { getQuizResult } = useAcademyStorage(); // Removed updateQuizResult, markModuleProgress
+  const { getQuizResult } = useAcademyStorage();
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -304,6 +306,8 @@ const Quiz: React.FC<QuizProps> = ({
   const [attempts, setAttempts] = useState(0);
   const [certificateAwarded, setCertificateAwarded] = useState<boolean>(false);
   const [showResults, setShowResults] = useState(false);
+  const [completionDate, setCompletionDate] = useState<string | undefined>(undefined);
+  const [certificateUniqueId, setCertificateUniqueId] = useState<string | undefined>(undefined);
 
   const userId = userProfile?.id;
   const courseId = activeCourse?.id;
@@ -314,14 +318,16 @@ const Quiz: React.FC<QuizProps> = ({
       setQuizScore(savedResult.score);
       setAttempts(savedResult.attempts);
       setCertificateAwarded(savedResult.certificateAwarded || false);
-      // The parent component (AcademyContentClient) will handle updating module progress
-      // based on the onQuizComplete callback.
+      setCompletionDate(savedResult.completionDate);
+      setCertificateUniqueId(savedResult.certificateId);
     } else {
       setQuizScore(null);
       setAttempts(0);
       setCertificateAwarded(false);
+      setCompletionDate(undefined);
+      setCertificateUniqueId(undefined);
     }
-  }, [moduleId, getQuizResult]); // Removed courseId, markModuleProgress from dependencies
+  }, [moduleId, getQuizResult]);
 
   useEffect(() => {
     setUserAnswers(Array(questions.length).fill(null));
@@ -367,6 +373,8 @@ const Quiz: React.FC<QuizProps> = ({
     const updatedAttempts = attempts + 1;
 
     let newCertificateStatus = certificateAwarded;
+    let currentCompletionDate: string | undefined = completionDate;
+    let currentCertificateId: string | undefined = certificateUniqueId;
 
     if (
       !newCertificateStatus &&
@@ -374,15 +382,22 @@ const Quiz: React.FC<QuizProps> = ({
       updatedAttempts <= MAX_CERTIFICATE_ATTEMPTS
     ) {
       newCertificateStatus = true;
+      newCertificateStatus = true;
+      currentCompletionDate = new Date().toISOString(); // Set completion date
+      currentCertificateId = crypto.randomUUID(); // Generate unique ID
     }
     setCertificateAwarded(newCertificateStatus);
     setAttempts(updatedAttempts);
+    setCompletionDate(currentCompletionDate);
+    setCertificateUniqueId(currentCertificateId);
 
     const result: QuizResult = {
       score: finalScore,
       attempts: updatedAttempts,
       pass: passedThisAttempt,
       certificateAwarded: newCertificateStatus,
+      completionDate: currentCompletionDate,
+      certificateId: currentCertificateId,
     };
 
     // Call the onQuizComplete prop to report the result to the parent
@@ -409,7 +424,9 @@ const Quiz: React.FC<QuizProps> = ({
     userProfile,
     certificateAwarded,
     updateUserProfile,
-  ]); // Removed moduleId from dependencies as it's a stable prop
+    completionDate, // Add to dependencies
+    certificateUniqueId, // Add to dependencies
+  ]);
 
   const handleShowResults = useCallback(() => {
     // This is called when "View Results" button is clicked.
@@ -429,6 +446,8 @@ const Quiz: React.FC<QuizProps> = ({
           instructorName={instructorName} // Pass prop
           instructorTitle={instructorTitle} // Pass prop
           issuingOrganizationName={issuingOrganizationName} // Pass prop
+          courseCompletionDate={completionDate || new Date().toISOString()} // Pass actual completion date
+          certificateId={certificateUniqueId || 'N/A'} // Pass generated ID
         />
       ) : currentQuestionIndex < questions.length ? (
         <ActiveQuestionDisplay

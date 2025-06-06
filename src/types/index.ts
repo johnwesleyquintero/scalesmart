@@ -269,7 +269,7 @@ export interface AcademyJsonData {
  * @property {number} id - Unique identifier for the question.
  * @property {string} text - The text of the question.
  * @property {string[]} options - An array of possible answer options.
- * @property {string} correctAnswer - The correct answer to the question.
+ * @property {number} correctAnswer - The correct answer to the question (index of the correct option).
  * @property {string} explanation - An explanation for the correct answer.
  */
 export interface Question {
@@ -279,8 +279,8 @@ export interface Question {
   text: string;
   /** An array of possible answer options. */
   options: string[];
-  /** The correct answer to the question. */
-  correctAnswer: string;
+  /** The correct answer to the question (index of the correct option). */
+  correctAnswer: number;
   /** An explanation for the correct answer. */
   explanation: string;
 }
@@ -291,6 +291,8 @@ export interface Question {
  * @property {number} attempts - The number of attempts made for this quiz.
  * @property {boolean} pass - Indicates if the quiz was passed.
  * @property {boolean} [certificateAwarded] - True if a certificate has been earned for this quiz.
+ * @property {string} [completionDate] - The date the quiz was completed, in ISO string format.
+ * @property {string} [certificateId] - Unique ID for the awarded certificate.
  */
 export type QuizResult = {
   /** The score obtained in the quiz. */
@@ -301,4 +303,8 @@ export type QuizResult = {
   pass: boolean;
   /** True if a certificate has been earned for this quiz. */
   certificateAwarded?: boolean;
+  /** The date the quiz was completed, in ISO string format. */
+  completionDate?: string;
+  /** Unique ID for the awarded certificate. */
+  certificateId?: string;
 };

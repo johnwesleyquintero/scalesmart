@@ -30,119 +30,91 @@ const sortOptions = ['Title', 'Duration', 'Level', DURATION_DESCENDING_SORT];
  * @returns A promise resolving to an array of Course objects from IndexedDB.
  * @throws Error if fetching or syncing fails.
  */
+import { parseDuration } from '@/lib/core-utils'; // Centralized utility
+
+/**
+ * Fetches courses from the server API.
+ * @returns A promise resolving to an array of Course objects from the server.
+ * @throws Error if the network request fails or the server responds with an error status.
+ */
+const fetchServerCourses = async (): Promise<Course[]> => {
+  const serverResponse = await fetch('/api/academy/courses');
+  if (!serverResponse.ok) {
+    const errorText = await serverResponse
+      .text()
+      .catch(() => 'Unknown error body');
+    throw new Error(
+      `HTTP error! status: ${serverResponse.status} from /api/academy/courses. Details: ${errorText}`,
+    );
+  }
+  return serverResponse.json();
+};
+
+/**
+ * Syncs local IndexedDB courses with server courses.
+ * Deletes courses present locally but not on the server, and updates/adds courses from the server.
+ * @param indexedDBCourses - Courses currently stored in IndexedDB.
+ * @param serverCourses - Courses fetched from the server.
+ */
+const syncLocalCourses = async (
+  indexedDBCourses: Course[],
+  serverCourses: Course[],
+): Promise<void> => {
+  const serverCourseIds = new Set(serverCourses.map((c) => c.id));
+  const coursesToDelete = indexedDBCourses.filter(
+    (c) => !serverCourseIds.has(c.id),
+  );
+
+  if (coursesToDelete.length > 0) {
+    await deleteCoursesByIds(coursesToDelete.map((c) => c.id));
+  }
+
+  const updatePromises = serverCourses.map(async (serverCourse) => {
+    const existingCourse = indexedDBCourses.find(
+      (c) => c.id === serverCourse.id,
+    );
+    const serverTimestamp = serverCourse.updateTimestamp
+      ? new Date(serverCourse.updateTimestamp).getTime()
+      : 0;
+    const existingTimestamp = existingCourse?.updateTimestamp
+      ? new Date(existingCourse.updateTimestamp).getTime()
+      : 0;
+
+    if (!existingCourse || serverTimestamp > existingTimestamp) {
+      await updateCourse(serverCourse);
+    }
+  });
+
+  await Promise.all(updatePromises);
+};
+
+/**
+ * Fetches courses from the server and syncs them with IndexedDB.
+ * Handles updates and deletions to keep local data consistent with the server.
+ * @returns A promise resolving to an array of Course objects from IndexedDB.
+ * @throws Error if fetching or syncing fails.
+ */
 const fetchAndSyncCourses = async (): Promise<Course[]> => {
   try {
-    // Fetch local data first and server data concurrently
-    const [indexedDBCourses, serverResponse] = await Promise.all([
+    const [indexedDBCourses, serverCourses] = await Promise.all([
       getAllCourses(),
-      fetch('/api/academy/courses'),
+      fetchServerCourses(),
     ]);
 
-    // Handle server response errors
-    if (!serverResponse.ok) {
-      // Attempt to read response body for more details, but handle potential errors
-      const errorText = await serverResponse
-        .text()
-        .catch(() => 'Unknown error body');
-      throw new Error(
-        `HTTP error! status: ${serverResponse.status} from /api/academy/courses. Details: ${errorText}`,
-      );
-    }
-    const serverCourses: Course[] = await serverResponse.json();
-
-    // Determine courses that exist locally but not on the server (to delete locally)
-    const serverCourseIds = new Set(serverCourses.map((c) => c.id));
-    const coursesToDelete = indexedDBCourses.filter(
-      (c) => !serverCourseIds.has(c.id),
-    );
-
-    // Delete outdated courses from local DB if any exist
-    if (coursesToDelete.length > 0) {
-      // Using Promise.all for batch deletion
-      await deleteCoursesByIds(coursesToDelete.map((c) => c.id));
-    }
-
-    // Update or add courses from the server into the local DB
-    const updatePromises = serverCourses.map(async (serverCourse) => {
-      const existingCourse = indexedDBCourses.find(
-        (c) => c.id === serverCourse.id,
-      );
-
-      // Compare update timestamps
-      const serverTimestamp = serverCourse.updateTimestamp
-        ? new Date(serverCourse.updateTimestamp).getTime()
-        : 0;
-      const existingTimestamp = existingCourse?.updateTimestamp
-        ? new Date(existingCourse.updateTimestamp).getTime()
-        : 0;
-
-      // Only update if the server version is newer or the course is new
-      if (!existingCourse || serverTimestamp > existingTimestamp) {
-        // Use updateCourse which handles both adding and updating
-        await updateCourse(serverCourse);
-      }
-    });
-
-    // Wait for all update/add operations to complete
-    await Promise.all(updatePromises);
+    await syncLocalCourses(indexedDBCourses, serverCourses);
 
     // Re-fetch from local DB to ensure data is current after sync operations
-    const updatedLocalCourses = await getAllCourses();
-    return updatedLocalCourses;
+    return await getAllCourses();
   } catch (error) {
     console.error('Error fetching and syncing courses:', error);
-    // Re-throw the error to be caught by useQuery
     if (error instanceof Error) {
       throw error;
     } else {
-      // Wrap unknown errors in an Error object
       throw new Error(
         `An unknown error occurred during course sync: ${String(error)}`,
       );
     }
   }
-};
-
-/**
- * Parses a duration string (e.g., "2 hours", "30 min") into minutes.
- * Handles variations in units and case insensitivity.
- * @param durationString - The duration string to parse.
- * @returns The duration in minutes, or 0 if parsing fails or input is invalid.
- */
-const parseDuration = (durationString: string | null | undefined): number => {
-  if (!durationString) return 0;
-  const parts = durationString.trim().toLowerCase().split(' ');
-  let totalMinutes = 0;
-    // Map of unit aliases to their value in minutes
-    const minutesPerUnit: Record<string, number> = {
-      minute: 1,
-    minutes: 1,
-    min: 1,
-    mins: 1,
-    hour: 60,
-    hours: 60,
-    hr: 60,
-    hrs: 60,
-    day: 1440,
-    days: 1440,
-  };
-
-  for (let i = 0; i < parts.length; i += 2) {
-    const value = parseInt(parts[i]);
-    // Ensure value is a number and there is a unit part
-    if (isNaN(value) || !parts[i + 1]) continue;
-
-    // Clean the unit part, removing punctuation like commas/dots
-    const unit = parts[i + 1].replace(/[^a-z]/g, '');
-
-    // Find the unit key that matches the parsed unit
-    const unitKey = Object.keys(minutesPerUnit).find((key) => key === unit);
-
-    if (unitKey) {
-      totalMinutes += value * minutesPerUnit[unitKey];
-    }
-  }
-  return totalMinutes;
 };
 
 /**
