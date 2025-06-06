@@ -1,6 +1,7 @@
 // src/app/project-management/components/TaskList.tsx
 'use client';
 
+import React from 'react';
 import { Task, Project } from '@/lib/indexeddb-service'; // Import Project type
 import { deleteTask } from '@/lib/indexeddb-service';
 import TaskForm from './TaskForm';
@@ -11,6 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarIcon, UserRound, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import TaskItem from './TaskItem';
 
 /**
  * @interface TaskListProps
@@ -47,7 +49,7 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [taskToDeleteId, setTaskToDeleteId] = useState<string | null>(null);
+  const [taskIdToDelete, setTaskIdToDelete] = useState<string | null>(null);
 
   /**
    * Memoizes projects into a Map for O(1) lookup by ID.
@@ -84,7 +86,7 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
    * @param {string} id - The ID of the task to be deleted.
    */
   const handleDeleteTask = useCallback((id: string) => {
-    setTaskToDeleteId(id);
+    setTaskIdToDelete(id);
     setIsConfirmModalOpen(true);
   }, []);
 
@@ -93,21 +95,21 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
    * Uses `useCallback` for memoization.
    */
   const confirmDeleteTask = useCallback(async () => {
-    if (!taskToDeleteId) {
-      logger.warn('Attempted to confirm delete without a taskToDeleteId.');
+    if (!taskIdToDelete) {
+      logger.warn('Attempted to confirm delete without a taskIdToDelete.');
       toast.error('No task selected for deletion.');
       setIsConfirmModalOpen(false);
       return;
     }
 
     try {
-      await deleteTask(taskToDeleteId);
+      await deleteTask(taskIdToDelete);
       setTasks((prevTasks) =>
-        prevTasks.filter((task) => task.id !== taskToDeleteId),
+        prevTasks.filter((task) => task.id !== taskIdToDelete),
       );
       toast.info('Task deleted successfully.');
       // Close the modal if the deleted task was being edited
-      if (selectedTask?.id === taskToDeleteId) {
+      if (selectedTask?.id === taskIdToDelete) {
         setSelectedTask(null);
         setIsModalOpen(false);
       }
@@ -115,14 +117,14 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
       logger.error('Error deleting task:', error, {
         component: 'TaskList',
         context: 'confirmDeleteTask',
-        taskId: taskToDeleteId,
+        taskId: taskIdToDelete,
       });
       toast.error('Failed to delete task. Please try again.');
     } finally {
       setIsConfirmModalOpen(false);
-      setTaskToDeleteId(null);
+      setTaskIdToDelete(null);
     }
-  }, [taskToDeleteId, setTasks, selectedTask?.id]);
+  }, [taskIdToDelete, setTasks, selectedTask?.id]);
 
   /**
    * @brief Handles the click event for editing a task, opening the TaskForm modal.
@@ -170,10 +172,10 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
    * @brief Handles the click event for adding a new task, opening the TaskForm modal.
    * Uses `useCallback` for memoization.
    */
-  const handleAddTaskClick = useCallback(() => {
+  const handleAddTaskClick = () => {
     setSelectedTask(null); // Clear selected task to indicate adding a new one
     setIsModalOpen(true);
-  }, []);
+  };
 
   return (
     <Card className="flex-1">
@@ -186,70 +188,15 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
       <CardContent>
         <div className="space-y-3">
           {/* Map tasks for the current section using memoized data */}
+          {/* Map tasks for the current section using memoized data */}
           {tasks.map((task) => (
-            <div
+            <TaskItem
               key={task.id}
-              className="bg-card p-3 rounded-md shadow-sm border border-border"
-            >
-              <h3 className="font-semibold text-base mb-1 text-foreground">
-                {task.title}
-              </h3>
-              {task.description && (
-                <p className="text-sm text-muted-foreground mb-2">
-                  {task.description}
-                </p>
-              )}
-              {/* Display assignee */}
-              <div className="flex items-center text-xs text-muted-foreground mb-1">
-                <UserRound className="h-3 w-3 mr-1" />
-                <span>{task.assignee || 'Unassigned'}</span>
-              </div>
-              {/* Display due date */}
-              <div className="flex items-center text-xs text-muted-foreground mb-2">
-                <CalendarIcon className="h-3 w-3 mr-1" />
-                <span>
-                  {task.dueDate
-                    ? new Date(task.dueDate).toLocaleDateString()
-                    : 'No due date'}
-                </span>
-              </div>
-              {/* Display associated project name */}
-              <div className="flex items-center text-xs text-muted-foreground mb-2">
-                <Tag className="h-3 w-3 mr-1" />
-                <span>
-                  <span className="font-medium text-primary">
-                    Project: {getProjectName(task.projectId)}
-                  </span>
-                </span>
-              </div>
-              {/* Display status */}
-              <div className="flex items-center text-xs text-muted-foreground mb-2">
-                <span className="font-medium text-primary">
-                  Status: {task.status}
-                </span>
-              </div>
-              {/* Action buttons */}
-              <div className="flex space-x-2 mt-2">
-                <Button
-                  onClick={() => handleEditClick(task)}
-                  variant="outline"
-                  size="sm"
-                  className="text-xs"
-                  aria-label={`Edit task ${task.title}`}
-                >
-                  Edit
-                </Button>
-                <Button
-                  onClick={() => handleDeleteTask(task.id)}
-                  variant="destructive"
-                  size="sm"
-                  className="text-xs"
-                  aria-label={`Delete task ${task.title}`}
-                >
-                  Delete
-                </Button>
-              </div>
-            </div>
+              task={task}
+              projects={projects}
+              onEditClick={handleEditClick}
+              onDeleteTask={handleDeleteTask}
+            />
           ))}
         </div>
 
@@ -266,7 +213,6 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
               onTaskUpdated={handleTaskFormUpdated}
               onCancel={handleCloseModal}
               projects={projects}
-              setTasks={setTasks}
             />
           </Modal>
         )}
@@ -297,5 +243,4 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
     </Card>
   );
 };
-
 export default TaskList;

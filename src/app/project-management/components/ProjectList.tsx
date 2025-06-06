@@ -1,4 +1,4 @@
-'use client';
+import React from 'react';
 
 import { useState, useMemo, useCallback } from 'react';
 import { Project } from '@/lib/indexeddb-service';
@@ -248,7 +248,6 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
           <ProjectForm
             project={selectedProject || undefined} // Ensure it's undefined if null
             setProjects={setProjects}
-            projects={projects} // Still passed, but less critical due to functional updates
             onProjectUpdated={handleCloseModal}
             onCancel={handleCloseModal}
           />
@@ -281,4 +280,4 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
   );
 };
 
-export default ProjectList;
+export default React.memo(ProjectList);

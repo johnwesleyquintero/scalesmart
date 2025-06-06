@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   useState,
   useEffect,
@@ -52,10 +53,8 @@ interface TaskFormProps {
    */
   projects: Project[];
   /**
-   * @brief Function to update the list of tasks.
-   * Accepts a functional update to prevent stale closure issues.
+   
    */
-  setTasks: Dispatch<SetStateAction<Task[]>>;
 }
 
 /**
@@ -74,7 +73,6 @@ const TaskForm = ({
   onTaskUpdated,
   onCancel,
   projects,
-  setTasks,
 }: TaskFormProps) => {
   const [title, setTitle] = useState(initialTask?.title || '');
   const [description, setDescription] = useState(
@@ -156,9 +154,6 @@ const TaskForm = ({
             updateTimestamp: Date.now(),
           };
           await updateTask(updatedTask);
-          setTasks((prevTasks) =>
-            prevTasks.map((t) => (t.id === updatedTask.id ? updatedTask : t)),
-          );
           toast.success('Task updated successfully!');
           onTaskUpdated?.(updatedTask);
         } else {
@@ -176,7 +171,6 @@ const TaskForm = ({
               creationTimestamp: Date.now(),
               updateTimestamp: Date.now(),
             };
-            setTasks((prevTasks) => [...prevTasks, newTask]);
             toast.success('Task added successfully!');
             // Clear the form fields only after successful creation
             setTitle('');
@@ -219,7 +213,6 @@ const TaskForm = ({
       projectId,
       initialTask,
       onTaskUpdated,
-      setTasks,
       validateForm,
     ],
   );
@@ -342,4 +335,4 @@ const TaskForm = ({
   );
 };
 
-export default TaskForm;
+export default React.memo(TaskForm);

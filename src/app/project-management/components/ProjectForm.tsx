@@ -1,4 +1,5 @@
 'use client';
+import React from 'react';
 
 import { useState, useEffect, useCallback } from 'react';
 import { Project } from '@/lib/indexeddb-service';
@@ -20,12 +21,6 @@ interface ProjectFormProps {
    * Accepts a functional update to prevent stale closure issues.
    */
   setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
-  /**
-   * @brief The current list of projects.
-   * @deprecated This prop is less critical when `setProjects` uses functional updates,
-   * but kept for potential external dependencies or initial state setup.
-   */
-  projects: Project[];
   /**
    * @brief Optional project object for editing. If provided, the form will be pre-filled.
    */
@@ -207,4 +202,4 @@ const ProjectForm = ({
   );
 };
 
-export default ProjectForm;
+export default React.memo(ProjectForm);

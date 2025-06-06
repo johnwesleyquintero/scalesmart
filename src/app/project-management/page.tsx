@@ -75,7 +75,6 @@ const ProjectManagementPage = () => {
                   <CardContent>
                     {/* TaskForm component for creating new tasks */}
                     <TaskForm
-                      setTasks={setTasks}
                       projects={projects} // Pass projects for assignment
                     />
                   </CardContent>
@@ -103,10 +102,7 @@ const ProjectManagementPage = () => {
                   </CardHeader>
                   <CardContent>
                     {/* ProjectForm component for creating new projects */}
-                    <ProjectForm
-                      setProjects={setProjects}
-                      projects={projects} // Required by ProjectFormProps, though internal logic uses functional updates
-                    />
+                    <ProjectForm setProjects={setProjects} />
                   </CardContent>
                 </Card>
 
