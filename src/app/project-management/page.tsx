@@ -31,7 +31,9 @@ const ProjectManagementPage = () => {
 
   // Handler to update a task in the state when it's modified (e.g., comment added)
   const handleTaskUpdated = (updatedTask: Task) => {
-    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+    setTasks(
+      tasks.map((task) => (task.id === updatedTask.id ? updatedTask : task)),
+    );
   };
 
   return (

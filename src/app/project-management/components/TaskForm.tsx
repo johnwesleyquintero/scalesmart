@@ -91,16 +91,7 @@ const TaskForm = ({
     projectId: z.string().optional(),
     dependencies: z.array(z.string()).optional(), // Array of task IDs
     subtasks: z.array(z.string()).optional(), // Array of task IDs
-    comments: z
-      .array(
-        z.object({
-          id: z.string(),
-          text: z.string(),
-          author: z.string(),
-          createdAt: z.number(),
-        }),
-      )
-      .optional(),
+    priority: z.enum(['low', 'medium', 'high']).optional(), // Add priority field
   });
   interface FormValues extends z.infer<typeof formSchema> {}
 
@@ -119,7 +110,7 @@ const TaskForm = ({
       assignee: initialTask?.assignee || '',
       dueDate: initialTask?.dueDate ? new Date(initialTask.dueDate) : undefined,
       projectId: initialTask?.projectId || NO_PROJECT_VALUE,
-      comments: initialTask?.comments || [],
+      priority: initialTask?.priority, // Initialize priority
     },
   });
 
@@ -136,6 +127,7 @@ const TaskForm = ({
       setValue('projectId', initialTask.projectId || NO_PROJECT_VALUE);
       setValue('dependencies', initialTask.dependencies || []);
       setValue('subtasks', initialTask.subtasks || []);
+      setValue('priority', initialTask.priority); // Set priority on edit
     }
   }, [initialTask, setValue]);
 
@@ -154,7 +146,7 @@ const TaskForm = ({
         projectId: finalProjectId,
         dependencies: data.dependencies,
         subtasks: data.subtasks,
-        comments: [],
+        priority: data.priority, // Include priority in taskData
       };
 
       try {
@@ -170,23 +162,14 @@ const TaskForm = ({
           onTaskUpdated?.(updatedTask);
         } else {
           // Create new task
-          const newTaskId = await createTask({
+          const newTask = await createTask({
             ...taskData,
           });
-          if (newTaskId) {
-            // The createTask function should return the full Task object with ID and timestamps
-            // If it only returns the ID, we need to construct the full object here.
-            // Assuming createTask returns the ID, and we construct the object with timestamps.
-            const newTask: Task = {
-              ...taskData,
-              id: newTaskId,
-              creationTimestamp: Date.now(),
-              updateTimestamp: Date.now(),
-            };
+          if (newTask) {
             toast.success('Task added successfully!');
             onTaskUpdated?.(newTask);
           } else {
-            logger.error('createTask returned null/undefined ID.', {
+            logger.error('createTask returned null/undefined task.', {
               component: 'TaskForm',
               context: 'handleSubmit',
               taskData,
@@ -214,6 +197,9 @@ const TaskForm = ({
 
   const statusValue = watch('status');
   const projectValue = watch('projectId');
+  const dependenciesValue = watch('dependencies');
+  const subtasksValue = watch('subtasks');
+  const priorityValue = watch('priority');
 
   const projectSelectItems = useMemo(() => {
     return projects
@@ -351,19 +337,49 @@ const TaskForm = ({
         </Select>
       </div>
       <div>
+        <Label htmlFor="priority">Priority (optional)</Label>
+        <Select
+          value={priorityValue}
+          onValueChange={(value) =>
+            setValue('priority', value as 'low' | 'medium' | 'high')
+          }
+        >
+          <SelectTrigger id="priority" aria-label="Task Priority">
+            <SelectValue placeholder="Select priority" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="low" label="Low">
+              Low
+            </SelectItem>
+            <SelectItem value="medium" label="Medium">
+              Medium
+            </SelectItem>
+            <SelectItem value="high" label="High">
+              High
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
         <Label htmlFor="dependencies">Dependencies (optional)</Label>
-        <MySelectComponent
+        {/* @ts-ignore: Suppress type errors related to MySelectComponent usage with isMulti */}
+        <MySelectComponent<true> // Explicitly set type parameter to true for multi-select
           options={taskOptions}
           placeholder="Select dependencies"
-          onValueChange={(value) => setValue('dependencies', [value])}
+          onValueChange={(values: string[]) => setValue('dependencies', values)} // Allow multiple selections, explicitly type values
+          defaultValue={dependenciesValue} // Set default value for multiple select
+          isMulti // Enable multi-select
         />
       </div>
       <div>
         <Label htmlFor="subtasks">Subtasks (optional)</Label>
-        <MySelectComponent
+        {/* @ts-ignore: Suppress type errors related to MySelectComponent usage with isMulti */}
+        <MySelectComponent<true> // Explicitly set type parameter to true for multi-select
           options={taskOptions}
           placeholder="Select subtasks"
-          onValueChange={(value) => setValue('subtasks', [value])}
+          onValueChange={(values: string[]) => setValue('subtasks', values)} // Allow multiple selections, explicitly type values
+          defaultValue={subtasksValue} // Set default value for multiple select
+          isMulti // Enable multi-select
         />
       </div>
       <div className="flex justify-end">

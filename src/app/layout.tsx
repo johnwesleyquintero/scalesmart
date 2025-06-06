@@ -2,6 +2,7 @@ import ClientProviders from '@/components/client-providers';
 import { Analytics } from '@vercel/analytics/next';
 import Footer from '@/components/footer'; // /* IMPORT THE FOOTER */
 import Header from '@/components/header'; // /* IMPORT THE HEADER */
+import { ErrorBoundary } from '@/components/error-boundary'; // Import ErrorBoundary for catching rendering errors
 import ChatInterface from '@/components/ui/chat-interface'; // Import ChatInterface
 import { Toaster } from '@/components/ui/toaster'; // Import Toaster
 import { cn } from '@/lib/utils';
@@ -78,14 +79,17 @@ export default function RootLayout({
         className="min-h-screen bg-background font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none"
       >
         <div className="relative flex min-h-screen flex-col">
-          <ClientProviders>
-            <Header />
-            <main className="flex-1 w-full px-4 sm:px-6 md:px-8">
-              {children}
-            </main>
-            <Footer />
-            <ChatInterface /> {/* Render ChatInterface here */}
-          </ClientProviders>
+          {/* Wrap children with ErrorBoundary to catch rendering errors within the page content */}
+          <ErrorBoundary>
+            <ClientProviders>
+              <Header />
+              <main className="flex-1 w-full px-4 sm:px-6 md:px-8">
+                {children}
+              </main>
+              <Footer />
+              <ChatInterface /> {/* Render ChatInterface here */}
+            </ClientProviders>
+          </ErrorBoundary>
           <Toaster />
         </div>
         <Analytics />

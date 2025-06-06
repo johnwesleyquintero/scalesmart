@@ -34,6 +34,7 @@ export interface Task {
   dependencies?: string[]; // Array of task IDs that this task depends on
   subtasks?: string[]; // Array of task IDs that are subtasks of this task
   comments: Comment[];
+  priority?: 'low' | 'medium' | 'high'; // Add priority field
 }
 
 export interface Comment {
@@ -91,7 +92,7 @@ class ChatDatabase extends Dexie {
     });
     this.version(5).stores({
       tasks:
-        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp, dependencies, subtasks',
+        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp, dependencies, subtasks, priority', // Add priority to schema
     });
     this.version(6).stores({
       projects: 'id, name, description, creationTimestamp, updateTimestamp',
@@ -448,8 +449,12 @@ export const deleteContact = async (id: string): Promise<void> => {
  * @param task - The task data to create.
  */
 export const createTask = async (
-  taskData: Omit<Task, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
-): Promise<string | undefined> => {
+  taskData: Omit<
+    Task,
+    'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'
+  >, // Omit comments as they are managed separately
+): Promise<Task | undefined> => {
+  // Change return type to Task | undefined
   if (!db) {
     await initializeDB();
   }
@@ -461,10 +466,11 @@ export const createTask = async (
       id,
       creationTimestamp: now,
       updateTimestamp: now,
+      comments: [], // Initialize comments as an empty array for new tasks
     };
     await db.tasks.put(taskToStore);
     console.log('Task added to IndexedDB:', taskToStore);
-    return id;
+    return taskToStore; // Return the full task object
   } catch (error) {
     logError(
       error,
@@ -509,7 +515,12 @@ export const updateTask = async (task: Task): Promise<void> => {
   }
   try {
     const updateTimestamp = Date.now();
-    const taskToStore = { ...task, updateTimestamp };
+    // Ensure comments is an array before storing
+    const taskToStore = {
+      ...task,
+      updateTimestamp,
+      comments: Array.isArray(task.comments) ? task.comments : [],
+    };
     console.log('IndexedDBService: Attempting to update task:', taskToStore);
     await db.tasks.put(taskToStore);
     console.log(

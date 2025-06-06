@@ -4,7 +4,7 @@ import { updateTask } from '@/lib/indexeddb-service'; // Assuming correct path
 import { Task, Project, Comment } from '@/lib/indexeddb-service'; // Import Comment type
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button'; // Assuming correct path
-import { CalendarIcon, UserRound, Tag } from 'lucide-react';
+import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react'; // Import Flag icon
 
 interface TaskItemProps {
   task: Task;
@@ -105,6 +105,21 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             Status: {task.status}
           </span>
         </div>
+        {task.priority && ( // Display priority if it exists
+          <div className="flex items-center text-xs text-muted-foreground mb-2">
+            <Flag
+              className={`h-3 w-3 mr-1 ${task.priority === 'high' ? 'text-red-500' : task.priority === 'medium' ? 'text-yellow-500' : 'text-green-500'}`}
+            />{' '}
+            {/* Add Flag icon with color based on priority */}
+            <span>
+              <span className="font-medium text-primary">
+                Priority:{' '}
+                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}{' '}
+                {/* Capitalize first letter */}
+              </span>
+            </span>
+          </div>
+        )}
         {task.dependencies && task.dependencies.length > 0 && (
           <div className="flex items-center text-xs text-muted-foreground mb-2">
             <Tag className="h-3 w-3 mr-1" />
@@ -114,9 +129,26 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
                 {task.dependencies
                   .map((dependencyId: string) => {
                     const dependency = tasks.find((t) => t.id === dependencyId);
-                    return dependency ? dependency.title : 'Unknown Task';
+                    return dependency ? (
+                      <a
+                        key={dependencyId}
+                        href={`#task-${dependencyId}`} // Link to the task item (assuming IDs are used as fragment identifiers)
+                        className="underline hover:no-underline"
+                        aria-label={`View dependency task ${dependency.title}`}
+                      >
+                        {dependency.title}
+                      </a>
+                    ) : (
+                      'Unknown Task'
+                    );
                   })
-                  .join(', ')}
+                  .reduce((prev: (React.ReactNode | string)[], curr, index) => {
+                    if (index > 0) {
+                      prev.push(', ');
+                    }
+                    prev.push(curr);
+                    return prev;
+                  }, [])}
               </span>
             </span>
           </div>
@@ -130,9 +162,26 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
                 {task.subtasks
                   .map((subtaskId: string) => {
                     const subtask = tasks.find((t) => t.id === subtaskId);
-                    return subtask ? subtask.title : 'Unknown Task';
+                    return subtask ? (
+                      <a
+                        key={subtaskId}
+                        href={`#task-${subtaskId}`} // Link to the task item
+                        className="underline hover:no-underline"
+                        aria-label={`View subtask ${subtask.title}`}
+                      >
+                        {subtask.title}
+                      </a>
+                    ) : (
+                      'Unknown Task'
+                    );
                   })
-                  .join(', ')}
+                  .reduce((prev: (React.ReactNode | string)[], curr, index) => {
+                    if (index > 0) {
+                      prev.push(', ');
+                    }
+                    prev.push(curr);
+                    return prev;
+                  }, [])}
               </span>
             </span>
           </div>
