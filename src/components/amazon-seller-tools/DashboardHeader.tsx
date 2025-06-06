@@ -6,7 +6,7 @@ import { BookOpen, Download, Loader2, RefreshCw, Settings } from 'lucide-react';
 import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 import { saveAs } from 'file-saver';
 import KpiCustomizationModal from './KpiCustomizationModal';
-import { getItem } from '@/lib/indexeddb-service';
+import { getCacheItem } from '@/lib/indexeddb-service';
 import {
   Tooltip,
   TooltipContent,
@@ -51,7 +51,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
 
   useEffect(() => {
     const getStoredMetrics = async () => {
-      const storedMetrics = await getItem<string[]>('selectedMetrics');
+      const storedMetrics = await getCacheItem<string[]>('selectedMetrics');
       if (storedMetrics) {
         setSelectedMetrics(storedMetrics);
       }

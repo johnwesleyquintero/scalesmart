@@ -14,7 +14,7 @@ import { toast } from '@/components/ui/use-toast';
 import { Info } from 'lucide-react';
 import Papa from 'papaparse';
 import React, { useCallback, useState, useEffect } from 'react';
-import { setItem, getItem } from '@/lib/indexeddb-service';
+import { setCacheItem, getCacheItem } from '@/lib/indexeddb-service';
 import { cachedFetch } from '@/lib/api-cache';
 import {
   CartesianGrid,
@@ -291,7 +291,7 @@ export function CompetitorAnalyzer({
         const dataSize = new Blob([JSON.stringify(formattedData)]).size;
         if (dataSize <= MAX_STORAGE_SIZE) {
           try {
-            await setItem(CHART_DATA_KEY, formattedData);
+            await setCacheItem(CHART_DATA_KEY, formattedData);
           } catch (error) {
             console.error('Error saving chart data to IndexedDB:', error);
             toast({
@@ -445,7 +445,7 @@ export function CompetitorAnalyzer({
     const loadAnalysis = async () => {
       try {
         console.time('Load competitor analysis from IndexedDB');
-        const cachedData = (await getItem(CHART_DATA_KEY)) as {
+        const cachedData = (await getCacheItem(CHART_DATA_KEY)) as {
           timestamp?: number;
           id: string;
           date: string;
@@ -467,7 +467,7 @@ export function CompetitorAnalyzer({
               'Cached data is older than cache duration, clearing cache',
             );
             // Clear the specific cache entry
-            await setItem(CHART_DATA_KEY, null);
+            await setCacheItem(CHART_DATA_KEY, null);
             return;
           }
           setSavedAnalysis(cachedData);
@@ -677,7 +677,7 @@ export function CompetitorAnalyzer({
               // Save analysis results to IndexedDB
               const timestamp = new Date().toISOString();
               try {
-                await setItem(CHART_DATA_KEY, {
+                await setCacheItem(CHART_DATA_KEY, {
                   id: timestamp,
                   date: new Date().toLocaleString(),
                   asin,

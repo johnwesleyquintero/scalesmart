@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { AcademyDataType } from '@/hooks/use-academy-storage';
 
@@ -10,21 +11,22 @@ const useAcademyStorageService = () => {
     { courses: [] }, // Updated default value
   );
 
-  const getAcademyData = () => academyData;
+  const getAcademyData = useCallback(() => academyData, [academyData]);
 
-  const setAcademyDataValue = (
-    value: AcademyDataType | ((val: AcademyDataType) => AcademyDataType),
-  ) => {
-    setAcademyData(
-      typeof value === 'function'
-        ? value(academyData ?? { courses: [] }) // Updated fallback value
-        : value,
-    );
-  };
+  const setAcademyDataValue = useCallback(
+    (value: AcademyDataType | ((val: AcademyDataType) => AcademyDataType)) => {
+      setAcademyData(
+        typeof value === 'function'
+          ? value(academyData ?? { courses: [] }) // Updated fallback value
+          : value,
+      );
+    },
+    [setAcademyData, academyData],
+  );
 
-  const exportAcademyData = () => {
+  const exportAcademyData = useCallback(() => {
     return JSON.stringify(academyData);
-  };
+  }, [academyData]);
 
   return { getAcademyData, setAcademyDataValue, exportAcademyData };
 };

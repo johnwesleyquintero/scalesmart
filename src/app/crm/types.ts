@@ -14,7 +14,7 @@ export interface Contact {
   creationTimestamp?: number; // milliseconds since epoch
   updateTimestamp?: number; // milliseconds since epoch
   address?: string;
-  communicationLogs?: CommunicationLog[]; // Array to store communication logs for a customer
+  communicationLogs?: CommunicationLog[]; // New: Array of communication logs for the contact/customer
 }
 
 export interface CommunicationLog {

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { setItem, getItem } from '@/lib/indexeddb-service';
+import { setCacheItem, getCacheItem } from '@/lib/indexeddb-service';
 
 import {
   addEdge,
@@ -438,7 +438,7 @@ export const useWorkflowBuilderData = () => {
         edges: edges,
       };
       const stringifiedWorkflow = JSON.stringify(workflow);
-      await setItem(STORAGE_KEY, stringifiedWorkflow);
+      await setCacheItem(STORAGE_KEY, stringifiedWorkflow);
       toast({
         title: TOAST_TITLE_SAVE_SUCCESS,
         description: TOAST_DESC_SAVE_SUCCESS,
@@ -457,7 +457,7 @@ export const useWorkflowBuilderData = () => {
   // Load workflow from IndexedDB
   const loadWorkflow = useCallback(async (): Promise<void> => {
     try {
-      const workflowData = await getItem(STORAGE_KEY);
+      const workflowData = await getCacheItem(STORAGE_KEY);
 
       if (typeof workflowData === 'string' && workflowData.length > 0) {
         let parsedData: unknown;

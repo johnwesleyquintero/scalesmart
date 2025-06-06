@@ -6,236 +6,347 @@ import { z } from 'zod';
 // --- Constants ---
 const API_BASE_URL = 'https://api.keywordtrends.com/v1';
 const INDEXED_DB_STORE_NAME = 'keywordTrendsCache';
-const DATE_FORMATS = ['yyyy-MM-dd', 'MM/dd/yyyy', 'dd-MM-yyyy'] as const;
+const DATE_FORMAT_ISO = 'yyyy-MM-dd';
+const DATE_FORMATS = [DATE_FORMAT_ISO, 'MM/dd/yyyy', 'dd-MM-yyyy'] as const;
+const SUPPORTED_DATE_FORMATS_STR = DATE_FORMATS.join(', ');
 const MAX_DATA_POINTS_PER_REQUEST = 1000;
+const API_BATCH_SIZE = 50;
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hour cache duration
+
+// Define constants for duplicate strings
+const ERROR_MESSAGE_PREFIX = 'KeywordTrendService';
+const CACHE_READ_FAILED = 'Cache read failed';
+const CACHE_WRITE_FAILED = 'Cache write failed';
+const BATCH_API_REQUEST_FAILED = 'Batch API request failed';
+const API_REQUEST_FAILED = 'API request failed';
+const UNKNOWN_ERROR_MESSAGE = 'Unknown error';
 
 // --- Types ---
-/**
- * Represents a single data point in the trend analysis chart.
- * Contains a date and dynamic keyword-search volume pairs.
- */
 export interface TrendDataPoint {
   date: string;
-  [keyword: string]: string | number; // Dynamic keys for keyword search volumes
+  keywords: Record<string, number>;
 }
 
-/**
- * Represents the complete result of a keyword trend analysis.
- */
 export interface TrendAnalysisResult {
   chartData: TrendDataPoint[];
   keywords: string[];
+  cachedAt?: Date;
+}
+
+// --- Custom Error Types ---
+class KeywordTrendError extends Error {
+  constructor(
+    message: string,
+    public readonly context?: Record<string, unknown>,
+  ) {
+    super(message);
+    this.name = 'KeywordTrendError';
+  }
+}
+
+class ApiRequestError extends KeywordTrendError {
+  constructor(
+    public readonly status: number,
+    public readonly url: string,
+    message: string,
+  ) {
+    super(message);
+    this.name = 'ApiRequestError';
+  }
+}
+
+class ValidationError extends KeywordTrendError {
+  constructor(
+    message: string,
+    public readonly validationErrors?: unknown[],
+  ) {
+    super(message);
+    this.name = 'ValidationError';
+  }
 }
 
 // --- Validation Schemas ---
-/**
- * Zod schema for validating individual keyword trend data inputs.
- */
+const dateSchema = z
+  .string()
+  .refine(
+    (date) => DATE_FORMATS.some((fmt) => isValid(parse(date, fmt, new Date()))),
+    `Invalid date format. Supported formats: ${SUPPORTED_DATE_FORMATS_STR}`,
+  );
+
+const searchVolumeSchema = z.union([
+  z.number().min(0, 'Search volume must be non-negative'),
+  z.string().transform((val, ctx) => {
+    const parsed = Number(val);
+    if (isNaN(parsed)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Search volume must be a number',
+      });
+      return z.NEVER;
+    }
+    if (parsed < 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Search volume must be non-negative',
+      });
+      return z.NEVER;
+    }
+    return parsed;
+  }),
+]);
+
 export const trendDataSchema = z.object({
-  /**
-   * The keyword string.
-   * Must be at least 1 character and at most 100 characters.
-   */
   keyword: z.string().min(1, 'Keyword is required').max(100),
-  /**
-   * The date string associated with the trend data.
-   * Validated against multiple common date formats.
-   */
-  date: z
-    .string()
-    .refine(
-      (date) =>
-        DATE_FORMATS.some((fmt) => isValid(parse(date, fmt, new Date()))),
-      `Invalid date format. Supported formats: ${DATE_FORMATS.join(', ')}`,
-    ),
-  /**
-   * The search volume for the keyword on the given date.
-   * Can be a number or a string that transforms into a non-negative number.
-   */
-  search_volume: z.union([
-    z.number().min(0, 'Search volume must be non-negative'),
-    z.string().transform((val, ctx) => {
-      const parsed = Number(val);
-      if (isNaN(parsed) || parsed < 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Search volume must be a non-negative number',
-        });
-        return z.NEVER;
-      }
-      return parsed;
-    }),
-  ]),
+  date: dateSchema,
+  search_volume: searchVolumeSchema,
 });
 
-/**
- * Type inferred from `trendDataSchema` for validated input data.
- */
 export type TrendDataInput = z.infer<typeof trendDataSchema>;
 
+const apiResponseSchema = z.object({
+  searchVolume: z.number().min(0),
+  rateLimitRemaining: z.number().optional(),
+  rateLimitReset: z.number().optional(),
+});
+
+// --- Utility Functions ---
+async function processInBatches<T, R>(
+  items: T[],
+  batchSize: number,
+  processor: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results: R[] = [];
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    results.push(...(await Promise.all(batch.map(processor))));
+  }
+  return results;
+}
+
 // --- Service Implementation ---
-/**
- * Manages fetching, caching, and analyzing keyword trend data.
- * Utilizes an external API and IndexedDB for caching.
- */
 export class KeywordTrendService {
-  /**
-   * Fetches search volume data for a specific keyword and date from the external API.
-   * @param keyword - The keyword to fetch data for.
-   * @param date - The date in 'yyyy-MM-dd' format.
-   * @returns A promise that resolves with the search volume number.
-   * @throws {Error} If the API request fails or returns a non-OK status.
-   */
-  private static async fetchTrendData(
-    keyword: string,
-    date: string,
-  ): Promise<number> {
-    const fullUrl = `${API_BASE_URL}/search-volume?keyword=${encodeURIComponent(keyword)}&date=${date}`;
+  private static async fetchTrendDataBatch(
+    requests: { keyword: string; date: string }[],
+  ): Promise<number[]> {
     try {
-      const response = await fetch(fullUrl, {
-        headers: {
-          Authorization: `Bearer ${process.env.KEYWORD_TREND_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(`${API_BASE_URL}/search-volume/batch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requests }),
       });
 
       if (!response.ok) {
-        throw new Error(
-          `API request failed for ${fullUrl} with status ${response.status}`,
+        throw new ApiRequestError(
+          response.status,
+          `${API_BASE_URL}/search-volume/batch`,
+          `${BATCH_API_REQUEST_FAILED} with status ${response.status}`,
         );
       }
 
       const data = await response.json();
-      return data.searchVolume;
+      return z
+        .array(apiResponseSchema)
+        .parse(data)
+        .map((r) => r.searchVolume);
     } catch (error) {
       logError({
-        message: `Failed to fetch trend data from API for ${fullUrl}`,
-        component: 'KeywordTrendService',
+        message: BATCH_API_REQUEST_FAILED,
+        component: `${ERROR_MESSAGE_PREFIX}.fetchTrendDataBatch`,
         severity: 'high',
-        error: error instanceof Error ? error : new Error(String(error)),
-        context: { keyword, date },
+        error:
+          error instanceof Error ? error : new Error(UNKNOWN_ERROR_MESSAGE),
+        context: { requestCount: requests.length },
       });
       throw error;
     }
   }
 
-  /**
-   * Generates a consistent cache key for a given set of trend data inputs.
-   * The key is based on sorted keyword-date pairs to ensure uniqueness regardless of input order.
-   * @param data - An array of `TrendDataInput` objects.
-   * @returns A string representing the cache key.
-   */
-  private static getCacheKey(data: TrendDataInput[]): string {
-    // Sort the data by keyword and date to ensure a consistent cache key
-    const sortedData = [...data].sort((a, b) => {
-      if (a.keyword !== b.keyword) return a.keyword.localeCompare(b.keyword);
-      return a.date.localeCompare(b.date);
-    });
-    return JSON.stringify(sortedData.map((d) => ({ k: d.keyword, d: d.date })));
+  private static async getCachedResult(
+    cacheKey: string,
+  ): Promise<TrendAnalysisResult | null> {
+    try {
+      const cached = await getItem<{
+        result: TrendAnalysisResult;
+        cachedAt: number;
+      }>(cacheKey);
+
+      if (!cached) return null;
+
+      if (Date.now() - cached.cachedAt > CACHE_TTL_MS) {
+        return null;
+      }
+
+      return { ...cached.result, cachedAt: new Date(cached.cachedAt) };
+    } catch (error) {
+      logError({
+        message: CACHE_READ_FAILED,
+        component: `${ERROR_MESSAGE_PREFIX}.getCachedResult`,
+        severity: 'low',
+        error:
+          error instanceof Error ? error : new Error(UNKNOWN_ERROR_MESSAGE),
+      });
+      return null;
+    }
   }
 
-  /**
-   * Standardizes a date string to 'yyyy-MM-dd' format using predefined formats.
-   * @param dateStr - The date string to standardize.
-   * @returns The standardized date string.
-   * @throws {Error} If the input date string cannot be parsed by any of the supported formats.
-   */
+  private static async setCachedResult(
+    cacheKey: string,
+    result: TrendAnalysisResult,
+  ): Promise<void> {
+    try {
+      await setItem(cacheKey, { result, cachedAt: Date.now() });
+    } catch (error) {
+      logError({
+        message: CACHE_WRITE_FAILED,
+        component: `${ERROR_MESSAGE_PREFIX}.setCachedResult`,
+        severity: 'medium',
+        error: error instanceof Error ? error : new Error('Unknown error'),
+      });
+    }
+  }
+
+  private static getCacheKey(data: TrendDataInput[]): string {
+    const sortedData = [...data].sort((a, b) => {
+      const keywordCompare = a.keyword.localeCompare(b.keyword);
+      return keywordCompare !== 0
+        ? keywordCompare
+        : a.date.localeCompare(b.date);
+    });
+
+    return `trends:${sortedData
+      .map((d) => `${d.keyword}:${d.date}`)
+      .join('|')}`;
+  }
+
   private static standardizeDate(dateStr: string): string {
     for (const fmt of DATE_FORMATS) {
       const parsed = parse(dateStr, fmt, new Date());
       if (isValid(parsed)) {
-        return format(parsed, 'yyyy-MM-dd');
+        return format(parsed, DATE_FORMAT_ISO);
       }
     }
-    throw new Error(
-      `Failed to standardize date: "${dateStr}". It does not match any supported formats: ${DATE_FORMATS.join(', ')}`,
+
+    throw new ValidationError(
+      `Unsupported date format: "${dateStr}". Supported formats: ${SUPPORTED_DATE_FORMATS_STR}`,
     );
   }
 
-  /**
-   * Analyzes keyword trends by fetching data, processing it, and structuring it for charting.
-   * Includes caching mechanism using IndexedDB to reduce redundant API calls.
-   * @param rawData - An array of raw data objects (expected to conform to `TrendDataInput` after validation).
-   * @returns A promise that resolves with `TrendAnalysisResult` containing chart data and keywords.
-   * @throws {Error} If no data is provided, or if the number of data points exceeds the API limit.
-   */
-  public static async analyzeTrends(
-    rawData: unknown[], // Use unknown[] as input might not be fully validated yet
-  ): Promise<TrendAnalysisResult> {
-    if (!rawData || rawData.length === 0) {
-      throw new Error('No data provided for analysis.');
+  private static validateInput(rawData: unknown[]): void {
+    if (!rawData?.length) {
+      throw new ValidationError('No data provided for analysis');
     }
+
     if (rawData.length > MAX_DATA_POINTS_PER_REQUEST) {
-      throw new Error(
-        `Maximum of ${MAX_DATA_POINTS_PER_REQUEST} data points allowed per request.`,
+      throw new ValidationError(
+        `Maximum of ${MAX_DATA_POINTS_PER_REQUEST} data points allowed per request`,
       );
     }
+  }
 
+  private static async processRawData(
+    rawData: unknown[],
+  ): Promise<TrendDataInput[]> {
     try {
-      // Generate cache key from input data (after casting for getCacheKey)
-      const cacheKey = this.getCacheKey(rawData as TrendDataInput[]);
-      console.time(`Load keyword trends for ${cacheKey} from cache`);
-      const cached = await getItem(cacheKey, INDEXED_DB_STORE_NAME);
-      console.timeEnd(`Load keyword trends for ${cacheKey} from cache`);
+      const parsedData = z.array(trendDataSchema).parse(rawData);
 
-      if (cached) {
-        return cached as TrendAnalysisResult;
+      return await processInBatches(parsedData, API_BATCH_SIZE, async (row) => {
+        const standardizedDate = this.standardizeDate(row.date);
+        const searchVolume = await this.fetchTrendData(
+          row.keyword,
+          standardizedDate,
+        );
+        return {
+          ...row,
+          date: standardizedDate,
+          search_volume: searchVolume,
+        };
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new ValidationError('Data validation failed', error.errors);
+      }
+      throw error;
+    }
+  }
+
+  private static transformToChartData(
+    validatedData: TrendDataInput[],
+  ): TrendAnalysisResult {
+    const dateMap = new Map<string, Map<string, number>>();
+    const keywordSet = new Set<string>();
+
+    for (const { keyword, date, search_volume } of validatedData) {
+      keywordSet.add(keyword);
+
+      if (!dateMap.has(date)) {
+        dateMap.set(date, new Map());
+      }
+      dateMap.get(date)?.set(keyword, search_volume);
+    }
+
+    const sortedDates = Array.from(dateMap.keys()).sort();
+    const sortedKeywords = Array.from(keywordSet).sort();
+
+    const chartData = sortedDates.map((date) => ({
+      date,
+      keywords: Object.fromEntries(
+        sortedKeywords.map((kw) => [kw, dateMap.get(date)?.get(kw) ?? 0]),
+      ),
+    }));
+
+    return {
+      chartData,
+      keywords: sortedKeywords,
+    };
+  }
+
+  public static async analyzeTrends(
+    rawData: unknown[],
+  ): Promise<TrendAnalysisResult> {
+    this.validateInput(rawData);
+
+    const cacheKey = this.getCacheKey(rawData as TrendDataInput[]);
+    const cachedResult = await this.getCachedResult(cacheKey);
+
+    if (cachedResult) {
+      return cachedResult;
+    }
+
+    const validatedData = await this.processRawData(rawData);
+    const result = this.transformToChartData(validatedData);
+
+    await this.setCachedResult(cacheKey, result);
+
+    return result;
+  }
+
+  private static async fetchTrendData(
+    keyword: string,
+    date: string,
+  ): Promise<number> {
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/search-volume?keyword=${encodeURIComponent(keyword)}&date=${date}`,
+      );
+
+      if (!response.ok) {
+        throw new ApiRequestError(
+          response.status,
+          `${API_BASE_URL}/search-volume`,
+          `${API_REQUEST_FAILED} with status ${response.status}`,
+        );
       }
 
-      // Validate and process each row, fetching search volume from API
-      const validatedData = await Promise.all(
-        rawData.map(async (row) => {
-          const validated = trendDataSchema.parse(row); // Zod validation
-          const standardizedDate = this.standardizeDate(validated.date);
-          const searchVolume = await this.fetchTrendData(
-            validated.keyword,
-            standardizedDate,
-          );
-          return {
-            ...validated,
-            date: standardizedDate,
-            search_volume: searchVolume,
-          };
-        }),
-      );
-
-      // Transform data for chart: group by date and collect all unique keywords
-      const dataByDate: { [date: string]: { [keyword: string]: number } } = {};
-      const keywords = new Set<string>();
-
-      validatedData.forEach(({ keyword, date, search_volume }) => {
-        keywords.add(keyword);
-        if (!dataByDate[date]) {
-          dataByDate[date] = {};
-        }
-        dataByDate[date][keyword] = search_volume;
-      });
-
-      const sortedDates = Object.keys(dataByDate).sort();
-      const keywordList = Array.from(keywords).sort(); // Sort keywords for consistent chart legend
-
-      const chartData: TrendDataPoint[] = sortedDates.map((date) => {
-        const point: TrendDataPoint = { date };
-        keywordList.forEach((kw) => {
-          point[kw] = dataByDate[date][kw] ?? 0; // Default to 0 if no data for a keyword on a specific date
-        });
-        return point;
-      });
-
-      const result = { chartData, keywords: keywordList };
-
-      // Cache the results
-      console.time(`Save keyword trends for ${cacheKey} to cache`);
-      await setItem(cacheKey, result, INDEXED_DB_STORE_NAME);
-      console.timeEnd(`Save keyword trends for ${cacheKey} to cache`);
-
-      return result;
+      const data = await response.json();
+      return z.number().parse(data.searchVolume);
     } catch (error) {
       logError({
-        message: 'Error analyzing keyword trends',
-        component: 'KeywordTrendService',
+        message: API_REQUEST_FAILED,
+        component: `${ERROR_MESSAGE_PREFIX}.fetchTrendData`,
         severity: 'high',
-        error: error instanceof Error ? error : new Error(String(error)),
+        error:
+          error instanceof Error ? error : new Error(UNKNOWN_ERROR_MESSAGE),
+        context: { keyword, date },
       });
       throw error;
     }

@@ -23,6 +23,7 @@ const PASS_THRESHOLD = 70; // Only one definition, top-level
 interface QuizProps {
   questions: QuestionInput[];
   moduleId: string;
+  onQuizComplete: (result: QuizResult) => void; // Callback to report quiz completion
 }
 
 // Moved child components outside for better organization and memoization
@@ -262,11 +263,10 @@ const QuizPendingResultsDisplay: React.FC<QuizPendingResultsDisplayProps> =
   ));
 QuizPendingResultsDisplay.displayName = 'QuizPendingResultsDisplay';
 
-const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
+const Quiz: React.FC<QuizProps> = ({ questions, moduleId, onQuizComplete }) => {
   const { activeCourse } = useAcademy();
   const { userProfile, updateUserProfile } = useUserProfile();
-  const { updateQuizResult, getQuizResult, markModuleProgress } =
-    useAcademyStorage();
+  const { getQuizResult } = useAcademyStorage(); // Removed updateQuizResult, markModuleProgress
 
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
@@ -288,15 +288,14 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
       setQuizScore(savedResult.score);
       setAttempts(savedResult.attempts);
       setCertificateAwarded(savedResult.certificateAwarded || false);
-      if (courseId && moduleId) {
-        markModuleProgress(courseId, moduleId, savedResult.score);
-      }
+      // The parent component (AcademyContentClient) will handle updating module progress
+      // based on the onQuizComplete callback.
     } else {
       setQuizScore(null);
       setAttempts(0);
       setCertificateAwarded(false);
     }
-  }, [moduleId, courseId, getQuizResult, markModuleProgress]);
+  }, [moduleId, getQuizResult]); // Removed courseId, markModuleProgress from dependencies
 
   useEffect(() => {
     setUserAnswers(Array(questions.length).fill(null));
@@ -360,40 +359,31 @@ const Quiz: React.FC<QuizProps> = ({ questions, moduleId }) => {
       certificateAwarded: newCertificateStatus,
     };
 
-    if (userId && courseId && moduleId) {
-      await markModuleProgress(courseId, moduleId, finalScore);
-      updateQuizResult(moduleId, result);
+    // Call the onQuizComplete prop to report the result to the parent
+    onQuizComplete(result);
 
-      const badgeId = 'quiz-master-badge';
-      if (
-        userProfile &&
-        passedThisAttempt &&
-        !userProfile.badges?.includes(badgeId)
-      ) {
-        const updatedProfile = {
-          ...userProfile,
-          badges: [...(userProfile.badges || []), badgeId],
-        };
-        await updateUserProfile(updatedProfile);
-      }
-    } else {
-      console.warn(
-        'Skipping quiz result save: User ID or Course ID not available.',
-      );
+    // Handle badge awarding here, as it's a side effect of passing the quiz
+    const badgeId = 'quiz-master-badge';
+    if (
+      userProfile &&
+      passedThisAttempt &&
+      !userProfile.badges?.includes(badgeId)
+    ) {
+      const updatedProfile = {
+        ...userProfile,
+        badges: [...(userProfile.badges || []), badgeId],
+      };
+      await updateUserProfile(updatedProfile);
     }
   }, [
     questions,
     userAnswers,
-    moduleId,
-    markModuleProgress,
-    updateQuizResult,
+    onQuizComplete,
     attempts,
     userProfile,
     certificateAwarded,
     updateUserProfile,
-    userId,
-    courseId,
-  ]);
+  ]); // Removed moduleId from dependencies as it's a stable prop
 
   const handleShowResults = useCallback(() => {
     // This is called when "View Results" button is clicked.

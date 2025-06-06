@@ -12,7 +12,7 @@ import {
 import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { setItem, getItem } from '@/lib/indexeddb-service';
+import { setCacheItem, getCacheItem } from '@/lib/indexeddb-service';
 
 import {
   addEdge,

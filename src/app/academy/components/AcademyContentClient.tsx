@@ -24,9 +24,10 @@ import { UserProfile } from '@/lib/models/user';
 export interface AcademyStorageData {
   lastVisitedCourse?: string | null;
   lastVisitedModule?: string | null;
-  // Add other specific properties here if useAcademyStorage returns them
-  // and they are needed. Avoid [key: string]: any;
-  // unless absolutely necessary, prefer [key: string]: unknown; or specific types.
+  // Stores progress for each module (moduleId -> percentage 0-100)
+  moduleProgress?: Record<string, number>;
+  // Stores quiz results (moduleId -> QuizResult)
+  quizResults?: Record<string, QuizResult>;
 }
 
 export interface AcademyContentProps {
@@ -35,16 +36,38 @@ export interface AcademyContentProps {
   academyData: AcademyStorageData | undefined; // Add academyData prop
 }
 
+import { QuizResult } from '@/types'; // Import QuizResult type
+
 interface ModuleSpecificContentProps {
   activeModule: Module;
   userProfile: UserProfile | null;
+  onModuleComplete: (moduleId: string) => void; // Callback for module completion
+  onQuizComplete: (moduleId: string, result: QuizResult) => void; // Callback for quiz completion
 }
 
 const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
   activeModule,
   userProfile,
+  onModuleComplete,
+  onQuizComplete,
 }) => {
   const { activeCourse } = useAcademy();
+
+  // Effect to mark article/video modules as complete when viewed
+  useEffect(() => {
+    if (
+      activeModule &&
+      (activeModule.type === ModuleType.ARTICLE ||
+        activeModule.type === ModuleType.VIDEO ||
+        activeModule.type === ModuleType.CASE_STUDY ||
+        activeModule.type === ModuleType.SIMULATION)
+    ) {
+      // For simplicity, mark as complete immediately upon viewing.
+      // In a real app, video completion might be based on playback percentage,
+      // and article completion on scroll depth or time spent.
+      onModuleComplete(activeModule.id);
+    }
+  }, [activeModule, onModuleComplete]);
 
   switch (activeModule.type) {
     case ModuleType.ARTICLE:
@@ -92,6 +115,7 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
             };
           })}
           moduleId={activeModule.id}
+          onQuizComplete={(result) => onQuizComplete(activeModule.id, result)} // Pass quiz completion callback
         />
       ) : (
         <p>No quiz questions available for this module.</p>
@@ -117,8 +141,12 @@ function AcademyContentClient({
   const { userProfile } = useUserProfile();
   const [searchQuery, setSearchQuery] = useState('');
   const [recommendedCourses, setRecommendedCourses] = useState<Course[]>([]);
-  const { academyData, getModuleProgress, markModuleVisited } =
-    useAcademyStorage();
+  const {
+    academyData,
+    getModuleProgress,
+    updateModuleProgress,
+    updateQuizResult,
+  } = useAcademyStorage();
 
   const initialCourseHandled = useRef(false);
 
@@ -169,9 +197,42 @@ function AcademyContentClient({
   const handleSelectModule = useCallback(
     (module: Module) => {
       setActiveModule(module);
-      markModuleVisited(module.id);
+      // When a module is selected, mark it as visited (e.g., 1% progress)
+      // Actual completion (100%) will be handled by onModuleComplete/onQuizComplete
+      if (activeCourse?.id) {
+        // Ensure activeCourse.id is available
+        updateModuleProgress(activeCourse.id, module.id, 1);
+      }
     },
-    [setActiveModule, markModuleVisited],
+    [setActiveModule, updateModuleProgress, activeCourse?.id], // Add activeCourse.id to dependencies
+  );
+
+  const handleModuleCompletion = useCallback(
+    (moduleId: string) => {
+      if (activeCourse?.id) {
+        // Ensure activeCourse.id is available
+        updateModuleProgress(activeCourse.id, moduleId, 100);
+      }
+    },
+    [updateModuleProgress, activeCourse?.id], // Add activeCourse.id to dependencies
+  );
+
+  const handleQuizCompletion = useCallback(
+    (moduleId: string, result: QuizResult) => {
+      if (activeCourse?.id) {
+        // Ensure activeCourse.id is available
+        updateQuizResult(activeCourse.id, moduleId, result); // Pass courseId
+        // If quiz is passed, mark module as 100% complete
+        if (result.pass) {
+          updateModuleProgress(activeCourse.id, moduleId, 100);
+        } else {
+          // Optionally, set a lower progress or keep current if quiz failed
+          // For now, if quiz fails, module is not 100% complete
+          updateModuleProgress(activeCourse.id, moduleId, 50); // Example: 50% if attempted but not passed
+        }
+      }
+    },
+    [updateModuleProgress, updateQuizResult, activeCourse?.id], // Add activeCourse.id to dependencies
   );
 
   const handleBackToCourses = () => {
@@ -355,6 +416,8 @@ function AcademyContentClient({
                     <ModuleSpecificContent
                       activeModule={activeModule}
                       userProfile={userProfile}
+                      onModuleComplete={handleModuleCompletion} // Pass completion callback
+                      onQuizComplete={handleQuizCompletion} // Pass quiz completion callback
                     />
                     <div className="flex justify-between mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
                       <TooltipProvider>

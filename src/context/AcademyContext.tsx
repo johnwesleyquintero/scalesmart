@@ -13,6 +13,19 @@ export type AcademyContextType = {
   academyData: { courses: Course[] };
   saveData: (data: { courses: Course[] }) => void;
   startCourseAction: (course: Course) => void;
+  updateModuleProgress: (
+    courseId: string,
+    moduleId: string,
+    progress: number,
+  ) => Promise<void>;
+  getModuleProgress: (moduleId: string) => number;
+  updateQuizResult: (
+    courseId: string,
+    moduleId: string,
+    result: QuizResult,
+  ) => Promise<void>;
+  getQuizResult: (moduleId: string) => QuizResult | undefined;
+  markCourseVisited: (courseId: string) => void;
 };
 
 export const AcademyContext = createContext<AcademyContextType | undefined>(
@@ -29,16 +42,34 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
   console.log('AcademyProvider - Running');
   const [activeCourse, setActiveCourse] = useState<Course | null>(null);
   const [activeModule, setActiveModule] = useState<Module | null>(null);
-  const { academyData, saveData, markModuleProgress, getModuleProgress } =
-    useAcademyStorage();
+  // Destructure all relevant functions and data from useAcademyStorage for comprehensive context management.
+  const {
+    academyData,
+    saveData,
+    updateModuleProgress, // Corrected from markModuleProgress
+    getModuleProgress,
+    updateQuizResult,
+    getQuizResult,
+    markCourseVisited,
+  } = useAcademyStorage();
 
-  // Derive courses directly from academyData
+  // Derive courses directly from academyData for a single source of truth.
   const courses = academyData?.courses || [];
 
+  /**
+   * Initiates a module, marking its progress.
+   * @param module The module to start.
+   */
   const startModule = async (module: Module) => {
-    if (!activeCourse) return;
+    if (!activeCourse) {
+      // Log an error if no active course is found, which is crucial for debugging.
+      console.error('startModule: No active course found.');
+      return;
+    }
 
-    await markModuleProgress(activeCourse.id, module.id, 100);
+    // Use updateModuleProgress as defined in useAcademyStorage.
+    // This fixes the original typo and ensures correct function call.
+    await updateModuleProgress(activeCourse.id, module.id, 100);
     setActiveModule(module);
   };
 
@@ -62,6 +93,11 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
     academyData: { courses: academyData?.courses || [] },
     saveData: (data) => saveData(data),
     startCourseAction,
+    updateModuleProgress, // Expose updateModuleProgress for context consumers.
+    getModuleProgress, // Expose getModuleProgress for context consumers.
+    updateQuizResult, // Expose updateQuizResult for context consumers.
+    getQuizResult, // Expose getQuizResult for context consumers.
+    markCourseVisited, // Expose markCourseVisited for context consumers.
   };
 
   return (
