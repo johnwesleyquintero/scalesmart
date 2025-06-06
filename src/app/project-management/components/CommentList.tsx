@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import { Task, Comment } from '@/lib/indexeddb-service'; // Import Comment type
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner'; // Import toast for user feedback
 
 interface CommentListProps {
   taskId: string;
@@ -38,7 +39,7 @@ const CommentList: React.FC<CommentListProps> = ({
       setNewCommentText('');
     } catch (error) {
       console.error('Failed to add comment:', error);
-      // TODO: Implement user feedback for error (e.g., toast notification)
+      toast.error('Failed to add comment. Please try again.'); // Show error toast
     }
   }, [newCommentText, onAddComment]);
   return (

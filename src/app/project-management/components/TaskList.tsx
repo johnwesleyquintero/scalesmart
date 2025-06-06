@@ -20,7 +20,15 @@ import TaskItem from './TaskItem';
  */
 interface TaskListProps {
   /**
-   * @brief The array of tasks to display.
+   * @brief The unique identifier for this task list column (e.g., 'to-do', 'in-progress', 'completed').
+   */
+  id: string;
+  /**
+   * @brief The title to display for this task list column.
+   */
+  title: string;
+  /**
+   * @brief The array of tasks to display in this column.
    */
   tasks: Task[];
   /**
@@ -49,11 +57,26 @@ interface TaskListProps {
  * @param {TaskListProps} props The props for the component.
  * @returns {JSX.Element} The TaskList component.
  */
-const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
+import { useDroppable } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import SortableTaskItem from './SortableTaskItem'; // Import the new component
+
+const TaskList = ({
+  id,
+  title,
+  tasks,
+  setTasks,
+  projects,
+  onTaskUpdated,
+}: TaskListProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [taskIdToDelete, setTaskIdToDelete] = useState<string | null>(null);
+
+  const { setNodeRef } = useDroppable({
+    id: id, // The ID of the droppable container (e.g., 'to-do', 'in-progress', 'completed')
+  });
 
   /**
    * Memoizes projects into a Map for O(1) lookup by ID.
@@ -156,67 +179,50 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
    */
   const handleTaskFormUpdated = useCallback(
     (updatedOrNewTask: Task) => {
-      setTasks((prevTasks) => {
-        if (selectedTask) {
-          // It was an update
-          return prevTasks.map((t) =>
-            t.id === updatedOrNewTask.id ? updatedOrNewTask : t,
-          );
-        } else {
-          // It was a new task
-          return [...prevTasks, updatedOrNewTask];
-        }
-      });
+      // This handler is now primarily for updates from the TaskForm modal
+      // The parent (ProjectManagementPage) will handle adding new tasks to its state
+      onTaskUpdated(updatedOrNewTask); // Propagate the update to the parent
       handleCloseModal();
     },
-    [selectedTask, setTasks, handleCloseModal],
+    [onTaskUpdated, handleCloseModal],
   );
-
-  /**
-   * @brief Handles the click event for adding a new task, opening the TaskForm modal.
-   * Uses `useCallback` for memoization.
-   */
-  const handleAddTaskClick = () => {
-    setSelectedTask(null); // Clear selected task to indicate adding a new one
-    setIsModalOpen(true);
-  };
 
   return (
     <Card className="flex-1">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-foreground">Task List</CardTitle>
-        <Button onClick={handleAddTaskClick} className="ml-auto">
-          Add Task
-        </Button>
+        <CardTitle className="text-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          {/* Map tasks for the current section using memoized data */}
-          {/* Map tasks for the current section using memoized data */}
-          {tasks.map((task) => {
-            return (
-              <TaskItem
-                key={task.id}
-                task={task}
-                projects={projects}
-                onEditClick={handleEditClick}
-                onDeleteTask={handleDeleteTask}
-                tasks={tasks}
-                onTaskUpdated={handleTaskFormUpdated}
-              />
-            );
-          })}
+        <div ref={setNodeRef} className="space-y-3 min-h-[100px] p-2 rounded-md bg-muted/40">
+          <SortableContext items={tasks.map(task => task.id)} strategy={verticalListSortingStrategy}>
+            {/* Map tasks for the current section using memoized data */}
+            {tasks.length === 0 ? (
+              <p className="text-muted-foreground text-center text-sm py-4">No tasks in this column.</p>
+            ) : (
+              tasks.map((task) => (
+                <SortableTaskItem
+                  key={task.id}
+                  task={task}
+                  projects={projects}
+                  onEditClick={handleEditClick}
+                  onDeleteTask={handleDeleteTask}
+                  tasks={tasks} // Pass all tasks for dependency/subtask lookup
+                  onTaskUpdated={handleTaskFormUpdated}
+                />
+              ))
+            )}
+          </SortableContext>
         </div>
 
-        {/* Modal for editing/adding a task */}
+        {/* Modal for editing a task (add task modal is now in page.tsx) */}
         {isModalOpen && (
           <Modal
             isOpen={isModalOpen}
             onClose={handleCloseModal}
-            title={selectedTask ? 'Edit Task' : 'Add New Task'}
+            title="Edit Task"
           >
             <TaskForm
-              key={isModalOpen ? 'task-form-open' : 'task-form-closed'}
+              key={selectedTask?.id || 'new-task-form'} // Use task ID as key for re-rendering on selection change
               task={selectedTask}
               onTaskUpdated={handleTaskFormUpdated}
               onCancel={handleCloseModal}
