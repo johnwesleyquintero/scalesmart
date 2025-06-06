@@ -91,17 +91,21 @@ const TaskForm = ({
     projectId: z.string().optional(),
     dependencies: z.array(z.string()).optional(), // Array of task IDs
     subtasks: z.array(z.string()).optional(), // Array of task IDs
-    comments: z.array(z.object({
-       id: z.string(),
-       text: z.string(),
-       author: z.string(),
-       createdAt: z.number(),
-     })).optional(),
+    comments: z
+      .array(
+        z.object({
+          id: z.string(),
+          text: z.string(),
+          author: z.string(),
+          createdAt: z.number(),
+        }),
+      )
+      .optional(),
   });
   interface FormValues extends z.infer<typeof formSchema> {}
 
   const {
-   register,
+    register,
     handleSubmit,
     setValue,
     watch,

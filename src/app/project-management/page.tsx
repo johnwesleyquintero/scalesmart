@@ -29,6 +29,11 @@ const ProjectManagementPage = () => {
   // Destructure state and handlers from the custom hook for project management data
   const { tasks, setTasks, projects, setProjects } = useProjectManagementData();
 
+  // Handler to update a task in the state when it's modified (e.g., comment added)
+  const handleTaskUpdated = (updatedTask: Task) => {
+    setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task));
+  };
+
   return (
     <ErrorBoundary>
       {' '}
@@ -84,6 +89,7 @@ const ProjectManagementPage = () => {
                   tasks={tasks}
                   setTasks={setTasks}
                   projects={projects} // Pass projects for displaying project names
+                  onTaskUpdated={handleTaskUpdated} // Pass the handler to update tasks
                 />
               </div>
             </div>

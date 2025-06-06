@@ -7,12 +7,12 @@ import { Button } from '@/components/ui/button'; // Assuming correct path
 import { CalendarIcon, UserRound, Tag } from 'lucide-react';
 
 interface TaskItemProps {
- task: Task;
- projects: Project[];
- onEditClick: (task: Task) => void;
- onDeleteTask: (id: string) => void;
- tasks: Task[]; // Kept for dependency/subtask title lookup
- onTaskUpdated: (updatedTask: Task) => void; // New prop to signal task updates to parent
+  task: Task;
+  projects: Project[];
+  onEditClick: (task: Task) => void;
+  onDeleteTask: (id: string) => void;
+  tasks: Task[]; // Kept for dependency/subtask title lookup
+  onTaskUpdated: (updatedTask: Task) => void; // New prop to signal task updates to parent
 }
 
 const TaskItem: React.FC<TaskItemProps> = React.memo(
@@ -51,10 +51,11 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     const handleAddComment = useCallback(
       async (newComment: Comment) => {
         // Ensure comments is an array before spreading
-        const currentComments = Array.isArray(task.comments) ? task.comments : [];
-        // Ensure comments is an array before spreading and create the updated task object
-        const currentComments = Array.isArray(task.comments) ? task.comments : [];
-        const updatedTask: Task = { // Explicitly type updatedTask as Task
+        const currentComments = Array.isArray(task.comments)
+          ? task.comments
+          : [];
+        const updatedTask: Task = {
+          // Explicitly type updatedTask as Task
           ...task,
           comments: [...currentComments, newComment],
         };
@@ -112,9 +113,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
                 Dependencies:
                 {task.dependencies
                   .map((dependencyId: string) => {
-                    const dependency = tasks.find(
-                      (t) => t.id === dependencyId,
-                    );
+                    const dependency = tasks.find((t) => t.id === dependencyId);
                     return dependency ? dependency.title : 'Unknown Task';
                   })
                   .join(', ')}
@@ -159,10 +158,10 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
           </Button>
         </div>
         <CommentList
-           taskId={task.id}
-           comments={task.comments || []} // Ensure comments is an array for CommentList
-           onAddComment={handleAddComment} // Pass the refactored handler
-         />
+          taskId={task.id}
+          comments={task.comments || []} // Ensure comments is an array for CommentList
+          onAddComment={handleAddComment} // Pass the refactored handler
+        />
       </div>
     );
   },
