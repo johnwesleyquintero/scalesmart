@@ -2,6 +2,7 @@
 'use client';
 
 // Import necessary React and UI components
+import React, { useMemo } from 'react'; // Import useMemo
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -26,6 +27,7 @@ import {
 } from '@dnd-kit/core';
 import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { updateTask } from '@/lib/indexeddb-service'; // Import updateTask
+import { toast } from 'sonner'; // Import toast for user feedback
 
 /**
  * @component ProjectManagementPage
@@ -63,12 +65,23 @@ const ProjectManagementPage = () => {
 
     if (!over) return;
 
-    const activeTaskId = active.id as string;
-    const overContainerId = over.id as string; // This will be the status column ID
+    const activeId = active.id as string;
+    const overId = over.id as string;
 
-    const taskToMove = tasks.find((task) => task.id === activeTaskId);
+    // Find the task that was dragged
+    const taskToMove = tasks.find((task) => task.id === activeId);
 
-    if (taskToMove && taskToMove.status !== overContainerId) {
+    if (!taskToMove) {
+      console.warn(`Dragged task with ID ${activeId} not found.`);
+      return;
+    }
+
+    // Determine the container (column) the task was dragged from and to
+    const activeContainerId = active.data.current?.sortable.containerId || taskToMove.status;
+    const overContainerId = over.data.current?.sortable.containerId || overId;
+
+    // Case 1: Dragged to a different column (status change)
+    if (activeContainerId !== overContainerId) {
       const updatedTask = {
         ...taskToMove,
         status: overContainerId, // Update status to the new column ID
@@ -82,18 +95,50 @@ const ProjectManagementPage = () => {
             task.id === updatedTask.id ? updatedTask : task,
           ),
         );
+        toast.success(`Task "${updatedTask.title}" status updated to "${overContainerId}".`);
       } catch (error) {
         console.error('Failed to update task status:', error);
-        // TODO: Implement user feedback for error (e.g., toast notification)
-        // Optionally, revert the state change if the DB update fails
+        toast.error(`Failed to update task status. Please try again.`);
+        // TODO: Optionally, attempt to revert the state change if the DB update fails
+      }
+    } else {
+      // Case 2: Dragged within the same column (reordering)
+      const currentTasksInColumn = tasks.filter(task => task.status === activeContainerId);
+      const oldIndex = currentTasksInColumn.findIndex(task => task.id === activeId);
+      const newIndex = currentTasksInColumn.findIndex(task => task.id === overId);
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const newOrder = arrayMove(currentTasksInColumn, oldIndex, newIndex);
+
+        // Update the order of tasks in the state
+        setTasks((prevTasks) => {
+          const tasksWithoutMoved = prevTasks.filter(task => task.status !== activeContainerId);
+          return [...tasksWithoutMoved, ...newOrder];
+        });
+
+        // Persist the new order to IndexedDB
+        try {
+          // Update the order of each task in the reordered list
+          const updatePromises = newOrder.map((task, index) => {
+            const updatedTask = { ...task, order: index, updateTimestamp: Date.now() };
+            return updateTask(updatedTask);
+          });
+          await Promise.all(updatePromises);
+          toast.success(`Task "${taskToMove.title}" reordered successfully.`);
+        } catch (error) {
+          console.error('Failed to persist task reordering:', error);
+          toast.error(`Failed to reorder task "${taskToMove.title}". Please try again.`);
+          // TODO: Optionally, attempt to revert the state change if the DB update fails
+        }
       }
     }
   };
 
   // Filter tasks by status for each column
-  const todoTasks = tasks.filter((task) => task.status === 'to-do');
-  const inProgressTasks = tasks.filter((task) => task.status === 'in-progress');
-  const completedTasks = tasks.filter((task) => task.status === 'completed');
+  // Memoize the filtered task lists for performance
+  const todoTasks = useMemo(() => tasks.filter((task) => task.status === 'to-do'), [tasks]);
+  const inProgressTasks = useMemo(() => tasks.filter((task) => task.status === 'in-progress'), [tasks]);
+  const completedTasks = useMemo(() => tasks.filter((task) => task.status === 'completed'), [tasks]);
 
   return (
     <ErrorBoundary>

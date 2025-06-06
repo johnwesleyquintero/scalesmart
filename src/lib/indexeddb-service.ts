@@ -35,6 +35,7 @@ export interface Task {
   subtasks?: string[]; // Array of task IDs that are subtasks of this task
   comments: Comment[];
   priority?: 'low' | 'medium' | 'high'; // Add priority field
+  order?: number; // Add order field for sorting within columns
 }
 
 export interface Comment {
@@ -109,6 +110,10 @@ class ChatDatabase extends Dexie {
     });
     this.version(10).stores({
       communicationLogs: 'id, customerId, type, date, subject, notes',
+    });
+    this.version(11).stores({
+      tasks:
+        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp, dependencies, subtasks, priority, order', // Add order to schema
     });
   }
 }

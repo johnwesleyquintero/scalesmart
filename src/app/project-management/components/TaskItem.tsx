@@ -5,6 +5,7 @@ import { Task, Project, Comment } from '@/lib/indexeddb-service'; // Import Comm
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button'; // Assuming correct path
 import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react'; // Import Flag icon
+import { toast } from 'sonner'; // Import toast for user feedback
 
 interface TaskItemProps {
   task: Task;
@@ -64,7 +65,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
           onTaskUpdated(updatedTask); // Notify parent component of the update
         } catch (error) {
           console.error('Failed to add comment and update task:', error);
-          // TODO: Implement user feedback for error (e.g., toast notification)
+          toast.error('Failed to add comment. Please try again.'); // Implement user feedback for error
         }
       },
       [task, onTaskUpdated], // Depend on task and the onTaskUpdated prop
