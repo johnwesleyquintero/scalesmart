@@ -3,8 +3,8 @@
 
 import React, { useCallback, useMemo, useState } from 'react';
 import { Task, Project, TaskComment } from '@/lib/indexeddb-service';
-import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/lib/utils/date-utils'; // Import formatDate
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarIcon, UserRound, Tag, Flag, Edit, CheckCircle } from 'lucide-react'; // Import CheckCircle icon
 import { TaskStatus } from '@/lib/constants/project-management'; // Import TaskStatus
@@ -201,11 +201,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             </h4>
             <div className="flex items-center text-sm text-foreground">
               <CalendarIcon className="h-4 w-4 mr-2" />
-              <span>
-                {currentTask.dueDate
-                  ? format(new Date(currentTask.dueDate), 'PPP')
-                  : 'No due date'}
-              </span>
+              <span>{formatDate(currentTask.dueDate)}</span>
             </div>
           </div>
           <div>

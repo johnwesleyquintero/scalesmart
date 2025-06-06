@@ -3,6 +3,7 @@ import { Task, TaskComment } from '@/lib/indexeddb-service'; // Import TaskComme
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner'; // Import toast for user feedback
+import { formatDateTime } from '@/lib/utils/date-utils'; // Import formatDateTime
 
 interface CommentListProps {
   taskId: string;
@@ -56,8 +57,7 @@ const CommentList: React.FC<CommentListProps> = ({
               className="bg-card p-2 rounded-md shadow-sm border border-border"
             >
               <div className="text-xs text-muted-foreground">
-                {comment.author} -{' '}
-                {new Date(comment.createdAt).toLocaleString()}
+                {comment.author} - {formatDateTime(comment.createdAt)}
               </div>
               <p className="text-sm text-foreground">{comment.text}</p>
             </li>

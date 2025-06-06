@@ -26,15 +26,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { MySelectComponent } from '@/components/MySelectComponent';
-import { TASK_STATUSES, TaskStatus } from '@/lib/constants/project-management'; // Import TASK_STATUSES and TaskStatus
+import {
+  TASK_STATUSES,
+  TaskStatus,
+  NO_PROJECT_VALUE,
+} from '@/lib/constants/project-management'; // Import TASK_STATUSES, TaskStatus, and NO_PROJECT_VALUE
 import { getAllTasks } from '@/lib/indexeddb-service';
-
-/**
- * @constant NO_PROJECT_VALUE
- * @brief A special value used in the project selection dropdown to represent "No Project Selected".
- * This avoids using an empty string, which Radix UI's Select.Item explicitly disallows for individual items.
- */
-const NO_PROJECT_VALUE = 'no-project-selected';
 
 /**
  * @interface TaskFormProps

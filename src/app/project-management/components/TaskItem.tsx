@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Task, Project } from '@/lib/indexeddb-service';
-import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
+import { formatDate } from '@/lib/utils/date-utils'; // Import formatDate
 import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react';
 
 interface TaskItemProps {
@@ -81,7 +81,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
           {task.dueDate && (
             <div className="flex items-center mr-3">
               <CalendarIcon className="h-3 w-3 mr-1" />
-              <span>{format(new Date(task.dueDate), 'PPP')}</span>
+              <span>{formatDate(task.dueDate)}</span>
             </div>
           )}
           {task.projectId && (

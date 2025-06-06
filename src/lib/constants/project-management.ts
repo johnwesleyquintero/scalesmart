@@ -19,3 +19,10 @@ export const TASK_STATUSES = [
   { id: TaskStatus.IN_PROGRESS, title: 'In Progress' },
   { id: TaskStatus.COMPLETED, title: 'Completed' },
 ];
+
+/**
+ * @constant NO_PROJECT_VALUE
+ * @brief A special value used in the project selection dropdown to represent "No Project Selected".
+ * This avoids using an empty string, which Radix UI's Select.Item explicitly disallows for individual items.
+ */
+export const NO_PROJECT_VALUE = 'no-project-selected';

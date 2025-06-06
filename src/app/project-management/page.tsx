@@ -67,17 +67,32 @@ const ProjectManagementPage = () => {
   };
 
   /**
-   * @brief Handles the change of a task's status (column).
-   * @param taskToMove The task being moved.
-   * @param newStatus The new status (column ID) for the task.
-   * @param originalTasks The state of tasks before the optimistic update.
+   * @brief A generic helper function to perform optimistic updates and handle persistence.
+   * @param updateLogic A function that takes the current tasks and returns the new tasks state for optimistic update.
+   * @param persistenceLogic An async function that performs the actual IndexedDB persistence.
+   * @param successMessage The message to display on successful persistence.
+   * @param errorMessage The message to display on failed persistence.
+   * @param originalTasks The state of tasks before the optimistic update, used for reverting on error.
    */
-  /**
-   * @brief Handles the change of a task's status (column) or reordering within the same column.
-   * This function is the main entry point for drag-and-drop operations.
-   * It performs optimistic updates and handles persistence to IndexedDB.
-   * @param event The DragEndEvent from Dnd-kit.
-   */
+  const performOptimisticUpdate = async (
+    updateLogic: (prevTasks: Task[]) => Task[],
+    persistenceLogic: () => Promise<void>,
+    successMessage: string,
+    errorMessage: string,
+    originalTasks: Task[],
+  ) => {
+    setTasks(updateLogic);
+    toast.success(successMessage);
+
+    try {
+      await persistenceLogic();
+    } catch (error) {
+      console.error('Persistence failed:', error);
+      toast.error(errorMessage);
+      setTasks(originalTasks); // Revert state on error
+    }
+  };
+
   /**
    * @brief Handles the change of a task's status (column).
    * @param taskToMove The task being moved.
@@ -95,21 +110,14 @@ const ProjectManagementPage = () => {
       updateTimestamp: Date.now(),
     };
 
-    // Optimistic update: Remove from old column, add to new column
-    setTasks((prevTasks) =>
-      prevTasks.filter((task) => task.id !== taskToMove.id).concat(updatedTask),
-    );
-    toast.success(
+    await performOptimisticUpdate(
+      (prevTasks) =>
+        prevTasks.filter((task) => task.id !== taskToMove.id).concat(updatedTask),
+      async () => await updateTask(updatedTask),
       `Task "${updatedTask.title}" status updated to "${newStatus.replace(/-/g, ' ')}".`,
+      `Failed to update task status. Please try again.`,
+      originalTasks,
     );
-
-    try {
-      await updateTask(updatedTask); // Persist the status change to IndexedDB
-    } catch (error) {
-      console.error('Failed to update task status:', error);
-      toast.error(`Failed to update task status. Please try again.`);
-      setTasks(originalTasks); // Revert state on error
-    }
   };
 
   /**
@@ -150,23 +158,21 @@ const ProjectManagementPage = () => {
       updateTimestamp: Date.now(),
     }));
 
-    // Optimistic update: Update UI immediately with new order
-    setTasks((prevTasks) => {
-      const tasksWithoutCurrentColumn = prevTasks.filter(
-        (task) => task.status !== containerId,
-      );
-      return [...tasksWithoutCurrentColumn, ...tasksWithNewOrder];
-    });
-    toast.success(`Task reordered successfully.`);
-
-    try {
-      // Persist the new order to IndexedDB
-      await Promise.all(tasksWithNewOrder.map((task) => updateTask(task)));
-    } catch (error) {
-      console.error('Failed to persist task reordering:', error);
-      toast.error(`Failed to reorder task. Please try again.`);
-      setTasks(originalTasks); // Revert state on error
-    }
+    await performOptimisticUpdate(
+      (prevTasks) => {
+        const tasksWithoutCurrentColumn = prevTasks.filter(
+          (task) => task.status !== containerId,
+        );
+        return [...tasksWithoutCurrentColumn, ...tasksWithNewOrder];
+      },
+      async () => {
+        await Promise.all(tasksWithNewOrder.map((task) => updateTask(task)));
+        return; // Explicitly return void
+      },
+      `Task reordered successfully.`,
+      `Failed to reorder task. Please try again.`,
+      originalTasks,
+    );
   };
 
   /**

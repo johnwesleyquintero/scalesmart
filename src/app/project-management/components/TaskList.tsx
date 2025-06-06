@@ -212,25 +212,19 @@ const TaskList = ({
   const handleTaskFormUpdated = useCallback(
     (updatedOrNewTask: Task) => {
       // Propagate the update to the parent (ProjectManagementPage) to ensure the main tasks state is updated
-      onTaskUpdated(updatedOrNewTask); 
-      
+      onTaskUpdated(updatedOrNewTask);
+
       // Close the edit modal if the update originated from it
       if (isEditModalOpen) {
         handleCloseEditModal();
       }
-      
-      // If the update came from the details modal, ensure the task displayed in the details view is refreshed
-      if (isDetailsModalOpen && taskInDetailsView?.id === updatedOrNewTask.id) {
-        setTaskInDetailsView(updatedOrNewTask);
+
+      // Close the details modal if the update originated from it
+      if (isDetailsModalOpen) {
+        handleCloseDetailsModal();
       }
     },
-    [
-      onTaskUpdated,
-      isEditModalOpen,
-      handleCloseEditModal,
-      isDetailsModalOpen,
-      taskInDetailsView?.id,
-    ],
+    [onTaskUpdated, isEditModalOpen, handleCloseEditModal, isDetailsModalOpen, handleCloseDetailsModal],
   );
 
   return (
