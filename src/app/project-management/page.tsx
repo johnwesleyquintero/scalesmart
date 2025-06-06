@@ -112,7 +112,9 @@ const ProjectManagementPage = () => {
 
     await performOptimisticUpdate(
       (prevTasks) =>
-        prevTasks.filter((task) => task.id !== taskToMove.id).concat(updatedTask),
+        prevTasks
+          .filter((task) => task.id !== taskToMove.id)
+          .concat(updatedTask),
       async () => await updateTask(updatedTask),
       `Task "${updatedTask.title}" status updated to "${newStatus.replace(/-/g, ' ')}".`,
       `Failed to update task status. Please try again.`,
@@ -206,7 +208,12 @@ const ProjectManagementPage = () => {
       await handleTaskStatusChange(taskToMove, overContainerId, originalTasks);
     } else {
       // Task reordered within the same column
-      await handleTaskReorder(activeId, overId, activeContainerId, originalTasks);
+      await handleTaskReorder(
+        activeId,
+        overId,
+        activeContainerId,
+        originalTasks,
+      );
     }
   };
 

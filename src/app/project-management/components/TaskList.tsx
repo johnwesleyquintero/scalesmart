@@ -224,7 +224,13 @@ const TaskList = ({
         handleCloseDetailsModal();
       }
     },
-    [onTaskUpdated, isEditModalOpen, handleCloseEditModal, isDetailsModalOpen, handleCloseDetailsModal],
+    [
+      onTaskUpdated,
+      isEditModalOpen,
+      handleCloseEditModal,
+      isDetailsModalOpen,
+      handleCloseDetailsModal,
+    ],
   );
 
   return (

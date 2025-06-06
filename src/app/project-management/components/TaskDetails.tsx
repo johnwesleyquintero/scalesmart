@@ -6,7 +6,14 @@ import { Task, Project, TaskComment } from '@/lib/indexeddb-service';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils/date-utils'; // Import formatDate
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon, UserRound, Tag, Flag, Edit, CheckCircle } from 'lucide-react'; // Import CheckCircle icon
+import {
+  CalendarIcon,
+  UserRound,
+  Tag,
+  Flag,
+  Edit,
+  CheckCircle,
+} from 'lucide-react'; // Import CheckCircle icon
 import { TaskStatus } from '@/lib/constants/project-management'; // Import TaskStatus
 import CommentList from './CommentList';
 import TaskForm from './TaskForm'; // To allow editing within details view
