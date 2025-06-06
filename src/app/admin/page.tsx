@@ -75,7 +75,10 @@ export default async function AdminPage(): Promise<React.ReactElement> {
 
   // Handle specific errors returned by getSupabaseSession utility (e.g., misconfiguration)
   if (sessionError) {
-    console.error('Error fetching session for admin page:', sessionError.message);
+    console.error(
+      'Error fetching session for admin page:',
+      sessionError.message,
+    );
     return redirect(REDIRECT_PATHS.ERROR);
   }
 
