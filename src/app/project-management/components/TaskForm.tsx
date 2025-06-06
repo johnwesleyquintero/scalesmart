@@ -8,7 +8,6 @@ import {
   useMemo,
 } from 'react';
 import { Task, Project } from '@/lib/indexeddb-service';
-import { createTask, updateTask } from '@/lib/indexeddb-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,7 +30,6 @@ import {
   TaskStatus,
   NO_PROJECT_VALUE,
 } from '@/lib/constants/project-management'; // Import TASK_STATUSES, TaskStatus, and NO_PROJECT_VALUE
-import { getAllTasks } from '@/lib/indexeddb-service';
 
 /**
  * @interface TaskFormProps
@@ -169,26 +167,19 @@ const TaskForm = ({
             ...taskData,
             updateTimestamp: Date.now(),
           };
-          await updateTask(updatedTask);
+          onTaskUpdated?.(updatedTask); // Propagate update to parent
           toast.success('Task updated successfully!');
-          onTaskUpdated?.(updatedTask);
         } else {
-          const newTask = await createTask({
+          // For new tasks, onTaskUpdated will be handleCreateTask from the hook
+          // which already handles creation and toast messages.
+          const newTaskData = {
             ...taskData,
-            // creationTimestamp is added by indexeddb-service.ts
-          });
-          if (newTask) {
-            toast.success('Task added successfully!');
-            onTaskUpdated?.(newTask);
-            reset(); // Reset form after successful creation
-          } else {
-            logger.error('createTask returned null/undefined task.', {
-              component: 'TaskForm',
-              context: 'handleSubmit',
-              taskData,
-            });
-            toast.error('Failed to add task. An unexpected error occurred.');
-          }
+          };
+          // The parent component (ProjectManagementPage) will call handleCreateTask
+          // which will then update the state and show the toast.
+          // We just need to pass the new task data up.
+          onTaskUpdated?.(newTaskData as Task); // Cast to Task as it will be a full Task after creation
+          reset(); // Reset form after successful creation
         }
       } catch (error) {
         logger.error(

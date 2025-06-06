@@ -1,8 +1,5 @@
-import React from 'react';
-
-import { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Project } from '@/lib/indexeddb-service';
-import { deleteProject } from '@/lib/indexeddb-service';
 import ProjectForm from './ProjectForm';
 import Modal from '@/components/Modal';
 import { Button } from '@/components/ui/button';
@@ -30,10 +27,13 @@ interface ProjectListProps {
    */
   projects: Project[];
   /**
-   * @brief Function to update the list of projects.
-   * Accepts a functional update to prevent stale closure issues.
+   * @brief Callback function to handle project deletion.
    */
-  setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
+  onDeleteProject: (id: string) => Promise<void>;
+  /**
+   * @brief Callback function to handle project updates.
+   */
+  onUpdateProject: (project: Project) => Promise<void>;
 }
 
 /**
@@ -46,15 +46,15 @@ interface ProjectListProps {
  * @param {ProjectListProps} props The props for the component.
  * @returns {JSX.Element} The ProjectList component.
  */
-const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
+const ProjectList = ({
+  projects,
+  onDeleteProject,
+  onUpdateProject,
+}: ProjectListProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('nameAsc'); // 'nameAsc', 'nameDesc', 'dateAsc', 'dateDesc'
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [projectToDeleteId, setProjectToDeleteId] = useState<string | null>(
-    null,
-  );
 
   /**
    * Memoizes filtered and sorted projects for performance.
@@ -109,46 +109,16 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
    * Uses `useCallback` for memoization.
    * @param {string} id - The ID of the project to be deleted.
    */
-  const handleDeleteProject = useCallback((id: string) => {
-    setProjectToDeleteId(id);
-    setIsConfirmModalOpen(true);
-  }, []);
+  const handleDeleteProjectClick = useCallback(
+    (id: string) => {
+      onDeleteProject(id); // Call the prop function directly
+    },
+    [onDeleteProject],
+  );
 
   /**
    * @brief Confirms and proceeds with project deletion after user confirmation.
-   * Uses `useCallback` for memoization.
-   */
-  const confirmDeleteProject = useCallback(async () => {
-    if (!projectToDeleteId) {
-      logger.warn('Attempted to confirm delete without a projectToDeleteId.');
-      toast.error('No project selected for deletion.');
-      setIsConfirmModalOpen(false);
-      return;
-    }
 
-    try {
-      await deleteProject(projectToDeleteId);
-      setProjects((prevProjects) =>
-        prevProjects.filter((project) => project.id !== projectToDeleteId),
-      );
-      toast.info('Project deleted successfully.');
-      // Close the modal if the deleted project was being edited
-      if (selectedProject?.id === projectToDeleteId) {
-        setSelectedProject(null);
-        setIsModalOpen(false);
-      }
-    } catch (error) {
-      logger.error('Error deleting project:', error, {
-        component: 'ProjectList',
-        context: 'confirmDeleteProject',
-        projectId: projectToDeleteId,
-      });
-      toast.error('Failed to delete project. Please try again.');
-    } finally {
-      setIsConfirmModalOpen(false);
-      setProjectToDeleteId(null);
-    }
-  }, [projectToDeleteId, setProjects, selectedProject?.id]);
 
   /**
    * @brief Handles the click event for editing a project, opening the ProjectForm modal.
@@ -243,7 +213,7 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDeleteProject(project.id)}
+                  onClick={() => handleDeleteProjectClick(project.id)} // Use the new handler
                   title="Delete project"
                   aria-label={`Delete project ${project.name}`}
                 >
@@ -263,35 +233,12 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
         >
           <ProjectForm
             project={selectedProject || undefined} // Ensure it's undefined if null
-            setProjects={setProjects}
             onProjectUpdated={handleCloseModal}
             onCancel={handleCloseModal}
+            onUpdateProject={onUpdateProject} // Pass the correct update handler
           />
         </Modal>
       )}
-
-      {/* Confirmation Modal for deleting a project */}
-      <Modal
-        isOpen={isConfirmModalOpen}
-        onClose={() => setIsConfirmModalOpen(false)}
-        title="Confirm Deletion"
-      >
-        <p className="mb-4 text-foreground">
-          Are you sure you want to delete this project? This action cannot be
-          undone. Note: This will not delete associated tasks.
-        </p>
-        <div className="flex justify-end space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => setIsConfirmModalOpen(false)}
-          >
-            Cancel
-          </Button>
-          <Button variant="destructive" onClick={confirmDeleteProject}>
-            Delete
-          </Button>
-        </div>
-      </Modal>
     </div>
   );
 };

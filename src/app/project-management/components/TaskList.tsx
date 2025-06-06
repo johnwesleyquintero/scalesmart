@@ -49,6 +49,14 @@ interface TaskListProps {
    * @brief All tasks across all columns, used for resolving dependencies and subtasks.
    */
   allTasks: Task[];
+  /**
+   * @brief Callback function to handle task deletion.
+   */
+  onDeleteTask: (id: string) => Promise<void>;
+  /**
+   * @brief Callback function to handle viewing task details.
+   */
+  onViewTaskDetails: (task: Task) => void;
 }
 
 /**
@@ -77,13 +85,11 @@ const TaskList = ({
   projects,
   onTaskUpdated,
   allTasks,
+  onDeleteTask, // Destructure new prop
+  onViewTaskDetails, // Destructure new prop
 }: TaskListProps) => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [taskInDetailsView, setTaskInDetailsView] = useState<Task | null>(null);
-  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-  const [taskIdToDelete, setTaskIdToDelete] = useState<string | null>(null);
 
   const { setNodeRef } = useDroppable({
     id: id,
@@ -123,49 +129,16 @@ const TaskList = ({
    * Uses `useCallback` for memoization.
    * @param {string} id - The ID of the task to be deleted.
    */
-  const handleDeleteTask = useCallback((id: string) => {
-    setTaskIdToDelete(id);
-    setIsConfirmModalOpen(true);
-  }, []);
+  const handleDeleteTaskClick = useCallback(
+    (id: string) => {
+      onDeleteTask(id); // Call the prop function directly
+    },
+    [onDeleteTask],
+  );
 
   /**
    * @brief Confirms and proceeds with task deletion after user confirmation.
-   * Uses `useCallback` for memoization.
-   */
-  const confirmDeleteTask = useCallback(async () => {
-    if (!taskIdToDelete) {
-      logger.warn('Attempted to confirm delete without a taskIdToDelete.');
-      toast.error('No task selected for deletion.');
-      setIsConfirmModalOpen(false);
-      return;
-    }
 
-    try {
-      await deleteTask(taskIdToDelete);
-      setTasks((prevTasks) =>
-        prevTasks.filter((task) => task.id !== taskIdToDelete),
-      );
-      toast.info('Task deleted successfully.');
-      if (selectedTask?.id === taskIdToDelete) {
-        setSelectedTask(null);
-        setIsEditModalOpen(false);
-      }
-      if (taskInDetailsView?.id === taskIdToDelete) {
-        setTaskInDetailsView(null);
-        setIsDetailsModalOpen(false);
-      }
-    } catch (error) {
-      logger.error('Error deleting task:', error, {
-        component: 'TaskList',
-        context: 'confirmDeleteTask',
-        taskId: taskIdToDelete,
-      });
-      toast.error('Failed to delete task. Please try again.');
-    } finally {
-      setIsConfirmModalOpen(false);
-      setTaskIdToDelete(null);
-    }
-  }, [taskIdToDelete, setTasks, selectedTask?.id, taskInDetailsView?.id]);
 
   /**
    * @brief Handles the click event for editing a task, opening the TaskForm modal.
@@ -181,10 +154,12 @@ const TaskList = ({
    * @brief Handles opening the task details modal.
    * @param {Task} task - The task object to view details for.
    */
-  const handleViewTaskDetails = useCallback((task: Task) => {
-    setTaskInDetailsView(task);
-    setIsDetailsModalOpen(true);
-  }, []);
+  const handleViewTaskDetailsClick = useCallback(
+    (task: Task) => {
+      onViewTaskDetails(task); // Call the prop function directly
+    },
+    [onViewTaskDetails],
+  );
 
   /**
    * @brief Handles closing the edit task modal.
@@ -197,12 +172,6 @@ const TaskList = ({
 
   /**
    * @brief Handles closing the task details modal.
-   * Uses `useCallback` for memoization.
-   */
-  const handleCloseDetailsModal = useCallback(() => {
-    setIsDetailsModalOpen(false);
-    setTaskInDetailsView(null);
-  }, []);
 
   /**
    * @brief Handles the successful update/creation of a task from TaskForm or TaskDetails, closing the modal if it was an edit.
@@ -219,18 +188,9 @@ const TaskList = ({
         handleCloseEditModal();
       }
 
-      // Close the details modal if the update originated from it
-      if (isDetailsModalOpen) {
-        handleCloseDetailsModal();
-      }
+      // No need to close details modal here, as it's handled by parent
     },
-    [
-      onTaskUpdated,
-      isEditModalOpen,
-      handleCloseEditModal,
-      isDetailsModalOpen,
-      handleCloseDetailsModal,
-    ],
+    [onTaskUpdated, isEditModalOpen, handleCloseEditModal],
   );
 
   return (
@@ -259,10 +219,10 @@ const TaskList = ({
                   task={task}
                   projects={projects}
                   onEditClick={handleEditClick}
-                  onDeleteTask={handleDeleteTask}
+                  onDeleteTask={handleDeleteTaskClick} // Use the new handler
                   allTasks={allTasks}
                   onTaskUpdated={handleTaskFormUpdated}
-                  onViewTaskDetails={handleViewTaskDetails}
+                  onViewTaskDetails={handleViewTaskDetailsClick} // Use the new handler
                 />
               ))
             )}
@@ -286,46 +246,6 @@ const TaskList = ({
             />
           </Modal>
         )}
-
-        {/* Modal for viewing task details */}
-        {isDetailsModalOpen && taskInDetailsView && (
-          <Modal
-            isOpen={isDetailsModalOpen}
-            onClose={handleCloseDetailsModal}
-            title={`Task Details: ${taskInDetailsView.title}`}
-          >
-            <TaskDetails
-              task={taskInDetailsView}
-              projects={projects}
-              allTasks={allTasks}
-              onTaskUpdated={handleTaskFormUpdated} // TaskDetails will propagate updates
-              onClose={handleCloseDetailsModal}
-            />
-          </Modal>
-        )}
-
-        {/* Confirmation Modal for deleting a task */}
-        <Modal
-          isOpen={isConfirmModalOpen}
-          onClose={() => setIsConfirmModalOpen(false)}
-          title="Confirm Deletion"
-        >
-          <p className="mb-4 text-foreground">
-            Are you sure you want to delete this task? This action cannot be
-            undone.
-          </p>
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsConfirmModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={confirmDeleteTask}>
-              Delete
-            </Button>
-          </div>
-        </Modal>
       </CardContent>
     </Card>
   );

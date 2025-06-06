@@ -20,10 +20,15 @@ import * as z from 'zod';
  */
 interface ProjectFormProps {
   /**
-   * @brief Function to update the list of projects.
-   * Accepts a functional update to prevent stale closure issues.
+   * @brief Callback function to create a new project.
    */
-  setProjects: React.Dispatch<React.SetStateAction<Project[]>>;
+  onCreateProject?: (
+    projectData: Omit<Project, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
+  ) => Promise<string | undefined>;
+  /**
+   * @brief Callback function to update an existing project.
+   */
+  onUpdateProject?: (project: Project) => Promise<void>;
   /**
    * @brief Optional project object for editing. If provided, the form will be pre-filled.
    */
@@ -50,7 +55,8 @@ interface ProjectFormProps {
  * @returns {JSX.Element} The ProjectForm component.
  */
 const ProjectForm = ({
-  setProjects,
+  onCreateProject,
+  onUpdateProject,
   project: initialProject,
   onProjectUpdated,
   onCancel,
@@ -99,31 +105,23 @@ const ProjectForm = ({
       try {
         if (initialProject) {
           // Update existing project
-          const updatedProject: Project = {
-            ...initialProject,
-            ...projectData,
-            updateTimestamp: Date.now(),
-          };
-          await updateProject(updatedProject);
-          setProjects((prevProjects) =>
-            prevProjects.map((p) =>
-              p.id === updatedProject.id ? updatedProject : p,
-            ),
-          );
-          toast.success('Project updated successfully!');
+          if (onUpdateProject) {
+            const updatedProject: Project = {
+              ...initialProject,
+              ...projectData,
+              updateTimestamp: Date.now(),
+            };
+            await onUpdateProject(updatedProject);
+            toast.success('Project updated successfully!');
+          }
         } else {
           // Create new project
-          const newProjectId = await createProject({
-            ...projectData,
-          });
-          const newProject: Project = {
-            ...projectData,
-            id: String(newProjectId), // Ensure ID is string
-            creationTimestamp: Date.now(),
-            updateTimestamp: Date.now(),
-          };
-          setProjects((prevProjects) => [...prevProjects, newProject]);
-          toast.success('Project added successfully!');
+          if (onCreateProject) {
+            await onCreateProject({
+              ...projectData,
+            });
+            // toast.success is handled by the hook
+          }
         }
         onProjectUpdated?.(); // Call the callback if provided for both add/update
       } catch (error) {
@@ -141,7 +139,7 @@ const ProjectForm = ({
         );
       }
     },
-    [initialProject, setProjects, onProjectUpdated],
+    [initialProject, onCreateProject, onUpdateProject, onProjectUpdated],
   );
 
   return (

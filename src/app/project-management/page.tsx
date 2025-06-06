@@ -2,7 +2,7 @@
 'use client';
 
 // Import necessary React and UI components
-import React, { useMemo } from 'react'; // Import useMemo
+import React, { useMemo, useState } from 'react'; // Import useMemo and useState
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -11,9 +11,11 @@ import TaskList from '@/app/project-management/components/TaskList';
 import TaskForm from '@/app/project-management/components/TaskForm';
 import ProjectForm from '@/app/project-management/components/ProjectForm';
 import ProjectList from '@/app/project-management/components/ProjectList';
-import { useProjectManagementData } from '@/hooks/use-project-management-data';
+import { useTaskManagement } from '@/hooks/use-task-management'; // Import the new hook
 import { Task } from '@/lib/indexeddb-service';
 import { ErrorBoundary } from '@/components/error-boundary';
+import TaskDetails from '@/app/project-management/components/TaskDetails'; // Import TaskDetails
+import { Dialog, DialogContent } from '@/components/ui/dialog'; // Import Dialog components
 
 // Import Dnd-kit components and hooks
 import {
@@ -25,9 +27,7 @@ import {
   useSensors,
   DragEndEvent,
 } from '@dnd-kit/core';
-import { arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { updateTask } from '@/lib/indexeddb-service';
-import { toast } from 'sonner';
+import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Project } from '@/lib/indexeddb-service'; // Import Project type
 import { TaskStatus, TASK_STATUSES } from '@/lib/constants/project-management'; // Import from new constants file
 
@@ -43,11 +43,27 @@ import { TaskStatus, TASK_STATUSES } from '@/lib/constants/project-management'; 
  * @returns {JSX.Element} The ProjectManagementPage component.
  */
 const ProjectManagementPage = () => {
-  // Destructure state and handlers from the custom hook for project management data
-  const { tasks, setTasks, projects, setProjects } = useProjectManagementData();
-  const [selectedProject, setSelectedProject] = React.useState<string | 'all'>(
-    'all',
-  ); // State to manage selected project filter
+  // Use the custom hook for project management data and handlers
+  const {
+    tasks,
+    setTasks,
+    projects,
+    setProjects,
+    isLoading,
+    error,
+    handleTaskUpdated,
+    handleDragEnd,
+    handleCreateTask,
+    handleDeleteTask,
+    handleCreateProject,
+    handleUpdateProject, // Add handleUpdateProject
+    handleDeleteProject,
+  } = useTaskManagement();
+
+  const [selectedProject, setSelectedProject] = useState<string | 'all'>('all'); // State to manage selected project filter
+  const [isTaskDetailsModalOpen, setIsTaskDetailsModalOpen] = useState(false);
+  const [selectedTaskForDetails, setSelectedTaskForDetails] =
+    useState<Task | null>(null);
 
   // Dnd-kit sensors
   const sensors = useSensors(
@@ -56,166 +72,6 @@ const ProjectManagementPage = () => {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-
-  // Handler to update a task in the state when it's modified (e.g., comment added, subtask added)
-  const handleTaskUpdated = (updatedTask: Task) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === updatedTask.id ? updatedTask : task,
-      ),
-    );
-  };
-
-  /**
-   * @brief A generic helper function to perform optimistic updates and handle persistence.
-   * @param updateLogic A function that takes the current tasks and returns the new tasks state for optimistic update.
-   * @param persistenceLogic An async function that performs the actual IndexedDB persistence.
-   * @param successMessage The message to display on successful persistence.
-   * @param errorMessage The message to display on failed persistence.
-   * @param originalTasks The state of tasks before the optimistic update, used for reverting on error.
-   */
-  const performOptimisticUpdate = async (
-    updateLogic: (prevTasks: Task[]) => Task[],
-    persistenceLogic: () => Promise<void>,
-    successMessage: string,
-    errorMessage: string,
-    originalTasks: Task[],
-  ) => {
-    setTasks(updateLogic);
-    toast.success(successMessage);
-
-    try {
-      await persistenceLogic();
-    } catch (error) {
-      console.error('Persistence failed:', error);
-      toast.error(errorMessage);
-      setTasks(originalTasks); // Revert state on error
-    }
-  };
-
-  /**
-   * @brief Handles the change of a task's status (column).
-   * @param taskToMove The task being moved.
-   * @param newStatus The new status (column ID) for the task.
-   * @param originalTasks The state of tasks before the optimistic update.
-   */
-  const handleTaskStatusChange = async (
-    taskToMove: Task,
-    newStatus: string,
-    originalTasks: Task[],
-  ) => {
-    const updatedTask: Task = {
-      ...taskToMove,
-      status: newStatus,
-      updateTimestamp: Date.now(),
-    };
-
-    await performOptimisticUpdate(
-      (prevTasks) =>
-        prevTasks
-          .filter((task) => task.id !== taskToMove.id)
-          .concat(updatedTask),
-      async () => await updateTask(updatedTask),
-      `Task "${updatedTask.title}" status updated to "${newStatus.replace(/-/g, ' ')}".`,
-      `Failed to update task status. Please try again.`,
-      originalTasks,
-    );
-  };
-
-  /**
-   * @brief Handles reordering of tasks within the same column.
-   * @param activeId The ID of the task being dragged.
-   * @param overId The ID of the task being dragged over.
-   * @param containerId The ID of the column (status) where reordering is happening.
-   * @param originalTasks The state of tasks before the optimistic update.
-   */
-  const handleTaskReorder = async (
-    activeId: string,
-    overId: string,
-    containerId: string,
-    originalTasks: Task[],
-  ) => {
-    const currentTasksInColumn = tasks
-      .filter((task) => task.status === containerId)
-      .sort((a, b) => (a.order || 0) - (b.order || 0)); // Ensure tasks are sorted by order before reordering
-
-    const oldIndex = currentTasksInColumn.findIndex(
-      (task) => task.id === activeId,
-    );
-    const newIndex = currentTasksInColumn.findIndex(
-      (task) => task.id === overId,
-    );
-
-    if (oldIndex === -1 || newIndex === -1) {
-      console.warn('Could not find active or over task in the current column.');
-      return;
-    }
-
-    const newOrder = arrayMove(currentTasksInColumn, oldIndex, newIndex);
-
-    // Apply new 'order' values to the reordered tasks
-    const tasksWithNewOrder = newOrder.map((task, index) => ({
-      ...task,
-      order: index, // Assign new order based on array position
-      updateTimestamp: Date.now(),
-    }));
-
-    await performOptimisticUpdate(
-      (prevTasks) => {
-        const tasksWithoutCurrentColumn = prevTasks.filter(
-          (task) => task.status !== containerId,
-        );
-        return [...tasksWithoutCurrentColumn, ...tasksWithNewOrder];
-      },
-      async () => {
-        await Promise.all(tasksWithNewOrder.map((task) => updateTask(task)));
-        return; // Explicitly return void
-      },
-      `Task reordered successfully.`,
-      `Failed to reorder task. Please try again.`,
-      originalTasks,
-    );
-  };
-
-  /**
-   * @brief Handles the end of a drag-and-drop operation.
-   * Dispatches to specific handlers based on whether the task changed columns or was reordered within the same column.
-   * @param event The DragEndEvent from Dnd-kit.
-   */
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over) return;
-
-    const activeId = active.id as string;
-    const overId = over.id as string;
-
-    const taskToMove = tasks.find((task) => task.id === activeId);
-    if (!taskToMove) {
-      console.warn(`Dragged task with ID ${activeId} not found.`);
-      toast.error('Dragged task not found.');
-      return;
-    }
-
-    const originalTasks = [...tasks]; // Capture current state for potential revert
-
-    const activeContainerId =
-      active.data.current?.sortable.containerId || taskToMove.status;
-    const overContainerId = over.data.current?.sortable.containerId || overId;
-
-    if (activeContainerId !== overContainerId) {
-      // Task moved to a different column (status change)
-      await handleTaskStatusChange(taskToMove, overContainerId, originalTasks);
-    } else {
-      // Task reordered within the same column
-      await handleTaskReorder(
-        activeId,
-        overId,
-        activeContainerId,
-        originalTasks,
-      );
-    }
-  };
 
   // Filter tasks by status and selected project for each column
   // Memoize the filtered task lists for performance
@@ -239,6 +95,32 @@ const ProjectManagementPage = () => {
     () => filteredTasks.filter((task) => task.status === TaskStatus.COMPLETED),
     [filteredTasks],
   );
+
+  const handleViewTaskDetails = (task: Task) => {
+    setSelectedTaskForDetails(task);
+    setIsTaskDetailsModalOpen(true);
+  };
+
+  const handleCloseTaskDetailsModal = () => {
+    setIsTaskDetailsModalOpen(false);
+    setSelectedTaskForDetails(null);
+  };
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto p-4 text-center text-foreground">
+        Loading project data...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container mx-auto p-4 text-center text-destructive">
+        Error: {error}
+      </div>
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -310,9 +192,11 @@ const ProjectManagementPage = () => {
                   projects={projects}
                   allTasks={tasks}
                   onTaskUpdated={handleTaskUpdated}
+                  onDeleteTask={handleDeleteTask} // Pass delete handler
+                  onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
                 />
                 <TaskList
-                  key={TaskStatus.IN_PROGRESS} // Added key prop
+                  key={TaskStatus.IN_PROGRESS}
                   id={TaskStatus.IN_PROGRESS}
                   title="In Progress"
                   tasks={inProgressTasks}
@@ -320,9 +204,11 @@ const ProjectManagementPage = () => {
                   projects={projects}
                   allTasks={tasks}
                   onTaskUpdated={handleTaskUpdated}
+                  onDeleteTask={handleDeleteTask} // Pass delete handler
+                  onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
                 />
                 <TaskList
-                  key={TaskStatus.COMPLETED} // Added key prop
+                  key={TaskStatus.COMPLETED}
                   id={TaskStatus.COMPLETED}
                   title="Completed"
                   tasks={completedTasks}
@@ -330,6 +216,8 @@ const ProjectManagementPage = () => {
                   projects={projects}
                   allTasks={tasks}
                   onTaskUpdated={handleTaskUpdated}
+                  onDeleteTask={handleDeleteTask} // Pass delete handler
+                  onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
                 />
               </div>
             </DndContext>
@@ -346,7 +234,7 @@ const ProjectManagementPage = () => {
                     {/* TaskForm component for creating new tasks */}
                     <TaskForm
                       projects={projects}
-                      onTaskUpdated={handleTaskUpdated}
+                      onTaskUpdated={handleCreateTask} // Use handleCreateTask from hook
                       allTasks={tasks}
                     />
                   </CardContent>
@@ -368,7 +256,7 @@ const ProjectManagementPage = () => {
                   </CardHeader>
                   <CardContent>
                     {/* ProjectForm component for creating new projects */}
-                    <ProjectForm setProjects={setProjects} />
+                    <ProjectForm onCreateProject={handleCreateProject} />
                   </CardContent>
                 </Card>
 
@@ -383,7 +271,8 @@ const ProjectManagementPage = () => {
                     {/* ProjectList component for displaying and managing projects */}
                     <ProjectList
                       projects={projects}
-                      setProjects={setProjects}
+                      onDeleteProject={handleDeleteProject}
+                      onUpdateProject={handleUpdateProject} // Pass update handler
                     />
                   </CardContent>
                 </Card>
@@ -391,6 +280,24 @@ const ProjectManagementPage = () => {
             </div>
           </TabsContent>
         </Tabs>
+
+        {/* Task Details Modal */}
+        {selectedTaskForDetails && (
+          <Dialog
+            open={isTaskDetailsModalOpen}
+            onOpenChange={setIsTaskDetailsModalOpen}
+          >
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+              <TaskDetails
+                task={selectedTaskForDetails}
+                projects={projects}
+                allTasks={tasks}
+                onTaskUpdated={handleTaskUpdated}
+                onClose={handleCloseTaskDetailsModal}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     </ErrorBoundary>
   );
