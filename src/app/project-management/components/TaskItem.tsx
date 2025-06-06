@@ -1,11 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
-import CommentList from './CommentList';
-import { updateTask } from '@/lib/indexeddb-service'; // Assuming correct path
-import { Task, Project, TaskComment } from '@/lib/indexeddb-service'; // Import TaskComment type
+import { Task, Project } from '@/lib/indexeddb-service';
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button'; // Assuming correct path
-import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react'; // Import Flag icon
-import { toast } from 'sonner'; // Import toast for user feedback
+import { Button } from '@/components/ui/button';
+import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react';
 
 interface TaskItemProps {
   task: Task;
@@ -23,9 +20,9 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     projects,
     onEditClick,
     onDeleteTask,
-    allTasks, // Use allTasks for dependency/subtask lookup
-    onTaskUpdated, // Use the new prop
-    onViewTaskDetails, // Use the new prop
+    allTasks,
+    onTaskUpdated,
+    onViewTaskDetails,
   }: TaskItemProps) => {
     const projectsMap = useMemo(() => {
       const map = new Map<string, Project>();
@@ -46,121 +43,93 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
       [projectsMap],
     );
 
-    /**
-     * Handles adding a new comment to the task.
-     * This function is called by the CommentList component.
-     * @param {TaskComment} newComment - The new comment object to add.
-     */
-    const handleAddComment = useCallback(
-      async (newComment: TaskComment) => {
-        // Use TaskComment
-        // Ensure comments is an array before spreading
-        const currentComments = Array.isArray(task.comments)
-          ? task.comments
-          : [];
-        const updatedTask: Task = {
-          // Explicitly type updatedTask as Task
-          ...task,
-          comments: [...currentComments, newComment],
-        };
-        try {
-          await updateTask(updatedTask); // Persist the update to IndexedDB
-          onTaskUpdated(updatedTask); // Notify parent component of the update
-        } catch (error) {
-          console.error('Failed to add comment and update task:', error);
-          toast.error('Failed to add comment. Please try again.'); // Implement user feedback for error
-        }
-      },
-      [task, onTaskUpdated], // Depend on task and the onTaskUpdated prop
-    );
+    // Determine priority styling
+    const priorityClass = useMemo(() => {
+      switch (task.priority) {
+        case 'high':
+          return 'text-red-500';
+        case 'medium':
+          return 'text-yellow-500';
+        case 'low':
+          return 'text-green-500';
+        default:
+          return 'text-muted-foreground';
+      }
+    }, [task.priority]);
 
     return (
-      <div className="bg-card p-3 rounded-md shadow-sm border border-border">
+      <div
+        className="bg-card p-3 rounded-md shadow-sm border border-border cursor-pointer hover:bg-accent/50 transition-colors duration-200"
+        onClick={() => onViewTaskDetails(task)} // Make the entire card clickable
+        aria-label={`View details for task ${task.title}`}
+      >
         <h3 className="font-semibold text-base mb-1 text-foreground">
           {task.title}
         </h3>
         {task.description && (
-          <p className="text-sm text-muted-foreground mb-2">
+          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
             {task.description}
           </p>
         )}
-        <div className="flex items-center text-xs text-muted-foreground mb-1">
-          <UserRound className="h-3 w-3 mr-1" />
-          <span>{task.assignee || 'Unassigned'}</span>
-        </div>
-        <div className="flex items-center text-xs text-muted-foreground mb-2">
-          <CalendarIcon className="h-3 w-3 mr-1" />
-          <span>
-            {task.dueDate
-              ? format(new Date(task.dueDate), 'PPP')
-              : 'No due date'}
-          </span>
-        </div>
-        <div className="flex items-center text-xs text-muted-foreground mb-2">
-          <Tag className="h-3 w-3 mr-1" />
-          <span>
-            <span className="font-medium text-primary">
-              Project: {getProjectName(task.projectId)}
-            </span>
-          </span>
-        </div>
-        <div className="flex items-center text-xs text-muted-foreground mb-2">
-          <span className="font-medium text-primary">
-            Status: {task.status}
-          </span>
-        </div>
-        {task.priority && ( // Display priority if it exists
-          <div className="flex items-center text-xs text-muted-foreground mb-2">
-            <Flag
-              className={`h-3 w-3 mr-1 ${task.priority === 'high' ? 'text-red-500' : task.priority === 'medium' ? 'text-yellow-500' : 'text-green-500'}`}
-            />{' '}
-            {/* Add Flag icon with color based on priority */}
-            <span>
-              <span className="font-medium text-primary">
+        <div className="flex flex-wrap items-center text-xs text-muted-foreground gap-y-1">
+          {task.assignee && (
+            <div className="flex items-center mr-3">
+              <UserRound className="h-3 w-3 mr-1" />
+              <span>{task.assignee}</span>
+            </div>
+          )}
+          {task.dueDate && (
+            <div className="flex items-center mr-3">
+              <CalendarIcon className="h-3 w-3 mr-1" />
+              <span>{format(new Date(task.dueDate), 'PPP')}</span>
+            </div>
+          )}
+          {task.projectId && (
+            <div className="flex items-center mr-3">
+              <Tag className="h-3 w-3 mr-1" />
+              <span>Project: {getProjectName(task.projectId)}</span>
+            </div>
+          )}
+          {task.priority && (
+            <div className="flex items-center mr-3">
+              <Flag className={`h-3 w-3 mr-1 ${priorityClass}`} />
+              <span>
                 Priority:{' '}
-                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}{' '}
-                {/* Capitalize first letter */}
+                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
               </span>
-            </span>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
+
         {task.dependencies && task.dependencies.length > 0 && (
-          <div className="flex items-center text-xs text-muted-foreground mb-2">
-            <Tag className="h-3 w-3 mr-1" />
-            <span>
-              <span className="font-medium text-primary">
-                Dependencies:{' '}
-                {task.dependencies
-                  .map((dependencyId: string) => {
-                    const dependency = allTasks.find(
-                      (t) => t.id === dependencyId,
-                    );
-                    return dependency ? dependency.title : 'Unknown Task';
-                  })
-                  .join(', ')}
-              </span>
-            </span>
+          <div className="text-xs text-muted-foreground mt-2">
+            <span className="font-medium">Dependencies: </span>
+            {task.dependencies
+              .map((dependencyId: string) => {
+                const dependency = allTasks.find((t) => t.id === dependencyId);
+                return dependency ? dependency.title : 'Unknown Task';
+              })
+              .join(', ')}
           </div>
         )}
         {task.subtasks && task.subtasks.length > 0 && (
-          <div className="flex items-center text-xs text-muted-foreground mb-2">
-            <Tag className="h-3 w-3 mr-1" />
-            <span>
-              <span className="font-medium text-primary">
-                Subtasks:{' '}
-                {task.subtasks
-                  .map((subtaskId: string) => {
-                    const subtask = allTasks.find((t) => t.id === subtaskId);
-                    return subtask ? subtask.title : 'Unknown Task';
-                  })
-                  .join(', ')}
-              </span>
-            </span>
+          <div className="text-xs text-muted-foreground mt-1">
+            <span className="font-medium">Subtasks: </span>
+            {task.subtasks
+              .map((subtaskId: string) => {
+                const subtask = allTasks.find((t) => t.id === subtaskId);
+                return subtask ? subtask.title : 'Unknown Task';
+              })
+              .join(', ')}
           </div>
         )}
-        <div className="flex space-x-2 mt-2">
+
+        <div className="flex space-x-2 mt-3">
           <Button
-            onClick={() => onEditClick(task)}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent opening details modal
+              onEditClick(task);
+            }}
             variant="outline"
             size="sm"
             className="text-xs"
@@ -169,7 +138,10 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             Edit
           </Button>
           <Button
-            onClick={() => onDeleteTask(task.id)}
+            onClick={(e) => {
+              e.stopPropagation(); // Prevent opening details modal
+              onDeleteTask(task.id);
+            }}
             variant="destructive"
             size="sm"
             className="text-xs"
@@ -178,11 +150,6 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             Delete
           </Button>
         </div>
-        <CommentList
-          taskId={task.id}
-          comments={task.comments || []} // Ensure comments is an array for CommentList
-          onAddComment={handleAddComment} // Pass the refactored handler
-        />
       </div>
     );
   },

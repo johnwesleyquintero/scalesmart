@@ -13,8 +13,7 @@ import { CalendarIcon, UserRound, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
 import TaskItem from './TaskItem';
-import CommentList from './CommentList'; // Import CommentList
-import { updateTask } from '@/lib/indexeddb-service'; // Import updateTask
+import TaskDetails from './TaskDetails'; // Import the new TaskDetails component
 
 /**
  * @interface TaskListProps
@@ -77,17 +76,17 @@ const TaskList = ({
   setTasks,
   projects,
   onTaskUpdated,
-  allTasks, // Destructure allTasks
+  allTasks,
 }: TaskListProps) => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Renamed for clarity
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false); // New state for details modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [taskInDetailsView, setTaskInDetailsView] = useState<Task | null>(null); // New state for task in details view
+  const [taskInDetailsView, setTaskInDetailsView] = useState<Task | null>(null);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [taskIdToDelete, setTaskIdToDelete] = useState<string | null>(null);
 
   const { setNodeRef } = useDroppable({
-    id: id, // The ID of the droppable container (e.g., 'to-do', 'in-progress', 'completed')
+    id: id,
   });
 
   /**
@@ -147,10 +146,13 @@ const TaskList = ({
         prevTasks.filter((task) => task.id !== taskIdToDelete),
       );
       toast.info('Task deleted successfully.');
-      // Close the modal if the deleted task was being edited
       if (selectedTask?.id === taskIdToDelete) {
         setSelectedTask(null);
-        setIsEditModalOpen(false); // Use new state
+        setIsEditModalOpen(false);
+      }
+      if (taskInDetailsView?.id === taskIdToDelete) {
+        setTaskInDetailsView(null);
+        setIsDetailsModalOpen(false);
       }
     } catch (error) {
       logger.error('Error deleting task:', error, {
@@ -163,7 +165,7 @@ const TaskList = ({
       setIsConfirmModalOpen(false);
       setTaskIdToDelete(null);
     }
-  }, [taskIdToDelete, setTasks, selectedTask?.id]);
+  }, [taskIdToDelete, setTasks, selectedTask?.id, taskInDetailsView?.id]);
 
   /**
    * @brief Handles the click event for editing a task, opening the TaskForm modal.
@@ -172,7 +174,7 @@ const TaskList = ({
    */
   const handleEditClick = useCallback((task: Task) => {
     setSelectedTask(task);
-    setIsEditModalOpen(true); // Use new state
+    setIsEditModalOpen(true);
   }, []);
 
   /**
@@ -189,7 +191,7 @@ const TaskList = ({
    * Uses `useCallback` for memoization.
    */
   const handleCloseEditModal = useCallback(() => {
-    setIsEditModalOpen(false); // Use new state
+    setIsEditModalOpen(false);
     setSelectedTask(null);
   }, []);
 
@@ -203,18 +205,29 @@ const TaskList = ({
   }, []);
 
   /**
-   * @brief Handles the successful update/creation of a task from TaskForm, closing the modal.
+   * @brief Handles the successful update/creation of a task from TaskForm or TaskDetails, closing the modal if it was an edit.
    * Uses `useCallback` for memoization.
    * @param {Task} updatedOrNewTask - The task object that was updated or newly created.
    */
   const handleTaskFormUpdated = useCallback(
     (updatedOrNewTask: Task) => {
-      // This handler is now primarily for updates from the TaskForm modal
-      // The parent (ProjectManagementPage) will handle adding new tasks to its state
-      onTaskUpdated(updatedOrNewTask); // Propagate the update to the parent
-      handleCloseEditModal(); // Use new close handler
+      onTaskUpdated(updatedOrNewTask); // Propagate the update to the parent (ProjectManagementPage)
+      // If the update came from the edit modal, close it
+      if (isEditModalOpen) {
+        handleCloseEditModal();
+      }
+      // If the update came from the details modal, ensure the task in details view is updated
+      if (isDetailsModalOpen && taskInDetailsView?.id === updatedOrNewTask.id) {
+        setTaskInDetailsView(updatedOrNewTask);
+      }
     },
-    [onTaskUpdated, handleCloseEditModal],
+    [
+      onTaskUpdated,
+      isEditModalOpen,
+      handleCloseEditModal,
+      isDetailsModalOpen,
+      taskInDetailsView?.id,
+    ],
   );
 
   return (
@@ -244,9 +257,9 @@ const TaskList = ({
                   projects={projects}
                   onEditClick={handleEditClick}
                   onDeleteTask={handleDeleteTask}
-                  allTasks={allTasks} // Pass all tasks for dependency/subtask lookup
+                  allTasks={allTasks}
                   onTaskUpdated={handleTaskFormUpdated}
-                  onViewTaskDetails={handleViewTaskDetails} // Pass new handler
+                  onViewTaskDetails={handleViewTaskDetails}
                 />
               ))
             )}
@@ -261,12 +274,12 @@ const TaskList = ({
             title="Edit Task"
           >
             <TaskForm
-              key={selectedTask?.id || 'new-task-form'} // Use task ID as key for re-rendering on selection change
+              key={selectedTask?.id || 'new-task-form'}
               task={selectedTask}
               onTaskUpdated={handleTaskFormUpdated}
-              onCancel={handleCloseEditModal} // Use new close handler
+              onCancel={handleCloseEditModal}
               projects={projects}
-              allTasks={allTasks} // Pass allTasks to TaskForm
+              allTasks={allTasks}
             />
           </Modal>
         )}
@@ -278,48 +291,13 @@ const TaskList = ({
             onClose={handleCloseDetailsModal}
             title={`Task Details: ${taskInDetailsView.title}`}
           >
-            <TaskForm
-              key={taskInDetailsView.id}
+            <TaskDetails
               task={taskInDetailsView}
-              onTaskUpdated={(updatedTask) => {
-                onTaskUpdated(updatedTask); // Propagate update to parent
-                setTaskInDetailsView(updatedTask); // Update task in details view
-              }}
-              onCancel={handleCloseDetailsModal}
               projects={projects}
-              allTasks={allTasks} // Pass allTasks to TaskForm
+              allTasks={allTasks}
+              onTaskUpdated={handleTaskFormUpdated} // TaskDetails will propagate updates
+              onClose={handleCloseDetailsModal}
             />
-            {/* Add comments section directly here or within TaskForm if it makes sense */}
-            {/* For now, keeping CommentList separate for clarity */}
-            <div className="mt-4 pt-4 border-t border-border">
-              <CommentList
-                taskId={taskInDetailsView.id}
-                comments={taskInDetailsView.comments || []}
-                onAddComment={async (newComment: TaskComment) => {
-                  // Explicitly type newComment with TaskComment
-                  const currentComments = Array.isArray(
-                    taskInDetailsView.comments,
-                  )
-                    ? taskInDetailsView.comments
-                    : [];
-                  const updatedTask: Task = {
-                    ...taskInDetailsView,
-                    comments: [...currentComments, newComment],
-                  };
-                  try {
-                    await updateTask(updatedTask);
-                    onTaskUpdated(updatedTask); // Propagate update to parent
-                    setTaskInDetailsView(updatedTask); // Update task in details view
-                  } catch (error) {
-                    console.error(
-                      'Failed to add comment and update task:',
-                      error,
-                    );
-                    toast.error('Failed to add comment. Please try again.');
-                  }
-                }}
-              />
-            </div>
           </Modal>
         )}
 
