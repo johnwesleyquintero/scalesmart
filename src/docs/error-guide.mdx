@@ -18,16 +18,17 @@ The ScaleSmart Platform utilizes a centralized error handling mechanism to ensur
 
 All errors within the application should be reported using the `logError` utility function (from `src/lib/error-handling.ts`). This function:
 
--   Logs the error to the console (in development).
--   Displays a user-friendly toast notification to the user.
--   Captures the error for reporting services (like Sentry) in production environments.
+- Logs the error to the console (in development).
+- Displays a user-friendly toast notification to the user.
+- Captures the error for reporting services (like Sentry) in production environments.
 
 When calling `logError`, you can specify:
--   `message`: A descriptive error message.
--   `component`: The part of the application where the error occurred (e.g., `API_HANDLER`, `UserProfileComponent`).
--   `severity`: The impact level of the error (`low`, `medium`, `high`, `critical`).
--   `error`: The actual error object (e.g., `new Error('...')`).
--   `context`: Additional relevant data for debugging.
+
+- `message`: A descriptive error message.
+- `component`: The part of the application where the error occurred (e.g., `API_HANDLER`, `UserProfileComponent`).
+- `severity`: The impact level of the error (`low`, `medium`, `high`, `critical`).
+- `error`: The actual error object (e.g., `new Error('...')`).
+- `context`: Additional relevant data for debugging.
 
 ### Error Reporting Service (Sentry)
 
@@ -57,27 +58,27 @@ These errors often occur due to incorrect settings in configuration files or env
 
 API errors are handled centrally using the `handleApiError` utility function (from `src/lib/error-handling.ts`). This function ensures that:
 
--   Detailed error information is logged internally using `logError` for debugging purposes.
--   Client-facing error messages are standardized and do not expose sensitive internal details.
--   Appropriate HTTP status codes are returned.
+- Detailed error information is logged internally using `logError` for debugging purposes.
+- Client-facing error messages are standardized and do not expose sensitive internal details.
+- Appropriate HTTP status codes are returned.
 
 **Common API Error Scenarios & Troubleshooting:**
 
--   **Authentication/Authorization Issues (401/403)**:
-    -   **Cause**: Invalid or missing API keys, expired tokens, or insufficient permissions.
-    -   **Troubleshooting**: Verify credentials, check token validity, ensure the user has the necessary roles/permissions.
--   **Validation Errors (400 Bad Request)**:
-    -   **Cause**: Incorrect data format, missing required fields, or invalid input values sent to an API endpoint.
-    -   **Troubleshooting**: Review API documentation for expected request body/query parameters, validate input on the client-side before sending.
--   **Network Issues**:
-    -   **Cause**: Connectivity problems between the client and server, or between internal services.
-    -   **Troubleshooting**: Check network connection, inspect browser console for network errors, use tools like Postman/Insomnia to test API endpoints directly.
--   **Server-Side Errors (5xx)**:
-    -   **Cause**: Unexpected errors on the server, database issues, or unhandled exceptions.
-    -   **Troubleshooting**: Check server logs (via Sentry or direct log access), ensure all necessary services are running, review recent code changes.
--   **Rate Limiting (429 Too Many Requests)**:
-    -   **Cause**: Exceeding the allowed number of requests to an external API within a given timeframe.
-    -   **Troubleshooting**: Implement retry mechanisms with exponential backoff, optimize API calls to reduce frequency, check API documentation for rate limit policies.
+- **Authentication/Authorization Issues (401/403)**:
+  - **Cause**: Invalid or missing API keys, expired tokens, or insufficient permissions.
+  - **Troubleshooting**: Verify credentials, check token validity, ensure the user has the necessary roles/permissions.
+- **Validation Errors (400 Bad Request)**:
+  - **Cause**: Incorrect data format, missing required fields, or invalid input values sent to an API endpoint.
+  - **Troubleshooting**: Review API documentation for expected request body/query parameters, validate input on the client-side before sending.
+- **Network Issues**:
+  - **Cause**: Connectivity problems between the client and server, or between internal services.
+  - **Troubleshooting**: Check network connection, inspect browser console for network errors, use tools like Postman/Insomnia to test API endpoints directly.
+- **Server-Side Errors (5xx)**:
+  - **Cause**: Unexpected errors on the server, database issues, or unhandled exceptions.
+  - **Troubleshooting**: Check server logs (via Sentry or direct log access), ensure all necessary services are running, review recent code changes.
+- **Rate Limiting (429 Too Many Requests)**:
+  - **Cause**: Exceeding the allowed number of requests to an external API within a given timeframe.
+  - **Troubleshooting**: Implement retry mechanisms with exponential backoff, optimize API calls to reduce frequency, check API documentation for rate limit policies.
 
 ### 3. Data Processing Errors
 
