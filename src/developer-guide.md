@@ -60,15 +60,25 @@ const MAX_RETRIES = 5;
 
 Files and directories should be organized logically to reflect their domain and purpose.
 
+- **`docs/`**: Project documentation, including design system guidelines and general project information.
+- **`lib/`**: Root-level utility functions or configurations that are not specific to the `src` directory.
+- **`public/`**: Static assets served directly by the web server (e.g., images, fonts, manifest files).
+- **`scripts/`**: Standalone utility scripts for development, build processes, or maintenance tasks.
+- **`supabase/`**: Supabase-related configurations, migrations, and database schema definitions.
 - **`src/actions/`**: Contains server actions for Next.js.
 - **`src/app/`**: Holds Next.js App Router specific pages, layouts, and API routes.
+- **`src/app/content/`**: Contains MDX content files specific to different application sections.
 - **`src/components/`**: Reusable UI components. Categorize into subdirectories (e.g., `components/ui/`, `components/shared/`, `components/amazon-seller-tools/`) as complexity grows.
 - **`src/config/`**: Configuration files (e.g., application settings, API keys).
 - **`src/context/`**: React Context API providers.
 - **`src/data/`**: Static data, JSON files, or mock data.
 - **`src/hooks/`**: Custom React hooks.
 - **`src/lib/`**: Utility functions, helper classes, and non-React logic. This is typically where business logic resides.
+- **`src/docs/`**: Markdown or MDX files for in-app documentation.
+- **`src/pages/`**: (Legacy) React components for page-based routing. Prefer `src/app/` for new pages.
+- **`src/styles/`**: Global stylesheets, CSS modules, or Tailwind CSS configurations.
 - **`src/types/`**: TypeScript type definitions and interfaces.
+- **`src/utils/`**: General utility functions and helper modules.
 
 ## 4. Commits
 
