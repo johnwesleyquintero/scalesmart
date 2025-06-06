@@ -11,15 +11,10 @@ import {
   updateCommunicationLog,
   deleteCommunicationLog,
 } from '@/lib/indexeddb-service';
-import type {
-  Category,
-  Contact,
-  Customer,
-  CommunicationLog,
-} from '@/app/crm/types';
+import type { Category, Contact, CommunicationLog } from '@/app/crm/types';
 
 export const useCRMData = () => {
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customers, setCustomers] = useState<Contact[]>([]);
   const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -27,14 +22,14 @@ export const useCRMData = () => {
     const loadInitialData = async () => {
       try {
         const allContacts = await getAllContacts();
-        const allCustomers: Customer[] = allContacts.map(
+        const allCustomers: Contact[] = allContacts.map(
           (contact) =>
             ({
               ...contact,
               id: contact.id!,
               category: contact.category || '',
               communicationLogs: contact.communicationLogs || [],
-            }) as Customer,
+            }) as Contact,
         );
         setCustomers(allCustomers);
 
@@ -50,8 +45,8 @@ export const useCRMData = () => {
     loadInitialData();
   }, []);
 
-  const handleSaveCustomer = useCallback(
-    async (formData: Omit<Contact, 'id'>, editingCustomer: Customer | null) => {
+  const handleSaveCustomerAction = useCallback(
+    async (formData: Omit<Contact, 'id'>, editingCustomer: Contact | null) => {
       if (editingCustomer) {
         const updatedCustomer: Contact = {
           ...formData,
@@ -60,7 +55,7 @@ export const useCRMData = () => {
         try {
           await updateContact(updatedCustomer);
           setCustomers((prevCustomers) =>
-            prevCustomers.map((customer: Customer) =>
+            prevCustomers.map((customer: Contact) =>
               customer.id === editingCustomer.id
                 ? {
                     ...customer,
@@ -92,7 +87,7 @@ export const useCRMData = () => {
             id: newId,
             category: newCustomer.category || '',
             communicationLogs: [],
-          } as Customer;
+          } as Contact;
           setCustomers((prevCustomers) => [
             ...prevCustomers,
             completeNewCustomer,
@@ -107,11 +102,11 @@ export const useCRMData = () => {
     [], // No dependencies needed if using functional updates for setCustomers
   );
 
-  const handleDeleteCustomer = useCallback(async (id: string) => {
+  const handleDeleteCustomerAction = useCallback(async (id: string) => {
     try {
       await deleteContact(id);
       setCustomers((prevCustomers) =>
-        prevCustomers.filter((customer: Customer) => customer.id !== id),
+        prevCustomers.filter((customer: Contact) => customer.id !== id),
       );
       toast.info('Customer deleted.');
     } catch (error) {
@@ -120,7 +115,7 @@ export const useCRMData = () => {
     }
   }, []);
 
-  const handleCategoriesUpdate = useCallback(
+  const handleCategoriesUpdateAction = useCallback(
     async (updatedCategories: Category[]) => {
       try {
         // Persist each category to IndexedDB
@@ -137,59 +132,63 @@ export const useCRMData = () => {
     [],
   );
 
-  const handleCategorySuccessfullyDeleted = useCallback(
+  const handleCategorySuccessfullyDeletedAction = useCallback(
     async (deletedCategoryName: string) => {
-      setCustomers((prevCustomers) => {
-        const customersToUpdate = prevCustomers.filter(
-          (customer) => customer.category === deletedCategoryName,
-        );
+      const customersToUpdate = customers.filter(
+        (customer) => customer.category === deletedCategoryName,
+      );
 
-        // Perform async updates in the background
-        customersToUpdate.forEach(async (customer) => {
-          const updatedCustomer = { ...customer, category: '' };
-          await updateContact(updatedCustomer);
-        });
+      const updatePromises = customersToUpdate.map(async (customer) => {
+        const updatedCustomer = { ...customer, category: '' };
+        await updateContact(updatedCustomer);
+        return updatedCustomer;
+      });
 
-        toast.info(
-          `Customers previously in "${deletedCategoryName}" are now uncategorized.`,
-        );
-        return prevCustomers.map((customer) =>
+      await Promise.all(updatePromises);
+
+      setCustomers((prevCustomers) =>
+        prevCustomers.map((customer) =>
           customer.category === deletedCategoryName
             ? { ...customer, category: '' }
             : customer,
-        );
-      });
+        ),
+      );
+      toast.info(
+        `Customers previously in "${deletedCategoryName}" are now uncategorized.`,
+      );
     },
-    [], // No dependencies needed if using functional updates for setCustomers
+    [customers],
   );
 
-  const handleCategoryRenamed = useCallback(
+  const handleCategoryRenamedAction = useCallback(
     async (oldName: string, newName: string) => {
-      setCustomers((prevCustomers) => {
-        const customersToUpdate = prevCustomers.filter(
-          (customer) => customer.category === oldName,
-        );
+      const customersToUpdate = customers.filter(
+        (customer) => customer.category === oldName,
+      );
 
-        // Perform async updates in the background
-        customersToUpdate.forEach(async (customer) => {
-          const updatedCustomer = { ...customer, category: newName };
-          await updateContact(updatedCustomer);
-        });
+      const updatePromises = customersToUpdate.map(async (customer) => {
+        const updatedCustomer = { ...customer, category: newName };
+        await updateContact(updatedCustomer);
+        return updatedCustomer;
+      });
 
-        toast.info(
-          `Customers previously in "${oldName}" are now in "${newName}".`,
-        );
-        return prevCustomers.map((customer) =>
+      await Promise.all(updatePromises);
+
+      setCustomers((prevCustomers) =>
+        prevCustomers.map((customer) =>
           customer.category === oldName
             ? { ...customer, category: newName }
             : customer,
-        );
-      });
+        ),
+      );
+      toast.info(
+        `Customers previously in "${oldName}" are now in "${newName}".`,
+      );
     },
-    [], // No dependencies needed if using functional updates for setCustomers
+    [customers],
   );
 
-  const handleCreateCommunicationLog = useCallback(
+  const handleCreateCommunicationLogAction = useCallback(
     async (log: Omit<CommunicationLog, 'id'>) => {
       try {
         const newLogId = await createCommunicationLog(log);
@@ -217,7 +216,7 @@ export const useCRMData = () => {
     [],
   );
 
-  const handleUpdateCommunicationLog = useCallback(
+  const handleUpdateCommunicationLogAction = useCallback(
     async (log: CommunicationLog) => {
       try {
         await updateCommunicationLog(log);
@@ -243,7 +242,7 @@ export const useCRMData = () => {
     [],
   );
 
-  const handleDeleteCommunicationLog = useCallback(
+  const handleDeleteCommunicationLogAction = useCallback(
     async (logId: string, customerId: string) => {
       try {
         await deleteCommunicationLog(logId, customerId);
@@ -272,13 +271,13 @@ export const useCRMData = () => {
     customers,
     hasAttemptedInitialLoad,
     categories,
-    handleSaveCustomer,
-    handleDeleteCustomer,
-    handleCategoriesUpdate,
-    handleCategorySuccessfullyDeleted,
-    handleCategoryRenamed,
-    handleCreateCommunicationLog,
-    handleUpdateCommunicationLog,
-    handleDeleteCommunicationLog,
+    handleSaveCustomerAction,
+    handleDeleteCustomerAction,
+    handleCategoriesUpdateAction,
+    handleCategorySuccessfullyDeletedAction,
+    handleCategoryRenamedAction,
+    handleCreateCommunicationLogAction,
+    handleUpdateCommunicationLogAction,
+    handleDeleteCommunicationLogAction,
   };
 };

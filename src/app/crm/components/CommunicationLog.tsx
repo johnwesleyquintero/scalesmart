@@ -41,7 +41,6 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
         type: newLogType,
         subject: newLogSubject.trim() || undefined,
         notes: newLogNotes.trim(),
-        date: Date.now(), // Update timestamp on edit
       });
       toast.success('Communication log updated!');
       setEditingLog(null);

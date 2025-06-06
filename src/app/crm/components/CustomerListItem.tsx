@@ -17,7 +17,7 @@ import {
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'; // Keep type import
 import dynamic from 'next/dynamic';
 
-import type { Customer, CommunicationLog } from '../types';
+import type { Contact, CommunicationLog } from '../types';
 import CommunicationLogComponent from './CommunicationLog';
 import { components as mdxComponents } from '@/components/MdxRenderer'; // Import mdxComponents
 
@@ -32,13 +32,15 @@ const ClientSideMDXRemote = dynamic(
 );
 
 interface CustomerListItemProps {
-  customer: Customer;
-  onEdit: (customer: Customer) => void;
+  customer: Contact;
+  onEdit: (customer: Contact) => void;
   onDelete: (id: string) => void;
   onCopyNotes: (notes: string) => void;
-  onCommunicationLogSave: (log: Omit<CommunicationLog, 'id'>) => Promise<void>;
-  onCommunicationLogUpdate: (log: CommunicationLog) => Promise<void>;
-  onCommunicationLogDelete: (
+  onCommunicationLogSaveAction: (
+    log: Omit<CommunicationLog, 'id'>,
+  ) => Promise<void>;
+  onCommunicationLogUpdateAction: (log: CommunicationLog) => Promise<void>;
+  onCommunicationLogDeleteAction: (
     logId: string,
     customerId: string,
   ) => Promise<void>;
@@ -51,9 +53,9 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
   onEdit,
   onDelete,
   onCopyNotes,
-  onCommunicationLogSave,
-  onCommunicationLogUpdate,
-  onCommunicationLogDelete,
+  onCommunicationLogSaveAction,
+  onCommunicationLogUpdateAction,
+  onCommunicationLogDeleteAction,
   onSelect,
   isSelected,
 }) => {
@@ -158,9 +160,9 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
             <CommunicationLogComponent
               customerId={customer.id!}
               logs={customer.communicationLogs || []}
-              onSave={onCommunicationLogSave}
-              onUpdate={onCommunicationLogUpdate}
-              onDelete={onCommunicationLogDelete}
+              onSave={onCommunicationLogSaveAction}
+              onUpdate={onCommunicationLogUpdateAction}
+              onDelete={onCommunicationLogDeleteAction}
             />
           </CollapsibleContent>
         </Collapsible>

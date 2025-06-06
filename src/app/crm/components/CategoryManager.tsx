@@ -41,9 +41,6 @@ const CategoryManager = ({
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  useEffect(() => {
-    setCategories(initialCategories);
-  }, [initialCategories]);
   const handleAddCategory = async () => {
     const trimmedCategoryName = newCategoryName.trim();
     if (!trimmedCategoryName) {

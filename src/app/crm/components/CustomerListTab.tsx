@@ -9,24 +9,26 @@ import ReactPaginate from 'react-paginate';
 import { toast } from 'sonner';
 import useDebounce from '@/hooks/use-debounce';
 import { CustomerListItem } from './CustomerListItem';
-import type { Contact, Customer, CommunicationLog, Category } from '../types';
+import type { Contact, CommunicationLog, Category } from '../types';
 import {
   filterCustomers,
   generateCustomerCSVData,
 } from '../utils/customerUtils';
 
 interface CustomerListContentProps {
-  customers: Customer[];
+  customers: Contact[];
   searchQuery: string;
   hasAttemptedInitialLoad: boolean;
-  onEdit: (customer: Customer) => void;
+  onEdit: (customer: Contact) => void;
   onDelete: (id: string) => void;
   onCopyNotes: (notes: string) => void;
   itemsPerPage: number;
   currentPage: number;
-  onCommunicationLogSave: (log: Omit<CommunicationLog, 'id'>) => Promise<void>;
-  onCommunicationLogUpdate: (log: CommunicationLog) => Promise<void>;
-  onCommunicationLogDelete: (
+  onCommunicationLogSaveAction: (
+    log: Omit<CommunicationLog, 'id'>,
+  ) => Promise<void>;
+  onCommunicationLogUpdateAction: (log: CommunicationLog) => Promise<void>;
+  onCommunicationLogDeleteAction: (
     logId: string,
     customerId: string,
   ) => Promise<void>;
@@ -43,9 +45,9 @@ const CustomerListContent: React.FC<CustomerListContentProps> = ({
   onCopyNotes,
   itemsPerPage,
   currentPage,
-  onCommunicationLogSave,
-  onCommunicationLogUpdate,
-  onCommunicationLogDelete,
+  onCommunicationLogSaveAction,
+  onCommunicationLogUpdateAction,
+  onCommunicationLogDeleteAction,
   selectedCustomerIds,
   onSelect,
 }) => {
@@ -63,9 +65,9 @@ const CustomerListContent: React.FC<CustomerListContentProps> = ({
             onEdit={onEdit}
             onDelete={onDelete}
             onCopyNotes={onCopyNotes}
-            onCommunicationLogSave={onCommunicationLogSave}
-            onCommunicationLogUpdate={onCommunicationLogUpdate}
-            onCommunicationLogDelete={onCommunicationLogDelete}
+            onCommunicationLogSaveAction={onCommunicationLogSaveAction}
+            onCommunicationLogUpdateAction={onCommunicationLogUpdateAction}
+            onCommunicationLogDeleteAction={onCommunicationLogDeleteAction}
             onSelect={onSelect}
             isSelected={
               customer.id ? selectedCustomerIds.includes(customer.id) : false
@@ -89,30 +91,30 @@ const CustomerListContent: React.FC<CustomerListContentProps> = ({
 };
 
 interface CustomerListTabProps {
-  customers: Customer[];
+  customers: Contact[];
   hasAttemptedInitialLoad: boolean;
   categories: Category[];
-  handleDeleteCustomer: (id: string) => Promise<void>;
-  handleCreateCommunicationLog: (
+  handleDeleteCustomerAction: (id: string) => Promise<void>;
+  handleCreateCommunicationLogAction: (
     log: Omit<CommunicationLog, 'id'>,
   ) => Promise<void>;
-  handleUpdateCommunicationLog: (log: CommunicationLog) => Promise<void>;
-  handleDeleteCommunicationLog: (
+  handleUpdateCommunicationLogAction: (log: CommunicationLog) => Promise<void>;
+  handleDeleteCommunicationLogAction: (
     logId: string,
     customerId: string,
   ) => Promise<void>;
-  onEditCustomer: (customer: Customer) => void; // New prop to pass customer to parent for editing
+  onEditCustomerAction: (customer: Contact) => void; // New prop to pass customer to parent for editing
 }
 
 export const CustomerListTab: React.FC<CustomerListTabProps> = ({
   customers,
   hasAttemptedInitialLoad,
   categories,
-  handleDeleteCustomer,
-  handleCreateCommunicationLog,
-  handleUpdateCommunicationLog,
-  handleDeleteCommunicationLog,
-  onEditCustomer,
+  handleDeleteCustomerAction,
+  handleCreateCommunicationLogAction,
+  handleUpdateCommunicationLogAction,
+  handleDeleteCommunicationLogAction,
+  onEditCustomerAction,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
@@ -126,7 +128,7 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
   };
 
   const handleDelete = async (id: string) => {
-    await handleDeleteCustomer(id);
+    await handleDeleteCustomerAction(id);
   };
 
   const handleCopyToClipboard = async (text: string) => {
@@ -200,7 +202,7 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
     }
 
     for (const id of selectedCustomerIds) {
-      await handleDeleteCustomer(id);
+      await handleDeleteCustomerAction(id);
     }
 
     setSelectedCustomerIds([]);
@@ -256,14 +258,14 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
           customers={filteredCustomers}
           searchQuery={searchQuery}
           hasAttemptedInitialLoad={hasAttemptedInitialLoad}
-          onEdit={onEditCustomer} // Pass onEditCustomer to CustomerListContent
+          onEdit={onEditCustomerAction} // Pass onEditCustomer to CustomerListContent
           onDelete={handleDelete}
           onCopyNotes={handleCopyToClipboard}
           itemsPerPage={itemsPerPage}
           currentPage={currentPage}
-          onCommunicationLogSave={handleCreateCommunicationLog}
-          onCommunicationLogUpdate={handleUpdateCommunicationLog}
-          onCommunicationLogDelete={handleDeleteCommunicationLog}
+          onCommunicationLogSaveAction={handleCreateCommunicationLogAction}
+          onCommunicationLogUpdateAction={handleUpdateCommunicationLogAction}
+          onCommunicationLogDeleteAction={handleDeleteCommunicationLogAction}
           selectedCustomerIds={selectedCustomerIds}
           onSelect={handleSelectCustomer}
         />

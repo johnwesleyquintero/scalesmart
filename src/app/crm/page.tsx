@@ -2,7 +2,7 @@
 
 import { Toaster } from 'sonner';
 import { useMemo, useState, useCallback } from 'react';
-import type { Customer, Contact } from './types';
+import type { Contact } from './types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { useCRMData } from '@/hooks/use-crm-data';
@@ -16,37 +16,28 @@ export default function CRMComponent() {
     customers,
     hasAttemptedInitialLoad,
     categories,
-    handleSaveCustomer,
-    handleDeleteCustomer,
-    handleCategoriesUpdate,
-    handleCategorySuccessfullyDeleted,
-    handleCategoryRenamed,
-    handleCreateCommunicationLog,
-    handleUpdateCommunicationLog,
-    handleDeleteCommunicationLog,
+    handleSaveCustomerAction,
+    handleDeleteCustomerAction,
+    handleCategoriesUpdateAction,
+    handleCategorySuccessfullyDeletedAction,
+    handleCategoryRenamedAction,
+    handleCreateCommunicationLogAction,
+    handleUpdateCommunicationLogAction,
+    handleDeleteCommunicationLogAction,
   } = useCRMData();
 
-  const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
+  const [editingCustomer, setEditingCustomer] = useState<Contact | null>(null);
 
-  const customerCounts = useMemo(() => {
-    const counts = new Map<string | null, number>();
-    customers.forEach((customer) => {
-      const categoryName = customer.category || null;
-      counts.set(categoryName, (counts.get(categoryName) || 0) + 1);
-    });
-    return counts;
-  }, [customers]);
-
-  const handleEditCustomer = useCallback((customer: Customer) => {
+  const handleEditCustomer = useCallback((customer: Contact) => {
     setEditingCustomer(customer);
   }, []); // No dependencies as it only sets state
 
   const handleSaveCustomerAndClearEdit = useCallback(
-    async (formData: Omit<Contact, 'id'>, customerToEdit: Customer | null) => {
-      await handleSaveCustomer(formData, customerToEdit);
+    async (formData: Omit<Contact, 'id'>, customerToEdit: Contact | null) => {
+      await handleSaveCustomerAction(formData, customerToEdit);
       setEditingCustomer(null); // Clear editing state after save
     },
-    [handleSaveCustomer], // Dependency on handleSaveCustomer from useCRMData
+    [handleSaveCustomerAction], // Dependency on handleSaveCustomerAction from useCRMData
   );
 
   return (
@@ -92,7 +83,7 @@ export default function CRMComponent() {
           <TabsContent value="add-customer" className="space-y-4 mt-4">
             <AddCustomerTab
               categories={categories}
-              handleSaveCustomer={handleSaveCustomerAndClearEdit}
+              handleSaveCustomerAction={handleSaveCustomerAndClearEdit}
             />
           </TabsContent>
 
@@ -101,11 +92,17 @@ export default function CRMComponent() {
               customers={customers}
               hasAttemptedInitialLoad={hasAttemptedInitialLoad}
               categories={categories}
-              handleDeleteCustomer={handleDeleteCustomer}
-              handleCreateCommunicationLog={handleCreateCommunicationLog}
-              handleUpdateCommunicationLog={handleUpdateCommunicationLog}
-              handleDeleteCommunicationLog={handleDeleteCommunicationLog}
-              onEditCustomer={handleEditCustomer}
+              handleDeleteCustomerAction={handleDeleteCustomerAction}
+              handleCreateCommunicationLogAction={
+                handleCreateCommunicationLogAction
+              }
+              handleUpdateCommunicationLogAction={
+                handleUpdateCommunicationLogAction
+              }
+              handleDeleteCommunicationLogAction={
+                handleDeleteCommunicationLogAction
+              }
+              onEditCustomerAction={handleEditCustomer}
             />
           </TabsContent>
 
@@ -113,11 +110,11 @@ export default function CRMComponent() {
             <CategoryManagementTab
               categories={categories}
               customers={customers}
-              handleCategoriesUpdate={handleCategoriesUpdate}
-              handleCategorySuccessfullyDeleted={
-                handleCategorySuccessfullyDeleted
+              handleCategoriesUpdateAction={handleCategoriesUpdateAction}
+              handleCategorySuccessfullyDeletedAction={
+                handleCategorySuccessfullyDeletedAction
               }
-              handleCategoryRenamed={handleCategoryRenamed}
+              handleCategoryRenamedAction={handleCategoryRenamedAction}
             />
           </TabsContent>
 

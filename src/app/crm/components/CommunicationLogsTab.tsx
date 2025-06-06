@@ -10,7 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { Customer, CommunicationLog } from '../types';
+import type { Contact, CommunicationLog } from '../types';
 import useDebounce from '@/hooks/use-debounce';
 import fuzzysort from 'fuzzysort';
 
@@ -19,7 +19,7 @@ type CommunicationLogWithCustomerName = CommunicationLog & {
 };
 
 interface CommunicationLogsTabProps {
-  customers: Customer[];
+  customers: Contact[];
 }
 
 const COMMUNICATION_TYPES_FILTER = [
@@ -57,8 +57,8 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
   const [sortOrder, setSortOrder] = useState<SortOrderOption>('desc');
 
   const allLogs: CommunicationLogWithCustomerName[] = useMemo(() => {
-    return customers.flatMap((customer) =>
-      (customer.communicationLogs || []).map((log) => ({
+    return customers.flatMap((customer: Contact) =>
+      (customer.communicationLogs || []).map((log: CommunicationLog) => ({
         ...log,
         customerName: customer.name,
       })),

@@ -3,24 +3,27 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import CategoryManager from './CategoryManager';
-import type { Category, Customer } from '../types';
+import type { Category, Contact } from '../types';
 
 interface CategoryManagementTabProps {
   categories: Category[];
-  customers: Customer[];
-  handleCategoriesUpdate: (updatedCategories: Category[]) => void;
-  handleCategorySuccessfullyDeleted: (
+  customers: Contact[];
+  handleCategoriesUpdateAction: (updatedCategories: Category[]) => void;
+  handleCategorySuccessfullyDeletedAction: (
     deletedCategoryName: string,
   ) => Promise<void>;
-  handleCategoryRenamed: (oldName: string, newName: string) => Promise<void>;
+  handleCategoryRenamedAction: (
+    oldName: string,
+    newName: string,
+  ) => Promise<void>;
 }
 
 export const CategoryManagementTab: React.FC<CategoryManagementTabProps> = ({
   categories,
   customers,
-  handleCategoriesUpdate,
-  handleCategorySuccessfullyDeleted,
-  handleCategoryRenamed,
+  handleCategoriesUpdateAction,
+  handleCategorySuccessfullyDeletedAction,
+  handleCategoryRenamedAction,
 }) => {
   const customerCounts = useMemo(() => {
     const counts = new Map<string | null, number>();
@@ -38,10 +41,12 @@ export const CategoryManagementTab: React.FC<CategoryManagementTabProps> = ({
       </CardHeader>
       <CardContent>
         <CategoryManager
-          onCategoriesUpdate={handleCategoriesUpdate}
+          onCategoriesUpdate={handleCategoriesUpdateAction}
           initialCategories={categories}
-          onCategorySuccessfullyDeleted={handleCategorySuccessfullyDeleted}
-          onCategoryRenamed={handleCategoryRenamed}
+          onCategorySuccessfullyDeleted={
+            handleCategorySuccessfullyDeletedAction
+          }
+          onCategoryRenamed={handleCategoryRenamedAction}
           customerCounts={customerCounts}
         />
       </CardContent>

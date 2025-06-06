@@ -3,22 +3,22 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CustomerForm } from './CustomerForm';
-import type { Contact, Customer, Category } from '../types';
+import type { Contact, Category } from '../types';
 
 interface AddCustomerTabProps {
   categories: Category[];
-  handleSaveCustomer: (
+  handleSaveCustomerAction: (
     formData: Omit<Contact, 'id'>,
-    editingCustomer: Customer | null,
+    editingCustomer: Contact | null,
   ) => Promise<void>;
 }
 
 export const AddCustomerTab: React.FC<AddCustomerTabProps> = ({
   categories,
-  handleSaveCustomer,
+  handleSaveCustomerAction,
 }) => {
   const handleSave = async (formData: Omit<Contact, 'id'>) => {
-    await handleSaveCustomer(formData, null); // Always adding a new customer
+    await handleSaveCustomerAction(formData, null); // Always adding a new customer
   };
 
   return (

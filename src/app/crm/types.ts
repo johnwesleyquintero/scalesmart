@@ -25,5 +25,3 @@ export interface CommunicationLog {
   subject?: string; // Subject of the communication
   notes: string; // Detailed notes about the communication
 }
-
-export interface Customer extends Contact {} // Customer now extends Contact, which includes communicationLogs

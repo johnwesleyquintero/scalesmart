@@ -1,4 +1,4 @@
-import type { Customer } from '../types';
+import type { Contact } from '../types';
 import Papa from 'papaparse';
 import fuzzysort from 'fuzzysort';
 
@@ -12,7 +12,7 @@ export const fuzzysortOptions: { keys: FuzzysortKeys; threshold: number } = {
 };
 
 export const generateCustomerCSVData = (
-  customers: Customer[],
+  customers: Contact[],
 ): string | null => {
   if (customers.length === 0) {
     return null;
@@ -35,10 +35,10 @@ export const generateCustomerCSVData = (
 };
 
 export const filterCustomers = (
-  customers: Customer[],
+  customers: Contact[],
   searchQuery: string,
   selectedCategory: string | null,
-): Customer[] => {
+): Contact[] => {
   let results = customers;
 
   if (selectedCategory) {
