@@ -4,7 +4,7 @@
 import React from 'react';
 import { Task, Project } from '@/lib/indexeddb-service'; // Import Project type
 import { deleteTask } from '@/lib/indexeddb-service';
-import TaskForm from './TaskForm';
+import { default as TaskForm } from './TaskForm';
 import { useState, useMemo, useCallback } from 'react';
 import Modal from '@/components/Modal';
 import { Button } from '@/components/ui/button';
@@ -189,15 +189,17 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
         <div className="space-y-3">
           {/* Map tasks for the current section using memoized data */}
           {/* Map tasks for the current section using memoized data */}
-          {tasks.map((task) => (
-            <TaskItem
-              key={task.id}
-              task={task}
-              projects={projects}
-              onEditClick={handleEditClick}
-              onDeleteTask={handleDeleteTask}
-            />
-          ))}
+          {tasks.map((task) => {
+            return (
+              <TaskItem
+                key={task.id}
+                task={task}
+                projects={projects}
+                onEditClick={handleEditClick}
+                onDeleteTask={handleDeleteTask}
+              />
+            );
+          })}
         </div>
 
         {/* Modal for editing/adding a task */}

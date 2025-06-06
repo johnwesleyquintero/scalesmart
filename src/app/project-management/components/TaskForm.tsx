@@ -5,6 +5,7 @@ import {
   useCallback,
   Dispatch,
   SetStateAction,
+  useMemo,
 } from 'react';
 import { Task, Project } from '@/lib/indexeddb-service';
 import { createTask, updateTask } from '@/lib/indexeddb-service';
@@ -21,6 +22,9 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
 /**
  * @constant NO_PROJECT_VALUE
@@ -74,74 +78,63 @@ const TaskForm = ({
   onCancel,
   projects,
 }: TaskFormProps) => {
-  const [title, setTitle] = useState(initialTask?.title || '');
-  const [description, setDescription] = useState(
-    initialTask?.description || '',
-  );
-  const [status, setStatus] = useState(initialTask?.status || 'to-do');
-  const [assignee, setAssignee] = useState(initialTask?.assignee || '');
-  const [dueDate, setDueDate] = useState<string>(
-    initialTask?.dueDate
-      ? new Date(initialTask.dueDate).toISOString().split('T')[0]
-      : '',
-  );
-  const [projectId, setProjectId] = useState(
-    initialTask?.projectId || NO_PROJECT_VALUE,
-  );
+  const formSchema = z.object({
+    title: z.string().min(1, {
+      message: 'Task title is required.',
+    }),
+    description: z.string().optional(),
+    status: z.string().optional().default('to-do'),
+    assignee: z.string().optional(),
+    dueDate: z.date().optional(),
+    projectId: z.string().optional(),
+  });
 
-  /**
-   * @brief Resets the form fields when `initialTask` changes.
-   * This effect ensures the form is correctly populated when editing an existing task
-   * or cleared when switching to add a new task.
-   */
+  type FormValues = z.infer<typeof formSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: initialTask?.title || '',
+      description: initialTask?.description || '',
+      status: initialTask?.status || 'to-do',
+      assignee: initialTask?.assignee || '',
+      dueDate: initialTask?.dueDate ? new Date(initialTask.dueDate) : undefined,
+      projectId: initialTask?.projectId || NO_PROJECT_VALUE,
+    },
+  });
+
   useEffect(() => {
-    setTitle(initialTask?.title || '');
-    setDescription(initialTask?.description || '');
-    setStatus(initialTask?.status || 'to-do');
-    setAssignee(initialTask?.assignee || '');
-    setDueDate(
-      initialTask?.dueDate
-        ? new Date(initialTask.dueDate).toISOString().split('T')[0]
-        : '',
-    );
-    setProjectId(initialTask?.projectId || NO_PROJECT_VALUE);
-  }, [initialTask]);
-
-  /**
-   * @brief Validates the task form inputs.
-   * @returns {boolean} True if inputs are valid, false otherwise.
-   */
-  const validateForm = useCallback((): boolean => {
-    if (!title.trim()) {
-      toast.error('Task title is required.');
-      return false;
+    if (initialTask) {
+      setValue('title', initialTask.title);
+      setValue('description', initialTask.description || '');
+      setValue('status', initialTask.status || 'to-do');
+      setValue('assignee', initialTask.assignee || '');
+      setValue(
+        'dueDate',
+        initialTask.dueDate ? new Date(initialTask.dueDate) : undefined,
+      );
+      setValue('projectId', initialTask.projectId || NO_PROJECT_VALUE);
     }
-    // Optional: Add more validation for dueDate, assignee format, etc.
-    return true;
-  }, [title]); // Add 'title' as a dependency
+  }, [initialTask, setValue]);
 
-  /**
-   * @brief Handles the form submission for adding or updating a task.
-   * Uses `useCallback` to memoize the function.
-   * @param {React.FormEvent} e The form event.
-   */
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-
-      if (!validateForm()) {
-        return;
-      }
-
+  const onSubmit = useCallback(
+    async (data: FormValues) => {
       // Convert NO_PROJECT_VALUE back to an empty string for database storage.
-      const finalProjectId = projectId === NO_PROJECT_VALUE ? '' : projectId;
+      const finalProjectId =
+        data.projectId === NO_PROJECT_VALUE ? '' : data.projectId;
 
       const taskData = {
-        title: title.trim(),
-        description: description.trim(),
-        status,
-        assignee: assignee.trim(),
-        dueDate: dueDate ? new Date(dueDate).getTime() : undefined,
+        title: data.title.trim(),
+        description: data.description?.trim() || '',
+        status: data.status,
+        assignee: data.assignee?.trim() || '',
+        dueDate: data.dueDate ? data.dueDate.getTime() : undefined,
         projectId: finalProjectId,
       };
 
@@ -172,13 +165,6 @@ const TaskForm = ({
               updateTimestamp: Date.now(),
             };
             toast.success('Task added successfully!');
-            // Clear the form fields only after successful creation
-            setTitle('');
-            setDescription('');
-            setStatus('to-do');
-            setAssignee('');
-            setDueDate('');
-            setProjectId(NO_PROJECT_VALUE);
             onTaskUpdated?.(newTask);
           } else {
             logger.error('createTask returned null/undefined ID.', {
@@ -196,7 +182,7 @@ const TaskForm = ({
           {
             component: 'TaskForm',
             context: 'handleSubmit',
-            taskTitle: title,
+            taskTitle: data.title,
           },
         );
         toast.error(
@@ -204,49 +190,69 @@ const TaskForm = ({
         );
       }
     },
-    [
-      title,
-      description,
-      status,
-      assignee,
-      dueDate,
-      projectId,
-      initialTask,
-      onTaskUpdated,
-      validateForm,
-    ],
+    [initialTask, onTaskUpdated],
   );
 
+  const statusValue = watch('status');
+  const projectValue = watch('projectId');
+
+  const projectSelectItems = useMemo(() => {
+    return projects
+      .filter((project) => {
+        if (!project.id || project.id.trim() === '') {
+          logger.warn(
+            `Skipping project with invalid or empty ID: ${JSON.stringify(project)}`,
+            { component: 'TaskForm', context: 'ProjectSelect' },
+          );
+          return false;
+        }
+        return true;
+      })
+      .map((project) => (
+        <SelectItem key={project.id} value={project.id} label={project.name}>
+          {project.name}
+        </SelectItem>
+      ));
+  }, [projects]);
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label htmlFor="taskTitle">Title *</Label>
+        <Label htmlFor="title">Title *</Label>
         <Input
-          id="taskTitle"
+          id="title"
           type="text"
           placeholder="Enter task title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          aria-required="true"
+          {...register('title')}
+          aria-invalid={errors.title ? 'true' : 'false'}
           aria-label="Task Title"
         />
+        {errors.title && (
+          <p className="text-red-500 text-sm mt-1">{errors.title?.message}</p>
+        )}
       </div>
       <div>
-        <Label htmlFor="taskDescription">Description (optional)</Label>
+        <Label htmlFor="description">Description (optional)</Label>
         <Textarea
-          id="taskDescription"
+          id="description"
           placeholder="Enter task description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
           rows={3}
+          {...register('description')}
           aria-label="Task Description"
         />
+        {errors.description && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.description?.message}
+          </p>
+        )}
       </div>
       <div>
-        <Label htmlFor="taskStatus">Status</Label>
-        <Select value={status} onValueChange={setStatus}>
-          <SelectTrigger id="taskStatus" aria-label="Task Status">
+        <Label htmlFor="status">Status</Label>
+        <Select
+          value={statusValue}
+          onValueChange={(value) => setValue('status', value)}
+        >
+          <SelectTrigger id="status" aria-label="Task Status">
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
@@ -263,56 +269,46 @@ const TaskForm = ({
         </Select>
       </div>
       <div>
-        <Label htmlFor="taskAssignee">Assignee (optional)</Label>
+        <Label htmlFor="assignee">Assignee (optional)</Label>
         <Input
-          id="taskAssignee"
+          id="assignee"
           type="text"
           placeholder="Enter assignee name"
-          value={assignee}
-          onChange={(e) => setAssignee(e.target.value)}
+          {...register('assignee')}
           aria-label="Task Assignee"
         />
+        {errors.assignee && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.assignee?.message}
+          </p>
+        )}
       </div>
       <div>
-        <Label htmlFor="taskDueDate">Due Date (optional)</Label>
+        <Label htmlFor="dueDate">Due Date (optional)</Label>
         <Input
-          id="taskDueDate"
+          id="dueDate"
           type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
+          {...register('dueDate', { valueAsDate: true })}
           aria-label="Task Due Date"
         />
+        {errors.dueDate && (
+          <p className="text-red-500 text-sm mt-1">{errors.dueDate?.message}</p>
+        )}
       </div>
       <div>
-        <Label htmlFor="taskProject">Project (optional)</Label>
-        <Select value={projectId} onValueChange={setProjectId}>
-          <SelectTrigger id="taskProject" aria-label="Assign to project">
+        <Label htmlFor="projectId">Project (optional)</Label>
+        <Select
+          value={projectValue}
+          onValueChange={(value) => setValue('projectId', value)}
+        >
+          <SelectTrigger id="projectId" aria-label="Assign to project">
             <SelectValue placeholder="Select project" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={NO_PROJECT_VALUE} label="No Project">
               No Project
             </SelectItem>
-            {projects
-              .filter((project) => {
-                if (!project.id || project.id.trim() === '') {
-                  logger.warn(
-                    `Skipping project with invalid or empty ID: ${JSON.stringify(project)}`,
-                    { component: 'TaskForm', context: 'ProjectSelect' },
-                  );
-                  return false;
-                }
-                return true;
-              })
-              .map((project) => (
-                <SelectItem
-                  key={project.id}
-                  value={project.id}
-                  label={project.name}
-                >
-                  {project.name}
-                </SelectItem>
-              ))}
+            {projectSelectItems}
           </SelectContent>
         </Select>
       </div>

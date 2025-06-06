@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Edit, Trash2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -74,22 +75,31 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
     }
 
     // Sort projects based on the selected criteria
-    currentProjects.sort((a: Project, b: Project) => {
-      switch (sortBy) {
-        case 'nameDesc':
-          return b.name.localeCompare(a.name);
-        case 'dateAsc':
-          // Sort by creation timestamp (oldest first), default to 0 if undefined
-          return (a.creationTimestamp || 0) - (b.creationTimestamp || 0);
-        case 'dateDesc':
-          // Sort by creation timestamp (newest first), default to 0 if undefined
-          return (b.creationTimestamp || 0) - (a.creationTimestamp || 0);
-        case 'nameAsc':
-        default:
-          // Default sort by name (A-Z)
-          return a.name.localeCompare(b.name);
-      }
-    });
+    switch (sortBy) {
+      case 'nameDesc':
+        currentProjects.sort((a: Project, b: Project) =>
+          b.name.localeCompare(a.name),
+        );
+        break;
+      case 'dateAsc':
+        currentProjects.sort(
+          (a: Project, b: Project) =>
+            (a.creationTimestamp || 0) - (b.creationTimestamp || 0),
+        );
+        break;
+      case 'dateDesc':
+        currentProjects.sort(
+          (a: Project, b: Project) =>
+            (b.creationTimestamp || 0) - (a.creationTimestamp || 0),
+        );
+        break;
+      case 'nameAsc':
+      default:
+        currentProjects.sort((a: Project, b: Project) =>
+          a.name.localeCompare(b.name),
+        );
+        break;
+    }
 
     return currentProjects;
   }, [projects, searchQuery, sortBy]);
@@ -169,10 +179,16 @@ const ProjectList = ({ projects, setProjects }: ProjectListProps) => {
           onChange={(e) => setSearchQuery(e.target.value)}
           className="max-w-sm"
           aria-label="Search projects"
+          id="searchProjects"
         />
         {/* Select input for sorting projects */}
+        <Label htmlFor="sortProjects">Sort by</Label>
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[180px]" aria-label="Sort projects by">
+          <SelectTrigger
+            className="w-[180px]"
+            aria-label="Sort projects by"
+            id="sortProjects"
+          >
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>

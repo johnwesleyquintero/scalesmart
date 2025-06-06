@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { Project } from '@/lib/indexeddb-service';
 import { createProject, updateProject } from '@/lib/indexeddb-service';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { logger } from '@/lib/logger';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
 
 /**
  * @interface ProjectFormProps
@@ -52,51 +55,45 @@ const ProjectForm = ({
   onProjectUpdated,
   onCancel,
 }: ProjectFormProps) => {
-  const [name, setName] = useState(initialProject?.name || '');
-  const [description, setDescription] = useState(
-    initialProject?.description || '',
-  );
+  const formSchema = z.object({
+    name: z.string().min(3, {
+      message: 'Project name must be at least 3 characters.',
+    }),
+    description: z
+      .string()
+      .max(200, {
+        message: 'Description must be less than 200 characters.',
+      })
+      .optional(),
+  });
 
-  /**
-   * @brief Resets the form fields when `initialProject` changes.
-   * This effect ensures the form is correctly populated when editing an existing project
-   * or cleared when switching to add a new project.
-   */
+  type FormValues = z.infer<typeof formSchema>;
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      name: initialProject?.name || '',
+      description: initialProject?.description || '',
+    },
+  });
+
   useEffect(() => {
-    setName(initialProject?.name || '');
-    setDescription(initialProject?.description || '');
-  }, [initialProject]);
-
-  /**
-   * @brief Validates the project form inputs.
-   * @returns {boolean} True if inputs are valid, false otherwise.
-   */
-  const validateForm = useCallback((): boolean => {
-    if (!name.trim()) {
-      toast.error('Project name is required.');
-      return false;
+    if (initialProject) {
+      setValue('name', initialProject.name);
+      setValue('description', initialProject.description || '');
     }
-    // Add more validation rules here if needed, e.g., minimum length, character restrictions.
-    return true;
-  }, [name]); // Add 'name' as a dependency
+  }, [initialProject, setValue]);
 
-  /**
-   * @brief Handles the form submission for adding or updating a project.
-   * Uses `useCallback` to memoize the function, preventing unnecessary re-renders
-   * if this handler were passed down to child components.
-   * @param {React.FormEvent} e The form event.
-   */
-  const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
-      e.preventDefault();
-
-      if (!validateForm()) {
-        return;
-      }
-
+  const onSubmit = useCallback(
+    async (data: FormValues) => {
       const projectData = {
-        name: name.trim(),
-        description: description.trim(),
+        name: data.name.trim(),
+        description: data.description?.trim() || '',
       };
 
       try {
@@ -127,9 +124,6 @@ const ProjectForm = ({
           };
           setProjects((prevProjects) => [...prevProjects, newProject]);
           toast.success('Project added successfully!');
-          // Clear the form fields only after successful creation
-          setName('');
-          setDescription('');
         }
         onProjectUpdated?.(); // Call the callback if provided for both add/update
       } catch (error) {
@@ -139,7 +133,7 @@ const ProjectForm = ({
           {
             component: 'ProjectForm',
             context: 'handleSubmit',
-            projectName: name,
+            projectName: data.name,
           },
         );
         toast.error(
@@ -147,41 +141,39 @@ const ProjectForm = ({
         );
       }
     },
-    [
-      name,
-      description,
-      initialProject,
-      setProjects,
-      onProjectUpdated,
-      validateForm,
-    ],
+    [initialProject, setProjects, onProjectUpdated],
   );
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
-        <Label htmlFor="projectName">Project Name *</Label>
+        <Label htmlFor="name">Project Name *</Label>
         <Input
-          id="projectName"
+          id="name"
           type="text"
           placeholder="Enter project name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          aria-required="true"
+          {...register('name')}
+          aria-invalid={errors.name ? 'true' : 'false'}
           aria-label="Project Name"
         />
+        {errors.name && (
+          <p className="text-red-500 text-sm mt-1">{errors.name?.message}</p>
+        )}
       </div>
       <div>
-        <Label htmlFor="projectDescription">Description (optional)</Label>
+        <Label htmlFor="description">Description (optional)</Label>
         <Textarea
-          id="projectDescription"
+          id="description"
           placeholder="Enter project description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
           rows={3}
+          {...register('description')}
           aria-label="Project Description"
         />
+        {errors.description && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.description?.message}
+          </p>
+        )}
       </div>
       <div className="flex justify-end">
         {initialProject && onCancel && (
