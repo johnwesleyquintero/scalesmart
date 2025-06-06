@@ -33,6 +33,14 @@ export interface Task {
   updateTimestamp: number;
   dependencies?: string[]; // Array of task IDs that this task depends on
   subtasks?: string[]; // Array of task IDs that are subtasks of this task
+  comments: Comment[];
+}
+
+export interface Comment {
+  id: string;
+  text: string;
+  author: string;
+  createdAt: number;
 }
 
 export interface Project {

@@ -1,25 +1,29 @@
 import React, { useCallback, useMemo } from 'react';
-import { Task, Project } from '@/lib/indexeddb-service';
+import CommentList from './CommentList';
+import { updateTask } from '@/lib/indexeddb-service'; // Assuming correct path
+import { Task, Project, Comment } from '@/lib/indexeddb-service'; // Import Comment type
 import { format } from 'date-fns';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button'; // Assuming correct path
 import { CalendarIcon, UserRound, Tag } from 'lucide-react';
 
 interface TaskItemProps {
-  task: Task;
-  projects: Project[];
-  onEditClick: (task: Task) => void;
-  onDeleteTask: (id: string) => void;
-  tasks: Task[];
+ task: Task;
+ projects: Project[];
+ onEditClick: (task: Task) => void;
+ onDeleteTask: (id: string) => void;
+ tasks: Task[]; // Kept for dependency/subtask title lookup
+ onTaskUpdated: (updatedTask: Task) => void; // New prop to signal task updates to parent
 }
 
 const TaskItem: React.FC<TaskItemProps> = React.memo(
-  function TaskItemComponent({
+  ({
     task,
     projects,
     onEditClick,
     onDeleteTask,
     tasks,
-  }: TaskItemProps) {
+    onTaskUpdated, // Use the new prop
+  }: TaskItemProps) => {
     const projectsMap = useMemo(() => {
       const map = new Map<string, Project>();
       projects.forEach((project) => {
@@ -37,6 +41,32 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
         return project ? project.name : 'Unknown Project';
       },
       [projectsMap],
+    );
+
+    /**
+     * Handles adding a new comment to the task.
+     * This function is called by the CommentList component.
+     * @param {Comment} newComment - The new comment object to add.
+     */
+    const handleAddComment = useCallback(
+      async (newComment: Comment) => {
+        // Ensure comments is an array before spreading
+        const currentComments = Array.isArray(task.comments) ? task.comments : [];
+        // Ensure comments is an array before spreading and create the updated task object
+        const currentComments = Array.isArray(task.comments) ? task.comments : [];
+        const updatedTask: Task = { // Explicitly type updatedTask as Task
+          ...task,
+          comments: [...currentComments, newComment],
+        };
+        try {
+          await updateTask(updatedTask); // Persist the update to IndexedDB
+          onTaskUpdated(updatedTask); // Notify parent component of the update
+        } catch (error) {
+          console.error('Failed to add comment and update task:', error);
+          // TODO: Implement user feedback for error (e.g., toast notification)
+        }
+      },
+      [task, onTaskUpdated], // Depend on task and the onTaskUpdated prop
     );
 
     return (
@@ -83,7 +113,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
                 {task.dependencies
                   .map((dependencyId: string) => {
                     const dependency = tasks.find(
-                      (task) => task.id === dependencyId,
+                      (t) => t.id === dependencyId,
                     );
                     return dependency ? dependency.title : 'Unknown Task';
                   })
@@ -100,7 +130,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
                 Subtasks:
                 {task.subtasks
                   .map((subtaskId: string) => {
-                    const subtask = tasks.find((task) => task.id === subtaskId);
+                    const subtask = tasks.find((t) => t.id === subtaskId);
                     return subtask ? subtask.title : 'Unknown Task';
                   })
                   .join(', ')}
@@ -128,6 +158,11 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             Delete
           </Button>
         </div>
+        <CommentList
+           taskId={task.id}
+           comments={task.comments || []} // Ensure comments is an array for CommentList
+           onAddComment={handleAddComment} // Pass the refactored handler
+         />
       </div>
     );
   },

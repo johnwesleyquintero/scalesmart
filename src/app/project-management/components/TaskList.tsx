@@ -29,6 +29,10 @@ interface TaskListProps {
    */
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   /**
+   * @brief Callback function to be called when a task is updated or created.
+   */
+  onTaskUpdated: (updatedOrNewTask: Task) => void;
+  /**
    * @brief The array of available projects, used for displaying project names associated with tasks.
    */
   projects: Project[];
@@ -197,7 +201,8 @@ const TaskList = ({ tasks, setTasks, projects }: TaskListProps) => {
                 projects={projects}
                 onEditClick={handleEditClick}
                 onDeleteTask={handleDeleteTask}
-                tasks={tasks} // Pass tasks prop
+                tasks={tasks}
+                onTaskUpdated={handleTaskFormUpdated}
               />
             );
           })}

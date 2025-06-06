@@ -91,12 +91,17 @@ const TaskForm = ({
     projectId: z.string().optional(),
     dependencies: z.array(z.string()).optional(), // Array of task IDs
     subtasks: z.array(z.string()).optional(), // Array of task IDs
+    comments: z.array(z.object({
+       id: z.string(),
+       text: z.string(),
+       author: z.string(),
+       createdAt: z.number(),
+     })).optional(),
   });
-
-  type FormValues = z.infer<typeof formSchema>;
+  interface FormValues extends z.infer<typeof formSchema> {}
 
   const {
-    register,
+   register,
     handleSubmit,
     setValue,
     watch,
@@ -110,6 +115,7 @@ const TaskForm = ({
       assignee: initialTask?.assignee || '',
       dueDate: initialTask?.dueDate ? new Date(initialTask.dueDate) : undefined,
       projectId: initialTask?.projectId || NO_PROJECT_VALUE,
+      comments: initialTask?.comments || [],
     },
   });
 
@@ -144,6 +150,7 @@ const TaskForm = ({
         projectId: finalProjectId,
         dependencies: data.dependencies,
         subtasks: data.subtasks,
+        comments: [],
       };
 
       try {
