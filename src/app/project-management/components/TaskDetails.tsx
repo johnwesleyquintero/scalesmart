@@ -6,7 +6,8 @@ import { Task, Project, TaskComment } from '@/lib/indexeddb-service';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon, UserRound, Tag, Flag, Edit } from 'lucide-react';
+import { CalendarIcon, UserRound, Tag, Flag, Edit, CheckCircle } from 'lucide-react'; // Import CheckCircle icon
+import { TaskStatus } from '@/lib/constants/project-management'; // Import TaskStatus
 import CommentList from './CommentList';
 import TaskForm from './TaskForm'; // To allow editing within details view
 import { updateTask } from '@/lib/indexeddb-service';
@@ -39,12 +40,27 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onClose,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [currentTask, setCurrentTask] = useState<Task>(task); // State to manage task data within details view
+  const [currentTask, setCurrentTask] = useState<Task>(task);
 
   // Update currentTask if the prop task changes (e.g., from parent update)
+  // This ensures the details view reflects the latest task data from the parent state.
   React.useEffect(() => {
     setCurrentTask(task);
   }, [task]);
+
+  // Memoize the priority class for styling
+  const priorityClass = useMemo(() => {
+    switch (currentTask.priority) {
+      case 'high':
+        return 'text-red-500';
+      case 'medium':
+        return 'text-yellow-500';
+      case 'low':
+        return 'text-green-500';
+      default:
+        return 'text-muted-foreground';
+    }
+  }, [currentTask.priority]);
 
   const projectsMap = useMemo(() => {
     const map = new Map<string, Project>();
@@ -97,6 +113,29 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     [onTaskUpdated],
   );
 
+  const handleMarkComplete = useCallback(async () => {
+    if (currentTask.status === TaskStatus.COMPLETED) {
+      toast.info('Task is already completed.');
+      return;
+    }
+
+    const updatedTask: Task = {
+      ...currentTask,
+      status: TaskStatus.COMPLETED,
+      updateTimestamp: Date.now(),
+    };
+
+    try {
+      await updateTask(updatedTask);
+      setCurrentTask(updatedTask); // Update local state
+      onTaskUpdated(updatedTask); // Propagate update to parent
+      toast.success(`Task "${updatedTask.title}" marked as completed!`);
+    } catch (error) {
+      console.error('Failed to mark task as complete:', error);
+      toast.error('Failed to mark task as complete. Please try again.');
+    }
+  }, [currentTask, onTaskUpdated]);
+
   if (isEditing) {
     return (
       <TaskForm
@@ -115,14 +154,26 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         <CardTitle className="text-2xl font-bold text-foreground">
           {currentTask.title}
         </CardTitle>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setIsEditing(true)}
-          aria-label="Edit task"
-        >
-          <Edit className="h-4 w-4 mr-2" /> Edit
-        </Button>
+        <div className="flex items-center space-x-2">
+          {currentTask.status !== TaskStatus.COMPLETED && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleMarkComplete}
+              aria-label="Mark task as complete"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" /> Mark Complete
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsEditing(true)}
+            aria-label="Edit task"
+          >
+            <Edit className="h-4 w-4 mr-2" /> Edit
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {currentTask.description && (
@@ -171,7 +222,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               Status
             </h4>
             <div className="flex items-center text-sm text-foreground">
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  currentTask.status === TaskStatus.COMPLETED
+                    ? 'bg-green-500/10 text-green-500'
+                    : currentTask.status === TaskStatus.IN_PROGRESS
+                      ? 'bg-blue-500/10 text-blue-500'
+                      : 'bg-gray-500/10 text-gray-500'
+                }`}
+              >
                 {currentTask.status.charAt(0).toUpperCase() +
                   currentTask.status.slice(1).replace(/-/g, ' ')}
               </span>
@@ -183,9 +242,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 Priority
               </h4>
               <div className="flex items-center text-sm text-foreground">
-                <Flag
-                  className={`h-4 w-4 mr-2 ${currentTask.priority === 'high' ? 'text-red-500' : currentTask.priority === 'medium' ? 'text-yellow-500' : 'text-green-500'}`}
-                />
+                <Flag className={`h-4 w-4 mr-2 ${priorityClass}`} />
                 <span>
                   {currentTask.priority.charAt(0).toUpperCase() +
                     currentTask.priority.slice(1)}

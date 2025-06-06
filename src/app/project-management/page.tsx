@@ -78,10 +78,106 @@ const ProjectManagementPage = () => {
    * It performs optimistic updates and handles persistence to IndexedDB.
    * @param event The DragEndEvent from Dnd-kit.
    */
+  /**
+   * @brief Handles the change of a task's status (column).
+   * @param taskToMove The task being moved.
+   * @param newStatus The new status (column ID) for the task.
+   * @param originalTasks The state of tasks before the optimistic update.
+   */
+  const handleTaskStatusChange = async (
+    taskToMove: Task,
+    newStatus: string,
+    originalTasks: Task[],
+  ) => {
+    const updatedTask: Task = {
+      ...taskToMove,
+      status: newStatus,
+      updateTimestamp: Date.now(),
+    };
+
+    // Optimistic update: Remove from old column, add to new column
+    setTasks((prevTasks) =>
+      prevTasks.filter((task) => task.id !== taskToMove.id).concat(updatedTask),
+    );
+    toast.success(
+      `Task "${updatedTask.title}" status updated to "${newStatus.replace(/-/g, ' ')}".`,
+    );
+
+    try {
+      await updateTask(updatedTask); // Persist the status change to IndexedDB
+    } catch (error) {
+      console.error('Failed to update task status:', error);
+      toast.error(`Failed to update task status. Please try again.`);
+      setTasks(originalTasks); // Revert state on error
+    }
+  };
+
+  /**
+   * @brief Handles reordering of tasks within the same column.
+   * @param activeId The ID of the task being dragged.
+   * @param overId The ID of the task being dragged over.
+   * @param containerId The ID of the column (status) where reordering is happening.
+   * @param originalTasks The state of tasks before the optimistic update.
+   */
+  const handleTaskReorder = async (
+    activeId: string,
+    overId: string,
+    containerId: string,
+    originalTasks: Task[],
+  ) => {
+    const currentTasksInColumn = tasks
+      .filter((task) => task.status === containerId)
+      .sort((a, b) => (a.order || 0) - (b.order || 0)); // Ensure tasks are sorted by order before reordering
+
+    const oldIndex = currentTasksInColumn.findIndex(
+      (task) => task.id === activeId,
+    );
+    const newIndex = currentTasksInColumn.findIndex(
+      (task) => task.id === overId,
+    );
+
+    if (oldIndex === -1 || newIndex === -1) {
+      console.warn('Could not find active or over task in the current column.');
+      return;
+    }
+
+    const newOrder = arrayMove(currentTasksInColumn, oldIndex, newIndex);
+
+    // Apply new 'order' values to the reordered tasks
+    const tasksWithNewOrder = newOrder.map((task, index) => ({
+      ...task,
+      order: index, // Assign new order based on array position
+      updateTimestamp: Date.now(),
+    }));
+
+    // Optimistic update: Update UI immediately with new order
+    setTasks((prevTasks) => {
+      const tasksWithoutCurrentColumn = prevTasks.filter(
+        (task) => task.status !== containerId,
+      );
+      return [...tasksWithoutCurrentColumn, ...tasksWithNewOrder];
+    });
+    toast.success(`Task reordered successfully.`);
+
+    try {
+      // Persist the new order to IndexedDB
+      await Promise.all(tasksWithNewOrder.map((task) => updateTask(task)));
+    } catch (error) {
+      console.error('Failed to persist task reordering:', error);
+      toast.error(`Failed to reorder task. Please try again.`);
+      setTasks(originalTasks); // Revert state on error
+    }
+  };
+
+  /**
+   * @brief Handles the end of a drag-and-drop operation.
+   * Dispatches to specific handlers based on whether the task changed columns or was reordered within the same column.
+   * @param event The DragEndEvent from Dnd-kit.
+   */
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over) return; // Dropped outside of any droppable area
+    if (!over) return;
 
     const activeId = active.id as string;
     const overId = over.id as string;
@@ -93,83 +189,18 @@ const ProjectManagementPage = () => {
       return;
     }
 
-    // Capture current state for potential revert in case of API failure
-    const originalTasks = [...tasks];
+    const originalTasks = [...tasks]; // Capture current state for potential revert
 
     const activeContainerId =
       active.data.current?.sortable.containerId || taskToMove.status;
     const overContainerId = over.data.current?.sortable.containerId || overId;
 
-    // Scenario 1: Task moved to a different column (status change)
     if (activeContainerId !== overContainerId) {
-      const updatedTask: Task = {
-        ...taskToMove,
-        status: overContainerId,
-        updateTimestamp: Date.now(),
-      };
-
-      // Optimistic update: Remove from old column, add to new column
-      setTasks((prevTasks) =>
-        prevTasks
-          .filter((task) => task.id !== activeId)
-          .concat(updatedTask),
-      );
-      toast.success(
-        `Task "${updatedTask.title}" status updated to "${overContainerId.replace(/-/g, ' ')}".`,
-      );
-
-      try {
-        await updateTask(updatedTask); // Persist the status change to IndexedDB
-      } catch (error) {
-        console.error('Failed to update task status:', error);
-        toast.error(`Failed to update task status. Please try again.`);
-        setTasks(originalTasks); // Revert state on error
-      }
-    }
-    // Scenario 2: Task reordered within the same column
-    else {
-      const currentTasksInColumn = tasks
-        .filter((task) => task.status === activeContainerId)
-        .sort((a, b) => (a.order || 0) - (b.order || 0)); // Ensure tasks are sorted by order before reordering
-
-      const oldIndex = currentTasksInColumn.findIndex(
-        (task) => task.id === activeId,
-      );
-      const newIndex = currentTasksInColumn.findIndex(
-        (task) => task.id === overId,
-      );
-
-      if (oldIndex === -1 || newIndex === -1) {
-        console.warn('Could not find active or over task in the current column.');
-        return;
-      }
-
-      const newOrder = arrayMove(currentTasksInColumn, oldIndex, newIndex);
-
-      // Apply new 'order' values to the reordered tasks
-      const tasksWithNewOrder = newOrder.map((task, index) => ({
-        ...task,
-        order: index, // Assign new order based on array position
-        updateTimestamp: Date.now(),
-      }));
-
-      // Optimistic update: Update UI immediately with new order
-      setTasks((prevTasks) => {
-        const tasksWithoutCurrentColumn = prevTasks.filter(
-          (task) => task.status !== activeContainerId,
-        );
-        return [...tasksWithoutCurrentColumn, ...tasksWithNewOrder];
-      });
-      toast.success(`Task reordered successfully.`);
-
-      try {
-        // Persist the new order to IndexedDB
-        await Promise.all(tasksWithNewOrder.map((task) => updateTask(task)));
-      } catch (error) {
-        console.error('Failed to persist task reordering:', error);
-        toast.error(`Failed to reorder task. Please try again.`);
-        setTasks(originalTasks); // Revert state on error
-      }
+      // Task moved to a different column (status change)
+      await handleTaskStatusChange(taskToMove, overContainerId, originalTasks);
+    } else {
+      // Task reordered within the same column
+      await handleTaskReorder(activeId, overId, activeContainerId, originalTasks);
     }
   };
 
@@ -258,6 +289,7 @@ const ProjectManagementPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Render TaskList for each status */}
                 <TaskList
+                  key={TaskStatus.TODO} // Added key prop
                   id={TaskStatus.TODO}
                   title="To Do"
                   tasks={todoTasks}
@@ -267,6 +299,7 @@ const ProjectManagementPage = () => {
                   onTaskUpdated={handleTaskUpdated}
                 />
                 <TaskList
+                  key={TaskStatus.IN_PROGRESS} // Added key prop
                   id={TaskStatus.IN_PROGRESS}
                   title="In Progress"
                   tasks={inProgressTasks}
@@ -276,6 +309,7 @@ const ProjectManagementPage = () => {
                   onTaskUpdated={handleTaskUpdated}
                 />
                 <TaskList
+                  key={TaskStatus.COMPLETED} // Added key prop
                   id={TaskStatus.COMPLETED}
                   title="Completed"
                   tasks={completedTasks}

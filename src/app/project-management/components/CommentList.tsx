@@ -29,7 +29,7 @@ const CommentList: React.FC<CommentListProps> = ({
 
     const newComment: TaskComment = {
       // Use TaskComment
-      id: Math.random().toString(36).substring(7), // TODO: Replace with a more robust ID generation strategy (e.g., UUID) for production
+      id: crypto.randomUUID(), // Use crypto.randomUUID() for robust ID generation
       text: newCommentText,
       author: 'CurrentUser', // TODO: Integrate with actual user authentication to get the current user's ID/name
       createdAt: Date.now(),
