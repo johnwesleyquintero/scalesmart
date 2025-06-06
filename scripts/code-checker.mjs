@@ -6,17 +6,11 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import chalk from 'chalk';
+import { CHECKS } from './code-checks.config.mjs'; // Import configuration
 
 const execPromise = promisify(exec);
 
 // Configuration - could be moved to external config file if needed
-const CHECKS = [
-  { command: 'npm run format', name: 'Format Check' },
-  { command: 'npm run lint', name: 'Lint Check' },
-  { command: 'npm run typecheck', name: 'Type Check' },
-  // Additional checks can be added here
-  // { command: 'npm run test', name: 'Unit Tests' },
-];
 
 // Exit codes
 const EXIT_CODES = {

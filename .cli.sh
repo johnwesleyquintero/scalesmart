@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -o pipefail
+set -euo pipefail # Exit immediately if a command exits with a non-zero status (-e), treat unset variables as an error (-u), and propagate errors through pipes (-o pipefail)
 
 # --- Function to load configuration from file ---
 load_config() {
@@ -208,6 +208,7 @@ cleanup() {
     local exit_status=$? # Capture the exit status of the last command
     stop_spinner
     echo -e "\n${ANSI_Yellow}[INFO]${ANSI_Reset} Cleaning up and exiting..."
+    rm -f "$CMD_TEMP_LOG" # Clean up temporary command output log
     # Add any other specific cleanup tasks here
     
     # If cleanup is triggered by a signal (e.g., Ctrl+C), $? will be 128 + signal_number
@@ -1463,11 +1464,3 @@ if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
     main "$@"
     exit 0 # Should be unreachable if main loop is infinite or cleanup exits
 fi
-
-
-# --- PowerShell Section ---
-# (This section is not executed by Bash due to the `exit 0` above when script is run directly)
-# --- Global Variables ---
-# $script:LOG_FILE = $env:LOG_FILE # Attempt to get from environment if set by Bash
-# if (-not $script:LOG_FILE) { $script:LOG_FILE = "c:\Users\johnw\portfolio\.cli.ps.log" } # Default PS log
-# ... (rest of PowerShell script)

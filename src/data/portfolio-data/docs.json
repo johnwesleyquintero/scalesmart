@@ -7,7 +7,7 @@
       "category": "academy",
       "order": 1,
       "tags": ["academy", "course-list-server"],
-      "date": "2025-05-30"
+      "date": "2025-06-05"
     },
     {
       "slug": "academy",
@@ -16,7 +16,7 @@
       "category": "academy",
       "order": 2,
       "tags": ["academy", "content", "indexeddb"],
-      "date": "2025-06-01"
+      "date": "2025-06-05"
     },
     {
       "slug": "admin",
@@ -25,7 +25,7 @@
       "category": "admin",
       "order": 0,
       "tags": ["admin", "page", "authentication", "authorization", "supabase"],
-      "date": "2025-06-01"
+      "date": "2025-06-05"
     },
     {
       "slug": "amazon-seller-tools",
@@ -34,7 +34,7 @@
       "category": "amazon-seller-tools",
       "order": 0,
       "tags": ["amazon", "seller", "tools"],
-      "date": "2025-05-30"
+      "date": "2025-06-05"
     },
     {
       "slug": "analytics",
@@ -43,7 +43,7 @@
       "category": "analytics",
       "order": 0,
       "tags": ["analytics", "documentation"],
-      "date": "2025-05-31"
+      "date": "2025-06-05"
     },
     {
       "slug": "api-academy-article-slug",
@@ -52,7 +52,7 @@
       "category": "api",
       "order": 0,
       "tags": ["api", "academy", "article", "slug"],
-      "date": "2025-05-31"
+      "date": "2025-06-05"
     },
     {
       "slug": "api",
@@ -70,7 +70,7 @@
       "category": "api",
       "order": 1,
       "tags": ["academy", "article", "api"],
-      "date": "2025-05-30"
+      "date": "2025-06-05"
     },
     {
       "slug": "api-academy-courses",
@@ -79,7 +79,7 @@
       "category": "api",
       "order": 2,
       "tags": ["academy", "courses", "api"],
-      "date": "2025-05-30"
+      "date": "2025-06-05"
     },
     {
       "slug": "api-reference",
@@ -88,7 +88,7 @@
       "category": "api",
       "order": 2,
       "tags": [],
-      "date": "2025-06-05"
+      "date": "2025-06-06"
     },
     {
       "slug": "api-amazon-competitor-analysis",
@@ -97,7 +97,7 @@
       "category": "api",
       "order": 3,
       "tags": ["api", "amazon", "competitor-analysis"],
-      "date": "2025-05-31"
+      "date": "2025-06-05"
     },
     {
       "slug": "api-amazon-inventory",
@@ -106,7 +106,7 @@
       "category": "api",
       "order": 4,
       "tags": ["api", "amazon", "inventory"],
-      "date": "2025-05-31"
+      "date": "2025-06-05"
     },
     {
       "slug": "api-amazon-keyword-trends",
@@ -115,7 +115,7 @@
       "category": "api",
       "order": 5,
       "tags": ["api", "amazon", "keyword-trends"],
-      "date": "2025-05-31"
+      "date": "2025-06-05"
     },
     {
       "slug": "api-amazon-pricing",
@@ -124,7 +124,7 @@
       "category": "api",
       "order": 6,
       "tags": ["api", "amazon", "pricing"],
-      "date": "2025-05-31"
+      "date": "2025-06-05"
     },
     {
       "slug": "api-chat",
@@ -421,7 +421,7 @@
       "category": "getting-started",
       "order": 0,
       "tags": [],
-      "date": "2025-06-05"
+      "date": "2025-06-06"
     },
     {
       "slug": "prerequisites",
@@ -619,7 +619,7 @@
       "category": "utils",
       "order": 0,
       "tags": ["api", "cache", "documentation"],
-      "date": "2025-05-31"
+      "date": "2025-06-05"
     },
     {
       "slug": "docs-directory-overview",
