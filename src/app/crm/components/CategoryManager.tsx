@@ -20,7 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { addCategory, updateCategory, deleteCategory } from '@/lib/indexeddb'; // Removed getAllCategories as it's not used directly here
+// Removed direct IndexedDB imports
 import type { Category } from '../types';
 import { toast } from 'sonner';
 
@@ -28,10 +28,12 @@ import { toast } from 'sonner';
  * Props for the CategoryManager component.
  */
 interface CategoryManagerProps {
-  onCategoriesUpdate: (updatedCategories: Category[]) => void; // Callback to notify parent of category changes.
-  initialCategories: Category[]; // Initial list of categories passed from parent.
-  onCategorySuccessfullyDeleted: (deletedCategoryName: string) => void; // Callback when a category is deleted.
-  onCategoryRenamed: (oldName: string, newName: string) => void; // Callback when a category is renamed.
+  categories: Category[]; // List of all available categories passed from parent.
+  onAddCategory: (name: string) => Promise<void>; // Callback to add a new category.
+  onUpdateCategory: (category: Category) => Promise<void>; // Callback to update an existing category.
+  onDeleteCategory: (id: string) => Promise<void>; // Callback to delete a category.
+  onCategorySuccessfullyDeleted: (deletedCategoryName: string) => void; // Callback when a category is successfully deleted (for parent state update).
+  onCategoryRenamed: (oldName: string, newName: string) => void; // Callback when a category is renamed (for parent state update).
   customerCounts: Map<string | null, number>; // Map of category names to customer counts.
 }
 
@@ -40,33 +42,36 @@ interface CategoryManagerProps {
  * Manages the state and operations for categories.
  */
 const CategoryManager = ({
-  onCategoriesUpdate,
-  initialCategories,
+  categories, // Use categories prop directly
+  onAddCategory,
+  onUpdateCategory,
+  onDeleteCategory,
   onCategorySuccessfullyDeleted,
   onCategoryRenamed,
   customerCounts,
 }: CategoryManagerProps) => {
-  // State for the list of categories managed by this component.
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
   // State for the input field where new or edited category names are entered.
-  const [newCategoryName, setNewCategoryName] = useState('');
+  const [categoryInputName, setCategoryInputName] = useState('');
   // State to hold the category currently being edited, or null if not editing.
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
   /**
-   * Effect to synchronize internal `categories` state with `initialCategories` prop.
-   * This is crucial if `initialCategories` are fetched asynchronously by the parent.
+   * Effect to populate the input field when editingCategory changes.
    */
   useEffect(() => {
-    setCategories(initialCategories);
-  }, [initialCategories]);
+    if (editingCategory) {
+      setCategoryInputName(editingCategory.name);
+    } else {
+      setCategoryInputName('');
+    }
+  }, [editingCategory]);
 
   /**
    * Handles adding a new category.
-   * Validates input, checks for duplicates, and persists to IndexedDB.
+   * Validates input and calls the parent's add handler.
    */
   const handleAddCategory = async () => {
-    const trimmedCategoryName = newCategoryName.trim();
+    const trimmedCategoryName = categoryInputName.trim();
 
     // Prevent adding empty category names.
     if (!trimmedCategoryName) {
@@ -85,22 +90,10 @@ const CategoryManager = ({
       return;
     }
 
-    const newCategory: Category = {
-      id: Date.now().toString(), // Simple unique ID generation.
-      name: trimmedCategoryName,
-    };
-
-    try {
-      await addCategory(newCategory);
-      const updatedCategories = [...categories, newCategory];
-      setCategories(updatedCategories);
-      setNewCategoryName(''); // Clear input field.
-      onCategoriesUpdate(updatedCategories); // Notify parent.
-      toast.success('Category added successfully!');
-    } catch (error) {
-      console.error('Error adding category:', error);
-      toast.error('Failed to add category. Please try again.');
-    }
+    // Call the parent's add category action
+    await onAddCategory(trimmedCategoryName);
+    // Parent will update the categories state and pass it back down
+    setCategoryInputName(''); // Clear input field.
   };
 
   /**
@@ -109,12 +102,12 @@ const CategoryManager = ({
    */
   const handleEditCategory = (category: Category) => {
     setEditingCategory(category);
-    setNewCategoryName(category.name);
+    setCategoryInputName(category.name);
   };
 
   /**
    * Handles updating an existing category.
-   * Validates input, checks for duplicates (excluding itself), and persists to IndexedDB.
+   * Validates input, checks for duplicates (excluding itself), and calls the parent's update handler.
    */
   const handleUpdateCategory = async () => {
     if (!editingCategory) {
@@ -122,7 +115,7 @@ const CategoryManager = ({
       return;
     }
 
-    const trimmedCategoryName = newCategoryName.trim();
+    const trimmedCategoryName = categoryInputName.trim();
 
     // Prevent updating with an empty category name.
     if (!trimmedCategoryName) {
@@ -148,30 +141,22 @@ const CategoryManager = ({
       name: trimmedCategoryName,
     };
 
-    try {
-      await updateCategory(updatedCategory);
-      const updatedCategories = categories.map((category) =>
-        category.id === updatedCategory.id ? updatedCategory : category,
-      );
-      setCategories(updatedCategories);
-      setEditingCategory(null); // Clear editing state.
-      setNewCategoryName(''); // Clear input field.
-      onCategoriesUpdate(updatedCategories); // Notify parent.
+    // Call the parent's update category action
+    await onUpdateCategory(updatedCategory);
+    // Parent will update the categories state and pass it back down
 
-      // If the name actually changed, notify the parent.
-      if (oldName !== updatedCategory.name) {
-        onCategoryRenamed(oldName, updatedCategory.name);
-      }
-      toast.success('Category updated successfully!');
-    } catch (error) {
-      console.error('Error updating category:', error);
-      toast.error('Failed to update category. Please try again.');
+    setEditingCategory(null); // Clear editing state.
+    setCategoryInputName(''); // Clear input field.
+
+    // If the name actually changed, notify the parent.
+    if (oldName !== updatedCategory.name) {
+      onCategoryRenamed(oldName, updatedCategory.name);
     }
   };
 
   /**
    * Handles deleting a category.
-   * Prevents deletion if customers are associated with it.
+   * Prevents deletion if customers are associated with it and calls the parent's delete handler.
    */
   const handleDeleteCategory = async (id: string) => {
     const categoryToDelete = categories.find((cat) => cat.id === id);
@@ -189,24 +174,14 @@ const CategoryManager = ({
       return;
     }
 
-    try {
-      const deletedCategoryName = categoryToDelete.name;
-      await deleteCategory(id);
-      const updatedCategories = categories.filter(
-        (category) => category.id !== id,
-      );
-      setCategories(updatedCategories);
-      onCategoriesUpdate(updatedCategories); // Notify parent.
-      onCategorySuccessfullyDeleted(deletedCategoryName); // Notify parent about the specific category deleted.
-      toast.success('Category deleted successfully!');
-    } catch (error) {
-      console.error('Error deleting category:', error);
-      toast.error('Failed to delete category. Please try again.');
-    }
+    // Call the parent's delete category action
+    await onDeleteCategory(id);
+    // Parent will update the categories state and pass it back down
+    onCategorySuccessfullyDeleted(categoryToDelete.name); // Notify parent about the specific category deleted.
   };
 
   // Determine if the add/update button should be disabled.
-  const isButtonDisabled = newCategoryName.trim() === '';
+  const isButtonDisabled = categoryInputName.trim() === '';
 
   return (
     <Card className="flex-1">
@@ -216,12 +191,12 @@ const CategoryManager = ({
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-1">
-            <Label htmlFor="new-category-name">Category Name</Label>
+            <Label htmlFor="category-input-name">Category Name</Label>
             <Input
               type="text"
-              id="new-category-name"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
+              id="category-input-name"
+              value={categoryInputName}
+              onChange={(e) => setCategoryInputName(e.target.value)}
               placeholder="Enter category name"
             />
           </div>
@@ -233,7 +208,7 @@ const CategoryManager = ({
                   variant="outline"
                   onClick={() => {
                     setEditingCategory(null); // Clear editing state.
-                    setNewCategoryName(''); // Clear input field.
+                    setCategoryInputName(''); // Clear input field.
                   }}
                 >
                   Cancel

@@ -43,9 +43,9 @@ const ClientSideMDXRemote = dynamic(
  */
 interface CustomerListItemProps {
   customer: Contact; // The customer object to display.
-  onEdit: (customer: Contact) => void; // Callback for editing the customer.
-  onDelete: (id: string) => void; // Callback for deleting the customer.
-  onCopyNotes: (notes: string) => void; // Callback for copying customer notes.
+  onEditAction: (customer: Contact) => void; // Renamed to end with Action
+  onDeleteAction: (id: string) => void; // Renamed to end with Action
+  onCopyNotesAction: (notes: string) => void; // Renamed to end with Action
   onCommunicationLogSaveAction: (
     log: Omit<CommunicationLog, 'id'>,
   ) => Promise<void>; // Callback to save a new communication log.
@@ -54,7 +54,7 @@ interface CustomerListItemProps {
     logId: string,
     customerId: string,
   ) => Promise<void>; // Callback to delete a communication log.
-  onSelect: (id: string, isSelected: boolean) => void; // Callback for selecting/deselecting the customer.
+  onSelectAction: (id: string, isSelected: boolean) => void; // Renamed to end with Action
   isSelected: boolean; // Boolean indicating if the customer is currently selected.
 }
 
@@ -64,13 +64,13 @@ interface CustomerListItemProps {
  */
 const CustomerListItem: React.FC<CustomerListItemProps> = ({
   customer,
-  onEdit,
-  onDelete,
-  onCopyNotes,
+  onEditAction, // Use new prop name
+  onDeleteAction, // Use new prop name
+  onCopyNotesAction, // Use new prop name
   onCommunicationLogSaveAction,
   onCommunicationLogUpdateAction,
   onCommunicationLogDeleteAction,
-  onSelect,
+  onSelectAction, // Use new prop name
   isSelected,
 }) => {
   // State to control the visibility of the communication log section.
@@ -115,7 +115,9 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
         <div className="absolute top-2 left-2">
           <Checkbox
             checked={isSelected}
-            onCheckedChange={(checked) => onSelect(customer.id!, !!checked)}
+            onCheckedChange={(checked) =>
+              onSelectAction(customer.id!, !!checked)
+            } // Use new prop name
             aria-label={`Select customer ${customer.name}`}
           />
         </div>
@@ -157,7 +159,7 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onCopyNotes(customer.notes || '')}
+          onClick={() => onCopyNotesAction(customer.notes || '')} // Use new prop name
           title="Copy notes"
         >
           <Copy className="mr-2 h-4 w-4" /> Copy Notes
@@ -189,7 +191,7 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onEdit(customer)}
+          onClick={() => onEditAction(customer)} // Use new prop name
           title="Edit customer"
         >
           <Edit className="mr-2 h-4 w-4" /> Edit
@@ -197,7 +199,7 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
         <Button
           variant="destructive"
           size="sm"
-          onClick={() => onDelete(customer.id!)}
+          onClick={() => onDeleteAction(customer.id!)} // Use new prop name
           title="Delete customer"
         >
           <Trash2 className="mr-2 h-4 w-4" /> Delete

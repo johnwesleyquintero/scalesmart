@@ -18,7 +18,10 @@ import type { Category, Contact } from '../types';
 interface CategoryManagementTabProps {
   categories: Category[]; // List of all available categories.
   customers: Contact[]; // List of all customers, used to calculate category counts.
-  handleCategoriesUpdateAction: (updatedCategories: Category[]) => void; // Callback to update categories.
+  // Handlers for category actions, now passed down to CategoryManager
+  handleAddCategoryAction: (name: string) => Promise<void>;
+  handleUpdateCategoryAction: (category: Category) => Promise<void>;
+  handleDeleteCategoryAction: (id: string) => Promise<void>;
   handleCategorySuccessfullyDeletedAction: (
     deletedCategoryName: string,
   ) => Promise<void>; // Callback when a category is successfully deleted.
@@ -35,7 +38,9 @@ interface CategoryManagementTabProps {
 export const CategoryManagementTab: React.FC<CategoryManagementTabProps> = ({
   categories,
   customers,
-  handleCategoriesUpdateAction,
+  handleAddCategoryAction, // Destructure new props
+  handleUpdateCategoryAction,
+  handleDeleteCategoryAction,
   handleCategorySuccessfullyDeletedAction,
   handleCategoryRenamedAction,
 }) => {
@@ -62,8 +67,10 @@ export const CategoryManagementTab: React.FC<CategoryManagementTabProps> = ({
       <CardContent>
         {/* CategoryManager component handles the core logic for category operations */}
         <CategoryManager
-          onCategoriesUpdate={handleCategoriesUpdateAction}
-          initialCategories={categories}
+          categories={categories} // Pass categories prop
+          onAddCategory={handleAddCategoryAction} // Pass add handler
+          onUpdateCategory={handleUpdateCategoryAction} // Pass update handler
+          onDeleteCategory={handleDeleteCategoryAction} // Pass delete handler
           onCategorySuccessfullyDeleted={
             handleCategorySuccessfullyDeletedAction
           }

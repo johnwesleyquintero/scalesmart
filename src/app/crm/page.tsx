@@ -4,6 +4,8 @@ import { Toaster } from 'sonner';
 import { useState, useCallback } from 'react';
 import type { Contact } from './types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import Modal from '@/components/Modal'; // Import the Modal component
+import { CustomerForm } from './components/CustomerForm'; // Import the CustomerForm component
 
 import { useCRMData } from '@/hooks/use-crm-data';
 import { AddCustomerTab } from './components/AddCustomerTab';
@@ -25,7 +27,10 @@ export default function CRMComponent() {
     categories,
     handleSaveCustomerAction,
     handleDeleteCustomerAction,
-    handleCategoriesUpdateAction,
+    // Destructure new category action handlers
+    handleAddCategoryAction,
+    handleUpdateCategoryAction,
+    handleDeleteCategoryAction,
     handleCategorySuccessfullyDeletedAction,
     handleCategoryRenamedAction,
     handleCreateCommunicationLogAction,
@@ -42,6 +47,13 @@ export default function CRMComponent() {
    */
   const handleEditCustomer = useCallback((customer: Contact) => {
     setEditingCustomer(customer);
+  }, []);
+
+  /**
+   * Callback to clear the editing state, closing the modal.
+   */
+  const handleCancelEdit = useCallback(() => {
+    setEditingCustomer(null);
   }, []);
 
   /**
@@ -133,7 +145,10 @@ export default function CRMComponent() {
             <CategoryManagementTab
               categories={categories}
               customers={customers}
-              handleCategoriesUpdateAction={handleCategoriesUpdateAction}
+              // Pass the new category action handlers
+              handleAddCategoryAction={handleAddCategoryAction}
+              handleUpdateCategoryAction={handleUpdateCategoryAction}
+              handleDeleteCategoryAction={handleDeleteCategoryAction}
               handleCategorySuccessfullyDeletedAction={
                 handleCategorySuccessfullyDeletedAction
               }
@@ -146,6 +161,25 @@ export default function CRMComponent() {
             <CommunicationLogsTab customers={customers} />
           </TabsContent>
         </Tabs>
+
+        {/* Modal for Editing Customer */}
+        <Modal
+          isOpen={!!editingCustomer} // Open modal if editingCustomer is not null
+          onClose={handleCancelEdit} // Close modal on cancel
+          title={editingCustomer ? 'Edit Customer' : ''} // Set modal title
+        >
+          {editingCustomer && ( // Only render form if editingCustomer exists
+            <CustomerForm
+              initialData={editingCustomer} // Pass the customer data to the form
+              onSubmitSuccessAction={(formData) =>
+                handleSaveCustomerAndClearEdit(formData, editingCustomer)
+              } // Handle save and close modal
+              onCancel={handleCancelEdit} // Handle cancel and close modal
+              isEditing={true} // Indicate that the form is in editing mode
+              categories={categories} // Pass categories to the form
+            />
+          )}
+        </Modal>
       </div>
     </>
   );

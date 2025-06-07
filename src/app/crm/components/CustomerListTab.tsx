@@ -1,94 +1,21 @@
 'use client';
 
+'use client';
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Download, Loader2, Trash2 } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react'; // Removed Loader2 as it's now in CustomerListContent
 import ReactPaginate from 'react-paginate';
 import { toast } from 'sonner';
 import useDebounce from '@/hooks/use-debounce';
-import { CustomerListItem } from './CustomerListItem';
+import { CustomerListContent } from './CustomerListContent'; // Import the extracted component
 import type { Contact, CommunicationLog, Category } from '../types';
 import {
   filterCustomers,
   generateCustomerCSVData,
 } from '../utils/customerUtils';
-
-interface CustomerListContentProps {
-  customers: Contact[];
-  searchQuery: string;
-  hasAttemptedInitialLoad: boolean;
-  onEdit: (customer: Contact) => void;
-  onDelete: (id: string) => void;
-  onCopyNotes: (notes: string) => void;
-  itemsPerPage: number;
-  currentPage: number;
-  onCommunicationLogSaveAction: (
-    log: Omit<CommunicationLog, 'id'>,
-  ) => Promise<void>;
-  onCommunicationLogUpdateAction: (log: CommunicationLog) => Promise<void>;
-  onCommunicationLogDeleteAction: (
-    logId: string,
-    customerId: string,
-  ) => Promise<void>;
-  selectedCustomerIds: string[];
-  onSelect: (id: string, isSelected: boolean) => void;
-}
-
-const CustomerListContent: React.FC<CustomerListContentProps> = ({
-  customers,
-  searchQuery,
-  hasAttemptedInitialLoad,
-  onEdit,
-  onDelete,
-  onCopyNotes,
-  itemsPerPage,
-  currentPage,
-  onCommunicationLogSaveAction,
-  onCommunicationLogUpdateAction,
-  onCommunicationLogDeleteAction,
-  selectedCustomerIds,
-  onSelect,
-}) => {
-  const startIndex = currentPage * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentCustomers = customers.slice(startIndex, endIndex);
-
-  if (currentCustomers.length > 0) {
-    return (
-      <div className="space-y-4">
-        {currentCustomers.map((customer) => (
-          <CustomerListItem
-            key={`customer-card-${customer.id}`}
-            customer={customer}
-            onEdit={onEdit}
-            onDelete={onDelete}
-            onCopyNotes={onCopyNotes}
-            onCommunicationLogSaveAction={onCommunicationLogSaveAction}
-            onCommunicationLogUpdateAction={onCommunicationLogUpdateAction}
-            onCommunicationLogDeleteAction={onCommunicationLogDeleteAction}
-            onSelect={onSelect}
-            isSelected={
-              customer.id ? selectedCustomerIds.includes(customer.id) : false
-            }
-          />
-        ))}
-      </div>
-    );
-  }
-
-  let emptyStateContent;
-  if (searchQuery) {
-    emptyStateContent = 'No customers match your search.';
-  } else if (hasAttemptedInitialLoad) {
-    emptyStateContent = 'No customers added yet.';
-  } else {
-    emptyStateContent = <Loader2 className="h-4 w-4 animate-spin" />;
-  }
-
-  return <p className="text-muted-foreground">{emptyStateContent}</p>;
-};
 
 interface CustomerListTabProps {
   customers: Contact[];
@@ -103,7 +30,7 @@ interface CustomerListTabProps {
     logId: string,
     customerId: string,
   ) => Promise<void>;
-  onEditCustomerAction: (customer: Contact) => void; // New prop to pass customer to parent for editing
+  onEditCustomerAction: (customer: Contact) => void; // Prop name already ends with Action
 }
 
 export const CustomerListTab: React.FC<CustomerListTabProps> = ({
@@ -258,16 +185,16 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
           customers={filteredCustomers}
           searchQuery={searchQuery}
           hasAttemptedInitialLoad={hasAttemptedInitialLoad}
-          onEdit={onEditCustomerAction} // Pass onEditCustomer to CustomerListContent
-          onDelete={handleDelete}
-          onCopyNotes={handleCopyToClipboard}
+          onEditAction={onEditCustomerAction} // Pass with new prop name
+          onDeleteAction={handleDelete} // Pass with new prop name
+          onCopyNotesAction={handleCopyToClipboard} // Pass with new prop name
           itemsPerPage={itemsPerPage}
           currentPage={currentPage}
           onCommunicationLogSaveAction={handleCreateCommunicationLogAction}
           onCommunicationLogUpdateAction={handleUpdateCommunicationLogAction}
           onCommunicationLogDeleteAction={handleDeleteCommunicationLogAction}
           selectedCustomerIds={selectedCustomerIds}
-          onSelect={handleSelectCustomer}
+          onSelectAction={handleSelectCustomer} // Pass with new prop name
         />
         <ReactPaginate
           previousLabel={'Previous'}

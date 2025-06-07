@@ -13,7 +13,10 @@ import {
   deleteContact,
   getAllContacts,
   getAllCategories,
+  // Import category specific IndexedDB functions
+  addCategory,
   updateCategory,
+  deleteCategory,
   createCommunicationLog,
   updateCommunicationLog,
   deleteCommunicationLog,
@@ -152,22 +155,60 @@ export const useCRMData = () => {
     }
   }, []);
 
-  const handleCategoriesUpdateAction = useCallback(
-    async (updatedCategories: Category[]) => {
-      try {
-        // Persist each category to IndexedDB
-        for (const category of updatedCategories) {
-          await updateCategory(category); // updateCategory uses put, which handles both add and update
-        }
-        setCategories(updatedCategories);
-        toast.success('Categories updated successfully!');
-      } catch (error) {
-        console.error('Error updating categories in IndexedDB:', error);
-        toast.error('Failed to save categories. See console for details.');
+  /**
+   * Handles adding a new category.
+   * Calls the IndexedDB service and updates the state.
+   */
+  const handleAddCategoryAction = useCallback(async (name: string) => {
+    try {
+      // The IndexedDB service handles ID generation
+      const newId = await addCategory({ name });
+      if (newId) {
+        const newCategory: Category = { id: newId, name };
+        setCategories((prevCategories) => [...prevCategories, newCategory]);
+        toast.success('Category added successfully!');
+      } else {
+        toast.error('Failed to add category.');
       }
-    },
-    [],
-  );
+    } catch (error) {
+      console.error('Error adding category:', error);
+      toast.error('Failed to add category. Please try again.');
+    }
+  }, []); // Dependency array is empty as it uses setCategories functional update
+
+  /**
+   * Handles updating an existing category.
+   * Calls the IndexedDB service and updates the state.
+   */
+  const handleUpdateCategoryAction = useCallback(async (category: Category) => {
+    try {
+      await updateCategory(category);
+      setCategories((prevCategories) =>
+        prevCategories.map((cat) => (cat.id === category.id ? category : cat)),
+      );
+      toast.success('Category updated successfully!');
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast.error('Failed to update category. Please try again.');
+    }
+  }, []); // Dependency array is empty as it uses setCategories functional update
+
+  /**
+   * Handles deleting a category.
+   * Calls the IndexedDB service and updates the state.
+   */
+  const handleDeleteCategoryAction = useCallback(async (id: string) => {
+    try {
+      await deleteCategory(id);
+      setCategories((prevCategories) =>
+        prevCategories.filter((cat) => cat.id !== id),
+      );
+      toast.success('Category deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      toast.error('Failed to delete category. Please try again.');
+    }
+  }, []); // Dependency array is empty as it uses setCategories functional update
 
   const handleCategorySuccessfullyDeletedAction = useCallback(
     async (deletedCategoryName: string) => {
@@ -317,7 +358,10 @@ export const useCRMData = () => {
     categories,
     handleSaveCustomerAction,
     handleDeleteCustomerAction,
-    handleCategoriesUpdateAction,
+    // Include new category action handlers
+    handleAddCategoryAction,
+    handleUpdateCategoryAction,
+    handleDeleteCategoryAction,
     handleCategorySuccessfullyDeletedAction,
     handleCategoryRenamedAction,
     handleCreateCommunicationLogAction,

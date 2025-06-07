@@ -838,7 +838,7 @@ export const deleteCoursesByIds = async (ids: string[]): Promise<void> => {
 };
 
 export const addCategory = async (
-  category: Category,
+  category: Omit<Category, 'id'>, // Update type to omit 'id'
 ): Promise<string | undefined> => {
   try {
     const id = crypto.randomUUID();
