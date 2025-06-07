@@ -28,7 +28,8 @@ type TimestampedRecord<T> = T & { updated_at?: string };
  *          and functions for data operations (getData, saveData, deleteData, syncFromSupabase, syncToSupabase).
  */
 export function useHybridStorage<T>(tableName: string, keyField: keyof T) {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  console.log('useHybridStorage: Initializing state. typeof window:', typeof window);
+  const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -42,6 +43,13 @@ export function useHybridStorage<T>(tableName: string, keyField: keyof T) {
    * to IndexedDB when the component mounts and the application is online.
    */
   useEffect(() => {
+    console.log('useHybridStorage: useEffect running. typeof window:', typeof window);
+    if (typeof window === 'undefined') {
+      console.log('useHybridStorage: Running on server, skipping network listeners and initial sync.');
+      setIsLoading(false);
+      return;
+    }
+
     const handleOnlineStatusChange = () => {
       setIsOnline(navigator.onLine);
     };
@@ -83,6 +91,9 @@ export function useHybridStorage<T>(tableName: string, keyField: keyof T) {
    * This ensures that any changes made offline are pushed to the cloud database.
    */
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return; // Skip on server
+    }
     // Only attempt to sync if online and no other sync operation is currently in progress.
     if (isOnline && !isSyncing) {
       const syncOfflineChanges = async () => {
