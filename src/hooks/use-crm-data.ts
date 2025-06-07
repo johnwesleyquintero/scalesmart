@@ -253,21 +253,37 @@ export const useCRMData = () => {
     [],
   );
 
+  /**
+   * Helper function to update the communication logs for a specific customer in the state.
+   * @param customerId The ID of the customer whose logs are being updated.
+   * @param updateFn A function that takes the current logs array and returns the new logs array.
+   */
+  const updateCustomerCommunicationLogs = useCallback(
+    (
+      customerId: string,
+      updateFn: (logs: CommunicationLog[]) => CommunicationLog[],
+    ) => {
+      setCustomers((prevCustomers) =>
+        prevCustomers.map((cust) =>
+          cust.id === customerId
+            ? {
+                ...cust,
+                communicationLogs: updateFn(cust.communicationLogs || []),
+              }
+            : cust,
+        ),
+      );
+    },
+    [],
+  );
+
   const handleUpdateCommunicationLogAction = useCallback(
     async (log: CommunicationLog) => {
       try {
         await updateCommunicationLog(log);
-        setCustomers((prevCustomers) =>
-          prevCustomers.map((cust) =>
-            cust.id === log.customerId
-              ? {
-                  ...cust,
-                  communicationLogs: (cust.communicationLogs || []).map(
-                    (existingLog) =>
-                      existingLog.id === log.id ? log : existingLog,
-                  ),
-                }
-              : cust,
+        updateCustomerCommunicationLogs(log.customerId, (logs) =>
+          logs.map((existingLog) =>
+            existingLog.id === log.id ? log : existingLog,
           ),
         );
         toast.success('Communication log updated successfully!');
@@ -276,24 +292,15 @@ export const useCRMData = () => {
         toast.error('Failed to update communication log.');
       }
     },
-    [],
+    [updateCustomerCommunicationLogs],
   );
 
   const handleDeleteCommunicationLogAction = useCallback(
     async (logId: string, customerId: string) => {
       try {
         await deleteCommunicationLog(logId, customerId);
-        setCustomers((prevCustomers) =>
-          prevCustomers.map((cust) =>
-            cust.id === customerId
-              ? {
-                  ...cust,
-                  communicationLogs: (cust.communicationLogs || []).filter(
-                    (existingLog) => existingLog.id !== logId,
-                  ),
-                }
-              : cust,
-          ),
+        updateCustomerCommunicationLogs(customerId, (logs) =>
+          logs.filter((existingLog) => existingLog.id !== logId),
         );
         toast.info('Communication log deleted.');
       } catch (error) {
@@ -301,7 +308,7 @@ export const useCRMData = () => {
         toast.error('Failed to delete communication log.');
       }
     },
-    [],
+    [updateCustomerCommunicationLogs],
   );
 
   return {
