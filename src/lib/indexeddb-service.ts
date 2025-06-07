@@ -2,6 +2,7 @@ import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 import { Contact, Category, CommunicationLog } from '@/app/crm/types';
 import { Course, QuizResult } from '@/types';
+import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
 
 // Define constants for duplicate strings
 const ERROR_MESSAGE_PREFIX = 'IndexedDBService';
@@ -158,20 +159,25 @@ export const initializeDB = async (): Promise<void> => {
         await db.open();
         console.log(DB_INITIALIZED);
       } catch (openError) {
-        console.error(DB_OPEN_FAILED, openError);
+        logError(openError, DB_OPEN_FAILED, ERROR_MESSAGE_PREFIX);
         throw openError;
       }
     } else {
       console.log(DB_ALREADY_OPEN);
     }
   } catch (error) {
-    console.error(
-      `${ERROR_MESSAGE_PREFIX}: Failed to initialize ChatAppDatabase`,
+    logError(
       error,
+      `Failed to initialize ChatAppDatabase`,
+      ERROR_MESSAGE_PREFIX,
     );
     throw error;
   }
 };
+
+function logError(error: unknown, message: string, component: string) {
+  console.error(`${component}: ${message}`, error);
+}
 
 export const getChatMessagesBySession = async (
   chatSessionId: string,
@@ -182,17 +188,14 @@ export const getChatMessagesBySession = async (
       .equals(chatSessionId)
       .sortBy('timestamp');
   } catch (error) {
-    console.error(
-      `${ERROR_MESSAGE_PREFIX}: Failed to get messages for session ${chatSessionId}`,
+    logError(
       error,
+      `Failed to get messages for session ${chatSessionId}`,
+      ERROR_MESSAGE_PREFIX,
     );
     return [];
   }
 };
-
-function logError(error: unknown, message: string, component: string) {
-  console.error(`${component}: ${message}`, error);
-}
 
 export async function getCacheItem<T>(key: string): Promise<T | undefined> {
   try {
@@ -200,9 +203,10 @@ export async function getCacheItem<T>(key: string): Promise<T | undefined> {
       | T
       | undefined;
   } catch (error) {
-    console.error(
-      `${ERROR_MESSAGE_PREFIX}: Error getting item from cache with key "${key}"`,
+    logError(
       error,
+      `Error getting item from cache with key "${key}"`,
+      ERROR_MESSAGE_PREFIX,
     );
     return undefined;
   }
@@ -219,9 +223,10 @@ export async function saveCalculation(data: CalculationData): Promise<void> {
       console.log('Calculation saved to IndexedDB:', data);
     });
   } catch (error) {
-    console.error(
-      `${ERROR_MESSAGE_PREFIX}: Error saving calculation to IndexedDB for campaign "${data.campaignName}"`,
+    logError(
       error,
+      `Error saving calculation to IndexedDB for campaign "${data.campaignName}"`,
+      ERROR_MESSAGE_PREFIX,
     );
   }
 }
@@ -230,9 +235,10 @@ export async function setCacheItem<T>(key: string, value: T): Promise<void> {
   try {
     await db.cache.put({ key: key, value: value });
   } catch (error) {
-    console.error(
-      `${ERROR_MESSAGE_PREFIX}: Error setting item in cache with key "${key}"`,
+    logError(
       error,
+      `Error setting item in cache with key "${key}"`,
+      ERROR_MESSAGE_PREFIX,
     );
   }
 }
@@ -493,7 +499,7 @@ export const deleteProject = async (id: string): Promise<void> => {
     // Update these tasks to have no projectId
     const updatedTasks = tasksToUpdate.map((task) => ({
       ...task,
-      projectId: 'no-project-selected', // Use the constant for 'no project'
+      projectId: NO_PROJECT_VALUE, // Use the constant for 'no project'
       updateTimestamp: Date.now(),
     }));
 
@@ -501,7 +507,7 @@ export const deleteProject = async (id: string): Promise<void> => {
     if (updatedTasks.length > 0) {
       await db.tasks.bulkPut(updatedTasks);
       console.log(
-        `Updated ${updatedTasks.length} tasks to 'no-project-selected' after project deletion.`,
+        `Updated ${updatedTasks.length} tasks to '${NO_PROJECT_VALUE}' after project deletion.`,
       );
     }
 
@@ -901,9 +907,10 @@ export async function removeCacheItem(key: string): Promise<void> {
   try {
     await db.cache.delete(key);
   } catch (error) {
-    console.error(
-      `${ERROR_MESSAGE_PREFIX}: Error removing item from cache with key "${key}"`,
+    logError(
       error,
+      `Error removing item from cache with key "${key}"`,
+      ERROR_MESSAGE_PREFIX,
     );
   }
 }

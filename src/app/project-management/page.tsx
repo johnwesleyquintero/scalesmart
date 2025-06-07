@@ -51,7 +51,6 @@ const ProjectManagementPage = () => {
     setProjects,
     isLoading,
     error,
-    handleTaskUpdated, // This handler is likely for optimistic updates within the hook, not for passing down
     handleUpdateTask, // Destructure the handler for persisting updates
     handleDragEnd,
     handleCreateTask,
@@ -189,7 +188,6 @@ const ProjectManagementPage = () => {
                   id={TaskStatus.TODO}
                   title="To Do"
                   tasks={todoTasks}
-                  setTasks={setTasks}
                   projects={projects}
                   allTasks={tasks}
                   onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
@@ -201,7 +199,6 @@ const ProjectManagementPage = () => {
                   id={TaskStatus.IN_PROGRESS}
                   title="In Progress"
                   tasks={inProgressTasks}
-                  setTasks={setTasks}
                   projects={projects}
                   allTasks={tasks}
                   onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
@@ -213,7 +210,6 @@ const ProjectManagementPage = () => {
                   id={TaskStatus.COMPLETED}
                   title="Completed"
                   tasks={completedTasks}
-                  setTasks={setTasks}
                   projects={projects}
                   allTasks={tasks}
                   onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence

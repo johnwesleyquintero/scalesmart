@@ -21,7 +21,6 @@ import { arrayMove } from '@dnd-kit/sortable';
  * @property {React.Dispatch<React.SetStateAction<Task[]>>} setTasks - Setter for tasks state.
  * @property {Project[]} projects - Array of all projects.
  * @property {React.Dispatch<React.SetStateAction<Project[]>>} setProjects - Setter for projects state.
- * @property {(task: Task) => void} handleTaskUpdated - Handler for when a task is updated (optimistic update).
  * @property {(updatedTask: Task) => Promise<void>} handleUpdateTask - Handler to update an existing task and persist it.
  * @property {(event: DragEndEvent) => Promise<void>} handleDragEnd - Handler for Dnd-kit drag end event.
  * @property {(taskData: Omit<Task, 'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
@@ -411,7 +410,6 @@ export const useTaskManagement = () => {
     setProjects,
     isLoading,
     error,
-    handleTaskUpdated,
     handleUpdateTask, // Add handleUpdateTask
     handleDragEnd,
     handleCreateTask,
