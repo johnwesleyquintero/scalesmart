@@ -148,6 +148,7 @@ export interface CalculationData {
   acos: number;
   roas: number;
   date: number;
+  currencySymbol: string;
 }
 
 export const initializeDB = async (): Promise<void> => {

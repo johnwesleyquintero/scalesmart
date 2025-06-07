@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast.ts';
-import { AmazonAlgorithms } from '@/lib/amazon-tools/amazon-algorithms';
+import { AmazonCalculations } from '@/lib/amazon-tools/amazon-calculations';
 import {
   validateOptimalPriceInputs,
   type OptimalPriceInputs,
@@ -165,17 +165,20 @@ export default function OptimalPriceCalculator() {
         );
 
       // Calculate product score with validated inputs
-      const productScore = AmazonAlgorithms.calculateProductScore({
-        // Ensure reviews is number | null
-        reviews: validatedData.reviews ?? undefined, // Use validatedData directly
-        rating: validatedData.reviewRating, // Use validatedData directly
-        salesRank: validatedData.salesRank, // Use validatedData directly
-        price: validatedData.price, // Use validatedData directly
-        category: validatedData.category, // Use validatedData directly
+      const productScore = AmazonCalculations.calculateProductScore({
+        conversionRate: 0, // Default value, as it's not in OptimalPriceInputs
+        sessions: 0, // Default value, as it's not in OptimalPriceInputs
+        reviewRating: validatedData.reviewRating,
+        reviewCount: validatedData.reviewCount,
+        priceCompetitiveness: validatedData.priceCompetitiveness,
+        inventoryHealth: validatedData.inventoryHealth,
+        weight: validatedData.weight,
+        volume: validatedData.volume,
+        category: validatedData.category,
       });
 
       // Calculate optimal price
-      const optimalPrice = AmazonAlgorithms.calculateOptimalPrice({
+      const optimalPrice = AmazonCalculations.calculateOptimalPrice({
         currentPrice: validatedData.currentPrice,
         competitorPrices: competitorPricesStrict, // Use the strictly typed array
         productScore: productScore / 100, // Assuming score is 0-100

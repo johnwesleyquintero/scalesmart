@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { AmazonAlgorithms } from '@/lib/amazon-tools/amazon-algorithms';
+import { AmazonCalculations } from '@/lib/amazon-tools/amazon-calculations';
 import { ProductCategory } from '@/lib/amazon-types';
 import type React from 'react';
 import { useState } from 'react';
@@ -31,7 +31,8 @@ export default function ProfitMarginCalculator() {
     product: string;
     cost: number;
     fees: number;
-    sessions?: number;
+    conversionRate?: number; // Added for ProductScoreParams
+    sessions?: number; // Added for ProductScoreParams
     reviewRating?: number;
     reviewCount?: number;
     priceCompetitiveness?: number;
@@ -39,9 +40,9 @@ export default function ProfitMarginCalculator() {
     weight?: number;
     volume?: number;
     competitorPrices?: number[];
-    reviews?: number | null;
     salesRank?: number;
     price?: number;
+    category?: ProductCategory; // Added for ProductScoreParams
     profit?: number;
     margin?: number;
     roi?: number;
@@ -163,15 +164,19 @@ export default function ProfitMarginCalculator() {
       const validatedCost = validateNumericValue(item.cost, 0);
       const validatedFees = validateNumericValue(item.fees, 0);
 
-      const productScore = AmazonAlgorithms.calculateProductScore({
-        reviews: item.reviews || undefined,
-        rating: item.reviewRating || 4.5,
-        salesRank: item.salesRank || 1000,
-        price: validatedPrice,
-        category: ProductCategory.STANDARD,
+      const productScore = AmazonCalculations.calculateProductScore({
+        conversionRate: item.conversionRate ?? 0, // Assuming a default or deriving it
+        sessions: item.sessions ?? 0, // Assuming a default or deriving it
+        reviewRating: item.reviewRating || 4.5,
+        reviewCount: item.reviewCount || 0,
+        priceCompetitiveness: item.priceCompetitiveness ?? 0,
+        inventoryHealth: item.inventoryHealth ?? 0,
+        weight: item.weight ?? 0,
+        volume: item.volume ?? 0,
+        category: item.category || ProductCategory.STANDARD,
       });
 
-      const adjustedPrice = AmazonAlgorithms.calculateOptimalPrice({
+      const adjustedPrice = AmazonCalculations.calculateOptimalPrice({
         currentPrice: validatedPrice,
         competitorPrices: item.competitorPrices || [
           validatedPrice * 0.9,

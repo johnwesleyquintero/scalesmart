@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
@@ -17,22 +16,22 @@ import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
 
 // Utility & Config
 import { exportToCSV } from '@/lib/amazon-tools/export-utils';
-import { TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
 
 // Types
 import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 import type { TargetMetricConfig } from '@/lib/amazon-tools/types';
+import { TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
 
 /**
  * Type for a single tab configuration within a ToolCategorySection.
- * Uses React.ComponentType for better type safety.
+ * @template P - The props type for the React component.
  */
-interface ToolCategoryTab {
+interface ToolCategoryTab<P = Record<string, unknown>> {
   triggerValue: string;
   triggerText: string;
   contentValue: string;
-  Component: React.ComponentType<any>; // Using 'any' here as component props vary widely
-  componentProps?: Record<string, any>; // Using 'any' here as component props vary widely
+  Component: React.ComponentType<P>;
+  componentProps?: P;
 }
 
 /**
@@ -478,12 +477,6 @@ export default function UnifiedDashboard() {
     [initialAsin, initialKeyword],
   ); // Recreate if initial params change
 
-  // State for upload/processing specific to OverviewTab - kept here as per original code structure
-  // These flags are not currently used by DashboardHeader, so ideally they'd be in OverviewTab
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [isMapping, setIsMapping] = useState<boolean>(false);
-  const [isProcessing, setIsProcessing] = useState<boolean>(false);
-
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       <div className="container mx-auto p-4 space-y-4">
@@ -504,10 +497,6 @@ export default function UnifiedDashboard() {
           handleExport={handleExport}
           metrics={metrics}
           onSearch={setSearchTerm}
-          // Pass Overview specific states if needed by header (they aren't currently)
-          // isUploading={isUploading}
-          // isMapping={isMapping}
-          // isProcessing={isProcessing}
         />
 
         <Tabs
@@ -536,12 +525,6 @@ export default function UnifiedDashboard() {
               setIsLoading={setIsLoading}
               isParsing={isParsing}
               setIsParsing={setIsParsing}
-              isUploading={isUploading} // Pass down states managed in parent
-              setIsUploading={setIsUploading}
-              isMapping={isMapping}
-              setIsMapping={setIsMapping}
-              isProcessing={isProcessing}
-              setIsProcessing={setIsProcessing}
               error={error}
               setError={setError}
               TARGET_METRICS_CONFIG={TARGET_METRICS_CONFIG}

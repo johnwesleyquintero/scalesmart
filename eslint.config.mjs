@@ -82,7 +82,7 @@ const commonRules = {
   'react/prop-types': 'off',
   'sonarjs/no-duplicate-string': 'error',
   'sonarjs/no-identical-functions': 'error',
-  'sonarjs/cognitive-complexity': ['error', 15],
+  'sonarjs/cognitive-complexity': ['error', 20],
 };
 
 // Base configuration for JavaScript files

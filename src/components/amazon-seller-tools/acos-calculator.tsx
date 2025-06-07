@@ -24,7 +24,7 @@ import {
 import { useCsvParser } from '@/lib/hooks/use-csv-parser';
 import { monetaryValueSchema, numberSchema } from '@/lib/input-validation';
 import { AlertCircle, Download, Info, Upload, X, XCircle } from 'lucide-react';
-import AcosTrendChart from './AcosTrendChart';
+import { AcosTrendChart } from './AcosTrendChart';
 import Papa from 'papaparse';
 import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
 import { useCallback, useEffect, useState, useMemo } from 'react';
@@ -46,7 +46,10 @@ import { format } from 'date-fns';
 import { CalculationData } from '@/lib/indexeddb-service';
 import { ManualCalculationForm } from './ManualCalculationForm';
 import { AcosRatingGuide } from './AcosRatingGuide';
-import { calculateLocalMetrics } from '@/lib/amazon-tools/acos-calculator-utils';
+import {
+  calculateLocalMetrics,
+  calculateAcosRoas,
+} from '@/lib/amazon-tools/acos-calculator-utils';
 import { CalculationHistoryTable } from './CalculationHistoryTable';
 
 // --- Interfaces & Types ---
@@ -96,14 +99,10 @@ export default function AcosCalculator() {
   }, [campaigns]);
 
   // Cleanup effect for memory leak prevention
-  useEffect(() => {
-    return () => {
-      // Cleanup function to prevent state updates after unmount
-      setCampaigns([]);
-      setError(undefined);
-      setIsLoading(false);
-    };
-  }, []);
+  // No specific cleanup needed for this component's state.
+  // The cleanup function is typically used for subscriptions, timers, etc.
+  // Setting state to initial values on unmount is generally not necessary
+  // and can sometimes lead to issues if the component is re-mounted quickly.
 
   // Load history on component mount
   useEffect(() => {
@@ -483,11 +482,7 @@ export default function AcosCalculator() {
         <CalculationHistoryTable calculationHistory={calculationHistory} />
       )}
       <div className="w-full overflow-x-auto">
-        <AcosTrendChart
-          data={campaigns}
-          metrics={availableMetrics}
-          availableMetrics={availableMetrics}
-        />
+        <AcosTrendChart data={campaigns} availableMetrics={availableMetrics} />
       </div>
       <Button onClick={clearData}>Clear History</Button>
     </div>

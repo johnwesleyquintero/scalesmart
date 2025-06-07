@@ -136,12 +136,6 @@ interface OverviewTabProps {
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   isParsing: boolean;
   setIsParsing: React.Dispatch<React.SetStateAction<boolean>>;
-  isUploading: boolean;
-  setIsUploading: React.Dispatch<React.SetStateAction<boolean>>;
-  isMapping: boolean;
-  setIsMapping: React.Dispatch<React.SetStateAction<boolean>>;
-  isProcessing: boolean;
-  setIsProcessing: React.Dispatch<React.SetStateAction<boolean>>;
   error: string | null;
   setError: React.Dispatch<React.SetStateAction<string | null>>;
   TARGET_METRICS_CONFIG: readonly TargetMetricConfig[];
@@ -158,23 +152,17 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
   setIsLoading,
   isParsing,
   setIsParsing,
-  isUploading,
-  setIsUploading,
-  isMapping,
-  setIsMapping,
-  isProcessing,
-  setIsProcessing,
   error,
   setError,
   TARGET_METRICS_CONFIG,
   searchTerm,
 }) => {
   const [showMapper, setShowMapper] = useState(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [isMapping, setIsMapping] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
 
   const OverviewTabContentDisplay: React.FC<{
-    isUploading: boolean;
-    isParsing: boolean;
-    isProcessing: boolean;
     showMapperFlag: boolean;
     csvHeaders: string[];
     error: string | null;
@@ -203,10 +191,10 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     >;
     totalRows: number;
     processedRows: number;
+    isUploading: boolean; // Pass down for OverviewLoadingIndicator
+    isParsing: boolean; // Pass down for OverviewLoadingIndicator
+    isProcessing: boolean; // Pass down for OverviewLoadingIndicator
   }> = ({
-    isUploading,
-    isParsing,
-    isProcessing,
     showMapperFlag,
     csvHeaders,
     error,
@@ -231,6 +219,9 @@ const OverviewTab: React.FC<OverviewTabProps> = ({
     setTimeRange,
     customDateRange,
     setCustomDateRange,
+    isUploading,
+    isParsing,
+    isProcessing,
   }) => {
     if (isUploading || isParsing || isProcessing) {
       return (
