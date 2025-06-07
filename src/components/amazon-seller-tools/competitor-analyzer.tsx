@@ -638,22 +638,27 @@ export function CompetitorAnalyzer({
             id="asin"
             value={asin}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-              const value = e.target.value.trim();
-              // Basic ASIN validation: 10 alphanumeric characters
-              if (
-                value.length === 0 ||
-                (value.length <= 10 && /^[a-zA-Z0-9]+$/.test(value))
-              ) {
-                setAsin(value);
-              } else if (value.length > 10) {
-                toast.error('ASIN must be 10 characters long.');
+              const inputValue = e.target.value;
+              // Allow empty string for clearing the input
+              if (inputValue === '') {
+                setAsin('');
+                return;
+              }
+              // ASINs are typically 10 alphanumeric characters.
+              // Allow typing up to 10 characters, but validate format.
+              if (inputValue.length <= 10 && /^[a-zA-Z0-9]*$/.test(inputValue)) {
+                setAsin(inputValue);
+              } else if (inputValue.length > 10) {
+                toast.error('ASIN cannot exceed 10 characters.');
               } else {
-                toast.error('ASIN must contain only letters and numbers.');
+                toast.error('ASIN must contain only alphanumeric characters.');
               }
             }}
             placeholder="e.g., B07XYZ1234"
             disabled={isLoading}
             maxLength={10} // Enforce max length for ASIN
+            aria-label="Competitor ASIN"
+            aria-describedby="asin-help-text"
           />
           <p className="text-sm text-muted-foreground">
             Enter a 10-character ASIN (letters and numbers) to fetch data via

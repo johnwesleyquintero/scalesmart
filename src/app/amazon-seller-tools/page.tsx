@@ -8,6 +8,7 @@ import dynamic from 'next/dynamic';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { toast } from 'sonner'; // Import toast for user feedback
 
 // Custom Components
 import DashboardHeader from '@/components/amazon-seller-tools/DashboardHeader';
@@ -443,10 +444,11 @@ export default function UnifiedDashboard() {
     try {
       exportToCSV(exportableMetrics, 'amazon_seller_tools_data.csv');
       setError(null); // Clear any previous export error on success
-      // Optionally, add a success toast/message here
+      toast.success('Data exported successfully!'); // Add success toast
     } catch (e) {
       console.error('Export failed:', e);
       setError('Failed to export data. Please try again.');
+      toast.error('Failed to export data. Please try again.'); // Add error toast
     }
   }, [metrics]); // Dependency array includes metrics
 
