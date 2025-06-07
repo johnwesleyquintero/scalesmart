@@ -17,7 +17,10 @@
     "x": "bash .cli.sh",
     "deploy": "npx vercel deploy",
     "lint": "eslint --config eslint.config.mjs .",
+    "lint:fix": "eslint --fix --config eslint.config.mjs .",
     "clean": "rimraf .next",
+    "clean:all": "rimraf .next node_modules package-lock.json",
+    "analyze": "cross-env ANALYZE=true npm run build",
     "check": "node scripts/code-checker.mjs",
     "git": "node scripts/git-commit.mjs"
   },
