@@ -20,9 +20,8 @@ import { toast } from 'sonner'; // Import toast for user feedback
 import DashboardHeader from '@/components/amazon-seller-tools/DashboardHeader';
 import OverviewTab from '@/components/amazon-seller-tools/OverviewTab';
 import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
-import DataIntegrationTab, {
-  DataIntegrationTabProps,
-} from '@/components/amazon-seller-tools/DataIntegrationTab'; // Import the new tab component and its props
+import DataIntegrationTab from '@/components/amazon-seller-tools/DataIntegrationTab'; // Import the new tab component
+import type { UseAmazonDataIntegrationReturn } from '@/lib/hooks/useAmazonDataIntegration'; // Import the return type interface from the hook
 
 // Utility & Config
 import { exportToCSV } from '@/lib/amazon-tools/export-utils';
@@ -444,9 +443,9 @@ export default function UnifiedDashboard() {
   const [activeTab, setActiveTab] = useState('overview');
 
   // State to hold all data and callbacks from DataIntegrationTab
-  // Explicitly type the state with the full DataIntegrationTabProps interface
+  // Explicitly type the state with the full UseAmazonDataIntegrationReturn interface
   const [dataIntegrationData, setDataIntegrationData] =
-    useState<DataIntegrationTabProps>({
+    useState<UseAmazonDataIntegrationReturn>({
       metrics: [],
       isLoading: false,
       isParsing: false,
@@ -481,6 +480,7 @@ export default function UnifiedDashboard() {
       setTimeRange: () => {},
       setCustomDateRange: () => {},
       setSearchTerm: () => {},
+      overviewDataMapperKey: 0, // Added missing property
     });
 
   // Destructure necessary callbacks and states from the fully typed state

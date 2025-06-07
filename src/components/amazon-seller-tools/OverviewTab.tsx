@@ -45,9 +45,11 @@ import {
 } from '@/lib/amazon-tools/types';
 import { TransformationError } from '@/lib/utils/amazon/data-transformation';
 import DataCard from './DataCard';
-import { DataIntegrationTabProps } from './DataIntegrationTab'; // Import DataIntegrationTabProps
+// Import UseAmazonDataIntegrationReturn type from the hook
+import type { UseAmazonDataIntegrationReturn } from '@/lib/hooks/useAmazonDataIntegration';
 
-interface OverviewTabProps extends Partial<DataIntegrationTabProps> {}
+// Update OverviewTabProps to extend UseAmazonDataIntegrationReturn
+interface OverviewTabProps extends UseAmazonDataIntegrationReturn {}
 
 const SHOW_KEYWORD_TABLE_DEFAULT = false;
 
