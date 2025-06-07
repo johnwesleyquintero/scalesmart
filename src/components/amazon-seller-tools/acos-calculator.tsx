@@ -22,7 +22,11 @@ import {
   validateCampaignRow,
 } from '@/lib/hooks/use-campaign-validator';
 import { useCsvParser } from '@/lib/hooks/use-csv-parser';
-import { monetaryValueSchema, numberSchema } from '@/lib/input-validation';
+import { z } from 'zod'; // Import z from zod
+import {
+  monetaryValueSchema,
+  positiveNumberSchema, // Use positiveNumberSchema for adSpend and sales
+} from '@/lib/input-validation';
 import { AlertCircle, Download, Info, Upload, X, XCircle } from 'lucide-react';
 import { AcosTrendChart } from './AcosTrendChart';
 import Papa from 'papaparse';
@@ -93,16 +97,19 @@ export default function AcosCalculator() {
   // Add availableMetrics state
   const availableMetrics: (keyof CampaignData)[] = useMemo(() => {
     if (campaigns.length === 0) return [];
+    // Filter out calculated metrics that are not directly from CSV or are internal
     return Object.keys(campaigns[0]).filter(
-      (key) => key !== 'campaign' && key !== 'date',
+      (key) =>
+        key !== 'campaign' &&
+        key !== 'date' &&
+        key !== 'acos' &&
+        key !== 'roas' &&
+        key !== 'ctr' &&
+        key !== 'cpc' &&
+        key !== 'revenuePerClickRate' &&
+        key !== 'currencySymbol', // Exclude currencySymbol as it's not a chartable metric
     ) as (keyof CampaignData)[];
   }, [campaigns]);
-
-  // Cleanup effect for memory leak prevention
-  // No specific cleanup needed for this component's state.
-  // The cleanup function is typically used for subscriptions, timers, etc.
-  // Setting state to initial values on unmount is generally not necessary
-  // and can sometimes lead to issues if the component is re-mounted quickly.
 
   // Load history on component mount
   useEffect(() => {
@@ -123,29 +130,24 @@ export default function AcosCalculator() {
       requiredHeaders: campaignHeaders.required,
       validateRow: (row) => {
         try {
-          const result = validateCampaignRow(row, 0);
-          // Additional validation for numeric fields
-          const adSpend = Number(row.adSpend);
-          const sales = Number(row.sales);
+          const validatedRow = validateCampaignRow(row, 0); // Basic structure validation
+          // More robust numeric validation using Zod schemas
+          const adSpend = positiveNumberSchema.parse(Number(row.adSpend));
+          const sales = positiveNumberSchema.parse(Number(row.sales));
+          const impressions = z
+            .number()
+            .min(0)
+            .optional()
+            .parse(Number(row.impressions));
+          const clicks = z.number().min(0).optional().parse(Number(row.clicks));
 
-          if (isNaN(adSpend) || adSpend <= 0) {
-            throw new Error('Ad spend must be a valid positive number');
-          }
-
-          if (isNaN(sales) || sales <= 0) {
-            throw new Error('Sales must be a valid positive number');
-          }
-          const impressions = Number(row.impressions);
-          const clicks = Number(row.clicks);
-
-          if (isNaN(impressions) || impressions < 0) {
-            throw new Error('Impressions must be a non-negative number');
-          }
-
-          if (isNaN(clicks) || clicks < 0) {
-            throw new Error('Clicks must be a non-negative number');
-          }
-          return result as CampaignData;
+          return {
+            ...validatedRow,
+            adSpend,
+            sales,
+            impressions,
+            clicks,
+          } as CampaignData;
         } catch (error) {
           throw new Error(
             `Invalid row data: ${error instanceof Error ? error.message : String(error)}`,
@@ -162,28 +164,21 @@ export default function AcosCalculator() {
       skippedRows: Array<{ index: number; reason: string }>;
     }) => {
       const dataWithMetrics = result.data.map((row) => {
-        let acos: number | undefined;
-        let roas: number | undefined;
-        const adSpend = Number(row.adSpend);
-        const sales = Number(row.sales);
-        const date = new Date().toISOString();
-
-        if (sales === 0) {
-          acos = Infinity;
-          roas = 0;
-        } else {
-          acos = (adSpend / sales) * 100;
-          roas = sales / adSpend;
-        }
-
+        const { acos, roas } = calculateAcosRoas(row.adSpend, row.sales);
         const metrics = calculateLocalMetrics(
-          adSpend,
-          sales,
+          row.adSpend,
+          row.sales,
           selectedCurrency,
           row.impressions !== undefined ? String(row.impressions) : undefined,
           row.clicks !== undefined ? String(row.clicks) : undefined,
         );
-        return { ...row, ...metrics, acos, roas, date };
+        return {
+          ...row,
+          ...metrics,
+          acos,
+          roas,
+          date: new Date().toISOString(),
+        };
       });
       setCampaigns(dataWithMetrics);
       setIsLoading(false);
@@ -268,66 +263,67 @@ export default function AcosCalculator() {
     setError(undefined);
   }, []);
 
-  // --- Chart Content Logic (Fix for sonarjs/no-nested-conditional) ---
-  let chartContent;
-  if (isLoading) {
-    chartContent = (
-      <div className="flex justify-center items-center h-80">
-        <Progress value={undefined} className="w-1/2" /> {/* Indeterminate */}
-        <p className="ml-4 text-muted-foreground">Loading chart...</p>
-      </div>
-    );
-  } else if (campaigns.length > 0) {
-    chartContent = (
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart
-          data={campaigns}
-          margin={{ top: 5, right: 10, left: 0, bottom: 60 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis
-            dataKey="campaign"
-            angle={-45}
-            textAnchor="end"
-            height={80}
-            interval={0}
-            tick={{ fontSize: 10 }}
-          />
-          <YAxis tick={{ fontSize: 10 }} domain={['auto', 'auto']} />
-          <Tooltip
-            contentStyle={{ fontSize: '12px', padding: '5px 10px' }}
-            formatter={(value: unknown) => {
-              if (Array.isArray(value)) {
-                const firstValue = value[0];
-                if (firstValue === Infinity) return 'Infinity';
-                if (typeof firstValue === 'number')
-                  return firstValue.toFixed(2);
-                return firstValue ?? 'N/A';
-              }
-              if (value === Infinity) return 'Infinity';
-              if (typeof value === 'number') return value.toFixed(2);
-              return value ?? 'N/A';
-            }}
-            labelFormatter={(label: string) => `Campaign: ${label}`}
-          />
-          <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-          <Bar
-            dataKey={selectedMetric}
-            name={chartConfig[selectedMetric].label}
-            fill={chartConfig[selectedMetric].theme.light}
-            radius={[4, 4, 0, 0]}
-            maxBarSize={60}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  } else {
-    chartContent = (
-      <div className="flex justify-center items-center h-80">
-        <p className="text-muted-foreground">No data to display.</p>
-      </div>
-    );
-  }
+  // --- Chart Content Logic ---
+  const renderChartContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center h-80">
+          <Progress value={undefined} className="w-1/2" /> {/* Indeterminate */}
+          <p className="ml-4 text-muted-foreground">Loading chart...</p>
+        </div>
+      );
+    } else if (campaigns.length > 0) {
+      return (
+        <ResponsiveContainer width="100%" height={400}>
+          <BarChart
+            data={campaigns}
+            margin={{ top: 5, right: 10, left: 0, bottom: 60 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="campaign"
+              angle={-45}
+              textAnchor="end"
+              height={80}
+              interval={0}
+              tick={{ fontSize: 10 }}
+            />
+            <YAxis tick={{ fontSize: 10 }} domain={['auto', 'auto']} />
+            <Tooltip
+              contentStyle={{ fontSize: '12px', padding: '5px 10px' }}
+              formatter={(value: unknown) => {
+                if (Array.isArray(value)) {
+                  const firstValue = value[0];
+                  if (firstValue === Infinity) return 'Infinity';
+                  if (typeof firstValue === 'number')
+                    return firstValue.toFixed(2);
+                  return firstValue ?? 'N/A';
+                }
+                if (value === Infinity) return 'Infinity';
+                if (typeof value === 'number') return value.toFixed(2);
+                return value ?? 'N/A';
+              }}
+              labelFormatter={(label: string) => `Campaign: ${label}`}
+            />
+            <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+            <Bar
+              dataKey={selectedMetric}
+              name={chartConfig[selectedMetric].label}
+              fill={chartConfig[selectedMetric].theme.light}
+              radius={[4, 4, 0, 0]}
+              maxBarSize={60}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+    } else {
+      return (
+        <div className="flex justify-center items-center h-80">
+          <p className="text-muted-foreground">No data to display.</p>
+        </div>
+      );
+    }
+  };
 
   const [manualCampaign, setManualCampaign] = useState({
     campaign: '',
@@ -338,15 +334,15 @@ export default function AcosCalculator() {
   });
 
   const isManualInputValid = useMemo(() => {
-    const adSpendNum = Number.parseFloat(manualCampaign.adSpend);
-    const salesNum = Number.parseFloat(manualCampaign.sales);
-    return (
-      manualCampaign.campaign.trim() !== '' &&
-      !isNaN(adSpendNum) &&
-      adSpendNum > 0 &&
-      !isNaN(salesNum) &&
-      salesNum > 0
-    );
+    try {
+      // Validate adSpend and sales using Zod schemas
+      positiveNumberSchema.parse(Number.parseFloat(manualCampaign.adSpend));
+      positiveNumberSchema.parse(Number.parseFloat(manualCampaign.sales));
+      // Ensure campaign name is not empty
+      return manualCampaign.campaign.trim() !== '';
+    } catch (e) {
+      return false;
+    }
   }, [manualCampaign]);
 
   const handleManualInputChange = useCallback(
@@ -361,14 +357,15 @@ export default function AcosCalculator() {
     setError(undefined);
     setIsLoading(true);
     try {
-      const adSpend = Number.parseFloat(manualCampaign.adSpend);
-      const sales = Number.parseFloat(manualCampaign.sales);
+      // Validate inputs using Zod schemas for better error messages
+      const adSpend = positiveNumberSchema.parse(
+        Number.parseFloat(manualCampaign.adSpend),
+      );
+      const sales = positiveNumberSchema.parse(
+        Number.parseFloat(manualCampaign.sales),
+      );
 
-      if (sales === 0) {
-        setError('Sales cannot be zero to calculate ACoS and ROAS.');
-        setIsLoading(false);
-        return;
-      }
+      const { acos, roas } = calculateAcosRoas(adSpend, sales);
 
       const metrics = calculateLocalMetrics(
         adSpend,
@@ -383,6 +380,8 @@ export default function AcosCalculator() {
         adSpend,
         sales,
         ...metrics,
+        acos, // Assign calculated ACoS
+        roas, // Assign calculated ROAS
         date: new Date().toISOString(),
       };
 
@@ -398,7 +397,7 @@ export default function AcosCalculator() {
       if (error instanceof Error) {
         setError(error.message);
       } else {
-        setError('An unknown error occurred');
+        setError('An unknown error occurred during manual calculation.');
       }
     } finally {
       setIsLoading(false);
@@ -468,7 +467,7 @@ export default function AcosCalculator() {
             manualCampaign={manualCampaign}
             setManualCampaign={setManualCampaign}
             handleManualCalculate={handleManualCalculate}
-            isManualInputValid={isLoading}
+            isManualInputValid={isManualInputValid} // Corrected prop
             isLoading={isLoading}
           />
         </Card>
@@ -482,7 +481,8 @@ export default function AcosCalculator() {
         <CalculationHistoryTable calculationHistory={calculationHistory} />
       )}
       <div className="w-full overflow-x-auto">
-        <AcosTrendChart data={campaigns} availableMetrics={availableMetrics} />
+        {renderChartContent()}{' '}
+        {/* Render chart content using the new function */}
       </div>
       <Button onClick={clearData}>Clear History</Button>
     </div>

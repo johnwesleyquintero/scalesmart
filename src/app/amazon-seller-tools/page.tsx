@@ -23,6 +23,11 @@ import type { TargetMetricConfig } from '@/lib/amazon-tools/types';
 import { TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
 
 /**
+ * Constant for the local storage key used to track if the "What's New" modal has been seen.
+ */
+const WHATS_NEW_LOCAL_STORAGE_KEY = 'hasSeenWhatsNew_v1.0';
+
+/**
  * Type for a single tab configuration within a ToolCategorySection.
  * @template P - The props type for the React component.
  */
@@ -334,20 +339,25 @@ export default function UnifiedDashboard() {
   // State for the "What's New" modal
   const [showWhatsNew, setShowWhatsNew] = useState(false);
 
-  // Effect hook to check if the "What's New" modal has been seen.
+  /**
+   * Effect hook to check if the "What's New" modal has been seen.
+   * This prevents the modal from showing on every visit after the user has seen it once.
+   */
   useEffect(() => {
-    const localStorageKey = 'hasSeenWhatsNew_v1.0';
     const hasSeenWhatsNew =
       typeof window !== 'undefined'
-        ? localStorage.getItem(localStorageKey)
+        ? localStorage.getItem(WHATS_NEW_LOCAL_STORAGE_KEY)
         : null;
     if (!hasSeenWhatsNew) {
       setShowWhatsNew(true);
     }
   }, []); // Empty dependency array ensures this runs only once on mount
 
-  // Effect hook to synchronize the active tab and initial tool parameters (ASIN, Keyword)
-  // with the URL search parameters when searchParams change.
+  /**
+   * Effect hook to synchronize the active tab and initial tool parameters (ASIN, Keyword)
+   * with the URL search parameters when searchParams change.
+   * This enables deep linking to specific tabs and pre-filling tool inputs.
+   */
   useEffect(() => {
     const tabParam = searchParams.get('tab') || 'overview';
     setActiveTab(tabParam);
@@ -358,9 +368,9 @@ export default function UnifiedDashboard() {
     setInitialAsin(asinParam);
     setInitialKeyword(keywordParam);
 
-    // Clean up initial params after consumption if needed by specific tools
-    // Or let the tool components handle state derived from props
-    // For now, we keep them in state to pass down.
+    // Note: Initial params are kept in state to be passed down to dynamic components.
+    // Components consuming these props should handle their own internal state updates
+    // if they need to react to changes in these initial values.
   }, [searchParams]); // Dependency array includes searchParams to react to URL changes
 
   /**
@@ -368,11 +378,10 @@ export default function UnifiedDashboard() {
    * Sets `showWhatsNew` to false and marks the modal as seen in `localStorage`.
    */
   const handleCloseWhatsNew = useCallback(() => {
-    const localStorageKey = 'hasSeenWhatsNew_v1.0';
     setShowWhatsNew(false);
     // Check window before accessing localStorage for SSR compatibility (though this is client-only)
     if (typeof window !== 'undefined') {
-      localStorage.setItem(localStorageKey, 'true');
+      localStorage.setItem(WHATS_NEW_LOCAL_STORAGE_KEY, 'true');
     }
   }, []);
 
@@ -387,39 +396,38 @@ export default function UnifiedDashboard() {
     setIsLoading(false);
     setIsParsing(false);
     setSearchTerm('');
-    // Reset initial params as well on refresh? Depends on desired behavior.
-    // Let's keep them as they might relate to the current URL state.
-    // setInitialAsin(null);
-    // setInitialKeyword(null);
+    // Initial ASIN/Keyword parameters are typically tied to the URL and
+    // might not need to be reset on a data refresh, as they represent
+    // a specific context for the tools.
   }, []); // Dependencies removed as setters are stable
 
   /**
    * Handles the data export functionality.
    * Exports the current metrics data to a CSV file after transforming it.
+   * Provides user feedback for success or failure.
    * Memoized using `useCallback`.
    */
   const handleExport = useCallback(() => {
     if (metrics.length === 0) {
-      setError('No data available to export.');
+      setError(
+        'No data available to export. Please upload or generate data first.',
+      );
       return;
     }
 
-    // Transform metrics to a format compatible with exportToCSV
+    // Transform metrics to a flat format compatible with CSV export.
+    // Nested objects are stringified; more complex serialization might be needed
+    // depending on the depth and structure of DashboardMetrics.
     const exportableMetrics = metrics.map((metric) => {
       const exportableMetric: {
         [key: string]: string | number | boolean | null | undefined;
       } = {};
-      // Iterate over keys of DashboardMetrics
       for (const key in metric) {
-        // Use Object.prototype.hasOwnProperty.call for safer iteration
         if (Object.prototype.hasOwnProperty.call(metric, key)) {
           const value = metric[key as keyof DashboardMetrics];
-          // Convert non-primitive types to string for CSV compatibility
           if (typeof value === 'object' && value !== null) {
-            // Simple stringification; might need more complex handling for nested objects/arrays
             exportableMetric[key] = JSON.stringify(value);
           } else {
-            // Primitive types can be assigned directly
             exportableMetric[key] = value as
               | string
               | number
@@ -435,14 +443,16 @@ export default function UnifiedDashboard() {
     try {
       exportToCSV(exportableMetrics, 'amazon_seller_tools_data.csv');
       setError(null); // Clear any previous export error on success
+      // Optionally, add a success toast/message here
     } catch (e) {
       console.error('Export failed:', e);
-      setError('Failed to export data.');
+      setError('Failed to export data. Please try again.');
     }
   }, [metrics]); // Dependency array includes metrics
 
   /**
    * Handles changing the main dashboard tab and updates the URL search parameter.
+   * This ensures that the active tab is reflected in the URL, allowing for direct linking.
    * @param value The value of the tab being activated.
    */
   const handleMainTabChange = useCallback(
@@ -450,14 +460,22 @@ export default function UnifiedDashboard() {
       setActiveTab(value);
       const currentParams = new URLSearchParams(searchParams.toString());
       currentParams.set('tab', value);
-      // Consider removing specific tool params if switching away from relevant tabs?
-      // Keeping them allows deep links to persist if you navigate away and back.
+      // When switching tabs, it's generally good practice to clear tool-specific
+      // URL parameters (like 'asin' or 'keyword') to avoid unexpected behavior
+      // if the new tab doesn't use them.
+      currentParams.delete('asin');
+      currentParams.delete('keyword');
       router.push(`?${currentParams.toString()}`, { scroll: false });
     },
     [searchParams, router],
   ); // Depend on searchParams and router
 
-  // Memoize the ToolCategorySection tabs data to prevent re-creation on every render
+  /**
+   * Memoized configuration for the tool category tabs.
+   * This prevents unnecessary re-creation of these objects on every render,
+   * optimizing performance, especially for components that rely on these props.
+   * Initial ASIN/Keyword parameters are passed to relevant tools for deep linking.
+   */
   const toolCategoryTabs = useMemo(
     () => ({
       keywords: KEYWORD_TOOL_TABS.map((tab) =>
