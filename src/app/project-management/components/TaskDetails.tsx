@@ -104,7 +104,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       // Propagate update to parent, which will handle persistence
       await onTaskPersist(updatedTask); // Await the parent's update handler
       setCurrentTask(updatedTask); // Update local state optimistically
-      toast.success('Comment added successfully!'); // Corrected toast message
+      toast.success(`Task "${updatedTask.title}" marked as completed!`);
     },
     [currentTask, onTaskPersist], // Update dependency
   );

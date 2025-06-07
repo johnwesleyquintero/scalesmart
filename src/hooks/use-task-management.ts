@@ -23,6 +23,7 @@ import { v4 as uuidv4 } from 'uuid';
  * @property {React.Dispatch<React.SetStateAction<Task[]>>} setTasks - Setter for tasks state.
  * @property {Project[]} projects - Array of all projects.
  * @property {React.Dispatch<React.SetStateAction<Project[]>>} setProjects - Setter for projects state.
+ * @property {(task: Task) => void} handleTaskUpdated - Handler for when a task is updated (optimistic update).
  * @property {(updatedTask: Task) => Promise<void>} handleUpdateTask - Handler to update an existing task and persist it.
  * @property {(event: DragEndEvent) => Promise<void>} handleDragEnd - Handler for Dnd-kit drag end event.
  * @property {(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
@@ -448,7 +449,12 @@ export const useTaskManagement = () => {
     setProjects,
     isLoading,
     error,
+<<<<<<< HEAD
     handleUpdateTask,
+=======
+    handleTaskUpdated,
+    handleUpdateTask, // Add handleUpdateTask
+>>>>>>> parent of a46766c (refactor(project-management): remove unused props and improve error handling)
     handleDragEnd,
     handleCreateTask,
     handleDeleteTask,

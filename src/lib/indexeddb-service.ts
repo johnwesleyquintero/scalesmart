@@ -291,11 +291,25 @@ export async function syncToSupabase(
   supabaseClient: SupabaseClient,
 ): Promise<void> {
   try {
-    console.log('Starting sync to Supabase from sync queue.');
-    const db = await getDb();
-    const transaction = db.transaction([SYNC_QUEUE_STORE_NAME], 'readwrite');
-    console.log('syncToSupabase: Transaction created.');
-    const store = transaction.objectStore(SYNC_QUEUE_STORE_NAME);
+    if (!db.isOpen()) {
+      try {
+        await db.open();
+        console.log(DB_INITIALIZED);
+      } catch (openError) {
+        console.error(DB_OPEN_FAILED, openError);
+        throw openError;
+      }
+    } else {
+      console.log(DB_ALREADY_OPEN);
+    }
+  } catch (error) {
+    console.error(
+      `${ERROR_MESSAGE_PREFIX}: Failed to initialize ChatAppDatabase`,
+      error,
+    );
+    throw error;
+  }
+};
 
     // Open a cursor to iterate through the sync queue
     const cursorRequest = store.openCursor();
@@ -447,6 +461,57 @@ async function processSyncQueueItem(
       'Details:',
       (syncError as Error)?.message,
       (syncError as Error)?.stack,
+=======
+    if (!db.isOpen()) {
+      try {
+        await db.open();
+        console.log(DB_INITIALIZED);
+      } catch (openError) {
+        console.error(DB_OPEN_FAILED, openError);
+        throw openError;
+      }
+    } else {
+      console.log(DB_ALREADY_OPEN);
+    }
+  } catch (error) {
+    console.error(
+      `${ERROR_MESSAGE_PREFIX}: Failed to initialize ChatAppDatabase`,
+      error,
+    );
+    throw error;
+  }
+};
+
+export const getChatMessagesBySession = async (
+  chatSessionId: string,
+): Promise<ChatMessageRecord[]> => {
+  try {
+    return await db.chatMessages
+      .where('chatSessionId')
+      .equals(chatSessionId)
+      .sortBy('timestamp');
+  } catch (error) {
+    console.error(
+      `${ERROR_MESSAGE_PREFIX}: Failed to get messages for session ${chatSessionId}`,
+      error,
+    );
+    return [];
+  }
+};
+
+function logError(error: unknown, message: string, component: string) {
+  console.error(`${component}: ${message}`, error);
+}
+
+export async function getCacheItem<T>(key: string): Promise<T | undefined> {
+  try {
+    return (await db.cache.get(key).then((item) => item?.value)) as
+      | T
+      | undefined;
+  } catch (error) {
+    console.error(
+      `${ERROR_MESSAGE_PREFIX}: Error getting item from cache with key "${key}"`,
+      error,
     );
     // Log the error but continue processing other entries
   }
@@ -482,36 +547,39 @@ export async function getItem<T>(key: string): Promise<T | undefined> {
     return result as T; // Return the retrieved value, asserted to type T
   } catch (error) {
     console.error(
-      `Failed to get item for key ${key}:`,
+      `${ERROR_MESSAGE_PREFIX}: Error saving calculation to IndexedDB for campaign "${data.campaignName}"`,
       error,
-      'Details:',
-      (error as Error)?.message,
-      (error as Error)?.stack,
+=======
+      `${ERROR_MESSAGE_PREFIX}: Error saving calculation to IndexedDB for campaign "${data.campaignName}"`,
+      error,
     );
     // Rethrow the caught error.
     throw error;
   }
 }
 
-/**
- * Deletes an item from the key-value store and adds it to the sync queue.
- * @param tableName The name of the Supabase table this item corresponds to.
- * @param recordId The ID of the record in the Supabase table.
- */
-export async function deleteItem(
-  tableName: string,
-  recordId: string,
-): Promise<void> {
-  const db = await getDb();
-  // Create a transaction with 'readwrite' mode for both stores.
-  const key = `${tableName}-${recordId}`; // Consistent key format
-  const transaction = db.transaction(
-    [MAIN_STORE_NAME, SYNC_QUEUE_STORE_NAME],
-    'readwrite',
-  );
-  console.log(`deleteItem: Transaction created for key: ${key}`);
-  const mainStore = transaction.objectStore(MAIN_STORE_NAME);
-  const syncStore = transaction.objectStore(SYNC_QUEUE_STORE_NAME);
+export async function setCacheItem<T>(key: string, value: T): Promise<void> {
+  try {
+    await db.cache.put({ key: key, value: value });
+  } catch (error) {
+    console.error(
+      `${ERROR_MESSAGE_PREFIX}: Error setting item in cache with key "${key}"`,
+      error,
+    );
+  }
+}
+=======
+export async function setCacheItem<T>(key: string, value: T): Promise<void> {
+  try {
+    await db.cache.put({ key: key, value: value });
+  } catch (error) {
+    console.error(
+      `${ERROR_MESSAGE_PREFIX}: Error setting item in cache with key "${key}"`,
+      error,
+    );
+  }
+}
+>>>>>>> parent of a46766c (refactor(project-management): remove unused props and improve error handling)
 
   try {
     // Perform the delete request from the main store.
@@ -637,12 +705,18 @@ export async function getRecordFromSupabase<T>(
       throw error;
     }
 
-    if (!data) {
-      console.log(
-        `Record not found in Supabase table ${tableName} with ID: ${recordId}`,
-      );
-      return null;
-    }
+export const deleteTask = async (id: string): Promise<void> => {
+  try {
+    await db.tasks.delete(id);
+    console.log('Task deleted from IndexedDB:', id);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting task from IndexedDB: ${id}`,
+      ERROR_MESSAGE_PREFIX,
+    );
+  }
+};
 
     console.log(
       `Successfully fetched single record from ${tableName} with ID: ${recordId}`,
@@ -707,6 +781,110 @@ export async function syncFromSupabase(
     } else {
       console.log(
         `No previous sync timestamp found for ${tableName}. Fetching all data.`,
+=======
+export const deleteTask = async (id: string): Promise<void> => {
+  try {
+    await db.tasks.delete(id);
+    console.log('Task deleted from IndexedDB:', id);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting task from IndexedDB: ${id}`,
+      ERROR_MESSAGE_PREFIX,
+    );
+  }
+};
+
+export const createProject = async (
+  projectData: Omit<Project, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
+): Promise<string | undefined> => {
+  try {
+    const id = crypto.randomUUID();
+    const now = Date.now();
+    const projectToStore: Project = {
+      ...projectData,
+      id,
+      creationTimestamp: now,
+      updateTimestamp: now,
+    };
+    await db.projects.put(projectToStore);
+    console.log('Project added to IndexedDB:', projectToStore);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error adding project to IndexedDB: ${projectData.name}`,
+      ERROR_MESSAGE_PREFIX,
+    );
+    return undefined;
+  }
+};
+
+export const getProject = async (id: string): Promise<Project | undefined> => {
+  try {
+    const project = await db.projects.get(id);
+    console.log('Project retrieved from IndexedDB:', project);
+    return project;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting project from IndexedDB: ${id}`,
+      ERROR_MESSAGE_PREFIX,
+    );
+    return undefined;
+  }
+};
+
+export const getAllProjects = async (): Promise<Project[]> => {
+  try {
+    const projects = await db.projects.toArray();
+    console.log('All projects retrieved from IndexedDB:', projects);
+    return projects;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting all projects from IndexedDB`,
+      ERROR_MESSAGE_PREFIX,
+    );
+    return [];
+  }
+};
+
+export const updateProject = async (project: Project): Promise<void> => {
+  try {
+    const projectToStore = { ...project, updateTimestamp: Date.now() };
+    await db.projects.put(projectToStore);
+    console.log('Project updated in IndexedDB:', projectToStore);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating project in IndexedDB: ${project.name}`,
+      ERROR_MESSAGE_PREFIX,
+    );
+  }
+};
+
+export const deleteProject = async (id: string): Promise<void> => {
+  try {
+    // Find all tasks associated with the project being deleted
+    const tasksToUpdate = await db.tasks
+      .where('projectId')
+      .equals(id)
+      .toArray();
+
+    // Update these tasks to have no projectId
+    const updatedTasks = tasksToUpdate.map((task) => ({
+      ...task,
+      projectId: 'no-project-selected', // Use the constant for 'no project'
+      updateTimestamp: Date.now(),
+    }));
+
+    // Perform a bulk update for the tasks
+    if (updatedTasks.length > 0) {
+      await db.tasks.bulkPut(updatedTasks);
+      console.log(
+        `Updated ${updatedTasks.length} tasks to 'no-project-selected' after project deletion.`,
+>>>>>>> parent of a46766c (refactor(project-management): remove unused props and improve error handling)
       );
     }
 
@@ -766,9 +944,65 @@ export async function syncFromSupabase(
     console.error(
       `Failed to sync from Supabase table ${tableName}:`,
       error,
-      'Details:',
-      (error as Error)?.message,
-      (error as Error)?.stack,
+      `Error adding category to IndexedDB: ${category.name}`,
+      ERROR_MESSAGE_PREFIX,
+=======
+      `Error adding category to IndexedDB: ${category.name}`,
+      ERROR_MESSAGE_PREFIX,
+    );
+    return undefined;
+  }
+};
+
+export const getAllCategories = async (): Promise<Category[]> => {
+  try {
+    const categories = await db.categories.toArray();
+    console.log('All categories retrieved from IndexedDB:', categories);
+    return categories;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting all categories from IndexedDB`,
+      ERROR_MESSAGE_PREFIX,
+    );
+    return [];
+  }
+};
+
+export const updateCategory = async (category: Category): Promise<void> => {
+  try {
+    await db.categories.put(category);
+    console.log('Category updated in IndexedDB:', category);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating category in IndexedDB: ${category.name}`,
+      ERROR_MESSAGE_PREFIX,
+    );
+  }
+};
+
+export const deleteCategory = async (id: string): Promise<void> => {
+  try {
+    await db.categories.delete(id);
+    console.log('Category deleted from IndexedDB:', id);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting category from IndexedDB: ${id}`,
+      ERROR_MESSAGE_PREFIX,
+    );
+  }
+};
+
+export async function removeCacheItem(key: string): Promise<void> {
+  try {
+    await db.cache.delete(key);
+  } catch (error) {
+    console.error(
+      `${ERROR_MESSAGE_PREFIX}: Error removing item from cache with key "${key}"`,
+      error,
+>>>>>>> parent of a46766c (refactor(project-management): remove unused props and improve error handling)
     );
     // The transaction might have already been aborted by the error handler above,
     // but re-throwing ensures the caller knows it failed.

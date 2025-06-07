@@ -10,6 +10,7 @@ interface TaskItemProps {
   onEditClick: (task: Task) => void;
   onDeleteTask: (id: string) => void;
   allTasks: Task[]; // All tasks for dependency/subtask lookup
+  onTaskUpdated: (updatedTask: Task) => void; // New prop to signal task updates to parent
   onViewTaskDetails: (task: Task) => void; // New prop to open task details modal
 }
 
@@ -20,6 +21,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     onEditClick,
     onDeleteTask,
     allTasks,
+    onTaskUpdated,
     onViewTaskDetails,
   }: TaskItemProps) => {
     const projectsMap = useMemo(() => {

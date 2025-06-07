@@ -48,6 +48,7 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
         onEditClick={onEditClick}
         onDeleteTask={onDeleteTask}
         allTasks={allTasks} // Pass allTasks to TaskItem
+        onTaskUpdated={onTaskUpdated}
         onViewTaskDetails={onViewTaskDetails} // Pass onViewTaskDetails to TaskItem
       />
     </div>
