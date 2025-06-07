@@ -30,9 +30,19 @@ import { TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
 /**
  * Checks if a value is a primitive type compatible with CSV export.
  */
+/**
+ * Type for values that are compatible with CSV export (primitive types or stringified objects).
+ */
+type ExportCompatibleValue = string | number | boolean | null | undefined;
+
+/**
+ * Helper function to determine if a value is a primitive type compatible with CSV export.
+ * @param value The value to check.
+ * @returns True if the value is a string, number, boolean, null, or undefined.
+ */
 const isExportCompatiblePrimitive = (
   value: unknown,
-): value is string | number | boolean | null | undefined => {
+): value is ExportCompatibleValue => {
   const type = typeof value;
   return (
     type === 'string' ||
@@ -44,24 +54,23 @@ const isExportCompatiblePrimitive = (
 };
 
 /**
- * Flattens the validation_flags object into a new object with prefixed keys.
+ * Flattens the `validation_flags` object into a new object with prefixed keys.
+ * Non-primitive values within `validation_flags` are stringified.
+ * @param validationFlags - The partial ValidationFlags object to flatten.
+ * @returns A flat object with prefixed keys and export-compatible values.
  */
 const flattenValidationFlags = (
   validationFlags: Partial<ValidationFlags> | undefined,
-): { [key: string]: string | number | boolean | null | undefined } => {
-  const flattened: {
-    [key: string]: string | number | boolean | null | undefined;
-  } = {};
+): Record<string, ExportCompatibleValue> => {
+  const flattened: Record<string, ExportCompatibleValue> = {};
   if (validationFlags) {
-    for (const flagKey in validationFlags) {
-      if (Object.prototype.hasOwnProperty.call(validationFlags, flagKey)) {
-        const flagValue = validationFlags[flagKey as keyof ValidationFlags];
-        if (isExportCompatiblePrimitive(flagValue)) {
-          flattened[`validation_flags_${flagKey}`] = flagValue;
-        } else {
-          // Fallback for unexpected types within validation_flags, stringify them
-          flattened[`validation_flags_${flagKey}`] = String(flagValue);
-        }
+    for (const [key, value] of Object.entries(validationFlags)) {
+      const prefixedKey = `validation_flags_${key}`;
+      if (isExportCompatiblePrimitive(value)) {
+        flattened[prefixedKey] = value;
+      } else {
+        // Stringify complex objects or arrays within validation_flags for CSV compatibility
+        flattened[prefixedKey] = JSON.stringify(value);
       }
     }
   }
@@ -69,38 +78,30 @@ const flattenValidationFlags = (
 };
 
 /**
- * Helper function to transform a single DashboardMetrics object into a flat ExportData object.
+ * Transforms a single `DashboardMetrics` object into a flat object suitable for CSV export.
  * This flattens nested objects like `validation_flags` and ensures all values are
  * compatible with CSV export (primitive types or stringified objects).
- * @param metric The DashboardMetrics object to transform.
+ * @param metric - The DashboardMetrics object to transform.
  * @returns A flat object suitable for CSV export.
  */
 const transformMetricForExport = (
   metric: DashboardMetrics,
-): { [key: string]: string | number | boolean | null | undefined } => {
-  const flatMetric: {
-    [key: string]: string | number | boolean | null | undefined;
-  } = {};
+): Record<string, ExportCompatibleValue> => {
+  const flatMetric: Record<string, ExportCompatibleValue> = {};
 
-  for (const key in metric) {
-    if (Object.prototype.hasOwnProperty.call(metric, key)) {
-      const value = metric[key];
-
-      if (key === 'validation_flags') {
-        Object.assign(
-          flatMetric,
-          flattenValidationFlags(metric.validation_flags),
-        );
-      } else {
-        if (isExportCompatiblePrimitive(value)) {
-          flatMetric[key] = value;
-        } else if (typeof value === 'object' && value !== null) {
-          // If it's an object (and not null), stringify it. This handles any unexpected complex types.
-          flatMetric[key] = JSON.stringify(value);
-        }
-        // Other types (function, symbol, bigint) are ignored as they are not suitable for CSV.
-      }
+  for (const [key, value] of Object.entries(metric)) {
+    if (key === 'validation_flags') {
+      Object.assign(
+        flatMetric,
+        flattenValidationFlags(value as ValidationFlags),
+      );
+    } else if (isExportCompatiblePrimitive(value)) {
+      flatMetric[key] = value;
+    } else if (typeof value === 'object' && value !== null) {
+      // Stringify any other unexpected complex types (objects/arrays) for CSV compatibility
+      flatMetric[key] = JSON.stringify(value);
     }
+    // Functions, symbols, and bigints are intentionally ignored as they are not suitable for CSV.
   }
   return flatMetric;
 };
@@ -192,7 +193,7 @@ const AcosCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/acos-calculator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading ACoS Calculator...</div>,
+    loading: () => <div className="p-4">Loading ACoS Calculator&hellip;</div>,
   },
 );
 const CompetitorAnalyzer = dynamic(
@@ -202,42 +203,50 @@ const CompetitorAnalyzer = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Competitor Analyzer...</div>,
+    loading: () => (
+      <div className="p-4">Loading Competitor Analyzer&hellip;</div>
+    ),
   },
 );
 const DescriptionEditor = dynamic(
   () => import('@/components/amazon-seller-tools/description-editor'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Description Editor...</div>,
+    loading: () => (
+      <div className="p-4">Loading Description Editor&hellip;</div>
+    ),
   },
 );
 const FbaCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/fba-calculator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading FBA Calculator...</div>,
+    loading: () => <div className="p-4">Loading FBA Calculator&hellip;</div>,
   },
 );
 const KeywordAnalyzer = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-analyzer'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Keyword Analyzer...</div>,
+    loading: () => <div className="p-4">Loading Keyword Analyzer&hellip;</div>,
   },
 );
 const KeywordDeduplicator = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-deduplicator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Keyword Deduplicator...</div>,
+    loading: () => (
+      <div className="p-4">Loading Keyword Deduplicator&hellip;</div>
+    ),
   },
 );
 const KeywordTrendAnalyzer = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-trend-analyzer'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Keyword Trend Analyzer...</div>,
+    loading: () => (
+      <div className="p-4">Loading Keyword Trend Analyzer&hellip;</div>
+    ),
   },
 );
 const ListingQualityChecker = dynamic(
@@ -245,7 +254,7 @@ const ListingQualityChecker = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Listing Quality Checker...</div>
+      <div className="p-4">Loading Listing Quality Checker&hellip;</div>
     ),
   },
 );
@@ -254,7 +263,7 @@ const OptimalPriceCalculator = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Optimal Price Calculator...</div>
+      <div className="p-4">Loading Optimal Price Calculator&hellip;</div>
     ),
   },
 );
@@ -262,7 +271,9 @@ const PpcCampaignAuditor = dynamic(
   () => import('@/components/amazon-seller-tools/ppc-campaign-auditor'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading PPC Campaign Auditor...</div>,
+    loading: () => (
+      <div className="p-4">Loading PPC Campaign Auditor&hellip;</div>
+    ),
   },
 );
 const ProductScoreCalculator = dynamic(
@@ -270,7 +281,7 @@ const ProductScoreCalculator = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Product Score Calculator...</div>
+      <div className="p-4">Loading Product Score Calculator&hellip;</div>
     ),
   },
 );
@@ -279,7 +290,7 @@ const ProfitMarginCalculator = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Profit Margin Calculator...</div>
+      <div className="p-4">Loading Profit Margin Calculator&hellip;</div>
     ),
   },
 );
@@ -287,7 +298,7 @@ const SalesEstimator = dynamic(
   () => import('@/components/amazon-seller-tools/sales-estimator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Sales Estimator...</div>,
+    loading: () => <div className="p-4">Loading Sales Estimator&hellip;</div>,
   },
 );
 
@@ -548,24 +559,30 @@ export default function UnifiedDashboard() {
    * optimizing performance, especially for components that rely on these props.
    * Initial ASIN/Keyword parameters are passed to relevant tools for deep linking.
    */
-  // Define tool category tabs as constants.
-  // These are memoized implicitly by being outside the component or explicitly with useMemo.
-  // Keeping them here for clarity and to pass initial URL parameters.
-  const toolCategoryTabs = {
-    keywords: KEYWORD_TOOL_TABS.map((tab) =>
-      tab.triggerValue === 'analyzer'
-        ? { ...tab, componentProps: { initialKeyword } }
-        : tab,
-    ),
-    listingOptimization: LISTING_OPTIMIZATION_TOOL_TABS,
-    financials: FINANCIAL_TOOL_TABS,
-    ppcAds: PPC_ADS_TOOL_TABS,
-    competition: COMPETITION_TOOL_TABS.map((tab) =>
-      tab.triggerValue === 'analyzer'
-        ? { ...tab, componentProps: { initialAsin } }
-        : tab,
-    ),
-  };
+  /**
+   * Memoized configuration for the tool category tabs.
+   * This prevents unnecessary re-creation of these objects on every render,
+   * optimizing performance, especially for components that rely on these props.
+   * Initial ASIN/Keyword parameters are passed to relevant tools for deep linking.
+   */
+  const toolCategoryTabs = useMemo(
+    () => ({
+      keywords: KEYWORD_TOOL_TABS.map((tab) =>
+        tab.triggerValue === 'analyzer'
+          ? { ...tab, componentProps: { initialKeyword } }
+          : tab,
+      ),
+      listingOptimization: LISTING_OPTIMIZATION_TOOL_TABS,
+      financials: FINANCIAL_TOOL_TABS,
+      ppcAds: PPC_ADS_TOOL_TABS,
+      competition: COMPETITION_TOOL_TABS.map((tab) =>
+        tab.triggerValue === 'analyzer'
+          ? { ...tab, componentProps: { initialAsin } }
+          : tab,
+      ),
+    }),
+    [initialKeyword, initialAsin],
+  );
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
