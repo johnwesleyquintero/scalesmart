@@ -19,9 +19,73 @@ import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
 import { exportToCSV } from '@/lib/amazon-tools/export-utils';
 
 // Types
-import type { DashboardMetrics } from '@/lib/amazon-tools/types';
+import type {
+  DashboardMetrics,
+  ValidationFlags,
+} from '@/lib/amazon-tools/types';
 import type { TargetMetricConfig } from '@/lib/amazon-tools/types';
 import { TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
+
+/**
+ * Checks if a value is a primitive type compatible with CSV export.
+ */
+const isExportCompatiblePrimitive = (value: unknown): value is string | number | boolean | null | undefined => {
+  const type = typeof value;
+  return type === 'string' || type === 'number' || type === 'boolean' || value === null || value === undefined;
+};
+
+/**
+ * Flattens the validation_flags object into a new object with prefixed keys.
+ */
+const flattenValidationFlags = (
+  validationFlags: Partial<ValidationFlags> | undefined,
+): { [key: string]: string | number | boolean | null | undefined } => {
+  const flattened: { [key: string]: string | number | boolean | null | undefined } = {};
+  if (validationFlags) {
+    for (const flagKey in validationFlags) {
+      if (Object.prototype.hasOwnProperty.call(validationFlags, flagKey)) {
+        const flagValue = validationFlags[flagKey as keyof ValidationFlags];
+        if (isExportCompatiblePrimitive(flagValue)) {
+          flattened[`validation_flags_${flagKey}`] = flagValue;
+        } else {
+          // Fallback for unexpected types within validation_flags, stringify them
+          flattened[`validation_flags_${flagKey}`] = String(flagValue);
+        }
+      }
+    }
+  }
+  return flattened;
+};
+
+/**
+ * Helper function to transform a single DashboardMetrics object into a flat ExportData object.
+ * This flattens nested objects like `validation_flags` and ensures all values are
+ * compatible with CSV export (primitive types or stringified objects).
+ * @param metric The DashboardMetrics object to transform.
+ * @returns A flat object suitable for CSV export.
+ */
+const transformMetricForExport = (metric: DashboardMetrics): { [key: string]: string | number | boolean | null | undefined } => {
+  const flatMetric: { [key: string]: string | number | boolean | null | undefined } = {};
+
+  for (const key in metric) {
+    if (Object.prototype.hasOwnProperty.call(metric, key)) {
+      const value = metric[key];
+
+      if (key === 'validation_flags') {
+        Object.assign(flatMetric, flattenValidationFlags(metric.validation_flags));
+      } else {
+        if (isExportCompatiblePrimitive(value)) {
+          flatMetric[key] = value;
+        } else if (typeof value === 'object' && value !== null) {
+          // If it's an object (and not null), stringify it. This handles any unexpected complex types.
+          flatMetric[key] = JSON.stringify(value);
+        }
+        // Other types (function, symbol, bigint) are ignored as they are not suitable for CSV.
+      }
+    }
+  }
+  return flatMetric;
+};
 
 /**
  * Constant for the local storage key used to track if the "What's New" modal has been seen.
@@ -110,7 +174,7 @@ const AcosCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/acos-calculator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading ACoS Calculator...</div>,
+    loading: () => <div className="p-4">Loading ACoS Calculator&#8230;</div>,
   },
 );
 const CompetitorAnalyzer = dynamic(
@@ -120,42 +184,48 @@ const CompetitorAnalyzer = dynamic(
     ),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Competitor Analyzer...</div>,
+    loading: () => (
+      <div className="p-4">Loading Competitor Analyzer&#8230;</div>
+    ),
   },
 );
 const DescriptionEditor = dynamic(
   () => import('@/components/amazon-seller-tools/description-editor'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Description Editor...</div>,
+    loading: () => <div className="p-4">Loading Description Editor&#8230;</div>,
   },
 );
 const FbaCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/fba-calculator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading FBA Calculator...</div>,
+    loading: () => <div className="p-4">Loading FBA Calculator&#8230;</div>,
   },
 );
 const KeywordAnalyzer = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-analyzer'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Keyword Analyzer...</div>,
+    loading: () => <div className="p-4">Loading Keyword Analyzer&#8230;</div>,
   },
 );
 const KeywordDeduplicator = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-deduplicator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Keyword Deduplicator...</div>,
+    loading: () => (
+      <div className="p-4">Loading Keyword Deduplicator&#8230;</div>
+    ),
   },
 );
 const KeywordTrendAnalyzer = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-trend-analyzer'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Keyword Trend Analyzer...</div>,
+    loading: () => (
+      <div className="p-4">Loading Keyword Trend Analyzer&#8230;</div>
+    ),
   },
 );
 const ListingQualityChecker = dynamic(
@@ -163,7 +233,7 @@ const ListingQualityChecker = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Listing Quality Checker...</div>
+      <div className="p-4">Loading Listing Quality Checker&#8230;</div>
     ),
   },
 );
@@ -172,7 +242,7 @@ const OptimalPriceCalculator = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Optimal Price Calculator...</div>
+      <div className="p-4">Loading Optimal Price Calculator&#8230;</div>
     ),
   },
 );
@@ -180,7 +250,9 @@ const PpcCampaignAuditor = dynamic(
   () => import('@/components/amazon-seller-tools/ppc-campaign-auditor'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading PPC Campaign Auditor...</div>,
+    loading: () => (
+      <div className="p-4">Loading PPC Campaign Auditor&#8230;</div>
+    ),
   },
 );
 const ProductScoreCalculator = dynamic(
@@ -188,7 +260,7 @@ const ProductScoreCalculator = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Product Score Calculator...</div>
+      <div className="p-4">Loading Product Score Calculator&#8230;</div>
     ),
   },
 );
@@ -197,7 +269,7 @@ const ProfitMarginCalculator = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Profit Margin Calculator...</div>
+      <div className="p-4">Loading Profit Margin Calculator&#8230;</div>
     ),
   },
 );
@@ -205,7 +277,7 @@ const SalesEstimator = dynamic(
   () => import('@/components/amazon-seller-tools/sales-estimator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Sales Estimator...</div>,
+    loading: () => <div className="p-4">Loading Sales Estimator&#8230;</div>,
   },
 );
 
@@ -343,12 +415,10 @@ export default function UnifiedDashboard() {
   /**
    * Effect hook to check if the "What's New" modal has been seen.
    * This prevents the modal from showing on every visit after the user has seen it once.
+   * Since this is a client component, `window` is always defined.
    */
   useEffect(() => {
-    const hasSeenWhatsNew =
-      typeof window !== 'undefined'
-        ? localStorage.getItem(WHATS_NEW_LOCAL_STORAGE_KEY)
-        : null;
+    const hasSeenWhatsNew = localStorage.getItem(WHATS_NEW_LOCAL_STORAGE_KEY);
     if (!hasSeenWhatsNew) {
       setShowWhatsNew(true);
     }
@@ -377,13 +447,11 @@ export default function UnifiedDashboard() {
   /**
    * Handles the closing of the "What's New" modal.
    * Sets `showWhatsNew` to false and marks the modal as seen in `localStorage`.
+   * Since this is a client component, `window` is always defined.
    */
   const handleCloseWhatsNew = useCallback(() => {
     setShowWhatsNew(false);
-    // Check window before accessing localStorage for SSR compatibility (though this is client-only)
-    if (typeof window !== 'undefined') {
-      localStorage.setItem(WHATS_NEW_LOCAL_STORAGE_KEY, 'true');
-    }
+    localStorage.setItem(WHATS_NEW_LOCAL_STORAGE_KEY, 'true');
   }, []);
 
   /**
@@ -416,30 +484,8 @@ export default function UnifiedDashboard() {
       return;
     }
 
-    // Transform metrics to a flat format compatible with CSV export.
-    // Nested objects are stringified; more complex serialization might be needed
-    // depending on the depth and structure of DashboardMetrics.
-    const exportableMetrics = metrics.map((metric) => {
-      const exportableMetric: {
-        [key: string]: string | number | boolean | null | undefined;
-      } = {};
-      for (const key in metric) {
-        if (Object.prototype.hasOwnProperty.call(metric, key)) {
-          const value = metric[key as keyof DashboardMetrics];
-          if (typeof value === 'object' && value !== null) {
-            exportableMetric[key] = JSON.stringify(value);
-          } else {
-            exportableMetric[key] = value as
-              | string
-              | number
-              | boolean
-              | null
-              | undefined;
-          }
-        }
-      }
-      return exportableMetric;
-    });
+    // Transform metrics to a flat format compatible with CSV export using the helper function.
+    const exportableMetrics = metrics.map(transformMetricForExport);
 
     try {
       exportToCSV(exportableMetrics, 'amazon_seller_tools_data.csv');
@@ -478,24 +524,24 @@ export default function UnifiedDashboard() {
    * optimizing performance, especially for components that rely on these props.
    * Initial ASIN/Keyword parameters are passed to relevant tools for deep linking.
    */
-  const toolCategoryTabs = useMemo(
-    () => ({
-      keywords: KEYWORD_TOOL_TABS.map((tab) =>
-        tab.triggerValue === 'analyzer'
-          ? { ...tab, componentProps: { initialKeyword } }
-          : tab,
-      ),
-      listingOptimization: LISTING_OPTIMIZATION_TOOL_TABS,
-      financials: FINANCIAL_TOOL_TABS,
-      ppcAds: PPC_ADS_TOOL_TABS,
-      competition: COMPETITION_TOOL_TABS.map((tab) =>
-        tab.triggerValue === 'analyzer'
-          ? { ...tab, componentProps: { initialAsin } }
-          : tab,
-      ),
-    }),
-    [initialAsin, initialKeyword],
-  ); // Recreate if initial params change
+  // Define tool category tabs as constants.
+  // These are memoized implicitly by being outside the component or explicitly with useMemo.
+  // Keeping them here for clarity and to pass initial URL parameters.
+  const toolCategoryTabs = {
+    keywords: KEYWORD_TOOL_TABS.map((tab) =>
+      tab.triggerValue === 'analyzer'
+        ? { ...tab, componentProps: { initialKeyword } }
+        : tab,
+    ),
+    listingOptimization: LISTING_OPTIMIZATION_TOOL_TABS,
+    financials: FINANCIAL_TOOL_TABS,
+    ppcAds: PPC_ADS_TOOL_TABS,
+    competition: COMPETITION_TOOL_TABS.map((tab) =>
+      tab.triggerValue === 'analyzer'
+        ? { ...tab, componentProps: { initialAsin } }
+        : tab,
+    ),
+  };
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">

@@ -1,11 +1,7 @@
-export interface DashboardMetrics {
-  date: string; // YYYY-MM-DD
-  unique_identifier: string; // ASIN, SKU, etc.
-  total_sales?: number;
-  total_orders?: number;
-  total_sessions?: number;
-  total_page_views?: number;
-  total_conversion_rate?: number;
+/**
+ * Represents advertising-related metrics for a dashboard entry.
+ */
+export interface AdMetrics {
   ad_impressions?: number;
   ad_clicks?: number;
   ad_spend?: number;
@@ -16,22 +12,41 @@ export interface DashboardMetrics {
   cpc?: number;
   ctr?: number;
   ad_conversion_rate?: number;
-  profit?: number;
-  inventory_level?: number;
-  review_rating?: number;
-  cac?: number;
-  ltv?: number;
+}
+
+/**
+ * Represents keyword-specific advertising metrics.
+ */
+export interface KeywordAdMetrics {
   targeted_keyword?: string; // From 'Targeted Keyword'
   keyword_ad_impressions?: number; // From 'Keyword Ad Impressions'
   keyword_ad_clicks?: number; // From 'Keyword Ad Clicks'
   keyword_ad_spend?: number; // From 'Keyword Ad Spend'
   keyword_ad_sales_7_day?: number; // From 'Keyword Ad Sales (7-day)' (keyword specific)
   keyword_ad_orders_7_day?: number; // From 'Keyword Ad Orders (7-day)' (keyword specific)
-  asin?: string;
-  keyword?: string;
-  [key: string]: unknown; // Allow for other properties
+}
 
-  // Validation and Outlier Flags
+/**
+ * Represents general sales and operational metrics.
+ */
+export interface SalesMetrics {
+  total_sales?: number;
+  total_orders?: number;
+  total_sessions?: number;
+  total_page_views?: number;
+  total_conversion_rate?: number;
+  profit?: number;
+  inventory_level?: number;
+  review_rating?: number;
+  cac?: number;
+  ltv?: number;
+}
+
+/**
+ * Represents validation and outlier flags for various metrics.
+ * All properties are optional as they indicate a warning or flag.
+ */
+export interface ValidationFlags {
   date_validation_warning?: boolean;
   unique_identifier_validation_warning?: boolean;
   total_sales_outlier_flag?: boolean;
@@ -62,6 +77,25 @@ export interface DashboardMetrics {
   keyword_ad_orders_7_day_outlier_flag?: boolean;
   asin_validation_warning?: boolean;
   keyword_validation_warning?: boolean;
+}
+
+/**
+ * Defines the structure for a single entry of dashboard metrics,
+ * combining general, advertising, and keyword-specific metrics,
+ * along with validation and outlier flags.
+ */
+export interface DashboardMetrics
+  extends SalesMetrics,
+    AdMetrics,
+    KeywordAdMetrics {
+  date: string; // YYYY-MM-DD
+  unique_identifier: string; // ASIN, SKU, etc.
+  asin?: string; // Specific ASIN for the product
+  keyword?: string; // General keyword associated with the entry
+  [key: string]: unknown; // Allow for other properties not explicitly defined
+
+  // Nested validation and outlier flags
+  validation_flags?: Partial<ValidationFlags>;
 }
 
 import {
