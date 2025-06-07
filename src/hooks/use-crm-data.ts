@@ -1,3 +1,10 @@
+/**
+ * @file use-crm-data.ts
+ * @description Custom React hook for managing CRM data (customers, categories, communication logs).
+ * It handles data loading, saving, updating, and deleting operations with IndexedDB
+ * and provides state management for the CRM application.
+ */
+
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import {
@@ -13,44 +20,65 @@ import {
 } from '@/lib/indexeddb-service';
 import type { Category, Contact, CommunicationLog } from '@/app/crm/types';
 
+/**
+ * `useCRMData` is a custom hook that encapsulates the logic for managing CRM data.
+ * It provides state variables for customers and categories, along with memoized
+ * callback functions for performing CRUD operations and updating the state.
+ */
 export const useCRMData = () => {
+  // State to store the list of customer contacts.
   const [customers, setCustomers] = useState<Contact[]>([]);
+  // State to track if the initial data load from IndexedDB has been attempted.
   const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
+  // State to store the list of categories.
   const [categories, setCategories] = useState<Category[]>([]);
 
+  /**
+   * useEffect hook to load initial customer and category data from IndexedDB
+   * when the component mounts. This ensures data persistence across sessions.
+   */
   useEffect(() => {
     const loadInitialData = async () => {
       try {
+        // Fetch all contacts and map them to the Contact type, ensuring default values.
         const allContacts = await getAllContacts();
         const allCustomers: Contact[] = allContacts.map(
           (contact) =>
             ({
               ...contact,
-              id: contact.id!,
-              category: contact.category || '',
-              communicationLogs: contact.communicationLogs || [],
+              id: contact.id!, // Ensure ID is present as it's expected for existing contacts.
+              category: contact.category || '', // Default category to empty string if null/undefined.
+              communicationLogs: contact.communicationLogs || [], // Default logs to empty array.
             }) as Contact,
         );
         setCustomers(allCustomers);
 
+        // Fetch all categories.
         const allCategories = await getAllCategories();
         setCategories(allCategories);
       } catch (error) {
         console.error('Error loading data from IndexedDB:', error);
-        toast.error('Failed to load data. See console for details.');
+        toast.error('Failed to load data. Please check console for details.');
       } finally {
-        setHasAttemptedInitialLoad(true);
+        setHasAttemptedInitialLoad(true); // Mark initial load as attempted regardless of success.
       }
     };
     loadInitialData();
-  }, []);
+  }, []); // Empty dependency array ensures this effect runs only once on mount.
 
+  /**
+   * Callback function to handle saving a customer (either creating a new one or updating an existing one).
+   * It uses `useCallback` to memoize the function, preventing unnecessary re-creations.
+   * @param formData The data for the customer to be saved, without an ID if new.
+   * @param editingCustomer The existing customer object if in edit mode, otherwise null.
+   */
   const handleSaveCustomerAction = useCallback(
     async (formData: Omit<Contact, 'id'>, editingCustomer: Contact | null) => {
       if (editingCustomer) {
+        // If `editingCustomer` exists, update the existing contact.
         const updatedCustomer: Contact = {
           ...formData,
-          id: editingCustomer.id,
+          id: editingCustomer.id, // Retain the original ID for update.
         };
         try {
           await updateContact(updatedCustomer);
@@ -60,6 +88,7 @@ export const useCRMData = () => {
                 ? {
                     ...customer,
                     ...updatedCustomer,
+                    // Preserve existing communication logs as they are not part of the form data.
                     communicationLogs: customer.communicationLogs,
                   }
                 : customer,
@@ -68,25 +97,31 @@ export const useCRMData = () => {
           toast.success('Customer updated successfully!');
         } catch (error) {
           console.error('Error updating customer in IndexedDB:', error);
-          toast.error('Failed to update customer. See console for details.');
+          toast.error(
+            'Failed to update customer. Please check console for details.',
+          );
         }
       } else {
+        // If no `editingCustomer`, create a new contact.
         const newCustomer: Contact = {
           ...formData,
         };
         try {
-          const newId = await createContact(newCustomer);
+          const newId = await createContact(newCustomer); // IndexedDB service returns the new ID.
 
           if (newId === undefined) {
-            toast.error('Failed to add customer. See console for details.');
+            toast.error(
+              'Failed to add customer. Please check console for details.',
+            );
             return;
           }
 
+          // Create a complete new customer object with the generated ID and default values.
           const completeNewCustomer = {
             ...newCustomer,
             id: newId,
-            category: newCustomer.category || '',
-            communicationLogs: [],
+            category: newCustomer.category || '', // Ensure category is an empty string if not set.
+            communicationLogs: [], // New customers start with an empty array of logs.
           } as Contact;
           setCustomers((prevCustomers) => [
             ...prevCustomers,
@@ -95,7 +130,9 @@ export const useCRMData = () => {
           toast.success('Customer added successfully!');
         } catch (error) {
           console.error('Error adding customer to IndexedDB:', error);
-          toast.error('Failed to add customer. See console for details.');
+          toast.error(
+            'Failed to add customer. Please check console for details.',
+          );
         }
       }
     },

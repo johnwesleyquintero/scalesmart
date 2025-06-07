@@ -1,4 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react'; // Import useEffect and useMemo
+/**
+ * @file CustomerListItem.tsx
+ * @description This component displays a single customer's details within a list.
+ * It includes options to edit, delete, copy notes, and view/manage communication logs.
+ * It also supports MDX rendering for customer notes.
+ */
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -14,40 +21,47 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { MDXRemoteSerializeResult } from 'next-mdx-remote'; // Keep type import
+import { MDXRemoteSerializeResult } from 'next-mdx-remote';
 import dynamic from 'next/dynamic';
 
 import type { Contact, CommunicationLog } from '../types';
 import CommunicationLogComponent from './CommunicationLog';
-import { components as mdxComponents } from '@/components/MdxRenderer'; // Import mdxComponents
+import { components as mdxComponents } from '@/components/MdxRenderer';
 
-// Dynamically import MDXRemote to ensure it's client-side rendered
-// This resolves the ESM import issue during the Next.js build process.
+// Dynamically import MDXRemote to ensure it's client-side rendered.
+// This resolves potential issues with server-side rendering of MDX components.
 const ClientSideMDXRemote = dynamic(
   async () => {
     const { MDXRemote } = await import('next-mdx-remote');
     return MDXRemote;
   },
-  { ssr: false },
+  { ssr: false }, // Ensure this component is only rendered on the client side.
 );
 
+/**
+ * Props for the CustomerListItem component.
+ */
 interface CustomerListItemProps {
-  customer: Contact;
-  onEdit: (customer: Contact) => void;
-  onDelete: (id: string) => void;
-  onCopyNotes: (notes: string) => void;
+  customer: Contact; // The customer object to display.
+  onEdit: (customer: Contact) => void; // Callback for editing the customer.
+  onDelete: (id: string) => void; // Callback for deleting the customer.
+  onCopyNotes: (notes: string) => void; // Callback for copying customer notes.
   onCommunicationLogSaveAction: (
     log: Omit<CommunicationLog, 'id'>,
-  ) => Promise<void>;
-  onCommunicationLogUpdateAction: (log: CommunicationLog) => Promise<void>;
+  ) => Promise<void>; // Callback to save a new communication log.
+  onCommunicationLogUpdateAction: (log: CommunicationLog) => Promise<void>; // Callback to update an existing communication log.
   onCommunicationLogDeleteAction: (
     logId: string,
     customerId: string,
-  ) => Promise<void>;
-  onSelect: (id: string, isSelected: boolean) => void;
-  isSelected: boolean;
+  ) => Promise<void>; // Callback to delete a communication log.
+  onSelect: (id: string, isSelected: boolean) => void; // Callback for selecting/deselecting the customer.
+  isSelected: boolean; // Boolean indicating if the customer is currently selected.
 }
 
+/**
+ * CustomerListItem component.
+ * Renders a card for a single customer with their details and actions.
+ */
 const CustomerListItem: React.FC<CustomerListItemProps> = ({
   customer,
   onEdit,
@@ -59,33 +73,39 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
   onSelect,
   isSelected,
 }) => {
+  // State to control the visibility of the communication log section.
   const [isLogOpen, setIsLogOpen] = useState(false);
+  // State to store the serialized MDX content of customer notes.
   const [serializedNotes, setSerializedNotes] =
     useState<MDXRemoteSerializeResult | null>(null);
 
-  // Use useEffect to serialize MDX content on the client side
-  // This is triggered whenever customer.notes changes.
+  /**
+   * Effect to serialize MDX content from `customer.notes` on the client side.
+   * This runs whenever `customer.notes` changes.
+   */
   useEffect(() => {
     const serializeContent = async () => {
       if (customer.notes) {
         try {
-          // Import serialize here to ensure it's only used client-side
+          // Dynamically import `serialize` to ensure it's only used client-side.
           const { serialize } = await import('next-mdx-remote/serialize');
           const mdx = await serialize(customer.notes);
           setSerializedNotes(mdx);
         } catch (error) {
           console.error('Error serializing MDX content:', error);
-          setSerializedNotes(null); // Handle error by not rendering MDX
+          setSerializedNotes(null); // Set to null to prevent rendering invalid MDX.
         }
       } else {
-        setSerializedNotes(null);
+        setSerializedNotes(null); // Clear serialized notes if customer.notes is empty.
       }
     };
 
     serializeContent();
-  }, [customer.notes]); // Dependency array ensures effect runs when notes change
+  }, [customer.notes]); // Dependency array ensures effect runs when notes change.
 
-  // Memoize the MDX components to prevent unnecessary re-renders
+  /**
+   * Memoized MDX components to prevent unnecessary re-renders of the MDX renderer.
+   */
   const components = useMemo(() => mdxComponents, []);
 
   return (
@@ -99,7 +119,7 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
             aria-label={`Select customer ${customer.name}`}
           />
         </div>
-        {/* Customer basic information */}
+        {/* Customer basic information display */}
         <h3 className="text-lg font-semibold text-foreground pl-8">
           {customer.name}
         </h3>
@@ -114,7 +134,7 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
         {customer.address && (
           <p className="text-muted-foreground">Address: {customer.address}</p>
         )}
-        {/* Display customer notes, rendering as MDX if serialized successfully */}
+        {/* Display customer notes, rendering as MDX if serialization is successful */}
         {customer.notes && (
           <>
             <p className="font-semibold mt-2">Notes:</p>
@@ -122,18 +142,18 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
               <div className="prose dark:prose-invert text-sm text-muted-foreground">
                 <ClientSideMDXRemote
                   {...serializedNotes}
-                  components={components} // Use memoized components
+                  components={components} // Use memoized components for MDX rendering.
                 />
               </div>
             ) : (
-              // Fallback to plain text if MDX serialization fails or notes are not MDX
+              // Fallback to plain text if MDX serialization fails or notes are not MDX.
               <p className="text-sm text-muted-foreground">{customer.notes}</p>
             )}
           </>
         )}
       </CardContent>
       <CardFooter className="flex flex-wrap justify-end gap-2 p-4">
-        {/* Action buttons */}
+        {/* Action buttons for customer operations */}
         <Button
           variant="outline"
           size="sm"
@@ -156,7 +176,7 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="CollapsibleContent mt-4 w-full">
-            {/* Communication log component */}
+            {/* Communication log component for the current customer */}
             <CommunicationLogComponent
               customerId={customer.id!}
               logs={customer.communicationLogs || []}

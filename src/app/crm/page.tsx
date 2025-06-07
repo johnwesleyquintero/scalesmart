@@ -1,7 +1,7 @@
 'use client';
 
 import { Toaster } from 'sonner';
-import { useMemo, useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { Contact } from './types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -11,7 +11,14 @@ import { CustomerListTab } from './components/CustomerListTab';
 import { CategoryManagementTab } from './components/CategoryManagementTab';
 import { CommunicationLogsTab } from './components/CommunicationLogsTab';
 
+/**
+ * CRMComponent is the main page component for the CRM dashboard.
+ * It orchestrates the various CRM functionalities, including customer management,
+ * category management, and communication logs, by utilizing the `useCRMData` hook
+ * and rendering different tabs.
+ */
 export default function CRMComponent() {
+  // Destructure CRM data and actions from the custom hook
   const {
     customers,
     hasAttemptedInitialLoad,
@@ -26,24 +33,36 @@ export default function CRMComponent() {
     handleDeleteCommunicationLogAction,
   } = useCRMData();
 
+  // State to manage which customer is currently being edited
   const [editingCustomer, setEditingCustomer] = useState<Contact | null>(null);
 
+  /**
+   * Callback to set the customer currently being edited.
+   * Memoized with useCallback for performance, as it only updates state.
+   */
   const handleEditCustomer = useCallback((customer: Contact) => {
     setEditingCustomer(customer);
-  }, []); // No dependencies as it only sets state
+  }, []);
 
+  /**
+   * Callback to save a customer and then clear the editing state.
+   * This ensures the form resets after a successful save operation.
+   * Memoized with useCallback, depending on `handleSaveCustomerAction`.
+   */
   const handleSaveCustomerAndClearEdit = useCallback(
     async (formData: Omit<Contact, 'id'>, customerToEdit: Contact | null) => {
       await handleSaveCustomerAction(formData, customerToEdit);
       setEditingCustomer(null); // Clear editing state after save
     },
-    [handleSaveCustomerAction], // Dependency on handleSaveCustomerAction from useCRMData
+    [handleSaveCustomerAction],
   );
 
   return (
     <>
+      {/* Toaster for displaying notifications */}
       <Toaster position="top-right" richColors />
       <div className="container mx-auto p-4">
+        {/* Page Header */}
         <h1 className="text-3xl font-bold my-6 text-center text-foreground">
           CRM Dashboard
         </h1>
@@ -52,6 +71,7 @@ export default function CRMComponent() {
           contact information.
         </p>
 
+        {/* Main Tabs Navigation */}
         <Tabs defaultValue="add-customer" className="w-full">
           <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-muted">
             <TabsTrigger
@@ -80,6 +100,7 @@ export default function CRMComponent() {
             </TabsTrigger>
           </TabsList>
 
+          {/* Tab Content for Adding a Customer */}
           <TabsContent value="add-customer" className="space-y-4 mt-4">
             <AddCustomerTab
               categories={categories}
@@ -87,6 +108,7 @@ export default function CRMComponent() {
             />
           </TabsContent>
 
+          {/* Tab Content for Customer List */}
           <TabsContent value="customer-list" className="space-y-4 mt-4">
             <CustomerListTab
               customers={customers}
@@ -106,6 +128,7 @@ export default function CRMComponent() {
             />
           </TabsContent>
 
+          {/* Tab Content for Category Management */}
           <TabsContent value="categories" className="space-y-4 mt-4">
             <CategoryManagementTab
               categories={categories}
@@ -118,6 +141,7 @@ export default function CRMComponent() {
             />
           </TabsContent>
 
+          {/* Tab Content for Overall Communication Logs */}
           <TabsContent value="communication-logs" className="space-y-4 mt-4">
             <CommunicationLogsTab customers={customers} />
           </TabsContent>
