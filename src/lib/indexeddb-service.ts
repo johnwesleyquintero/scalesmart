@@ -483,8 +483,39 @@ export const updateProject = async (project: Project): Promise<void> => {
 };
 
 export const deleteProject = async (id: string): Promise<void> => {
-  await db.projects.delete(id);
-  console.log('Project deleted from IndexedDB:', id);
+  try {
+    // Find all tasks associated with the project being deleted
+    const tasksToUpdate = await db.tasks
+      .where('projectId')
+      .equals(id)
+      .toArray();
+
+    // Update these tasks to have no projectId
+    const updatedTasks = tasksToUpdate.map((task) => ({
+      ...task,
+      projectId: 'no-project-selected', // Use the constant for 'no project'
+      updateTimestamp: Date.now(),
+    }));
+
+    // Perform a bulk update for the tasks
+    if (updatedTasks.length > 0) {
+      await db.tasks.bulkPut(updatedTasks);
+      console.log(
+        `Updated ${updatedTasks.length} tasks to 'no-project-selected' after project deletion.`,
+      );
+    }
+
+    // Finally, delete the project
+    await db.projects.delete(id);
+    console.log('Project deleted from IndexedDB:', id);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting project from IndexedDB: ${id}`,
+      ERROR_MESSAGE_PREFIX,
+    );
+    throw error; // Re-throw to allow calling function to handle optimistic update revert
+  }
 };
 
 export const getAllTasks = async (): Promise<Task[]> => {

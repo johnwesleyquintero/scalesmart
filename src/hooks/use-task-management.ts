@@ -331,16 +331,32 @@ export const useTaskManagement = () => {
   const handleDeleteProject = useCallback(
     async (id: string) => {
       const originalProjects = [...projects];
-      await performOptimisticUpdate(
-        (prevProjects) => prevProjects.filter((project) => project.id !== id),
-        async () => await deleteProject(id),
-        'Project deleted successfully.',
-        'Failed to delete project. Please try again.',
-        originalProjects,
-        setProjects,
-      );
+      const originalTasks = [...tasks]; // Capture original tasks state
+
+      try {
+        // Optimistically update projects state
+        setProjects((prevProjects) =>
+          prevProjects.filter((project) => project.id !== id),
+        );
+        toast.success('Project deleted successfully.');
+
+        // Call the persistence logic which now also updates tasks in IndexedDB
+        await deleteProject(id);
+
+        // After successful deletion and task updates in DB, re-fetch tasks to ensure UI consistency
+        // This is crucial because deleteProject now modifies tasks directly in IndexedDB
+        const updatedTasksFromDB = await getAllTasks();
+        setTasks(
+          updatedTasksFromDB.sort((a, b) => (a.order || 0) - (b.order || 0)),
+        );
+      } catch (error) {
+        console.error('Persistence failed:', error);
+        toast.error('Failed to delete project. Please try again.');
+        setProjects(originalProjects); // Revert projects state on error
+        setTasks(originalTasks); // Revert tasks state on error
+      }
     },
-    [projects, performOptimisticUpdate],
+    [projects, tasks, setTasks, setProjects], // Add setTasks and setProjects to dependencies
   );
 
   /**
