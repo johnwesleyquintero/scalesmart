@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
-import { setCacheItem, getCacheItem } from '@/lib/indexeddb-service';
+import { setItem, getItem } from '@/lib/indexeddb-service';
 
 import {
   addEdge,
@@ -19,7 +19,7 @@ import {
   NodeProperty,
   Node as CustomNodeType,
 } from '@/lib/workflow/types';
-import nodeRegistry from '@/lib/workflow/node-registry';
+import nodeRegistryInstance from '@/lib/workflow/node-registry';
 import {
   STORAGE_KEY,
   NODE_LABEL_START,
@@ -49,6 +49,9 @@ import {
 } from '@/lib/workflow/constants';
 import { ToastProps } from '@/app/hooks/use-toast'; // Import ToastProps from use-toast hook
 
+// Define a specific object store name for workflow data in IndexedDB
+const WORKFLOW_DATA_OBJECT_STORE_NAME = 'workflowDataStore';
+
 /**
  * Creates the initial set of nodes for a new workflow.
  * Defined outside the component to prevent recreation on every render.
@@ -59,7 +62,8 @@ const createInitialNodes = (): ReactFlowNode[] => [
     type: 'start',
     position: { x: 50, y: 50 },
     data: {
-      label: nodeRegistry.getNodeType('start')?.label || NODE_LABEL_START,
+      label:
+        nodeRegistryInstance.getNodeType('start')?.label || NODE_LABEL_START,
     },
   },
   {
@@ -67,9 +71,9 @@ const createInitialNodes = (): ReactFlowNode[] => [
     type: 'log',
     position: { x: 250, y: 50 },
     data: {
-      label: nodeRegistry.getNodeType('log')?.label || NODE_LABEL_LOG,
+      label: nodeRegistryInstance.getNodeType('log')?.label || NODE_LABEL_LOG,
       message:
-        nodeRegistry
+        nodeRegistryInstance
           .getNodeType('log')
           ?.properties.find((p) => p.name === 'message')?.defaultValue ||
         NODE_MESSAGE_HELLO,
@@ -79,7 +83,9 @@ const createInitialNodes = (): ReactFlowNode[] => [
     id: uuidv4(),
     type: 'end',
     position: { x: 450, y: 50 },
-    data: { label: nodeRegistry.getNodeType('end')?.label || NODE_LABEL_END },
+    data: {
+      label: nodeRegistryInstance.getNodeType('end')?.label || NODE_LABEL_END,
+    },
   },
 ];
 
@@ -271,9 +277,12 @@ export const useWorkflowBuilderData = () => {
 
   useEffect(() => {
     // Load registered node types from the registry
-    if (nodeRegistry && typeof nodeRegistry.getNodeTypes === 'function') {
+    if (
+      nodeRegistryInstance &&
+      typeof nodeRegistryInstance.getNodeTypes === 'function'
+    ) {
       try {
-        const types = nodeRegistry.getNodeTypes();
+        const types = nodeRegistryInstance.getNodeTypes();
         setRegisteredNodeTypes(types);
       } catch (err) {
         console.error('Error fetching node types from registry:', err);
@@ -293,7 +302,7 @@ export const useWorkflowBuilderData = () => {
       // selectedNode.type is guaranteed to be a string if selectedNode is not null
       // based on the isSavedWorkflowData guard and the way nodes are created/handled.
       setSelectedNodeTypeDef(
-        nodeRegistry.getNodeType(selectedNode.type) || null,
+        nodeRegistryInstance.getNodeType(selectedNode.type) || null,
       );
     } else {
       setSelectedNodeTypeDef(null);
@@ -313,7 +322,7 @@ export const useWorkflowBuilderData = () => {
   // Handle dropping a new node onto the canvas
   const onNodeDrop = useCallback(
     (type: string, position: { x: number; y: number }): void => {
-      const nodeDef = nodeRegistry.getNodeType(type);
+      const nodeDef = nodeRegistryInstance.getNodeType(type);
       const nodeLabel = nodeDef?.label || `${type} Node`;
       const initialNodeData: CustomNodeType['data'] = { label: nodeLabel }; // Use CustomNodeType['data'] type
 
@@ -438,7 +447,11 @@ export const useWorkflowBuilderData = () => {
         edges: edges,
       };
       const stringifiedWorkflow = JSON.stringify(workflow);
-      await setCacheItem(STORAGE_KEY, stringifiedWorkflow);
+      await setItem(
+        WORKFLOW_DATA_OBJECT_STORE_NAME,
+        STORAGE_KEY,
+        stringifiedWorkflow,
+      );
       toast({
         title: TOAST_TITLE_SAVE_SUCCESS,
         description: TOAST_DESC_SAVE_SUCCESS,
@@ -457,7 +470,9 @@ export const useWorkflowBuilderData = () => {
   // Load workflow from IndexedDB
   const loadWorkflow = useCallback(async (): Promise<void> => {
     try {
-      const workflowData = await getCacheItem(STORAGE_KEY);
+      const workflowData = await getItem(
+        `${WORKFLOW_DATA_OBJECT_STORE_NAME}-${STORAGE_KEY}`,
+      );
 
       if (typeof workflowData === 'string' && workflowData.length > 0) {
         let parsedData: unknown;
@@ -535,14 +550,15 @@ export const useWorkflowBuilderData = () => {
       // Dynamically import the engine only when needed
       const workflowEngineModule = await import('@/lib/workflow/engine');
 
-      if (typeof workflowEngineModule.executeWorkflow === 'function') {
+      const executeWorkflowFn = workflowEngineModule.executeWorkflow;
+      if (typeof executeWorkflowFn === 'function') {
         // Pass nodes typed as CustomNodeType[] for the engine's expectation.
         // We assert here, assuming the nodes state (ReactFlowNode[])
         // contains data structured according to CustomNodeType['data'].
-        workflowEngineModule.executeWorkflow(
+        executeWorkflowFn(
           nodes as CustomNodeType[], // Assert ReactFlowNode[] is compatible with CustomNodeType[] for engine
           edges,
-          nodeRegistry,
+          nodeRegistryInstance,
         );
         toast({
           title: TOAST_TITLE_EXECUTION_INITIATED,

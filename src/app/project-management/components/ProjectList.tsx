@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Project } from '@/lib/indexeddb-service';
+import { Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
 import ProjectForm from './ProjectForm';
 import Modal from '@/components/Modal';
 import { Button } from '@/components/ui/button';
@@ -86,14 +86,12 @@ const ProjectList = ({
         break;
       case 'dateAsc':
         currentProjects.sort(
-          (a: Project, b: Project) =>
-            (a.creationTimestamp || 0) - (b.creationTimestamp || 0),
+          (a: Project, b: Project) => (a.createdAt || 0) - (b.createdAt || 0),
         );
         break;
       case 'dateDesc':
         currentProjects.sort(
-          (a: Project, b: Project) =>
-            (b.creationTimestamp || 0) - (a.creationTimestamp || 0),
+          (a: Project, b: Project) => (b.createdAt || 0) - (a.createdAt || 0),
         );
         break;
       case 'nameAsc':

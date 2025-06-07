@@ -19,11 +19,6 @@
     "jsxImportSource": "react",
     "incremental": true,
     "outDir": "dist",
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
       "@/*": ["./*"],
       "@/lib/*": ["./lib/*"],

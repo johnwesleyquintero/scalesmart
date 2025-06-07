@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { BookOpen, Download, Loader2, RefreshCw, Settings } from 'lucide-react';
 import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 import KpiCustomizationModal from './KpiCustomizationModal';
-import { getCacheItem } from '@/lib/indexeddb-service';
+import { getCacheItem } from '@/lib/api-cache';
 import {
   Tooltip,
   TooltipContent,

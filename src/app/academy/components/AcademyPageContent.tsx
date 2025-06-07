@@ -17,7 +17,7 @@ import {
   getAllCourses,
   updateCourse,
   deleteCoursesByIds,
-} from '@/lib/indexeddb-service';
+} from '@/lib/indexeddb/academy-db'; // Updated import path
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 

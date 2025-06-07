@@ -12,7 +12,7 @@ import TaskForm from '@/app/project-management/components/TaskForm';
 import ProjectForm from '@/app/project-management/components/ProjectForm';
 import ProjectList from '@/app/project-management/components/ProjectList';
 import { useTaskManagement } from '@/hooks/use-task-management'; // Import the new hook
-import { Task } from '@/lib/indexeddb-service';
+import { Task } from '@/lib/indexeddb/project-management-db'; // Updated import path
 import { ErrorBoundary } from '@/components/error-boundary';
 import TaskDetails from '@/app/project-management/components/TaskDetails'; // Import TaskDetails
 import { Dialog, DialogContent } from '@/components/ui/dialog'; // Import Dialog components
@@ -28,7 +28,7 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Project } from '@/lib/indexeddb-service'; // Import Project type
+import { Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
 import { TaskStatus, TASK_STATUSES } from '@/lib/constants/project-management'; // Import from new constants file
 
 /**

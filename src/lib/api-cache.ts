@@ -8,6 +8,14 @@ interface CachedResponse {
   expiry: number;
 }
 
+export async function getCacheItem<T>(key: string): Promise<T | undefined> {
+  return getItem<T>(`api-cache-${key}`);
+}
+
+export async function setCacheItem<T>(key: string, value: T): Promise<void> {
+  return setItem('api-cache', key, value);
+}
+
 interface RequestInit {
   method?: string;
   headers?: { [key: string]: string };
@@ -39,7 +47,7 @@ async function cachedFetch(
 ): Promise<Response> {
   try {
     console.time(`Load ${url} from cache`);
-    const cachedResponse = await getItem<CachedResponse>(url);
+    const cachedResponse = await getItem<CachedResponse>(`api-cache-${url}`);
     console.timeEnd(`Load ${url} from cache`);
     if (cachedResponse && cachedResponse.expiry > Date.now()) {
       console.log(`Returning cached response for ${url}`);
@@ -57,7 +65,7 @@ async function cachedFetch(
     const data = await responseClone.json(); // Read the body from the clone
     const expiry = Date.now() + ttl * 1000; // Calculate expiry time
     console.time(`Save ${url} to cache`);
-    await setItem(url, { url: url, data: data, expiry: expiry });
+    await setItem('api-cache', url, { url: url, data: data, expiry: expiry });
     console.timeEnd(`Save ${url} to cache`);
     console.log(`Caching response for ${url}`);
     return response; // Return the original response

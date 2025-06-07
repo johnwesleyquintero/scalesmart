@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getItem, setItem, removeItem } from '@/lib/indexeddb-service';
+import { getItem, setItem, deleteItem } from '@/lib/indexeddb-service';
+
+// Define a constant for the IndexedDB store name used by this hook
+const LOCAL_STORAGE_STORE_NAME = 'local-storage';
 
 // Define a type for the return value of the hook
 type UseLocalStorageResult<T> = [
@@ -44,7 +47,9 @@ export function useLocalStorage<T>(
     const loadFromIndexedDB = async () => {
       try {
         if (typeof window !== 'undefined') {
-          const storedData = await getItem<T>(key);
+          const storedData = await getItem<T>(
+            `${LOCAL_STORAGE_STORE_NAME}-${key}`,
+          );
           if (storedData !== undefined) {
             setStoredValue(storedData);
           } else {
@@ -52,7 +57,7 @@ export function useLocalStorage<T>(
             setStoredValue(initialValue);
             // And persist it to IndexedDB for future loads
             if (initialValue !== undefined) {
-              await setItem(key, initialValue);
+              await setItem(LOCAL_STORAGE_STORE_NAME, key, initialValue);
             }
           }
         }
@@ -77,7 +82,7 @@ export function useLocalStorage<T>(
           if (typeof window !== 'undefined') {
             try {
               // Persist to IndexedDB
-              setItem(key, valueToStore);
+              setItem(LOCAL_STORAGE_STORE_NAME, key, valueToStore);
               // Also update localStorage for synchronous reads on next component mount
               localStorage.setItem(key, JSON.stringify(valueToStore));
             } catch (error) {
@@ -98,7 +103,7 @@ export function useLocalStorage<T>(
     setStoredValue(undefined);
     if (typeof window !== 'undefined') {
       try {
-        removeItem(key);
+        deleteItem(LOCAL_STORAGE_STORE_NAME, key);
         localStorage.removeItem(key); // Also remove from localStorage
       } catch (error) {
         console.error(`Error removing from IndexedDB for key "${key}":`, error);

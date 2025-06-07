@@ -168,7 +168,7 @@ export class KeywordTrendService {
       const cached = await getItem<{
         result: TrendAnalysisResult;
         cachedAt: number;
-      }>(cacheKey);
+      }>(`${INDEXED_DB_STORE_NAME}-${cacheKey}`);
 
       if (!cached) return null;
 
@@ -194,7 +194,10 @@ export class KeywordTrendService {
     result: TrendAnalysisResult,
   ): Promise<void> {
     try {
-      await setItem(cacheKey, { result, cachedAt: Date.now() });
+      await setItem(INDEXED_DB_STORE_NAME, cacheKey, {
+        result,
+        cachedAt: Date.now(),
+      });
     } catch (error) {
       logError({
         message: CACHE_WRITE_FAILED,

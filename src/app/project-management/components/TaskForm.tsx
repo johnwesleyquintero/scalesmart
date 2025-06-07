@@ -7,7 +7,7 @@ import {
   SetStateAction,
   useMemo,
 } from 'react';
-import { Task, Project } from '@/lib/indexeddb-service';
+import { Task, Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -45,10 +45,7 @@ interface TaskFormProps {
    * @brief Callback function to create a new task.
    */
   onCreateTask?: (
-    taskData: Omit<
-      Task,
-      'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'
-    >,
+    taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>,
   ) => Promise<Task | undefined>;
   /**
    * @brief Callback function to update an existing task.
@@ -97,7 +94,10 @@ const TaskForm = ({
       message: 'Task title is required.',
     }),
     description: z.string().optional(),
-    status: z.string().optional().default('to-do'),
+    status: z
+      .enum([TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED])
+      .optional()
+      .default(TaskStatus.TODO), // Use z.enum with TaskStatus
     assignee: z.string().optional(),
     dueDate: z.date().optional(),
     projectId: z.string().optional(),
@@ -119,7 +119,9 @@ const TaskForm = ({
     defaultValues: {
       title: initialTask?.title || '',
       description: initialTask?.description || '',
-      status: initialTask?.status || 'to-do',
+      status: initialTask?.status
+        ? (initialTask.status as TaskStatus)
+        : TaskStatus.TODO, // Explicitly cast to TaskStatus
       assignee: initialTask?.assignee || '',
       dueDate: initialTask?.dueDate ? new Date(initialTask.dueDate) : undefined,
       projectId: initialTask?.projectId || NO_PROJECT_VALUE,
@@ -131,7 +133,12 @@ const TaskForm = ({
     if (initialTask) {
       setValue('title', initialTask.title);
       setValue('description', initialTask.description || '');
-      setValue('status', initialTask.status || 'to-do');
+      setValue(
+        'status',
+        initialTask.status
+          ? (initialTask.status as TaskStatus)
+          : TaskStatus.TODO,
+      ); // More robust status assignment
       setValue('assignee', initialTask.assignee || '');
       setValue(
         'dueDate',
@@ -146,7 +153,7 @@ const TaskForm = ({
       reset({
         title: '',
         description: '',
-        status: 'to-do',
+        status: TaskStatus.TODO, // Use TaskStatus enum
         assignee: '',
         dueDate: undefined,
         projectId: NO_PROJECT_VALUE,
@@ -181,7 +188,7 @@ const TaskForm = ({
             const updatedTask: Task = {
               ...initialTask,
               ...taskData,
-              updateTimestamp: Date.now(),
+              updatedAt: Date.now(), // Changed to updatedAt
             };
             await onUpdateTask(updatedTask);
             onTaskSaved?.(); // Call the callback if provided
@@ -283,7 +290,7 @@ const TaskForm = ({
         <Label htmlFor="status">Status</Label>
         <Select
           value={statusValue}
-          onValueChange={(value) => setValue('status', value)}
+          onValueChange={(value) => setValue('status', value as TaskStatus)} // Explicitly cast to TaskStatus
         >
           <SelectTrigger id="status" aria-label="Task Status">
             <SelectValue placeholder="Select status" />

@@ -3,7 +3,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TaskItem from './TaskItem';
-import { Task, Project } from '@/lib/indexeddb-service';
+import { Task, Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
 
 interface SortableTaskItemProps {
   task: Task;

@@ -79,7 +79,7 @@ const KpiCustomizationModal: React.FC<KpiCustomizationModalProps> = ({
           <AlertDialogAction
             onClick={() => {
               onSave(selectedMetrics);
-              setItem('selectedMetrics', selectedMetrics);
+              setItem('selectedMetrics', 'kpi-settings', selectedMetrics);
               toast({
                 title: 'KPIs Updated',
                 description: 'Your dashboard KPIs have been updated.',

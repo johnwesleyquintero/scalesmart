@@ -5,7 +5,7 @@ import {
   Project,
   getAllTasks,
   getAllProjects,
-} from '@/lib/indexeddb-service';
+} from '@/lib/indexeddb/project-management-db';
 import { toast } from 'sonner'; // Import toast
 
 export const useProjectManagementData = () => {

@@ -2,7 +2,11 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
-import { Task, Project, TaskComment } from '@/lib/indexeddb-service';
+import {
+  Task,
+  Project,
+  TaskComment,
+} from '@/lib/indexeddb/project-management-db'; // Updated import path
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils/date-utils'; // Import formatDate
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -95,7 +99,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       const updatedTask: Task = {
         ...currentTask,
         comments: [...comments, newComment],
-        updateTimestamp: Date.now(),
+        updatedAt: Date.now(), // Changed to updatedAt
       };
       // Propagate update to parent, which will handle persistence
       await onTaskPersist(updatedTask); // Await the parent's update handler
@@ -126,7 +130,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     const updatedTask: Task = {
       ...currentTask,
       status: TaskStatus.COMPLETED,
-      updateTimestamp: Date.now(),
+      updatedAt: Date.now(), // Changed to updatedAt
     };
     // Propagate update to parent, which will handle persistence
     await onTaskPersist(updatedTask); // Await the parent's update handler

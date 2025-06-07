@@ -12,15 +12,14 @@ import {
   updateContact,
   deleteContact,
   getAllContacts,
-  getAllCategories,
-  // Import category specific IndexedDB functions
   addCategory,
   updateCategory,
   deleteCategory,
+  getAllCategories,
   createCommunicationLog,
   updateCommunicationLog,
   deleteCommunicationLog,
-} from '@/lib/indexeddb-service';
+} from '@/lib/indexeddb/crm-db';
 import type { Category, Contact, CommunicationLog } from '@/app/crm/types';
 
 /**

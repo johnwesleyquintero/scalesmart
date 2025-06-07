@@ -10,10 +10,11 @@ import {
   createProject,
   updateProject,
   deleteProject,
-} from '@/lib/indexeddb-service';
+} from '@/lib/indexeddb/project-management-db';
 import { toast } from 'sonner';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { v4 as uuidv4 } from 'uuid'; // Import uuid for generating unique IDs
 
 /**
  * @typedef {Object} UseTaskManagementReturn
@@ -23,9 +24,9 @@ import { arrayMove } from '@dnd-kit/sortable';
  * @property {React.Dispatch<React.SetStateAction<Project[]>>} setProjects - Setter for projects state.
  * @property {(updatedTask: Task) => Promise<void>} handleUpdateTask - Handler to update an existing task and persist it.
  * @property {(event: DragEndEvent) => Promise<void>} handleDragEnd - Handler for Dnd-kit drag end event.
- * @property {(taskData: Omit<Task, 'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
+ * @property {(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
  * @property {(id: string) => Promise<void>} handleDeleteTask - Handler to delete a task.
- * @property {(projectData: Omit<Project, 'id' | 'creationTimestamp' | 'updateTimestamp'>) => Promise<string | undefined>} handleCreateProject - Handler to create a new project.
+ * @property {(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => Promise<string | undefined>} handleCreateProject - Handler to create a new project.
  * @property {(project: Project) => Promise<void>} handleUpdateProject - Handler to update an existing project.
  * @property {(id: string) => Promise<void>} handleDeleteProject - Handler to delete a project.
  */
@@ -78,7 +79,7 @@ export const useTaskManagement = () => {
   const performOptimisticUpdate = useCallback(
     async <T>(
       updateLogic: (prevState: T[]) => T[],
-      persistenceLogic: () => Promise<void>,
+      persistenceLogic: () => Promise<T | void>, // Allow persistence logic to return T or void
       successMessage: string,
       errorMessage: string,
       originalState: T[],
@@ -105,11 +106,15 @@ export const useTaskManagement = () => {
    * @param originalTasks The state of tasks before the optimistic update.
    */
   const handleTaskStatusChange = useCallback(
-    async (taskToMove: Task, newStatus: string, originalTasks: Task[]) => {
+    async (
+      taskToMove: Task,
+      newStatus: Task['status'], // Correctly type newStatus
+      originalTasks: Task[],
+    ) => {
       const updatedTask: Task = {
         ...taskToMove,
         status: newStatus,
-        updateTimestamp: Date.now(),
+        updatedAt: Date.now(), // Use 'updatedAt'
         order: 0, // Reset order when changing status, will be re-ordered by Dnd-kit
       };
 
@@ -166,7 +171,7 @@ export const useTaskManagement = () => {
       const tasksWithNewOrder = newOrder.map((task, index) => ({
         ...task,
         order: index, // Assign new order based on array position
-        updateTimestamp: Date.now(),
+        updatedAt: Date.now(), // Use 'updatedAt'
       }));
 
       await performOptimisticUpdate(
@@ -280,19 +285,23 @@ export const useTaskManagement = () => {
    */
   const handleCreateTask = useCallback(
     async (
-      taskData: Omit<
-        Task,
-        'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'
-      >,
+      taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>,
     ): Promise<Task | undefined> => {
-      const newTask = await createTask(taskData);
-      if (newTask) {
-        setTasks((prev) => [...prev, newTask]);
-        toast.success(`Task "${newTask.title}" created successfully!`);
+      const now = Date.now();
+      const newTask: Task = {
+        id: uuidv4(),
+        ...taskData,
+        createdAt: now,
+        updatedAt: now,
+      };
+      const createdTask = await createTask(newTask);
+      if (createdTask) {
+        setTasks((prev) => [...prev, createdTask]);
+        toast.success(`Task "${createdTask.title}" created successfully!`);
       } else {
         toast.error('Failed to create task. Please try again.');
       }
-      return newTask;
+      return createdTask;
     },
     [],
   );
@@ -319,29 +328,28 @@ export const useTaskManagement = () => {
   /**
    * @brief Creates a new project and persists it to IndexedDB.
    * @param projectData The data for the new project.
-   * @returns The ID of the created project, or undefined if creation fails.
+   * @returns The created project, or undefined if creation fails.
    */
   const handleCreateProject = useCallback(
     async (
-      projectData: Omit<
-        Project,
-        'id' | 'creationTimestamp' | 'updateTimestamp'
-      >,
-    ): Promise<string | undefined> => {
-      const newProjectId = await createProject(projectData);
-      if (newProjectId) {
-        const newProject: Project = {
-          ...projectData,
-          id: newProjectId,
-          creationTimestamp: Date.now(),
-          updateTimestamp: Date.now(),
-        };
-        setProjects((prev) => [...prev, newProject]);
-        toast.success(`Project "${newProject.name}" created successfully!`);
+      projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'status'>,
+    ): Promise<Project | undefined> => {
+      const now = Date.now();
+      const newProject: Project = {
+        id: uuidv4(),
+        status: 'active', // Default status for new projects
+        ...projectData,
+        createdAt: now,
+        updatedAt: now,
+      };
+      const createdProject = await createProject(newProject);
+      if (createdProject) {
+        setProjects((prev) => [...prev, createdProject]);
+        toast.success(`Project "${createdProject.name}" created successfully!`);
       } else {
         toast.error('Failed to create project. Please try again.');
       }
-      return newProjectId;
+      return createdProject;
     },
     [],
   );

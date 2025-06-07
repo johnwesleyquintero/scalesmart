@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Task, Project } from '@/lib/indexeddb-service';
+import { Task, Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils/date-utils'; // Import formatDate
 import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react';

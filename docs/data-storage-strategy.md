@@ -16,7 +16,7 @@ Supabase will serve as the main, authoritative data source for the application. 
 **Implementation Considerations:**
 
 - **Schema Definition**: Define clear and optimized database schemas within Supabase, including tables, columns, relationships, and constraints.
-- **API Interactions**: Utilize the Supabase client library (<mcsymbol name="supabase" filename="server.ts" path="c:\Users\johnw\portfolio\lib\supabase\server.ts" startline="20" type="function"></mcsymbol>) for all Create, Read, Update, and Delete (CRUD) operations from the application's backend (e.g., Next.js API routes, server actions).
+- **API Interactions**: Utilize the Supabase client library for all Create, Read, Update, and Delete (CRUD) operations from the application's backend (e.g., Next.js API routes, server actions).
 - **Row-Level Security (RLS)**: Implement comprehensive RLS policies to ensure data is accessible only to authorized users.
 
 ## 2. Fallback/Offline Data Store: IndexedDB (Client-Side Database)

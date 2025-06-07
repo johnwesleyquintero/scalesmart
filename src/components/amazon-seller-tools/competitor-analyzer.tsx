@@ -13,8 +13,7 @@ import { toast } from 'sonner'; // Use sonner for toasts
 import { Info } from 'lucide-react';
 import Papa from 'papaparse';
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
-import { setCacheItem, getCacheItem } from '@/lib/indexeddb-service';
-import { cachedFetch } from '@/lib/api-cache';
+import { setCacheItem, getCacheItem, cachedFetch } from '@/lib/api-cache';
 import {
   CartesianGrid,
   Legend,

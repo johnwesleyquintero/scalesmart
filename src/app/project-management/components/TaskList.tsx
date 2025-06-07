@@ -2,8 +2,11 @@
 'use client';
 
 import React from 'react';
-import { Task, Project, TaskComment } from '@/lib/indexeddb-service'; // Import Project and TaskComment types
-import { deleteTask } from '@/lib/indexeddb-service';
+import {
+  Task,
+  Project,
+  TaskComment,
+} from '@/lib/indexeddb/project-management-db'; // Updated import path
 import { default as TaskForm } from './TaskForm';
 import { useState, useMemo, useCallback } from 'react';
 import Modal from '@/components/Modal';

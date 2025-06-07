@@ -1,922 +1,644 @@
-import Dexie, { Table } from 'dexie';
-import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
-import { Contact, Category, CommunicationLog } from '@/app/crm/types';
-import { Course, QuizResult } from '@/types';
-import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
+import { SupabaseClient } from '@supabase/supabase-js'; // Import SupabaseClient type
 
-// Define constants for duplicate strings
-const ERROR_MESSAGE_PREFIX = 'IndexedDBService';
-const DB_OPEN_FAILED = 'Failed to open ChatAppDatabase';
-const DB_INITIALIZED = 'ChatAppDatabase initialized and opened successfully';
-const DB_ALREADY_OPEN = 'ChatAppDatabase is already open';
-const DB_OPERATION_FAILED = 'operation failed';
+// lib/indexeddb-service.ts - Trivial change to force re-evaluation
 
-// Interface for chat messages stored in IndexedDB
-export interface ChatMessageRecord {
-  id?: number;
-  chatSessionId: string;
-  sender: 'user' | 'ai' | 'system';
-  text: string;
+// --- Constants ---
+const DB_NAME = 'scalesmart-db';
+const MAIN_STORE_NAME = 'key-value-store'; // Renamed for clarity
+const SYNC_QUEUE_STORE_NAME = 'sync-queue'; // Added constant for sync queue store name
+const METADATA_STORE_NAME = 'metadata-store'; // New constant for metadata store
+const DB_VERSION = 3; // Increment this if you change the schema
+const DB_NOT_INITIALIZED_ERROR = 'IndexedDB is not initialized.';
+
+// --- Types ---
+interface SyncQueueItem {
+  id?: number; // IndexedDB auto-incremented key
+  type: 'set' | 'delete';
+  tableName: string;
+  recordId: string; // The ID of the record in the Supabase table
+  value?: unknown; // The full record data for 'set' operations
   timestamp: number;
-  metadata?: Record<string, unknown>;
 }
 
-export interface ModuleProgressRecord {
-  userId: string;
-  courseId: string;
-  moduleId: string;
-  progress: number;
-  lastUpdated: number;
+// Interface for calculation data stored in IndexedDB (used by Amazon Tools)
+export interface CalculationData {
+  campaign: string;
+  adSpend: number;
+  sales: number;
+  impressions?: number;
+  clicks?: number;
+  acos?: number;
+  roas?: number;
+  ctr?: number;
+  cpc?: number;
+  revenuePerClickRate?: number;
+  date: string; // ISO string
+  currencySymbol?: string; // Added based on usage in acos-calculator
 }
 
-export interface QuizResultRecord {
-  userId: string;
-  moduleId: string;
-  result: QuizResult;
-  lastUpdated: number;
+// --- Global State ---
+// Stores the database instance once successfully opened.
+let db: IDBDatabase | null = null;
+// Tracks a pending initialization promise to prevent concurrent initialization.
+let initializingPromise: Promise<void> | null = null;
+
+// --- Helper Functions ---
+
+/**
+ * Wraps an IndexedDB request into a Promise.
+ * Resolves with the request result on success, rejects on error.
+ */
+function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = (event) => {
+      console.error(
+        'IndexedDB Request Error:',
+        (event.target as IDBRequest).error,
+      );
+      reject((event.target as IDBRequest).error);
+    };
+  });
 }
 
-export interface Task {
-  id: string;
-  title: string;
-  description?: string;
-  status: string;
-  assignee?: string;
-  dueDate?: number;
-  projectId?: string;
-  creationTimestamp: number;
-  updateTimestamp: number;
-  dependencies?: string[];
-  subtasks?: string[];
-  comments: TaskComment[];
-  priority?: 'low' | 'medium' | 'high';
-  order?: number;
+/**
+ * Wraps an IndexedDB transaction into a Promise.
+ * Resolves when the transaction completes, rejects if it errors or aborts.
+ * Transaction errors/aborts often happen due to request errors within them.
+ */
+function transactionToPromise(transaction: IDBTransaction): Promise<void> {
+  return new Promise((resolve, reject) => {
+    // 'oncomplete' is the most reliable signal for a successful transaction.
+    transaction.oncomplete = () => resolve();
+
+    // 'onerror' and 'onabort' signal transaction failure.
+    // 'onabort' is often triggered by an error on one of the requests.
+    transaction.onerror = (event) => {
+      console.error(
+        'IndexedDB Transaction Error:',
+        (event.target as IDBTransaction).error,
+      );
+      reject(
+        (event.target as IDBTransaction).error ||
+          new Error('Transaction failed'),
+      );
+    };
+    transaction.onabort = (event) => {
+      console.error(
+        'IndexedDB Transaction Aborted:',
+        (event.target as IDBTransaction).error,
+      );
+      // Prefer the specific error from event target if available
+      reject(
+        (event.target as IDBTransaction).error ||
+          new Error('Transaction aborted'),
+      );
+    };
+  });
 }
 
-export interface TaskComment {
-  id: string;
-  text: string;
-  author: string;
-  createdAt: number;
+// --- Core Initialization Logic ---
+
+/**
+ * Initializes the IndexedDB database.
+ * Manages concurrent calls to ensure the database is opened only once.
+ * Handles database upgrades.
+ */
+export function initializeDB(): Promise<void> {
+  // If already initialized, return a resolved promise.
+  if (db) {
+    return Promise.resolve();
+  }
+  // If initialization is already in progress, return the existing promise.
+  if (initializingPromise) {
+    return initializingPromise;
+  }
+
+  // Start a new initialization process.
+  initializingPromise = new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+    // Handles schema changes when DB_VERSION is incremented.
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains(MAIN_STORE_NAME)) {
+        console.log(`Creating object store: ${MAIN_STORE_NAME}`);
+        db.createObjectStore(MAIN_STORE_NAME);
+      }
+      // Create a store for tracking changes to sync with Supabase
+      if (!db.objectStoreNames.contains(SYNC_QUEUE_STORE_NAME)) {
+        console.log(`Creating object store: ${SYNC_QUEUE_STORE_NAME}`);
+        // The sync-queue will store objects describing the change (type, table, recordId, value)
+        db.createObjectStore(SYNC_QUEUE_STORE_NAME, { autoIncrement: true });
+      }
+
+      // Upgrade logic for version 2: Ensure sync-queue exists
+      if (event.oldVersion < 2) {
+        if (!db.objectStoreNames.contains(SYNC_QUEUE_STORE_NAME)) {
+          console.log(
+            `Creating object store: ${SYNC_QUEUE_STORE_NAME} during upgrade.`,
+          );
+          db.createObjectStore(SYNC_QUEUE_STORE_NAME, { autoIncrement: true });
+        }
+      }
+
+      // Upgrade logic for version 3: Add metadata store
+      if (event.oldVersion < 3) {
+        if (!db.objectStoreNames.contains(METADATA_STORE_NAME)) {
+          console.log(
+            `Creating object store: ${METADATA_STORE_NAME} during upgrade.`,
+          );
+          db.createObjectStore(METADATA_STORE_NAME); // Key-value store for metadata
+        }
+      }
+      // Future schema upgrades for different versions would go here:
+      // if (event.oldVersion < 4) { ... add new store ... }
+    };
+
+    // Handles successful database connection.
+    request.onsuccess = (event) => {
+      db = (event.target as IDBOpenDBRequest).result;
+      console.log(
+        `IndexedDB '${DB_NAME}' (Version ${DB_VERSION}) initialized successfully.`,
+      );
+      // Clear the promise as initialization is complete.
+      initializingPromise = null;
+      resolve();
+    };
+
+    // Handles errors during database opening.
+    request.onerror = (event) => {
+      console.error(
+        'IndexedDB initialization failed:',
+        (event.target as IDBOpenDBRequest).error,
+      );
+      // Clear the promise as initialization failed.
+      initializingPromise = null;
+      reject((event.target as IDBOpenDBRequest).error);
+    };
+
+    // Handles cases where the database is blocked (e.g., by open connections in other tabs).
+    request.onblocked = () => {
+      console.warn(
+        `IndexedDB open request for '${DB_NAME}' blocked. Please close other tabs or windows using this application.`,
+      );
+      // For simplicity, we just log. More complex apps might wait or show a UI.
+    };
+  });
+
+  return initializingPromise;
 }
 
-export interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  creationTimestamp: number;
-  updateTimestamp: number;
+/**
+ * Gets the initialized IndexedDB database instance.
+ * Awaits initialization if necessary.
+ */
+async function getDb(): Promise<IDBDatabase> {
+  // Ensure initialization completes before returning the db instance.
+  // initializeDB handles the concurrency internally.
+  await initializeDB();
+  // If initializeDB resolved successfully, 'db' should be set.
+  // This check is a safeguard.
+  if (!db) {
+    // This error indicates a logic flaw if initializeDB resolved but db is null.
+    throw new Error(DB_NOT_INITIALIZED_ERROR);
+  }
+  return db;
 }
 
-class ChatDatabase extends Dexie {
-  public chatMessages!: Table<ChatMessageRecord, number>;
-  public cache!: Table<{ key: string; value: unknown }, string>;
-  public events!: Table<Event, number>;
-  public contacts!: Table<Contact, string>;
-  public tasks!: Table<Task, string>;
-  public projects!: Table<Project, string>;
-  public categories!: Table<Category, string>;
-  public communicationLogs!: Table<CommunicationLog, string>;
-  public courses!: Table<Course, string>;
-  public moduleProgress!: Table<ModuleProgressRecord, [string, string, string]>;
-  public quizResults!: Table<QuizResultRecord, [string, string]>;
-  public calculations!: Table<CalculationData, string>;
+// --- CRUD Operations ---
 
-  constructor() {
-    super('ChatAppDatabase');
-    this.version(1).stores({
-      chatMessages: '++id, chatSessionId, timestamp, sender',
-    });
-    this.version(2).stores({
-      cache: 'key',
-    });
-    this.version(3).stores({
-      events: '++id, date',
-    });
-    this.version(4).stores({
-      contacts:
-        'id, name, email, phone, company, notes, category, creationTimestamp, updateTimestamp',
-    });
-    this.version(5).stores({
-      tasks:
-        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp, dependencies, subtasks, priority',
-    });
-    this.version(6).stores({
-      projects: 'id, name, description, creationTimestamp, updateTimestamp',
-    });
-    this.version(7).stores({
-      categories: 'id, name',
-    });
-    this.version(8).stores({
-      courses:
-        'id, title, description, duration, level, metadata.category, metadata.tags, creationTimestamp, updateTimestamp',
-    });
-    this.version(9).stores({
-      moduleProgress:
-        '[userId+courseId+moduleId], userId, courseId, moduleId, progress, lastUpdated',
-    });
-    this.version(10).stores({
-      communicationLogs: 'id, customerId, type, date, subject, notes',
-    });
-    this.version(11).stores({
-      tasks:
-        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp, dependencies, subtasks, priority, order',
-    });
-    this.version(12).stores({
-      quizResults: '[userId+moduleId], userId, moduleId, result, lastUpdated',
-    });
-    this.version(13).stores({
-      calculations: 'id, campaignName, date',
-    });
-    this.version(14).stores({});
+/**
+ * Sets or updates an item in the key-value store and adds it to the sync queue.
+ * @param tableName The name of the Supabase table this item corresponds to.
+ * @param recordId The ID of the record in the Supabase table.
+ * @param value The data to store.
+ */
+export async function setItem(
+  tableName: string,
+  recordId: string,
+  value: unknown,
+): Promise<void> {
+  // Get the database instance, ensuring initialization.
+  const db = await getDb();
+  // Create a transaction with 'readwrite' mode for both stores.
+  const transaction = db.transaction(
+    [MAIN_STORE_NAME, SYNC_QUEUE_STORE_NAME],
+    'readwrite',
+  );
+  const mainStore = transaction.objectStore(MAIN_STORE_NAME);
+  const syncStore = transaction.objectStore(SYNC_QUEUE_STORE_NAME);
+
+  const key = `${tableName}-${recordId}`; // Consistent key format
+
+  try {
+    // Perform the put request to add/update the item in the main store.
+    const putRequest = mainStore.put(value, key);
+
+    // Add change to sync queue
+    const change = {
+      type: 'set',
+      tableName: tableName,
+      recordId: recordId,
+      value: value, // Store the full value for 'set'
+      timestamp: Date.now(),
+    };
+    const addSyncRequest = syncStore.add(change);
+
+    // Await both requests and the transaction's completion.
+    await Promise.all([
+      requestToPromise(putRequest),
+      requestToPromise(addSyncRequest),
+      transactionToPromise(transaction), // Wait for the entire transaction to complete
+    ]);
+
+    console.log(
+      `Successfully set item for key: ${key} and added to sync queue.`,
+    );
+  } catch (error) {
+    console.error(`Failed to set item for key ${key}:`, error);
+    // Rethrow the caught error to be handled by the caller.
+    throw error;
   }
 }
 
-export const db = new ChatDatabase();
-
-export interface Event {
-  id?: number;
-  date: string;
-  title: string;
-  description?: string;
-}
-
-export interface CalculationData {
-  id?: string;
-  campaignName: string;
-  adSpend: number;
-  sales: number;
-  acos: number;
-  roas: number;
-  date: number;
-  currencySymbol: string;
-}
-
-export const initializeDB = async (): Promise<void> => {
+/**
+ * Pushes changes from the sync queue to Supabase.
+ * @param supabaseClient The Supabase client instance.
+ */
+export async function syncToSupabase(
+  supabaseClient: SupabaseClient,
+): Promise<void> {
   try {
-    if (!db.isOpen()) {
-      try {
-        await db.open();
-        console.log(DB_INITIALIZED);
-      } catch (openError) {
-        logError(openError, DB_OPEN_FAILED, ERROR_MESSAGE_PREFIX);
-        throw openError;
-      }
-    } else {
-      console.log(DB_ALREADY_OPEN);
-    }
+    console.log('Starting sync to Supabase from sync queue.');
+    const db = await getDb();
+    const transaction = db.transaction([SYNC_QUEUE_STORE_NAME], 'readwrite');
+    const store = transaction.objectStore(SYNC_QUEUE_STORE_NAME);
+
+    // Open a cursor to iterate through the sync queue
+    const cursorRequest = store.openCursor();
+
+    await new Promise<void>((resolve, reject) => {
+      cursorRequest.onsuccess = async (event) => {
+        const cursor = (event.target as IDBRequest<IDBCursorWithValue | null>)
+          .result;
+        if (cursor) {
+          const change = cursor.value as SyncQueueItem; // Cast to the expected type
+          console.log('Processing sync queue entry:', change);
+
+          try {
+            // Use the explicit tableName and recordId from the sync queue item
+            const { type, tableName, recordId, value } = change;
+
+            if (!tableName || recordId === undefined) {
+              console.error(
+                'Invalid sync queue entry: missing tableName or recordId',
+                change,
+              );
+              cursor.continue(); // Skip this entry and continue
+              return;
+            }
+
+            switch (type) {
+              case 'set': {
+                // Represents both create and update
+                // Use upsert with the explicit recordId
+                const { data, error } = await supabaseClient
+                  .from(tableName)
+                  .upsert([value], { onConflict: 'id' }); // Assuming 'id' is the conflict key
+
+                if (error) {
+                  console.error(
+                    `Error syncing 'set' change for ${tableName}/${recordId}:`,
+                    error,
+                  );
+                  // Depending on conflict resolution strategy, you might retry or log and skip
+                  // For now, we log and continue to the next entry
+                } else {
+                  console.log(
+                    `Successfully synced 'set' change for ${tableName}/${recordId}.`,
+                  );
+                  cursor.delete(); // Remove the entry from the sync queue after successful sync
+                }
+                break;
+              } // End case 'set' block
+              case 'delete': {
+                // Use delete with the explicit recordId
+                const { error: deleteError } = await supabaseClient
+                  .from(tableName)
+                  .delete()
+                  .eq('id', recordId); // Assuming 'id' is the primary key field
+
+                if (deleteError) {
+                  console.error(
+                    `Error syncing 'delete' change for ${tableName}/${recordId}:`,
+                    deleteError,
+                  );
+                  // Depending on conflict resolution strategy, you might retry or log and skip
+                } else {
+                  console.log(
+                    `Successfully synced 'delete' change for ${tableName}/${recordId}.`,
+                  );
+                  cursor.delete(); // Remove the entry from the sync queue after successful sync
+                }
+                break;
+              } // End case 'delete' block
+              default:
+                console.warn(
+                  'Unknown change type in sync queue:',
+                  type,
+                  change,
+                );
+                cursor.delete(); // Remove unknown entries to prevent blocking
+            }
+          } catch (syncError) {
+            console.error('Error processing sync queue entry:', syncError);
+            // Log the error but continue processing other entries
+          }
+
+          cursor.continue(); // Move to the next entry
+        } else {
+          // No more entries in the cursor
+          resolve();
+        }
+      };
+
+      cursorRequest.onerror = (event) => {
+        console.error(
+          'Error opening cursor for sync queue:',
+          (event.target as IDBRequest).error,
+        );
+        reject((event.target as IDBRequest).error);
+      };
+    });
+
+    await transactionToPromise(transaction);
+    console.log('Finished syncing changes to Supabase.');
   } catch (error) {
-    logError(
+    console.error('Failed to sync to Supabase:', error);
+    throw error;
+  }
+}
+
+/**
+ * Gets an item from the key-value store by key.
+ * Returns undefined if the key is not found.
+ * @template T The expected type of the retrieved value. Note: IndexedDB stores
+ *             data serialized; the 'as T' cast is a runtime assertion and
+ *             does not perform runtime type validation.
+ */
+export async function getItem<T>(key: string): Promise<T | undefined> {
+  const db = await getDb();
+  // Create a transaction with 'readonly' mode.
+  const transaction = db.transaction([MAIN_STORE_NAME], 'readonly');
+  const store = transaction.objectStore(MAIN_STORE_NAME);
+
+  try {
+    // Perform the get request.
+    const getRequest = store.get(key);
+
+    // Await the get request result.
+    const result = await requestToPromise(getRequest);
+
+    // Wait for the transaction to complete (good practice even for readonly).
+    await transactionToPromise(transaction);
+
+    // The 'as T' cast is necessary but unsafe at runtime.
+    // The caller is responsible for knowing the expected type.
+    console.log(`Successfully retrieved item for key: ${key}`);
+    return result as T; // Return the retrieved value, asserted to type T
+  } catch (error) {
+    console.error(`Failed to get item for key ${key}:`, error);
+    // Rethrow the caught error.
+    throw error;
+  }
+}
+
+/**
+ * Deletes an item from the key-value store and adds it to the sync queue.
+ * @param tableName The name of the Supabase table this item corresponds to.
+ * @param recordId The ID of the record in the Supabase table.
+ */
+export async function deleteItem(
+  tableName: string,
+  recordId: string,
+): Promise<void> {
+  const db = await getDb();
+  // Create a transaction with 'readwrite' mode for both stores.
+  const transaction = db.transaction(
+    [MAIN_STORE_NAME, SYNC_QUEUE_STORE_NAME],
+    'readwrite',
+  );
+  const mainStore = transaction.objectStore(MAIN_STORE_NAME);
+  const syncStore = transaction.objectStore(SYNC_QUEUE_STORE_NAME);
+
+  const key = `${tableName}-${recordId}`; // Consistent key format
+
+  try {
+    // Perform the delete request from the main store.
+    const deleteRequest = mainStore.delete(key);
+
+    // Add change to sync queue
+    const change = {
+      type: 'delete',
+      tableName: tableName,
+      recordId: recordId,
+      timestamp: Date.now(),
+    };
+    const addSyncRequest = syncStore.add(change);
+
+    // Await both requests and the transaction's completion.
+    await Promise.all([
+      requestToPromise(deleteRequest),
+      requestToPromise(addSyncRequest),
+      transactionToPromise(transaction), // Wait for the entire transaction
+    ]);
+
+    console.log(
+      `Successfully deleted item for key: ${key} and added to sync queue.`,
+    );
+  } catch (error) {
+    console.error(`Failed to delete item for key ${key}:`, error);
+    // Rethrow the caught error.
+    throw error;
+  }
+}
+
+// --- Optional: Close Function ---
+// Add a function to close the database connection if needed (e.g., on app shutdown)
+// export function closeDb(): void {
+//     if (db) {
+//         db.close();
+//         db = null;
+//         initializingPromise = null; // Reset initialization state
+//         console.log(`IndexedDB '${DB_NAME}' connection closed.`);
+//     }
+// }
+
+/**
+ * Fetches all items from a given IndexedDB store.
+ * This is a generic helper for retrieving all records when specific keys are not known.
+ * @param storeName The name of the object store.
+ * @returns A promise that resolves to an array of all items in the store.
+ */
+export async function getAllItemsFromStore<T>(storeName: string): Promise<T[]> {
+  const db = await getDb();
+  const transaction = db.transaction([storeName], 'readonly');
+  const store = transaction.objectStore(storeName);
+  const request = store.getAll();
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result as T[]);
+    request.onerror = (event: Event) =>
+      reject((event.target as IDBRequest).error);
+  });
+}
+
+/**
+ * Fetches a single record from a Supabase table by its ID.
+ * @param supabaseClient The Supabase client instance.
+ * @param tableName The name of the Supabase table.
+ * @param recordId The ID of the record to fetch.
+ * @returns The record data, or null if not found.
+ */
+export async function getRecordFromSupabase<T>(
+  supabaseClient: SupabaseClient,
+  tableName: string,
+  recordId: string,
+): Promise<T | null> {
+  try {
+    console.log(
+      `Fetching single record from Supabase table: ${tableName} with ID: ${recordId}`,
+    );
+    const { data, error } = await supabaseClient
+      .from(tableName)
+      .select('*')
+      .eq('id', recordId) // Assuming 'id' is the primary key
+      .single(); // Expecting a single record
+
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 is "No rows found"
+      console.error(
+        `Error fetching single record from Supabase table ${tableName} with ID ${recordId}:`,
+        error,
+      );
+      throw error;
+    }
+
+    if (!data) {
+      console.log(
+        `Record not found in Supabase table ${tableName} with ID: ${recordId}`,
+      );
+      return null;
+    }
+
+    console.log(
+      `Successfully fetched single record from ${tableName} with ID: ${recordId}`,
+    );
+    return data as T; // Cast to the expected type
+  } catch (error) {
+    console.error(
+      `Failed to fetch single record from Supabase table ${tableName} with ID ${recordId}:`,
       error,
-      `Failed to initialize ChatAppDatabase`,
-      ERROR_MESSAGE_PREFIX,
     );
     throw error;
   }
-};
-
-function logError(error: unknown, message: string, component: string) {
-  console.error(`${component}: ${message}`, error);
 }
 
-export const getChatMessagesBySession = async (
-  chatSessionId: string,
-): Promise<ChatMessageRecord[]> => {
+// --- Synchronization Logic ---
+
+/**
+ * Pulls data from a Supabase table and stores it in IndexedDB.
+ * @param supabaseClient The Supabase client instance.
+ * @param tableName The name of the Supabase table to pull data from.
+ * @param keyField The field in the Supabase table to use as the key in IndexedDB.
+ */
+export async function syncFromSupabase(
+  supabaseClient: SupabaseClient,
+  tableName: string,
+  keyField: string,
+): Promise<void> {
   try {
-    return await db.chatMessages
-      .where('chatSessionId')
-      .equals(chatSessionId)
-      .sortBy('timestamp');
-  } catch (error) {
-    logError(
-      error,
-      `Failed to get messages for session ${chatSessionId}`,
-      ERROR_MESSAGE_PREFIX,
+    console.log(`Starting incremental sync from Supabase table: ${tableName}`);
+    const db = await getDb();
+    const transaction = db.transaction(
+      [MAIN_STORE_NAME, METADATA_STORE_NAME],
+      'readwrite',
     );
-    return [];
-  }
-};
+    const mainStore = transaction.objectStore(MAIN_STORE_NAME);
+    const metadataStore = transaction.objectStore(METADATA_STORE_NAME);
 
-export async function getCacheItem<T>(key: string): Promise<T | undefined> {
-  try {
-    return (await db.cache.get(key).then((item) => item?.value)) as
-      | T
-      | undefined;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting item from cache with key "${key}"`,
-      ERROR_MESSAGE_PREFIX,
+    // 1. Read the last sync timestamp for this table
+    const lastSyncKey = `lastSync-${tableName}`;
+    const lastSyncTimestamp = await requestToPromise(
+      metadataStore.get(lastSyncKey),
     );
-    return undefined;
-  }
-}
 
-export async function saveCalculation(data: CalculationData): Promise<void> {
-  try {
-    await db.transaction('rw', db.calculations, async () => {
-      await db.calculations.put({
-        ...data,
-        id: crypto.randomUUID(),
-        date: data.date,
-      });
-      console.log('Calculation saved to IndexedDB:', data);
-    });
-  } catch (error) {
-    logError(
-      error,
-      `Error saving calculation to IndexedDB for campaign "${data.campaignName}"`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-}
+    let query = supabaseClient.from(tableName).select('*');
 
-export async function setCacheItem<T>(key: string, value: T): Promise<void> {
-  try {
-    await db.cache.put({ key: key, value: value });
-  } catch (error) {
-    logError(
-      error,
-      `Error setting item in cache with key "${key}"`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-}
-
-export const addEvent = async (event: Event): Promise<number | undefined> => {
-  try {
-    const id = await db.events.add(event);
-    console.log('Event added to IndexedDB:', event);
-    return id;
-  } catch (error) {
-    logError(
-      error,
-      `Error adding event to IndexedDB: ${event.title}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export async function getCalculations(): Promise<CalculationData[]> {
-  try {
-    const calculations = await db.calculations.toArray();
-    console.log('getCalculations returning:', calculations);
-    return calculations;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting calculations from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-}
-
-export const createContact = async (
-  contact: Contact,
-): Promise<string | undefined> => {
-  try {
-    const id = crypto.randomUUID();
-    const creationTimestamp = Date.now();
-    const updateTimestamp = Date.now();
-    const contactToStore = {
-      ...contact,
-      id,
-      creationTimestamp,
-      updateTimestamp,
-    };
-    await db.contacts.put(contactToStore);
-    console.log('Contact added to IndexedDB:', contact);
-    return id;
-  } catch (error) {
-    logError(
-      error,
-      `Error adding contact to IndexedDB: ${contact.name}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const getContact = async (id: string): Promise<Contact | undefined> => {
-  try {
-    const contact = await db.contacts.get(id);
-    console.log('Contact retrieved from IndexedDB:', contact);
-    return contact;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting contact from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const updateContact = async (contact: Contact): Promise<void> => {
-  try {
-    const updateTimestamp = Date.now();
-    const contactToStore = { ...contact, updateTimestamp };
-    await db.contacts.put(contactToStore);
-    console.log('Contact updated in IndexedDB:', contact);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating contact in IndexedDB: ${contact.name}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const deleteContact = async (id: string): Promise<void> => {
-  try {
-    await db.contacts.delete(id);
-    console.log('Contact deleted from IndexedDB:', id);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting contact from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const createTask = async (
-  taskData: Omit<
-    Task,
-    'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'
-  >,
-): Promise<Task | undefined> => {
-  try {
-    const id = crypto.randomUUID();
-    const now = Date.now();
-    const taskToStore: Task = {
-      ...taskData,
-      id,
-      creationTimestamp: now,
-      updateTimestamp: now,
-      comments: [],
-    };
-    await db.tasks.put(taskToStore);
-    console.log('Task added to IndexedDB:', taskToStore);
-    return taskToStore;
-  } catch (error) {
-    logError(
-      error,
-      `Error adding task to IndexedDB: ${taskData.title}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const getTask = async (id: string): Promise<Task | undefined> => {
-  try {
-    const task = await db.tasks.get(id);
-    console.log('Task retrieved from IndexedDB:', task);
-    return task;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting task from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const updateTask = async (task: Task): Promise<void> => {
-  try {
-    const updateTimestamp = Date.now();
-    const taskToStore = {
-      ...task,
-      updateTimestamp,
-      comments: Array.isArray(task.comments) ? task.comments : [],
-    };
-    console.log('Attempting to update task:', taskToStore);
-    await db.tasks.put(taskToStore);
-    console.log('Task successfully updated in IndexedDB:', taskToStore);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating task in IndexedDB: ${task.title}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const deleteTask = async (id: string): Promise<void> => {
-  try {
-    await db.tasks.delete(id);
-    console.log('Task deleted from IndexedDB:', id);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting task from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const createProject = async (
-  projectData: Omit<Project, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
-): Promise<string | undefined> => {
-  try {
-    const id = crypto.randomUUID();
-    const now = Date.now();
-    const projectToStore: Project = {
-      ...projectData,
-      id,
-      creationTimestamp: now,
-      updateTimestamp: now,
-    };
-    await db.projects.put(projectToStore);
-    console.log('Project added to IndexedDB:', projectToStore);
-    return id;
-  } catch (error) {
-    logError(
-      error,
-      `Error adding project to IndexedDB: ${projectData.name}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const getProject = async (id: string): Promise<Project | undefined> => {
-  try {
-    const project = await db.projects.get(id);
-    console.log('Project retrieved from IndexedDB:', project);
-    return project;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting project from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const getAllProjects = async (): Promise<Project[]> => {
-  try {
-    const projects = await db.projects.toArray();
-    console.log('All projects retrieved from IndexedDB:', projects);
-    return projects;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all projects from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
-
-export const updateProject = async (project: Project): Promise<void> => {
-  try {
-    const projectToStore = { ...project, updateTimestamp: Date.now() };
-    await db.projects.put(projectToStore);
-    console.log('Project updated in IndexedDB:', projectToStore);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating project in IndexedDB: ${project.name}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const deleteProject = async (id: string): Promise<void> => {
-  try {
-    // Find all tasks associated with the project being deleted
-    const tasksToUpdate = await db.tasks
-      .where('projectId')
-      .equals(id)
-      .toArray();
-
-    // Update these tasks to have no projectId
-    const updatedTasks = tasksToUpdate.map((task) => ({
-      ...task,
-      projectId: NO_PROJECT_VALUE, // Use the constant for 'no project'
-      updateTimestamp: Date.now(),
-    }));
-
-    // Perform a bulk update for the tasks
-    if (updatedTasks.length > 0) {
-      await db.tasks.bulkPut(updatedTasks);
+    // If a last sync timestamp exists, fetch only data updated after that timestamp
+    if (lastSyncTimestamp) {
+      // Assuming 'updated_at' is the timestamp column in your Supabase table
+      query = query.gte(
+        'updated_at',
+        new Date(lastSyncTimestamp).toISOString(),
+      );
       console.log(
-        `Updated ${updatedTasks.length} tasks to '${NO_PROJECT_VALUE}' after project deletion.`,
+        `Fetching data from ${tableName} updated after: ${new Date(lastSyncTimestamp).toISOString()}`,
+      );
+    } else {
+      console.log(
+        `No previous sync timestamp found for ${tableName}. Fetching all data.`,
       );
     }
 
-    // Finally, delete the project
-    await db.projects.delete(id);
-    console.log('Project deleted from IndexedDB:', id);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting project from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    throw error; // Re-throw to allow calling function to handle optimistic update revert
-  }
-};
+    // Fetch data from Supabase
+    const { data, error } = await query;
 
-export const getAllTasks = async (): Promise<Task[]> => {
-  try {
-    const tasks = await db.tasks.toArray();
-    console.log('All tasks retrieved from IndexedDB:', tasks);
-    return tasks;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all tasks from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
-
-export const getAllContacts = async (): Promise<Contact[]> => {
-  try {
-    const contacts = await db.contacts.toArray();
-    console.log('All contacts retrieved from IndexedDB:', contacts);
-    return contacts;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all contacts from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
-
-export const createCommunicationLog = async (
-  log: Omit<CommunicationLog, 'id'>,
-): Promise<string | undefined> => {
-  try {
-    const id = crypto.randomUUID();
-    const logToStore = { ...log, id, date: Date.now() };
-    await db.communicationLogs.put(logToStore);
-    console.log('Communication log added to IndexedDB:', logToStore);
-    return id;
-  } catch (error) {
-    logError(
-      error,
-      `Error adding communication log to IndexedDB for customer ${log.customerId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const getCommunicationLogsByCustomerId = async (
-  customerId: string,
-): Promise<CommunicationLog[]> => {
-  try {
-    const logs = await db.communicationLogs
-      .where('customerId')
-      .equals(customerId)
-      .sortBy('date');
-    console.log(
-      `Communication logs retrieved for customer ${customerId}:`,
-      logs,
-    );
-    return logs;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting communication logs for customer ${customerId} from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
-
-export const updateCommunicationLog = async (
-  log: CommunicationLog,
-): Promise<void> => {
-  try {
-    const updatedLog = { ...log, date: Date.now() };
-    await db.communicationLogs.put(updatedLog);
-    console.log('Communication log updated in IndexedDB:', updatedLog);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating communication log in IndexedDB: ${log.id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const deleteCommunicationLog = async (
-  id: string,
-  customerId: string,
-): Promise<void> => {
-  try {
-    await db.communicationLogs.delete(id);
-    console.log('Communication log deleted from IndexedDB:', id);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting communication log from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const createCourse = async (
-  courseData: Omit<Course, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
-): Promise<string | undefined> => {
-  try {
-    const id = crypto.randomUUID();
-    const now = Date.now();
-    const courseToStore: Course = {
-      ...courseData,
-      id,
-      creationTimestamp: now,
-      updateTimestamp: now,
-    };
-    await db.courses.put(courseToStore);
-    console.log('Course added to IndexedDB:', courseToStore);
-    return id;
-  } catch (error) {
-    logError(
-      error,
-      `Error adding course to IndexedDB: ${courseData.title}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const updateModuleProgress = async (
-  userId: string,
-  courseId: string,
-  moduleId: string,
-  progress: number,
-): Promise<void> => {
-  try {
-    const record: ModuleProgressRecord = {
-      userId,
-      courseId,
-      moduleId,
-      progress,
-      lastUpdated: Date.now(),
-    };
-    await db.moduleProgress.put(record);
-    console.log('Module progress updated:', record);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating module progress for user ${userId}, course ${courseId}, module ${moduleId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const getModuleProgress = async (
-  userId: string,
-  courseId: string,
-  moduleId: string,
-): Promise<number> => {
-  try {
-    const record = await db.moduleProgress.get([userId, courseId, moduleId]);
-    return record?.progress || 0;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting module progress for user ${userId}, course ${courseId}, module ${moduleId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return 0;
-  }
-};
-
-export const updateQuizResult = async (
-  userId: string,
-  moduleId: string,
-  result: QuizResult,
-): Promise<void> => {
-  try {
-    const record: QuizResultRecord = {
-      userId,
-      moduleId,
-      result,
-      lastUpdated: Date.now(),
-    };
-    await db.quizResults.put(record);
-    console.log('Quiz result updated:', record);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating quiz result for user ${userId}, module ${moduleId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const getQuizResult = async (
-  userId: string,
-  moduleId: string,
-): Promise<QuizResultRecord | undefined> => {
-  try {
-    const record = await db.quizResults.get([userId, moduleId]);
-    return record;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting quiz result for user ${userId}, module ${moduleId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const getCourseModuleProgress = async (
-  userId: string,
-  courseId: string,
-): Promise<ModuleProgressRecord[]> => {
-  try {
-    if (courseId) {
-      return await db.moduleProgress
-        .where({ userId: userId, courseId: courseId })
-        .toArray();
-    } else {
-      return await db.moduleProgress.where('userId').equals(userId).toArray();
+    if (error) {
+      console.error(
+        `Error fetching data from Supabase table ${tableName}:`,
+        error,
+      );
+      // Abort the transaction on error
+      transaction.abort();
+      throw error;
     }
-  } catch (error) {
-    logError(
-      error,
-      `Error getting course module progress for user ${userId}, course ${courseId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
 
-export const getAllQuizResultsForUser = async (
-  userId: string,
-): Promise<QuizResultRecord[]> => {
-  try {
-    return await db.quizResults.where('userId').equals(userId).toArray();
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all quiz results for user ${userId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
+    if (!data || data.length === 0) {
+      console.log(`No new data found in Supabase table: ${tableName}`);
+      // No new data, but still complete the transaction
+      await transactionToPromise(transaction);
+      return;
+    }
 
-export const getCourse = async (id: string): Promise<Course | undefined> => {
-  try {
-    const course = await db.courses.get(id);
-    console.log('Course retrieved from IndexedDB:', course);
-    return course;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting course from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
+    // Store each new/updated record in IndexedDB using the specified keyField
+    for (const record of data) {
+      const key = `${tableName}-${record[keyField]}`; // Create a unique key
+      mainStore.put(record, key);
+    }
 
-export const getAllCourses = async (): Promise<Course[]> => {
-  try {
-    const courses = await db.courses.toArray();
-    console.log('All courses retrieved from IndexedDB:', courses);
-    return courses;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all courses from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
+    // 2. Update the last sync timestamp in the metadata store
+    // Use the timestamp of the *most recent* record fetched, or current time if no records
+    const newLastSyncTimestamp = data.reduce((latest, record) => {
+      // Assuming 'updated_at' is the timestamp field and is a string parseable by Date
+      const recordTimestamp = new Date(record.updated_at).getTime();
+      return recordTimestamp > latest ? recordTimestamp : latest;
+    }, lastSyncTimestamp || 0); // Start with previous timestamp or 0 if none
 
-export const updateCourse = async (course: Course): Promise<void> => {
-  try {
-    const courseToStore = { ...course, updateTimestamp: Date.now() };
-    await db.courses.put(courseToStore);
-    console.log('Course updated in IndexedDB:', courseToStore);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating course in IndexedDB: ${course.title}`,
-      ERROR_MESSAGE_PREFIX,
+    await requestToPromise(
+      metadataStore.put(newLastSyncTimestamp, lastSyncKey),
     );
-  }
-};
 
-export const deleteCourse = async (id: string): Promise<void> => {
-  try {
-    await db.courses.delete(id);
-    console.log('Course deleted from IndexedDB:', id);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting course from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
+    // Wait for the entire transaction to complete
+    await transactionToPromise(transaction);
 
-export const deleteCoursesByIds = async (ids: string[]): Promise<void> => {
-  try {
-    await db.courses.bulkDelete(ids);
-    console.log('Courses deleted from IndexedDB:', ids);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting multiple courses from IndexedDB: ${ids.join(', ')}`,
-      ERROR_MESSAGE_PREFIX,
+    console.log(
+      `Successfully synced ${data.length} new/updated records from ${tableName} to IndexedDB. New last sync timestamp: ${newLastSyncTimestamp}`,
     );
-  }
-};
-
-export const addCategory = async (
-  category: Omit<Category, 'id'>, // Update type to omit 'id'
-): Promise<string | undefined> => {
-  try {
-    const id = crypto.randomUUID();
-    const categoryToStore = { ...category, id };
-    await db.categories.put(categoryToStore);
-    console.log('Category added to IndexedDB:', categoryToStore);
-    return id;
   } catch (error) {
-    logError(
-      error,
-      `Error adding category to IndexedDB: ${category.name}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const getAllCategories = async (): Promise<Category[]> => {
-  try {
-    const categories = await db.categories.toArray();
-    console.log('All categories retrieved from IndexedDB:', categories);
-    return categories;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all categories from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
-
-export const updateCategory = async (category: Category): Promise<void> => {
-  try {
-    await db.categories.put(category);
-    console.log('Category updated in IndexedDB:', category);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating category in IndexedDB: ${category.name}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const deleteCategory = async (id: string): Promise<void> => {
-  try {
-    await db.categories.delete(id);
-    console.log('Category deleted from IndexedDB:', id);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting category from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export async function removeCacheItem(key: string): Promise<void> {
-  try {
-    await db.cache.delete(key);
-  } catch (error) {
-    logError(
-      error,
-      `Error removing item from cache with key "${key}"`,
-      ERROR_MESSAGE_PREFIX,
-    );
+    console.error(`Failed to sync from Supabase table ${tableName}:`, error);
+    // The transaction might have already been aborted by the error handler above,
+    // but re-throwing ensures the caller knows it failed.
+    throw error;
   }
 }
-
-export {
-  getCacheItem as getItem,
-  setCacheItem as setItem,
-  removeCacheItem as removeItem,
-};

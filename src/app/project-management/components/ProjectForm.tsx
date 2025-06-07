@@ -2,7 +2,7 @@
 import React from 'react';
 
 import { useEffect, useCallback } from 'react';
-import { Project } from '@/lib/indexeddb-service';
+import { Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,8 +22,8 @@ interface ProjectFormProps {
    * @brief Callback function to create a new project.
    */
   onCreateProject?: (
-    projectData: Omit<Project, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
-  ) => Promise<string | undefined>;
+    projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'status'>,
+  ) => Promise<Project | undefined>;
   /**
    * @brief Callback function to update an existing project.
    */
@@ -108,7 +108,7 @@ const ProjectForm = ({
             const updatedProject: Project = {
               ...initialProject,
               ...projectData,
-              updateTimestamp: Date.now(),
+              updatedAt: Date.now(), // Changed to updatedAt
             };
             await onUpdateProject(updatedProject);
             toast.success('Project updated successfully!'); // Keep toast here as update is handled by hook
