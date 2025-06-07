@@ -646,7 +646,10 @@ export function CompetitorAnalyzer({
               }
               // ASINs are typically 10 alphanumeric characters.
               // Allow typing up to 10 characters, but validate format.
-              if (inputValue.length <= 10 && /^[a-zA-Z0-9]*$/.test(inputValue)) {
+              if (
+                inputValue.length <= 10 &&
+                /^[a-zA-Z0-9]*$/.test(inputValue)
+              ) {
                 setAsin(inputValue);
               } else if (inputValue.length > 10) {
                 toast.error('ASIN cannot exceed 10 characters.');
