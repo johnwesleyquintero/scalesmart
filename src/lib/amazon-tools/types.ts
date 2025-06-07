@@ -98,6 +98,22 @@ export interface DashboardMetrics
   validation_flags?: Partial<ValidationFlags>;
 }
 
+/**
+ * Represents aggregated product metrics for display in tables or charts.
+ * Extends Record<string, unknown> to allow for dynamic access by accessorKey in generic table components.
+ */
+export interface AggregatedProductMetrics extends Record<string, unknown> {
+  unique_identifier: string;
+  total_sales: number;
+  ad_sales: number;
+  acos: number;
+  profit: number;
+  inventory_level: number;
+  count: number;
+  total_ad_spend: number;
+  total_ad_sales: number;
+}
+
 import {
   TARGET_METRICS_CONFIG,
   MetricTypes,

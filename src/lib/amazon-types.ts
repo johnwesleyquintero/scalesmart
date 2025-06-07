@@ -125,31 +125,6 @@ export interface OptimalPriceParams {
 }
 
 /**
- * Utility class for various Amazon-related calculations.
- */
-export class AmazonAlgorithms {
-  /**
-   * Calculates a recommended inventory level based on sales, lead time, and current stock.
-   *
-   * @param salesData Array of historical sales figures (e.g., daily sales).
-   * @param leadTime Lead time in the same unit as sales data period (e.g., days).
-   * @param currentInventory Current units in stock.
-   * @returns Recommended inventory level.
-   */
-  static calculateInventoryRecommendation(
-    salesData: number[],
-    leadTime: number,
-    currentInventory: number,
-  ): number {
-    // TODO: Actual, potentially more complex implementation should be moved from route.ts
-    // This is a simplified placeholder.
-    const peakSales = Math.max(...salesData);
-    const recommendedStock = peakSales * leadTime;
-    return recommendedStock - currentInventory; // Represents needed restock quantity
-  }
-}
-
-/**
  * Represents data and status related to product inventory.
  * Note: The method signature calculateInventoryRecommendation has been removed from the interface
  * as behavior methods typically reside outside of data interfaces.
