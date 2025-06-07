@@ -578,7 +578,11 @@ export async function getAllItemsFromStore<T>(storeName: string): Promise<T[]> {
   const store = transaction.objectStore(storeName);
   const request = store.getAll();
   return new Promise((resolve, reject) => {
-    request.onsuccess = () => resolve(request.result as T[]);
+    try {
+      request.onsuccess = () => resolve(request.result as T[]);
+    } catch (e) {
+      console.error("Error in request.onsuccess", e);
+    }
     request.onerror = (event: Event) => {
       const error = (event.target as IDBRequest).error;
       console.error(
