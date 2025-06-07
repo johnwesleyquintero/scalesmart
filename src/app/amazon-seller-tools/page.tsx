@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useCallback, useState, useEffect, useMemo } from 'react';
+import React, {
+  useCallback,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
@@ -14,7 +20,9 @@ import { toast } from 'sonner'; // Import toast for user feedback
 import DashboardHeader from '@/components/amazon-seller-tools/DashboardHeader';
 import OverviewTab from '@/components/amazon-seller-tools/OverviewTab';
 import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
-import DataIntegrationTab from '@/components/amazon-seller-tools/DataIntegrationTab'; // Import the new tab component
+import DataIntegrationTab, {
+  DataIntegrationTabProps,
+} from '@/components/amazon-seller-tools/DataIntegrationTab'; // Import the new tab component and its props
 
 // Utility & Config
 import { exportToCSV } from '@/lib/amazon-tools/export-utils';
@@ -23,6 +31,8 @@ import { exportToCSV } from '@/lib/amazon-tools/export-utils';
 import type {
   DashboardMetrics,
   ValidationFlags,
+  AggregatedProductMetrics,
+  TimeRange,
 } from '@/lib/amazon-tools/types';
 import type { TargetMetricConfig } from '@/lib/amazon-tools/types';
 import { TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
@@ -433,12 +443,54 @@ export default function UnifiedDashboard() {
   // State for the main tabs (synced with URL)
   const [activeTab, setActiveTab] = useState('overview');
 
-  // States for OverviewTab data handling (kept here for DashboardHeader and export)
-  const [metrics, setMetrics] = useState<DashboardMetrics[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isParsing, setIsParsing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState(''); // Search term for filtering metrics
+  // State to hold all data and callbacks from DataIntegrationTab
+  // Explicitly type the state with the full DataIntegrationTabProps interface
+  const [dataIntegrationData, setDataIntegrationData] =
+    useState<DataIntegrationTabProps>({
+      metrics: [],
+      isLoading: false,
+      isParsing: false,
+      error: null,
+      searchTerm: '',
+      timeGranularity: 'daily',
+      timeRange: 'custom',
+      customDateRange: { from: undefined, to: undefined },
+      aggregatedAndSortedMetrics: [],
+      productPerformanceData: [],
+      productPerformanceTableColumns: [],
+      productPerformanceRowIdAccessor: () => '',
+      onDeleteMetric: () => {},
+      onRefreshData: () => {},
+      onLoadSampleData: () => {},
+      onUploadFile: () => {},
+      onDownloadSampleCsv: async () => {}, // Ensure this matches the updated type
+      fileInputRef: { current: null },
+      showMapper: false,
+      csvHeaders: [],
+      firstCsvDataRow: undefined,
+      handleMappingComplete: async () => {},
+      handleMappingCancel: () => {},
+      savedMapping: null,
+      parsingErrors: [],
+      isUploading: false,
+      isMapping: false,
+      isProcessing: false,
+      totalRows: 0,
+      processedRows: 0,
+      setTimeGranularity: () => {},
+      setTimeRange: () => {},
+      setCustomDateRange: () => {},
+      setSearchTerm: () => {},
+    });
+
+  // Destructure necessary callbacks and states from the fully typed state
+  const {
+    onRefreshData,
+    onUploadFile,
+    onLoadSampleData,
+    onDownloadSampleCsv,
+    setSearchTerm,
+  } = dataIntegrationData;
 
   // States for initial tool parameters (from URL)
   const [initialAsin, setInitialAsin] = useState<string | null>(null);
@@ -494,16 +546,18 @@ export default function UnifiedDashboard() {
    * This is used to refresh the dashboard or clear previous data/errors.
    * Memoized to prevent unnecessary re-renders.
    */
+  /**
+   * Resets all relevant state variables to their initial values.
+   * This is used to refresh the dashboard or clear previous data/errors.
+   * Memoized to prevent unnecessary re-renders.
+   */
   const handleRefresh = useCallback(() => {
-    setMetrics([]);
-    setError(null);
-    setIsLoading(false);
-    setIsParsing(false);
-    setSearchTerm('');
-    // Initial ASIN/Keyword parameters are typically tied to the URL and
-    // might not need to be reset on a data refresh, as they represent
-    // a specific context for the tools.
-  }, []); // Dependencies removed as setters are stable
+    if (onRefreshData) {
+      onRefreshData();
+    } else {
+      toast.error('Data refresh function not available.');
+    }
+  }, [onRefreshData]);
 
   /**
    * Handles the data export functionality.
@@ -512,26 +566,26 @@ export default function UnifiedDashboard() {
    * Memoized using `useCallback`.
    */
   const handleExport = useCallback(() => {
-    if (metrics.length === 0) {
-      setError(
+    if (dataIntegrationData.metrics?.length === 0) {
+      toast.error(
         'No data available to export. Please upload or generate data first.',
       );
       return;
     }
 
     // Transform metrics to a flat format compatible with CSV export using the helper function.
-    const exportableMetrics = metrics.map(transformMetricForExport);
+    const exportableMetrics = (dataIntegrationData.metrics || []).map(
+      transformMetricForExport,
+    );
 
     try {
       exportToCSV(exportableMetrics, 'amazon_seller_tools_data.csv');
-      setError(null); // Clear any previous export error on success
       toast.success('Data exported successfully!'); // Add success toast
     } catch (e) {
       console.error('Export failed:', e);
-      setError('Failed to export data. Please try again.');
       toast.error('Failed to export data. Please try again.'); // Add error toast
     }
-  }, [metrics]); // Dependency array includes metrics
+  }, [dataIntegrationData.metrics]); // Dependency array includes dataIntegrationData.metrics
 
   /**
    * Handles changing the main dashboard tab and updates the URL search parameter.
@@ -596,13 +650,13 @@ export default function UnifiedDashboard() {
         </div>
 
         <DashboardHeader
-          isLoading={isLoading}
-          isParsing={isParsing}
-          error={error}
-          metricsLength={metrics.length}
+          isLoading={dataIntegrationData.isLoading || false}
+          isParsing={dataIntegrationData.isParsing || false}
+          error={dataIntegrationData.error || null}
+          metricsLength={dataIntegrationData.metrics?.length || 0}
           handleRefresh={handleRefresh}
           handleExport={handleExport}
-          metrics={metrics}
+          metrics={dataIntegrationData.metrics || []}
           onSearch={setSearchTerm}
         />
 
@@ -624,19 +678,8 @@ export default function UnifiedDashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
-            {/* OverviewTab manages its own UI and state related to file processing */}
-            <OverviewTab
-              metrics={metrics}
-              setMetrics={setMetrics}
-              isLoading={isLoading}
-              setIsLoading={setIsLoading}
-              isParsing={isParsing}
-              setIsParsing={setIsParsing}
-              error={error}
-              setError={setError}
-              TARGET_METRICS_CONFIG={TARGET_METRICS_CONFIG}
-              searchTerm={searchTerm}
-            />
+            {/* OverviewTab now receives the entire dataIntegrationData object */}
+            <OverviewTab {...dataIntegrationData} />
           </TabsContent>
 
           <TabsContent value="keywords">
@@ -681,7 +724,7 @@ export default function UnifiedDashboard() {
 
           {/* New Data Integration Tab */}
           <TabsContent value="data-integration" className="space-y-4 mt-4">
-            <DataIntegrationTab />
+            <DataIntegrationTab onDataUpdate={setDataIntegrationData} />
           </TabsContent>
         </Tabs>
 
