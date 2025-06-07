@@ -1,4 +1,12 @@
 import { SupabaseClient } from '@supabase/supabase-js'; // Import SupabaseClient type
+import type { CampaignData } from 'lib/amazon-tools/metrics';
+
+// --- Types ---
+/**
+ * Represents the data structure for calculation entries,
+ * often mirroring CampaignData in the context of ACOS calculations.
+ */
+export type CalculationData = CampaignData;
 
 // lib/indexeddb-service.ts - Trivial change to force re-evaluation
 

@@ -16,4 +16,5 @@ export interface CampaignData {
   cpc?: number;
   revenuePerClickRate?: number;
   date?: string;
+  currencySymbol?: string;
 }
