@@ -394,7 +394,6 @@ export const useTaskManagement = () => {
           prevProjects.filter((project) => project.id !== id),
         );
         toast.success('Project deleted successfully.');
-
         await deleteProject(id);
       } catch (error: unknown) {
         console.error('Persistence failed:', error);
@@ -402,18 +401,18 @@ export const useTaskManagement = () => {
         setProjects(originalProjects);
         setTasks(originalTasks);
         return;
-      }
-
-      try {
-        const updatedTasksFromDB = await getAllTasks();
-        setTasks(
-          updatedTasksFromDB.sort((a, b) => (a.order || 0) - (b.order || 0)),
-        );
-      } catch (error: any) {
-        console.error('Failed to load tasks after deleting project:', error);
-        toast.error(
-          'Failed to load tasks after deleting project. Please try again.',
-        );
+      } finally {
+        try {
+          const updatedTasksFromDB = await getAllTasks();
+          setTasks(
+            updatedTasksFromDB.sort((a, b) => (a.order || 0) - (b.order || 0)),
+          );
+        } catch (error: any) {
+          console.error('Failed to load tasks after deleting project:', error);
+          toast.error(
+            'Failed to load tasks after deleting project. Please try again.',
+          );
+        }
       }
     },
     [projects, tasks, setTasks, setProjects],
