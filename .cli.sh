@@ -1284,9 +1284,9 @@ main() {
                     "Installing dependencies" \
                     "Dependencies installed successfully." \
                     "Dependency installation failed."; then
-                    # run_long_command handles logging and error messages
-                    # Exit if critical like install fails
-                    exit 1 # Or decide if user can continue
+                    # run_long_command handles logging and error messages.
+                    # Script will now return to menu instead of exiting.
+                    log_error "Dependency installation failed. Returning to menu." "main_loop (npm install)"
                 fi
                 # Post-install verification (optional, can be part of run_long_command if generalized)
                 if [ -d "node_modules" ]; then
@@ -1340,7 +1340,7 @@ main() {
                     "Running tests" \
                     "Tests completed." \
                     "Tests failed or encountered errors."; then
-                    exit 1 # Tests failing is critical
+                    log_error "Tests failed or encountered errors. Returning to menu." "main_loop (npm test)"
                 fi
                 ;;
             "c")
@@ -1348,7 +1348,7 @@ main() {
                     "Running code checks" \
                     "Code checks completed." \
                     "Code checks failed or found issues."; then
-                    exit 1 # Lint/check failures are critical
+                    log_error "Code checks failed or found issues. Returning to menu." "main_loop (npm run check)"
                 fi
                 ;;
             "a") # Security Audit - typically interactive, direct output is fine
@@ -1369,7 +1369,7 @@ main() {
                     "Building project" \
                     "Project built successfully." \
                     "Project build failed."; then
-                    exit 1 # Build failure is critical
+                    log_error "Project build failed. Returning to menu." "main_loop (npm run build)"
                 fi
                 ;;
             "x") clean_artifacts ;;
