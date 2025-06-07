@@ -157,6 +157,10 @@ export function initializeDB(): Promise<void> {
           );
           db.createObjectStore(CHAT_MESSAGES_STORE_NAME);
         }
+       if (!db.objectStoreNames.contains('academy-module-progress')) {
+           console.log(`Creating object store: academy-module-progress`);
+           db.createObjectStore('academy-module-progress');
+       }
       }
       // Future schema upgrades for different versions would go here:
       // if (event.oldVersion < 4) { ... add new store ... }
