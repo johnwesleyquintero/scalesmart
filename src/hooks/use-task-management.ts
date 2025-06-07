@@ -21,7 +21,8 @@ import { arrayMove } from '@dnd-kit/sortable';
  * @property {React.Dispatch<React.SetStateAction<Task[]>>} setTasks - Setter for tasks state.
  * @property {Project[]} projects - Array of all projects.
  * @property {React.Dispatch<React.SetStateAction<Project[]>>} setProjects - Setter for projects state.
- * @property {(task: Task) => void} handleTaskUpdated - Handler for when a task is updated.
+ * @property {(task: Task) => void} handleTaskUpdated - Handler for when a task is updated (optimistic update).
+ * @property {(updatedTask: Task) => Promise<void>} handleUpdateTask - Handler to update an existing task and persist it.
  * @property {(event: DragEndEvent) => Promise<void>} handleDragEnd - Handler for Dnd-kit drag end event.
  * @property {(taskData: Omit<Task, 'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
  * @property {(id: string) => Promise<void>} handleDeleteTask - Handler to delete a task.
@@ -252,6 +253,28 @@ export const useTaskManagement = () => {
   );
 
   /**
+   * @brief Updates an existing task in state and IndexedDB.
+   * @param updatedTask The task object with updated properties.
+   */
+  const handleUpdateTask = useCallback(
+    async (updatedTask: Task) => {
+      const originalTasks = [...tasks];
+      await performOptimisticUpdate(
+        (prevTasks) =>
+          prevTasks.map((task) =>
+            task.id === updatedTask.id ? updatedTask : task,
+          ),
+        async () => await updateTask(updatedTask),
+        `Task "${updatedTask.title}" updated successfully!`,
+        `Failed to update task "${updatedTask.title}". Please try again.`,
+        originalTasks,
+        setTasks,
+      );
+    },
+    [tasks, performOptimisticUpdate],
+  );
+
+  /**
    * @brief Creates a new task and persists it to IndexedDB.
    * @param taskData The data for the new task.
    * @returns The created task with ID and timestamps, or undefined if creation fails.
@@ -389,11 +412,12 @@ export const useTaskManagement = () => {
     isLoading,
     error,
     handleTaskUpdated,
+    handleUpdateTask, // Add handleUpdateTask
     handleDragEnd,
     handleCreateTask,
     handleDeleteTask,
     handleCreateProject,
-    handleUpdateProject, // Add handleUpdateProject
+    handleUpdateProject,
     handleDeleteProject,
   };
 };

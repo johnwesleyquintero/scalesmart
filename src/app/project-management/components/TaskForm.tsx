@@ -42,10 +42,18 @@ interface TaskFormProps {
    */
   task?: Task | null;
   /**
-   * @brief Callback function invoked after a task is successfully added or updated.
-   * Receives the updated/new task object.
+   * @brief Callback function to create a new task.
    */
-  onTaskUpdated?: (task: Task) => void;
+  onCreateTask?: (
+    taskData: Omit<
+      Task,
+      'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'
+    >,
+  ) => Promise<Task | undefined>;
+  /**
+   * @brief Callback function to update an existing task.
+   */
+  onUpdateTask?: (task: Task) => Promise<void>;
   /**
    * @brief Callback function invoked when the cancel button is clicked (only visible during edit mode).
    */
@@ -58,6 +66,10 @@ interface TaskFormProps {
    * @brief All tasks across all columns, used for resolving dependencies and subtasks.
    */
   allTasks: Task[];
+  /**
+   * @brief Callback function invoked after a task is successfully added or updated.
+   */
+  onTaskSaved?: () => void;
 }
 
 /**
@@ -73,10 +85,12 @@ interface TaskFormProps {
  */
 const TaskForm = ({
   task: initialTask,
-  onTaskUpdated,
+  onCreateTask,
+  onUpdateTask,
   onCancel,
   projects,
   allTasks,
+  onTaskSaved,
 }: TaskFormProps) => {
   const formSchema = z.object({
     title: z.string().min(1, {
@@ -162,24 +176,25 @@ const TaskForm = ({
 
       try {
         if (initialTask) {
-          const updatedTask: Task = {
-            ...initialTask,
-            ...taskData,
-            updateTimestamp: Date.now(),
-          };
-          onTaskUpdated?.(updatedTask); // Propagate update to parent
-          toast.success('Task updated successfully!');
+          // Update existing task
+          if (onUpdateTask) {
+            const updatedTask: Task = {
+              ...initialTask,
+              ...taskData,
+              updateTimestamp: Date.now(),
+            };
+            await onUpdateTask(updatedTask);
+            onTaskSaved?.(); // Call the callback if provided
+          }
         } else {
-          // For new tasks, onTaskUpdated will be handleCreateTask from the hook
-          // which already handles creation and toast messages.
-          const newTaskData = {
-            ...taskData,
-          };
-          // The parent component (ProjectManagementPage) will call handleCreateTask
-          // which will then update the state and show the toast.
-          // We just need to pass the new task data up.
-          onTaskUpdated?.(newTaskData as Task); // Cast to Task as it will be a full Task after creation
-          reset(); // Reset form after successful creation
+          // Create new task
+          if (onCreateTask) {
+            await onCreateTask({
+              ...taskData,
+            });
+            onTaskSaved?.(); // Call the callback if provided
+            reset(); // Reset form after successful creation
+          }
         }
       } catch (error) {
         logger.error(
@@ -196,7 +211,7 @@ const TaskForm = ({
         );
       }
     },
-    [initialTask, onTaskUpdated, reset],
+    [initialTask, onCreateTask, onUpdateTask, onTaskSaved, reset],
   );
 
   const statusValue = watch('status');

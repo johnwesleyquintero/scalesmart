@@ -17,14 +17,13 @@ import {
 import { TaskStatus } from '@/lib/constants/project-management'; // Import TaskStatus
 import CommentList from './CommentList';
 import TaskForm from './TaskForm'; // To allow editing within details view
-import { updateTask } from '@/lib/indexeddb-service';
 import { toast } from 'sonner';
 
 interface TaskDetailsProps {
   task: Task;
   projects: Project[];
   allTasks: Task[]; // For resolving dependencies and subtasks
-  onTaskUpdated: (updatedTask: Task) => void; // To propagate updates back to parent
+  onTaskPersist: (updatedTask: Task) => Promise<void>; // To propagate updates back to parent for persistence
   onClose: () => void; // To close the details modal
 }
 
@@ -43,7 +42,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   task,
   projects,
   allTasks,
-  onTaskUpdated,
+  onTaskPersist, // Renamed prop
   onClose,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
@@ -98,29 +97,27 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         comments: [...comments, newComment],
         updateTimestamp: Date.now(),
       };
-      try {
-        await updateTask(updatedTask);
-        setCurrentTask(updatedTask); // Update local state
-        onTaskUpdated(updatedTask); // Propagate update to parent
-        toast.success('Comment added successfully.');
-      } catch (error) {
-        console.error('Failed to add comment and update task:', error);
-        toast.error('Failed to add comment. Please try again.');
-      }
+      // Propagate update to parent, which will handle persistence
+      await onTaskPersist(updatedTask); // Await the parent's update handler
+      setCurrentTask(updatedTask); // Update local state optimistically
+      toast.success(`Task "${updatedTask.title}" marked as completed!`);
     },
-    [currentTask, onTaskUpdated],
+    [currentTask, onTaskPersist], // Update dependency
   );
 
   const handleTaskFormUpdated = useCallback(
-    (updatedTask: Task) => {
-      setCurrentTask(updatedTask); // Update local state
-      onTaskUpdated(updatedTask); // Propagate update to parent
+    async (updatedTask: Task) => {
+      // Make this async to match onUpdateTask signature
+      // Propagate update to parent, which will handle persistence
+      await onTaskPersist(updatedTask); // Await the parent's update handler
+      setCurrentTask(updatedTask); // Update local state optimistically
       setIsEditing(false); // Exit edit mode
     },
-    [onTaskUpdated],
+    [onTaskPersist], // Update dependency
   );
 
   const handleMarkComplete = useCallback(async () => {
+    // Make this async
     if (currentTask.status === TaskStatus.COMPLETED) {
       toast.info('Task is already completed.');
       return;
@@ -131,23 +128,18 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       status: TaskStatus.COMPLETED,
       updateTimestamp: Date.now(),
     };
-
-    try {
-      await updateTask(updatedTask);
-      setCurrentTask(updatedTask); // Update local state
-      onTaskUpdated(updatedTask); // Propagate update to parent
-      toast.success(`Task "${updatedTask.title}" marked as completed!`);
-    } catch (error) {
-      console.error('Failed to mark task as complete:', error);
-      toast.error('Failed to mark task as complete. Please try again.');
-    }
-  }, [currentTask, onTaskUpdated]);
+    // Propagate update to parent, which will handle persistence
+    await onTaskPersist(updatedTask); // Await the parent's update handler
+    setCurrentTask(updatedTask); // Update local state optimistically
+    toast.success(`Task "${updatedTask.title}" marked as completed!`);
+  }, [currentTask, onTaskPersist]); // Update dependency
 
   if (isEditing) {
     return (
       <TaskForm
         task={currentTask}
-        onTaskUpdated={handleTaskFormUpdated}
+        onUpdateTask={onTaskPersist} // Pass onTaskPersist as onUpdateTask
+        onTaskSaved={() => setIsEditing(false)} // onTaskSaved should just close the modal
         onCancel={() => setIsEditing(false)}
         projects={projects}
         allTasks={allTasks}

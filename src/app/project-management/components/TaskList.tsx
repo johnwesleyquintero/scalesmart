@@ -38,9 +38,9 @@ interface TaskListProps {
    */
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   /**
-   * @brief Callback function to be called when a task is updated or created.
+   * @brief Callback function to be called when a task is updated or created and needs persistence.
    */
-  onTaskUpdated: (updatedOrNewTask: Task) => void;
+  onTaskPersist: (updatedOrNewTask: Task) => Promise<void>;
   /**
    * @brief The array of available projects, used for displaying project names associated with tasks.
    */
@@ -83,7 +83,7 @@ const TaskList = ({
   tasks,
   setTasks,
   projects,
-  onTaskUpdated,
+  onTaskPersist, // Renamed prop
   allTasks,
   onDeleteTask, // Destructure new prop
   onViewTaskDetails, // Destructure new prop
@@ -179,9 +179,9 @@ const TaskList = ({
    * @param {Task} updatedOrNewTask - The task object that was updated or newly created.
    */
   const handleTaskFormUpdated = useCallback(
-    (updatedOrNewTask: Task) => {
-      // Propagate the update to the parent (ProjectManagementPage) to ensure the main tasks state is updated
-      onTaskUpdated(updatedOrNewTask);
+    async (updatedOrNewTask: Task) => {
+      // Propagate the update to the parent (ProjectManagementPage) to ensure the main tasks state is updated and persisted
+      await onTaskPersist(updatedOrNewTask); // Await the persistence handler
 
       // Close the edit modal if the update originated from it
       if (isEditModalOpen) {
@@ -190,7 +190,7 @@ const TaskList = ({
 
       // No need to close details modal here, as it's handled by parent
     },
-    [onTaskUpdated, isEditModalOpen, handleCloseEditModal],
+    [onTaskPersist, isEditModalOpen, handleCloseEditModal],
   );
 
   return (
@@ -239,7 +239,8 @@ const TaskList = ({
             <TaskForm
               key={selectedTask?.id || 'new-task-form'}
               task={selectedTask}
-              onTaskUpdated={handleTaskFormUpdated}
+              onUpdateTask={onTaskPersist} // Pass the parent's onTaskPersist as onUpdateTask
+              onTaskSaved={handleCloseEditModal} // Close modal after task is saved
               onCancel={handleCloseEditModal}
               projects={projects}
               allTasks={allTasks}

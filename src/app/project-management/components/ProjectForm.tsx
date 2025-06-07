@@ -3,7 +3,6 @@ import React from 'react';
 
 import { useEffect, useCallback } from 'react';
 import { Project } from '@/lib/indexeddb-service';
-import { createProject, updateProject } from '@/lib/indexeddb-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,42 +101,27 @@ const ProjectForm = ({
         description: data.description?.trim() || '',
       };
 
-      try {
-        if (initialProject) {
-          // Update existing project
-          if (onUpdateProject) {
-            const updatedProject: Project = {
-              ...initialProject,
-              ...projectData,
-              updateTimestamp: Date.now(),
-            };
-            await onUpdateProject(updatedProject);
-            toast.success('Project updated successfully!');
-          }
-        } else {
-          // Create new project
-          if (onCreateProject) {
-            await onCreateProject({
-              ...projectData,
-            });
-            // toast.success is handled by the hook
-          }
+      if (initialProject) {
+        // Update existing project
+        if (onUpdateProject) {
+          const updatedProject: Project = {
+            ...initialProject,
+            ...projectData,
+            updateTimestamp: Date.now(),
+          };
+          await onUpdateProject(updatedProject);
+          toast.success('Project updated successfully!'); // Keep toast here as update is handled by hook
         }
-        onProjectUpdated?.(); // Call the callback if provided for both add/update
-      } catch (error) {
-        logger.error(
-          `Error ${initialProject ? 'updating' : 'adding'} project:`,
-          error,
-          {
-            component: 'ProjectForm',
-            context: 'handleSubmit',
-            projectName: data.name,
-          },
-        );
-        toast.error(
-          `Failed to ${initialProject ? 'update' : 'add'} project. Please try again.`,
-        );
+      } else {
+        // Create new project
+        if (onCreateProject) {
+          await onCreateProject({
+            ...projectData,
+          });
+          // toast.success is handled by the hook (useTaskManagement)
+        }
       }
+      onProjectUpdated?.(); // Call the callback if provided for both add/update
     },
     [initialProject, onCreateProject, onUpdateProject, onProjectUpdated],
   );

@@ -51,12 +51,13 @@ const ProjectManagementPage = () => {
     setProjects,
     isLoading,
     error,
-    handleTaskUpdated,
+    handleTaskUpdated, // This handler is likely for optimistic updates within the hook, not for passing down
+    handleUpdateTask, // Destructure the handler for persisting updates
     handleDragEnd,
     handleCreateTask,
     handleDeleteTask,
     handleCreateProject,
-    handleUpdateProject, // Add handleUpdateProject
+    handleUpdateProject,
     handleDeleteProject,
   } = useTaskManagement();
 
@@ -191,7 +192,7 @@ const ProjectManagementPage = () => {
                   setTasks={setTasks}
                   projects={projects}
                   allTasks={tasks}
-                  onTaskUpdated={handleTaskUpdated}
+                  onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
                   onDeleteTask={handleDeleteTask} // Pass delete handler
                   onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
                 />
@@ -203,7 +204,7 @@ const ProjectManagementPage = () => {
                   setTasks={setTasks}
                   projects={projects}
                   allTasks={tasks}
-                  onTaskUpdated={handleTaskUpdated}
+                  onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
                   onDeleteTask={handleDeleteTask} // Pass delete handler
                   onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
                 />
@@ -215,7 +216,7 @@ const ProjectManagementPage = () => {
                   setTasks={setTasks}
                   projects={projects}
                   allTasks={tasks}
-                  onTaskUpdated={handleTaskUpdated}
+                  onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
                   onDeleteTask={handleDeleteTask} // Pass delete handler
                   onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
                 />
@@ -234,7 +235,7 @@ const ProjectManagementPage = () => {
                     {/* TaskForm component for creating new tasks */}
                     <TaskForm
                       projects={projects}
-                      onTaskUpdated={handleCreateTask} // Use handleCreateTask from hook
+                      onCreateTask={handleCreateTask} // Use handleCreateTask from hook
                       allTasks={tasks}
                     />
                   </CardContent>
@@ -292,7 +293,7 @@ const ProjectManagementPage = () => {
                 task={selectedTaskForDetails}
                 projects={projects}
                 allTasks={tasks}
-                onTaskUpdated={handleTaskUpdated}
+                onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
                 onClose={handleCloseTaskDetailsModal}
               />
             </DialogContent>
