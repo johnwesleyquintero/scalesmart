@@ -14,6 +14,7 @@ import { toast } from 'sonner'; // Import toast for user feedback
 import DashboardHeader from '@/components/amazon-seller-tools/DashboardHeader';
 import OverviewTab from '@/components/amazon-seller-tools/OverviewTab';
 import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
+import DataIntegrationTab from '@/components/amazon-seller-tools/DataIntegrationTab'; // Import the new tab component
 
 // Utility & Config
 import { exportToCSV } from '@/lib/amazon-tools/export-utils';
@@ -29,9 +30,17 @@ import { TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
 /**
  * Checks if a value is a primitive type compatible with CSV export.
  */
-const isExportCompatiblePrimitive = (value: unknown): value is string | number | boolean | null | undefined => {
+const isExportCompatiblePrimitive = (
+  value: unknown,
+): value is string | number | boolean | null | undefined => {
   const type = typeof value;
-  return type === 'string' || type === 'number' || type === 'boolean' || value === null || value === undefined;
+  return (
+    type === 'string' ||
+    type === 'number' ||
+    type === 'boolean' ||
+    value === null ||
+    value === undefined
+  );
 };
 
 /**
@@ -40,7 +49,9 @@ const isExportCompatiblePrimitive = (value: unknown): value is string | number |
 const flattenValidationFlags = (
   validationFlags: Partial<ValidationFlags> | undefined,
 ): { [key: string]: string | number | boolean | null | undefined } => {
-  const flattened: { [key: string]: string | number | boolean | null | undefined } = {};
+  const flattened: {
+    [key: string]: string | number | boolean | null | undefined;
+  } = {};
   if (validationFlags) {
     for (const flagKey in validationFlags) {
       if (Object.prototype.hasOwnProperty.call(validationFlags, flagKey)) {
@@ -64,15 +75,22 @@ const flattenValidationFlags = (
  * @param metric The DashboardMetrics object to transform.
  * @returns A flat object suitable for CSV export.
  */
-const transformMetricForExport = (metric: DashboardMetrics): { [key: string]: string | number | boolean | null | undefined } => {
-  const flatMetric: { [key: string]: string | number | boolean | null | undefined } = {};
+const transformMetricForExport = (
+  metric: DashboardMetrics,
+): { [key: string]: string | number | boolean | null | undefined } => {
+  const flatMetric: {
+    [key: string]: string | number | boolean | null | undefined;
+  } = {};
 
   for (const key in metric) {
     if (Object.prototype.hasOwnProperty.call(metric, key)) {
       const value = metric[key];
 
       if (key === 'validation_flags') {
-        Object.assign(flatMetric, flattenValidationFlags(metric.validation_flags));
+        Object.assign(
+          flatMetric,
+          flattenValidationFlags(metric.validation_flags),
+        );
       } else {
         if (isExportCompatiblePrimitive(value)) {
           flatMetric[key] = value;
@@ -174,7 +192,7 @@ const AcosCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/acos-calculator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading ACoS Calculator&#8230;</div>,
+    loading: () => <div className="p-4">Loading ACoS Calculator...</div>,
   },
 );
 const CompetitorAnalyzer = dynamic(
@@ -184,48 +202,42 @@ const CompetitorAnalyzer = dynamic(
     ),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Competitor Analyzer&#8230;</div>
-    ),
+    loading: () => <div className="p-4">Loading Competitor Analyzer...</div>,
   },
 );
 const DescriptionEditor = dynamic(
   () => import('@/components/amazon-seller-tools/description-editor'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Description Editor&#8230;</div>,
+    loading: () => <div className="p-4">Loading Description Editor...</div>,
   },
 );
 const FbaCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/fba-calculator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading FBA Calculator&#8230;</div>,
+    loading: () => <div className="p-4">Loading FBA Calculator...</div>,
   },
 );
 const KeywordAnalyzer = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-analyzer'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Keyword Analyzer&#8230;</div>,
+    loading: () => <div className="p-4">Loading Keyword Analyzer...</div>,
   },
 );
 const KeywordDeduplicator = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-deduplicator'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Keyword Deduplicator&#8230;</div>
-    ),
+    loading: () => <div className="p-4">Loading Keyword Deduplicator...</div>,
   },
 );
 const KeywordTrendAnalyzer = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-trend-analyzer'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Keyword Trend Analyzer&#8230;</div>
-    ),
+    loading: () => <div className="p-4">Loading Keyword Trend Analyzer...</div>,
   },
 );
 const ListingQualityChecker = dynamic(
@@ -233,7 +245,7 @@ const ListingQualityChecker = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Listing Quality Checker&#8230;</div>
+      <div className="p-4">Loading Listing Quality Checker...</div>
     ),
   },
 );
@@ -242,7 +254,7 @@ const OptimalPriceCalculator = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Optimal Price Calculator&#8230;</div>
+      <div className="p-4">Loading Optimal Price Calculator...</div>
     ),
   },
 );
@@ -250,9 +262,7 @@ const PpcCampaignAuditor = dynamic(
   () => import('@/components/amazon-seller-tools/ppc-campaign-auditor'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading PPC Campaign Auditor&#8230;</div>
-    ),
+    loading: () => <div className="p-4">Loading PPC Campaign Auditor...</div>,
   },
 );
 const ProductScoreCalculator = dynamic(
@@ -260,7 +270,7 @@ const ProductScoreCalculator = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Product Score Calculator&#8230;</div>
+      <div className="p-4">Loading Product Score Calculator...</div>
     ),
   },
 );
@@ -269,7 +279,7 @@ const ProfitMarginCalculator = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="p-4">Loading Profit Margin Calculator&#8230;</div>
+      <div className="p-4">Loading Profit Margin Calculator...</div>
     ),
   },
 );
@@ -277,7 +287,7 @@ const SalesEstimator = dynamic(
   () => import('@/components/amazon-seller-tools/sales-estimator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Sales Estimator&#8230;</div>,
+    loading: () => <div className="p-4">Loading Sales Estimator...</div>,
   },
 );
 
@@ -289,6 +299,7 @@ const MAIN_TABS = [
   { value: 'financials', triggerText: 'Financials' },
   { value: 'ppc-ads', triggerText: 'PPC & Ads' },
   { value: 'competition', triggerText: 'Competition' },
+  { value: 'data-integration', triggerText: 'Data Integration' }, // Add new tab
 ];
 
 const KEYWORD_TOOL_TABS: ToolCategoryTab[] = [
@@ -385,11 +396,24 @@ const COMPETITION_TOOL_TABS: ToolCategoryTab[] = [
 ];
 
 /**
- * `UnifiedDashboard` is the main page component for the Amazon Seller Tools.
- * It manages the state for various seller tools, handles tab navigation based on URL parameters,
- * and orchestrates the dynamic loading of individual tool components.
+ * `UnifiedDashboard` is the main page component for the Amazon Seller Tools platform.
+ * It serves as the central hub for various seller functionalities, managing global state,
+ * handling URL-based tab navigation, and dynamically loading individual tool components
+ * to optimize initial page load performance.
  *
- * @returns {JSX.Element} The Amazon Seller Tools Dashboard page.
+ * Key responsibilities include:
+ * - **Tab Management:** Synchronizes the active tab with URL search parameters, enabling deep linking.
+ * - **Data Handling:** Manages core dashboard metrics, loading, parsing, and error states,
+ *   primarily for the `OverviewTab` and CSV export functionality.
+ * - **Tool Parameter Initialization:** Extracts and passes initial ASIN and Keyword parameters
+ *   from the URL to relevant dynamic tool components.
+ * - **User Onboarding:** Displays a "What's New" modal on first visit to inform users about updates.
+ * - **Data Export:** Provides functionality to export current dashboard metrics to a CSV file.
+ * - **Component Orchestration:** Renders `DashboardHeader`, `OverviewTab`, and various
+ *   `ToolCategorySection` components, each containing dynamically loaded seller tools.
+ *
+ * @returns {JSX.Element} The Amazon Seller Tools Dashboard page, providing a unified
+ *   interface for sellers to analyze data, optimize listings, and improve performance.
  */
 export default function UnifiedDashboard() {
   const router = useRouter();
@@ -636,6 +660,11 @@ export default function UnifiedDashboard() {
               defaultValue="analyzer" // Default sub-tab for this section
               tabs={toolCategoryTabs.competition}
             />
+          </TabsContent>
+
+          {/* New Data Integration Tab */}
+          <TabsContent value="data-integration" className="space-y-4 mt-4">
+            <DataIntegrationTab />
           </TabsContent>
         </Tabs>
 
