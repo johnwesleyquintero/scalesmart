@@ -67,32 +67,29 @@ function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
  * Transaction errors/aborts often happen due to request errors within them.
  */
 function transactionToPromise(transaction: IDBTransaction): Promise<void> {
+  console.log(`Transaction ${transaction.mode} started.`);
   return new Promise((resolve, reject) => {
-    // 'oncomplete' is the most reliable signal for a successful transaction.
-    transaction.oncomplete = () => resolve();
-
-    // 'onerror' and 'onabort' signal transaction failure.
-    // 'onabort' is often triggered by an error on one of the requests.
-    transaction.onerror = (event) => {
-      console.error(
-        'IndexedDB Transaction Error:',
-        (event.target as IDBTransaction).error,
-      );
-      reject(
-        (event.target as IDBTransaction).error ||
-          new Error('Transaction failed'),
-      );
+    transaction.oncomplete = () => {
+      console.log(`Transaction ${transaction.mode} completed successfully.`);
+      resolve();
     };
-    transaction.onabort = (event) => {
+
+    transaction.onerror = (event) => {
+      const error = (event.target as IDBTransaction).error;
       console.error(
-        'IndexedDB Transaction Aborted:',
-        (event.target as IDBTransaction).error,
+        `IndexedDB Transaction Error (${transaction.mode}):`,
+        error,
       );
-      // Prefer the specific error from event target if available
-      reject(
-        (event.target as IDBTransaction).error ||
-          new Error('Transaction aborted'),
+      reject(error || new Error('Transaction failed'));
+    };
+
+    transaction.onabort = (event) => {
+      const error = (event.target as IDBTransaction).error;
+      console.error(
+        `IndexedDB Transaction Aborted (${transaction.mode}):`,
+        error,
       );
+      reject(error || new Error('Transaction aborted'));
     };
   });
 }
@@ -222,14 +219,14 @@ export async function setItem(
   // Get the database instance, ensuring initialization.
   const db = await getDb();
   // Create a transaction with 'readwrite' mode for both stores.
+  const key = `${tableName}-${recordId}`; // Consistent key format
   const transaction = db.transaction(
     [MAIN_STORE_NAME, SYNC_QUEUE_STORE_NAME],
     'readwrite',
   );
+  console.log(`setItem: Transaction created for key: ${key}`);
   const mainStore = transaction.objectStore(MAIN_STORE_NAME);
   const syncStore = transaction.objectStore(SYNC_QUEUE_STORE_NAME);
-
-  const key = `${tableName}-${recordId}`; // Consistent key format
 
   try {
     // Perform the put request to add/update the item in the main store.
@@ -273,6 +270,7 @@ export async function syncToSupabase(
     console.log('Starting sync to Supabase from sync queue.');
     const db = await getDb();
     const transaction = db.transaction([SYNC_QUEUE_STORE_NAME], 'readwrite');
+    console.log('syncToSupabase: Transaction created.');
     const store = transaction.objectStore(SYNC_QUEUE_STORE_NAME);
 
     // Open a cursor to iterate through the sync queue
@@ -391,6 +389,7 @@ export async function getItem<T>(key: string): Promise<T | undefined> {
   const db = await getDb();
   // Create a transaction with 'readonly' mode.
   const transaction = db.transaction([MAIN_STORE_NAME], 'readonly');
+  console.log(`getItem: Transaction created for key: ${key}`);
   const store = transaction.objectStore(MAIN_STORE_NAME);
 
   try {
@@ -425,14 +424,14 @@ export async function deleteItem(
 ): Promise<void> {
   const db = await getDb();
   // Create a transaction with 'readwrite' mode for both stores.
+  const key = `${tableName}-${recordId}`; // Consistent key format
   const transaction = db.transaction(
     [MAIN_STORE_NAME, SYNC_QUEUE_STORE_NAME],
     'readwrite',
   );
+  console.log(`deleteItem: Transaction created for key: ${key}`);
   const mainStore = transaction.objectStore(MAIN_STORE_NAME);
   const syncStore = transaction.objectStore(SYNC_QUEUE_STORE_NAME);
-
-  const key = `${tableName}-${recordId}`; // Consistent key format
 
   try {
     // Perform the delete request from the main store.
@@ -564,6 +563,9 @@ export async function syncFromSupabase(
       [MAIN_STORE_NAME, METADATA_STORE_NAME],
       'readwrite',
     );
+    console.log(
+      `syncFromSupabase: Transaction created for table: ${tableName}`,
+    );
     const mainStore = transaction.objectStore(MAIN_STORE_NAME);
     const metadataStore = transaction.objectStore(METADATA_STORE_NAME);
 
@@ -599,9 +601,12 @@ export async function syncFromSupabase(
         `Error fetching data from Supabase table ${tableName}:`,
         error,
       );
-      // Abort the transaction on error
-      transaction.abort();
-      throw error;
+      // Do NOT explicitly abort the transaction here.
+      // If an error occurs during the Supabase fetch, the transaction
+      // might already be in a failed state or will implicitly fail
+      // when the promise chain resolves. Explicitly calling abort()
+      // on an already finished transaction can lead to the reported error.
+      throw error; // Re-throw the error to be caught by the outer catch block
     }
 
     if (!data || data.length === 0) {

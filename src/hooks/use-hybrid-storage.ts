@@ -28,8 +28,13 @@ type TimestampedRecord<T> = T & { updated_at?: string };
  *          and functions for data operations (getData, saveData, deleteData, syncFromSupabase, syncToSupabase).
  */
 export function useHybridStorage<T>(tableName: string, keyField: keyof T) {
-  console.log('useHybridStorage: Initializing state. typeof window:', typeof window);
-  const [isOnline, setIsOnline] = useState(typeof window !== 'undefined' ? navigator.onLine : true);
+  console.log(
+    'useHybridStorage: Initializing state. typeof window:',
+    typeof window,
+  );
+  const [isOnline, setIsOnline] = useState(
+    typeof window !== 'undefined' ? navigator.onLine : true,
+  );
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -43,9 +48,14 @@ export function useHybridStorage<T>(tableName: string, keyField: keyof T) {
    * to IndexedDB when the component mounts and the application is online.
    */
   useEffect(() => {
-    console.log('useHybridStorage: useEffect running. typeof window:', typeof window);
+    console.log(
+      'useHybridStorage: useEffect running. typeof window:',
+      typeof window,
+    );
     if (typeof window === 'undefined') {
-      console.log('useHybridStorage: Running on server, skipping network listeners and initial sync.');
+      console.log(
+        'useHybridStorage: Running on server, skipping network listeners and initial sync.',
+      );
       setIsLoading(false);
       return;
     }
@@ -64,8 +74,14 @@ export function useHybridStorage<T>(tableName: string, keyField: keyof T) {
         if (navigator.onLine) {
           setIsSyncing(true); // Indicate that a sync operation is in progress.
           // Perform an initial pull of data from Supabase to populate IndexedDB.
+          console.log(
+            `useHybridStorage: Initiating syncFromSupabase for table: ${tableName}`,
+          );
           await syncFromSupabase(supabase, tableName, keyField as string);
           // Push any pending offline changes from IndexedDB to Supabase.
+          console.log(
+            `useHybridStorage: Initiating syncToSupabase for table: ${tableName}`,
+          );
           await syncToSupabase(supabase);
           setIsSyncing(false); // Reset sync status.
         }
@@ -130,6 +146,10 @@ export function useHybridStorage<T>(tableName: string, keyField: keyof T) {
           const supabaseData = await getRecordFromSupabase<
             TimestampedRecord<T>
           >(supabase, tableName, recordId);
+          console.log(
+            `useHybridStorage: Fetched from Supabase for ${tableName}-${recordId}:`,
+            supabaseData,
+          );
 
           // Determine timestamps for comparison. Default to 0 if 'updated_at' is missing.
           const indexedDbTimestamp = indexedDbData?.updated_at

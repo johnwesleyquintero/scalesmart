@@ -159,18 +159,30 @@ export async function validateApiKey(
  *          or undefined to allow the request to proceed to the route handler.
  */
 export async function apiKeyMiddleware(request: Request) {
-  const apiKey = request.headers.get('x-api-key'); // API key from header
+  const url = new URL(request.url);
+  const headerApiKey = request.headers.get('x-api-key');
+  const queryApiKey = url.searchParams.get('apikey'); // Check for 'apikey' in URL query params
+
+  // Prioritize header API key, then query parameter
+  const apiKey = headerApiKey || queryApiKey;
 
   // Log request method and path for debugging
   logger.debug('apiKeyMiddleware: Processing request', {
     method: request.method,
-    pathname: new URL(request.url).pathname,
+    pathname: url.pathname,
     apiKeyPresent: !!apiKey, // Log presence, NOT the key itself
+    source: headerApiKey ? 'header' : queryApiKey ? 'query' : 'none',
   });
 
   if (!apiKey) {
-    logger.warn('apiKeyMiddleware: Missing x-api-key header');
-    return NextResponse.json({ error: 'API key missing' }, { status: 401 });
+    logger.warn('apiKeyMiddleware: Missing API key');
+    return NextResponse.json(
+      {
+        error: 'API key missing',
+        hint: 'Provide API key in "x-api-key" header or as "apikey" URL parameter.',
+      },
+      { status: 401 },
+    );
   }
 
   let userId: string | undefined;
