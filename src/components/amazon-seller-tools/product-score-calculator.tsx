@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import {
-  calculateProductScore,
+  calculateProductQualityScore,
   type ProductScore,
 } from '@/lib/amazon-tools/scoring-utils';
 import { type ProductListingData } from '@/lib/amazon-types';
@@ -86,7 +86,7 @@ export default function ProductScoreCalculator() {
 
   const calculateScoreHandler = () => {
     // Renamed to avoid conflict with imported function
-    const result = calculateProductScore(formData);
+    const result = calculateProductQualityScore(formData);
     setScore(result);
   };
 
