@@ -7,6 +7,7 @@ const DB_NAME = 'scalesmart-db';
 const MAIN_STORE_NAME = 'key-value-store'; // Renamed for clarity
 const SYNC_QUEUE_STORE_NAME = 'sync-queue'; // Added constant for sync queue store name
 const METADATA_STORE_NAME = 'metadata-store'; // New constant for metadata store
+const CHAT_MESSAGES_STORE_NAME = 'chat-messages'; // Add this constant
 const DB_VERSION = 3; // Increment this if you change the schema
 const DB_NOT_INITIALIZED_ERROR = 'IndexedDB is not initialized.';
 
@@ -18,22 +19,6 @@ interface SyncQueueItem {
   recordId: string; // The ID of the record in the Supabase table
   value?: unknown; // The full record data for 'set' operations
   timestamp: number;
-}
-
-// Interface for calculation data stored in IndexedDB (used by Amazon Tools)
-export interface CalculationData {
-  campaign: string;
-  adSpend: number;
-  sales: number;
-  impressions?: number;
-  clicks?: number;
-  acos?: number;
-  roas?: number;
-  ctr?: number;
-  cpc?: number;
-  revenuePerClickRate?: number;
-  date: string; // ISO string
-  currencySymbol?: string; // Added based on usage in acos-calculator
 }
 
 // --- Global State ---
@@ -55,6 +40,9 @@ function requestToPromise<T>(request: IDBRequest<T>): Promise<T> {
       console.error(
         'IndexedDB Request Error:',
         (event.target as IDBRequest).error,
+        'Details:',
+        (event.target as IDBRequest).error?.message,
+        (event.target as IDBRequest).error?.stack,
       );
       reject((event.target as IDBRequest).error);
     };
@@ -79,8 +67,11 @@ function transactionToPromise(transaction: IDBTransaction): Promise<void> {
       console.error(
         `IndexedDB Transaction Error (${transaction.mode}):`,
         error,
+        'Details:',
+        error?.message,
+        error?.stack,
       );
-      reject(error || new Error('Transaction failed'));
+      reject(error || new Error(`Transaction failed (${transaction.mode})`));
     };
 
     transaction.onabort = (event) => {
@@ -88,8 +79,11 @@ function transactionToPromise(transaction: IDBTransaction): Promise<void> {
       console.error(
         `IndexedDB Transaction Aborted (${transaction.mode}):`,
         error,
+        'Details:',
+        error?.message,
+        error?.stack,
       );
-      reject(error || new Error('Transaction aborted'));
+      reject(error || new Error(`Transaction aborted (${transaction.mode})`));
     };
   });
 }
@@ -139,13 +133,21 @@ export function initializeDB(): Promise<void> {
         }
       }
 
-      // Upgrade logic for version 3: Add metadata store
+      // Upgrade logic for version 3: Add metadata store and chat-messages store
       if (event.oldVersion < 3) {
         if (!db.objectStoreNames.contains(METADATA_STORE_NAME)) {
           console.log(
             `Creating object store: ${METADATA_STORE_NAME} during upgrade.`,
           );
           db.createObjectStore(METADATA_STORE_NAME); // Key-value store for metadata
+        }
+        // Add chat-messages store
+        if (!db.objectStoreNames.contains(CHAT_MESSAGES_STORE_NAME)) {
+          // Use the constant
+          console.log(
+            `Creating object store: ${CHAT_MESSAGES_STORE_NAME} during upgrade.`,
+          );
+          db.createObjectStore(CHAT_MESSAGES_STORE_NAME);
         }
       }
       // Future schema upgrades for different versions would go here:
@@ -165,13 +167,17 @@ export function initializeDB(): Promise<void> {
 
     // Handles errors during database opening.
     request.onerror = (event) => {
+      const error = (event.target as IDBOpenDBRequest).error;
       console.error(
         'IndexedDB initialization failed:',
-        (event.target as IDBOpenDBRequest).error,
+        error,
+        'Details:',
+        error?.message,
+        error?.stack,
       );
       // Clear the promise as initialization failed.
       initializingPromise = null;
-      reject((event.target as IDBOpenDBRequest).error);
+      reject(error);
     };
 
     // Handles cases where the database is blocked (e.g., by open connections in other tabs).
@@ -253,7 +259,13 @@ export async function setItem(
       `Successfully set item for key: ${key} and added to sync queue.`,
     );
   } catch (error) {
-    console.error(`Failed to set item for key ${key}:`, error);
+    console.error(
+      `Failed to set item for key ${key}:`,
+      error,
+      'Details:',
+      (error as Error)?.message,
+      (error as Error)?.stack,
+    );
     // Rethrow the caught error to be handled by the caller.
     throw error;
   }
@@ -282,78 +294,7 @@ export async function syncToSupabase(
           .result;
         if (cursor) {
           const change = cursor.value as SyncQueueItem; // Cast to the expected type
-          console.log('Processing sync queue entry:', change);
-
-          try {
-            // Use the explicit tableName and recordId from the sync queue item
-            const { type, tableName, recordId, value } = change;
-
-            if (!tableName || recordId === undefined) {
-              console.error(
-                'Invalid sync queue entry: missing tableName or recordId',
-                change,
-              );
-              cursor.continue(); // Skip this entry and continue
-              return;
-            }
-
-            switch (type) {
-              case 'set': {
-                // Represents both create and update
-                // Use upsert with the explicit recordId
-                const { data, error } = await supabaseClient
-                  .from(tableName)
-                  .upsert([value], { onConflict: 'id' }); // Assuming 'id' is the conflict key
-
-                if (error) {
-                  console.error(
-                    `Error syncing 'set' change for ${tableName}/${recordId}:`,
-                    error,
-                  );
-                  // Depending on conflict resolution strategy, you might retry or log and skip
-                  // For now, we log and continue to the next entry
-                } else {
-                  console.log(
-                    `Successfully synced 'set' change for ${tableName}/${recordId}.`,
-                  );
-                  cursor.delete(); // Remove the entry from the sync queue after successful sync
-                }
-                break;
-              } // End case 'set' block
-              case 'delete': {
-                // Use delete with the explicit recordId
-                const { error: deleteError } = await supabaseClient
-                  .from(tableName)
-                  .delete()
-                  .eq('id', recordId); // Assuming 'id' is the primary key field
-
-                if (deleteError) {
-                  console.error(
-                    `Error syncing 'delete' change for ${tableName}/${recordId}:`,
-                    deleteError,
-                  );
-                  // Depending on conflict resolution strategy, you might retry or log and skip
-                } else {
-                  console.log(
-                    `Successfully synced 'delete' change for ${tableName}/${recordId}.`,
-                  );
-                  cursor.delete(); // Remove the entry from the sync queue after successful sync
-                }
-                break;
-              } // End case 'delete' block
-              default:
-                console.warn(
-                  'Unknown change type in sync queue:',
-                  type,
-                  change,
-                );
-                cursor.delete(); // Remove unknown entries to prevent blocking
-            }
-          } catch (syncError) {
-            console.error('Error processing sync queue entry:', syncError);
-            // Log the error but continue processing other entries
-          }
-
+          await processSyncQueueItem(change, supabaseClient, cursor); // Call the new helper function
           cursor.continue(); // Move to the next entry
         } else {
           // No more entries in the cursor
@@ -373,8 +314,129 @@ export async function syncToSupabase(
     await transactionToPromise(transaction);
     console.log('Finished syncing changes to Supabase.');
   } catch (error) {
-    console.error('Failed to sync to Supabase:', error);
+    console.error(
+      'Failed to sync to Supabase:',
+      error,
+      'Details:',
+      (error as Error)?.message,
+      (error as Error)?.stack,
+    );
     throw error;
+  }
+}
+
+/**
+ * Processes a single item from the sync queue.
+ * @param change The sync queue item to process.
+ * @param supabaseClient The Supabase client instance.
+ * @param cursor The IndexedDB cursor for the sync queue.
+ */
+async function processSyncQueueItem(
+  change: SyncQueueItem,
+  supabaseClient: SupabaseClient,
+  cursor: IDBCursorWithValue,
+): Promise<void> {
+  console.log('Processing sync queue entry:', change);
+
+  try {
+    const { type, tableName, recordId, value } = change;
+
+    if (!tableName || recordId === undefined) {
+      console.error(
+        'Invalid sync queue entry: missing tableName or recordId',
+        change,
+      );
+      cursor.continue(); // Skip this entry and continue
+      return;
+    }
+
+    switch (type) {
+      case 'set': {
+        // Represents both create and update
+        // Use upsert with the explicit recordId
+        const { data, error } = await supabaseClient
+          .from(tableName)
+          .upsert([value], { onConflict: 'id' }); // Assuming 'id' is the conflict key
+
+        if (error) {
+          console.error(
+            `Error syncing 'set' change for ${tableName}/${recordId}:`,
+            error,
+          );
+          // Log more details about the error
+          console.error(
+            `Supabase 'set' error details:`,
+            error?.message,
+            error?.details,
+            error?.hint,
+            error?.code,
+          );
+          // Depending on conflict resolution strategy, you might retry or log and skip
+          // For now, we log and continue to the next entry
+        } else {
+          console.log(
+            `Successfully synced 'set' change for ${tableName}/${recordId}.`,
+            'Supabase response data:',
+            data,
+          );
+          cursor.delete(); // Remove the entry from the sync queue after successful sync
+        }
+        break;
+      } // End case 'set' block
+      case 'delete': {
+        // Use delete with the explicit recordId
+        const { error: deleteError } = await supabaseClient
+          .from(tableName)
+          .delete()
+          .eq('id', recordId); // Assuming 'id' is the primary key field
+
+        if (deleteError) {
+          console.error(
+            `Error syncing 'delete' change for ${tableName}/${recordId}:`,
+            deleteError,
+          );
+          // Log more details about the error
+          console.error(
+            `Supabase 'delete' error details:`,
+            deleteError?.message,
+            deleteError?.details,
+            deleteError?.hint,
+            deleteError?.code,
+          );
+
+          // If the record was already deleted on Supabase (PGRST116), treat as success.
+          // Otherwise, log error and leave in queue for retry.
+          if (deleteError.code === 'PGRST116') {
+            console.log(
+              `Record ${tableName}/${recordId} already not found on Supabase. Removing from sync queue.`,
+            );
+            cursor.delete(); // Remove the entry from the sync queue
+          } else {
+            // Log and keep the item in the queue for retry
+          }
+        } else {
+          console.log(
+            `Successfully synced 'delete' change for ${tableName}/${recordId}.`,
+          );
+          cursor.delete(); // Remove the entry from the sync queue after successful sync
+        }
+        break;
+      } // End case 'delete' block
+      default:
+        console.warn('Unknown change type in sync queue:', type, change);
+        cursor.delete(); // Remove unknown entries to prevent blocking
+    }
+  } catch (syncError) {
+    console.error(
+      'Error processing sync queue entry:',
+      syncError,
+      'Entry:',
+      change,
+      'Details:',
+      (syncError as Error)?.message,
+      (syncError as Error)?.stack,
+    );
+    // Log the error but continue processing other entries
   }
 }
 
@@ -407,7 +469,13 @@ export async function getItem<T>(key: string): Promise<T | undefined> {
     console.log(`Successfully retrieved item for key: ${key}`);
     return result as T; // Return the retrieved value, asserted to type T
   } catch (error) {
-    console.error(`Failed to get item for key ${key}:`, error);
+    console.error(
+      `Failed to get item for key ${key}:`,
+      error,
+      'Details:',
+      (error as Error)?.message,
+      (error as Error)?.stack,
+    );
     // Rethrow the caught error.
     throw error;
   }
@@ -457,7 +525,13 @@ export async function deleteItem(
       `Successfully deleted item for key: ${key} and added to sync queue.`,
     );
   } catch (error) {
-    console.error(`Failed to delete item for key ${key}:`, error);
+    console.error(
+      `Failed to delete item for key ${key}:`,
+      error,
+      'Details:',
+      (error as Error)?.message,
+      (error as Error)?.stack,
+    );
     // Rethrow the caught error.
     throw error;
   }
@@ -482,13 +556,32 @@ export async function deleteItem(
  */
 export async function getAllItemsFromStore<T>(storeName: string): Promise<T[]> {
   const db = await getDb();
+
+  // Check if the object store exists before creating a transaction
+  if (!db.objectStoreNames.contains(storeName)) {
+    const error = new Error(
+      `IndexedDB Error: Object store "${storeName}" not found.`,
+    );
+    console.error(error.message, error.stack);
+    throw error;
+  }
+
   const transaction = db.transaction([storeName], 'readonly');
   const store = transaction.objectStore(storeName);
   const request = store.getAll();
   return new Promise((resolve, reject) => {
     request.onsuccess = () => resolve(request.result as T[]);
-    request.onerror = (event: Event) =>
-      reject((event.target as IDBRequest).error);
+    request.onerror = (event: Event) => {
+      const error = (event.target as IDBRequest).error;
+      console.error(
+        `IndexedDB Request Error in getAllItemsFromStore for store "${storeName}":`,
+        error,
+        'Details:',
+        error?.message,
+        error?.stack,
+      );
+      reject(error);
+    };
   });
 }
 
@@ -519,6 +612,11 @@ export async function getRecordFromSupabase<T>(
       console.error(
         `Error fetching single record from Supabase table ${tableName} with ID ${recordId}:`,
         error,
+        'Details:',
+        error?.message,
+        error?.details,
+        error?.hint,
+        error?.code,
       );
       throw error;
     }
@@ -538,6 +636,9 @@ export async function getRecordFromSupabase<T>(
     console.error(
       `Failed to fetch single record from Supabase table ${tableName} with ID ${recordId}:`,
       error,
+      'Details:',
+      (error as Error)?.message,
+      (error as Error)?.stack,
     );
     throw error;
   }
@@ -600,6 +701,11 @@ export async function syncFromSupabase(
       console.error(
         `Error fetching data from Supabase table ${tableName}:`,
         error,
+        'Details:',
+        error?.message,
+        error?.details,
+        error?.hint,
+        error?.code,
       );
       // Do NOT explicitly abort the transaction here.
       // If an error occurs during the Supabase fetch, the transaction
@@ -641,7 +747,13 @@ export async function syncFromSupabase(
       `Successfully synced ${data.length} new/updated records from ${tableName} to IndexedDB. New last sync timestamp: ${newLastSyncTimestamp}`,
     );
   } catch (error) {
-    console.error(`Failed to sync from Supabase table ${tableName}:`, error);
+    console.error(
+      `Failed to sync from Supabase table ${tableName}:`,
+      error,
+      'Details:',
+      (error as Error)?.message,
+      (error as Error)?.stack,
+    );
     // The transaction might have already been aborted by the error handler above,
     // but re-throwing ensures the caller knows it failed.
     throw error;
