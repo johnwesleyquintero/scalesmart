@@ -76,11 +76,19 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
   const startCourseAction = (course: Course) => {
     console.log('Starting course:', course.title);
     setActiveCourse(course);
-    if (course.modules && course.modules.length > 0) {
-      setActiveModule(course.modules[0]);
-    } else {
-      setActiveModule(null);
+    let initialModule = null;
+    if (academyData?.lastVisitedModule && course.modules) {
+      initialModule =
+        course.modules.find(
+          (module) => module.id === academyData.lastVisitedModule,
+        ) || null;
     }
+    setActiveModule(
+      initialModule ||
+        (course.modules && course.modules.length > 0
+          ? course.modules[0]
+          : null),
+    );
   };
 
   const value: AcademyContextType = {

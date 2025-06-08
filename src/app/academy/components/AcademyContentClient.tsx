@@ -1,5 +1,6 @@
 'use client';
 
+import { useKeyboardNavigation } from '@/hooks/use-keyboard-navigation';
 import { useAcademy } from '@/context/AcademyContext';
 import { Button } from '@/components/ui/button';
 import {
@@ -156,22 +157,29 @@ function AcademyContentClient({
     updateQuizResult,
   } = useAcademyStorage();
 
-  const initialCourseHandled = useRef(false);
+  const [initialCourseHandled, setInitialCourseHandled] = useState(false);
 
   useEffect(() => {
     if (
       initialCourseId &&
       allCourses.length > 0 &&
       !activeCourse &&
-      !initialCourseHandled.current
+      !initialCourseHandled
     ) {
       const courseToSelect = allCourses.find((c) => c.id === initialCourseId);
       if (courseToSelect) {
         startCourseAction(courseToSelect);
-        initialCourseHandled.current = true;
+        setInitialCourseHandled(true);
       }
     }
-  }, [initialCourseId, allCourses, activeCourse, startCourseAction]);
+  }, [
+    initialCourseId,
+    allCourses,
+    activeCourse,
+    startCourseAction,
+    setInitialCourseHandled,
+    initialCourseHandled,
+  ]);
 
   const completedCourseIds = useMemo(() => {
     const completed = new Set<string>();
@@ -205,15 +213,8 @@ function AcademyContentClient({
   const handleSelectModule = useCallback(
     (module: Module) => {
       setActiveModule(module);
-      // When a module is selected, mark it as visited (e.g., 1% progress)
-      // Actual completion (100%) will be handled by onModuleComplete/onQuizComplete
-      if (!activeCourse?.id) {
-        console.warn('handleSelectModule: No active course ID found.');
-        return;
-      }
-      updateModuleProgress(activeCourse.id, module.id, 1);
     },
-    [setActiveModule, updateModuleProgress, activeCourse?.id],
+    [setActiveModule],
   );
 
   const handleModuleCompletion = useCallback(
@@ -299,39 +300,12 @@ function AcademyContentClient({
     }
   }, [activeCourse, getCurrentModuleIndex, handleSelectModule]);
 
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (!activeModule || !activeCourse) return;
-
-      if (
-        event.target instanceof HTMLInputElement ||
-        event.target instanceof HTMLTextAreaElement ||
-        event.target instanceof HTMLSelectElement
-      ) {
-        return;
-      }
-
-      if (event.altKey) {
-        switch (event.key) {
-          case 'ArrowRight':
-          case 'ArrowDown':
-            handleNextModule();
-            event.preventDefault();
-            break;
-          case 'ArrowLeft':
-          case 'ArrowUp':
-            handlePreviousModule();
-            event.preventDefault();
-            break;
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-    };
-  }, [activeModule, activeCourse, handleNextModule, handlePreviousModule]);
+  useKeyboardNavigation(
+    activeModule,
+    activeCourse,
+    handleNextModule,
+    handlePreviousModule,
+  );
 
   const currentModuleIdx = activeCourse ? getCurrentModuleIndex() : -1;
 

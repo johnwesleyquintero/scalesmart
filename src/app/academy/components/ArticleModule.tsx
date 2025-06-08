@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { components as components } from '../../../components/MdxRenderer';
 import {
@@ -22,7 +22,23 @@ interface ArticleData {
   };
 }
 
+import { useAcademy } from '@/context/AcademyContext';
+
 const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
+  const { activeCourse, updateModuleProgress, activeModule } = useAcademy();
+
+  useEffect(() => {
+    if (activeCourse && activeModule) {
+      updateModuleProgress(activeCourse.id, activeModule.id, 1);
+    }
+  }, [activeCourse, activeModule, updateModuleProgress]);
+
+  useEffect(() => {
+    if (activeCourse && activeModule) {
+      updateModuleProgress(activeCourse.id, activeModule.id, 1);
+    }
+  }, [activeCourse, activeModule, updateModuleProgress]);
+
   // Use QueryKey for the parameter and assert type internally
   const fetchArticleContent = useCallback(
     async ({ queryKey }: QueryFunctionContext<QueryKey>) => {

@@ -1,9 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import { useAcademy } from '@/context/AcademyContext';
 
 const VideoModule = () => {
-  const { activeModule } = useAcademy();
+  const { activeModule, activeCourse, updateModuleProgress } = useAcademy();
+
+  useEffect(() => {
+    if (activeCourse && activeModule) {
+      updateModuleProgress(activeCourse.id, activeModule.id, 1);
+    }
+  }, [activeCourse, activeModule, updateModuleProgress]);
 
   return (
     <div>
