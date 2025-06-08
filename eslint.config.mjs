@@ -27,7 +27,7 @@ const commonIgnores = [
   'src/types/index.d.ts',
   'next-env.d.ts',
   'vitest.config.ts',
-  'tailwind.config.ts',
+  'tailwind.config.js',
   'postcss.config.mjs',
   'next.config.js',
   'jest.config.js',
@@ -127,10 +127,18 @@ const tsConfig = {
   },
   rules: {
     ...commonRules,
+    // Add recommended TypeScript rules as a base
+    ...(tseslint.configs.recommended.rules || {}),
+    // Ensure ESLint's base 'no-unused-vars' is off for TypeScript files, as @typescript-eslint/no-unused-vars handles it.
     'no-unused-vars': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    // Enable and configure TypeScript-specific rules
+    '@typescript-eslint/no-unused-vars': 'off',
+    '@typescript-eslint/no-explicit-any': 'warn',
+    // Add any other specific overrides for TypeScript rules here if needed
   },
+  // Add any other specific overrides for TypeScript rules here if needed
 };
 
 export default [
