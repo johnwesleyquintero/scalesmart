@@ -17,6 +17,7 @@ const CommentList: React.FC<CommentListProps> = ({
   onAddComment,
 }) => {
   const [newCommentText, setNewCommentText] = useState('');
+  const [loading, setLoading] = useState(false); // Add loading state
 
   /**
    * @brief Handles adding a new comment.
@@ -41,14 +42,24 @@ const CommentList: React.FC<CommentListProps> = ({
     };
 
     try {
+      setLoading(true); // Set loading to true before async operation
       await onAddComment(newComment);
       setNewCommentText('');
       toast.success('Comment added successfully!'); // Add success toast
     } catch (error) {
       toast.error('Failed to add comment. Please try again.'); // Add error toast
       console.error('Failed to add comment:', error); // Log error
+    } finally {
+      setLoading(false); // Set loading to false after async operation
     }
   }, [newCommentText, onAddComment, taskId]);
+
+  const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !loading) { // Trigger on Enter key press, only if not loading
+      handleAddComment();
+    }
+  }, [handleAddComment, loading]);
+
   return (
     <div>
       <h4 className="text-sm font-semibold text-foreground mb-2">Comments</h4>
@@ -75,10 +86,11 @@ const CommentList: React.FC<CommentListProps> = ({
           placeholder="Add a comment..."
           value={newCommentText}
           onChange={(e) => setNewCommentText(e.target.value)}
+          onKeyPress={handleKeyPress} // Add key press handler
           className="flex-1"
         />
-        <Button onClick={handleAddComment} size="sm">
-          Add Comment
+        <Button onClick={handleAddComment} size="sm" disabled={loading || newCommentText.trim() === ''}> {/* Disable button when loading or input is empty */}
+          {loading ? 'Adding...' : 'Add Comment'} {/* Change button text when loading */}
         </Button>
       </div>
     </div>
