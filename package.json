@@ -18,8 +18,6 @@
     "deploy": "npx vercel deploy",
     "lint": "eslint --config eslint.config.mjs .",
     "lint:fix": "npm run lint -- --fix",
-    "lint:staged": "next lint --fix",
-    "lint:staged:fix": "next lint --fix",
     "clean": "rimraf .next",
     "check": "node scripts/code-checker.mjs",
     "git": "node scripts/git-commit.mjs"
