@@ -1,19 +1,15 @@
 // src/app/project-management/components/TaskList.tsx
 'use client';
 
-import React from 'react';
-import { Task, Project, TaskComment } from '@/lib/indexeddb-service'; // Import Project and TaskComment types
-import { deleteTask } from '@/lib/indexeddb-service';
-import { default as TaskForm } from './TaskForm';
-import { useState, useMemo, useCallback } from 'react';
-import Modal from '@/components/Modal';
-import { Button } from '@/components/ui/button';
+import React, { useState, useMemo, useCallback } from 'react';
+import { Task, Project } from '@/lib/indexeddb-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarIcon, UserRound, Tag } from 'lucide-react';
-import { toast } from 'sonner';
-import { logger } from '@/lib/logger';
-import TaskItem from './TaskItem';
-import TaskDetails from './TaskDetails'; // Import the new TaskDetails component
+import { useDroppable, DndContext } from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import SortableTaskItem from './SortableTaskItem'; // Import the new component
 
 /**
  * @interface TaskListProps
@@ -69,12 +65,6 @@ interface TaskListProps {
  * @param {TaskListProps} props The props for the component.
  * @returns {JSX.Element} The TaskList component.
  */
-import { useDroppable } from '@dnd-kit/core';
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import SortableTaskItem from './SortableTaskItem'; // Import the new component
 
 const TaskList = ({
   id,
@@ -123,28 +113,6 @@ const TaskList = ({
   );
 
   /**
-   * @brief Handles the click event for deleting a task, opening a confirmation modal.
-   * Uses `useCallback` for memoization.
-   * @param {string} id - The ID of the task to be deleted.
-   */
-  const handleDeleteTaskClick = useCallback(
-    (id: string) => {
-      onDeleteTask(id); // Call the prop function directly
-    },
-    [onDeleteTask],
-  );
-
-  /**
-   * @brief Confirms and proceeds with task deletion after user confirmation.
-
-
-  /**
-   * @brief Handles the click event for editing a task, opening the TaskForm modal.
-   * Uses `useCallback` for memoization.
-   * @param {Task} task - The task object to be edited.
-   */
-
-  /**
    * @brief Handles opening the task details modal.
    * @param {Task} task - The task object to view details for.
    */
@@ -163,9 +131,6 @@ const TaskList = ({
     setIsEditModalOpen(false);
     setSelectedTask(null);
   }, []);
-
-  /**
-   * @brief Handles closing the task details modal.
 
   /**
    * @brief Handles the successful update/creation of a task from TaskForm or TaskDetails, closing the modal if it was an edit.
@@ -210,19 +175,18 @@ const TaskList = ({
                   key={task.id}
                   task={task}
                   projects={projects}
-                  onDeleteTask={handleDeleteTaskClick} // Use the new handler
+                  onDeleteTask={onDeleteTask} // Use the prop directly
                   allTasks={allTasks}
-                  onTaskUpdated={handleTaskFormUpdated}
+                  onTaskPersist={handleTaskFormUpdated} // Pass the correct prop name
                   onViewTaskDetails={handleViewTaskDetailsClick} // Use the new handler
                 />
               ))
             )}
           </SortableContext>
         </div>
-
-        {/* Modal for editing a task */}
       </CardContent>
     </Card>
   );
 };
+
 export default TaskList;

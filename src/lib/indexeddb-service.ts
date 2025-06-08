@@ -1,7 +1,7 @@
 import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
-import { Course, QuizResult } from '@/types'; // Keep Course and QuizResult from '@/types' for now
+import { QuizResult } from '@/types'; // Keep QuizResult from '@/types' for now
 import {
   ChatMessageRecord,
   ModuleProgressRecord,
@@ -14,6 +14,7 @@ import {
   Contact,
   Category,
   CommunicationLog,
+  Course, // Import Course from unified types
 } from '@/types/indexeddb'; // Import unified types
 
 export type {
@@ -65,21 +66,21 @@ class ChatDatabase extends Dexie {
     });
     this.version(4).stores({
       contacts:
-        'id, name, email, phone, company, notes, category, creationTimestamp, updateTimestamp',
+        'id, name, email, phone, company, notes, category, createdAt, updatedAt',
     });
     this.version(5).stores({
       tasks:
-        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp, dependencies, subtasks, priority',
+        'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority',
     });
     this.version(6).stores({
-      projects: 'id, name, description, creationTimestamp, updateTimestamp',
+      projects: 'id, name, description, createdAt, updatedAt',
     });
     this.version(7).stores({
       categories: 'id, name',
     });
     this.version(8).stores({
       courses:
-        'id, title, description, duration, level, metadata.category, metadata.tags, creationTimestamp, updateTimestamp',
+        'id, title, description, duration, level, metadata.category, metadata.tags, createdAt, updatedAt',
     });
     this.version(9).stores({
       moduleProgress:
@@ -90,7 +91,7 @@ class ChatDatabase extends Dexie {
     });
     this.version(11).stores({
       tasks:
-        'id, title, description, status, assignee, dueDate, projectId, creationTimestamp, updateTimestamp, dependencies, subtasks, priority, order',
+        'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order',
     });
     this.version(12).stores({
       quizResults: '[userId+moduleId], userId, moduleId, result, lastUpdated',
@@ -100,7 +101,7 @@ class ChatDatabase extends Dexie {
     });
     this.version(14).stores({});
     this.version(15).stores({
-      taskComments: 'id, taskId, userId, createdAt',
+      taskComments: 'id, taskId, createdAt, userId', // Changed index to improve query performance
     });
   }
 }
@@ -251,7 +252,6 @@ export async function saveCalculation(data: CalculationData): Promise<void> {
         id: crypto.randomUUID(),
         date: data.date,
       });
-      console.log('Calculation saved to IndexedDB:', data);
     });
   } catch (error) {
     logError(
@@ -292,7 +292,6 @@ export const addEvent = async (event: Event): Promise<number | undefined> => {
 export async function getCalculations(): Promise<CalculationData[]> {
   try {
     const calculations = await db.calculations.toArray();
-    console.log('getCalculations returning:', calculations);
     return calculations;
   } catch (error) {
     logError(
@@ -305,20 +304,18 @@ export async function getCalculations(): Promise<CalculationData[]> {
 }
 
 export const createContact = async (
-  contact: Omit<Contact, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
+  contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<string | undefined> => {
   try {
     const id = crypto.randomUUID();
-    const creationTimestamp = Date.now();
-    const updateTimestamp = Date.now();
+    const now = Date.now();
     const contactToStore: Contact = {
       ...contact,
       id,
-      creationTimestamp,
-      updateTimestamp,
+      creationTimestamp: now, // Use correct property name
+      updateTimestamp: now, // Use correct property name
     };
     await db.contacts.put(contactToStore);
-    console.log('Contact added to IndexedDB:', contactToStore);
     return id;
   } catch (error) {
     logError(
@@ -333,7 +330,6 @@ export const createContact = async (
 export const getContact = async (id: string): Promise<Contact | undefined> => {
   try {
     const contact = await db.contacts.get(id);
-    console.log('Contact retrieved from IndexedDB:', contact);
     return contact;
   } catch (error) {
     logError(
@@ -347,10 +343,9 @@ export const getContact = async (id: string): Promise<Contact | undefined> => {
 
 export const updateContact = async (contact: Contact): Promise<void> => {
   try {
-    const updateTimestamp = Date.now();
-    const contactToStore = { ...contact, updateTimestamp };
+    const updateTimestamp = Date.now(); // Use correct property name
+    const contactToStore = { ...contact, updateTimestamp }; // Use correct property name
     await db.contacts.put(contactToStore);
-    console.log('Contact updated in IndexedDB:', contact);
   } catch (error) {
     logError(
       error,
@@ -363,7 +358,6 @@ export const updateContact = async (contact: Contact): Promise<void> => {
 export const deleteContact = async (id: string): Promise<void> => {
   try {
     await db.contacts.delete(id);
-    console.log('Contact deleted from IndexedDB:', id);
   } catch (error) {
     logError(
       error,
@@ -387,7 +381,6 @@ export const createTask = async (
       comments: [],
     };
     await db.tasks.put(taskToStore);
-    console.log('Task added to IndexedDB:', taskToStore);
     return taskToStore;
   } catch (error) {
     logError(
@@ -402,7 +395,6 @@ export const createTask = async (
 export const getTask = async (id: string): Promise<Task | undefined> => {
   try {
     const task = await db.tasks.get(id);
-    console.log('Task retrieved from IndexedDB:', task);
     return task;
   } catch (error) {
     logError(
@@ -422,9 +414,7 @@ export const updateTask = async (task: Task): Promise<void> => {
       updatedAt,
       comments: Array.isArray(task.comments) ? task.comments : [],
     };
-    console.log('Attempting to update task:', taskToStore);
     await db.tasks.put(taskToStore);
-    console.log('Task successfully updated in IndexedDB:', taskToStore);
   } catch (error) {
     logError(
       error,
@@ -437,7 +427,6 @@ export const updateTask = async (task: Task): Promise<void> => {
 export const deleteTask = async (id: string): Promise<void> => {
   try {
     await db.tasks.delete(id);
-    console.log('Task deleted from IndexedDB:', id);
   } catch (error) {
     logError(
       error,
@@ -460,7 +449,6 @@ export const createProject = async (
       updatedAt: now,
     };
     await db.projects.put(projectToStore);
-    console.log('Project added to IndexedDB:', projectToStore);
     return id;
   } catch (error) {
     logError(
@@ -475,7 +463,6 @@ export const createProject = async (
 export const getProject = async (id: string): Promise<Project | undefined> => {
   try {
     const project = await db.projects.get(id);
-    console.log('Project retrieved from IndexedDB:', project);
     return project;
   } catch (error) {
     logError(
@@ -490,7 +477,6 @@ export const getProject = async (id: string): Promise<Project | undefined> => {
 export const getAllProjects = async (): Promise<Project[]> => {
   try {
     const projects = await db.projects.toArray();
-    console.log('All projects retrieved from IndexedDB:', projects);
     return projects;
   } catch (error) {
     logError(
@@ -506,7 +492,6 @@ export const updateProject = async (project: Project): Promise<void> => {
   try {
     const projectToStore = { ...project, updatedAt: Date.now() };
     await db.projects.put(projectToStore);
-    console.log('Project updated in IndexedDB:', projectToStore);
   } catch (error) {
     logError(
       error,
@@ -541,7 +526,6 @@ export const deleteProject = async (id: string): Promise<void> => {
 
     // Finally, delete the project
     await db.projects.delete(id);
-    console.log('Project deleted from IndexedDB:', id);
   } catch (error) {
     logError(
       error,
@@ -555,7 +539,6 @@ export const deleteProject = async (id: string): Promise<void> => {
 export const getAllTasks = async (): Promise<Task[]> => {
   try {
     const tasks = await db.tasks.toArray();
-    console.log('All tasks retrieved from IndexedDB:', tasks);
     return tasks;
   } catch (error) {
     logError(
@@ -570,7 +553,6 @@ export const getAllTasks = async (): Promise<Task[]> => {
 export const getAllContacts = async (): Promise<Contact[]> => {
   try {
     const contacts = await db.contacts.toArray();
-    console.log('All contacts retrieved from IndexedDB:', contacts);
     return contacts;
   } catch (error) {
     logError(
@@ -589,7 +571,6 @@ export const createCommunicationLog = async (
     const id = crypto.randomUUID();
     const logToStore = { ...log, id, date: Date.now() };
     await db.communicationLogs.put(logToStore);
-    console.log('Communication log added to IndexedDB:', logToStore);
     return id;
   } catch (error) {
     logError(
@@ -609,10 +590,6 @@ export const getCommunicationLogsByCustomerId = async (
       .where('customerId')
       .equals(customerId)
       .sortBy('date');
-    console.log(
-      `Communication logs retrieved for customer ${customerId}:`,
-      logs,
-    );
     return logs;
   } catch (error) {
     logError(
@@ -630,7 +607,6 @@ export const updateCommunicationLog = async (
   try {
     const updatedLog = { ...log, date: Date.now() };
     await db.communicationLogs.put(updatedLog);
-    console.log('Communication log updated in IndexedDB:', updatedLog);
   } catch (error) {
     logError(
       error,
@@ -646,7 +622,6 @@ export const deleteCommunicationLog = async (
 ): Promise<void> => {
   try {
     await db.communicationLogs.delete(id);
-    console.log('Communication log deleted from IndexedDB:', id);
   } catch (error) {
     logError(
       error,
@@ -657,7 +632,7 @@ export const deleteCommunicationLog = async (
 };
 
 export const createCourse = async (
-  courseData: Omit<Course, 'id' | 'creationTimestamp' | 'updateTimestamp'>,
+  courseData: Omit<Course, 'id' | 'createdAt' | 'updatedAt'>,
 ): Promise<string | undefined> => {
   try {
     const id = crypto.randomUUID();
@@ -665,11 +640,10 @@ export const createCourse = async (
     const courseToStore: Course = {
       ...courseData,
       id,
-      creationTimestamp: now,
-      updateTimestamp: now,
+      creationTimestamp: now, // Use correct property name
+      updateTimestamp: now, // Use correct property name
     };
     await db.courses.put(courseToStore);
-    console.log('Course added to IndexedDB:', courseToStore);
     return id;
   } catch (error) {
     logError(
@@ -696,7 +670,6 @@ export const updateModuleProgress = async (
       lastUpdated: Date.now(),
     };
     await db.moduleProgress.put(record);
-    console.log('Module progress updated:', record);
   } catch (error) {
     logError(
       error,
@@ -737,7 +710,6 @@ export const updateQuizResult = async (
       lastUpdated: Date.now(),
     };
     await db.quizResults.put(record);
-    console.log('Quiz result updated:', record);
   } catch (error) {
     logError(
       error,
@@ -804,7 +776,6 @@ export const getAllQuizResultsForUser = async (
 export const getCourse = async (id: string): Promise<Course | undefined> => {
   try {
     const course = await db.courses.get(id);
-    console.log('Course retrieved from IndexedDB:', course);
     return course;
   } catch (error) {
     logError(
@@ -819,7 +790,6 @@ export const getCourse = async (id: string): Promise<Course | undefined> => {
 export const getAllCourses = async (): Promise<Course[]> => {
   try {
     const courses = await db.courses.toArray();
-    console.log('All courses retrieved from IndexedDB:', courses);
     return courses;
   } catch (error) {
     logError(
@@ -833,9 +803,8 @@ export const getAllCourses = async (): Promise<Course[]> => {
 
 export const updateCourse = async (course: Course): Promise<void> => {
   try {
-    const courseToStore = { ...course, updateTimestamp: Date.now() };
+    const courseToStore = { ...course, updateTimestamp: Date.now() }; // Use correct property name
     await db.courses.put(courseToStore);
-    console.log('Course updated in IndexedDB:', courseToStore);
   } catch (error) {
     logError(
       error,
@@ -848,7 +817,6 @@ export const updateCourse = async (course: Course): Promise<void> => {
 export const deleteCourse = async (id: string): Promise<void> => {
   try {
     await db.courses.delete(id);
-    console.log('Course deleted from IndexedDB:', id);
   } catch (error) {
     logError(
       error,
@@ -861,7 +829,6 @@ export const deleteCourse = async (id: string): Promise<void> => {
 export const deleteCoursesByIds = async (ids: string[]): Promise<void> => {
   try {
     await db.courses.bulkDelete(ids);
-    console.log('Courses deleted from IndexedDB:', ids);
   } catch (error) {
     logError(
       error,
@@ -878,7 +845,6 @@ export const addCategory = async (
     const id = crypto.randomUUID();
     const categoryToStore = { ...category, id };
     await db.categories.put(categoryToStore);
-    console.log('Category added to IndexedDB:', categoryToStore);
     return id;
   } catch (error) {
     logError(
@@ -893,7 +859,6 @@ export const addCategory = async (
 export const getAllCategories = async (): Promise<Category[]> => {
   try {
     const categories = await db.categories.toArray();
-    console.log('All categories retrieved from IndexedDB:', categories);
     return categories;
   } catch (error) {
     logError(
@@ -908,7 +873,6 @@ export const getAllCategories = async (): Promise<Category[]> => {
 export const updateCategory = async (category: Category): Promise<void> => {
   try {
     await db.categories.put(category);
-    console.log('Category updated in IndexedDB:', category);
   } catch (error) {
     logError(
       error,
@@ -921,7 +885,6 @@ export const updateCategory = async (category: Category): Promise<void> => {
 export const deleteCategory = async (id: string): Promise<void> => {
   try {
     await db.categories.delete(id);
-    console.log('Category deleted from IndexedDB:', id);
   } catch (error) {
     logError(
       error,

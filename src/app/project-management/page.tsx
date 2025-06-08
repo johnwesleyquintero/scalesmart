@@ -2,7 +2,7 @@
 'use client';
 
 // Import necessary React and UI components
-import React, { useMemo, useState } from 'react'; // Import useMemo and useState
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -102,13 +102,6 @@ const ProjectManagementPage = () => {
   ) => {
     setSelectedTaskForDetails(task);
     setIsTaskDetailsModalOpen(true);
-    // If initialEditMode is true, set the TaskDetails component to editing mode
-    // This state will be passed down to TaskDetails
-    if (initialEditMode) {
-      // This is a placeholder. The actual state for TaskDetails's edit mode
-      // will be managed within TaskDetails itself, initialized by a prop.
-      // We just need to ensure the TaskDetails component receives this hint.
-    }
   };
 
   const handleCloseTaskDetailsModal = () => {

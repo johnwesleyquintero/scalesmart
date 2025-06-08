@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Task, TaskComment } from '@/lib/indexeddb-service'; // Import TaskComment type
+import { TaskComment } from '@/lib/indexeddb-service'; // Import TaskComment type
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner'; // Import toast for user feedback
@@ -37,13 +37,8 @@ const CommentList: React.FC<CommentListProps> = ({
       createdAt: Date.now(),
     };
 
-    try {
-      await onAddComment(newComment); // Await the parent's async handler
-      setNewCommentText('');
-    } catch (error) {
-      console.error('Failed to add comment:', error);
-      toast.error('Failed to add comment. Please try again.'); // Show error toast
-    }
+    await onAddComment(newComment); // Await the parent's async handler
+    setNewCommentText('');
   }, [newCommentText, onAddComment, taskId]);
   return (
     <div>

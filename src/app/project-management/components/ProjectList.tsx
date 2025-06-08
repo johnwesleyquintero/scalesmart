@@ -153,10 +153,6 @@ const ProjectList = ({
     setSelectedProject(null);
   }, []);
 
-  /**
-   * @brief Handles closing the task details modal.
-   */
-
   return (
     <div>
       <div className="flex flex-col sm:flex-row gap-4 mb-8 justify-center items-center">

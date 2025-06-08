@@ -28,7 +28,7 @@ import { MySelectComponent } from '@/components/MySelectComponent';
 import {
   TASK_STATUSES,
   NO_PROJECT_VALUE,
-} from '@/lib/constants/project-management'; // Import TASK_STATUSES and NO_PROJECT_VALUE
+} from '@/lib/constants/project-management';
 import { TaskStatus, TaskPriority } from '@/types/indexeddb';
 
 /**
@@ -178,7 +178,7 @@ const TaskForm = ({
             const updatedTask: Task = {
               ...initialTask,
               ...taskData,
-              updatedAt: Date.now(), // Changed from updateTimestamp to updatedAt
+              updatedAt: Date.now(),
             };
             await onUpdateTask(updatedTask);
             onTaskSaved?.(); // Call the callback if provided
@@ -194,15 +194,6 @@ const TaskForm = ({
           }
         }
       } catch (error) {
-        logger.error(
-          `Error ${initialTask ? 'updating' : 'adding'} task:`,
-          error,
-          {
-            component: 'TaskForm',
-            context: 'handleSubmit',
-            taskTitle: data.title,
-          },
-        );
         toast.error(
           `Failed to ${initialTask ? 'update' : 'add'} task. Please try again.`,
         );

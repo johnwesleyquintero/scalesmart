@@ -57,7 +57,6 @@ export const useTaskManagement = () => {
         setTasks(loadedTasks.sort((a, b) => (a.order || 0) - (b.order || 0))); // Sort by order
         setProjects(loadedProjects);
       } catch (err) {
-        console.error('Failed to load project management data:', err);
         setError('Failed to load data. Please refresh the page.');
         toast.error('Failed to load project management data.');
       } finally {
@@ -91,7 +90,6 @@ export const useTaskManagement = () => {
       try {
         await persistenceLogic();
       } catch (error) {
-        console.error('Persistence failed:', error);
         toast.error(errorMessage);
         setStateFunction(originalState); // Revert state on error
       }
@@ -110,7 +108,7 @@ export const useTaskManagement = () => {
       const updatedTask: Task = {
         ...taskToMove,
         status: newStatus as TaskStatus, // Cast to TaskStatus
-        updatedAt: Date.now(), // Changed from updateTimestamp to updatedAt
+        updatedAt: Date.now(),
         order: 0, // Reset order when changing status, will be re-ordered by Dnd-kit
       };
 
@@ -155,9 +153,6 @@ export const useTaskManagement = () => {
       );
 
       if (oldIndex === -1 || newIndex === -1) {
-        console.warn(
-          'Could not find active or over task in the current column.',
-        );
         return;
       }
 
@@ -167,7 +162,7 @@ export const useTaskManagement = () => {
       const tasksWithNewOrder = newOrder.map((task, index) => ({
         ...task,
         order: index, // Assign new order based on array position
-        updatedAt: Date.now(), // Changed from updateTimestamp to updatedAt
+        updatedAt: Date.now(),
       }));
 
       await performOptimisticUpdate(
@@ -205,7 +200,6 @@ export const useTaskManagement = () => {
 
       const taskToMove = tasks.find((task) => task.id === activeId);
       if (!taskToMove) {
-        console.warn(`Dragged task with ID ${activeId} not found.`);
         toast.error('Dragged task not found.');
         return;
       }
@@ -287,10 +281,10 @@ export const useTaskManagement = () => {
       if (newTask) {
         setTasks((prev) => [...prev, newTask]);
         toast.success(`Task "${newTask.title}" created successfully!`);
-      } else {
-        toast.error('Failed to create task. Please try again.');
+        return newTask;
       }
-      return newTask;
+      toast.error('Failed to create task. Please try again.');
+      return undefined;
     },
     [],
   );
@@ -328,15 +322,15 @@ export const useTaskManagement = () => {
         const newProject: Project = {
           ...projectData,
           id: newProjectId,
-          createdAt: Date.now(), // Changed from creationTimestamp to createdAt
-          updatedAt: Date.now(), // Changed from updateTimestamp to updatedAt
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         };
         setProjects((prev) => [...prev, newProject]);
         toast.success(`Project "${newProject.name}" created successfully!`);
-      } else {
-        toast.error('Failed to create project. Please try again.');
+        return newProjectId;
       }
-      return newProjectId;
+      toast.error('Failed to create project. Please try again.');
+      return undefined;
     },
     [],
   );
@@ -360,20 +354,17 @@ export const useTaskManagement = () => {
         // Call the persistence logic which now also updates tasks in IndexedDB
         await deleteProject(id);
 
-        // After successful deletion and task updates in DB, re-fetch tasks to ensure UI consistency
-        // This is crucial because deleteProject now modifies tasks directly in IndexedDB
-        const updatedTasksFromDB = await getAllTasks();
-        setTasks(
-          updatedTasksFromDB.sort((a, b) => (a.order || 0) - (b.order || 0)),
+        // After successful deletion and task updates in DB, update tasks state by filtering
+        setTasks((prevTasks) =>
+          prevTasks.filter((task) => task.projectId !== id),
         );
       } catch (error) {
-        console.error('Persistence failed:', error);
         toast.error('Failed to delete project. Please try again.');
         setProjects(originalProjects); // Revert projects state on error
         setTasks(originalTasks); // Revert tasks state on error
       }
     },
-    [projects, tasks, setTasks, setProjects], // Add setTasks and setProjects to dependencies
+    [projects, tasks, setTasks, setProjects],
   );
 
   /**

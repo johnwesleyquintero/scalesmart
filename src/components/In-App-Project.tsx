@@ -10,8 +10,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { ArrowRight } from 'lucide-react'; // Keep only ArrowRight
-import { projects } from '@/data/in-app-projects'; // Import projects data
+import { ArrowRight } from 'lucide-react';
+import { projects } from '@/data/in-app-projects';
 
 const InAppProjects = () => {
   return (

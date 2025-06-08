@@ -8,11 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { logger } from '@/lib/logger';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { ProjectStatus } from '@/types/indexeddb'; // Import ProjectStatus
+import { ProjectStatus } from '@/types/indexeddb';
 
 /**
  * @interface ProjectFormProps
@@ -102,43 +101,26 @@ const ProjectForm = ({
         description: data.description?.trim() || '',
       };
 
-      try {
-        if (initialProject) {
-          // Update existing project
-          if (onUpdateProject) {
-            const updatedProject: Project = {
-              ...initialProject,
-              ...projectData,
-              updatedAt: Date.now(),
-            };
-            await onUpdateProject(updatedProject);
-            toast.success('Project updated successfully!'); // Keep toast here as update is handled by hook
-          }
-        } else {
-          // Create new project
-          if (onCreateProject) {
-            await onCreateProject({
-              ...projectData,
-              status: ProjectStatus.Active, // Set a default status for new projects
-            });
-            // toast.success is handled by the hook (useTaskManagement)
-          }
+      if (initialProject) {
+        // Update existing project
+        if (onUpdateProject) {
+          const updatedProject: Project = {
+            ...initialProject,
+            ...projectData,
+            updatedAt: Date.now(),
+          };
+          await onUpdateProject(updatedProject);
         }
-        onProjectUpdated?.(); // Call the callback if provided for both add/update
-      } catch (error) {
-        logger.error(
-          `Error ${initialProject ? 'updating' : 'adding'} project:`, // Corrected log message
-          error,
-          {
-            component: 'ProjectForm', // Corrected component name
-            context: 'handleSubmit',
-            projectName: data.name, // Log project name instead of task title
-          },
-        );
-        toast.error(
-          `Failed to ${initialProject ? 'update' : 'add'} project. Please try again.`,
-        );
+      } else {
+        // Create new project
+        if (onCreateProject) {
+          await onCreateProject({
+            ...projectData,
+            status: ProjectStatus.Active, // Set a default status for new projects
+          });
+        }
       }
+      onProjectUpdated?.(); // Call the callback if provided for both add/update
     },
     [initialProject, onCreateProject, onUpdateProject, onProjectUpdated],
   );

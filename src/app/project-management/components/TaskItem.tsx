@@ -10,7 +10,9 @@ interface TaskItemProps {
   projects: Project[];
   onDeleteTask: (id: string) => void;
   allTasks: Task[]; // All tasks for dependency/subtask lookup
-  onViewTaskDetails: (task: Task, initialEditMode?: boolean) => void; // New prop to open task details modal, with optional edit mode
+  onViewTaskDetails: (task: Task) => void; // Simplified prop signature
+  // Add the onTaskPersist prop
+  onTaskPersist: (updatedOrNewTask: Task) => Promise<void>;
 }
 
 const TaskItem: React.FC<TaskItemProps> = React.memo(
@@ -20,6 +22,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     onDeleteTask,
     allTasks,
     onViewTaskDetails,
+    onTaskPersist, // Destructure the new prop
   }: TaskItemProps) => {
     const projectsMap = useMemo(() => {
       const map = new Map<string, Project>();
@@ -30,6 +33,17 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
       });
       return map;
     }, [projects]);
+
+    // Memoize all tasks into a Map for O(1) lookup by ID.
+    const allTasksMap = useMemo(() => {
+      const map = new Map<string, Task>();
+      allTasks.forEach((task) => {
+        if (task.id) {
+          map.set(task.id, task);
+        }
+      });
+      return map;
+    }, [allTasks]);
 
     const getProjectName = useCallback(
       (projectId: string | undefined): string => {
@@ -105,7 +119,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             <span className="font-medium">Dependencies: </span>
             {task.dependencies
               .map((dependencyId: string) => {
-                const dependency = allTasks.find((t) => t.id === dependencyId);
+                const dependency = allTasksMap.get(dependencyId); // Use the map
                 return dependency ? dependency.title : 'Unknown Task';
               })
               .join(', ')}
@@ -116,7 +130,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             <span className="font-medium">Subtasks: </span>
             {task.subtaskIds
               .map((subtaskId: string) => {
-                const subtask = allTasks.find((t) => t.id === subtaskId);
+                const subtask = allTasksMap.get(subtaskId); // Use the map
                 return subtask ? subtask.title : 'Unknown Task';
               })
               .join(', ')}
@@ -127,7 +141,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
           <Button
             onClick={(e) => {
               e.stopPropagation(); // Prevent opening details modal
-              onViewTaskDetails(task, true); // Open in edit mode
+              onViewTaskDetails(task); // Open details modal
             }}
             variant="outline"
             size="sm"

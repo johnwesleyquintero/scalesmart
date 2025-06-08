@@ -1,5 +1,6 @@
-import { QuizResult } from './index'; // Assuming QuizResult is in index.ts
-import { Contact, Category, CommunicationLog } from '@/app/crm/types'; // Import CRM types
+import { QuizResult } from './index';
+import { Contact, Category, CommunicationLog } from '@/app/crm/types';
+import { Course } from './index'; // Import Course type
 
 // Define ProjectStatus enum
 export enum ProjectStatus {
@@ -106,5 +107,5 @@ export interface CalculationData {
   currencySymbol: string;
 }
 
-// Re-export CRM types for convenience if needed elsewhere
-export type { Contact, Category, CommunicationLog };
+// Re-export CRM types and Course for convenience if needed elsewhere
+export type { Contact, Category, CommunicationLog, Course };

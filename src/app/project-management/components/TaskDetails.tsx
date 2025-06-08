@@ -26,7 +26,6 @@ interface TaskDetailsProps {
   onTaskPersist: (updatedTask: Task) => Promise<void>; // To propagate updates back to parent for persistence
   onDeleteTask: (id: string) => Promise<void>; // New prop to handle task deletion
   onClose: () => void; // To close the details modal
-  initialEditMode?: boolean; // Optional prop to open in edit mode
 }
 
 /**
@@ -45,11 +44,10 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   projects,
   allTasks,
   onTaskPersist,
-  onDeleteTask, // Destructure new prop
+  onDeleteTask,
   onClose,
-  initialEditMode = false, // Default to false
 }) => {
-  const [isEditing, setIsEditing] = useState(initialEditMode); // Initialize with prop
+  const [isEditing, setIsEditing] = useState(false);
   const [currentTask, setCurrentTask] = useState<Task>(task);
 
   // Update currentTask if the prop task changes (e.g., from parent update)
@@ -72,6 +70,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     }
   }, [currentTask.priority]);
 
+  // Memoize projects into a Map for O(1) lookup by ID.
   const projectsMap = useMemo(() => {
     const map = new Map<string, Project>();
     projects.forEach((project) => {
@@ -81,6 +80,17 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     });
     return map;
   }, [projects]);
+
+  // Memoize all tasks into a Map for O(1) lookup by ID.
+  const allTasksMap = useMemo(() => {
+    const map = new Map<string, Task>();
+    allTasks.forEach((task) => {
+      if (task.id) {
+        map.set(task.id, task);
+      }
+    });
+    return map;
+  }, [allTasks]);
 
   const getProjectName = useCallback(
     (projectId: string | undefined): string => {
@@ -146,7 +156,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         onTaskSaved={() => setIsEditing(false)} // onTaskSaved should just close the modal
         onCancel={() => setIsEditing(false)}
         projects={projects}
-        allTasks={allTasks}
+        allTasks={allTasks} // Still pass allTasks to TaskForm if it needs it
       />
     );
   }
@@ -275,7 +285,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             </h4>
             <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
               {currentTask.dependencies.map((dependencyId: string) => {
-                const dependency = allTasks.find((t) => t.id === dependencyId);
+                const dependency = allTasksMap.get(dependencyId); // Use the map
                 return (
                   <li key={dependencyId}>
                     {dependency ? dependency.title : 'Unknown Task'}
@@ -293,7 +303,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             </h4>
             <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
               {currentTask.subtaskIds.map((subtaskId: string) => {
-                const subtask = allTasks.find((t) => t.id === subtaskId);
+                const subtask = allTasksMap.get(subtaskId); // Use the map
                 return (
                   <li key={subtaskId}>
                     {subtask ? subtask.title : 'Unknown Task'}
