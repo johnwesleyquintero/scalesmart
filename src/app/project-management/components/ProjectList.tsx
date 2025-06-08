@@ -84,29 +84,19 @@ const ProjectList = ({
     }
 
     // Sort projects based on the selected criteria
-    switch (sortBy) {
-      case 'nameDesc':
-        currentProjects.sort((a: Project, b: Project) =>
-          b.name.localeCompare(a.name),
-        );
-        break;
-      case 'dateAsc':
-        currentProjects.sort(
-          (a: Project, b: Project) => (a.createdAt || 0) - (b.createdAt || 0),
-        );
-        break;
-      case 'dateDesc':
-        currentProjects.sort(
-          (a: Project, b: Project) => (b.createdAt || 0) - (a.createdAt || 0),
-        );
-        break;
-      case 'nameAsc':
-      default:
-        currentProjects.sort((a: Project, b: Project) =>
-          a.name.localeCompare(b.name),
-        );
-        break;
-    }
+    currentProjects.sort((a: Project, b: Project) => {
+      switch (sortBy) {
+        case 'nameDesc':
+          return b.name.localeCompare(a.name);
+        case 'dateAsc':
+          return (a.createdAt || 0) - (b.createdAt || 0);
+        case 'dateDesc':
+          return (b.createdAt || 0) - (a.createdAt || 0);
+        case 'nameAsc':
+        default:
+          return a.name.localeCompare(b.name);
+      }
+    });
 
     return currentProjects;
   }, [projects, searchQuery, sortBy]);

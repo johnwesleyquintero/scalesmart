@@ -83,7 +83,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
    *
    * @returns {string} The Tailwind CSS class string corresponding to the task's priority.
    */
-  const priorityClass = useMemo(() => {
+  const priorityStyleClass = useMemo(() => {
     switch (task.priority) {
       case TaskPriority.High:
         return 'text-red-500';
@@ -379,7 +379,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
                 Priority
               </h4>
               <div className="flex items-center text-sm text-foreground">
-                <Flag className={`h-4 w-4 mr-2 ${priorityClass}`} />
+                <Flag className={`h-4 w-4 mr-2 ${priorityStyleClass}`} />
                 <span>
                   {/* Format priority string for display (e.g., "high" -> "High") */}
                   {task.priority.charAt(0).toUpperCase() +

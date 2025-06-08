@@ -129,6 +129,8 @@ const ProjectForm = ({
               status: ProjectStatus.Active, // Set a default status for new projects
             });
             toast.success(`Project "${data.name}" added successfully!`);
+          } else {
+            console.warn('onCreateProject is not defined');
           }
         }
         onProjectUpdated?.(); // Call the callback if provided for both add/update

@@ -59,7 +59,7 @@ const CommentList: React.FC<CommentListProps> = ({
       id: crypto.randomUUID(), // Generate a unique ID for the new comment
       taskId: taskId,
       content: newCommentText.trim(), // Trim whitespace from the comment content
-      userId: 'anonymous_user', // TODO: Integrate with actual user authentication system
+      userId: 'CURRENT_USER_ID', // TODO: Integrate with actual user authentication system
       createdAt: Date.now(), // Timestamp of comment creation
     };
 
