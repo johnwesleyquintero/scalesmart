@@ -16,11 +16,34 @@ import {
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { TASK_STATUSES } from '@/lib/constants/project-management';
 import { TaskStatus } from '@/types/indexeddb';
+import { Label } from '@/components/ui/label'; // Import Label for accessibility
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'; // Import Select components for project filter
 
+/**
+ * @interface TaskManagementSectionProps
+ * @brief Props for the TaskManagementSection component.
+ * @property {Task[]} filteredTasks - An array of tasks filtered by the currently selected project.
+ * @property {Project[]} projects - An array of all available projects.
+ * @property {Task[]} allTasks - An array of all tasks across all columns, used for dependency/subtask resolution in forms and details.
+ * @property {string} selectedProject - The ID of the currently selected project for filtering tasks.
+ * @property {(projectId: string) => void} setSelectedProject - Callback to update the selected project filter.
+ * @property {string} NO_PROJECT_VALUE - A constant representing the "All Projects" filter value.
+ * @property {(task: Task) => Promise<void>} handleUpdateTask - Callback to update an existing task.
+ * @property {(taskId: string) => Promise<void>} handleDeleteTask - Callback to delete a task.
+ * @property {(task: Task) => void} handleViewTaskDetails - Callback to open the task details modal.
+ * @property {(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Callback to create a new task.
+ * @property {(event: DragEndEvent) => void} handleDragEnd - Callback for Dnd-kit's `onDragEnd` event, handling task drag-and-drop.
+ */
 interface TaskManagementSectionProps {
   filteredTasks: Task[];
   projects: Project[];
-  allTasks: Task[]; // Pass all tasks for TaskForm
+  allTasks: Task[];
   selectedProject: string;
   setSelectedProject: (projectId: string) => void;
   NO_PROJECT_VALUE: string;
@@ -33,6 +56,19 @@ interface TaskManagementSectionProps {
   handleDragEnd: (event: DragEndEvent) => void;
 }
 
+/**
+ * @component TaskManagementSection
+ * @brief A section component dedicated to managing tasks within the Project Dashboard.
+ *
+ * This component provides the UI for filtering tasks by project, displaying tasks
+ * across different status columns (Kanban board), and adding new tasks.
+ * It integrates `dnd-kit` for drag-and-drop functionality between columns and
+ * reordering within columns. It receives task data and CRUD handlers from its
+ * parent (`ProjectManagementPage`).
+ *
+ * @param {TaskManagementSectionProps} props The props for the component.
+ * @returns {JSX.Element} The TaskManagementSection component.
+ */
 const TaskManagementSection: React.FC<TaskManagementSectionProps> = ({
   filteredTasks,
   projects,
@@ -46,58 +82,75 @@ const TaskManagementSection: React.FC<TaskManagementSectionProps> = ({
   handleCreateTask,
   handleDragEnd,
 }) => {
-  // Dnd-kit sensors - Keep sensors here as DndContext is here
+  // Dnd-kit sensors configuration for drag-and-drop interactions
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor), // Enables drag-and-drop with mouse/touch
     useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates, // Enables keyboard accessibility for sorting
     }),
   );
 
   return (
     <div className="space-y-4 mt-4">
-      {/* Project Filter */}
-      <div className="mb-4">
-        <label htmlFor="project-filter" className="sr-only">
-          Filter by Project
-        </label>
-        <select
-          id="project-filter"
+      {/* Project Filter Section */}
+      <div className="mb-4 flex items-center gap-2">
+        <Label htmlFor="project-filter" className="text-foreground">
+          Filter by Project:
+        </Label>
+        <Select
           value={selectedProject}
-          onChange={(e) => setSelectedProject(e.target.value)}
-          className="block w-full md:w-1/3 lg:w-1/4 p-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
+          onValueChange={setSelectedProject} // Update selected project state
         >
-          <option value={NO_PROJECT_VALUE}>All Projects</option>
-          {projects.map((project: Project) => (
-            <option key={project.id} value={project.id}>
-              {project.name}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger
+            id="project-filter"
+            className="w-full md:w-1/3 lg:w-1/4"
+            aria-label="Filter tasks by project"
+          >
+            <SelectValue placeholder="All Projects" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NO_PROJECT_VALUE} label="All Projects">
+              All Projects
+            </SelectItem>
+            {/* Map through available projects to create filter options */}
+            {projects.map((project: Project) => (
+              <SelectItem
+                key={project.id}
+                value={project.id}
+                label={project.name}
+              >
+                {project.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
+      {/* DndContext provides the drag-and-drop context for all children */}
       <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragEnd={handleDragEnd}
+        sensors={sensors} // Pass configured sensors
+        collisionDetection={closestCorners} // Use closestCorners algorithm for drop target detection
+        onDragEnd={handleDragEnd} // Main handler for drag-and-drop completion
       >
+        {/* Grid layout for Kanban-style task columns */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Render TaskList for each status */}
+          {/* Render a TaskList component for each predefined task status */}
           {TASK_STATUSES.map((statusConfig) => {
+            // Filter tasks relevant to the current status column
             const tasksForStatus = filteredTasks.filter(
               (task) => task.status === statusConfig.id,
             );
             return (
               <TaskList
                 key={statusConfig.id}
-                id={statusConfig.id}
-                title={statusConfig.title}
-                tasks={tasksForStatus}
-                projects={projects}
-                allTasks={allTasks} // Pass all tasks down
-                onTaskPersist={handleUpdateTask}
-                onDeleteTask={handleDeleteTask}
-                onViewTaskDetails={handleViewTaskDetails}
+                id={statusConfig.id} // Column ID (e.g., 'to-do')
+                title={statusConfig.title} // Column title (e.g., 'To Do')
+                tasks={tasksForStatus} // Tasks specific to this column
+                projects={projects} // All projects for task display
+                allTasks={allTasks} // All tasks for dependency/subtask resolution
+                onTaskPersist={handleUpdateTask} // Handler for persisting task updates
+                onDeleteTask={handleDeleteTask} // Handler for deleting tasks
+                onViewTaskDetails={handleViewTaskDetails} // Handler for viewing task details
               />
             );
           })}
@@ -111,11 +164,11 @@ const TaskManagementSection: React.FC<TaskManagementSectionProps> = ({
               <CardTitle className="text-foreground">Add New Task</CardTitle>
             </CardHeader>
             <CardContent>
-              {/* TaskForm component for creating new tasks */}
+              {/* TaskForm component for creating new tasks, passing necessary data and handlers */}
               <TaskForm
                 projects={projects}
                 onCreateTask={handleCreateTask}
-                allTasks={allTasks} // Pass all tasks down
+                allTasks={allTasks} // Pass all tasks for dependency/subtask selection
               />
             </CardContent>
           </Card>

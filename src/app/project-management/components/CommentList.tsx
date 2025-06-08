@@ -1,63 +1,92 @@
 import React, { useState, useCallback } from 'react';
-import { TaskComment } from '@/lib/indexeddb-service'; // Import TaskComment type
+import { TaskComment } from '@/lib/indexeddb-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { toast } from 'sonner'; // Import toast for user feedback
-import { formatDateTime } from '@/lib/utils/date-utils'; // Import formatDateTime
+import { toast } from 'sonner';
+import { formatDateTime } from '@/lib/utils/date-utils';
 
+/**
+ * @interface CommentListProps
+ * @brief Props for the CommentList component.
+ * @property {string} taskId - The ID of the task to which these comments belong.
+ * @property {TaskComment[]} comments - An array of `TaskComment` objects to display.
+ * @property {(comment: TaskComment) => Promise<void>} onAddComment - Callback function to handle adding a new comment.
+ */
 interface CommentListProps {
   taskId: string;
-  comments: TaskComment[]; // Use TaskComment
-  onAddComment: (comment: TaskComment) => Promise<void>; // Use TaskComment
+  comments: TaskComment[];
+  onAddComment: (comment: TaskComment) => Promise<void>;
 }
 
+/**
+ * @component CommentList
+ * @brief Displays a list of comments for a given task and provides an input for adding new comments.
+ *
+ * This component manages the state for the new comment input field and handles the
+ * submission of new comments, including optimistic UI updates and error handling
+ * with toast notifications. It also formats the comment timestamps for display.
+ *
+ * @param {CommentListProps} props The props for the component.
+ * @returns {JSX.Element} The CommentList component.
+ */
 const CommentList: React.FC<CommentListProps> = ({
   taskId,
   comments,
   onAddComment,
 }) => {
   const [newCommentText, setNewCommentText] = useState('');
-  const [loading, setLoading] = useState(false); // Add loading state
+  const [loading, setLoading] = useState(false); // State to manage loading status during comment submission
 
   /**
    * @brief Handles adding a new comment.
    *
-   * Creates a new `TaskComment` object with a unique ID, current task ID,
-   * user ID (placeholder), content, and timestamp. It then calls the
-   * `onAddComment` prop to persist the comment and clears the input field.
+   * This asynchronous function creates a new `TaskComment` object with a unique ID,
+   * the current task ID, a placeholder user ID, the content from the input field,
+   * and a timestamp. It then calls the `onAddComment` prop to persist the comment.
+   * It provides visual feedback using a loading state and toast notifications for
+   * success or failure.
    *
-   * @returns {Promise<void>} A promise that resolves when the comment has been added.
+   * @returns {Promise<void>} A promise that resolves when the comment has been added and persisted.
    */
   const handleAddComment = useCallback(async () => {
     if (newCommentText.trim() === '') {
+      // Prevent adding empty comments
+      toast.info('Comment cannot be empty.');
       return;
     }
 
     const newComment: TaskComment = {
-      id: crypto.randomUUID(),
+      id: crypto.randomUUID(), // Generate a unique ID for the new comment
       taskId: taskId,
-      content: newCommentText,
-      userId: 'anonymous_user', // Placeholder: Integrate with actual user authentication
-      createdAt: Date.now(),
+      content: newCommentText.trim(), // Trim whitespace from the comment content
+      userId: 'anonymous_user', // TODO: Integrate with actual user authentication system
+      createdAt: Date.now(), // Timestamp of comment creation
     };
 
     try {
-      setLoading(true); // Set loading to true before async operation
-      await onAddComment(newComment);
-      setNewCommentText('');
-      toast.success('Comment added successfully!'); // Add success toast
+      setLoading(true); // Set loading to true to disable input and button
+      await onAddComment(newComment); // Call the parent's handler to persist the comment
+      setNewCommentText(''); // Clear the input field on success
+      toast.success('Comment added successfully!'); // Show success toast
     } catch (error) {
-      toast.error('Failed to add comment. Please try again.'); // Add error toast
-      console.error('Failed to add comment:', error); // Log error
+      toast.error('Failed to add comment. Please try again.'); // Show error toast
+      console.error('Failed to add comment:', error); // Log the error for debugging
     } finally {
-      setLoading(false); // Set loading to false after async operation
+      setLoading(false); // Reset loading state regardless of success or failure
     }
   }, [newCommentText, onAddComment, taskId]);
 
+  /**
+   * @brief Handles the `Enter` key press event in the comment input field.
+   *
+   * If the `Enter` key is pressed and the component is not currently loading
+   * (i.e., not already submitting a comment), it triggers the `handleAddComment` function.
+   *
+   * @param {React.KeyboardEvent<HTMLInputElement>} e The keyboard event object.
+   */
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter' && !loading) {
-        // Trigger on Enter key press, only if not loading
         handleAddComment();
       }
     },
@@ -68,9 +97,11 @@ const CommentList: React.FC<CommentListProps> = ({
     <div>
       <h4 className="text-sm font-semibold text-foreground mb-2">Comments</h4>
       {comments.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No comments yet.</p>
+        <p className="text-sm text-muted-foreground" role="status">
+          No comments yet.
+        </p>
       ) : (
-        <ul className="space-y-2">
+        <ul className="space-y-2" aria-live="polite">
           {comments.map((comment) => (
             <li
               key={comment.id}
@@ -90,18 +121,18 @@ const CommentList: React.FC<CommentListProps> = ({
           placeholder="Add a comment..."
           value={newCommentText}
           onChange={(e) => setNewCommentText(e.target.value)}
-          onKeyPress={handleKeyPress} // Add key press handler
+          onKeyPress={handleKeyPress}
           className="flex-1"
+          disabled={loading} // Disable input while loading
+          aria-label="New comment text input"
         />
         <Button
           onClick={handleAddComment}
           size="sm"
-          disabled={loading || newCommentText.trim() === ''}
+          disabled={loading || newCommentText.trim() === ''} // Disable button when loading or input is empty
+          aria-label={loading ? 'Adding comment...' : 'Add Comment'}
         >
-          {' '}
-          {/* Disable button when loading or input is empty */}
-          {loading ? 'Adding...' : 'Add Comment'}{' '}
-          {/* Change button text when loading */}
+          {loading ? 'Adding...' : 'Add Comment'}
         </Button>
       </div>
     </div>

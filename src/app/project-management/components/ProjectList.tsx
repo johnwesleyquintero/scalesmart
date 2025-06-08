@@ -20,19 +20,13 @@ import { logger } from '@/lib/logger';
 /**
  * @interface ProjectListProps
  * @brief Props for the ProjectList component.
+ * @property {Project[]} projects - The array of projects to display.
+ * @property {(id: string) => Promise<void>} onDeleteProject - Callback function to handle project deletion.
+ * @property {(project: Project) => Promise<void>} onUpdateProject - Callback function to handle project updates.
  */
 interface ProjectListProps {
-  /**
-   * @brief The array of projects to display.
-   */
   projects: Project[];
-  /**
-   * @brief Callback function to handle project deletion.
-   */
   onDeleteProject: (id: string) => Promise<void>;
-  /**
-   * @brief Callback function to handle project updates.
-   */
   onUpdateProject: (project: Project) => Promise<void>;
 }
 
@@ -42,6 +36,8 @@ interface ProjectListProps {
  *
  * This component allows users to view, search, sort, edit, and delete projects.
  * It integrates with `ProjectForm` for editing and uses a confirmation modal for deletion.
+ * It provides a responsive grid layout for project cards and includes accessibility
+ * features like `aria-label` for interactive elements.
  *
  * @param {ProjectListProps} props The props for the component.
  * @returns {JSX.Element} The ProjectList component.
@@ -51,23 +47,33 @@ const ProjectList = ({
   onDeleteProject,
   onUpdateProject,
 }: ProjectListProps) => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Renamed for clarity
+  // State for controlling the visibility of the project edit modal
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  // State to hold the project currently selected for editing
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  // State for the search query input
   const [searchQuery, setSearchQuery] = useState('');
+  // State for the sorting criteria, default to sorting by name ascending
   const [sortBy, setSortBy] = useState('nameAsc'); // 'nameAsc', 'nameDesc', 'dateAsc', 'dateDesc'
+  // State for controlling the visibility of the delete confirmation modal
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] =
-    useState(false); // State for delete confirmation modal
-  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null); // State to hold project to be deleted
+    useState(false);
+  // State to hold the project object that is pending deletion
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   /**
-   * Memoizes filtered and sorted projects for performance.
-   * Re-runs memoization when projects, searchQuery, or sortBy changes.
-   * @returns {Project[]} The filtered and sorted array of projects.
+   * @brief Memoizes the filtered and sorted list of projects for performance optimization.
+   *
+   * This `useMemo` hook ensures that the filtering and sorting logic only re-executes
+   * when `projects`, `searchQuery`, or `sortBy` dependencies change, preventing
+   * unnecessary re-calculations on every render.
+   *
+   * @returns {Project[]} The array of projects after applying search filters and sorting.
    */
   const filteredAndSortedProjects = useMemo(() => {
     let currentProjects = [...projects]; // Create a shallow copy to avoid direct mutation
 
-    // Filter by search query (case-insensitive)
+    // Filter projects based on the search query (case-insensitive)
     if (searchQuery) {
       const lowerCaseQuery = searchQuery.toLowerCase();
       currentProjects = currentProjects.filter(
@@ -106,8 +112,12 @@ const ProjectList = ({
   }, [projects, searchQuery, sortBy]);
 
   /**
-   * @brief Handles the click event for deleting a project, opening a confirmation modal.
-   * Uses `useCallback` for memoization.
+   * @brief Handles the click event for deleting a project.
+   *
+   * This function sets the project to be deleted and opens the confirmation modal,
+   * ensuring the user confirms the action before actual deletion.
+   * Uses `useCallback` for memoization to prevent unnecessary re-creations.
+   *
    * @param {Project} project - The project object to be deleted.
    */
   const handleDeleteProjectClick = useCallback((project: Project) => {
@@ -117,19 +127,36 @@ const ProjectList = ({
 
   /**
    * @brief Confirms and proceeds with project deletion after user confirmation.
+   *
+   * This asynchronous function calls the `onDeleteProject` prop with the ID of the
+   * project to be deleted. It then closes the confirmation modal and clears the
+   * `projectToDelete` state.
    * Uses `useCallback` for memoization.
+   *
    * @returns {Promise<void>} A promise that resolves when the project has been deleted.
    */
   const confirmDeleteProject = useCallback(async () => {
     if (projectToDelete) {
-      await onDeleteProject(projectToDelete.id);
-      setIsDeleteConfirmModalOpen(false);
-      setProjectToDelete(null);
+      try {
+        await onDeleteProject(projectToDelete.id);
+        toast.success(
+          `Project "${projectToDelete.name}" deleted successfully.`,
+        );
+      } catch (error) {
+        toast.error(`Failed to delete project "${projectToDelete.name}".`);
+        logger.error('Failed to delete project:', error);
+      } finally {
+        setIsDeleteConfirmModalOpen(false);
+        setProjectToDelete(null);
+      }
     }
   }, [projectToDelete, onDeleteProject]);
 
   /**
    * @brief Handles closing the delete confirmation modal.
+   *
+   * This function resets the state related to the delete confirmation modal,
+   * effectively closing it and clearing the project pending deletion.
    * Uses `useCallback` for memoization.
    */
   const handleCloseDeleteConfirmModal = useCallback(() => {
@@ -138,8 +165,11 @@ const ProjectList = ({
   }, []);
 
   /**
-   * @brief Handles the click event for editing a project, opening the ProjectForm modal.
+   * @brief Handles the click event for editing a project.
+   *
+   * This function sets the project to be edited and opens the `ProjectForm` modal.
    * Uses `useCallback` for memoization.
+   *
    * @param {Project} project - The project object to be edited.
    */
   const handleEditClick = useCallback((project: Project) => {
@@ -149,6 +179,9 @@ const ProjectList = ({
 
   /**
    * @brief Handles closing the edit project modal.
+   *
+   * This function resets the state related to the edit modal, effectively closing it
+   * and clearing the selected project.
    * Uses `useCallback` for memoization.
    */
   const handleCloseEditModal = useCallback(() => {
@@ -169,7 +202,9 @@ const ProjectList = ({
           id="searchProjects"
         />
         {/* Select input for sorting projects */}
-        <Label htmlFor="sortProjects">Sort by</Label>
+        <Label htmlFor="sortProjects" className="sr-only">
+          Sort by
+        </Label>
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger
             className="w-[180px]"
@@ -195,13 +230,13 @@ const ProjectList = ({
         </Select>
       </div>
 
-      {/* Display message if no projects are found */}
+      {/* Conditional rendering based on whether projects are found */}
       {filteredAndSortedProjects.length === 0 ? (
         <p className="text-muted-foreground text-center" role="status">
           No projects found.
         </p>
       ) : (
-        // Display the list of projects
+        // Display the list of projects in a responsive grid
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredAndSortedProjects.map((project) => (
             <Card key={project.id} className="w-full">
@@ -216,7 +251,7 @@ const ProjectList = ({
                 )}
               </CardContent>
               <CardFooter className="flex justify-end gap-2 p-4 pt-0">
-                {/* Edit button */}
+                {/* Edit button for each project */}
                 <Button
                   variant="outline"
                   size="sm"
@@ -226,11 +261,11 @@ const ProjectList = ({
                 >
                   <Edit className="mr-2 h-4 w-4" /> Edit
                 </Button>
-                {/* Delete button */}
+                {/* Delete button for each project */}
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDeleteProjectClick(project)} // Pass the project object
+                  onClick={() => handleDeleteProjectClick(project)}
                   title="Delete project"
                   aria-label={`Delete project ${project.name}`}
                 >
@@ -241,23 +276,23 @@ const ProjectList = ({
           ))}
         </div>
       )}
-      {/* Modal for editing a project */}
-      {isEditModalOpen && ( // Use renamed state
+      {/* Modal for editing a project, conditionally rendered */}
+      {isEditModalOpen && (
         <Modal
-          isOpen={isEditModalOpen} // Use renamed state
-          onClose={handleCloseEditModal} // Use renamed handler
+          isOpen={isEditModalOpen}
+          onClose={handleCloseEditModal}
           title="Edit Project"
         >
           <ProjectForm
-            project={selectedProject || undefined} // Ensure it's undefined if null
-            onProjectUpdated={handleCloseEditModal} // Use renamed handler
-            onCancel={handleCloseEditModal} // Use renamed handler
-            onUpdateProject={onUpdateProject} // Pass the correct update handler
+            project={selectedProject || undefined} // Pass the selected project for pre-filling the form
+            onProjectUpdated={handleCloseEditModal} // Close modal after successful update
+            onCancel={handleCloseEditModal} // Allow canceling the edit operation
+            onUpdateProject={onUpdateProject} // Pass the update handler from props
           />
         </Modal>
       )}
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal, conditionally rendered */}
       {isDeleteConfirmModalOpen && projectToDelete && (
         <Modal
           isOpen={isDeleteConfirmModalOpen}
@@ -267,7 +302,8 @@ const ProjectList = ({
           <div className="p-4">
             <p className="text-foreground mb-4">
               Are you sure you want to delete the project "
-              {projectToDelete.name}"? This action cannot be undone.
+              <span className="font-semibold">{projectToDelete.name}</span>"?
+              This action cannot be undone.
             </p>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={handleCloseDeleteConfirmModal}>

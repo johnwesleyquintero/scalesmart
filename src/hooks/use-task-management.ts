@@ -1,5 +1,8 @@
 'use client';
 
+// src/hooks/use-task-management.ts
+'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Task,
@@ -21,19 +24,19 @@ import { arrayMove } from '@dnd-kit/sortable';
 /**
  * @interface UseTaskManagementReturn
  * @brief Return type for the `useTaskManagement` hook.
- * @property {Task[]} tasks - Array of all tasks.
- * @property {React.Dispatch<React.SetStateAction<Task[]>>} setTasks - Setter for tasks state.
- * @property {Project[]} projects - Array of all projects.
- * @property {React.Dispatch<React.SetStateAction<Project[]>>} setProjects - Setter for projects state.
- * @property {boolean} isLoading - Indicates if data is currently being loaded.
- * @property {string | null} error - Stores any error message that occurred during data loading or persistence.
- * @property {(updatedTask: Task) => Promise<void>} handleUpdateTask - Handler to update an existing task and persist it.
- * @property {(event: DragEndEvent) => Promise<void>} handleDragEnd - Handler for Dnd-kit drag end event.
- * @property {(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
- * @property {(id: string) => Promise<void>} handleDeleteTask - Handler to delete a task.
- * @property {(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string | undefined>} handleCreateProject - Handler to create a new project.
- * @property {(project: Project) => Promise<void>} handleUpdateProject - Handler to update an existing project.
- * @property {(id: string) => Promise<void>} handleDeleteProject - Handler to delete a project.
+ * @property {Task[]} tasks - Array of all tasks currently in the state.
+ * @property {React.Dispatch<React.SetStateAction<Task[]>>} setTasks - Setter function for the tasks state.
+ * @property {Project[]} projects - Array of all projects currently in the state.
+ * @property {React.Dispatch<React.SetStateAction<Project[]>>} setProjects - Setter function for the projects state.
+ * @property {boolean} isLoading - Indicates if initial data is currently being loaded from IndexedDB.
+ * @property {string | null} error - Stores any error message that occurred during initial data loading or persistence operations.
+ * @property {(updatedTask: Task) => Promise<void>} handleUpdateTask - Handler function to update an existing task in state and persist changes to IndexedDB.
+ * @property {(event: DragEndEvent) => Promise<void>} handleDragEnd - Handler function for the Dnd-kit `onDragEnd` event, managing task status changes and reordering.
+ * @property {(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler function to create a new task, add it to state optimistically, and persist it to IndexedDB. Returns the created task with its final ID.
+ * @property {(id: string) => Promise<void>} handleDeleteTask - Handler function to delete a task from state optimistically and persist the deletion to IndexedDB.
+ * @property {(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string | undefined>} handleCreateProject - Handler function to create a new project, add it to state optimistically, and persist it to IndexedDB. Returns the created project's final ID.
+ * @property {(project: Project) => Promise<void>} handleUpdateProject - Handler function to update an existing project in state and persist changes to IndexedDB.
+ * @property {(id: string) => Promise<void>} handleDeleteProject - Handler function to delete a project from state optimistically and persist the deletion to IndexedDB. Also removes associated tasks.
  */
 
 /**
@@ -42,9 +45,10 @@ import { arrayMove } from '@dnd-kit/sortable';
  *
  * This hook centralizes the state management and business logic for the project management
  * dashboard. It handles fetching initial data, optimistic updates for tasks and projects,
- * persistence to IndexedDB, and drag-and-drop operations for tasks.
+ * persistence to IndexedDB, and drag-and-drop operations for tasks. It provides handlers
+ * for CRUD operations on both tasks and projects.
  *
- * @returns {UseTaskManagementReturn} An object containing tasks, projects, and various handlers.
+ * @returns {UseTaskManagementReturn} An object containing tasks, projects, loading state, error state, and various handler functions.
  */
 export const useTaskManagement = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -52,16 +56,21 @@ export const useTaskManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Effect to load initial tasks and projects data from IndexedDB on component mount.
+  /**
+   * @brief Effect hook to load initial tasks and projects data from IndexedDB on component mount.
+   * Sets loading state, fetches data, updates state, and handles errors.
+   */
   useEffect(() => {
     const loadData = async () => {
       try {
         setIsLoading(true);
         const loadedTasks = await getAllTasks();
         const loadedProjects = await getAllProjects();
-        setTasks(loadedTasks.sort((a, b) => (a.order || 0) - (b.order || 0))); // Sort by order
+        // Sort tasks by order for consistent display within columns
+        setTasks(loadedTasks.sort((a, b) => (a.order || 0) - (b.order || 0)));
         setProjects(loadedProjects);
       } catch (err) {
+        console.error('Failed to load initial data:', err);
         setError('Failed to load data. Please refresh the page.');
         toast.error('Failed to load project management data.');
       } finally {
@@ -69,23 +78,14 @@ export const useTaskManagement = () => {
       }
     };
     loadData();
-  }, []);
+  }, []); // Empty dependency array ensures this effect runs only once on mount
 
-  /**
-   * @brief A generic helper function to perform optimistic updates and handle persistence.
-   * @param updateLogic A function that takes the current state and returns the new state for optimistic update.
-   * @param persistenceLogic An async function that performs the actual IndexedDB persistence.
-   * @param successMessage The message to display on successful persistence.
-   * @param errorMessage The message to display on failed persistence.
-   * @param originalState The state before the optimistic update, used for reverting on error.
-   * @param setStateFunction The React state setter function (e.g., setTasks, setProjects).
-   */
   /**
    * @brief A generic helper function to perform optimistic updates and handle persistence.
    *
    * This function applies an immediate state update (optimistic update) and then
    * attempts to persist the change to IndexedDB. If persistence fails, the state
-   * is reverted to its original state.
+   * is reverted to its original state. It also handles success/error toasts.
    *
    * @template T The type of the items in the state array (e.g., Task, Project).
    * @template R The return type of the persistence logic function.
@@ -95,7 +95,8 @@ export const useTaskManagement = () => {
    * @param {string} errorMessage The message to display as a toast notification on failed persistence.
    * @param {T[]} originalState The state array before the optimistic update, used for reverting on error.
    * @param {React.Dispatch<React.SetStateAction<T[]>>} setStateFunction The React state setter function (e.g., setTasks, setProjects) for the state being updated.
-   * @param {function(R, T[]): T[]} [onPersistenceSuccess] An optional function that takes the result of the persistence logic and the current optimistic state, and returns the final state to set after successful persistence. Useful for updating temporary IDs with real ones.
+   * @param {function(R, T[]): T[]} [onPersistenceSuccess] An optional function that takes the result of the persistence logic and the current optimistic state, and returns the final state to set after successful persistence. Useful for updating temporary IDs with real ones or performing secondary state updates (like removing associated tasks when a project is deleted).
+   * @returns {Promise<R>} A Promise that resolves with the result of the persistence logic on success, or rejects on failure.
    */
   const performOptimisticUpdate = useCallback(
     async <T, R = void>(
@@ -106,7 +107,7 @@ export const useTaskManagement = () => {
       originalState: T[],
       setStateFunction: React.Dispatch<React.SetStateAction<T[]>>,
       onPersistenceSuccess?: (result: R, optimisticState: T[]) => T[],
-    ) => {
+    ): Promise<R> => {
       // Apply optimistic update immediately
       setStateFunction(updateLogic);
       toast.success(successMessage); // Show success toast immediately
@@ -120,22 +121,24 @@ export const useTaskManagement = () => {
             onPersistenceSuccess(persistenceResult, prev),
           );
         }
+        return persistenceResult; // Return the result of the persistence logic
       } catch (error) {
         // If persistence fails, revert the state and show an error toast
+        console.error('Persistence failed:', error); // Log the error for debugging
         setStateFunction(originalState); // Revert state on error
         toast.error(errorMessage); // Show error toast
-        console.error('Persistence failed:', error); // Log the error for debugging
         throw error; // Re-throw the error to be caught by specific handlers if needed
       }
     },
-    [],
+    [], // This helper function has no external dependencies that change over time
   );
 
   /**
    * @brief Handles the change of a task's status (column) during a drag-and-drop operation.
    *
    * This function updates the task's status optimistically and persists the change
-   * to IndexedDB. It also resets the task's order when its status changes.
+   * to IndexedDB. It also resets the task's order when its status changes, allowing
+   * Dnd-kit to manage the order within the new column.
    *
    * @param {Task} taskToMove The task object that is being moved.
    * @param {string} newStatus The new status (column ID) for the task. This should correspond to a value in the `TaskStatus` enum.
@@ -172,10 +175,11 @@ export const useTaskManagement = () => {
    * @brief Handles reordering of tasks within the same column during a drag-and-drop operation.
    *
    * This function updates the order of tasks within a specific status column
-   * optimistically and persists the changes to IndexedDB.
+   * optimistically and persists the changes to IndexedDB. It calculates the new
+   * order based on the drag-and-drop result.
    *
    * @param {string} activeId The ID of the task being dragged.
-   * @param {string} overId The ID of the task being dragged over (the target position).
+   * @param {string} overId The ID of the sortable item being dragged over (the target position).
    * @param {string} containerId The ID of the column (status) where the reordering is happening.
    * @param {Task[]} originalTasks The state of tasks before the optimistic update, used for reverting on error.
    * @returns {Promise<void>} A Promise that resolves when the optimistic update and persistence attempt are complete.
@@ -200,12 +204,15 @@ export const useTaskManagement = () => {
         (task) => task.id === overId,
       );
 
-      // If either task is not found in the column, exit
+      // If either task is not found in the column, exit (shouldn't happen if Dnd-kit works correctly)
       if (oldIndex === -1 || newIndex === -1) {
+        console.warn(
+          `Task with ID ${activeId} or ${overId} not found in column ${containerId} during reorder.`,
+        );
         return;
       }
 
-      // Use arrayMove from @dnd-kit/sortable to get the new order of tasks
+      // Use arrayMove from @dnd-kit/sortable to get the new order of tasks within the column
       const newOrder = arrayMove(currentTasksInColumn, oldIndex, newIndex);
 
       // Apply new 'order' values to the reordered tasks and update their timestamp
@@ -225,6 +232,7 @@ export const useTaskManagement = () => {
         },
         async () => {
           // Persistence logic: update all tasks in the column with their new order
+          // Using Promise.all to update all tasks concurrently for efficiency
           await Promise.all(tasksWithNewOrder.map((task) => updateTask(task)));
         },
         `Task reordered successfully.`, // Success message
@@ -243,7 +251,8 @@ export const useTaskManagement = () => {
    * This function is the main handler for Dnd-kit's `onDragEnd` event.
    * It determines if a task was moved to a different column (status change)
    * or reordered within the same column, and dispatches to the appropriate
-   * handler (`handleTaskStatusChange` or `handleTaskReorder`).
+   * handler (`handleTaskStatusChange` or `handleTaskReorder`). It also
+   * handles cases where the drag operation is cancelled or invalid.
    *
    * @param {DragEndEvent} event The DragEndEvent object provided by Dnd-kit.
    * @returns {Promise<void>} A Promise that resolves when the drag operation handling is complete.
@@ -253,14 +262,24 @@ export const useTaskManagement = () => {
       const { active, over } = event;
 
       // If there is no 'over' target, the drag operation was cancelled or invalid
-      if (!over) return;
+      if (!over) {
+        console.log('Drag cancelled or invalid drop.');
+        return;
+      }
 
       const activeId = active.id as string; // The ID of the draggable item (task)
       const overId = over.id as string; // The ID of the droppable container or sortable item being dragged over
 
+      // If the active and over IDs are the same, no movement occurred
+      if (activeId === overId) {
+        console.log('Task dropped on itself, no change.');
+        return;
+      }
+
       // Find the task object corresponding to the dragged item ID
       const taskToMove = tasks.find((task) => task.id === activeId);
       if (!taskToMove) {
+        console.error(`Dragged task with ID ${activeId} not found.`);
         toast.error('Dragged task not found.');
         return;
       }
@@ -269,12 +288,18 @@ export const useTaskManagement = () => {
 
       // Determine the container IDs for the active and over elements.
       // This helps distinguish between changing columns and reordering within a column.
+      // The container ID for a sortable item is the ID of its parent droppable container.
+      // The container ID for a droppable container is its own ID.
       const activeContainerId =
-        active.data.current?.sortable.containerId || taskToMove.status; // Use task status as container ID if not sortable
-      const overContainerId = over.data.current?.sortable.containerId || overId; // Use overId as container ID if not sortable
+        active.data.current?.sortable?.containerId || active.id;
+      const overContainerId =
+        over.data.current?.sortable?.containerId || over.id;
 
       // Check if the task was moved to a different column
       if (activeContainerId !== overContainerId) {
+        console.log(
+          `Task ${activeId} moved from column ${activeContainerId} to ${overContainerId}.`,
+        );
         // Task moved to a different column (status change)
         await handleTaskStatusChange(
           taskToMove,
@@ -282,6 +307,9 @@ export const useTaskManagement = () => {
           originalTasks,
         );
       } else {
+        console.log(
+          `Task ${activeId} reordered within column ${activeContainerId}.`,
+        );
         // Task reordered within the same column
         await handleTaskReorder(
           activeId,
@@ -295,28 +323,14 @@ export const useTaskManagement = () => {
   );
 
   /**
-   * @brief Handler to update a task in the state when it's modified (e.g., comment added, subtask added).
-   * This is called by child components (TaskForm, TaskDetails) to propagate changes up.
-   * @param updatedTask The task object with updated properties.
-   */
-  const handleTaskUpdated = useCallback(
-    (updatedTask: Task) => {
-      setTasks((prevTasks) =>
-        // Map over the previous tasks and replace the task with the matching ID
-        prevTasks.map((task) =>
-          task.id === updatedTask.id ? updatedTask : task,
-        ),
-      );
-    },
-    [setTasks], // Dependency array includes the setTasks setter
-  );
-  // This function is not used directly in the current setup,
-  // as handleUpdateTask is used for persistence.
-  // Keeping it for potential future use or if other components need a direct state update without persistence.
-
-  /**
    * @brief Updates an existing task in state and IndexedDB.
-   * @param updatedTask The task object with updated properties.
+   *
+   * This function is typically called when a task's properties (title, description,
+   * assignee, etc.) are modified, not when its status/order changes via drag-and-drop.
+   * It performs an optimistic update and persists the changes.
+   *
+   * @param {Task} updatedTask The task object with updated properties.
+   * @returns {Promise<void>} A Promise that resolves when the optimistic update and persistence attempt are complete.
    */
   const handleUpdateTask = useCallback(
     async (updatedTask: Task) => {
@@ -339,8 +353,13 @@ export const useTaskManagement = () => {
 
   /**
    * @brief Creates a new task and persists it to IndexedDB.
-   * @param taskData The data for the new task.
-   * @returns The created task with ID and timestamps, or undefined if creation fails.
+   *
+   * This function adds a new task to the state optimistically with a temporary ID,
+   * then persists the task to IndexedDB. Upon successful persistence, it updates
+   * the task in the state with the real ID generated by the database.
+   *
+   * @param {Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>} taskData The data for the new task, excluding generated fields and comments (comments are initialized as empty).
+   * @returns {Promise<Task | undefined>} A Promise that resolves with the created task object (including its real ID and timestamps) on success, or undefined on failure.
    */
   const handleCreateTask = useCallback(
     async (
@@ -350,48 +369,59 @@ export const useTaskManagement = () => {
       const tempId = `temp-${Date.now()}-${Math.random()}`; // Generate a temporary ID for the optimistic update
       let finalCreatedTask: Task | undefined; // Variable to store the final created task
 
-      await performOptimisticUpdate(
-        (prevTasks) => {
-          // Create an optimistic task object with the temporary ID and current timestamps
-          const optimisticTask: Task = {
-            ...taskData,
-            id: tempId,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-            comments: [], // Initialize comments as an empty array
-          };
-          finalCreatedTask = optimisticTask; // Store the optimistic task initially
-          return [...prevTasks, optimisticTask]; // Add the optimistic task to the state
-        },
-        async () => {
-          // Persistence logic: create the task in IndexedDB
-          const newTask = await createTask(taskData);
-          if (!newTask) {
-            throw new Error('Failed to create task in database.');
-          }
-          return newTask; // Return the task created in the database
-        },
-        `Task "${taskData.title}" created successfully!`, // Success message
-        `Failed to create task "${taskData.title}". Please try again.`, // Error message
-        originalTasks, // Original state for revert
-        setTasks, // State setter function
-        (newTaskFromDb, optimisticState) => {
-          // onPersistenceSuccess handler: replace the optimistic task with the real one
-          finalCreatedTask = newTaskFromDb; // Update with the real task from the database
-          return optimisticState.map(
-            (task) => (task.id === tempId ? newTaskFromDb : task), // Replace the task with the temporary ID
-          );
-        },
-      );
-
-      return finalCreatedTask; // Return the final created task
+      try {
+        await performOptimisticUpdate(
+          (prevTasks) => {
+            // Create an optimistic task object with the temporary ID and current timestamps
+            const optimisticTask: Task = {
+              ...taskData,
+              id: tempId,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+              comments: [], // Initialize comments as an empty array for new tasks
+              order: prevTasks.filter((t) => t.status === taskData.status)
+                .length, // Assign an initial order at the end of the target column
+            };
+            finalCreatedTask = optimisticTask; // Store the optimistic task initially
+            return [...prevTasks, optimisticTask]; // Add the optimistic task to the state
+          },
+          async () => {
+            // Persistence logic: create the task in IndexedDB
+            const newTask = await createTask(taskData);
+            if (!newTask) {
+              throw new Error('Failed to create task in database.');
+            }
+            return newTask; // Return the task created in the database (includes real ID)
+          },
+          `Task "${taskData.title}" created successfully!`, // Success message
+          `Failed to create task "${taskData.title}". Please try again.`, // Error message
+          originalTasks, // Original state for revert
+          setTasks, // State setter function
+          (newTaskFromDb, optimisticState) => {
+            // onPersistenceSuccess handler: replace the optimistic task with the real one from the database
+            finalCreatedTask = newTaskFromDb; // Update with the real task from the database
+            return optimisticState.map(
+              (task) => (task.id === tempId ? newTaskFromDb : task), // Replace the task with the temporary ID
+            );
+          },
+        );
+        return finalCreatedTask; // Return the final created task on success
+      } catch (error) {
+        // Error is already handled and logged by performOptimisticUpdate
+        return undefined; // Return undefined on failure
+      }
     },
     [tasks, performOptimisticUpdate], // Dependencies include tasks state and the helper function
   );
 
   /**
    * @brief Deletes a task from state and IndexedDB.
-   * @param id The ID of the task to delete.
+   *
+   * This function removes the task from the state optimistically and then
+   * persists the deletion to IndexedDB.
+   *
+   * @param {string} id The ID of the task to delete.
+   * @returns {Promise<void>} A Promise that resolves when the optimistic update and persistence attempt are complete.
    */
   const handleDeleteTask = useCallback(
     async (id: string) => {
@@ -408,6 +438,16 @@ export const useTaskManagement = () => {
     [tasks, performOptimisticUpdate], // Dependencies include tasks state and the helper function
   );
 
+  /**
+   * @brief Creates a new project and persists it to IndexedDB.
+   *
+   * This function adds a new project to the state optimistically with a temporary ID,
+   * then persists the project to IndexedDB. Upon successful persistence, it updates
+   * the project in the state with the real ID generated by the database.
+   *
+   * @param {Omit<Project, 'id' | 'createdAt' | 'updatedAt'>} projectData The data for the new project, excluding generated fields.
+   * @returns {Promise<string | undefined>} A Promise that resolves with the created project's ID on success, or undefined on failure.
+   */
   const handleCreateProject = useCallback(
     async (
       projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>,
@@ -416,85 +456,105 @@ export const useTaskManagement = () => {
       const tempId = `temp-${Date.now()}-${Math.random()}`; // Generate a temporary ID for the optimistic update
       let finalCreatedProjectId: string | undefined; // Variable to store the final created project ID
 
-      await performOptimisticUpdate(
-        (prevProjects) => {
-          // Create an optimistic project object with the temporary ID and current timestamps
-          const optimisticProject: Project = {
-            ...projectData,
-            id: tempId,
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-            status: projectData.status, // Include status from projectData
-          };
-          finalCreatedProjectId = optimisticProject.id; // Store the optimistic ID initially
-          return [...prevProjects, optimisticProject]; // Add the optimistic project to the state
-        },
-        async () => {
-          // Persistence logic: create the project in IndexedDB
-          const realProjectId = await createProject(projectData);
-          if (!realProjectId) {
-            throw new Error('Failed to create project in database.');
-          }
-          return realProjectId; // Return the real project ID from the database
-        },
-        `Project "${projectData.name}" created successfully!`, // Success message
-        `Failed to create project "${projectData.name}". Please try again.`, // Error message
-        originalProjects, // Original state for revert
-        setProjects, // State setter function
-        (realProjectIdFromDb, optimisticState) => {
-          // onPersistenceSuccess handler: replace the optimistic project ID with the real one
-          finalCreatedProjectId = realProjectIdFromDb; // Update with the real ID from the database
-          return optimisticState.map((project) =>
-            project.id === tempId
-              ? { ...project, id: realProjectIdFromDb } // Replace the temporary ID with the real one
-              : project,
-          );
-        },
-      );
-
-      return finalCreatedProjectId; // Return the final created project ID
+      try {
+        await performOptimisticUpdate(
+          (prevProjects) => {
+            // Create an optimistic project object with the temporary ID and current timestamps
+            const optimisticProject: Project = {
+              ...projectData,
+              id: tempId,
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+              status: projectData.status, // Include status from projectData
+            };
+            finalCreatedProjectId = optimisticProject.id; // Store the optimistic ID initially
+            return [...prevProjects, optimisticProject]; // Add the optimistic project to the state
+          },
+          async () => {
+            // Persistence logic: create the project in IndexedDB
+            const realProjectId = await createProject(projectData);
+            if (!realProjectId) {
+              throw new Error('Failed to create project in database.');
+            }
+            return realProjectId; // Return the real project ID from the database
+          },
+          `Project "${projectData.name}" created successfully!`, // Success message
+          `Failed to create project "${projectData.name}". Please try again.`, // Error message
+          originalProjects, // Original state for revert
+          setProjects, // State setter function
+          (realProjectIdFromDb, optimisticState) => {
+            // onPersistenceSuccess handler: replace the optimistic project ID with the real one
+            finalCreatedProjectId = realProjectIdFromDb; // Update with the real ID from the database
+            return optimisticState.map((project) =>
+              project.id === tempId
+                ? { ...project, id: realProjectIdFromDb } // Replace the temporary ID with the real one
+                : project,
+            );
+          },
+        );
+        return finalCreatedProjectId; // Return the final created project ID on success
+      } catch (error) {
+        // Error is already handled and logged by performOptimisticUpdate
+        return undefined; // Return undefined on failure
+      }
     },
-    [projects, performOptimisticUpdate],
+    [projects, performOptimisticUpdate], // Dependencies include projects state and the helper function
   );
 
   /**
    * @brief Deletes a project from state and IndexedDB.
-   * @param id The ID of the project to delete.
+   *
+   * This function removes the project from the state optimistically and then
+   * persists the deletion to IndexedDB. It also removes any tasks associated
+   * with the deleted project from the tasks state.
+   *
+   * @param {string} id The ID of the project to delete.
+   * @returns {Promise<void>} A Promise that resolves when the optimistic update and persistence attempt are complete.
    */
   const handleDeleteProject = useCallback(
     async (id: string) => {
       const originalProjects = [...projects]; // Capture current projects state for potential revert
       const originalTasks = [...tasks]; // Capture original tasks state for potential revert
 
-      await performOptimisticUpdate(
-        (prevProjects) => prevProjects.filter((project) => project.id !== id), // Optimistic update: remove the project from the state
-        async () => {
-          await deleteProject(id); // Persistence logic: delete the project from IndexedDB
-          return id; // Return the ID of the deleted project for onPersistenceSuccess
-        },
-        'Project deleted successfully.', // Success message
-        'Failed to delete project. Please try again.', // Error message
-        originalProjects, // Original projects state for revert
-        setProjects, // Projects state setter function
-        (deletedProjectId, optimisticProjects) => {
-          // onPersistenceSuccess handler: filter out tasks associated with the deleted project
-          // Also filter out tasks associated with the deleted project
-          setTasks((prevTasks) =>
-            prevTasks.filter((task) => task.projectId !== deletedProjectId),
-          );
-          // Return the updated projects state for the primary setStateFunction (setProjects)
-          return optimisticProjects.filter(
-            (project) => project.id !== deletedProjectId,
-          );
-        },
-      );
+      try {
+        await performOptimisticUpdate(
+          (prevProjects) => prevProjects.filter((project) => project.id !== id), // Optimistic update: remove the project from the state
+          async () => {
+            await deleteProject(id); // Persistence logic: delete the project from IndexedDB
+            return id; // Return the ID of the deleted project for onPersistenceSuccess
+          },
+          'Project deleted successfully.', // Success message
+          'Failed to delete project. Please try again.', // Error message
+          originalProjects, // Original projects state for revert
+          setProjects, // Projects state setter function
+          (deletedProjectId, optimisticProjects) => {
+            // onPersistenceSuccess handler: filter out tasks associated with the deleted project
+            setTasks((prevTasks) =>
+              prevTasks.filter((task) => task.projectId !== deletedProjectId),
+            );
+            // Return the updated projects state for the primary setStateFunction (setProjects)
+            return optimisticProjects.filter(
+              (project) => project.id !== deletedProjectId,
+            );
+          },
+        );
+      } catch (error) {
+        // Error is already handled and logged by performOptimisticUpdate
+        // Revert tasks state as well if project deletion failed
+        setTasks(originalTasks);
+      }
     },
     [projects, tasks, setTasks, performOptimisticUpdate], // Dependencies: projects state, tasks state, setTasks setter, and performOptimisticUpdate
   );
 
   /**
    * @brief Updates an existing project in state and IndexedDB.
-   * @param updatedProject The project object with updated properties.
+   *
+   * This function updates the project in the state optimistically and then
+   * persists the changes to IndexedDB.
+   *
+   * @param {Project} updatedProject The project object with updated properties.
+   * @returns {Promise<void>} A Promise that resolves when the optimistic update and persistence attempt are complete.
    */
   const handleUpdateProject = useCallback(
     async (updatedProject: Project) => {
@@ -517,9 +577,9 @@ export const useTaskManagement = () => {
 
   return {
     tasks,
-    setTasks,
+    setTasks, // Expose setTasks if needed by parent components (e.g., for initial sorting)
     projects,
-    setProjects,
+    setProjects, // Expose setProjects if needed by parent components
     isLoading,
     error,
     handleUpdateTask,

@@ -1,12 +1,4 @@
-import React from 'react';
-import {
-  useState,
-  useEffect,
-  useCallback,
-  Dispatch,
-  SetStateAction,
-  useMemo,
-} from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Task, Project } from '@/lib/indexeddb-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,38 +26,23 @@ import { TaskStatus, TaskPriority } from '@/types/indexeddb';
 /**
  * @interface TaskFormProps
  * @brief Props for the TaskForm component.
+ * @property {Task | null} [task] - Optional task object for editing. If provided, the form will be pre-filled. Can be null for new tasks.
+ * @property {(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => Promise<Task | undefined>} [onCreateTask] - Callback function to create a new task.
+ * @property {(task: Task) => Promise<void>} [onUpdateTask] - Callback function to update an existing task.
+ * @property {() => void} [onCancel] - Callback function invoked when the cancel button is clicked (only visible during edit mode).
+ * @property {Project[]} projects - The array of available projects to assign the task to.
+ * @property {Task[]} allTasks - All tasks across all columns, used for resolving dependencies and subtasks in multi-selects.
+ * @property {() => void} [onTaskSaved] - Callback function invoked after a task is successfully added or updated.
  */
 interface TaskFormProps {
-  /**
-   * @brief Optional task object for editing. If provided, the form will be pre-filled.
-   * Can be null for new tasks.
-   */
   task?: Task | null;
-  /**
-   * @brief Callback function to create a new task.
-   */
   onCreateTask?: (
     taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>,
   ) => Promise<Task | undefined>;
-  /**
-   * @brief Callback function to update an existing task.
-   */
   onUpdateTask?: (task: Task) => Promise<void>;
-  /**
-   * @brief Callback function invoked when the cancel button is clicked (only visible during edit mode).
-   */
   onCancel?: () => void;
-  /**
-   * @brief The array of available projects to assign the task to.
-   */
   projects: Project[];
-  /**
-   * @brief All tasks across all columns, used for resolving dependencies and subtasks.
-   */
   allTasks: Task[];
-  /**
-   * @brief Callback function invoked after a task is successfully added or updated.
-   */
   onTaskSaved?: () => void;
 }
 
@@ -75,13 +52,15 @@ interface TaskFormProps {
  *
  * This component handles the creation and modification of task entries
  * in the IndexedDB. It provides input fields for task title, description, status,
- * assignee, due date, and project assignment, with validation and error handling.
+ * assignee, due date, project assignment, priority, dependencies, and subtasks.
+ * It uses `react-hook-form` and `zod` for validation and form management,
+ * and supports both adding new tasks and editing existing ones.
  *
  * @param {TaskFormProps} props The props for the component.
  * @returns {JSX.Element} The TaskForm component.
  */
 const TaskForm = ({
-  task: initialTask,
+  task: initialTask, // Renamed for clarity when editing
   onCreateTask,
   onUpdateTask,
   onCancel,
@@ -89,62 +68,89 @@ const TaskForm = ({
   allTasks,
   onTaskSaved,
 }: TaskFormProps) => {
+  // Define the validation schema for the form using Zod
   const formSchema = z.object({
     title: z.string().min(1, {
       message: 'Task title is required.',
     }),
     description: z.string().optional(),
-    status: z.string().optional().default('to-do'),
-    assigneeId: z.string().optional(), // Changed from assignee to assigneeId
-    dueDate: z.date().optional(),
-    projectId: z.string(), // projectId is required in Task interface
+    status: z.string().optional().default('to-do'), // Default status for new tasks
+    assigneeId: z.string().optional(),
+    dueDate: z.date().optional(), // Zod handles date objects, convert to timestamp on submit
+    projectId: z.string(), // Project ID is required, but can be NO_PROJECT_VALUE
     dependencies: z.array(z.string()).optional(),
-    subtaskIds: z.array(z.string()).optional(), // Changed from subtasks to subtaskIds
-    priority: z.nativeEnum(TaskPriority).optional(),
+    subtaskIds: z.array(z.string()).optional(),
+    priority: z.nativeEnum(TaskPriority).optional(), // Use nativeEnum for TypeScript enum
   });
-  interface FormValues extends z.infer<typeof formSchema> {}
 
+  // Infer the form values type from the schema
+  type FormValues = z.infer<typeof formSchema>;
+
+  // Initialize react-hook-form with Zod resolver and default values
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
-    reset, // Import reset from useForm
-    formState: { errors },
+    watch, // Used to watch form field values for conditional rendering or memoization
+    reset, // Used to reset the form after successful submission
+    formState: { errors, isSubmitSuccessful }, // isSubmitSuccessful for resetting form
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: initialTask?.title || '',
       description: initialTask?.description || '',
       status: initialTask?.status || 'to-do',
-      assigneeId: initialTask?.assigneeId || '', // Changed from assignee to assigneeId
+      assigneeId: initialTask?.assigneeId || '',
+      // Convert timestamp to Date object for react-hook-form's date input
       dueDate: initialTask?.dueDate ? new Date(initialTask.dueDate) : undefined,
-      projectId: initialTask?.projectId || NO_PROJECT_VALUE, // Ensure it's a string, default to NO_PROJECT_VALUE
-      priority: initialTask?.priority as TaskPriority | undefined,
+      projectId: initialTask?.projectId || NO_PROJECT_VALUE, // Default to 'No Project'
+      priority: initialTask?.priority as TaskPriority | undefined, // Ensure type compatibility
     },
   });
+
+  // Effect to reset the form after successful submission when creating a new task
+  useEffect(() => {
+    if (isSubmitSuccessful && !initialTask) {
+      // Only reset if it's a new task creation (not an update)
+      reset({
+        title: '',
+        description: '',
+        status: 'to-do', // Reset to default status
+        assigneeId: '',
+        dueDate: undefined,
+        projectId: NO_PROJECT_VALUE, // Reset to 'No Project'
+        dependencies: [],
+        subtaskIds: [],
+        priority: undefined,
+      });
+    }
+  }, [isSubmitSuccessful, reset, initialTask]);
 
   /**
    * @brief Handles form submission for creating or updating a task.
    *
-   * This function processes the form data, constructs a task object, and then
-   * calls either `onCreateTask` or `onUpdateTask` based on whether an `initialTask`
-   * is provided. It also handles success/error toasts and form resetting.
+   * This asynchronous function processes the validated form data, converts the
+   * `dueDate` to a timestamp, and adjusts `projectId` if 'No Project' is selected.
+   * It then calls either `onCreateTask` or `onUpdateTask` based on whether an
+   * `initialTask` was provided. It handles success/error toasts and triggers
+   * the `onTaskSaved` callback.
    *
-   * @param {FormValues} data - The validated form data.
+   * @param {FormValues} data - The validated form data from the form.
    * @returns {Promise<void>} A promise that resolves when the task operation is complete.
    */
   const onSubmit = useCallback(
     async (data: FormValues) => {
+      // Convert NO_PROJECT_VALUE to an empty string for database storage if no project is selected
       const finalProjectId =
         data.projectId === NO_PROJECT_VALUE ? '' : data.projectId;
 
+      // Construct the task data object, converting dueDate to a timestamp
       const taskData = {
         title: data.title.trim(),
         description: data.description?.trim() || '',
         status: data.status as TaskStatus,
         assigneeId: data.assigneeId?.trim() || '',
-        dueDate: data.dueDate ? data.dueDate.getTime() : undefined,
+        dueDate: data.dueDate ? data.dueDate.getTime() : undefined, // Convert Date object to timestamp
         projectId: finalProjectId,
         dependencies: data.dependencies,
         subtaskIds: data.subtaskIds,
@@ -153,52 +159,56 @@ const TaskForm = ({
 
       try {
         if (initialTask) {
-          // Update existing task
+          // Logic for updating an existing task
           if (onUpdateTask) {
             const updatedTask: Task = {
-              ...initialTask,
-              ...taskData,
-              updatedAt: Date.now(),
+              ...initialTask, // Retain existing task ID and creation timestamp
+              ...taskData, // Apply updated fields
+              updatedAt: Date.now(), // Update modification timestamp
             };
             await onUpdateTask(updatedTask);
-            onTaskSaved?.();
+            toast.success(`Task "${updatedTask.title}" updated successfully!`);
           }
         } else {
-          // Create new task
+          // Logic for creating a new task
           if (onCreateTask) {
             await onCreateTask({
               ...taskData,
             });
-            onTaskSaved?.();
-            reset();
+            toast.success(`Task "${taskData.title}" added successfully!`);
           }
         }
+        onTaskSaved?.(); // Call the callback if provided (e.g., to close a modal)
       } catch (error) {
+        // Generic error message for persistence failures
         toast.error(
           `Failed to ${initialTask ? 'update' : 'add'} task. Please try again.`,
         );
+        logger.error('Task persistence failed:', error); // Log the error for debugging
       }
     },
-    [initialTask, onCreateTask, onUpdateTask, onTaskSaved, reset],
+    [initialTask, onCreateTask, onUpdateTask, onTaskSaved], // Dependencies for useCallback
   );
 
+  // Watch form values to control select components and default values
   const statusValue = watch('status');
   const projectValue = watch('projectId');
   const dependenciesValue = watch('dependencies');
-  const subtaskIdsValue = watch('subtaskIds'); // Changed from subtasks to subtaskIds
+  const subtaskIdsValue = watch('subtaskIds');
   const priorityValue = watch('priority');
 
   /**
    * @brief Memoizes the project options for the project selection dropdown.
    *
    * Filters out projects with invalid or empty IDs and maps valid projects
-   * to `SelectItem` components.
+   * to `SelectItem` components, ensuring only valid options are displayed.
    *
    * @returns {JSX.Element[]} An array of `SelectItem` components for projects.
    */
   const projectSelectItems = useMemo(() => {
     return projects
       .filter((project) => {
+        // Filter out projects with invalid or empty IDs
         if (!project.id || project.id.trim() === '') {
           logger.warn(
             `Skipping project with invalid or empty ID: ${JSON.stringify(project)}`,
@@ -218,13 +228,14 @@ const TaskForm = ({
   /**
    * @brief Memoizes the task options for the dependencies and subtasks multi-select components.
    *
-   * Filters out the current task (if in edit mode) to prevent self-referencing dependencies/subtasks.
+   * Filters out the current task (if in edit mode) to prevent self-referencing
+   * dependencies/subtasks, and maps remaining tasks to options suitable for `MySelectComponent`.
    *
    * @returns {{ label: string; value: string; }[]} An array of objects, each representing a task option.
    */
   const taskOptions = useMemo(() => {
     return allTasks
-      .filter((task: Task) => task.id !== initialTask?.id)
+      .filter((task: Task) => task.id !== initialTask?.id) // Exclude the current task from its own dependencies/subtasks
       .map((task: Task) => ({
         label: task.title,
         value: task.id,
@@ -239,12 +250,14 @@ const TaskForm = ({
           id="title"
           type="text"
           placeholder="Enter task title"
-          {...register('title')}
-          aria-invalid={errors.title ? 'true' : 'false'}
+          {...register('title')} // Register input with react-hook-form
+          aria-invalid={errors.title ? 'true' : 'false'} // Accessibility: indicate invalid state
           aria-label="Task Title"
         />
         {errors.title && (
-          <p className="text-red-500 text-sm mt-1">{errors.title?.message}</p>
+          <p className="text-red-500 text-sm mt-1" role="alert">
+            {errors.title?.message}
+          </p>
         )}
       </div>
       <div>
@@ -253,11 +266,11 @@ const TaskForm = ({
           id="description"
           placeholder="Enter task description"
           rows={3}
-          {...register('description')}
+          {...register('description')} // Register textarea with react-hook-form
           aria-label="Task Description"
         />
         {errors.description && (
-          <p className="text-red-500 text-sm mt-1">
+          <p className="text-red-500 text-sm mt-1" role="alert">
             {errors.description?.message}
           </p>
         )}
@@ -272,33 +285,29 @@ const TaskForm = ({
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
-            {TASK_STATUSES.map(
-              (
-                status: { id: TaskStatus; title: string }, // Explicitly type status
-              ) => (
-                <SelectItem
-                  key={status.id}
-                  value={status.id}
-                  label={status.title}
-                >
-                  {status.title}
-                </SelectItem>
-              ),
-            )}
+            {TASK_STATUSES.map((status) => (
+              <SelectItem
+                key={status.id}
+                value={status.id}
+                label={status.title}
+              >
+                {status.title}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
       <div>
         <Label htmlFor="assigneeId">Assignee (optional)</Label>
         <Input
-          id="assigneeId" // Changed from assignee to assigneeId
+          id="assigneeId"
           type="text"
           placeholder="Enter assignee name"
-          {...register('assigneeId')} // Changed from assignee to assigneeId
+          {...register('assigneeId')}
           aria-label="Task Assignee"
         />
         {errors.assigneeId && (
-          <p className="text-red-500 text-sm mt-1">
+          <p className="text-red-500 text-sm mt-1" role="alert">
             {errors.assigneeId?.message}
           </p>
         )}
@@ -308,11 +317,13 @@ const TaskForm = ({
         <Input
           id="dueDate"
           type="date"
-          {...register('dueDate', { valueAsDate: true })}
+          {...register('dueDate', { valueAsDate: true })} // valueAsDate converts input string to Date object
           aria-label="Task Due Date"
         />
         {errors.dueDate && (
-          <p className="text-red-500 text-sm mt-1">{errors.dueDate?.message}</p>
+          <p className="text-red-500 text-sm mt-1" role="alert">
+            {errors.dueDate?.message}
+          </p>
         )}
       </div>
       <div>
@@ -372,12 +383,13 @@ const TaskForm = ({
         <MySelectComponent<true>
           options={taskOptions}
           placeholder="Select subtasks"
-          onValueChange={(values: string[]) => setValue('subtaskIds', values)} // Changed from subtasks to subtaskIds
-          defaultValue={subtaskIdsValue} // Changed from subtasksValue to subtaskIdsValue
+          onValueChange={(values: string[]) => setValue('subtaskIds', values)}
+          defaultValue={subtaskIdsValue}
           isMulti
         />
       </div>
       <div className="flex justify-end">
+        {/* Render Cancel button only in edit mode if onCancel callback is provided */}
         {initialTask && onCancel && (
           <Button
             type="button"

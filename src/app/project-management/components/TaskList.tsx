@@ -1,89 +1,71 @@
-// src/app/project-management/components/TaskList.tsx
 'use client';
 
 import React, { useMemo, useCallback } from 'react';
 import { Task, Project } from '@/lib/indexeddb-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useDroppable, DndContext } from '@dnd-kit/core';
+import { useDroppable } from '@dnd-kit/core'; // Removed DndContext as it's in parent
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import SortableTaskItem from './SortableTaskItem'; // Import the new component
+import SortableTaskItem from './SortableTaskItem';
 
 /**
  * @interface TaskListProps
  * @brief Props for the TaskList component.
+ * @property {string} id - The unique identifier for this task list column (e.g., 'to-do', 'in-progress', 'completed'). This also serves as the droppable ID.
+ * @property {string} title - The title to display for this task list column (e.g., 'To Do', 'In Progress').
+ * @property {Task[]} tasks - The array of tasks to display in this specific column.
+ * @property {(updatedOrNewTask: Task) => Promise<void>} onTaskPersist - Callback function to be called when a task is updated or created and needs persistence (e.g., a comment is added from TaskDetails).
+ * @property {Project[]} projects - The array of all available projects, used for displaying project names associated with tasks.
+ * @property {Task[]} allTasks - All tasks across all columns, used for resolving dependencies and subtasks in TaskItem/TaskDetails.
+ * @property {(id: string) => Promise<void>} onDeleteTask - Callback function to handle task deletion.
+ * @property {(task: Task) => void} onViewTaskDetails - Callback function to handle viewing task details in a modal.
  */
 interface TaskListProps {
-  /**
-   * @brief The unique identifier for this task list column (e.g., 'to-do', 'in-progress', 'completed').
-   */
   id: string;
-  /**
-   * @brief The title to display for this task list column.
-   */
   title: string;
-  /**
-   * @brief The array of tasks to display in this column.
-   */
   tasks: Task[];
-  /**
-   * @brief Function to update the list of tasks.
-   * Accepts a functional update to prevent stale closure issues.
-   */
-  /**
-   * @brief Callback function to be called when a task is updated or created and needs persistence.
-   */
   onTaskPersist: (updatedOrNewTask: Task) => Promise<void>;
-  /**
-   * @brief The array of available projects, used for displaying project names associated with tasks.
-   */
   projects: Project[];
-  /**
-   * @brief All tasks across all columns, used for resolving dependencies and subtasks.
-   */
   allTasks: Task[];
-  /**
-   * @brief Callback function to handle task deletion.
-   */
   onDeleteTask: (id: string) => Promise<void>;
-  /**
-   * @brief Callback function to handle viewing task details.
-   */
   onViewTaskDetails: (task: Task) => void;
 }
 
 /**
  * @component TaskList
- * @brief Displays a Kanban-style board for tasks, allowing filtering, editing, and deletion.
+ * @brief Displays a Kanban-style column for tasks, enabling drag-and-drop reordering and status changes.
  *
- * This component organizes tasks by status (To Do, In Progress, Completed) and provides
- * functionality to add, edit, and delete tasks. It also integrates drag-and-drop
- * capabilities (via Draggable/Droppable components) and displays associated project names.
+ * This component represents a single column (e.g., "To Do", "In Progress", "Completed")
+ * in the Kanban board. It uses `dnd-kit`'s `useDroppable` to allow tasks to be dropped
+ * into it and `SortableContext` to enable reordering of tasks within the column.
+ * It renders `SortableTaskItem` components for each task.
  *
  * @param {TaskListProps} props The props for the component.
- * @returns {JSX.Element} The TaskList component.
+ * @returns {JSX.Element} The TaskList component, representing a Kanban column.
  */
-
 const TaskList = ({
-  id,
-  title,
-  tasks,
-  projects,
-  onTaskPersist, // Renamed prop
-  allTasks,
-  onDeleteTask, // Destructure new prop
-  onViewTaskDetails, // Destructure new prop
+  id, // Unique ID for this column (e.g., 'to-do')
+  title, // Display title for the column (e.g., 'To Do')
+  tasks, // Tasks specific to this column
+  projects, // All projects for task display
+  onTaskPersist, // Handler for persisting task updates
+  allTasks, // All tasks for dependency/subtask resolution
+  onDeleteTask, // Handler for deleting tasks
+  onViewTaskDetails, // Handler for viewing task details
 }: TaskListProps) => {
-  // Removed unused state variables: isEditModalOpen and selectedTask
-
+  // useDroppable hook to make the column a valid drop target
   const { setNodeRef } = useDroppable({
-    id: id,
+    id: id, // The ID of the droppable container is the column's ID
   });
 
   /**
-   * Memoizes projects into a Map for O(1) lookup by ID.
+   * @brief Memoizes all projects into a Map for efficient O(1) lookup by ID.
+   *
+   * This map is used by `TaskItem` components to quickly retrieve project names
+   * associated with tasks, avoiding repetitive linear searches.
+   *
    * @returns {Map<string, Project>} A Map where keys are project IDs and values are Project objects.
    */
   const projectsMap = useMemo(() => {
@@ -97,8 +79,9 @@ const TaskList = ({
   }, [projects]);
 
   /**
-   * Helper function to get project name by ID.
-   * Uses a memoized Map for efficient lookup.
+   * @brief Helper function to get project name by ID.
+   * Uses the memoized `projectsMap` for efficient lookup.
+   *
    * @param {string | undefined} projectId - The ID of the project.
    * @returns {string} The name of the project, or 'No Project'/'Unknown Project' if not found.
    */
@@ -113,6 +96,10 @@ const TaskList = ({
 
   /**
    * @brief Handles opening the task details modal.
+   *
+   * This function is a wrapper around the `onViewTaskDetails` prop, ensuring
+   * that the correct task object is passed to the parent handler.
+   *
    * @param {Task} task - The task object to view details for.
    */
   const handleViewTaskDetailsClick = useCallback(
@@ -123,24 +110,23 @@ const TaskList = ({
   );
 
   /**
-   * @brief Handles closing the edit task modal.
-   * Uses `useCallback` for memoization.
-   */
-  // Removed handleCloseEditModal as it's no longer needed
-
-  /**
-   * @brief Handles the successful update/creation of a task from TaskForm or TaskDetails, closing the modal if it was an edit.
-   * Uses `useCallback` for memoization.
+   * @brief Handles the successful update/creation of a task from TaskForm or TaskDetails.
+   *
+   * This function is passed down to `SortableTaskItem` and subsequently to `TaskItem`
+   * and `TaskDetails`. It ensures that any changes made to a task (e.g., adding a comment,
+   * marking complete) are propagated up to the main state management hook (`useTaskManagement`)
+   * for persistence.
+   *
    * @param {Task} updatedOrNewTask - The task object that was updated or newly created.
+   * @returns {Promise<void>} A promise that resolves when the task persistence is complete.
    */
   const handleTaskFormUpdated = useCallback(
     async (updatedOrNewTask: Task) => {
-      // Propagate the update to the parent (ProjectManagementPage) to ensure the main tasks state is updated and persisted
-      await onTaskPersist(updatedOrNewTask); // Await the persistence handler
-
-      // Removed logic related to closing edit modal as it's no longer needed in TaskList
+      // Propagate the update to the parent (ProjectManagementPage -> useTaskManagement)
+      // to ensure the main tasks state is updated and persisted in IndexedDB.
+      await onTaskPersist(updatedOrNewTask);
     },
-    [onTaskPersist], // Dependency array updated
+    [onTaskPersist], // Dependency array includes the persistence handler
   );
 
   return (
@@ -150,16 +136,21 @@ const TaskList = ({
       </CardHeader>
       <CardContent>
         <div
-          ref={setNodeRef}
+          ref={setNodeRef} // Attach the droppable ref to this div
           className="space-y-3 min-h-[100px] p-2 rounded-md bg-muted/40"
+          aria-label={`Task list for ${title} status`}
         >
+          {/* SortableContext enables drag-and-drop sorting for items within this list */}
           <SortableContext
-            items={tasks.map((task) => task.id)}
-            strategy={verticalListSortingStrategy}
+            items={tasks.map((task) => task.id)} // Provide IDs of sortable items
+            strategy={verticalListSortingStrategy} // Use vertical list sorting strategy
           >
-            {/* Map tasks for the current section using memoized data */}
+            {/* Conditional rendering: display message if no tasks, otherwise map tasks */}
             {tasks.length === 0 ? (
-              <p className="text-muted-foreground text-center text-sm py-4">
+              <p
+                className="text-muted-foreground text-center text-sm py-4"
+                role="status"
+              >
                 No tasks in this column.
               </p>
             ) : (
@@ -168,10 +159,10 @@ const TaskList = ({
                   key={task.id}
                   task={task}
                   projects={projects}
-                  onDeleteTask={onDeleteTask} // Use the prop directly
+                  onDeleteTask={onDeleteTask}
                   allTasks={allTasks}
-                  onTaskPersist={handleTaskFormUpdated} // Pass the correct prop name
-                  onViewTaskDetails={handleViewTaskDetailsClick} // Use the new handler
+                  onTaskPersist={handleTaskFormUpdated} // Pass the handler for task updates
+                  onViewTaskDetails={handleViewTaskDetailsClick} // Pass the handler for viewing details
                 />
               ))
             )}
