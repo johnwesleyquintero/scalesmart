@@ -1,27 +1,21 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAmazonDataIntegration } from '@/lib/hooks/useAmazonDataIntegration'; // Import the new hook
 import type { UseAmazonDataIntegrationReturn } from '@/lib/hooks/useAmazonDataIntegration'; // Import the return type interface from the hook
 
 /**
- * `DataIntegrationTab` is responsible for handling all data loading, parsing,
- * transformation, and state management for the Amazon Seller Tools dashboard.
- * It acts as the exclusive data source, providing processed metrics and
- * related states/callbacks to its parent component.
+ * `DataIntegrationTab` displays information about data integration for Amazon Seller Tools.
+ * It now receives all necessary data and callbacks as props from its parent component,
+ * which manages the `useAmazonDataIntegration` hook. This ensures a single source of truth
+ * for data states and actions.
  *
- * @returns {JSX.Element} The Data Integration tab content, including data upload/mapping UI.
+ * @param {UseAmazonDataIntegrationReturn} props - The data and callbacks from the `useAmazonDataIntegration` hook.
+ * @returns {JSX.Element} The Data Integration tab content.
  */
-const DataIntegrationTab: React.FC<{
-  onDataUpdate: (data: UseAmazonDataIntegrationReturn) => void;
-}> = ({ onDataUpdate }) => {
-  const data = useAmazonDataIntegration();
-
-  // Effect to notify parent of data updates
-  useEffect(() => {
-    onDataUpdate(data);
-  }, [data, onDataUpdate]);
+const DataIntegrationTab: React.FC<UseAmazonDataIntegrationReturn> = (props) => {
+  // Destructure props if needed, or use `props.propertyName` directly in JSX
+  // For now, we'll just pass props directly to any child components that need them.
 
   return (
     <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">

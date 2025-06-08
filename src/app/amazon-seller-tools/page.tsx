@@ -21,7 +21,7 @@ import DashboardHeader from '@/components/amazon-seller-tools/DashboardHeader';
 import OverviewTab from '@/components/amazon-seller-tools/OverviewTab';
 import { WhatsNewModal } from '@/components/amazon-seller-tools/WhatsNewModal';
 import DataIntegrationTab from '@/components/amazon-seller-tools/DataIntegrationTab'; // Import the new tab component
-import type { UseAmazonDataIntegrationReturn } from '@/lib/hooks/useAmazonDataIntegration'; // Import the return type interface from the hook
+import { useAmazonDataIntegration } from '@/lib/hooks/useAmazonDataIntegration'; // Import the custom hook
 
 // Utility & Config
 import { exportToCSV } from '@/lib/amazon-tools/export-utils';
@@ -444,50 +444,17 @@ export default function UnifiedDashboard() {
 
   // State to hold all data and callbacks provided by the DataIntegrationTab component.
   // This state is updated via the `onDataUpdate` prop passed to DataIntegrationTab.
-  // It includes metrics, loading/parsing/error states, and functions for data manipulation.
-  // The verbose initialization is necessary to fully type the state and provide initial values
-  // matching the UseAmazonDataIntegrationReturn interface.
-  const [dataIntegrationData, setDataIntegrationData] =
-    useState<UseAmazonDataIntegrationReturn>({
-      metrics: [],
-      isLoading: false,
-      isParsing: false,
-      error: null,
-      searchTerm: '',
-      timeGranularity: 'daily',
-      timeRange: 'custom',
-      customDateRange: { from: undefined, to: undefined },
-      aggregatedAndSortedMetrics: [],
-      productPerformanceData: [],
-      productPerformanceTableColumns: [],
-      productPerformanceRowIdAccessor: () => '',
-      onDeleteMetric: () => {},
-      onRefreshData: () => {},
-      onLoadSampleData: () => {},
-      onUploadFile: () => {},
-      onDownloadSampleCsv: async () => {}, // Ensure this matches the updated type
-      fileInputRef: { current: null },
-      showMapper: false,
-      csvHeaders: [],
-      firstCsvDataRow: undefined,
-      handleMappingComplete: async () => {},
-      handleMappingCancel: () => {},
-      savedMapping: null,
-      parsingErrors: [],
-      isUploading: false,
-      isMapping: false,
-      isProcessing: false,
-      totalRows: 0,
-      processedRows: 0,
-      setTimeGranularity: () => {},
-      setTimeRange: () => {},
-      setCustomDateRange: () => {},
-      setSearchTerm: () => {},
-      overviewDataMapperKey: 0, // Added missing property
-    });
+  // Use the custom hook to manage all data integration states and callbacks.
+  // This centralizes data logic and simplifies the component.
+  const dataIntegrationData = useAmazonDataIntegration();
 
-  // Destructure necessary callbacks and states from the fully typed state
+  // Destructure necessary callbacks and states from the hook's return value.
   const {
+    metrics,
+    isLoading,
+    isParsing,
+    error,
+    searchTerm,
     onRefreshData,
     onUploadFile,
     onLoadSampleData,
@@ -563,7 +530,7 @@ export default function UnifiedDashboard() {
    * Provides user feedback via toasts.
    */
   const handleExport = useCallback(() => {
-    if (dataIntegrationData.metrics?.length === 0) {
+    if (metrics?.length === 0) {
       toast.error(
         'No data available to export. Please upload or generate data first.',
       );
@@ -571,9 +538,7 @@ export default function UnifiedDashboard() {
     }
 
     // Transform metrics to a flat format compatible with CSV export using the helper function.
-    const exportableMetrics = (dataIntegrationData.metrics || []).map(
-      transformMetricForExport,
-    );
+    const exportableMetrics = (metrics || []).map(transformMetricForExport);
 
     try {
       exportToCSV(exportableMetrics, 'amazon_seller_tools_data.csv');
@@ -582,7 +547,7 @@ export default function UnifiedDashboard() {
       console.error('Export failed:', e);
       toast.error('Failed to export data. Please try again.'); // Add error toast
     }
-  }, [dataIntegrationData.metrics]); // Dependency array includes dataIntegrationData.metrics
+  }, [metrics]); // Dependency array includes metrics from the hook
 
   /**
    * Memoized callback to handle changing the main dashboard tab and updating the URL search parameter.
@@ -641,14 +606,15 @@ export default function UnifiedDashboard() {
           optimize listings, and improve performance.
         </div>
 
+        {/* DashboardHeader now receives props directly from the useAmazonDataIntegration hook */}
         <DashboardHeader
-          isLoading={dataIntegrationData.isLoading || false}
-          isParsing={dataIntegrationData.isParsing || false}
-          error={dataIntegrationData.error || null}
-          metricsLength={dataIntegrationData.metrics?.length || 0}
+          isLoading={isLoading}
+          isParsing={isParsing}
+          error={error}
+          metricsLength={metrics?.length || 0}
           handleRefresh={handleRefresh}
           handleExport={handleExport}
-          metrics={dataIntegrationData.metrics || []}
+          metrics={metrics || []}
           onSearch={setSearchTerm}
         />
 
@@ -670,7 +636,7 @@ export default function UnifiedDashboard() {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 mt-4">
-            {/* OverviewTab now receives the entire dataIntegrationData object */}
+            {/* OverviewTab now receives the entire dataIntegrationData object from the hook */}
             <OverviewTab {...dataIntegrationData} />
           </TabsContent>
 
@@ -714,9 +680,10 @@ export default function UnifiedDashboard() {
             />
           </TabsContent>
 
-          {/* New Data Integration Tab */}
+          {/* Data Integration Tab now uses the hook's return values directly */}
           <TabsContent value="data-integration" className="space-y-4 mt-4">
-            <DataIntegrationTab onDataUpdate={setDataIntegrationData} />
+            {/* Pass the entire dataIntegrationData object to DataIntegrationTab */}
+            <DataIntegrationTab {...dataIntegrationData} />
           </TabsContent>
         </Tabs>
 
