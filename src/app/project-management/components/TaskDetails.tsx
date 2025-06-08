@@ -177,7 +177,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         setIsEditing(false); // Exit edit mode
         toast.success(`Task "${updatedTask.title}" updated successfully!`); // Add success toast
       } catch (error) {
-        toast.error(`Failed to update task "${updatedTask.title}". Please try again.`); // Add error toast
+        toast.error(
+          `Failed to update task "${updatedTask.title}". Please try again.`,
+        ); // Add error toast
         console.error('Failed to update task:', error); // Log error
       }
     },
@@ -209,7 +211,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       await onTaskPersist(updatedTask); // Await the parent's update handler
       toast.success(`Task "${updatedTask.title}" marked as completed!`);
     } catch (error) {
-      toast.error(`Failed to mark task "${task.title}" as complete. Please try again.`);
+      toast.error(
+        `Failed to mark task "${task.title}" as complete. Please try again.`,
+      );
       console.error('Failed to mark task complete:', error);
     }
   }, [task, onTaskPersist]);

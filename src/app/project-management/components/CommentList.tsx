@@ -54,11 +54,15 @@ const CommentList: React.FC<CommentListProps> = ({
     }
   }, [newCommentText, onAddComment, taskId]);
 
-  const handleKeyPress = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !loading) { // Trigger on Enter key press, only if not loading
-      handleAddComment();
-    }
-  }, [handleAddComment, loading]);
+  const handleKeyPress = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter' && !loading) {
+        // Trigger on Enter key press, only if not loading
+        handleAddComment();
+      }
+    },
+    [handleAddComment, loading],
+  );
 
   return (
     <div>
@@ -89,8 +93,15 @@ const CommentList: React.FC<CommentListProps> = ({
           onKeyPress={handleKeyPress} // Add key press handler
           className="flex-1"
         />
-        <Button onClick={handleAddComment} size="sm" disabled={loading || newCommentText.trim() === ''}> {/* Disable button when loading or input is empty */}
-          {loading ? 'Adding...' : 'Add Comment'} {/* Change button text when loading */}
+        <Button
+          onClick={handleAddComment}
+          size="sm"
+          disabled={loading || newCommentText.trim() === ''}
+        >
+          {' '}
+          {/* Disable button when loading or input is empty */}
+          {loading ? 'Adding...' : 'Add Comment'}{' '}
+          {/* Change button text when loading */}
         </Button>
       </div>
     </div>

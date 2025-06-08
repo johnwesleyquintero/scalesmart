@@ -104,84 +104,85 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
         <div
           className="bg-card p-3 rounded-md shadow-sm border border-border cursor-pointer hover:bg-accent/50 transition-colors duration-200"
           onClick={() => onViewTaskDetails(task)} // Make the entire card clickable
-        aria-label={`View details for task ${task.title}`}
-      >
-        <h3 className="font-semibold text-base mb-1 text-foreground">
-          {task.title}
-        </h3>
-        {task.description && (
-          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-            {task.description}
-          </p>
-        )}
-        <div className="flex flex-wrap items-center text-xs text-muted-foreground gap-y-1">
-          {task.assigneeId && (
-            <div className="flex items-center mr-3">
-              <UserRound className="h-3 w-3 mr-1" />
-              <span>{task.assigneeId}</span>
-            </div>
+          aria-label={`View details for task ${task.title}`}
+        >
+          <h3 className="font-semibold text-base mb-1 text-foreground">
+            {task.title}
+          </h3>
+          {task.description && (
+            <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+              {task.description}
+            </p>
           )}
-          {task.dueDate && (
-            <div className="flex items-center mr-3">
-              <CalendarIcon className="h-3 w-3 mr-1" />
-              <span>{formatDate(task.dueDate)}</span>
-            </div>
-          )}
-          {task.projectId && (
-            <div className="flex items-center mr-3">
-              <Tag className="h-3 w-3 mr-1" />
-              <span>Project: {getProjectName(task.projectId)}</span>
-            </div>
-          )}
-          {task.priority && (
-            <div className="flex items-center mr-3">
-              <Flag className={`h-3 w-3 mr-1 ${priorityClass}`} />
-              <span>
-                Priority:{' '}
-                {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
-              </span>
-            </div>
-          )}
-        </div>
-
-        {task.dependencies && task.dependencies.length > 0 && (
-          <div className="text-xs text-muted-foreground mt-2">
-            <span className="font-medium">Dependencies: </span>
-            {task.dependencies
-              .map((dependencyId: string) => {
-                const dependency = allTasksMap.get(dependencyId); // Use the map
-                return dependency ? dependency.title : 'Unknown Task';
-              })
-              .join(', ')}
+          <div className="flex flex-wrap items-center text-xs text-muted-foreground gap-y-1">
+            {task.assigneeId && (
+              <div className="flex items-center mr-3">
+                <UserRound className="h-3 w-3 mr-1" />
+                <span>{task.assigneeId}</span>
+              </div>
+            )}
+            {task.dueDate && (
+              <div className="flex items-center mr-3">
+                <CalendarIcon className="h-3 w-3 mr-1" />
+                <span>{formatDate(task.dueDate)}</span>
+              </div>
+            )}
+            {task.projectId && (
+              <div className="flex items-center mr-3">
+                <Tag className="h-3 w-3 mr-1" />
+                <span>Project: {getProjectName(task.projectId)}</span>
+              </div>
+            )}
+            {task.priority && (
+              <div className="flex items-center mr-3">
+                <Flag className={`h-3 w-3 mr-1 ${priorityClass}`} />
+                <span>
+                  Priority:{' '}
+                  {task.priority.charAt(0).toUpperCase() +
+                    task.priority.slice(1)}
+                </span>
+              </div>
+            )}
           </div>
-        )}
-        {task.subtaskIds && task.subtaskIds.length > 0 && (
-          <div className="text-xs text-muted-foreground mt-1">
-            <span className="font-medium">Subtasks: </span>
-            {task.subtaskIds
-              .map((subtaskId: string) => {
-                const subtask = allTasksMap.get(subtaskId); // Use the map
-                return subtask ? subtask.title : 'Unknown Task';
-              })
-              .join(', ')}
-          </div>
-        )}
 
-        <div className="flex space-x-2 mt-3">
-          <Button
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent opening details modal
-              setIsDeleteConfirmModalOpen(true); // Open the delete confirmation modal
-            }}
-            variant="destructive"
-            size="sm"
-            className="text-xs"
-            aria-label={`Delete task ${task.title}`}
-          >
-            Delete
-          </Button>
+          {task.dependencies && task.dependencies.length > 0 && (
+            <div className="text-xs text-muted-foreground mt-2">
+              <span className="font-medium">Dependencies: </span>
+              {task.dependencies
+                .map((dependencyId: string) => {
+                  const dependency = allTasksMap.get(dependencyId); // Use the map
+                  return dependency ? dependency.title : 'Unknown Task';
+                })
+                .join(', ')}
+            </div>
+          )}
+          {task.subtaskIds && task.subtaskIds.length > 0 && (
+            <div className="text-xs text-muted-foreground mt-1">
+              <span className="font-medium">Subtasks: </span>
+              {task.subtaskIds
+                .map((subtaskId: string) => {
+                  const subtask = allTasksMap.get(subtaskId); // Use the map
+                  return subtask ? subtask.title : 'Unknown Task';
+                })
+                .join(', ')}
+            </div>
+          )}
+
+          <div className="flex space-x-2 mt-3">
+            <Button
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent opening details modal
+                setIsDeleteConfirmModalOpen(true); // Open the delete confirmation modal
+              }}
+              variant="destructive"
+              size="sm"
+              className="text-xs"
+              aria-label={`Delete task ${task.title}`}
+            >
+              Delete
+            </Button>
+          </div>
         </div>
-      </div>
 
         {/* Delete Confirmation Modal */}
         <Dialog
