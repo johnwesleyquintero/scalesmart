@@ -11,11 +11,22 @@ import ReactPaginate from 'react-paginate';
 import { toast } from 'sonner';
 import useDebounce from '@/hooks/use-debounce';
 import { CustomerListContent } from './CustomerListContent'; // Import the extracted component
-import type { Contact, CommunicationLog, Category } from '../types';
+import type { Contact, CommunicationLog, Category, SalesStage } from '../types';
 import {
   filterCustomers,
   generateCustomerCSVData,
 } from '../utils/customerUtils';
+
+// Define the possible sales stages for the dropdown
+const SALES_STAGES: SalesStage[] = [
+  'Lead',
+  'Prospect',
+  'Qualified',
+  'Proposal',
+  'Negotiation',
+  'Closed Won',
+  'Closed Lost',
+];
 
 interface CustomerListTabProps {
   customers: Contact[];
@@ -48,6 +59,8 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
   const [currentPage, setCurrentPage] = useState(0);
   const [itemsPerPage] = useState(5);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSalesStage, setSelectedSalesStage] =
+    useState<SalesStage | null>(null); // New state for sales stage filter
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
 
   const handlePageClick = (selectedObject: { selected: number }) => {
@@ -100,6 +113,7 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
     customers,
     debouncedSearchQuery,
     selectedCategory,
+    selectedSalesStage, // Pass the new sales stage filter
   );
 
   const pageCount = Math.ceil(filteredCustomers.length / itemsPerPage);
@@ -160,6 +174,20 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
               </option>
             ))}
             <option value="Uncategorized">Uncategorized</option>
+          </select>
+          <select
+            value={selectedSalesStage || ''}
+            onChange={(e) =>
+              setSelectedSalesStage((e.target.value as SalesStage) || null)
+            }
+            className="w-full sm:w-auto p-2 border rounded-md bg-background text-foreground"
+          >
+            <option value="">All Sales Stages</option>
+            {SALES_STAGES.map((stage) => (
+              <option key={stage} value={stage}>
+                {stage}
+              </option>
+            ))}
           </select>
           <Button
             variant="outline"

@@ -82,6 +82,8 @@ export const useCRMData = () => {
         const updatedCustomer: Contact = {
           ...formData,
           id: editingCustomer.id, // Retain the original ID for update.
+          lastContacted: editingCustomer.lastContacted, // Preserve existing lastContacted
+          communicationLogs: editingCustomer.communicationLogs, // Preserve existing communication logs
         };
         try {
           await updateContact(updatedCustomer);
@@ -91,8 +93,6 @@ export const useCRMData = () => {
                 ? {
                     ...customer,
                     ...updatedCustomer,
-                    // Preserve existing communication logs as they are not part of the form data.
-                    communicationLogs: customer.communicationLogs,
                   }
                 : customer,
             ),
@@ -108,7 +108,7 @@ export const useCRMData = () => {
         // If no `editingCustomer`, create a new contact.
         const newCustomerData: Omit<
           Contact,
-          'id' | 'creationTimestamp' | 'updateTimestamp'
+          'id' | 'createdAt' | 'updatedAt' | 'lastContacted'
         > = {
           name: formData.name,
           email: formData.email,
@@ -117,6 +117,7 @@ export const useCRMData = () => {
           notes: formData.notes,
           category: formData.category,
           address: formData.address,
+          salesStage: formData.salesStage, // Include salesStage
           communicationLogs: formData.communicationLogs,
         };
         try {
@@ -134,7 +135,10 @@ export const useCRMData = () => {
             ...newCustomerData,
             id: newId,
             category: newCustomerData.category || '', // Ensure category is an empty string if not set.
+            salesStage: newCustomerData.salesStage || 'Lead', // Ensure salesStage is 'Lead' if not set.
             communicationLogs: [], // New customers start with an empty array of logs.
+            createdAt: Date.now(), // Set creation timestamp
+            updatedAt: Date.now(), // Set update timestamp
           } as Contact;
           setCustomers((prevCustomers) => [
             ...prevCustomers,
@@ -298,6 +302,7 @@ export const useCRMData = () => {
                       ...(cust.communicationLogs || []),
                       { ...log, id: newLogId },
                     ],
+                    lastContacted: Date.now(), // Update lastContacted timestamp
                   }
                 : cust,
             ),

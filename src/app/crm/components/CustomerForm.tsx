@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useEffect } from 'react';
-import type { Contact, Category } from '../types'; // Import Category
+import type { Contact, Category, SalesStage } from '../types'; // Import Category and SalesStage
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -23,6 +23,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'; // Import Select components
+
+// Define the possible sales stages for the dropdown
+const SALES_STAGES = [
+  'Lead',
+  'Prospect',
+  'Qualified',
+  'Proposal',
+  'Negotiation',
+  'Closed Won',
+  'Closed Lost',
+] as const; // Use 'as const' to infer a tuple type
 
 /**
  * Props for the CustomerForm component.
@@ -56,6 +67,7 @@ const customerSchema = z.object({
   company: z.string().optional().nullable(), // Company can be optional and null.
   notes: z.string().optional().nullable(), // Notes can be optional and null.
   category: z.string().optional().nullable(), // Category can be optional and null.
+  salesStage: z.enum(SALES_STAGES).optional().nullable(), // Sales stage can be optional and null.
 });
 
 /**
@@ -73,6 +85,7 @@ const defaultFormData: CustomerFormValues = {
   company: '',
   notes: '',
   category: '', // Default to empty string for no category.
+  salesStage: 'Lead', // Default to 'Lead' for sales stage.
 };
 
 /**
@@ -112,6 +125,7 @@ export function CustomerForm({
       setValue('company', initialData.company || '');
       setValue('notes', initialData.notes || '');
       setValue('category', initialData.category || '');
+      setValue('salesStage', initialData.salesStage || null); // Set sales stage, default to null if not set
     } else {
       reset(defaultFormData); // Reset form to default if no initial data.
     }
@@ -128,6 +142,7 @@ export function CustomerForm({
       phone: data.phone ?? '', // Coalesce null/undefined to empty string.
       company: data.company || '', // Coalesce null/undefined to empty string.
       notes: data.notes || '', // Coalesce null/undefined to empty string.
+      salesStage: data.salesStage || null, // Coalesce null/undefined to null.
       category: data.category || '', // Coalesce null/undefined to empty string.
     });
     // Reset form only if not in editing mode (i.e., adding a new customer).
@@ -223,6 +238,32 @@ export function CustomerForm({
                 label={category.name}
               >
                 {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="salesStage">Sales Stage</Label>
+        <Select
+          onValueChange={(value: string) =>
+            setValue(
+              'salesStage',
+              value === '__no_sales_stage__' ? null : (value as SalesStage),
+            )
+          }
+          value={initialData?.salesStage || '__no_sales_stage__'} // Map null/undefined to special value for display
+        >
+          <SelectTrigger id="salesStage">
+            <SelectValue placeholder="Select sales stage" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__no_sales_stage__" label="No Sales Stage">
+              No Sales Stage
+            </SelectItem>
+            {SALES_STAGES.map((stage) => (
+              <SelectItem key={stage} value={stage} label={stage}>
+                {stage}
               </SelectItem>
             ))}
           </SelectContent>

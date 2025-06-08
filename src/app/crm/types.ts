@@ -21,9 +21,23 @@ export interface Contact {
   category?: string; // Optional: The ID of the category this contact belongs to.
   createdAt?: number; // Optional: Timestamp (milliseconds since epoch) when the contact was created.
   updatedAt?: number; // Optional: Timestamp (milliseconds since epoch) when the contact was last updated.
+  lastContacted?: number; // Optional: Timestamp (milliseconds since epoch) of the last communication.
+  salesStage?: SalesStage | null; // Optional: The current sales stage of the contact, can be null.
   address?: string; // Optional: The physical address of the contact.
   communicationLogs?: CommunicationLog[]; // Optional: An array of communication log entries associated with this contact.
 }
+
+/**
+ * Defines the possible sales stages for a Contact.
+ */
+export type SalesStage =
+  | 'Lead'
+  | 'Prospect'
+  | 'Qualified'
+  | 'Proposal'
+  | 'Negotiation'
+  | 'Closed Won'
+  | 'Closed Lost';
 
 /**
  * Defines the structure for a Communication Log entry.

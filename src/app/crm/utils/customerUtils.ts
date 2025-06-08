@@ -4,7 +4,7 @@
  * including filtering, searching, and exporting to CSV.
  */
 
-import type { Contact } from '../types';
+import type { Contact, SalesStage } from '../types'; // Import SalesStage
 import Papa from 'papaparse';
 import fuzzysort from 'fuzzysort';
 
@@ -44,6 +44,8 @@ export const generateCustomerCSVData = (
     'company',
     'notes',
     'category',
+    'salesStage', // Add salesStage to CSV fields
+    'lastContacted', // Add lastContacted to CSV fields
   ];
 
   // Map customer objects to plain objects with only the desired fields.
@@ -55,6 +57,10 @@ export const generateCustomerCSVData = (
     company: customer.company,
     notes: customer.notes,
     category: customer.category,
+    salesStage: customer.salesStage, // Include salesStage
+    lastContacted: customer.lastContacted // Include lastContacted
+      ? new Date(customer.lastContacted).toISOString()
+      : '', // Format timestamp for CSV
   }));
 
   // Use PapaParse to unparse the data into a CSV string.
@@ -71,12 +77,14 @@ export const generateCustomerCSVData = (
  * @param customers An array of Contact objects to filter.
  * @param searchQuery The search string to apply fuzzy matching against.
  * @param selectedCategory The category name to filter by, or null for all categories.
+ * @param selectedSalesStage The sales stage to filter by, or null for all stages.
  * @returns A new array of filtered Contact objects.
  */
 export const filterCustomers = (
   customers: Contact[],
   searchQuery: string,
   selectedCategory: string | null,
+  selectedSalesStage: SalesStage | null, // Add new parameter
 ): Contact[] => {
   let results = customers;
 
@@ -87,6 +95,13 @@ export const filterCustomers = (
         customer.category === selectedCategory ||
         // Include uncategorized customers if 'Uncategorized' is selected.
         (!customer.category && selectedCategory === 'Uncategorized'),
+    );
+  }
+
+  // Apply sales stage filter if a stage is selected.
+  if (selectedSalesStage) {
+    results = results.filter(
+      (customer) => customer.salesStage === selectedSalesStage,
     );
   }
 

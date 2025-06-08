@@ -144,6 +144,16 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
         {customer.address && (
           <p className="text-muted-foreground">Address: {customer.address}</p>
         )}
+        {customer.salesStage && (
+          <p className="text-muted-foreground">
+            Sales Stage: {customer.salesStage}
+          </p>
+        )}
+        {customer.lastContacted && (
+          <p className="text-muted-foreground">
+            Last Contacted: {new Date(customer.lastContacted).toLocaleString()}
+          </p>
+        )}
         {/* Section for displaying customer notes */}
         {customer.notes && (
           <>
