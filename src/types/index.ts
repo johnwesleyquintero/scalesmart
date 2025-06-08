@@ -33,53 +33,30 @@ export enum ModuleType {
  * @property {boolean} completed - Indicates if the course has been completed by the user.
  * @property {Date} [lastVisited] - Optional timestamp of the last time the course was visited.
  * @property {boolean} [isPublished] - Indicates if the course is published for admin management.
- * @property {number} [creationTimestamp] - Timestamp when the course was created.
- * @property {number} [updateTimestamp] - Timestamp when the course was last updated.
+ * @property {number} [createdAt] - Timestamp when the course was created.
+ * @property {number} [updatedAt] - Timestamp when the course was last updated.
  * @property {{ tags: string[]; category: string; }} metadata - Metadata associated with the course.
  */
-export type Course = {
-  /** Unique identifier for the course. */
+export interface Course {
   id: string;
-  /** Title of the course. */
   title: string;
-  /** The type of module, can be one of the ModuleType enum values or a custom string. */
   type: ModuleType | string;
-  /** A brief description of the course. */
   description: string;
-  /** The total duration of the course. */
   duration: string;
-  /** The difficulty level of the course. */
   level: 'Beginner' | 'Intermediate' | 'Advanced';
-  /** Indicates if the course is locked and inaccessible. */
   locked: boolean;
-  /** Current progress percentage of the user in the course. */
   progress: number;
-  /** An array of modules included in the course. */
   modules: Module[];
-  /** Optional category of the course. */
   category?: string;
-  /** Optional URL for the course's image. */
   imageUrl?: string;
-  /** Optional slug for the course, used in URLs. */
   slug?: string;
-  /** Indicates if the course has been completed by the user. */
   completed: boolean;
-  /** Optional timestamp of the last time the course was visited. */
   lastVisited?: Date;
-  /** Indicates if the course is published for admin management. */
   isPublished?: boolean;
-  /** Timestamp when the course was created. */
-  creationTimestamp?: number;
-  /** Timestamp when the course was last updated. */
-  updateTimestamp?: number;
-  /** Metadata associated with the course. */
-  metadata: {
-    /** Tags associated with the course. */
-    tags: string[];
-    /** Category from metadata. */
-    category: string;
-  };
-};
+  createdAt?: number;
+  updatedAt?: number;
+  metadata: { tags: string[]; category: string };
+}
 
 /**
  * @typedef {object} Module

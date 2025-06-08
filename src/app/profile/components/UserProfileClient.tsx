@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import useUserProfile from '@/hooks/use-user-profile';
 import useAcademyStorage from '@/hooks/use-academy-storage';
-import { Course } from '@/types';
+import { Course, Module } from '@/types';
 import {
   Card,
   CardContent,
@@ -34,7 +34,7 @@ const UserProfileClient: React.FC = () => {
       academyData.courses.forEach((course) => {
         if (course.modules && course.modules.length > 0) {
           const courseTotalModuleProgress = course.modules.reduce(
-            (sum, module) => {
+            (sum: number, module: Module) => {
               return sum + getModuleProgress(module.id);
             },
             0,

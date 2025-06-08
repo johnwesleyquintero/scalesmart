@@ -1,6 +1,11 @@
-import { QuizResult } from './index';
-import { Contact, Category, CommunicationLog } from '@/app/crm/types';
-import { Course } from './index'; // Import Course type
+import { Contact, CommunicationLog } from '../app/crm/types';
+import { QuizResult, Course } from './index';
+
+// Define Category interface
+export interface Category {
+  id: string;
+  name: string;
+}
 
 // Define ProjectStatus enum
 export enum ProjectStatus {
@@ -106,6 +111,4 @@ export interface CalculationData {
   date: number;
   currencySymbol: string;
 }
-
-// Re-export CRM types and Course for convenience if needed elsewhere
-export type { Contact, Category, CommunicationLog, Course };
+// Define constants for duplicate strings

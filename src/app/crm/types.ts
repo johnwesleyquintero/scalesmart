@@ -19,8 +19,8 @@ export interface Contact {
   company?: string; // Optional: The company the contact is associated with.
   notes?: string; // Optional: General notes or remarks about the contact.
   category?: string; // Optional: The ID of the category this contact belongs to.
-  creationTimestamp?: number; // Optional: Timestamp (milliseconds since epoch) when the contact was created.
-  updateTimestamp?: number; // Optional: Timestamp (milliseconds since epoch) when the contact was last updated.
+  createdAt?: number; // Optional: Timestamp (milliseconds since epoch) when the contact was created.
+  updatedAt?: number; // Optional: Timestamp (milliseconds since epoch) when the contact was last updated.
   address?: string; // Optional: The physical address of the contact.
   communicationLogs?: CommunicationLog[]; // Optional: An array of communication log entries associated with this contact.
 }

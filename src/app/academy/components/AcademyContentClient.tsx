@@ -178,7 +178,7 @@ function AcademyContentClient({
     allCourses.forEach((course) => {
       if (course.modules && course.modules.length > 0) {
         const allModulesCompleted = course.modules.every(
-          (m) => getModuleProgress(m.id) === 100,
+          (m: Module) => getModuleProgress(m.id) === 100,
         );
         if (allModulesCompleted) {
           completed.add(course.id);
@@ -254,9 +254,12 @@ function AcademyContentClient({
       if (!course.modules || course.modules.length === 0) {
         return 0;
       }
-      const totalProgress = course.modules.reduce((sum, module) => {
-        return sum + getModuleProgress(module.id);
-      }, 0);
+      const totalProgress = course.modules.reduce(
+        (sum: number, module: Module) => {
+          return sum + getModuleProgress(module.id);
+        },
+        0,
+      );
       return Math.round(totalProgress / course.modules.length);
     },
     [getModuleProgress],
@@ -273,7 +276,9 @@ function AcademyContentClient({
 
   const getCurrentModuleIndex = useCallback(() => {
     if (!activeCourse?.modules || !activeModule) return -1;
-    return activeCourse.modules.findIndex((m) => m.id === activeModule.id);
+    return activeCourse.modules.findIndex(
+      (m: Module) => m.id === activeModule.id,
+    );
   }, [activeCourse, activeModule]);
 
   const handleNextModule = useCallback(() => {
@@ -380,7 +385,7 @@ function AcademyContentClient({
                 </h3>
                 {activeCourse.modules && activeCourse.modules.length > 0 ? (
                   <ol className="list-decimal space-y-1 max-h-60 overflow-y-auto">
-                    {activeCourse.modules.map((module) => (
+                    {activeCourse.modules.map((module: Module) => (
                       <li key={module.id}>
                         <button
                           onClick={() => handleSelectModule(module)}

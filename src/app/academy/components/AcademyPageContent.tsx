@@ -73,11 +73,11 @@ const syncLocalCourses = async (
     const existingCourse = indexedDBCourses.find(
       (c) => c.id === serverCourse.id,
     );
-    const serverTimestamp = serverCourse.updateTimestamp
-      ? new Date(serverCourse.updateTimestamp).getTime()
+    const serverTimestamp = serverCourse.updatedAt
+      ? new Date(serverCourse.updatedAt).getTime()
       : 0;
-    const existingTimestamp = existingCourse?.updateTimestamp
-      ? new Date(existingCourse.updateTimestamp).getTime()
+    const existingTimestamp = existingCourse?.updatedAt
+      ? new Date(existingCourse.updatedAt).getTime()
       : 0;
 
     if (!existingCourse || serverTimestamp > existingTimestamp) {

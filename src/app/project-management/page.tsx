@@ -29,7 +29,10 @@ import {
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
 import { Project } from '@/lib/indexeddb-service'; // Import Project type
-import { TASK_STATUSES } from '@/lib/constants/project-management'; // Import from new constants file
+import {
+  TASK_STATUSES,
+  NO_PROJECT_VALUE,
+} from '@/lib/constants/project-management'; // Import from new constants file
 import { TaskStatus } from '@/types/indexeddb';
 
 /**
@@ -61,7 +64,8 @@ const ProjectManagementPage = () => {
     handleDeleteProject,
   } = useTaskManagement();
 
-  const [selectedProject, setSelectedProject] = useState<string | 'all'>('all'); // State to manage selected project filter
+  const [selectedProject, setSelectedProject] =
+    useState<string>(NO_PROJECT_VALUE); // State to manage selected project filter, initialized to NO_PROJECT_VALUE
   const [isTaskDetailsModalOpen, setIsTaskDetailsModalOpen] = useState(false);
   const [selectedTaskForDetails, setSelectedTaskForDetails] =
     useState<Task | null>(null);
@@ -76,30 +80,15 @@ const ProjectManagementPage = () => {
 
   // Filter tasks by status and selected project for each column
   // Memoize the filtered task lists for performance
+  // Memoize the filtered task list based on selected project
   const filteredTasks = useMemo(() => {
-    if (selectedProject === 'all') {
+    if (selectedProject === NO_PROJECT_VALUE) {
       return tasks;
     }
     return tasks.filter((task) => task.projectId === selectedProject);
   }, [tasks, selectedProject]);
 
-  const todoTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === TaskStatus.Open),
-    [filteredTasks],
-  );
-  const inProgressTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === TaskStatus.InProgress),
-    [filteredTasks],
-  );
-  const completedTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === TaskStatus.Completed),
-    [filteredTasks],
-  );
-
-  const handleViewTaskDetails = (
-    task: Task,
-    initialEditMode: boolean = false,
-  ) => {
+  const handleViewTaskDetails = (task: Task) => {
     setSelectedTaskForDetails(task);
     setIsTaskDetailsModalOpen(true);
   };
@@ -170,7 +159,7 @@ const ProjectManagementPage = () => {
                 onChange={(e) => setSelectedProject(e.target.value)}
                 className="block w-full md:w-1/3 lg:w-1/4 p-2 border border-input rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground"
               >
-                <option value="all">All Projects</option>
+                <option value={NO_PROJECT_VALUE}>All Projects</option>
                 {projects.map((project: Project) => (
                   <option key={project.id} value={project.id}>
                     {project.name}
@@ -186,39 +175,24 @@ const ProjectManagementPage = () => {
             >
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Render TaskList for each status */}
-                <TaskList
-                  key={TaskStatus.Open} // Added key prop
-                  id={TaskStatus.Open}
-                  title="To Do"
-                  tasks={todoTasks}
-                  projects={projects}
-                  allTasks={tasks}
-                  onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
-                  onDeleteTask={handleDeleteTask} // Pass delete handler
-                  onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
-                />
-                <TaskList
-                  key={TaskStatus.InProgress}
-                  id={TaskStatus.InProgress}
-                  title="In Progress"
-                  tasks={inProgressTasks}
-                  projects={projects}
-                  allTasks={tasks}
-                  onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
-                  onDeleteTask={handleDeleteTask} // Pass delete handler
-                  onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
-                />
-                <TaskList
-                  key={TaskStatus.Completed}
-                  id={TaskStatus.Completed}
-                  title="Completed"
-                  tasks={completedTasks}
-                  projects={projects}
-                  allTasks={tasks}
-                  onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
-                  onDeleteTask={handleDeleteTask} // Pass delete handler
-                  onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
-                />
+                {TASK_STATUSES.map((statusConfig) => {
+                  const tasksForStatus = filteredTasks.filter(
+                    (task) => task.status === statusConfig.id,
+                  );
+                  return (
+                    <TaskList
+                      key={statusConfig.id}
+                      id={statusConfig.id}
+                      title={statusConfig.title}
+                      tasks={tasksForStatus}
+                      projects={projects}
+                      allTasks={tasks}
+                      onTaskPersist={handleUpdateTask}
+                      onDeleteTask={handleDeleteTask}
+                      onViewTaskDetails={handleViewTaskDetails}
+                    />
+                  );
+                })}
               </div>
             </DndContext>
             <div className="flex flex-col gap-6 lg:flex-row">

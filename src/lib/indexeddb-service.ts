@@ -1,7 +1,9 @@
 import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
-import { QuizResult } from '@/types'; // Keep QuizResult from '@/types' for now
+import { QuizResult, Course } from '@/types'; // Import QuizResult and Course from '@/types'
+import { Contact, CommunicationLog } from '@/app/crm/types'; // Import CRM types
+import { Category } from '@/types/indexeddb'; // Import Category from '@/types/indexeddb'
 import {
   ChatMessageRecord,
   ModuleProgressRecord,
@@ -11,11 +13,7 @@ import {
   Project,
   Event,
   CalculationData,
-  Contact,
-  Category,
-  CommunicationLog,
-  Course, // Import Course from unified types
-} from '@/types/indexeddb'; // Import unified types
+} from '@/types/indexeddb'; // Import other types from unified types
 
 export type {
   TaskComment,
@@ -29,6 +27,7 @@ export type {
   ChatMessageRecord,
   ModuleProgressRecord,
   QuizResultRecord,
+  Course,
 };
 
 // Define constants for duplicate strings
@@ -312,8 +311,8 @@ export const createContact = async (
     const contactToStore: Contact = {
       ...contact,
       id,
-      creationTimestamp: now, // Use correct property name
-      updateTimestamp: now, // Use correct property name
+      createdAt: now,
+      updatedAt: now,
     };
     await setItem('contacts', id, contactToStore);
     return id;
@@ -343,8 +342,8 @@ export const getContact = async (id: string): Promise<Contact | undefined> => {
 
 export const updateContact = async (contact: Contact): Promise<void> => {
   try {
-    const updateTimestamp = Date.now(); // Use correct property name
-    const contactToStore = { ...contact, updateTimestamp }; // Use correct property name
+    const updatedAt = Date.now();
+    const contactToStore = { ...contact, updatedAt };
     await setItem('contacts', contactToStore.id, contactToStore);
   } catch (error) {
     logError(
@@ -640,8 +639,8 @@ export const createCourse = async (
     const courseToStore: Course = {
       ...courseData,
       id,
-      creationTimestamp: now, // Use correct property name
-      updateTimestamp: now, // Use correct property name
+      createdAt: now,
+      updatedAt: now,
     };
     await setItem('courses', id, courseToStore);
     return id;
@@ -803,7 +802,7 @@ export const getAllCourses = async (): Promise<Course[]> => {
 
 export const updateCourse = async (course: Course): Promise<void> => {
   try {
-    const courseToStore = { ...course, updateTimestamp: Date.now() }; // Use correct property name
+    const courseToStore = { ...course, updatedAt: Date.now() };
     await setItem('courses', courseToStore.id, courseToStore);
   } catch (error) {
     logError(
