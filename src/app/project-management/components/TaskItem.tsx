@@ -1,9 +1,18 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react'; // Import useState
 import { Task, Project } from '@/lib/indexeddb-service';
 import { TaskPriority } from '@/types/indexeddb';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils/date-utils'; // Import formatDate
 import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react';
+import {
+  Dialog, // Import Dialog
+  DialogContent, // Import DialogContent
+  DialogHeader, // Import DialogHeader
+  DialogTitle, // Import DialogTitle
+  DialogFooter, // Import DialogFooter
+  DialogDescription, // Import DialogDescription
+} from '@/components/ui/dialog';
+import { toast } from 'sonner'; // Import toast
 
 interface TaskItemProps {
   task: Task;
@@ -24,6 +33,9 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     onViewTaskDetails,
     onTaskPersist, // Destructure the new prop
   }: TaskItemProps) => {
+    const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] =
+      useState(false); // State for delete confirmation modal
+
     const projectsMap = useMemo(() => {
       const map = new Map<string, Project>();
       projects.forEach((project) => {
@@ -70,10 +82,28 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
       }
     }, [task.priority]);
 
+    /**
+     * @brief Handles confirming and proceeding with task deletion after user confirmation.
+     * Uses `useCallback` for memoization.
+     * @returns {Promise<void>} A promise that resolves when the task has been deleted.
+     */
+    const confirmDeleteTask = useCallback(async () => {
+      try {
+        await onDeleteTask(task.id);
+        setIsDeleteConfirmModalOpen(false);
+        toast.success(`Task "${task.title}" deleted successfully!`); // Add success toast
+      } catch (error) {
+        toast.error(`Failed to delete task "${task.title}". Please try again.`); // Add error toast
+        console.error('Failed to delete task:', error); // Log error
+        setIsDeleteConfirmModalOpen(false); // Close modal even on error
+      }
+    }, [onDeleteTask, task.id, task.title]);
+
     return (
-      <div
-        className="bg-card p-3 rounded-md shadow-sm border border-border cursor-pointer hover:bg-accent/50 transition-colors duration-200"
-        onClick={() => onViewTaskDetails(task)} // Make the entire card clickable
+      <>
+        <div
+          className="bg-card p-3 rounded-md shadow-sm border border-border cursor-pointer hover:bg-accent/50 transition-colors duration-200"
+          onClick={() => onViewTaskDetails(task)} // Make the entire card clickable
         aria-label={`View details for task ${task.title}`}
       >
         <h3 className="font-semibold text-base mb-1 text-foreground">
@@ -141,7 +171,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
           <Button
             onClick={(e) => {
               e.stopPropagation(); // Prevent opening details modal
-              onDeleteTask(task.id);
+              setIsDeleteConfirmModalOpen(true); // Open the delete confirmation modal
             }}
             variant="destructive"
             size="sm"
@@ -152,6 +182,34 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
           </Button>
         </div>
       </div>
+
+        {/* Delete Confirmation Modal */}
+        <Dialog
+          open={isDeleteConfirmModalOpen}
+          onOpenChange={setIsDeleteConfirmModalOpen}
+        >
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Confirm Delete Task</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete the task "{task.title}"? This
+                action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteConfirmModalOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmDeleteTask}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   },
 );

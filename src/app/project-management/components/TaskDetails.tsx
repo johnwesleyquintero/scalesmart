@@ -18,7 +18,14 @@ import { TaskStatus, TaskPriority } from '@/types/indexeddb'; // Import TaskStat
 import CommentList from './CommentList';
 import TaskForm from './TaskForm'; // To allow editing within details view
 import { toast } from 'sonner';
-import { Dialog, DialogContent } from '@/components/ui/dialog'; // Import Dialog components
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader, // Import DialogHeader
+  DialogTitle, // Import DialogTitle
+  DialogFooter, // Import DialogFooter
+  DialogDescription, // Import DialogDescription
+} from '@/components/ui/dialog'; // Import Dialog components
 
 interface TaskDetailsProps {
   task: Task;
@@ -207,6 +214,24 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     }
   }, [task, onTaskPersist]);
 
+  /**
+   * @brief Handles confirming and proceeding with task deletion after user confirmation.
+   * Uses `useCallback` for memoization.
+   * @returns {Promise<void>} A promise that resolves when the task has been deleted.
+   */
+  const confirmDeleteTask = useCallback(async () => {
+    try {
+      await onDeleteTask(task.id);
+      setIsDeleteConfirmModalOpen(false); // Close modal after deletion
+      onClose(); // Close details modal after deletion
+      toast.success(`Task "${task.title}" deleted successfully!`); // Add success toast
+    } catch (error) {
+      toast.error(`Failed to delete task "${task.title}". Please try again.`); // Add error toast
+      console.error('Failed to delete task:', error); // Log error
+      setIsDeleteConfirmModalOpen(false); // Close modal even on error
+    }
+  }, [onDeleteTask, task.id, task.title, onClose]);
+
   if (isEditing) {
     return (
       <TaskForm
@@ -248,16 +273,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           <Button
             variant="destructive"
             size="sm"
-            onClick={async () => {
-              if (
-                window.confirm(
-                  `Are you sure you want to delete "${task.title}"?`,
-                )
-              ) {
-                await onDeleteTask(task.id);
-                onClose(); // Close modal after deletion
-              }
-            }}
+            onClick={() => setIsDeleteConfirmModalOpen(true)} // Open delete confirmation modal
             aria-label="Delete task"
           >
             Delete
@@ -385,49 +401,31 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         </div>
       </CardContent>
       {/* Delete Confirmation Modal */}
-      {isDeleteConfirmModalOpen && (
-        <Dialog
-          open={isDeleteConfirmModalOpen}
-          onOpenChange={setIsDeleteConfirmModalOpen}
-        >
-          <DialogContent className="sm:max-w-[425px]">
-            <div className="p-4">
-              <h3 className="text-lg font-semibold text-foreground mb-4">
-                Confirm Delete Task
-              </h3>
-              <p className="text-foreground mb-4">
-                Are you sure you want to delete the task "{task.title}"? This
-                action cannot be undone.
-              </p>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setIsDeleteConfirmModalOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={async () => {
-                    try {
-                      await onDeleteTask(task.id);
-                      setIsDeleteConfirmModalOpen(false); // Close modal after deletion
-                      onClose(); // Close details modal after deletion
-                      toast.success(`Task "${task.title}" deleted successfully!`); // Add success toast
-                    } catch (error) {
-                      toast.error(`Failed to delete task "${task.title}". Please try again.`); // Add error toast
-                      console.error('Failed to delete task:', error); // Log error
-                      setIsDeleteConfirmModalOpen(false); // Close modal even on error
-                    }
-                  }}
-                >
-                  Delete
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+      <Dialog
+        open={isDeleteConfirmModalOpen}
+        onOpenChange={setIsDeleteConfirmModalOpen}
+      >
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Delete Task</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the task "{task.title}"? This
+              action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteConfirmModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDeleteTask}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

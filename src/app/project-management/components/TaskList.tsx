@@ -1,7 +1,7 @@
 // src/app/project-management/components/TaskList.tsx
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { Task, Project } from '@/lib/indexeddb-service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useDroppable, DndContext } from '@dnd-kit/core';
@@ -76,8 +76,7 @@ const TaskList = ({
   onDeleteTask, // Destructure new prop
   onViewTaskDetails, // Destructure new prop
 }: TaskListProps) => {
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  // Removed unused state variables: isEditModalOpen and selectedTask
 
   const { setNodeRef } = useDroppable({
     id: id,
@@ -127,10 +126,7 @@ const TaskList = ({
    * @brief Handles closing the edit task modal.
    * Uses `useCallback` for memoization.
    */
-  const handleCloseEditModal = useCallback(() => {
-    setIsEditModalOpen(false);
-    setSelectedTask(null);
-  }, []);
+  // Removed handleCloseEditModal as it's no longer needed
 
   /**
    * @brief Handles the successful update/creation of a task from TaskForm or TaskDetails, closing the modal if it was an edit.
@@ -142,12 +138,9 @@ const TaskList = ({
       // Propagate the update to the parent (ProjectManagementPage) to ensure the main tasks state is updated and persisted
       await onTaskPersist(updatedOrNewTask); // Await the persistence handler
 
-      // Close the edit modal if the update originated from it
-      if (isEditModalOpen) {
-        handleCloseEditModal();
-      }
+      // Removed logic related to closing edit modal as it's no longer needed in TaskList
     },
-    [onTaskPersist, isEditModalOpen, handleCloseEditModal],
+    [onTaskPersist], // Dependency array updated
   );
 
   return (
