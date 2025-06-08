@@ -107,12 +107,27 @@ export const filterCustomers = (
 
   // Apply fuzzy search if a search query is provided.
   if (searchQuery) {
-    results = fuzzysort
-      .go(searchQuery, results, {
-        keys: fuzzysortOptions.keys,
-        threshold: fuzzysortOptions.threshold,
-      })
-      .map((result) => result.obj); // Extract the original object from fuzzysort result.
+    const fuzzysortResults = fuzzysort.go(searchQuery, results, {
+      keys: fuzzysortOptions.keys,
+      threshold: fuzzysortOptions.threshold,
+    });
+
+    results = fuzzysortResults.map((result) => {
+      let highlighted = null;
+      if (result) {
+        for (const key of fuzzysortOptions.keys) {
+          const target = result[key as keyof typeof result];
+          if (typeof target === 'string') {
+            highlighted = fuzzysort.highlight(target, '<mark>', '</mark>');
+            if (highlighted) break;
+          }
+        }
+      }
+      return {
+        ...result.obj,
+        highlightedName: highlighted || result.obj.name,
+      };
+    });
   }
 
   return results;

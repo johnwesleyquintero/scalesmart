@@ -4,11 +4,9 @@ import { Toaster } from 'sonner';
 import { useState, useCallback } from 'react';
 import type { Contact } from './types';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Modal from '@/components/Modal'; // Import the Modal component
-import { CustomerForm } from './components/CustomerForm'; // Import the CustomerForm component
-
 import { useCRMData } from '@/hooks/use-crm-data';
 import { AddCustomerTab } from './components/AddCustomerTab';
+import CustomerEditModal from './components/CustomerEditModal';
 import { CustomerListTab } from './components/CustomerListTab';
 import { CategoryManagementTab } from './components/CategoryManagementTab';
 import { CommunicationLogsTab } from './components/CommunicationLogsTab';
@@ -173,26 +171,13 @@ export default function CRMComponent() {
           </TabsContent>
         </Tabs>
 
-        {/* Modal for Editing Customer */}
-        {/* A modal that appears when a customer is selected for editing. */}
-        <Modal
-          isOpen={!!editingCustomer} // Open modal if editingCustomer is not null
-          onClose={handleCancelEdit} // Close modal when the close button is clicked or outside is clicked
-          title={editingCustomer ? 'Edit Customer' : ''} // Set modal title dynamically
-        >
-          {/* Render the CustomerForm component inside the modal when editingCustomer is set. */}
-          {editingCustomer && (
-            <CustomerForm
-              initialData={editingCustomer} // Pass the customer data to pre-fill the form
-              onSubmitSuccessAction={(formData) =>
-                handleSaveCustomerAndClearEdit(formData, editingCustomer)
-              } // Handle form submission success: save data and close modal
-              onCancel={handleCancelEdit} // Handle form cancellation: close modal
-              isEditing={true} // Indicate that the form is in editing mode
-              categories={categories} // Pass categories to the form for category selection
-            />
-          )}
-        </Modal>
+        <CustomerEditModal
+          isOpen={!!editingCustomer}
+          onClose={handleCancelEdit}
+          editingCustomer={editingCustomer}
+          handleSaveCustomerAndClearEdit={handleSaveCustomerAndClearEdit}
+          categories={categories}
+        />
       </div>
     </>
   );

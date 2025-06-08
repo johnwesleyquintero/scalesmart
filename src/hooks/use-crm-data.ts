@@ -23,6 +23,24 @@ import {
 } from '@/lib/indexeddb-service';
 import type { Category, Contact, CommunicationLog } from '@/app/crm/types';
 
+const LOAD_DATA_ERROR =
+  'Failed to load data. Please check console for details.';
+const UPDATE_CUSTOMER_ERROR =
+  'Failed to update customer. Please check console for details.';
+const ADD_CUSTOMER_ERROR =
+  'Failed to add customer. Please check console for details.';
+const DELETE_CUSTOMER_ERROR =
+  'Failed to delete customer. Please check console for details.';
+const CREATE_COMM_LOG_ERROR =
+  'Failed to create communication log. Please check console for details.';
+const UPDATE_COMM_LOG_ERROR =
+  'Failed to update communication log. Please check console for details.';
+const DELETE_COMM_LOG_ERROR =
+  'Failed to delete communication log. Please check console for details.';
+const ADD_CATEGORY_ERROR = 'Failed to add category. Please try again.';
+const UPDATE_CATEGORY_ERROR = 'Failed to update category. Please try again.';
+const DELETE_CATEGORY_ERROR = 'Failed to delete category. Please try again.';
+
 /**
  * `useCRMData` is a custom hook that encapsulates the logic for managing CRM data.
  * It provides state variables for customers and categories, along with memoized
@@ -59,9 +77,9 @@ export const useCRMData = () => {
         // Fetch all categories.
         const allCategories = await getAllCategories();
         setCategories(allCategories);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error loading data from IndexedDB:', error);
-        toast.error('Failed to load data. Please check console for details.');
+        toast.error(LOAD_DATA_ERROR);
       } finally {
         setHasAttemptedInitialLoad(true); // Mark initial load as attempted regardless of success.
       }
@@ -98,11 +116,9 @@ export const useCRMData = () => {
             ),
           );
           toast.success('Customer updated successfully!');
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Error updating customer in IndexedDB:', error);
-          toast.error(
-            'Failed to update customer. Please check console for details.',
-          );
+          toast.error(UPDATE_CUSTOMER_ERROR);
         }
       } else {
         // If no `editingCustomer`, create a new contact.
@@ -145,11 +161,9 @@ export const useCRMData = () => {
             completeNewCustomer,
           ]);
           toast.success('Customer added successfully!');
-        } catch (error) {
+        } catch (error: unknown) {
           console.error('Error adding customer to IndexedDB:', error);
-          toast.error(
-            'Failed to add customer. Please check console for details.',
-          );
+          toast.error(ADD_CUSTOMER_ERROR);
         }
       }
     },
@@ -163,9 +177,9 @@ export const useCRMData = () => {
         prevCustomers.filter((customer: Contact) => customer.id !== id),
       );
       toast.info('Customer deleted.');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting customer from IndexedDB:', error);
-      toast.error('Failed to delete customer. See console for details.');
+      toast.error(DELETE_CUSTOMER_ERROR);
     }
   }, []);
 
@@ -186,11 +200,9 @@ export const useCRMData = () => {
           'Failed to add category. Please check console for details.',
         );
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error adding category:', error);
-      toast.error(
-        'Failed to add category. Please try again. Check console for details.',
-      );
+      toast.error(ADD_CATEGORY_ERROR);
     }
   }, []); // Dependency array is empty as it uses setCategories functional update
 
@@ -205,11 +217,9 @@ export const useCRMData = () => {
         prevCategories.map((cat) => (cat.id === category.id ? category : cat)),
       );
       toast.success('Category updated successfully!');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating category:', error);
-      toast.error(
-        'Failed to update category. Please try again. Check console for details.',
-      );
+      toast.error(UPDATE_CATEGORY_ERROR);
     }
   }, []); // Dependency array is empty as it uses setCategories functional update
 
@@ -224,11 +234,9 @@ export const useCRMData = () => {
         prevCategories.filter((cat) => cat.id !== id),
       );
       toast.success('Category deleted successfully!');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting category:', error);
-      toast.error(
-        'Failed to delete category. Please try again. Check console for details.',
-      );
+      toast.error(DELETE_CATEGORY_ERROR);
     }
   }, []); // Dependency array is empty as it uses setCategories functional update
 
@@ -309,11 +317,9 @@ export const useCRMData = () => {
           );
           toast.success('Communication log created successfully!');
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error creating communication log:', error);
-        toast.error(
-          'Failed to create communication log. Please check console for details.',
-        );
+        toast.error(CREATE_COMM_LOG_ERROR);
       }
     },
     [],
@@ -353,11 +359,9 @@ export const useCRMData = () => {
           ),
         );
         toast.success('Communication log updated successfully!');
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error updating communication log:', error);
-        toast.error(
-          'Failed to update communication log. Please check console for details.',
-        );
+        toast.error(UPDATE_COMM_LOG_ERROR);
       }
     },
     [updateCustomerCommunicationLogs],
@@ -371,11 +375,9 @@ export const useCRMData = () => {
           logs.filter((existingLog) => existingLog.id !== logId),
         );
         toast.info('Communication log deleted.');
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Error deleting communication log:', error);
-        toast.error(
-          'Failed to delete communication log. Please check console for details.',
-        );
+        toast.error(DELETE_COMM_LOG_ERROR);
       }
     },
     [updateCustomerCommunicationLogs],

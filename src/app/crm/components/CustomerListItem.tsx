@@ -130,9 +130,12 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
           />
         </div>
         {/* Section displaying basic customer information */}
-        <h3 className="text-lg font-semibold text-foreground pl-8">
-          {customer.name}
-        </h3>
+        <h3
+          className="text-lg font-semibold text-foreground pl-8"
+          dangerouslySetInnerHTML={{
+            __html: customer.highlightedName || customer.name,
+          }}
+        />
         <p className="text-muted-foreground">{customer.email}</p>
         <p className="text-muted-foreground">{customer.phone}</p>
         {customer.company && (
@@ -162,9 +165,10 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
                 otherwise fallback to plain text. */}
             {serializedNotes ? (
               <div className="prose dark:prose-invert text-sm text-muted-foreground">
+                {/* Use memoized components for MDX rendering. */}
                 <ClientSideMDXRemote
                   {...serializedNotes}
-                  components={components} // Use memoized components for MDX rendering.
+                  components={components}
                 />
               </div>
             ) : (

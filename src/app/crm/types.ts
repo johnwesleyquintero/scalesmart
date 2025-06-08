@@ -25,6 +25,7 @@ export interface Contact {
   salesStage?: SalesStage | null; // Optional: The current sales stage of the contact, can be null.
   address?: string; // Optional: The physical address of the contact.
   communicationLogs?: CommunicationLog[]; // Optional: An array of communication log entries associated with this contact.
+  highlightedName?: string; // Optional: Highlighted name for search results.
 }
 
 /**
