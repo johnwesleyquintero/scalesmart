@@ -12,7 +12,13 @@ import { useTaskManagement } from '@/hooks/use-task-management'; // Import the n
 import { Task } from '@/lib/indexeddb-service';
 import { ErrorBoundary } from '@/components/error-boundary';
 import TaskDetails from '@/app/project-management/components/TaskDetails'; // Import TaskDetails
-import { Dialog, DialogContent } from '@/components/ui/dialog'; // Import Dialog components
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'; // Import Dialog components
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'; // Import VisuallyHidden for accessibility
 
 // Import types and constants
 import { Project } from '@/lib/indexeddb-service'; // Import Project type
@@ -36,14 +42,25 @@ const ProjectManagementPage = () => {
     projects,
     isLoading,
     error,
-    handleUpdateTask,
+    handleUpdateTask: handleUpdateTaskFromHook,
     handleDragEnd,
     handleCreateTask,
-    handleDeleteTask,
+    handleDeleteTask: handleDeleteTaskFromHook,
     handleCreateProject,
     handleUpdateProject,
     handleDeleteProject,
   } = useTaskManagement();
+
+  // Wrap task update and delete handlers in useCallback for stability
+  const handleUpdateTask = useCallback(
+    (task: Task) => handleUpdateTaskFromHook(task),
+    [handleUpdateTaskFromHook],
+  );
+
+  const handleDeleteTask = useCallback(
+    (taskId: string) => handleDeleteTaskFromHook(taskId),
+    [handleDeleteTaskFromHook],
+  );
 
   // State to manage the selected project filter for tasks
   const [selectedProject, setSelectedProject] =
@@ -174,6 +191,12 @@ const ProjectManagementPage = () => {
             onOpenChange={setIsTaskDetailsModalOpen}
           >
             <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+              <VisuallyHidden>
+                <DialogTitle>Task Details</DialogTitle>
+                <DialogDescription>
+                  Details of the selected task
+                </DialogDescription>
+              </VisuallyHidden>
               {/* Render the Task Details component within the modal */}
               <TaskDetails
                 task={selectedTaskForDetails}

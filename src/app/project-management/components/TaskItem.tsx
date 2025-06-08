@@ -103,7 +103,10 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
       <>
         <div
           className="bg-card p-3 rounded-md shadow-sm border border-border cursor-pointer hover:bg-accent/50 transition-colors duration-200"
-          onClick={() => onViewTaskDetails(task)} // Make the entire card clickable
+          onClick={() => {
+            console.log('Task item clicked:', task.id);
+            onViewTaskDetails(task);
+          }} // Make the entire card clickable
           aria-label={`View details for task ${task.title}`}
         >
           <h3 className="font-semibold text-base mb-1 text-foreground">
@@ -172,6 +175,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             <Button
               onClick={(e) => {
                 e.stopPropagation(); // Prevent opening details modal
+                console.log('Delete button clicked for task:', task.id);
                 setIsDeleteConfirmModalOpen(true); // Open the delete confirmation modal
               }}
               variant="destructive"

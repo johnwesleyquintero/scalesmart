@@ -125,4 +125,4 @@ const TaskManagementSection: React.FC<TaskManagementSectionProps> = ({
   );
 };
 
-export default TaskManagementSection;
+export default React.memo(TaskManagementSection);

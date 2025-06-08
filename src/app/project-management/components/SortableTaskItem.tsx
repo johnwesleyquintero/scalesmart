@@ -34,6 +34,7 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   onViewTaskDetails,
   onTaskPersist,
 }) => {
+  console.log('Rendering SortableTaskItem for task:', task.id);
   const {
     attributes,
     listeners,
@@ -51,7 +52,13 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={() => console.log('SortableTaskItem div clicked:', task.id)}
+    >
       <TaskItem
         task={task}
         projects={projects}
