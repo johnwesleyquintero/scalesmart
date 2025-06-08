@@ -44,6 +44,88 @@ interface CustomerListTabProps {
   onEditCustomerAction: (customer: Contact) => void; // Prop name already ends with Action
 }
 
+interface CustomerListFiltersProps {
+  categories: Category[];
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
+  selectedCategory: string | null;
+  onSelectedCategoryChange: (category: string | null) => void;
+  selectedSalesStage: SalesStage | null;
+  onSelectedSalesStageChange: (stage: SalesStage | null) => void;
+  exportTasksToCSV: () => void;
+  handleBulkDelete: () => Promise<void>;
+  selectedCustomerIds: string[];
+}
+
+const CustomerListFilters: React.FC<CustomerListFiltersProps> = ({
+  categories,
+  searchQuery,
+  onSearchQueryChange,
+  selectedCategory,
+  onSelectedCategoryChange,
+  selectedSalesStage,
+  onSelectedSalesStageChange,
+  exportTasksToCSV,
+  handleBulkDelete,
+  selectedCustomerIds,
+}) => {
+  return (
+    <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto md:ml-auto">
+      <Input
+        type="search"
+        placeholder="Search customers..."
+        value={searchQuery}
+        onChange={(e) => onSearchQueryChange(e.target.value)}
+        className="w-full sm:w-auto md:min-w-[250px] lg:min-w-[300px]"
+      />
+      <select
+        value={selectedCategory || ''}
+        onChange={(e) => onSelectedCategoryChange(e.target.value || null)}
+        className="w-full sm:w-auto p-2 border rounded-md bg-background text-foreground"
+      >
+        <option value="">All Categories</option>
+        {categories.map((cat) => (
+          <option key={cat.id} value={cat.name}>
+            {cat.name}
+          </option>
+        ))}
+        <option value="Uncategorized">Uncategorized</option>
+      </select>
+      <select
+        value={selectedSalesStage || ''}
+        onChange={(e) =>
+          onSelectedSalesStageChange((e.target.value as SalesStage) || null)
+        }
+        className="w-full sm:w-auto p-2 border rounded-md bg-background text-foreground"
+      >
+        <option value="">All Sales Stages</option>
+        {SALES_STAGES.map((stage) => (
+          <option key={stage} value={stage}>
+            {stage}
+          </option>
+        ))}
+      </select>
+      <Button
+        variant="outline"
+        onClick={exportTasksToCSV}
+        title="Export customers to CSV"
+        className="w-full sm:w-auto"
+      >
+        <Download className="mr-2 h-4 w-4" /> Export CSV
+      </Button>
+      <Button
+        variant="destructive"
+        onClick={handleBulkDelete}
+        disabled={selectedCustomerIds.length === 0}
+        title="Delete selected customers"
+        className="w-full sm:w-auto"
+      >
+        <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
+      </Button>
+    </div>
+  );
+};
+
 export const CustomerListTab: React.FC<CustomerListTabProps> = ({
   customers,
   hasAttemptedInitialLoad,
@@ -154,59 +236,18 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
     <Card className="flex-1">
       <CardHeader className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <CardTitle className="whitespace-nowrap">Customer List</CardTitle>
-        <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto md:ml-auto">
-          <Input
-            type="search"
-            placeholder="Search customers..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-auto md:min-w-[250px] lg:min-w-[300px]"
-          />
-          <select
-            value={selectedCategory || ''}
-            onChange={(e) => setSelectedCategory(e.target.value || null)}
-            className="w-full sm:w-auto p-2 border rounded-md bg-background text-foreground"
-          >
-            <option value="">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat.id} value={cat.name}>
-                {cat.name}
-              </option>
-            ))}
-            <option value="Uncategorized">Uncategorized</option>
-          </select>
-          <select
-            value={selectedSalesStage || ''}
-            onChange={(e) =>
-              setSelectedSalesStage((e.target.value as SalesStage) || null)
-            }
-            className="w-full sm:w-auto p-2 border rounded-md bg-background text-foreground"
-          >
-            <option value="">All Sales Stages</option>
-            {SALES_STAGES.map((stage) => (
-              <option key={stage} value={stage}>
-                {stage}
-              </option>
-            ))}
-          </select>
-          <Button
-            variant="outline"
-            onClick={exportTasksToCSV}
-            title="Export customers to CSV"
-            className="w-full sm:w-auto"
-          >
-            <Download className="mr-2 h-4 w-4" /> Export CSV
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleBulkDelete}
-            disabled={selectedCustomerIds.length === 0}
-            title="Delete selected customers"
-            className="w-full sm:w-auto"
-          >
-            <Trash2 className="mr-2 h-4 w-4" /> Delete Selected
-          </Button>
-        </div>
+        <CustomerListFilters
+          categories={categories}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          selectedCategory={selectedCategory}
+          onSelectedCategoryChange={setSelectedCategory}
+          selectedSalesStage={selectedSalesStage}
+          onSelectedSalesStageChange={setSelectedSalesStage}
+          exportTasksToCSV={exportTasksToCSV}
+          handleBulkDelete={handleBulkDelete}
+          selectedCustomerIds={selectedCustomerIds}
+        />
       </CardHeader>
       <CardContent>
         <CustomerListContent

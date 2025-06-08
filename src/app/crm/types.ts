@@ -41,6 +41,19 @@ export type SalesStage =
   | 'Closed Lost';
 
 /**
+ * Defines the possible sales stages for the Contact.
+ */
+export const SALES_STAGES = [
+  'Lead',
+  'Prospect',
+  'Qualified',
+  'Proposal',
+  'Negotiation',
+  'Closed Won',
+  'Closed Lost',
+] as const;
+
+/**
  * Defines the structure for a Communication Log entry.
  * Records interactions with a specific customer.
  */

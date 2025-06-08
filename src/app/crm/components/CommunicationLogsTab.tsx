@@ -111,6 +111,7 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
 
     // Apply fuzzy search if a query is present.
     if (debouncedSearchQuery) {
+      // Consider optimizing the search algorithm or using a more efficient library for large datasets.
       results = fuzzysort
         .go(debouncedSearchQuery, results, {
           keys: ['subject', 'notes', 'customerName'],

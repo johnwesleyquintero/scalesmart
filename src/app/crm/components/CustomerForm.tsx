@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useEffect } from 'react';
 import type { Contact, Category, SalesStage } from '../types'; // Import Category and SalesStage
+import { SALES_STAGES } from '../types';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -22,18 +23,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'; // Import Select components
-
-// Define the possible sales stages for the dropdown
-const SALES_STAGES = [
-  'Lead',
-  'Prospect',
-  'Qualified',
-  'Proposal',
-  'Negotiation',
-  'Closed Won',
-  'Closed Lost',
-] as const; // Use 'as const' to infer a tuple type
+} from '@/components/ui/select';
 
 /**
  * Props for the CustomerForm component.

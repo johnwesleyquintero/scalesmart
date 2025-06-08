@@ -91,30 +91,12 @@ export default function CRMComponent() {
         {/* Provides navigation between different sections of the CRM dashboard. */}
         <Tabs defaultValue="add-customer" className="w-full">
           <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-muted">
-            <TabsTrigger
-              value="add-customer"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
-            >
-              Add Customer
-            </TabsTrigger>
-            <TabsTrigger
-              value="customer-list"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
-            >
-              Customer List
-            </TabsTrigger>
-            <TabsTrigger
-              value="categories"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
-            >
-              Categories
-            </TabsTrigger>
-            <TabsTrigger
-              value="communication-logs"
-              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
-            >
+            <CRMTabsTrigger value="add-customer">Add Customer</CRMTabsTrigger>
+            <CRMTabsTrigger value="customer-list">Customer List</CRMTabsTrigger>
+            <CRMTabsTrigger value="categories">Categories</CRMTabsTrigger>
+            <CRMTabsTrigger value="communication-logs">
               Communication Logs (Overall)
-            </TabsTrigger>
+            </CRMTabsTrigger>
           </TabsList>
 
           {/* Tab Content for Adding a Customer */}
@@ -182,3 +164,19 @@ export default function CRMComponent() {
     </>
   );
 }
+
+interface CRMTabsTriggerProps {
+  value: string;
+  children: React.ReactNode;
+}
+
+const CRMTabsTrigger: React.FC<CRMTabsTriggerProps> = ({ value, children }) => {
+  return (
+    <TabsTrigger
+      value={value}
+      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
+    >
+      {children}
+    </TabsTrigger>
+  );
+};
