@@ -87,13 +87,6 @@ const ProjectForm = ({
     },
   });
 
-  useEffect(() => {
-    if (initialProject) {
-      setValue('name', initialProject.name);
-      setValue('description', initialProject.description || '');
-    }
-  }, [initialProject, setValue]);
-
   const onSubmit = useCallback(
     async (data: FormValues) => {
       const projectData = {

@@ -277,16 +277,48 @@ export const useTaskManagement = () => {
     async (
       taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>,
     ): Promise<Task | undefined> => {
-      const newTask = await createTask(taskData);
-      if (newTask) {
-        setTasks((prev) => [...prev, newTask]);
-        toast.success(`Task "${newTask.title}" created successfully!`);
-        return newTask;
-      }
-      toast.error('Failed to create task. Please try again.');
-      return undefined;
+      const originalTasks = [...tasks];
+      let createdTask: Task | undefined;
+
+      await performOptimisticUpdate(
+        (prevTasks) => {
+          // Create a temporary ID for optimistic update
+          const tempId = `temp-${Date.now()}-${Math.random()}`;
+          const optimisticTask: Task = {
+            ...taskData,
+            id: tempId,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            comments: [],
+          };
+          createdTask = optimisticTask; // Store the optimistic task to return later
+          return [...prevTasks, optimisticTask];
+        },
+        async () => {
+          // The actual creation in DB will generate the final ID
+          const newTask = await createTask(taskData);
+          if (newTask && createdTask) {
+            // Replace the optimistic task with the real one in state
+            setTasks((prevTasks) =>
+              prevTasks.map((task) =>
+                task.id === createdTask?.id ? newTask : task,
+              ),
+            );
+            createdTask = newTask; // Update createdTask with the real one
+          } else if (createdTask) {
+            // If DB creation failed but optimistic update happened, revert
+            throw new Error('Failed to create task in database.');
+          }
+        },
+        `Task "${taskData.title}" created successfully!`,
+        `Failed to create task "${taskData.title}". Please try again.`,
+        originalTasks,
+        setTasks,
+      );
+
+      return createdTask; // Return the task with the final ID after persistence
     },
-    [],
+    [tasks, performOptimisticUpdate],
   );
 
   /**
@@ -317,22 +349,50 @@ export const useTaskManagement = () => {
     async (
       projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>,
     ): Promise<string | undefined> => {
-      const newProjectId = await createProject(projectData);
-      if (newProjectId) {
-        const newProject: Project = {
-          ...projectData,
-          id: newProjectId,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        };
-        setProjects((prev) => [...prev, newProject]);
-        toast.success(`Project "${newProject.name}" created successfully!`);
-        return newProjectId;
-      }
-      toast.error('Failed to create project. Please try again.');
-      return undefined;
+      const originalProjects = [...projects];
+      let newProjectId: string | undefined;
+
+      await performOptimisticUpdate(
+        (prevProjects) => {
+          // Create a temporary ID for optimistic update
+          const tempId = `temp-${Date.now()}-${Math.random()}`;
+          const optimisticProject: Project = {
+            ...projectData,
+            id: tempId,
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            status: projectData.status, // Include status from input
+          };
+          newProjectId = tempId; // Store the optimistic ID
+          return [...prevProjects, optimisticProject];
+        },
+        async () => {
+          // The actual creation in DB will generate the final ID
+          const realProjectId = await createProject(projectData);
+          if (realProjectId && newProjectId) {
+            // Replace the optimistic project with the real one in state
+            setProjects((prevProjects) =>
+              prevProjects.map((project) =>
+                project.id === newProjectId
+                  ? { ...project, id: realProjectId }
+                  : project,
+              ),
+            );
+            newProjectId = realProjectId; // Update newProjectId with the real one
+          } else if (newProjectId) {
+            // If DB creation failed but optimistic update happened, revert
+            throw new Error('Failed to create project in database.');
+          }
+        },
+        `Project "${projectData.name}" created successfully!`,
+        `Failed to create project "${projectData.name}". Please try again.`,
+        originalProjects,
+        setProjects,
+      );
+
+      return newProjectId; // Return the project ID after persistence
     },
-    [],
+    [projects, performOptimisticUpdate],
   );
 
   /**
@@ -344,27 +404,23 @@ export const useTaskManagement = () => {
       const originalProjects = [...projects];
       const originalTasks = [...tasks]; // Capture original tasks state
 
-      try {
-        // Optimistically update projects state
-        setProjects((prevProjects) =>
-          prevProjects.filter((project) => project.id !== id),
-        );
-        toast.success('Project deleted successfully.');
-
-        // Call the persistence logic which now also updates tasks in IndexedDB
-        await deleteProject(id);
-
-        // After successful deletion and task updates in DB, update tasks state by filtering
-        setTasks((prevTasks) =>
-          prevTasks.filter((task) => task.projectId !== id),
-        );
-      } catch (error) {
-        toast.error('Failed to delete project. Please try again.');
-        setProjects(originalProjects); // Revert projects state on error
-        setTasks(originalTasks); // Revert tasks state on error
-      }
+      await performOptimisticUpdate(
+        (prevProjects) => prevProjects.filter((project) => project.id !== id),
+        async () => {
+          // The persistence logic now includes updating associated tasks
+          await deleteProject(id);
+          // After successful deletion and task updates in DB, update tasks state by filtering
+          setTasks((prevTasks) =>
+            prevTasks.filter((task) => task.projectId !== id),
+          );
+        },
+        'Project deleted successfully.',
+        'Failed to delete project. Please try again.',
+        originalProjects,
+        setProjects,
+      );
     },
-    [projects, tasks, setTasks, setProjects],
+    [projects, tasks, setTasks, setProjects, performOptimisticUpdate],
   );
 
   /**
@@ -396,7 +452,7 @@ export const useTaskManagement = () => {
     setProjects,
     isLoading,
     error,
-    handleUpdateTask, // Add handleUpdateTask
+    handleUpdateTask,
     handleDragEnd,
     handleCreateTask,
     handleDeleteTask,

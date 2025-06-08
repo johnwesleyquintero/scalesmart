@@ -141,18 +141,6 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
           <Button
             onClick={(e) => {
               e.stopPropagation(); // Prevent opening details modal
-              onViewTaskDetails(task); // Open details modal
-            }}
-            variant="outline"
-            size="sm"
-            className="text-xs"
-            aria-label={`Edit task ${task.title}`}
-          >
-            Edit
-          </Button>
-          <Button
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent opening details modal
               onDeleteTask(task.id);
             }}
             variant="destructive"

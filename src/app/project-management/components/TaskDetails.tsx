@@ -48,17 +48,10 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onClose,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [currentTask, setCurrentTask] = useState<Task>(task);
-
-  // Update currentTask if the prop task changes (e.g., from parent update)
-  // This ensures the details view reflects the latest task data from the parent state.
-  React.useEffect(() => {
-    setCurrentTask(task);
-  }, [task]);
 
   // Memoize the priority class for styling
   const priorityClass = useMemo(() => {
-    switch (currentTask.priority) {
+    switch (task.priority) {
       case TaskPriority.High:
         return 'text-red-500';
       case TaskPriority.Medium:
@@ -68,7 +61,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       default:
         return 'text-muted-foreground';
     }
-  }, [currentTask.priority]);
+  }, [task.priority]);
 
   // Memoize projects into a Map for O(1) lookup by ID.
   const projectsMap = useMemo(() => {
@@ -103,55 +96,48 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
 
   const handleAddComment = useCallback(
     async (newComment: TaskComment) => {
-      const comments = Array.isArray(currentTask.comments)
-        ? currentTask.comments
-        : [];
+      const comments = Array.isArray(task.comments) ? task.comments : [];
       const updatedTask: Task = {
-        ...currentTask,
+        ...task,
         comments: [...comments, newComment],
         updatedAt: Date.now(),
       };
       // Propagate update to parent, which will handle persistence
       await onTaskPersist(updatedTask); // Await the parent's update handler
-      setCurrentTask(updatedTask); // Update local state optimistically
-      toast.success('Comment added successfully!'); // Corrected toast message
+      toast.success('Comment added successfully!');
     },
-    [currentTask, onTaskPersist], // Update dependency
+    [task, onTaskPersist],
   );
 
   const handleTaskFormUpdated = useCallback(
     async (updatedTask: Task) => {
-      // Make this async to match onUpdateTask signature
       // Propagate update to parent, which will handle persistence
       await onTaskPersist(updatedTask); // Await the parent's update handler
-      setCurrentTask(updatedTask); // Update local state optimistically
       setIsEditing(false); // Exit edit mode
     },
-    [onTaskPersist], // Update dependency
+    [onTaskPersist],
   );
 
   const handleMarkComplete = useCallback(async () => {
-    // Make this async
-    if (currentTask.status === TaskStatus.Completed) {
+    if (task.status === TaskStatus.Completed) {
       toast.info('Task is already completed.');
       return;
     }
 
     const updatedTask: Task = {
-      ...currentTask,
+      ...task,
       status: TaskStatus.Completed,
       updatedAt: Date.now(),
     };
     // Propagate update to parent, which will handle persistence
     await onTaskPersist(updatedTask); // Await the parent's update handler
-    setCurrentTask(updatedTask); // Update local state optimistically
     toast.success(`Task "${updatedTask.title}" marked as completed!`);
-  }, [currentTask, onTaskPersist]); // Update dependency
+  }, [task, onTaskPersist]);
 
   if (isEditing) {
     return (
       <TaskForm
-        task={currentTask}
+        task={task} // Pass the task prop directly
         onUpdateTask={onTaskPersist} // Pass onTaskPersist as onUpdateTask
         onTaskSaved={() => setIsEditing(false)} // onTaskSaved should just close the modal
         onCancel={() => setIsEditing(false)}
@@ -165,10 +151,10 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     <Card className="border-none shadow-none">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-2xl font-bold text-foreground">
-          {currentTask.title}
+          {task.title}
         </CardTitle>
         <div className="flex items-center space-x-2">
-          {currentTask.status !== TaskStatus.Completed && (
+          {task.status !== TaskStatus.Completed && (
             <Button
               variant="secondary"
               size="sm"
@@ -192,10 +178,10 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             onClick={async () => {
               if (
                 window.confirm(
-                  `Are you sure you want to delete "${currentTask.title}"?`,
+                  `Are you sure you want to delete "${task.title}"?`,
                 )
               ) {
-                await onDeleteTask(currentTask.id);
+                await onDeleteTask(task.id);
                 onClose(); // Close modal after deletion
               }
             }}
@@ -206,12 +192,12 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {currentTask.description && (
+        {task.description && (
           <div>
             <h4 className="font-semibold text-sm text-muted-foreground mb-1">
               Description
             </h4>
-            <p className="text-sm text-foreground">{currentTask.description}</p>
+            <p className="text-sm text-foreground">{task.description}</p>
           </div>
         )}
 
@@ -222,7 +208,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             </h4>
             <div className="flex items-center text-sm text-foreground">
               <UserRound className="h-4 w-4 mr-2" />
-              <span>{currentTask.assigneeId || 'Unassigned'}</span>
+              <span>{task.assigneeId || 'Unassigned'}</span>
             </div>
           </div>
           <div>
@@ -231,7 +217,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             </h4>
             <div className="flex items-center text-sm text-foreground">
               <CalendarIcon className="h-4 w-4 mr-2" />
-              <span>{formatDate(currentTask.dueDate)}</span>
+              <span>{formatDate(task.dueDate)}</span>
             </div>
           </div>
           <div>
@@ -240,7 +226,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             </h4>
             <div className="flex items-center text-sm text-foreground">
               <Tag className="h-4 w-4 mr-2" />
-              <span>{getProjectName(currentTask.projectId)}</span>
+              <span>{getProjectName(task.projectId)}</span>
             </div>
           </div>
           <div>
@@ -250,19 +236,19 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             <div className="flex items-center text-sm text-foreground">
               <span
                 className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  currentTask.status === TaskStatus.Completed
+                  task.status === TaskStatus.Completed
                     ? 'bg-green-500/10 text-green-500'
-                    : currentTask.status === TaskStatus.InProgress
+                    : task.status === TaskStatus.InProgress
                       ? 'bg-blue-500/10 text-blue-500'
                       : 'bg-gray-500/10 text-gray-500'
                 }`}
               >
-                {currentTask.status.charAt(0).toUpperCase() +
-                  currentTask.status.slice(1).replace(/-/g, ' ')}
+                {task.status.charAt(0).toUpperCase() +
+                  task.status.slice(1).replace(/-/g, ' ')}
               </span>
             </div>
           </div>
-          {currentTask.priority && (
+          {task.priority && (
             <div>
               <h4 className="font-semibold text-sm text-muted-foreground mb-1">
                 Priority
@@ -270,21 +256,21 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
               <div className="flex items-center text-sm text-foreground">
                 <Flag className={`h-4 w-4 mr-2 ${priorityClass}`} />
                 <span>
-                  {currentTask.priority.charAt(0).toUpperCase() +
-                    currentTask.priority.slice(1)}
+                  {task.priority.charAt(0).toUpperCase() +
+                    task.priority.slice(1)}
                 </span>
               </div>
             </div>
           )}
         </div>
 
-        {currentTask.dependencies && currentTask.dependencies.length > 0 && (
+        {task.dependencies && task.dependencies.length > 0 && (
           <div className="border-t border-border pt-4">
             <h4 className="font-semibold text-sm text-muted-foreground mb-2">
               Dependencies
             </h4>
             <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
-              {currentTask.dependencies.map((dependencyId: string) => {
+              {task.dependencies.map((dependencyId: string) => {
                 const dependency = allTasksMap.get(dependencyId); // Use the map
                 return (
                   <li key={dependencyId}>
@@ -296,13 +282,13 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           </div>
         )}
 
-        {currentTask.subtaskIds && currentTask.subtaskIds.length > 0 && (
+        {task.subtaskIds && task.subtaskIds.length > 0 && (
           <div className="border-t border-border pt-4">
             <h4 className="font-semibold text-sm text-muted-foreground mb-2">
               Subtasks
             </h4>
             <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
-              {currentTask.subtaskIds.map((subtaskId: string) => {
+              {task.subtaskIds.map((subtaskId: string) => {
                 const subtask = allTasksMap.get(subtaskId); // Use the map
                 return (
                   <li key={subtaskId}>
@@ -319,8 +305,8 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             Comments
           </h4>
           <CommentList
-            taskId={currentTask.id}
-            comments={currentTask.comments || []}
+            taskId={task.id}
+            comments={task.comments || []}
             onAddComment={handleAddComment}
           />
         </div>

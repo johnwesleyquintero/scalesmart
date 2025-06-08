@@ -124,36 +124,6 @@ const TaskForm = ({
     },
   });
 
-  useEffect(() => {
-    if (initialTask) {
-      setValue('title', initialTask.title);
-      setValue('description', initialTask.description || '');
-      setValue('status', initialTask.status || 'to-do');
-      setValue('assigneeId', initialTask.assigneeId || ''); // Changed from assignee to assigneeId
-      setValue(
-        'dueDate',
-        initialTask.dueDate ? new Date(initialTask.dueDate) : undefined,
-      );
-      setValue('projectId', initialTask.projectId || NO_PROJECT_VALUE);
-      setValue('dependencies', initialTask.dependencies || []);
-      setValue('subtaskIds', initialTask.subtaskIds || []); // Changed from subtasks to subtaskIds
-      setValue('priority', initialTask.priority as TaskPriority | undefined);
-    } else {
-      // Reset form for new task creation when initialTask is null
-      reset({
-        title: '',
-        description: '',
-        status: 'to-do',
-        assigneeId: '', // Changed from assignee to assigneeId
-        dueDate: undefined,
-        projectId: NO_PROJECT_VALUE,
-        dependencies: [],
-        subtaskIds: [], // Changed from subtasks to subtaskIds
-        priority: undefined,
-      });
-    }
-  }, [initialTask, setValue, reset]);
-
   const onSubmit = useCallback(
     async (data: FormValues) => {
       const finalProjectId =

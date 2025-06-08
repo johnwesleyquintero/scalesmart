@@ -315,7 +315,7 @@ export const createContact = async (
       creationTimestamp: now, // Use correct property name
       updateTimestamp: now, // Use correct property name
     };
-    await db.contacts.put(contactToStore);
+    await setItem('contacts', id, contactToStore);
     return id;
   } catch (error) {
     logError(
@@ -329,7 +329,7 @@ export const createContact = async (
 
 export const getContact = async (id: string): Promise<Contact | undefined> => {
   try {
-    const contact = await db.contacts.get(id);
+    const contact = await getItem<Contact>('contacts', id);
     return contact;
   } catch (error) {
     logError(
@@ -345,7 +345,7 @@ export const updateContact = async (contact: Contact): Promise<void> => {
   try {
     const updateTimestamp = Date.now(); // Use correct property name
     const contactToStore = { ...contact, updateTimestamp }; // Use correct property name
-    await db.contacts.put(contactToStore);
+    await setItem('contacts', contactToStore.id, contactToStore);
   } catch (error) {
     logError(
       error,
@@ -357,7 +357,7 @@ export const updateContact = async (contact: Contact): Promise<void> => {
 
 export const deleteContact = async (id: string): Promise<void> => {
   try {
-    await db.contacts.delete(id);
+    await deleteItem('contacts', id);
   } catch (error) {
     logError(
       error,
@@ -380,7 +380,7 @@ export const createTask = async (
       updatedAt: now,
       comments: [],
     };
-    await db.tasks.put(taskToStore);
+    await setItem('tasks', id, taskToStore);
     return taskToStore;
   } catch (error) {
     logError(
@@ -394,7 +394,7 @@ export const createTask = async (
 
 export const getTask = async (id: string): Promise<Task | undefined> => {
   try {
-    const task = await db.tasks.get(id);
+    const task = await getItem<Task>('tasks', id);
     return task;
   } catch (error) {
     logError(
@@ -414,7 +414,7 @@ export const updateTask = async (task: Task): Promise<void> => {
       updatedAt,
       comments: Array.isArray(task.comments) ? task.comments : [],
     };
-    await db.tasks.put(taskToStore);
+    await setItem('tasks', taskToStore.id, taskToStore);
   } catch (error) {
     logError(
       error,
@@ -426,7 +426,7 @@ export const updateTask = async (task: Task): Promise<void> => {
 
 export const deleteTask = async (id: string): Promise<void> => {
   try {
-    await db.tasks.delete(id);
+    await deleteItem('tasks', id);
   } catch (error) {
     logError(
       error,
@@ -448,7 +448,7 @@ export const createProject = async (
       createdAt: now,
       updatedAt: now,
     };
-    await db.projects.put(projectToStore);
+    await setItem('projects', id, projectToStore);
     return id;
   } catch (error) {
     logError(
@@ -462,7 +462,7 @@ export const createProject = async (
 
 export const getProject = async (id: string): Promise<Project | undefined> => {
   try {
-    const project = await db.projects.get(id);
+    const project = await getItem<Project>('projects', id);
     return project;
   } catch (error) {
     logError(
@@ -476,7 +476,7 @@ export const getProject = async (id: string): Promise<Project | undefined> => {
 
 export const getAllProjects = async (): Promise<Project[]> => {
   try {
-    const projects = await db.projects.toArray();
+    const projects = await getAllItemsFromStore<Project>('projects');
     return projects;
   } catch (error) {
     logError(
@@ -491,7 +491,7 @@ export const getAllProjects = async (): Promise<Project[]> => {
 export const updateProject = async (project: Project): Promise<void> => {
   try {
     const projectToStore = { ...project, updatedAt: Date.now() };
-    await db.projects.put(projectToStore);
+    await setItem('projects', projectToStore.id, projectToStore);
   } catch (error) {
     logError(
       error,
@@ -538,7 +538,7 @@ export const deleteProject = async (id: string): Promise<void> => {
 
 export const getAllTasks = async (): Promise<Task[]> => {
   try {
-    const tasks = await db.tasks.toArray();
+    const tasks = await getAllItemsFromStore<Task>('tasks');
     return tasks;
   } catch (error) {
     logError(
@@ -552,7 +552,7 @@ export const getAllTasks = async (): Promise<Task[]> => {
 
 export const getAllContacts = async (): Promise<Contact[]> => {
   try {
-    const contacts = await db.contacts.toArray();
+    const contacts = await getAllItemsFromStore<Contact>('contacts');
     return contacts;
   } catch (error) {
     logError(
@@ -570,7 +570,7 @@ export const createCommunicationLog = async (
   try {
     const id = crypto.randomUUID();
     const logToStore = { ...log, id, date: Date.now() };
-    await db.communicationLogs.put(logToStore);
+    await setItem('communicationLogs', id, logToStore);
     return id;
   } catch (error) {
     logError(
@@ -606,7 +606,7 @@ export const updateCommunicationLog = async (
 ): Promise<void> => {
   try {
     const updatedLog = { ...log, date: Date.now() };
-    await db.communicationLogs.put(updatedLog);
+    await setItem('communicationLogs', updatedLog.id, updatedLog);
   } catch (error) {
     logError(
       error,
@@ -621,7 +621,7 @@ export const deleteCommunicationLog = async (
   customerId: string,
 ): Promise<void> => {
   try {
-    await db.communicationLogs.delete(id);
+    await deleteItem('communicationLogs', id);
   } catch (error) {
     logError(
       error,
@@ -643,7 +643,7 @@ export const createCourse = async (
       creationTimestamp: now, // Use correct property name
       updateTimestamp: now, // Use correct property name
     };
-    await db.courses.put(courseToStore);
+    await setItem('courses', id, courseToStore);
     return id;
   } catch (error) {
     logError(
@@ -775,7 +775,7 @@ export const getAllQuizResultsForUser = async (
 
 export const getCourse = async (id: string): Promise<Course | undefined> => {
   try {
-    const course = await db.courses.get(id);
+    const course = await getItem<Course>('courses', id);
     return course;
   } catch (error) {
     logError(
@@ -789,7 +789,7 @@ export const getCourse = async (id: string): Promise<Course | undefined> => {
 
 export const getAllCourses = async (): Promise<Course[]> => {
   try {
-    const courses = await db.courses.toArray();
+    const courses = await getAllItemsFromStore<Course>('courses');
     return courses;
   } catch (error) {
     logError(
@@ -804,7 +804,7 @@ export const getAllCourses = async (): Promise<Course[]> => {
 export const updateCourse = async (course: Course): Promise<void> => {
   try {
     const courseToStore = { ...course, updateTimestamp: Date.now() }; // Use correct property name
-    await db.courses.put(courseToStore);
+    await setItem('courses', courseToStore.id, courseToStore);
   } catch (error) {
     logError(
       error,
@@ -816,7 +816,7 @@ export const updateCourse = async (course: Course): Promise<void> => {
 
 export const deleteCourse = async (id: string): Promise<void> => {
   try {
-    await db.courses.delete(id);
+    await deleteItem('courses', id);
   } catch (error) {
     logError(
       error,
@@ -844,7 +844,7 @@ export const addCategory = async (
   try {
     const id = crypto.randomUUID();
     const categoryToStore = { ...category, id };
-    await db.categories.put(categoryToStore);
+    await setItem('categories', id, categoryToStore);
     return id;
   } catch (error) {
     logError(
@@ -858,7 +858,7 @@ export const addCategory = async (
 
 export const getAllCategories = async (): Promise<Category[]> => {
   try {
-    const categories = await db.categories.toArray();
+    const categories = await getAllItemsFromStore<Category>('categories');
     return categories;
   } catch (error) {
     logError(
@@ -872,7 +872,7 @@ export const getAllCategories = async (): Promise<Category[]> => {
 
 export const updateCategory = async (category: Category): Promise<void> => {
   try {
-    await db.categories.put(category);
+    await setItem('categories', category.id, category);
   } catch (error) {
     logError(
       error,
@@ -884,7 +884,7 @@ export const updateCategory = async (category: Category): Promise<void> => {
 
 export const deleteCategory = async (id: string): Promise<void> => {
   try {
-    await db.categories.delete(id);
+    await deleteItem('categories', id);
   } catch (error) {
     logError(
       error,
@@ -896,7 +896,7 @@ export const deleteCategory = async (id: string): Promise<void> => {
 
 export async function removeCacheItem(key: string): Promise<void> {
   try {
-    await db.cache.delete(key);
+    await deleteItem('cache', key);
   } catch (error) {
     logError(
       error,
