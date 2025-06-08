@@ -94,26 +94,36 @@ const ProjectForm = ({
         description: data.description?.trim() || '',
       };
 
-      if (initialProject) {
-        // Update existing project
-        if (onUpdateProject) {
-          const updatedProject: Project = {
-            ...initialProject,
-            ...projectData,
-            updatedAt: Date.now(),
-          };
-          await onUpdateProject(updatedProject);
+      try {
+        if (initialProject) {
+          // Update existing project
+          if (onUpdateProject) {
+            const updatedProject: Project = {
+              ...initialProject,
+              ...projectData,
+              updatedAt: Date.now(),
+            };
+            await onUpdateProject(updatedProject);
+          }
+        } else {
+          // Create new project
+          if (onCreateProject) {
+            await onCreateProject({
+              ...projectData,
+              status: ProjectStatus.Active, // Set a default status for new projects
+            });
+          }
         }
-      } else {
-        // Create new project
-        if (onCreateProject) {
-          await onCreateProject({
-            ...projectData,
-            status: ProjectStatus.Active, // Set a default status for new projects
-          });
-        }
+        toast.success(
+          `Project "${data.name}" ${initialProject ? 'updated' : 'added'} successfully!`,
+        ); // Add success toast
+        onProjectUpdated?.(); // Call the callback if provided for both add/update
+      } catch (error) {
+        toast.error(
+          `Failed to ${initialProject ? 'update' : 'add'} project "${data.name}". Please try again.`,
+        ); // Add error toast
+        console.error('Project persistence failed:', error); // Log error
       }
-      onProjectUpdated?.(); // Call the callback if provided for both add/update
     },
     [initialProject, onCreateProject, onUpdateProject, onProjectUpdated],
   );

@@ -40,8 +40,14 @@ const CommentList: React.FC<CommentListProps> = ({
       createdAt: Date.now(),
     };
 
-    await onAddComment(newComment);
-    setNewCommentText('');
+    try {
+      await onAddComment(newComment);
+      setNewCommentText('');
+      toast.success('Comment added successfully!'); // Add success toast
+    } catch (error) {
+      toast.error('Failed to add comment. Please try again.'); // Add error toast
+      console.error('Failed to add comment:', error); // Log error
+    }
   }, [newCommentText, onAddComment, taskId]);
   return (
     <div>

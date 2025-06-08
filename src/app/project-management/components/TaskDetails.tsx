@@ -18,6 +18,7 @@ import { TaskStatus, TaskPriority } from '@/types/indexeddb'; // Import TaskStat
 import CommentList from './CommentList';
 import TaskForm from './TaskForm'; // To allow editing within details view
 import { toast } from 'sonner';
+import { Dialog, DialogContent } from '@/components/ui/dialog'; // Import Dialog components
 
 interface TaskDetailsProps {
   task: Task;
@@ -48,6 +49,8 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   onClose,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] =
+    useState(false); // State for delete confirmation modal
 
   /**
    * @brief Memoizes the CSS class for task priority styling.
@@ -137,9 +140,14 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         comments: [...comments, newComment],
         updatedAt: Date.now(),
       };
-      // Propagate update to parent, which will handle persistence
-      await onTaskPersist(updatedTask); // Await the parent's update handler
-      toast.success('Comment added successfully!');
+      try {
+        // Propagate update to parent, which will handle persistence
+        await onTaskPersist(updatedTask); // Await the parent's update handler
+        toast.success('Comment added successfully!');
+      } catch (error) {
+        toast.error('Failed to add comment. Please try again.');
+        console.error('Failed to add comment:', error);
+      }
     },
     [task, onTaskPersist],
   );
@@ -156,9 +164,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
    */
   const handleTaskFormUpdated = useCallback(
     async (updatedTask: Task) => {
-      // Propagate update to parent, which will handle persistence
-      await onTaskPersist(updatedTask); // Await the parent's update handler
-      setIsEditing(false); // Exit edit mode
+      try {
+        // Propagate update to parent, which will handle persistence
+        await onTaskPersist(updatedTask); // Await the parent's update handler
+        setIsEditing(false); // Exit edit mode
+        toast.success(`Task "${updatedTask.title}" updated successfully!`); // Add success toast
+      } catch (error) {
+        toast.error(`Failed to update task "${updatedTask.title}". Please try again.`); // Add error toast
+        console.error('Failed to update task:', error); // Log error
+      }
     },
     [onTaskPersist],
   );
@@ -184,8 +198,13 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       updatedAt: Date.now(),
     };
     // Propagate update to parent, which will handle persistence
-    await onTaskPersist(updatedTask); // Await the parent's update handler
-    toast.success(`Task "${updatedTask.title}" marked as completed!`);
+    try {
+      await onTaskPersist(updatedTask); // Await the parent's update handler
+      toast.success(`Task "${updatedTask.title}" marked as completed!`);
+    } catch (error) {
+      toast.error(`Failed to mark task "${task.title}" as complete. Please try again.`);
+      console.error('Failed to mark task complete:', error);
+    }
   }, [task, onTaskPersist]);
 
   if (isEditing) {
@@ -365,6 +384,50 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           />
         </div>
       </CardContent>
+      {/* Delete Confirmation Modal */}
+      {isDeleteConfirmModalOpen && (
+        <Dialog
+          open={isDeleteConfirmModalOpen}
+          onOpenChange={setIsDeleteConfirmModalOpen}
+        >
+          <DialogContent className="sm:max-w-[425px]">
+            <div className="p-4">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
+                Confirm Delete Task
+              </h3>
+              <p className="text-foreground mb-4">
+                Are you sure you want to delete the task "{task.title}"? This
+                action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteConfirmModalOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={async () => {
+                    try {
+                      await onDeleteTask(task.id);
+                      setIsDeleteConfirmModalOpen(false); // Close modal after deletion
+                      onClose(); // Close details modal after deletion
+                      toast.success(`Task "${task.title}" deleted successfully!`); // Add success toast
+                    } catch (error) {
+                      toast.error(`Failed to delete task "${task.title}". Please try again.`); // Add error toast
+                      console.error('Failed to delete task:', error); // Log error
+                      setIsDeleteConfirmModalOpen(false); // Close modal even on error
+                    }
+                  }}
+                >
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Card>
   );
 };
