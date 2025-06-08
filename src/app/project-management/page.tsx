@@ -2,7 +2,7 @@
 'use client';
 
 // Import necessary React and UI components
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -42,7 +42,7 @@ import { TaskStatus } from '@/types/indexeddb';
  * This component orchestrates the display and interaction of project and task management
  * features. It uses Dnd-kit for drag-and-drop functionality, organizes content into tabs,
  * and integrates various sub-components for forms and lists.
- * It relies on the `useProjectManagementData` hook for state management and data operations.
+ * It relies on the `useTaskManagement` hook for state management and data operations.
  *
  * @returns {JSX.Element} The ProjectManagementPage component.
  */
@@ -78,9 +78,14 @@ const ProjectManagementPage = () => {
     }),
   );
 
-  // Filter tasks by status and selected project for each column
-  // Memoize the filtered task lists for performance
-  // Memoize the filtered task list based on selected project
+  /**
+   * @brief Memoizes the filtered task list based on the `selectedProject`.
+   *
+   * This ensures that the task list is only re-filtered when `tasks` or `selectedProject` changes,
+   * optimizing performance by avoiding unnecessary re-renders of `TaskList` components.
+   *
+   * @returns {Task[]} The array of tasks filtered by the currently selected project.
+   */
   const filteredTasks = useMemo(() => {
     if (selectedProject === NO_PROJECT_VALUE) {
       return tasks;
@@ -88,15 +93,15 @@ const ProjectManagementPage = () => {
     return tasks.filter((task) => task.projectId === selectedProject);
   }, [tasks, selectedProject]);
 
-  const handleViewTaskDetails = (task: Task) => {
+  const handleViewTaskDetails = useCallback((task: Task) => {
     setSelectedTaskForDetails(task);
     setIsTaskDetailsModalOpen(true);
-  };
+  }, []);
 
-  const handleCloseTaskDetailsModal = () => {
+  const handleCloseTaskDetailsModal = useCallback(() => {
     setIsTaskDetailsModalOpen(false);
     setSelectedTaskForDetails(null);
-  };
+  }, []);
 
   if (isLoading) {
     return (

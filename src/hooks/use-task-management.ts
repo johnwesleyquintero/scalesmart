@@ -19,16 +19,19 @@ import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 
 /**
- * @typedef {Object} UseTaskManagementReturn
+ * @interface UseTaskManagementReturn
+ * @brief Return type for the `useTaskManagement` hook.
  * @property {Task[]} tasks - Array of all tasks.
  * @property {React.Dispatch<React.SetStateAction<Task[]>>} setTasks - Setter for tasks state.
  * @property {Project[]} projects - Array of all projects.
  * @property {React.Dispatch<React.SetStateAction<Project[]>>} setProjects - Setter for projects state.
+ * @property {boolean} isLoading - Indicates if data is currently being loaded.
+ * @property {string | null} error - Stores any error message that occurred during data loading or persistence.
  * @property {(updatedTask: Task) => Promise<void>} handleUpdateTask - Handler to update an existing task and persist it.
  * @property {(event: DragEndEvent) => Promise<void>} handleDragEnd - Handler for Dnd-kit drag end event.
- * @property {(taskData: Omit<Task, 'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
+ * @property {(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
  * @property {(id: string) => Promise<void>} handleDeleteTask - Handler to delete a task.
- * @property {(projectData: Omit<Project, 'id' | 'creationTimestamp' | 'updateTimestamp'>) => Promise<string | undefined>} handleCreateProject - Handler to create a new project.
+ * @property {(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => Promise<string | undefined>} handleCreateProject - Handler to create a new project.
  * @property {(project: Project) => Promise<void>} handleUpdateProject - Handler to update an existing project.
  * @property {(id: string) => Promise<void>} handleDeleteProject - Handler to delete a project.
  */
@@ -118,11 +121,11 @@ export const useTaskManagement = () => {
           );
         }
       } catch (error) {
-        // If persistence fails, show an error toast and revert the state
-        toast.error(errorMessage);
+        // If persistence fails, revert the state and show an error toast
         setStateFunction(originalState); // Revert state on error
-        setError(errorMessage); // Set the error state for UI consumption
+        toast.error(errorMessage); // Show error toast
         console.error('Persistence failed:', error); // Log the error for debugging
+        throw error; // Re-throw the error to be caught by specific handlers if needed
       }
     },
     [],
@@ -159,6 +162,7 @@ export const useTaskManagement = () => {
         `Failed to update task status. Please try again.`, // Error message
         originalTasks, // Original state for revert
         setTasks, // State setter function
+        undefined, // No onPersistenceSuccess needed as ID doesn't change
       );
     },
     [performOptimisticUpdate], // Dependency array includes the helper function
@@ -227,6 +231,7 @@ export const useTaskManagement = () => {
         `Failed to reorder task. Please try again.`, // Error message
         originalTasks, // Original state for revert
         setTasks, // State setter function
+        undefined, // No onPersistenceSuccess needed as IDs don't change
       );
     },
     [tasks, performOptimisticUpdate], // Dependencies include tasks state and the helper function
@@ -305,6 +310,9 @@ export const useTaskManagement = () => {
     },
     [setTasks], // Dependency array includes the setTasks setter
   );
+  // This function is not used directly in the current setup,
+  // as handleUpdateTask is used for persistence.
+  // Keeping it for potential future use or if other components need a direct state update without persistence.
 
   /**
    * @brief Updates an existing task in state and IndexedDB.
@@ -470,6 +478,7 @@ export const useTaskManagement = () => {
         setProjects, // Projects state setter function
         (deletedProjectId, optimisticProjects) => {
           // onPersistenceSuccess handler: filter out tasks associated with the deleted project
+          // Also filter out tasks associated with the deleted project
           setTasks((prevTasks) =>
             prevTasks.filter((task) => task.projectId !== deletedProjectId),
           );

@@ -19,25 +19,28 @@ const CommentList: React.FC<CommentListProps> = ({
   const [newCommentText, setNewCommentText] = useState('');
 
   /**
-   * Handles adding a new comment. Creates the comment object and passes it
-   * to the parent's onAddComment handler.
+   * @brief Handles adding a new comment.
+   *
+   * Creates a new `TaskComment` object with a unique ID, current task ID,
+   * user ID (placeholder), content, and timestamp. It then calls the
+   * `onAddComment` prop to persist the comment and clears the input field.
+   *
+   * @returns {Promise<void>} A promise that resolves when the comment has been added.
    */
   const handleAddComment = useCallback(async () => {
-    // Make handleAddComment async
     if (newCommentText.trim() === '') {
       return;
     }
 
     const newComment: TaskComment = {
-      // Use TaskComment
-      id: crypto.randomUUID(), // Use crypto.randomUUID() for robust ID generation
-      taskId: taskId, // Add the missing taskId
+      id: crypto.randomUUID(),
+      taskId: taskId,
       content: newCommentText,
-      userId: 'CurrentUser', // TODO: Integrate with actual user authentication to get the current user's ID/name
+      userId: 'anonymous_user', // Placeholder: Integrate with actual user authentication
       createdAt: Date.now(),
     };
 
-    await onAddComment(newComment); // Await the parent's async handler
+    await onAddComment(newComment);
     setNewCommentText('');
   }, [newCommentText, onAddComment, taskId]);
   return (

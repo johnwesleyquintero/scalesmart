@@ -49,7 +49,14 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
 
-  // Memoize the priority class for styling
+  /**
+   * @brief Memoizes the CSS class for task priority styling.
+   *
+   * This memoized value ensures that the priority class is only re-calculated
+   * when the task's priority changes, optimizing performance.
+   *
+   * @returns {string} The Tailwind CSS class string corresponding to the task's priority.
+   */
   const priorityClass = useMemo(() => {
     switch (task.priority) {
       case TaskPriority.High:
@@ -63,7 +70,13 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     }
   }, [task.priority]);
 
-  // Memoize projects into a Map for O(1) lookup by ID.
+  /**
+   * @brief Memoizes all projects into a Map for efficient O(1) lookup by ID.
+   *
+   * This map is used to quickly retrieve project names when displaying task details.
+   *
+   * @returns {Map<string, Project>} A Map where keys are project IDs and values are Project objects.
+   */
   const projectsMap = useMemo(() => {
     const map = new Map<string, Project>();
     projects.forEach((project) => {
@@ -74,7 +87,13 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     return map;
   }, [projects]);
 
-  // Memoize all tasks into a Map for O(1) lookup by ID.
+  /**
+   * @brief Memoizes all tasks into a Map for efficient O(1) lookup by ID.
+   *
+   * This map is used to quickly resolve task titles for dependencies and subtasks.
+   *
+   * @returns {Map<string, Task>} A Map where keys are task IDs and values are Task objects.
+   */
   const allTasksMap = useMemo(() => {
     const map = new Map<string, Task>();
     allTasks.forEach((task) => {
@@ -85,6 +104,13 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     return map;
   }, [allTasks]);
 
+  /**
+   * @brief Retrieves the name of a project given its ID.
+   * Uses the memoized `projectsMap` for efficient lookup.
+   *
+   * @param {string | undefined} projectId - The ID of the project.
+   * @returns {string} The name of the project, or 'No Project'/'Unknown Project' if not found.
+   */
   const getProjectName = useCallback(
     (projectId: string | undefined): string => {
       if (!projectId) return 'No Project';
@@ -94,6 +120,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     [projectsMap],
   );
 
+  /**
+   * @brief Handles adding a new comment to the task.
+   *
+   * This function updates the task's comments array and then calls the
+   * `onTaskPersist` prop to save the updated task.
+   *
+   * @param {TaskComment} newComment - The new comment object to add.
+   * @returns {Promise<void>} A promise that resolves when the comment has been added and persisted.
+   */
   const handleAddComment = useCallback(
     async (newComment: TaskComment) => {
       const comments = Array.isArray(task.comments) ? task.comments : [];
@@ -109,6 +144,16 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     [task, onTaskPersist],
   );
 
+  /**
+   * @brief Handles task form submission when editing a task.
+   *
+   * This function is called when the `TaskForm` (in edit mode) successfully
+   * updates a task. It propagates the update to the parent for persistence
+   * and then exits the edit mode.
+   *
+   * @param {Task} updatedTask - The task object with updated properties.
+   * @returns {Promise<void>} A promise that resolves when the task has been updated and edit mode is exited.
+   */
   const handleTaskFormUpdated = useCallback(
     async (updatedTask: Task) => {
       // Propagate update to parent, which will handle persistence
@@ -118,6 +163,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     [onTaskPersist],
   );
 
+  /**
+   * @brief Handles marking the task as complete.
+   *
+   * This function updates the task's status to `TaskStatus.Completed` and
+   * then calls the `onTaskPersist` prop to save the updated task.
+   * It also provides user feedback via toasts.
+   *
+   * @returns {Promise<void>} A promise that resolves when the task has been marked complete and persisted.
+   */
   const handleMarkComplete = useCallback(async () => {
     if (task.status === TaskStatus.Completed) {
       toast.info('Task is already completed.');

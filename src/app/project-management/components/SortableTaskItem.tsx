@@ -15,13 +15,24 @@ interface SortableTaskItemProps {
   onTaskPersist: (updatedOrNewTask: Task) => Promise<void>;
 }
 
+/**
+ * @component SortableTaskItem
+ * @brief A wrapper component for `TaskItem` that enables drag-and-drop sorting.
+ *
+ * This component integrates with `dnd-kit`'s `useSortable` hook to provide
+ * drag-and-drop functionality for individual task items within a `TaskList`.
+ * It passes necessary props to the underlying `TaskItem` component.
+ *
+ * @param {SortableTaskItemProps} props The props for the component.
+ * @returns {JSX.Element} The SortableTaskItem component.
+ */
 const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   task,
   projects,
   onDeleteTask,
-  allTasks, // Destructure allTasks
-  onViewTaskDetails, // Destructure onViewTaskDetails
-  onTaskPersist, // Destructure the new prop
+  allTasks,
+  onViewTaskDetails,
+  onTaskPersist,
 }) => {
   const {
     attributes,

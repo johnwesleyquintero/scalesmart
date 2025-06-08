@@ -108,7 +108,7 @@ const ProjectList = ({
   /**
    * @brief Handles the click event for deleting a project, opening a confirmation modal.
    * Uses `useCallback` for memoization.
-   * @param {string} id - The ID of the project to be deleted.
+   * @param {Project} project - The project object to be deleted.
    */
   const handleDeleteProjectClick = useCallback((project: Project) => {
     setProjectToDelete(project);
@@ -117,6 +117,8 @@ const ProjectList = ({
 
   /**
    * @brief Confirms and proceeds with project deletion after user confirmation.
+   * Uses `useCallback` for memoization.
+   * @returns {Promise<void>} A promise that resolves when the project has been deleted.
    */
   const confirmDeleteProject = useCallback(async () => {
     if (projectToDelete) {
@@ -128,6 +130,7 @@ const ProjectList = ({
 
   /**
    * @brief Handles closing the delete confirmation modal.
+   * Uses `useCallback` for memoization.
    */
   const handleCloseDeleteConfirmModal = useCallback(() => {
     setIsDeleteConfirmModalOpen(false);
@@ -141,7 +144,7 @@ const ProjectList = ({
    */
   const handleEditClick = useCallback((project: Project) => {
     setSelectedProject(project);
-    setIsEditModalOpen(true); // Use renamed state
+    setIsEditModalOpen(true);
   }, []);
 
   /**
@@ -149,7 +152,7 @@ const ProjectList = ({
    * Uses `useCallback` for memoization.
    */
   const handleCloseEditModal = useCallback(() => {
-    setIsEditModalOpen(false); // Use renamed state
+    setIsEditModalOpen(false);
     setSelectedProject(null);
   }, []);
 

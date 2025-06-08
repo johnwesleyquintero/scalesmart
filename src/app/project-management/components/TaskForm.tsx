@@ -124,6 +124,16 @@ const TaskForm = ({
     },
   });
 
+  /**
+   * @brief Handles form submission for creating or updating a task.
+   *
+   * This function processes the form data, constructs a task object, and then
+   * calls either `onCreateTask` or `onUpdateTask` based on whether an `initialTask`
+   * is provided. It also handles success/error toasts and form resetting.
+   *
+   * @param {FormValues} data - The validated form data.
+   * @returns {Promise<void>} A promise that resolves when the task operation is complete.
+   */
   const onSubmit = useCallback(
     async (data: FormValues) => {
       const finalProjectId =
@@ -132,12 +142,12 @@ const TaskForm = ({
       const taskData = {
         title: data.title.trim(),
         description: data.description?.trim() || '',
-        status: data.status as TaskStatus, // Cast to TaskStatus
-        assigneeId: data.assigneeId?.trim() || '', // Changed from assignee to assigneeId
+        status: data.status as TaskStatus,
+        assigneeId: data.assigneeId?.trim() || '',
         dueDate: data.dueDate ? data.dueDate.getTime() : undefined,
         projectId: finalProjectId,
         dependencies: data.dependencies,
-        subtaskIds: data.subtaskIds, // Changed from subtasks to subtaskIds
+        subtaskIds: data.subtaskIds,
         priority: data.priority,
       };
 
@@ -151,7 +161,7 @@ const TaskForm = ({
               updatedAt: Date.now(),
             };
             await onUpdateTask(updatedTask);
-            onTaskSaved?.(); // Call the callback if provided
+            onTaskSaved?.();
           }
         } else {
           // Create new task
@@ -159,8 +169,8 @@ const TaskForm = ({
             await onCreateTask({
               ...taskData,
             });
-            onTaskSaved?.(); // Call the callback if provided
-            reset(); // Reset form after successful creation
+            onTaskSaved?.();
+            reset();
           }
         }
       } catch (error) {
@@ -178,6 +188,14 @@ const TaskForm = ({
   const subtaskIdsValue = watch('subtaskIds'); // Changed from subtasks to subtaskIds
   const priorityValue = watch('priority');
 
+  /**
+   * @brief Memoizes the project options for the project selection dropdown.
+   *
+   * Filters out projects with invalid or empty IDs and maps valid projects
+   * to `SelectItem` components.
+   *
+   * @returns {JSX.Element[]} An array of `SelectItem` components for projects.
+   */
   const projectSelectItems = useMemo(() => {
     return projects
       .filter((project) => {
@@ -197,6 +215,13 @@ const TaskForm = ({
       ));
   }, [projects]);
 
+  /**
+   * @brief Memoizes the task options for the dependencies and subtasks multi-select components.
+   *
+   * Filters out the current task (if in edit mode) to prevent self-referencing dependencies/subtasks.
+   *
+   * @returns {{ label: string; value: string; }[]} An array of objects, each representing a task option.
+   */
   const taskOptions = useMemo(() => {
     return allTasks
       .filter((task: Task) => task.id !== initialTask?.id)
