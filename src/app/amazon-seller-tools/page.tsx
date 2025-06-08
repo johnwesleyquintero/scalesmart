@@ -43,17 +43,30 @@ import { WHATS_NEW_LOCAL_STORAGE_KEY } from '@/lib/constants'; // Import the con
 type ExportCompatibleValue = string | number | boolean | null | undefined;
 
 /**
- * Recursively flattens an object, handling nested objects and arrays for CSV export.
- * Non-primitive values are stringified. Keys are prefixed to avoid collisions.
+ * Recursively flattens an object for CSV export, handling nested objects and arrays.
+ * Includes options for custom stringification and circular reference detection.
  * @param obj The object to flatten.
  * @param prefix The prefix for the keys (used in recursion).
+ * @param stringifyNonPrimitive A function to stringify non-primitive values. Defaults to JSON.stringify.
+ * @param seen An array to track visited objects for circular reference detection.
  * @returns A flat object with prefixed keys and export-compatible values.
  */
 const flattenObjectForExport = (
   obj: Record<string, unknown>,
   prefix: string = '',
+  stringifyNonPrimitive: (value: unknown) => string = JSON.stringify,
+  seen: object[] = [],
 ): Record<string, ExportCompatibleValue> => {
   const flattened: Record<string, ExportCompatibleValue> = {};
+
+  // Check for circular references
+  if (seen.includes(obj)) {
+    console.warn('Circular reference detected, skipping object.');
+    flattened[prefix + '_circular_reference'] = 'Circular Reference Detected';
+    return flattened;
+  }
+
+  seen.push(obj);
 
   for (const [key, value] of Object.entries(obj)) {
     const newKey = prefix ? `${prefix}_${key}` : key;
@@ -67,11 +80,19 @@ const flattenObjectForExport = (
     ) {
       flattened[newKey] = value;
     } else if (typeof value === 'object' && value !== null) {
-      // Recursively flatten nested objects, ensuring the type is compatible
+      // Recursively flatten nested objects
       Object.assign(
         flattened,
-        flattenObjectForExport(value as Record<string, unknown>, newKey),
+        flattenObjectForExport(
+          value as Record<string, unknown>,
+          newKey,
+          stringifyNonPrimitive,
+          seen,
+        ),
       );
+    } else {
+      // Handle non-primitive values using the provided stringify function
+      flattened[newKey] = stringifyNonPrimitive(value);
     }
     // Functions, symbols, and bigints are intentionally ignored as they are not suitable for CSV.
   }
@@ -109,6 +130,8 @@ interface ToolCategorySectionProps {
   title: string;
   defaultValue: string;
   tabs: ToolCategoryTab[];
+  TabsListClassName?: string;
+  TabsContentClassName?: string;
 }
 
 /**
@@ -130,7 +153,7 @@ interface ToolCategorySectionProps {
  * @returns {JSX.Element} A pre-styled card component with a tabbed interface for tools.
  */
 const ToolCategorySection: React.FC<ToolCategorySectionProps> = React.memo(
-  ({ title, defaultValue, tabs }) => (
+  ({ title, defaultValue, tabs, TabsListClassName, TabsContentClassName }) => (
     <Card className="bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
       <CardContent className="p-4">
         <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
@@ -138,7 +161,9 @@ const ToolCategorySection: React.FC<ToolCategorySectionProps> = React.memo(
         </h3>
         {/* Use key prop on Tabs for proper reset if the structure changes, though unlikely here */}
         <Tabs defaultValue={defaultValue} className="w-full">
-          <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-gray-100 dark:bg-gray-700">
+          <TabsList
+            className={`mb-4 flex flex-wrap h-auto justify-start bg-gray-100 dark:bg-gray-700 ${TabsListClassName || ''}`}
+          >
             {tabs.map((tab) => (
               <TabsTrigger
                 key={tab.triggerValue}
@@ -154,7 +179,7 @@ const ToolCategorySection: React.FC<ToolCategorySectionProps> = React.memo(
             <TabsContent
               key={tab.contentValue}
               value={tab.contentValue}
-              className="mt-0"
+              className={`mt-0 ${TabsContentClassName || ''}`}
             >
               <tab.Component {...tab.componentProps} />
             </TabsContent>
@@ -168,11 +193,13 @@ const ToolCategorySection: React.FC<ToolCategorySectionProps> = React.memo(
 ToolCategorySection.displayName = 'ToolCategorySection';
 
 // Dynamically import tab components with SSR disabled
+import SkeletonLoader from '@/components/amazon-seller-tools/SkeletonLoader';
+
 const AcosCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/acos-calculator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading ACoS Calculator&hellip;</div>,
+    loading: () => <SkeletonLoader />,
   },
 );
 const CompetitorAnalyzer = dynamic(
@@ -182,102 +209,84 @@ const CompetitorAnalyzer = dynamic(
     ),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Competitor Analyzer&hellip;</div>
-    ),
+    loading: () => <SkeletonLoader />,
   },
 );
 const DescriptionEditor = dynamic(
   () => import('@/components/amazon-seller-tools/description-editor'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Description Editor&hellip;</div>
-    ),
+    loading: () => <SkeletonLoader />,
   },
 );
 const FbaCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/fba-calculator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading FBA Calculator&hellip;</div>,
+    loading: () => <SkeletonLoader />,
   },
 );
 const KeywordAnalyzer = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-analyzer'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Keyword Analyzer&hellip;</div>,
+    loading: () => <SkeletonLoader />,
   },
 );
 const KeywordDeduplicator = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-deduplicator'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Keyword Deduplicator&hellip;</div>
-    ),
+    loading: () => <SkeletonLoader />,
   },
 );
 const KeywordTrendAnalyzer = dynamic(
   () => import('@/components/amazon-seller-tools/keyword-trend-analyzer'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Keyword Trend Analyzer&hellip;</div>
-    ),
+    loading: () => <SkeletonLoader />,
   },
 );
 const ListingQualityChecker = dynamic(
   () => import('@/components/amazon-seller-tools/listing-quality-checker'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Listing Quality Checker&hellip;</div>
-    ),
+    loading: () => <SkeletonLoader />,
   },
 );
 const OptimalPriceCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/optimal-price-calculator'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Optimal Price Calculator&hellip;</div>
-    ),
+    loading: () => <SkeletonLoader />,
   },
 );
 const PpcCampaignAuditor = dynamic(
   () => import('@/components/amazon-seller-tools/ppc-campaign-auditor'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading PPC Campaign Auditor&hellip;</div>
-    ),
+    loading: () => <SkeletonLoader />,
   },
 );
 const ProductScoreCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/product-score-calculator'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Product Score Calculator&hellip;</div>
-    ),
+    loading: () => <SkeletonLoader />,
   },
 );
 const ProfitMarginCalculator = dynamic(
   () => import('@/components/amazon-seller-tools/profit-margin-calculator'),
   {
     ssr: false,
-    loading: () => (
-      <div className="p-4">Loading Profit Margin Calculator&hellip;</div>
-    ),
+    loading: () => <SkeletonLoader />,
   },
 );
 const SalesEstimator = dynamic(
   () => import('@/components/amazon-seller-tools/sales-estimator'),
   {
     ssr: false,
-    loading: () => <div className="p-4">Loading Sales Estimator&hellip;</div>,
+    loading: () => <SkeletonLoader />,
   },
 );
 
@@ -457,20 +466,31 @@ export default function UnifiedDashboard() {
    * with the URL search parameters when searchParams change.
    * This enables deep linking to specific tabs and pre-filling tool inputs based on the URL.
    */
-  useEffect(() => {
-    const tabParam = searchParams.get('tab') || 'overview';
-    setActiveTab(tabParam);
+  // useEffect(() => {
+  //   const tabParam = searchParams.get('tab') || 'overview';
+  //   setActiveTab(tabParam);
 
-    // Extract and store initial params if present
-    const asinParam = searchParams.get('asin');
-    const keywordParam = searchParams.get('keyword');
+  //   // Extract and store initial params if present
+  //   const asinParam = searchParams.get('asin');
+  //   const keywordParam = searchParams.get('keyword');
+  //   setInitialAsin(asinParam);
+  //   setInitialKeyword(keywordParam);
+
+  //   // Note: Initial params are kept in state to be passed down to dynamic components.
+  //   // Components consuming these props should handle their own internal state updates
+  //   // if they need to react to changes in these initial values.
+  // }, [searchParams]); // Dependency array includes searchParams to react to URL changes
+
+  const tabParam = searchParams.get('tab') || 'overview';
+  const asinParam = searchParams.get('asin');
+  const keywordParam = searchParams.get('keyword');
+
+  // Directly set the active tab and initial parameters using the values from useSearchParams
+  useEffect(() => {
+    setActiveTab(tabParam);
     setInitialAsin(asinParam);
     setInitialKeyword(keywordParam);
-
-    // Note: Initial params are kept in state to be passed down to dynamic components.
-    // Components consuming these props should handle their own internal state updates
-    // if they need to react to changes in these initial values.
-  }, [searchParams]); // Dependency array includes searchParams to react to URL changes
+  }, [tabParam, asinParam, keywordParam]);
 
   /**
    * Memoized callback to handle the closing of the "What's New" modal.
@@ -535,7 +555,7 @@ export default function UnifiedDashboard() {
       // if the new tab doesn't use them.
       currentParams.delete('asin');
       currentParams.delete('keyword');
-      router.push(`?${currentParams.toString()}`, { scroll: false });
+      router.replace(`?${currentParams.toString()}`, { scroll: false });
     },
     [searchParams, router],
   ); // Depend on searchParams and router
