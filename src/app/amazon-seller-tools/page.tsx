@@ -439,11 +439,14 @@ export default function UnifiedDashboard() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // State for the main tabs (synced with URL)
+  // State for the currently active main tab, synchronized with the URL search parameter 'tab'.
   const [activeTab, setActiveTab] = useState('overview');
 
-  // State to hold all data and callbacks from DataIntegrationTab
-  // Explicitly type the state with the full UseAmazonDataIntegrationReturn interface
+  // State to hold all data and callbacks provided by the DataIntegrationTab component.
+  // This state is updated via the `onDataUpdate` prop passed to DataIntegrationTab.
+  // It includes metrics, loading/parsing/error states, and functions for data manipulation.
+  // The verbose initialization is necessary to fully type the state and provide initial values
+  // matching the UseAmazonDataIntegrationReturn interface.
   const [dataIntegrationData, setDataIntegrationData] =
     useState<UseAmazonDataIntegrationReturn>({
       metrics: [],
@@ -492,17 +495,18 @@ export default function UnifiedDashboard() {
     setSearchTerm,
   } = dataIntegrationData;
 
-  // States for initial tool parameters (from URL)
+  // States for initial tool parameters (ASIN and Keyword) extracted from the URL search parameters.
+  // These are used to pre-fill inputs in specific tool components for deep linking.
   const [initialAsin, setInitialAsin] = useState<string | null>(null);
   const [initialKeyword, setInitialKeyword] = useState<string | null>(null);
 
-  // State for the "What's New" modal
+  // State to control the visibility of the "What's New" modal.
   const [showWhatsNew, setShowWhatsNew] = useState(false);
 
   /**
-   * Effect hook to check if the "What's New" modal has been seen.
-   * This prevents the modal from showing on every visit after the user has seen it once.
-   * Since this is a client component, `window` is always defined.
+   * Effect hook to check if the "What's New" modal has been seen on component mount.
+   * It prevents the modal from showing on every visit after the user has seen it once,
+   * by checking a flag in localStorage.
    */
   useEffect(() => {
     const hasSeenWhatsNew = localStorage.getItem(WHATS_NEW_LOCAL_STORAGE_KEY);
@@ -514,7 +518,7 @@ export default function UnifiedDashboard() {
   /**
    * Effect hook to synchronize the active tab and initial tool parameters (ASIN, Keyword)
    * with the URL search parameters when searchParams change.
-   * This enables deep linking to specific tabs and pre-filling tool inputs.
+   * This enables deep linking to specific tabs and pre-filling tool inputs based on the URL.
    */
   useEffect(() => {
     const tabParam = searchParams.get('tab') || 'overview';
@@ -532,9 +536,9 @@ export default function UnifiedDashboard() {
   }, [searchParams]); // Dependency array includes searchParams to react to URL changes
 
   /**
-   * Handles the closing of the "What's New" modal.
-   * Sets `showWhatsNew` to false and marks the modal as seen in `localStorage`.
-   * Since this is a client component, `window` is always defined.
+   * Memoized callback to handle the closing of the "What's New" modal.
+   * It updates the state to hide the modal and sets a flag in localStorage
+   * to prevent it from showing again.
    */
   const handleCloseWhatsNew = useCallback(() => {
     setShowWhatsNew(false);
@@ -542,14 +546,8 @@ export default function UnifiedDashboard() {
   }, []);
 
   /**
-   * Resets all relevant state variables to their initial values.
-   * This is used to refresh the dashboard or clear previous data/errors.
-   * Memoized to prevent unnecessary re-renders.
-   */
-  /**
-   * Resets all relevant state variables to their initial values.
-   * This is used to refresh the dashboard or clear previous data/errors.
-   * Memoized to prevent unnecessary re-renders.
+   * Memoized callback to trigger a data refresh.
+   * It calls the `onRefreshData` function provided by the DataIntegrationTab component.
    */
   const handleRefresh = useCallback(() => {
     if (onRefreshData) {
@@ -560,10 +558,9 @@ export default function UnifiedDashboard() {
   }, [onRefreshData]);
 
   /**
-   * Handles the data export functionality.
-   * Exports the current metrics data to a CSV file after transforming it.
-   * Provides user feedback for success or failure.
-   * Memoized using `useCallback`.
+   * Memoized callback to handle exporting the current dashboard metrics to a CSV file.
+   * It transforms the data into a flat format suitable for CSV before exporting.
+   * Provides user feedback via toasts.
    */
   const handleExport = useCallback(() => {
     if (dataIntegrationData.metrics?.length === 0) {
@@ -588,8 +585,9 @@ export default function UnifiedDashboard() {
   }, [dataIntegrationData.metrics]); // Dependency array includes dataIntegrationData.metrics
 
   /**
-   * Handles changing the main dashboard tab and updates the URL search parameter.
+   * Memoized callback to handle changing the main dashboard tab and updating the URL search parameter.
    * This ensures that the active tab is reflected in the URL, allowing for direct linking.
+   * It also clears tool-specific URL parameters when switching tabs.
    * @param value The value of the tab being activated.
    */
   const handleMainTabChange = useCallback(
@@ -607,12 +605,6 @@ export default function UnifiedDashboard() {
     [searchParams, router],
   ); // Depend on searchParams and router
 
-  /**
-   * Memoized configuration for the tool category tabs.
-   * This prevents unnecessary re-creation of these objects on every render,
-   * optimizing performance, especially for components that rely on these props.
-   * Initial ASIN/Keyword parameters are passed to relevant tools for deep linking.
-   */
   /**
    * Memoized configuration for the tool category tabs.
    * This prevents unnecessary re-creation of these objects on every render,
