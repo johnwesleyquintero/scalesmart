@@ -9,9 +9,9 @@ interface CustomerListContentProps {
   customers: Contact[];
   searchQuery: string;
   hasAttemptedInitialLoad: boolean;
-  onEditAction: (customer: Contact) => void; // Renamed to end with Action
-  onDeleteAction: (id: string) => void; // Renamed to end with Action
-  onCopyNotesAction: (notes: string) => void; // Renamed to end with Action
+  onEditAction: (customer: Contact) => void;
+  onDeleteAction: (id: string) => void;
+  onCopyNotesAction: (notes: string) => void;
   itemsPerPage: number;
   currentPage: number;
   onCommunicationLogSaveAction: (
@@ -23,7 +23,7 @@ interface CustomerListContentProps {
     customerId: string,
   ) => Promise<void>;
   selectedCustomerIds: string[];
-  onSelectAction: (id: string, isSelected: boolean) => void; // Renamed to end with Action
+  onSelectAction: (id: string, isSelected: boolean) => void;
 }
 
 /**
@@ -35,16 +35,16 @@ export const CustomerListContent: React.FC<CustomerListContentProps> = ({
   customers,
   searchQuery,
   hasAttemptedInitialLoad,
-  onEditAction, // Use new prop name
-  onDeleteAction, // Use new prop name
-  onCopyNotesAction, // Use new prop name
+  onEditAction,
+  onDeleteAction,
+  onCopyNotesAction,
   itemsPerPage,
   currentPage,
   onCommunicationLogSaveAction,
   onCommunicationLogUpdateAction,
   onCommunicationLogDeleteAction,
   selectedCustomerIds,
-  onSelectAction, // Use new prop name
+  onSelectAction,
 }) => {
   // Calculate the start and end index for the current page
   const startIndex = currentPage * itemsPerPage;
@@ -60,13 +60,13 @@ export const CustomerListContent: React.FC<CustomerListContentProps> = ({
           <CustomerListItem
             key={`customer-card-${customer.id}`} // Unique key for list items
             customer={customer}
-            onEditAction={onEditAction} // Pass new prop name
-            onDeleteAction={onDeleteAction} // Pass new prop name
-            onCopyNotesAction={onCopyNotesAction} // Pass new prop name
-            onCommunicationLogSaveAction={onCommunicationLogSaveAction}
-            onCommunicationLogUpdateAction={onCommunicationLogUpdateAction}
-            onCommunicationLogDeleteAction={onCommunicationLogDeleteAction}
-            onSelectAction={onSelectAction} // Pass new prop name
+            handleEdit={onEditAction}
+            handleDelete={onDeleteAction}
+            handleCopyNotes={onCopyNotesAction}
+            handleCommunicationLogSave={onCommunicationLogSaveAction}
+            handleCommunicationLogUpdate={onCommunicationLogUpdateAction}
+            handleCommunicationLogDelete={onCommunicationLogDeleteAction}
+            handleSelect={onSelectAction}
             isSelected={
               // Check if the customer's ID is in the list of selected IDs
               customer.id ? selectedCustomerIds.includes(customer.id) : false

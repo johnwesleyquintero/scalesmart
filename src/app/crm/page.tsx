@@ -22,56 +22,62 @@ import { CommunicationLogsTab } from './components/CommunicationLogsTab';
 export default function CRMComponent() {
   // Destructure CRM data and actions from the custom hook
   const {
-    customers,
-    hasAttemptedInitialLoad,
-    categories,
-    handleSaveCustomerAction,
-    handleDeleteCustomerAction,
+    customers, // Array of customer contact objects.
+    hasAttemptedInitialLoad, // Boolean indicating if initial data load is complete.
+    categories, // Array of category objects.
+    handleSaveCustomerAction, // Function to save (add or update) a customer.
+    handleDeleteCustomerAction, // Function to delete a customer.
     // Destructure new category action handlers
-    handleAddCategoryAction,
-    handleUpdateCategoryAction,
-    handleDeleteCategoryAction,
-    handleCategorySuccessfullyDeletedAction,
-    handleCategoryRenamedAction,
-    handleCreateCommunicationLogAction,
-    handleUpdateCommunicationLogAction,
-    handleDeleteCommunicationLogAction,
+    handleAddCategoryAction, // Function to add a new category.
+    handleUpdateCategoryAction, // Function to update an existing category.
+    handleDeleteCategoryAction, // Function to delete a category.
+    handleCategorySuccessfullyDeletedAction, // Callback after a category is successfully deleted.
+    handleCategoryRenamedAction, // Callback after a category is renamed.
+    handleCreateCommunicationLogAction, // Function to create a new communication log.
+    handleUpdateCommunicationLogAction, // Function to update an existing communication log.
+    handleDeleteCommunicationLogAction, // Function to delete a communication log.
   } = useCRMData();
 
-  // State to manage which customer is currently being edited
+  // State to manage which customer is currently being edited.
+  // When a customer object is set, the edit modal opens.
   const [editingCustomer, setEditingCustomer] = useState<Contact | null>(null);
 
   /**
-   * Callback to set the customer currently being edited.
-   * Memoized with useCallback for performance, as it only updates state.
+   * Callback function to set the customer object that should be edited.
+   * Setting this state opens the customer edit modal.
+   * Memoized with useCallback to prevent unnecessary re-creations of the function.
    */
   const handleEditCustomer = useCallback((customer: Contact) => {
     setEditingCustomer(customer);
-  }, []);
+  }, []); // Empty dependency array means this function is created once.
 
   /**
-   * Callback to clear the editing state, closing the modal.
+   * Callback function to clear the editing customer state.
+   * This function is used to close the customer edit modal.
+   * Memoized with useCallback for performance.
    */
   const handleCancelEdit = useCallback(() => {
     setEditingCustomer(null);
-  }, []);
+  }, []); // Empty dependency array means this function is created once.
 
   /**
-   * Callback to save a customer and then clear the editing state.
-   * This ensures the form resets after a successful save operation.
-   * Memoized with useCallback, depending on `handleSaveCustomerAction`.
+   * Callback function to handle saving a customer (either adding a new one or updating an existing one)
+   * and then clearing the editing state to close the modal.
+   * It calls the `handleSaveCustomerAction` from the hook and then resets the `editingCustomer` state.
+   * Memoized with useCallback, depending on `handleSaveCustomerAction` to ensure it's updated
+   * if the underlying save logic changes.
    */
   const handleSaveCustomerAndClearEdit = useCallback(
     async (formData: Omit<Contact, 'id'>, customerToEdit: Contact | null) => {
       await handleSaveCustomerAction(formData, customerToEdit);
       setEditingCustomer(null); // Clear editing state after save
     },
-    [handleSaveCustomerAction],
+    [handleSaveCustomerAction], // Dependency array includes the save action from the hook.
   );
 
   return (
     <>
-      {/* Toaster for displaying notifications */}
+      {/* Toaster component for displaying notifications (e.g., success or error messages) */}
       <Toaster position="top-right" richColors />
       <div className="container mx-auto p-4">
         {/* Page Header */}
@@ -84,6 +90,7 @@ export default function CRMComponent() {
         </p>
 
         {/* Main Tabs Navigation */}
+        {/* Provides navigation between different sections of the CRM dashboard. */}
         <Tabs defaultValue="add-customer" className="w-full">
           <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-muted">
             <TabsTrigger
@@ -113,6 +120,7 @@ export default function CRMComponent() {
           </TabsList>
 
           {/* Tab Content for Adding a Customer */}
+          {/* Renders the form and logic for adding new customer contacts. */}
           <TabsContent value="add-customer" className="space-y-4 mt-4">
             <AddCustomerTab
               categories={categories}
@@ -121,6 +129,7 @@ export default function CRMComponent() {
           </TabsContent>
 
           {/* Tab Content for Customer List */}
+          {/* Displays the list of existing customers with options for filtering, editing, and deleting. */}
           <TabsContent value="customer-list" className="space-y-4 mt-4">
             <CustomerListTab
               customers={customers}
@@ -141,6 +150,7 @@ export default function CRMComponent() {
           </TabsContent>
 
           {/* Tab Content for Category Management */}
+          {/* Provides an interface for managing customer categories. */}
           <TabsContent value="categories" className="space-y-4 mt-4">
             <CategoryManagementTab
               categories={categories}
@@ -157,26 +167,29 @@ export default function CRMComponent() {
           </TabsContent>
 
           {/* Tab Content for Overall Communication Logs */}
+          {/* Displays a consolidated view of communication logs across all customers. */}
           <TabsContent value="communication-logs" className="space-y-4 mt-4">
             <CommunicationLogsTab customers={customers} />
           </TabsContent>
         </Tabs>
 
         {/* Modal for Editing Customer */}
+        {/* A modal that appears when a customer is selected for editing. */}
         <Modal
           isOpen={!!editingCustomer} // Open modal if editingCustomer is not null
-          onClose={handleCancelEdit} // Close modal on cancel
-          title={editingCustomer ? 'Edit Customer' : ''} // Set modal title
+          onClose={handleCancelEdit} // Close modal when the close button is clicked or outside is clicked
+          title={editingCustomer ? 'Edit Customer' : ''} // Set modal title dynamically
         >
-          {editingCustomer && ( // Only render form if editingCustomer exists
+          {/* Render the CustomerForm component inside the modal when editingCustomer is set. */}
+          {editingCustomer && (
             <CustomerForm
-              initialData={editingCustomer} // Pass the customer data to the form
+              initialData={editingCustomer} // Pass the customer data to pre-fill the form
               onSubmitSuccessAction={(formData) =>
                 handleSaveCustomerAndClearEdit(formData, editingCustomer)
-              } // Handle save and close modal
-              onCancel={handleCancelEdit} // Handle cancel and close modal
+              } // Handle form submission success: save data and close modal
+              onCancel={handleCancelEdit} // Handle form cancellation: close modal
               isEditing={true} // Indicate that the form is in editing mode
-              categories={categories} // Pass categories to the form
+              categories={categories} // Pass categories to the form for category selection
             />
           )}
         </Modal>

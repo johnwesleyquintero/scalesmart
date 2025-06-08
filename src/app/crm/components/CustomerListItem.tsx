@@ -43,18 +43,18 @@ const ClientSideMDXRemote = dynamic(
  */
 interface CustomerListItemProps {
   customer: Contact; // The customer object to display.
-  onEditAction: (customer: Contact) => void; // Renamed to end with Action
-  onDeleteAction: (id: string) => void; // Renamed to end with Action
-  onCopyNotesAction: (notes: string) => void; // Renamed to end with Action
-  onCommunicationLogSaveAction: (
+  handleEdit: (customer: Contact) => void;
+  handleDelete: (id: string) => void;
+  handleCopyNotes: (notes: string) => void;
+  handleCommunicationLogSave: (
     log: Omit<CommunicationLog, 'id'>,
-  ) => Promise<void>; // Callback to save a new communication log.
-  onCommunicationLogUpdateAction: (log: CommunicationLog) => Promise<void>; // Callback to update an existing communication log.
-  onCommunicationLogDeleteAction: (
+  ) => Promise<void>;
+  handleCommunicationLogUpdate: (log: CommunicationLog) => Promise<void>;
+  handleCommunicationLogDelete: (
     logId: string,
     customerId: string,
-  ) => Promise<void>; // Callback to delete a communication log.
-  onSelectAction: (id: string, isSelected: boolean) => void; // Renamed to end with Action
+  ) => Promise<void>;
+  handleSelect: (id: string, isSelected: boolean) => void;
   isSelected: boolean; // Boolean indicating if the customer is currently selected.
 }
 
@@ -64,24 +64,29 @@ interface CustomerListItemProps {
  */
 const CustomerListItem: React.FC<CustomerListItemProps> = ({
   customer,
-  onEditAction, // Use new prop name
-  onDeleteAction, // Use new prop name
-  onCopyNotesAction, // Use new prop name
-  onCommunicationLogSaveAction,
-  onCommunicationLogUpdateAction,
-  onCommunicationLogDeleteAction,
-  onSelectAction, // Use new prop name
+  handleEdit,
+  handleDelete,
+  handleCopyNotes,
+  handleCommunicationLogSave,
+  handleCommunicationLogUpdate,
+  handleCommunicationLogDelete,
+  handleSelect,
   isSelected,
 }) => {
-  // State to control the visibility of the communication log section.
+  // State to manage the visibility of the communication log section.
   const [isLogOpen, setIsLogOpen] = useState(false);
-  // State to store the serialized MDX content of customer notes.
+  // State to hold the serialized MDX content for rendering customer notes.
   const [serializedNotes, setSerializedNotes] =
     useState<MDXRemoteSerializeResult | null>(null);
 
   /**
-   * Effect to serialize MDX content from `customer.notes` on the client side.
-   * This runs whenever `customer.notes` changes.
+   * Effect hook to handle the client-side serialization of customer notes written in MDX format.
+   * This effect runs whenever the `customer.notes` prop changes.
+   * It dynamically imports the `serialize` function from `next-mdx-remote/serialize`
+   * to ensure it's only executed in the browser environment.
+   * The serialized content is then stored in the `serializedNotes` state,
+   * which is used by the `ClientSideMDXRemote` component for rendering.
+   * Includes basic error handling for the serialization process.
    */
   useEffect(() => {
     const serializeContent = async () => {
@@ -93,10 +98,12 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
           setSerializedNotes(mdx);
         } catch (error) {
           console.error('Error serializing MDX content:', error);
-          setSerializedNotes(null); // Set to null to prevent rendering invalid MDX.
+          // Set to null to prevent rendering invalid MDX and potentially display plain text fallback.
+          setSerializedNotes(null);
         }
       } else {
-        setSerializedNotes(null); // Clear serialized notes if customer.notes is empty.
+        // Clear serialized notes if customer.notes is empty or null.
+        setSerializedNotes(null);
       }
     };
 
@@ -104,24 +111,25 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
   }, [customer.notes]); // Dependency array ensures effect runs when notes change.
 
   /**
-   * Memoized MDX components to prevent unnecessary re-renders of the MDX renderer.
+   * Memoized object containing the custom components to be used by the MDX renderer.
+   * Memoizing this object prevents unnecessary re-renders of the `ClientSideMDXRemote`
+   * component when the parent component re-renders but the components themselves haven't changed.
    */
   const components = useMemo(() => mdxComponents, []);
 
   return (
     <Card className="w-full">
+      {/* Card content area */}
       <CardContent className="grid grid-cols-1 gap-2 pt-6 relative">
         {/* Checkbox for selecting the customer */}
         <div className="absolute top-2 left-2">
           <Checkbox
             checked={isSelected}
-            onCheckedChange={(checked) =>
-              onSelectAction(customer.id!, !!checked)
-            } // Use new prop name
+            onCheckedChange={(checked) => handleSelect(customer.id!, !!checked)}
             aria-label={`Select customer ${customer.name}`}
           />
         </div>
-        {/* Customer basic information display */}
+        {/* Section displaying basic customer information */}
         <h3 className="text-lg font-semibold text-foreground pl-8">
           {customer.name}
         </h3>
@@ -136,10 +144,12 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
         {customer.address && (
           <p className="text-muted-foreground">Address: {customer.address}</p>
         )}
-        {/* Display customer notes, rendering as MDX if serialization is successful */}
+        {/* Section for displaying customer notes */}
         {customer.notes && (
           <>
             <p className="font-semibold mt-2">Notes:</p>
+            {/* Conditionally render notes using MDXRemote if serialization is successful,
+                otherwise fallback to plain text. */}
             {serializedNotes ? (
               <div className="prose dark:prose-invert text-sm text-muted-foreground">
                 <ClientSideMDXRemote
@@ -154,22 +164,24 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
           </>
         )}
       </CardContent>
+      {/* Card footer area for action buttons and collapsible sections */}
       <CardFooter className="flex flex-wrap justify-end gap-2 p-4">
-        {/* Action buttons for customer operations */}
+        {/* Button to copy customer notes to clipboard */}
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onCopyNotesAction(customer.notes || '')} // Use new prop name
+          onClick={() => handleCopyNotes(customer.notes || '')}
           title="Copy notes"
         >
           <Copy className="mr-2 h-4 w-4" /> Copy Notes
         </Button>
-        {/* Collapsible section for communication logs */}
+        {/* Collapsible section for viewing and managing communication logs */}
         <Collapsible
           open={isLogOpen}
           onOpenChange={setIsLogOpen}
           className="w-auto flex-grow"
         >
+          {/* Trigger button for the collapsible communication log section */}
           <CollapsibleTrigger asChild>
             <Button variant="outline" size="sm" className="w-full md:w-auto">
               <MessageCircle className="mr-2 h-4 w-4" />
@@ -177,29 +189,32 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
               <ChevronsUpDown className="ml-2 h-4 w-4" />
             </Button>
           </CollapsibleTrigger>
+          {/* Content area for the communication log component */}
           <CollapsibleContent className="CollapsibleContent mt-4 w-full">
             {/* Communication log component for the current customer */}
             <CommunicationLogComponent
               customerId={customer.id!}
               logs={customer.communicationLogs || []}
-              onSave={onCommunicationLogSaveAction}
-              onUpdate={onCommunicationLogUpdateAction}
-              onDelete={onCommunicationLogDeleteAction}
+              onSave={handleCommunicationLogSave}
+              onUpdate={handleCommunicationLogUpdate}
+              onDelete={handleCommunicationLogDelete}
             />
           </CollapsibleContent>
         </Collapsible>
+        {/* Button to trigger editing the customer */}
         <Button
           variant="outline"
           size="sm"
-          onClick={() => onEditAction(customer)} // Use new prop name
+          onClick={() => handleEdit(customer)}
           title="Edit customer"
         >
           <Edit className="mr-2 h-4 w-4" /> Edit
         </Button>
+        {/* Button to trigger deleting the customer */}
         <Button
           variant="destructive"
           size="sm"
-          onClick={() => onDeleteAction(customer.id!)} // Use new prop name
+          onClick={() => handleDelete(customer.id!)}
           title="Delete customer"
         >
           <Trash2 className="mr-2 h-4 w-4" /> Delete
