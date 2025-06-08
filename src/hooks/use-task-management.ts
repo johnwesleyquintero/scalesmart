@@ -72,7 +72,9 @@ export const useTaskManagement = () => {
       } catch (err) {
         console.error('Failed to load initial data:', err);
         setError('Failed to load data. Please refresh the page.');
-        toast.error('Failed to load project management data.');
+        toast.error(
+          `Failed to load project management data: ${(err as Error).message}`,
+        );
       } finally {
         setIsLoading(false);
       }
@@ -126,7 +128,7 @@ export const useTaskManagement = () => {
         // If persistence fails, revert the state and show an error toast
         console.error('Persistence failed:', error); // Log the error for debugging
         setStateFunction(originalState); // Revert state on error
-        toast.error(errorMessage); // Show error toast
+        toast.error(`${errorMessage}: ${(error as Error).message}`); // Show error toast
         throw error; // Re-throw the error to be caught by specific handlers if needed
       }
     },

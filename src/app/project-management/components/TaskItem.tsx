@@ -149,8 +149,12 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
         await onDeleteTask(task.id); // Call the parent's delete handler
         setIsDeleteConfirmModalOpen(false); // Close confirmation modal
         toast.success(`Task "${task.title}" deleted successfully!`); // Show success toast
-      } catch (error) {
-        toast.error(`Failed to delete task "${task.title}". Please try again.`);
+      } catch (error: any) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        toast.error(
+          `Failed to delete task "${task.title}": ${errorMessage}. Please try again.`,
+        );
         logger.error('Failed to delete task:', error); // Log the error
         setIsDeleteConfirmModalOpen(false); // Ensure modal closes even on error
       }

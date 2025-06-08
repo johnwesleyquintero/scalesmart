@@ -134,10 +134,10 @@ const ProjectForm = ({
           }
         }
         onProjectUpdated?.(); // Call the callback if provided for both add/update
-      } catch (error) {
+      } catch (error: any) {
         // Generic error message for persistence failures
         toast.error(
-          `Failed to ${initialProject ? 'update' : 'add'} project "${data.name}". Please try again.`,
+          `Failed to ${initialProject ? 'update' : 'add'} project "${data.name}": ${error.message}. Please try again.`,
         );
         console.error('Project persistence failed:', error); // Log the error for debugging
       }

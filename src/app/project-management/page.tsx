@@ -46,24 +46,24 @@ const ProjectManagementPage = () => {
     projects,
     isLoading,
     error,
-    handleUpdateTask: handleUpdateTaskFromHook, // Renamed to avoid conflict with local useCallback
+    handleUpdateTask,
     handleDragEnd,
     handleCreateTask,
-    handleDeleteTask: handleDeleteTaskFromHook, // Renamed to avoid conflict with local useCallback
+    handleDeleteTask,
     handleCreateProject,
     handleUpdateProject,
     handleDeleteProject,
   } = useTaskManagement();
 
   // Wrap task update and delete handlers in useCallback for stability and to prevent unnecessary re-renders
-  const handleUpdateTask = useCallback(
-    (task: Task) => handleUpdateTaskFromHook(task),
-    [handleUpdateTaskFromHook],
+  const memoizedHandleUpdateTask = useCallback(
+    (task: Task) => handleUpdateTask(task),
+    [handleUpdateTask],
   );
 
-  const handleDeleteTask = useCallback(
-    (taskId: string) => handleDeleteTaskFromHook(taskId),
-    [handleDeleteTaskFromHook],
+  const memoizedHandleDeleteTask = useCallback(
+    (taskId: string) => handleDeleteTask(taskId),
+    [handleDeleteTask],
   );
 
   // State to manage the selected project filter for tasks
@@ -171,8 +171,8 @@ const ProjectManagementPage = () => {
               selectedProject={selectedProject}
               setSelectedProject={setSelectedProject}
               NO_PROJECT_VALUE={NO_PROJECT_VALUE}
-              handleUpdateTask={handleUpdateTask}
-              handleDeleteTask={handleDeleteTask}
+              handleUpdateTask={memoizedHandleUpdateTask}
+              handleDeleteTask={memoizedHandleDeleteTask}
               handleViewTaskDetails={handleViewTaskDetails}
               handleCreateTask={handleCreateTask}
               handleDragEnd={handleDragEnd}
@@ -210,8 +210,8 @@ const ProjectManagementPage = () => {
                 task={selectedTaskForDetails}
                 projects={projects}
                 allTasks={tasks} // Pass all tasks for resolving dependencies/subtasks within details
-                onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence of changes made in details view
-                onDeleteTask={handleDeleteTask} // Pass handleDeleteTask for deletion from details view
+                onTaskPersist={memoizedHandleUpdateTask} // Pass handleUpdateTask for persistence of changes made in details view
+                onDeleteTask={memoizedHandleDeleteTask} // Pass handleDeleteTask for deletion from details view
                 onClose={handleCloseTaskDetailsModal} // Pass handler to close the modal from within TaskDetails
               />
             </DialogContent>

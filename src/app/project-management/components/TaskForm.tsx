@@ -180,9 +180,11 @@ const TaskForm = ({
         }
         onTaskSaved?.(); // Call the callback if provided (e.g., to close a modal)
       } catch (error) {
-        // Generic error message for persistence failures
+        // Handle error and provide user feedback
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
         toast.error(
-          `Failed to ${initialTask ? 'update' : 'add'} task. Please try again.`,
+          `Failed to ${initialTask ? 'update' : 'add'} task: ${errorMessage}. Please try again.`,
         );
         logger.error('Task persistence failed:', error); // Log the error for debugging
       }
