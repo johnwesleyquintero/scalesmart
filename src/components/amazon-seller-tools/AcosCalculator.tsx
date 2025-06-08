@@ -53,7 +53,11 @@ import {
   calculateAcosRoas,
 } from '@/lib/amazon-tools/acos-calculator-utils';
 import { CalculationHistoryTable } from './CalculationHistoryTable';
-import { setItem, getAllItemsFromStore } from '@/lib/indexeddb-service';
+import {
+  setItem,
+  getCalculations,
+  saveCalculation,
+} from '@/lib/indexeddb-service';
 import { useToast } from '@/app/hooks/use-toast';
 
 // --- Interfaces & Types ---
@@ -115,9 +119,7 @@ export default function AcosCalculator() {
   useEffect(() => {
     async function loadHistory() {
       try {
-        const history = await getAllItemsFromStore<CalculationData>(
-          INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY,
-        );
+        const history = await getCalculations();
         setCalculationHistory(history);
       } catch (error) {
         console.error('Error loading calculation history:', error);
@@ -400,15 +402,20 @@ export default function AcosCalculator() {
 
       // Save the calculation to IndexedDB
       try {
-        await setItem(
-          INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY,
-          newCampaign.campaign, // Use campaign name as the key
-          newCampaign,
-        );
+        const calculationData: CalculationData = {
+          campaignName: newCampaign.campaign,
+          adSpend: newCampaign.adSpend,
+          sales: newCampaign.sales,
+          acos: newCampaign.acos!,
+          roas: newCampaign.roas!,
+          date: new Date(newCampaign.date!).getTime(), // Convert ISO string date to timestamp
+          currencySymbol: newCampaign.currencySymbol!,
+        };
+        await saveCalculation(calculationData); // Use saveCalculation
         setCalculationHistory((prevHistory) => [
           ...prevHistory,
-          newCampaign as CalculationData,
-        ]);
+          calculationData,
+        ]); // Add calculationData to history
       } catch (dbError) {
         console.error('Error saving calculation to IndexedDB:', dbError);
         toast({

@@ -6,3 +6,5 @@ export const INDEXED_DB_OVERVIEW_TAB_SELECTED_METRICS_KEY =
   'overview-tab-selected-metrics';
 export const INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY =
   'dashboard_view_preferences';
+export const INDEXED_DB_API_CACHE_KEY = 'apiCache';
+export const INDEXED_DB_LAST_CSV_MAPPING_KEY = 'last_csv_mapping';

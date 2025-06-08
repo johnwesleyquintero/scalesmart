@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
-import { Task, Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
+import { Task, Project } from '@/lib/indexeddb-service';
+import { TaskPriority } from '@/types/indexeddb';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils/date-utils'; // Import formatDate
 import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react';
@@ -10,7 +11,6 @@ interface TaskItemProps {
   onEditClick: (task: Task) => void;
   onDeleteTask: (id: string) => void;
   allTasks: Task[]; // All tasks for dependency/subtask lookup
-  onTaskUpdated: (updatedTask: Task) => void; // New prop to signal task updates to parent
   onViewTaskDetails: (task: Task) => void; // New prop to open task details modal
 }
 
@@ -21,7 +21,6 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     onEditClick,
     onDeleteTask,
     allTasks,
-    onTaskUpdated,
     onViewTaskDetails,
   }: TaskItemProps) => {
     const projectsMap = useMemo(() => {
@@ -46,12 +45,14 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     // Determine priority styling
     const priorityClass = useMemo(() => {
       switch (task.priority) {
-        case 'high':
+        case TaskPriority.High:
           return 'text-red-500';
-        case 'medium':
+        case TaskPriority.Medium:
           return 'text-yellow-500';
-        case 'low':
+        case TaskPriority.Low:
           return 'text-green-500';
+        case TaskPriority.Urgent:
+          return 'text-purple-500'; // Assuming a color for Urgent priority
         default:
           return 'text-muted-foreground';
       }
@@ -72,10 +73,10 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
           </p>
         )}
         <div className="flex flex-wrap items-center text-xs text-muted-foreground gap-y-1">
-          {task.assignee && (
+          {task.assigneeId && (
             <div className="flex items-center mr-3">
               <UserRound className="h-3 w-3 mr-1" />
-              <span>{task.assignee}</span>
+              <span>{task.assigneeId}</span>
             </div>
           )}
           {task.dueDate && (
@@ -112,10 +113,10 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
               .join(', ')}
           </div>
         )}
-        {task.subtasks && task.subtasks.length > 0 && (
+        {task.subtaskIds && task.subtaskIds.length > 0 && (
           <div className="text-xs text-muted-foreground mt-1">
             <span className="font-medium">Subtasks: </span>
-            {task.subtasks
+            {task.subtaskIds
               .map((subtaskId: string) => {
                 const subtask = allTasks.find((t) => t.id === subtaskId);
                 return subtask ? subtask.title : 'Unknown Task';

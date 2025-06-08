@@ -80,7 +80,7 @@ export function ManualCalculationForm({
               clicks: string;
             }
           >
-        >('acos_manual_presets');
+        >('cache', 'acos_manual_presets'); // Use 'cache' store
         setSavedPresets(presets || {});
       } catch (error) {
         console.error('Failed to load presets:', error);
@@ -123,11 +123,7 @@ export function ManualCalculationForm({
     }
     const newPresets = { ...savedPresets, [presetName.trim()]: manualCampaign };
     try {
-      await setItem(
-        'acos_manual_presets',
-        'manual-presets-collection',
-        newPresets,
-      );
+      await setItem('cache', 'acos_manual_presets', newPresets); // Use 'cache' store
       setSavedPresets(newPresets);
       toast.success(`Preset "${presetName.trim()}" saved!`);
       setPresetName(''); // Clear preset name input

@@ -432,12 +432,13 @@ const Quiz: React.FC<QuizProps> = ({
     certificateUniqueId, // Add to dependencies
   ]);
 
-  const handleShowResults = useCallback(() => {
+  const handleShowResults = useCallback(async () => {
     // This is called when "View Results" button is clicked.
     // We *do not* want to re-run handleQuizCompletion here, as it's already done.
     // Instead, just set the state to show the results.
+    await handleQuizCompletion();
     setShowResults(true);
-  }, []);
+  }, [handleQuizCompletion]);
 
   return (
     <QuizLayout title={'Quiz'}>

@@ -12,14 +12,15 @@ import {
   updateContact,
   deleteContact,
   getAllContacts,
+  getAllCategories,
+  // Import category specific IndexedDB functions
   addCategory,
   updateCategory,
   deleteCategory,
-  getAllCategories,
   createCommunicationLog,
   updateCommunicationLog,
   deleteCommunicationLog,
-} from '@/lib/indexeddb/crm-db';
+} from '@/lib/indexeddb-service';
 import type { Category, Contact, CommunicationLog } from '@/app/crm/types';
 
 /**
@@ -105,11 +106,21 @@ export const useCRMData = () => {
         }
       } else {
         // If no `editingCustomer`, create a new contact.
-        const newCustomer: Contact = {
-          ...formData,
+        const newCustomerData: Omit<
+          Contact,
+          'id' | 'creationTimestamp' | 'updateTimestamp'
+        > = {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          company: formData.company,
+          notes: formData.notes,
+          category: formData.category,
+          address: formData.address,
+          communicationLogs: formData.communicationLogs,
         };
         try {
-          const newId = await createContact(newCustomer); // IndexedDB service returns the new ID.
+          const newId = await createContact(newCustomerData); // IndexedDB service returns the new ID.
 
           if (newId === undefined) {
             toast.error(
@@ -120,9 +131,9 @@ export const useCRMData = () => {
 
           // Create a complete new customer object with the generated ID and default values.
           const completeNewCustomer = {
-            ...newCustomer,
+            ...newCustomerData,
             id: newId,
-            category: newCustomer.category || '', // Ensure category is an empty string if not set.
+            category: newCustomerData.category || '', // Ensure category is an empty string if not set.
             communicationLogs: [], // New customers start with an empty array of logs.
           } as Contact;
           setCustomers((prevCustomers) => [
@@ -167,11 +178,15 @@ export const useCRMData = () => {
         setCategories((prevCategories) => [...prevCategories, newCategory]);
         toast.success('Category added successfully!');
       } else {
-        toast.error('Failed to add category. Please check console for details.');
+        toast.error(
+          'Failed to add category. Please check console for details.',
+        );
       }
     } catch (error) {
       console.error('Error adding category:', error);
-      toast.error('Failed to add category. Please try again. Check console for details.');
+      toast.error(
+        'Failed to add category. Please try again. Check console for details.',
+      );
     }
   }, []); // Dependency array is empty as it uses setCategories functional update
 
@@ -188,7 +203,9 @@ export const useCRMData = () => {
       toast.success('Category updated successfully!');
     } catch (error) {
       console.error('Error updating category:', error);
-      toast.error('Failed to update category. Please try again. Check console for details.');
+      toast.error(
+        'Failed to update category. Please try again. Check console for details.',
+      );
     }
   }, []); // Dependency array is empty as it uses setCategories functional update
 
@@ -205,7 +222,9 @@ export const useCRMData = () => {
       toast.success('Category deleted successfully!');
     } catch (error) {
       console.error('Error deleting category:', error);
-      toast.error('Failed to delete category. Please try again. Check console for details.');
+      toast.error(
+        'Failed to delete category. Please try again. Check console for details.',
+      );
     }
   }, []); // Dependency array is empty as it uses setCategories functional update
 
@@ -287,7 +306,9 @@ export const useCRMData = () => {
         }
       } catch (error) {
         console.error('Error creating communication log:', error);
-        toast.error('Failed to create communication log. Please check console for details.');
+        toast.error(
+          'Failed to create communication log. Please check console for details.',
+        );
       }
     },
     [],
@@ -329,7 +350,9 @@ export const useCRMData = () => {
         toast.success('Communication log updated successfully!');
       } catch (error) {
         console.error('Error updating communication log:', error);
-        toast.error('Failed to update communication log. Please check console for details.');
+        toast.error(
+          'Failed to update communication log. Please check console for details.',
+        );
       }
     },
     [updateCustomerCommunicationLogs],
@@ -345,7 +368,9 @@ export const useCRMData = () => {
         toast.info('Communication log deleted.');
       } catch (error) {
         console.error('Error deleting communication log:', error);
-        toast.error('Failed to delete communication log. Please check console for details.');
+        toast.error(
+          'Failed to delete communication log. Please check console for details.',
+        );
       }
     },
     [updateCustomerCommunicationLogs],

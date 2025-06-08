@@ -1,28 +1,13 @@
-// src/lib/constants/project-management.ts
+// --- IndexedDB Store Names for Project Management Data ---
+export const PROJECT_STORE = 'projects';
+export const TASK_STORE = 'tasks';
+export const TASK_COMMENT_STORE = 'task-comments';
 
-/**
- * @enum TaskStatus
- * @brief Defines the possible statuses for a task.
- */
-export enum TaskStatus {
-  TODO = 'to-do',
-  IN_PROGRESS = 'in-progress',
-  COMPLETED = 'completed',
-}
+import { TaskStatus } from '@/types/indexeddb';
 
-/**
- * @constant TASK_STATUSES
- * @brief An array of task status objects, used for rendering columns and consistent status management.
- */
 export const TASK_STATUSES = [
-  { id: TaskStatus.TODO, title: 'To Do' },
-  { id: TaskStatus.IN_PROGRESS, title: 'In Progress' },
-  { id: TaskStatus.COMPLETED, title: 'Completed' },
-];
-
-/**
- * @constant NO_PROJECT_VALUE
- * @brief A special value used in the project selection dropdown to represent "No Project Selected".
- * This avoids using an empty string, which Radix UI's Select.Item explicitly disallows for individual items.
- */
-export const NO_PROJECT_VALUE = 'no-project-selected';
+  { id: TaskStatus.Open, title: 'To Do' },
+  { id: TaskStatus.InProgress, title: 'In Progress' },
+  { id: TaskStatus.Completed, title: 'Completed' },
+] as const;
+export const NO_PROJECT_VALUE = 'no-project';

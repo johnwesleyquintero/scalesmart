@@ -168,7 +168,7 @@ export class KeywordTrendService {
       const cached = await getItem<{
         result: TrendAnalysisResult;
         cachedAt: number;
-      }>(`${INDEXED_DB_STORE_NAME}-${cacheKey}`);
+      }>(INDEXED_DB_STORE_NAME, cacheKey);
 
       if (!cached) return null;
 

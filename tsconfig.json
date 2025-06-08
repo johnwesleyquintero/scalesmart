@@ -19,18 +19,18 @@
     "jsxImportSource": "react",
     "incremental": true,
     "outDir": "dist",
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
       "@/*": ["./*"],
       "@/lib/*": ["./lib/*"],
       "@/components/*": ["./components/*"],
       "@/app/components/*": ["./app/components/*"],
       "@/hooks/*": ["./hooks/*"]
-    },
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    }
   },
   "types": ["@testing-library/jest-dom", "node", "react"],
   "include": ["src/**/*", ".next/types/**/*.ts"],

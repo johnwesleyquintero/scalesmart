@@ -12,7 +12,7 @@ import TaskForm from '@/app/project-management/components/TaskForm';
 import ProjectForm from '@/app/project-management/components/ProjectForm';
 import ProjectList from '@/app/project-management/components/ProjectList';
 import { useTaskManagement } from '@/hooks/use-task-management'; // Import the new hook
-import { Task } from '@/lib/indexeddb/project-management-db'; // Updated import path
+import { Task } from '@/lib/indexeddb-service';
 import { ErrorBoundary } from '@/components/error-boundary';
 import TaskDetails from '@/app/project-management/components/TaskDetails'; // Import TaskDetails
 import { Dialog, DialogContent } from '@/components/ui/dialog'; // Import Dialog components
@@ -28,8 +28,9 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import { sortableKeyboardCoordinates } from '@dnd-kit/sortable';
-import { Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
-import { TaskStatus, TASK_STATUSES } from '@/lib/constants/project-management'; // Import from new constants file
+import { Project } from '@/lib/indexeddb-service'; // Import Project type
+import { TASK_STATUSES } from '@/lib/constants/project-management'; // Import from new constants file
+import { TaskStatus } from '@/types/indexeddb';
 
 /**
  * @component ProjectManagementPage
@@ -51,7 +52,6 @@ const ProjectManagementPage = () => {
     setProjects,
     isLoading,
     error,
-    handleTaskUpdated, // This handler is likely for optimistic updates within the hook, not for passing down
     handleUpdateTask, // Destructure the handler for persisting updates
     handleDragEnd,
     handleCreateTask,
@@ -84,16 +84,15 @@ const ProjectManagementPage = () => {
   }, [tasks, selectedProject]);
 
   const todoTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === TaskStatus.TODO),
+    () => filteredTasks.filter((task) => task.status === TaskStatus.Open),
     [filteredTasks],
   );
   const inProgressTasks = useMemo(
-    () =>
-      filteredTasks.filter((task) => task.status === TaskStatus.IN_PROGRESS),
+    () => filteredTasks.filter((task) => task.status === TaskStatus.InProgress),
     [filteredTasks],
   );
   const completedTasks = useMemo(
-    () => filteredTasks.filter((task) => task.status === TaskStatus.COMPLETED),
+    () => filteredTasks.filter((task) => task.status === TaskStatus.Completed),
     [filteredTasks],
   );
 
@@ -185,11 +184,10 @@ const ProjectManagementPage = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {/* Render TaskList for each status */}
                 <TaskList
-                  key={TaskStatus.TODO} // Added key prop
-                  id={TaskStatus.TODO}
+                  key={TaskStatus.Open} // Added key prop
+                  id={TaskStatus.Open}
                   title="To Do"
                   tasks={todoTasks}
-                  setTasks={setTasks}
                   projects={projects}
                   allTasks={tasks}
                   onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
@@ -197,11 +195,10 @@ const ProjectManagementPage = () => {
                   onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
                 />
                 <TaskList
-                  key={TaskStatus.IN_PROGRESS}
-                  id={TaskStatus.IN_PROGRESS}
+                  key={TaskStatus.InProgress}
+                  id={TaskStatus.InProgress}
                   title="In Progress"
                   tasks={inProgressTasks}
-                  setTasks={setTasks}
                   projects={projects}
                   allTasks={tasks}
                   onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
@@ -209,11 +206,10 @@ const ProjectManagementPage = () => {
                   onViewTaskDetails={handleViewTaskDetails} // Pass view details handler
                 />
                 <TaskList
-                  key={TaskStatus.COMPLETED}
-                  id={TaskStatus.COMPLETED}
+                  key={TaskStatus.Completed}
+                  id={TaskStatus.Completed}
                   title="Completed"
                   tasks={completedTasks}
-                  setTasks={setTasks}
                   projects={projects}
                   allTasks={tasks}
                   onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence

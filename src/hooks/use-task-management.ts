@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Task,
@@ -11,11 +10,11 @@ import {
   createProject,
   updateProject,
   deleteProject,
-} from '@/lib/indexeddb/project-management-db';
+} from '@/lib/indexeddb-service';
+import { TaskStatus } from '@/types/indexeddb'; // Import TaskStatus
 import { toast } from 'sonner';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * @typedef {Object} UseTaskManagementReturn
@@ -23,12 +22,11 @@ import { v4 as uuidv4 } from 'uuid';
  * @property {React.Dispatch<React.SetStateAction<Task[]>>} setTasks - Setter for tasks state.
  * @property {Project[]} projects - Array of all projects.
  * @property {React.Dispatch<React.SetStateAction<Project[]>>} setProjects - Setter for projects state.
- * @property {(task: Task) => void} handleTaskUpdated - Handler for when a task is updated (optimistic update).
  * @property {(updatedTask: Task) => Promise<void>} handleUpdateTask - Handler to update an existing task and persist it.
  * @property {(event: DragEndEvent) => Promise<void>} handleDragEnd - Handler for Dnd-kit drag end event.
- * @property {(taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
+ * @property {(taskData: Omit<Task, 'id' | 'creationTimestamp' | 'updateTimestamp' | 'comments'>) => Promise<Task | undefined>} handleCreateTask - Handler to create a new task.
  * @property {(id: string) => Promise<void>} handleDeleteTask - Handler to delete a task.
- * @property {(projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'status'>) => Promise<string | undefined>} handleCreateProject - Handler to create a new project.
+ * @property {(projectData: Omit<Project, 'id' | 'creationTimestamp' | 'updateTimestamp'>) => Promise<string | undefined>} handleCreateProject - Handler to create a new project.
  * @property {(project: Project) => Promise<void>} handleUpdateProject - Handler to update an existing project.
  * @property {(id: string) => Promise<void>} handleDeleteProject - Handler to delete a project.
  */
@@ -79,24 +77,23 @@ export const useTaskManagement = () => {
    * @param setStateFunction The React state setter function (e.g., setTasks, setProjects).
    */
   const performOptimisticUpdate = useCallback(
-    async <T, K extends keyof T>(
+    async <T>(
       updateLogic: (prevState: T[]) => T[],
-      persistenceLogic: () => Promise<void | any>,
+      persistenceLogic: () => Promise<void>,
       successMessage: string,
       errorMessage: string,
       originalState: T[],
       setStateFunction: React.Dispatch<React.SetStateAction<T[]>>,
-      idKey: K,
     ) => {
       setStateFunction(updateLogic);
       toast.success(successMessage);
 
       try {
         await persistenceLogic();
-      } catch (error: unknown) {
+      } catch (error) {
         console.error('Persistence failed:', error);
         toast.error(errorMessage);
-        setStateFunction(originalState);
+        setStateFunction(originalState); // Revert state on error
       }
     },
     [],
@@ -109,31 +106,24 @@ export const useTaskManagement = () => {
    * @param originalTasks The state of tasks before the optimistic update.
    */
   const handleTaskStatusChange = useCallback(
-    async (
-      taskToMove: Task,
-      newStatus: Task['status'],
-      originalTasks: Task[],
-    ) => {
+    async (taskToMove: Task, newStatus: string, originalTasks: Task[]) => {
       const updatedTask: Task = {
         ...taskToMove,
-        status: newStatus,
-        updatedAt: Date.now(),
-        order: 0,
+        status: newStatus as TaskStatus, // Cast to TaskStatus
+        updatedAt: Date.now(), // Changed from updateTimestamp to updatedAt
+        order: 0, // Reset order when changing status, will be re-ordered by Dnd-kit
       };
 
       await performOptimisticUpdate(
-        (prevTasks: Task[]) =>
+        (prevTasks) =>
           prevTasks
             .filter((task) => task.id !== taskToMove.id)
             .concat(updatedTask),
-        async () => {
-          updateTask(updatedTask);
-        },
+        async () => await updateTask(updatedTask),
         `Task "${updatedTask.title}" status updated to "${newStatus.replace(/-/g, ' ')}".`,
         `Failed to update task status. Please try again.`,
         originalTasks,
         setTasks,
-        'id',
       );
     },
     [performOptimisticUpdate],
@@ -155,7 +145,7 @@ export const useTaskManagement = () => {
     ) => {
       const currentTasksInColumn = tasks
         .filter((task) => task.status === containerId)
-        .sort((a, b) => (a.order || 0) - (b.order || 0));
+        .sort((a, b) => (a.order || 0) - (b.order || 0)); // Ensure tasks are sorted by order before reordering
 
       const oldIndex = currentTasksInColumn.findIndex(
         (task) => task.id === activeId,
@@ -173,10 +163,11 @@ export const useTaskManagement = () => {
 
       const newOrder = arrayMove(currentTasksInColumn, oldIndex, newIndex);
 
+      // Apply new 'order' values to the reordered tasks
       const tasksWithNewOrder = newOrder.map((task, index) => ({
         ...task,
-        order: index,
-        updatedAt: Date.now(),
+        order: index, // Assign new order based on array position
+        updatedAt: Date.now(), // Changed from updateTimestamp to updatedAt
       }));
 
       await performOptimisticUpdate(
@@ -193,7 +184,6 @@ export const useTaskManagement = () => {
         `Failed to reorder task. Please try again.`,
         originalTasks,
         setTasks,
-        'id',
       );
     },
     [tasks, performOptimisticUpdate],
@@ -220,19 +210,21 @@ export const useTaskManagement = () => {
         return;
       }
 
-      const originalTasks = [...tasks];
+      const originalTasks = [...tasks]; // Capture current state for potential revert
 
       const activeContainerId =
         active.data.current?.sortable.containerId || taskToMove.status;
       const overContainerId = over.data.current?.sortable.containerId || overId;
 
       if (activeContainerId !== overContainerId) {
+        // Task moved to a different column (status change)
         await handleTaskStatusChange(
           taskToMove,
           overContainerId,
           originalTasks,
         );
       } else {
+        // Task reordered within the same column
         await handleTaskReorder(
           activeId,
           overId,
@@ -272,14 +264,11 @@ export const useTaskManagement = () => {
           prevTasks.map((task) =>
             task.id === updatedTask.id ? updatedTask : task,
           ),
-        async () => {
-          updateTask(updatedTask);
-        },
+        async () => await updateTask(updatedTask),
         `Task "${updatedTask.title}" updated successfully!`,
         `Failed to update task "${updatedTask.title}". Please try again.`,
         originalTasks,
         setTasks,
-        'id',
       );
     },
     [tasks, performOptimisticUpdate],
@@ -294,31 +283,14 @@ export const useTaskManagement = () => {
     async (
       taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>,
     ): Promise<Task | undefined> => {
-      const now = Date.now();
-      const newTask: Task = {
-        id: uuidv4(),
-        ...taskData,
-        createdAt: now,
-        updatedAt: now,
-      };
-      let createdTask: Task | undefined;
-      try {
-        createdTask = await createTask(newTask);
-      } catch (error: any) {
-        console.error('Failed to create task:', error);
-        toast.error('Failed to create task. Please try again.');
-        return undefined;
-      }
-      if (createdTask) {
-        setTasks((prev) => {
-          const newTasks = [...prev, createdTask];
-          return newTasks;
-        });
-        toast.success(`Task "${createdTask.title}" created successfully!`);
+      const newTask = await createTask(taskData);
+      if (newTask) {
+        setTasks((prev) => [...prev, newTask]);
+        toast.success(`Task "${newTask.title}" created successfully!`);
       } else {
         toast.error('Failed to create task. Please try again.');
       }
-      return createdTask;
+      return newTask;
     },
     [],
   );
@@ -337,7 +309,6 @@ export const useTaskManagement = () => {
         'Failed to delete task. Please try again.',
         originalTasks,
         setTasks,
-        'id',
       );
     },
     [tasks, performOptimisticUpdate],
@@ -346,38 +317,26 @@ export const useTaskManagement = () => {
   /**
    * @brief Creates a new project and persists it to IndexedDB.
    * @param projectData The data for the new project.
-   * @returns The created project, or undefined if creation fails.
+   * @returns The ID of the created project, or undefined if creation fails.
    */
   const handleCreateProject = useCallback(
     async (
-      projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'status'>,
-    ): Promise<Project | undefined> => {
-      const now = Date.now();
-      const newProject: Project = {
-        id: uuidv4(),
-        status: 'active',
-        ...projectData,
-        createdAt: now,
-        updatedAt: now,
-      };
-      let createdProject: Project | undefined;
-      try {
-        createdProject = await createProject(newProject);
-      } catch (error: any) {
-        console.error('Failed to create project:', error);
-        toast.error('Failed to create project. Please try again.');
-        return undefined;
-      }
-      if (createdProject) {
-        setProjects((prev) => {
-          const newProjects = [...prev, createdProject];
-          return newProjects;
-        });
-        toast.success(`Project "${createdProject.name}" created successfully!`);
+      projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>,
+    ): Promise<string | undefined> => {
+      const newProjectId = await createProject(projectData);
+      if (newProjectId) {
+        const newProject: Project = {
+          ...projectData,
+          id: newProjectId,
+          createdAt: Date.now(), // Changed from creationTimestamp to createdAt
+          updatedAt: Date.now(), // Changed from updateTimestamp to updatedAt
+        };
+        setProjects((prev) => [...prev, newProject]);
+        toast.success(`Project "${newProject.name}" created successfully!`);
       } else {
         toast.error('Failed to create project. Please try again.');
       }
-      return createdProject;
+      return newProjectId;
     },
     [],
   );
@@ -389,34 +348,32 @@ export const useTaskManagement = () => {
   const handleDeleteProject = useCallback(
     async (id: string) => {
       const originalProjects = [...projects];
-      const originalTasks = [...tasks];
+      const originalTasks = [...tasks]; // Capture original tasks state
+
       try {
+        // Optimistically update projects state
         setProjects((prevProjects) =>
           prevProjects.filter((project) => project.id !== id),
         );
         toast.success('Project deleted successfully.');
+
+        // Call the persistence logic which now also updates tasks in IndexedDB
         await deleteProject(id);
-      } catch (error: unknown) {
+
+        // After successful deletion and task updates in DB, re-fetch tasks to ensure UI consistency
+        // This is crucial because deleteProject now modifies tasks directly in IndexedDB
+        const updatedTasksFromDB = await getAllTasks();
+        setTasks(
+          updatedTasksFromDB.sort((a, b) => (a.order || 0) - (b.order || 0)),
+        );
+      } catch (error) {
         console.error('Persistence failed:', error);
         toast.error('Failed to delete project. Please try again.');
-        setProjects(originalProjects);
-        setTasks(originalTasks);
-        return;
-      } finally {
-        try {
-          const updatedTasksFromDB = await getAllTasks();
-          setTasks(
-            updatedTasksFromDB.sort((a, b) => (a.order || 0) - (b.order || 0)),
-          );
-        } catch (error: any) {
-          console.error('Failed to load tasks after deleting project:', error);
-          toast.error(
-            'Failed to load tasks after deleting project. Please try again.',
-          );
-        }
+        setProjects(originalProjects); // Revert projects state on error
+        setTasks(originalTasks); // Revert tasks state on error
       }
     },
-    [projects, tasks, setTasks, setProjects],
+    [projects, tasks, setTasks, setProjects], // Add setTasks and setProjects to dependencies
   );
 
   /**
@@ -436,7 +393,6 @@ export const useTaskManagement = () => {
         `Failed to update project "${updatedProject.name}". Please try again.`,
         originalProjects,
         setProjects,
-        'id',
       );
     },
     [projects, performOptimisticUpdate],
@@ -449,12 +405,7 @@ export const useTaskManagement = () => {
     setProjects,
     isLoading,
     error,
-<<<<<<< HEAD
-    handleUpdateTask,
-=======
-    handleTaskUpdated,
     handleUpdateTask, // Add handleUpdateTask
->>>>>>> parent of a46766c (refactor(project-management): remove unused props and improve error handling)
     handleDragEnd,
     handleCreateTask,
     handleDeleteTask,

@@ -2,11 +2,8 @@
 'use client';
 
 import React from 'react';
-import {
-  Task,
-  Project,
-  TaskComment,
-} from '@/lib/indexeddb/project-management-db'; // Updated import path
+import { Task, Project, TaskComment } from '@/lib/indexeddb-service'; // Import Project and TaskComment types
+import { deleteTask } from '@/lib/indexeddb-service';
 import { default as TaskForm } from './TaskForm';
 import { useState, useMemo, useCallback } from 'react';
 import Modal from '@/components/Modal';
@@ -39,7 +36,6 @@ interface TaskListProps {
    * @brief Function to update the list of tasks.
    * Accepts a functional update to prevent stale closure issues.
    */
-  setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   /**
    * @brief Callback function to be called when a task is updated or created and needs persistence.
    */
@@ -84,7 +80,6 @@ const TaskList = ({
   id,
   title,
   tasks,
-  setTasks,
   projects,
   onTaskPersist, // Renamed prop
   allTasks,
@@ -190,8 +185,6 @@ const TaskList = ({
       if (isEditModalOpen) {
         handleCloseEditModal();
       }
-
-      // No need to close details modal here, as it's handled by parent
     },
     [onTaskPersist, isEditModalOpen, handleCloseEditModal],
   );

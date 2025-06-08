@@ -7,7 +7,11 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { INDEXED_DB_TABLE_CHART_STATE_KEY } from '@/lib/constants';
-import { setItem, getItem, deleteItem } from '@/lib/indexeddb-service';
+import {
+  setItem,
+  getItem,
+  deleteItem,
+} from '../../../../lib/indexeddb-service';
 import { Popover, PopoverContent, PopoverTrigger } from '../../ui/popover';
 import { useToast } from '../../ui/use-toast';
 import {
@@ -188,7 +192,7 @@ const TableChart = <TData extends Record<string, unknown>>({
     setExpandedRowIds(new Set());
 
     if (persistenceKey) {
-      deleteItem(INDEXED_DB_TABLE_CHART_STATE_KEY, persistenceKey).catch(
+      deleteItem(INDEXED_DB_TABLE_CHART_STATE_KEY).catch(
         (error: IDBRequest['error']) =>
           console.error('Failed to remove table state from IndexedDB:', error),
       );
@@ -233,10 +237,8 @@ const TableChart = <TData extends Record<string, unknown>>({
   useEffect(() => {
     if (!persistenceKey) return;
 
-    getItem<PersistedTableState>(
-      `${INDEXED_DB_TABLE_CHART_STATE_KEY}-${persistenceKey}`,
-    )
-      .then((savedState: PersistedTableState | undefined) => {
+    getItem<PersistedTableState>(INDEXED_DB_TABLE_CHART_STATE_KEY)
+      .then((savedState) => {
         if (savedState) {
           setSortConfig(savedState.sortConfig);
           setItemsPerPage(savedState.itemsPerPage);
@@ -244,7 +246,7 @@ const TableChart = <TData extends Record<string, unknown>>({
           setColumnFilters(savedState.columnFilters);
         }
       })
-      .catch((error: unknown) =>
+      .catch((error) =>
         console.error('Failed to load table state from IndexedDB:', error),
       );
   }, [persistenceKey]);
@@ -264,11 +266,7 @@ const TableChart = <TData extends Record<string, unknown>>({
         globalFilter,
         columnFilters,
       };
-      setItem(
-        INDEXED_DB_TABLE_CHART_STATE_KEY,
-        persistenceKey,
-        stateToSave,
-      ).catch((error: unknown) =>
+      setItem(INDEXED_DB_TABLE_CHART_STATE_KEY, stateToSave).catch((error) =>
         console.error('Failed to save table state to IndexedDB:', error),
       );
     }, 500);

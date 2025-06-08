@@ -135,7 +135,8 @@ export const useAmazonDataIntegration = () => {
   useEffect(() => {
     const loadPreferences = async () => {
       const storedPreferences = await getItem<DashboardViewPreferences>(
-        `${INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY}-preferences`,
+        INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY,
+        INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY,
       );
       if (storedPreferences) {
         setTimeGranularity(storedPreferences.timeGranularity);
@@ -154,11 +155,15 @@ export const useAmazonDataIntegration = () => {
   // Save dashboard view preferences to IndexedDB when debounced values change
   useEffect(() => {
     const savePreferences = async () => {
-      await setItem(INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY, 'preferences', {
-        timeGranularity: debouncedTimeGranularity,
-        timeRange: debouncedTimeRange,
-        customDateRange: debouncedCustomDateRange,
-      });
+      await setItem(
+        INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY,
+        INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY,
+        {
+          timeGranularity: debouncedTimeGranularity,
+          timeRange: debouncedTimeRange,
+          customDateRange: debouncedCustomDateRange,
+        },
+      );
       console.log('Dashboard view preferences saved to IndexedDB.');
     };
     savePreferences();
@@ -168,7 +173,8 @@ export const useAmazonDataIntegration = () => {
   useEffect(() => {
     const loadSavedMapping = async () => {
       const storedMapping = await getItem<CsvColumnMapping>(
-        'last_csv_mapping-mapping',
+        'cache',
+        'last_csv_mapping',
       );
       if (storedMapping) {
         setSavedMapping(storedMapping);
@@ -198,14 +204,14 @@ export const useAmazonDataIntegration = () => {
     setCustomDateRange({ from: undefined, to: undefined });
     await setItem(
       INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY,
-      'preferences',
+      INDEXED_DB_DASHBOARD_VIEW_PREFERENCES_KEY,
       null,
     ); // Clear saved preferences
 
     console.log('Refresh clicked - clearing status.');
     await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate loading
     setIsLoading(false);
-    await setItem('last_csv_mapping', 'mapping', null); // Clear saved mapping
+    await setItem('cache', 'last_csv_mapping', null); // Clear saved mapping
     setSavedMapping(null);
   }, [
     setIsLoading,
@@ -652,7 +658,7 @@ export const useAmazonDataIntegration = () => {
           duration: 5000,
         });
 
-        await setItem('last_csv_mapping', 'mapping', mapping); // Save mapping for future use
+        await setItem('cache', 'last_csv_mapping', mapping); // Save mapping for future use
         console.log('Valid Metrics:', validMetrics);
         console.log('Collected Errors/Warnings:', collectedErrors);
         console.log('Mapping saved to IndexedDB.');

@@ -7,7 +7,7 @@ import {
   SetStateAction,
   useMemo,
 } from 'react';
-import { Task, Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
+import { Task, Project } from '@/lib/indexeddb-service';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,9 +27,9 @@ import * as z from 'zod';
 import { MySelectComponent } from '@/components/MySelectComponent';
 import {
   TASK_STATUSES,
-  TaskStatus,
   NO_PROJECT_VALUE,
-} from '@/lib/constants/project-management'; // Import TASK_STATUSES, TaskStatus, and NO_PROJECT_VALUE
+} from '@/lib/constants/project-management'; // Import TASK_STATUSES and NO_PROJECT_VALUE
+import { TaskStatus, TaskPriority } from '@/types/indexeddb';
 
 /**
  * @interface TaskFormProps
@@ -94,16 +94,13 @@ const TaskForm = ({
       message: 'Task title is required.',
     }),
     description: z.string().optional(),
-    status: z
-      .enum([TaskStatus.TODO, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED])
-      .optional()
-      .default(TaskStatus.TODO), // Use z.enum with TaskStatus
-    assignee: z.string().optional(),
+    status: z.string().optional().default('to-do'),
+    assigneeId: z.string().optional(), // Changed from assignee to assigneeId
     dueDate: z.date().optional(),
-    projectId: z.string().optional(),
+    projectId: z.string(), // projectId is required in Task interface
     dependencies: z.array(z.string()).optional(),
-    subtasks: z.array(z.string()).optional(),
-    priority: z.enum(['low', 'medium', 'high']).optional(),
+    subtaskIds: z.array(z.string()).optional(), // Changed from subtasks to subtaskIds
+    priority: z.nativeEnum(TaskPriority).optional(),
   });
   interface FormValues extends z.infer<typeof formSchema> {}
 
@@ -119,13 +116,11 @@ const TaskForm = ({
     defaultValues: {
       title: initialTask?.title || '',
       description: initialTask?.description || '',
-      status: initialTask?.status
-        ? (initialTask.status as TaskStatus)
-        : TaskStatus.TODO, // Explicitly cast to TaskStatus
-      assignee: initialTask?.assignee || '',
+      status: initialTask?.status || 'to-do',
+      assigneeId: initialTask?.assigneeId || '', // Changed from assignee to assigneeId
       dueDate: initialTask?.dueDate ? new Date(initialTask.dueDate) : undefined,
-      projectId: initialTask?.projectId || NO_PROJECT_VALUE,
-      priority: initialTask?.priority,
+      projectId: initialTask?.projectId || NO_PROJECT_VALUE, // Ensure it's a string, default to NO_PROJECT_VALUE
+      priority: initialTask?.priority as TaskPriority | undefined,
     },
   });
 
@@ -133,32 +128,27 @@ const TaskForm = ({
     if (initialTask) {
       setValue('title', initialTask.title);
       setValue('description', initialTask.description || '');
-      setValue(
-        'status',
-        initialTask.status
-          ? (initialTask.status as TaskStatus)
-          : TaskStatus.TODO,
-      ); // More robust status assignment
-      setValue('assignee', initialTask.assignee || '');
+      setValue('status', initialTask.status || 'to-do');
+      setValue('assigneeId', initialTask.assigneeId || ''); // Changed from assignee to assigneeId
       setValue(
         'dueDate',
         initialTask.dueDate ? new Date(initialTask.dueDate) : undefined,
       );
       setValue('projectId', initialTask.projectId || NO_PROJECT_VALUE);
       setValue('dependencies', initialTask.dependencies || []);
-      setValue('subtasks', initialTask.subtasks || []);
-      setValue('priority', initialTask.priority);
+      setValue('subtaskIds', initialTask.subtaskIds || []); // Changed from subtasks to subtaskIds
+      setValue('priority', initialTask.priority as TaskPriority | undefined);
     } else {
       // Reset form for new task creation when initialTask is null
       reset({
         title: '',
         description: '',
-        status: TaskStatus.TODO, // Use TaskStatus enum
-        assignee: '',
+        status: 'to-do',
+        assigneeId: '', // Changed from assignee to assigneeId
         dueDate: undefined,
         projectId: NO_PROJECT_VALUE,
         dependencies: [],
-        subtasks: [],
+        subtaskIds: [], // Changed from subtasks to subtaskIds
         priority: undefined,
       });
     }
@@ -172,12 +162,12 @@ const TaskForm = ({
       const taskData = {
         title: data.title.trim(),
         description: data.description?.trim() || '',
-        status: data.status,
-        assignee: data.assignee?.trim() || '',
+        status: data.status as TaskStatus, // Cast to TaskStatus
+        assigneeId: data.assigneeId?.trim() || '', // Changed from assignee to assigneeId
         dueDate: data.dueDate ? data.dueDate.getTime() : undefined,
         projectId: finalProjectId,
         dependencies: data.dependencies,
-        subtasks: data.subtasks,
+        subtaskIds: data.subtaskIds, // Changed from subtasks to subtaskIds
         priority: data.priority,
       };
 
@@ -188,7 +178,7 @@ const TaskForm = ({
             const updatedTask: Task = {
               ...initialTask,
               ...taskData,
-              updatedAt: Date.now(), // Changed to updatedAt
+              updatedAt: Date.now(), // Changed from updateTimestamp to updatedAt
             };
             await onUpdateTask(updatedTask);
             onTaskSaved?.(); // Call the callback if provided
@@ -224,7 +214,7 @@ const TaskForm = ({
   const statusValue = watch('status');
   const projectValue = watch('projectId');
   const dependenciesValue = watch('dependencies');
-  const subtasksValue = watch('subtasks');
+  const subtaskIdsValue = watch('subtaskIds'); // Changed from subtasks to subtaskIds
   const priorityValue = watch('priority');
 
   const projectSelectItems = useMemo(() => {
@@ -290,7 +280,7 @@ const TaskForm = ({
         <Label htmlFor="status">Status</Label>
         <Select
           value={statusValue}
-          onValueChange={(value) => setValue('status', value as TaskStatus)} // Explicitly cast to TaskStatus
+          onValueChange={(value) => setValue('status', value)}
         >
           <SelectTrigger id="status" aria-label="Task Status">
             <SelectValue placeholder="Select status" />
@@ -313,17 +303,17 @@ const TaskForm = ({
         </Select>
       </div>
       <div>
-        <Label htmlFor="assignee">Assignee (optional)</Label>
+        <Label htmlFor="assigneeId">Assignee (optional)</Label>
         <Input
-          id="assignee"
+          id="assigneeId" // Changed from assignee to assigneeId
           type="text"
           placeholder="Enter assignee name"
-          {...register('assignee')}
+          {...register('assigneeId')} // Changed from assignee to assigneeId
           aria-label="Task Assignee"
         />
-        {errors.assignee && (
+        {errors.assigneeId && (
           <p className="text-red-500 text-sm mt-1">
-            {errors.assignee?.message}
+            {errors.assigneeId?.message}
           </p>
         )}
       </div>
@@ -360,22 +350,23 @@ const TaskForm = ({
         <Label htmlFor="priority">Priority (optional)</Label>
         <Select
           value={priorityValue}
-          onValueChange={(value) =>
-            setValue('priority', value as 'low' | 'medium' | 'high')
-          }
+          onValueChange={(value) => setValue('priority', value as TaskPriority)}
         >
           <SelectTrigger id="priority" aria-label="Task Priority">
             <SelectValue placeholder="Select priority" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="low" label="Low">
+            <SelectItem value={TaskPriority.Low} label="Low">
               Low
             </SelectItem>
-            <SelectItem value="medium" label="Medium">
+            <SelectItem value={TaskPriority.Medium} label="Medium">
               Medium
             </SelectItem>
-            <SelectItem value="high" label="High">
+            <SelectItem value={TaskPriority.High} label="High">
               High
+            </SelectItem>
+            <SelectItem value={TaskPriority.Urgent} label="Urgent">
+              Urgent
             </SelectItem>
           </SelectContent>
         </Select>
@@ -391,12 +382,12 @@ const TaskForm = ({
         />
       </div>
       <div>
-        <Label htmlFor="subtasks">Subtasks (optional)</Label>
+        <Label htmlFor="subtaskIds">Subtasks (optional)</Label>
         <MySelectComponent<true>
           options={taskOptions}
           placeholder="Select subtasks"
-          onValueChange={(values: string[]) => setValue('subtasks', values)}
-          defaultValue={subtasksValue}
+          onValueChange={(values: string[]) => setValue('subtaskIds', values)} // Changed from subtasks to subtaskIds
+          defaultValue={subtaskIdsValue} // Changed from subtasksValue to subtaskIdsValue
           isMulti
         />
       </div>

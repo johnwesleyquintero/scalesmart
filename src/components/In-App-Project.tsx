@@ -1,4 +1,4 @@
-import React, { ElementType } from 'react';
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -6,88 +6,12 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card'; // Corrected path
-import { Badge } from '@/components/ui/badge'; // Corrected path
-import { Button } from '@/components/ui/button'; // Corrected path
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import {
-  ArrowRight,
-  Store,
-  FileSearch,
-  Users,
-  KanbanSquare,
-  GraduationCap,
-  Workflow as WorkflowIcon, // Renamed to avoid conflict with Workflow type if any
-} from 'lucide-react';
-
-interface Project {
-  name: string;
-  description: string;
-  href: string;
-  icon: ElementType;
-  external?: boolean;
-  auth: string; // Kept for potential future use
-  status?: 'beta' | 'alpha' | 'live' | 'coming soon';
-}
-
-const projects: Project[] = [
-  {
-    name: 'Amazon Seller Tools',
-    description:
-      'Suite of tools to optimize listings, track performance, and manage your Amazon business effectively.',
-    href: '/amazon-seller-tools',
-    icon: Store,
-    external: true,
-    auth: 'always',
-    status: 'beta',
-  },
-  {
-    name: 'Resume Scanner',
-    description:
-      'Analyze your resume against job descriptions and get insights to beat Applicant Tracking Systems.',
-    href: '/ats',
-    icon: FileSearch,
-    auth: 'always',
-    status: 'beta',
-  },
-  {
-    name: 'CRM',
-    description:
-      'Manage customer relationships, track interactions, and streamline your sales pipeline.',
-    href: '/crm',
-    icon: Users,
-    auth: 'always',
-    status: 'beta',
-  },
-  {
-    name: 'Project Management',
-    description:
-      'Organize tasks, collaborate with your team, and keep projects on track with our intuitive PM tool.',
-    href: '/project-management',
-    icon: KanbanSquare,
-    auth: 'always',
-    status: 'beta',
-  },
-  {
-    name: 'ScaleSmart Academy',
-    description:
-      'Enhance your skills with free courses in e-commerce, data analytics, and digital marketing.',
-    href: '/academy',
-    icon: GraduationCap,
-    external: true,
-    auth: 'always',
-    status: 'beta', // Assuming courses are also part of the beta platform features
-  },
-  {
-    name: 'Workflow Builder',
-    description:
-      'Automate repetitive tasks and design custom workflows to boost productivity and efficiency.',
-    href: '/workflow-builder',
-    icon: WorkflowIcon,
-    auth: 'always',
-    status: 'beta',
-  },
-];
+import { ArrowRight } from 'lucide-react'; // Keep only ArrowRight
+import { projects } from '@/data/in-app-projects'; // Import projects data
 
 const InAppProjects = () => {
   return (

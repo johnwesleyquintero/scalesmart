@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from 'react';
-import { Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
+import { Project } from '@/lib/indexeddb-service';
 import ProjectForm from './ProjectForm';
 import Modal from '@/components/Modal';
 import { Button } from '@/components/ui/button';
@@ -51,10 +51,13 @@ const ProjectList = ({
   onDeleteProject,
   onUpdateProject,
 }: ProjectListProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false); // Renamed for clarity
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('nameAsc'); // 'nameAsc', 'nameDesc', 'dateAsc', 'dateDesc'
+  const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] =
+    useState(false); // State for delete confirmation modal
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null); // State to hold project to be deleted
 
   /**
    * Memoizes filtered and sorted projects for performance.
@@ -107,16 +110,29 @@ const ProjectList = ({
    * Uses `useCallback` for memoization.
    * @param {string} id - The ID of the project to be deleted.
    */
-  const handleDeleteProjectClick = useCallback(
-    (id: string) => {
-      onDeleteProject(id); // Call the prop function directly
-    },
-    [onDeleteProject],
-  );
+  const handleDeleteProjectClick = useCallback((project: Project) => {
+    setProjectToDelete(project);
+    setIsDeleteConfirmModalOpen(true);
+  }, []);
 
   /**
    * @brief Confirms and proceeds with project deletion after user confirmation.
+   */
+  const confirmDeleteProject = useCallback(async () => {
+    if (projectToDelete) {
+      await onDeleteProject(projectToDelete.id);
+      setIsDeleteConfirmModalOpen(false);
+      setProjectToDelete(null);
+    }
+  }, [projectToDelete, onDeleteProject]);
 
+  /**
+   * @brief Handles closing the delete confirmation modal.
+   */
+  const handleCloseDeleteConfirmModal = useCallback(() => {
+    setIsDeleteConfirmModalOpen(false);
+    setProjectToDelete(null);
+  }, []);
 
   /**
    * @brief Handles the click event for editing a project, opening the ProjectForm modal.
@@ -125,17 +141,21 @@ const ProjectList = ({
    */
   const handleEditClick = useCallback((project: Project) => {
     setSelectedProject(project);
-    setIsModalOpen(true);
+    setIsEditModalOpen(true); // Use renamed state
   }, []);
 
   /**
    * @brief Handles closing the edit project modal.
    * Uses `useCallback` for memoization.
    */
-  const handleCloseModal = useCallback(() => {
-    setIsModalOpen(false);
+  const handleCloseEditModal = useCallback(() => {
+    setIsEditModalOpen(false); // Use renamed state
     setSelectedProject(null);
   }, []);
+
+  /**
+   * @brief Handles closing the task details modal.
+   */
 
   return (
     <div>
@@ -211,7 +231,7 @@ const ProjectList = ({
                 <Button
                   variant="destructive"
                   size="sm"
-                  onClick={() => handleDeleteProjectClick(project.id)} // Use the new handler
+                  onClick={() => handleDeleteProjectClick(project)} // Pass the project object
                   title="Delete project"
                   aria-label={`Delete project ${project.name}`}
                 >
@@ -223,18 +243,42 @@ const ProjectList = ({
         </div>
       )}
       {/* Modal for editing a project */}
-      {isModalOpen && (
+      {isEditModalOpen && ( // Use renamed state
         <Modal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
+          isOpen={isEditModalOpen} // Use renamed state
+          onClose={handleCloseEditModal} // Use renamed handler
           title="Edit Project"
         >
           <ProjectForm
             project={selectedProject || undefined} // Ensure it's undefined if null
-            onProjectUpdated={handleCloseModal}
-            onCancel={handleCloseModal}
+            onProjectUpdated={handleCloseEditModal} // Use renamed handler
+            onCancel={handleCloseEditModal} // Use renamed handler
             onUpdateProject={onUpdateProject} // Pass the correct update handler
           />
+        </Modal>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {isDeleteConfirmModalOpen && projectToDelete && (
+        <Modal
+          isOpen={isDeleteConfirmModalOpen}
+          onClose={handleCloseDeleteConfirmModal}
+          title="Confirm Delete Project"
+        >
+          <div className="p-4">
+            <p className="text-foreground mb-4">
+              Are you sure you want to delete the project "
+              {projectToDelete.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={handleCloseDeleteConfirmModal}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmDeleteProject}>
+                Delete
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>

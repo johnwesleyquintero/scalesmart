@@ -1,3 +1,4 @@
+// Move 'use client' directive to the top of the file if not already present
 'use client';
 
 import {
@@ -43,9 +44,10 @@ import {
   YAxis,
 } from 'recharts';
 import { CurrencySelector } from './CurrencySelector';
+import { saveCalculation, getCalculations } from '@/lib/indexeddb-service';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from '@/lib/constants';
 import { format } from 'date-fns';
-import { CalculationData } from '@/types/amazon-tools';
+import { CalculationData } from '@/lib/indexeddb-service';
 import { ManualCalculationForm } from './ManualCalculationForm';
 import { AcosRatingGuide } from './AcosRatingGuide';
 import {
@@ -53,8 +55,6 @@ import {
   calculateAcosRoas,
 } from '@/lib/amazon-tools/acos-calculator-utils';
 import { CalculationHistoryTable } from './CalculationHistoryTable';
-import { setItem, getAllItemsFromStore } from '@/lib/indexeddb-service';
-import { useToast } from '@/app/hooks/use-toast';
 
 // --- Interfaces & Types ---
 
@@ -115,9 +115,7 @@ export default function AcosCalculator() {
   useEffect(() => {
     async function loadHistory() {
       try {
-        const history = await getAllItemsFromStore<CalculationData>(
-          INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY,
-        );
+        const history = await getCalculations();
         setCalculationHistory(history);
       } catch (error) {
         console.error('Error loading calculation history:', error);
@@ -335,8 +333,6 @@ export default function AcosCalculator() {
     clicks: '',
   });
 
-  const { toast } = useToast();
-
   const isManualInputValid = useMemo(() => {
     try {
       // Validate adSpend and sales using Zod schemas
@@ -397,26 +393,6 @@ export default function AcosCalculator() {
         impressions: '',
         clicks: '',
       });
-
-      // Save the calculation to IndexedDB
-      try {
-        await setItem(
-          INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY,
-          newCampaign.campaign, // Use campaign name as the key
-          newCampaign,
-        );
-        setCalculationHistory((prevHistory) => [
-          ...prevHistory,
-          newCampaign as CalculationData,
-        ]);
-      } catch (dbError) {
-        console.error('Error saving calculation to IndexedDB:', dbError);
-        toast({
-          title: 'Database Error',
-          description: 'Failed to save calculation history.',
-          variant: 'destructive',
-        });
-      }
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -426,15 +402,7 @@ export default function AcosCalculator() {
     } finally {
       setIsLoading(false);
     }
-  }, [
-    selectedCurrency,
-    manualCampaign,
-    setError,
-    setIsLoading,
-    setCampaigns,
-    setCalculationHistory,
-    toast,
-  ]);
+  }, [selectedCurrency, manualCampaign, setError, setIsLoading, setCampaigns]);
 
   // --- Render ---
   return (

@@ -2,12 +2,12 @@
 import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config';
 import DOMPurify from 'dompurify';
 import React, { useCallback, useEffect, useReducer, useRef } from 'react';
-import { initializeDB } from '@/lib/indexeddb-service';
 import {
+  initializeDB,
+  setItem,
   getChatMessagesBySession,
-  saveChatMessage,
   ChatMessageRecord,
-} from '@/lib/indexeddb/chat-db';
+} from '@/lib/indexeddb-service';
 
 // --- Style Imports ---
 import 'katex/dist/katex.min.css'; // For math rendering
@@ -631,10 +631,11 @@ export default function ChatInterface() {
           // For now, let's just save all messages in the current state for the session ID.
           for (const messageDataPayload of messagesToSave) {
             try {
-              await saveChatMessage({
-                ...messageDataPayload,
-                sessionId: chatSessionIdRef.current,
-              });
+              await setItem(
+                'chatMessages',
+                messageDataPayload.id,
+                messageDataPayload,
+              );
             } catch (error) {
               console.error(
                 `ChatInterface: Failed to save message ${messageDataPayload.id} to IndexedDB:`,

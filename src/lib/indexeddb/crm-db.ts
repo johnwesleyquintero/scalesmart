@@ -1,9 +1,9 @@
 import {
   setItem,
-  getItem,
+  getItem, // Although not used in the original code, including it for completeness if needed by derived services.
   deleteItem,
   getAllItemsFromStore,
-} from '../indexeddb-service';
+} from '../indexeddb-service'; // Assuming this service exists and works as intended.
 import type { Category, Contact, CommunicationLog } from '@/app/crm/types';
 
 // --- Constants for CRM IndexedDB Store Names ---
@@ -11,85 +11,93 @@ const CRM_CONTACTS_STORE_NAME = 'crm-contacts';
 const CRM_CATEGORIES_STORE_NAME = 'crm-categories';
 const CRM_COMMUNICATION_LOGS_STORE_NAME = 'crm-communication-logs';
 
-// --- Contact Operations ---
+// --- Generic CRUD Service Factory ---
 
-export async function createContact(
-  contact: Omit<Contact, 'id'>,
-): Promise<string> {
-  const id = crypto.randomUUID(); // Generate a unique ID for the new contact
-  const newContact: Contact = { ...contact, id };
-  await setItem(CRM_CONTACTS_STORE_NAME, id, newContact);
-  return id;
+/**
+ * Creates a generic CRUD service for a given IndexedDB store.
+ * @param storeName The name of the IndexedDB store.
+ * @returns An object containing CRUD operations (create, update, delete, getAll).
+ */
+function createCrudService<T extends { id: string }>(storeName: string) {
+  return {
+    /**
+     * Creates a new item in the store.
+     * @param item - The item data, excluding the ID.
+     * @returns A promise resolving with the ID of the newly created item.
+     */
+    create: async (item: Omit<T, 'id'>): Promise<string> => {
+      const id = crypto.randomUUID(); // Generate a unique ID
+      const newItem: T = { ...item, id } as T; // Add the generated ID
+      await setItem(storeName, id, newItem);
+      return id;
+    },
+
+    /**
+     * Updates an existing item in the store.
+     * @param item - The item data, including the ID.
+     * @returns A promise that resolves when the update is complete.
+     * @throws Error if the item ID is missing.
+     */
+    update: async (item: T): Promise<void> => {
+      if (!item.id) {
+        throw new Error(
+          `ID is required for updating an item in store "${storeName}".`,
+        );
+      }
+      await setItem(storeName, item.id, item);
+    },
+
+    /**
+     * Deletes an item from the store by its ID.
+     * @param id - The ID of the item to delete.
+     * @returns A promise that resolves when the deletion is complete.
+     */
+    delete: async (id: string): Promise<void> => {
+      await deleteItem(storeName, id);
+    },
+
+    /**
+     * Retrieves all items from the store.
+     * @returns A promise resolving with an array of all items in the store.
+     */
+    getAll: async (): Promise<T[]> => {
+      return getAllItemsFromStore<T>(storeName);
+    },
+
+    // Optional: Add a getItemById function if needed
+    // getById: async (id: string): Promise<T | undefined> => {
+    //   return getItem<T>(storeName, id);
+    // },
+  };
 }
 
-export async function updateContact(contact: Contact): Promise<void> {
-  if (!contact.id) {
-    throw new Error('Contact ID is required for update.');
-  }
-  await setItem(CRM_CONTACTS_STORE_NAME, contact.id, contact);
-}
+// --- Type-Specific CRM Operations ---
 
-export async function deleteContact(id: string): Promise<void> {
-  await deleteItem(CRM_CONTACTS_STORE_NAME, id);
-}
+export const contactService = createCrudService<Contact>(
+  CRM_CONTACTS_STORE_NAME,
+);
+export const categoryService = createCrudService<Category>(
+  CRM_CATEGORIES_STORE_NAME,
+);
+export const communicationLogService = createCrudService<CommunicationLog>(
+  CRM_COMMUNICATION_LOGS_STORE_NAME,
+);
 
-export async function getAllContacts(): Promise<Contact[]> {
-  return getAllItemsFromStore<Contact>(CRM_CONTACTS_STORE_NAME);
-}
+// Export specific functions for easier import if preferred, linking to the service methods
+export const createContact = contactService.create;
+export const updateContact = contactService.update;
+export const deleteContact = contactService.delete;
+export const getAllContacts = contactService.getAll;
 
-// --- Category Operations ---
+export const addCategory = categoryService.create; // Renamed 'create' to 'add' as in original
+export const updateCategory = categoryService.update;
+export const deleteCategory = categoryService.delete;
+export const getAllCategories = categoryService.getAll;
 
-export async function addCategory(
-  category: Omit<Category, 'id'>,
-): Promise<string> {
-  const id = crypto.randomUUID(); // Generate a unique ID for the new category
-  const newCategory: Category = { ...category, id };
-  await setItem(CRM_CATEGORIES_STORE_NAME, id, newCategory);
-  return id;
-}
-
-export async function updateCategory(category: Category): Promise<void> {
-  if (!category.id) {
-    throw new Error('Category ID is required for update.');
-  }
-  await setItem(CRM_CATEGORIES_STORE_NAME, category.id, category);
-}
-
-export async function deleteCategory(id: string): Promise<void> {
-  await deleteItem(CRM_CATEGORIES_STORE_NAME, id);
-}
-
-export async function getAllCategories(): Promise<Category[]> {
-  return getAllItemsFromStore<Category>(CRM_CATEGORIES_STORE_NAME);
-}
-
-// --- Communication Log Operations ---
-
-export async function createCommunicationLog(
-  log: Omit<CommunicationLog, 'id'>,
-): Promise<string> {
-  const id = crypto.randomUUID(); // Generate a unique ID for the new log
-  const newLog: CommunicationLog = { ...log, id };
-  await setItem(CRM_COMMUNICATION_LOGS_STORE_NAME, id, newLog);
-  return id;
-}
-
-export async function updateCommunicationLog(
-  log: CommunicationLog,
-): Promise<void> {
-  if (!log.id) {
-    throw new Error('Communication Log ID is required for update.');
-  }
-  await setItem(CRM_COMMUNICATION_LOGS_STORE_NAME, log.id, log);
-}
-
-export async function deleteCommunicationLog(
-  id: string,
-  customerId: string,
-): Promise<void> {
-  // For communication logs, we might need to consider how they are stored.
-  // If they are stored directly under their own ID, then a simple delete by ID is fine.
-  // If they are nested within a customer object, this would need a different approach.
-  // Assuming they are top-level items with their own unique IDs.
-  await deleteItem(CRM_COMMUNICATION_LOGS_STORE_NAME, id);
-}
+export const createCommunicationLog = communicationLogService.create;
+export const updateCommunicationLog = communicationLogService.update;
+// Note: The original deleteCommunicationLog had two parameters (id, customerId) but only used id.
+// The generic service deletes by id. If customerId logic is needed, a specific function outside the
+// generic service or a more complex service might be required.
+export const deleteCommunicationLog = communicationLogService.delete;
+export const getAllCommunicationLogs = communicationLogService.getAll;

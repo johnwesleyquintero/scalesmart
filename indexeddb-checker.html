@@ -1,63 +1,65 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
+  <head>
     <title>IndexedDB Checker</title>
-</head>
-<body>
+  </head>
+  <body>
     <h1>IndexedDB Checker</h1>
     <script>
-        const DB_NAME = 'scalesmart-db';
-        const DB_VERSION = 3;
-        const MAIN_STORE_NAME = 'key-value-store';
-        const SYNC_QUEUE_STORE_NAME = 'sync-queue';
-        const METADATA_STORE_NAME = 'metadata-store';
-        const CHAT_MESSAGES_STORE_NAME = 'chat-messages';
+      const DB_NAME = 'scalesmart-db';
+      const DB_VERSION = 3;
+      const MAIN_STORE_NAME = 'key-value-store';
+      const SYNC_QUEUE_STORE_NAME = 'sync-queue';
+      const METADATA_STORE_NAME = 'metadata-store';
+      const CHAT_MESSAGES_STORE_NAME = 'chat-messages';
 
-        // Delete the existing database
-        const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
+      // Delete the existing database
+      const deleteRequest = indexedDB.deleteDatabase(DB_NAME);
 
-        deleteRequest.onerror = (event) => {
-            console.error('Error deleting IndexedDB:', event.target.error);
+      deleteRequest.onerror = (event) => {
+        console.error('Error deleting IndexedDB:', event.target.error);
+      };
+
+      deleteRequest.onsuccess = () => {
+        console.log('IndexedDB deleted successfully');
+
+        // Open the database
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+        request.onerror = (event) => {
+          console.error('IndexedDB Error:', event.target.error);
         };
 
-        deleteRequest.onsuccess = () => {
-            console.log('IndexedDB deleted successfully');
-
-            // Open the database
-            const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-            request.onerror = (event) => {
-                console.error('IndexedDB Error:', event.target.error);
-            };
-
-            request.onupgradeneeded = (event) => {
-                const db = event.target.result;
-                if (!db.objectStoreNames.contains(MAIN_STORE_NAME)) {
-                    console.log(`Creating object store: ${MAIN_STORE_NAME}`);
-                    db.createObjectStore(MAIN_STORE_NAME);
-                }
-                if (!db.objectStoreNames.contains(SYNC_QUEUE_STORE_NAME)) {
-                    console.log(`Creating object store: ${SYNC_QUEUE_STORE_NAME}`);
-                    db.createObjectStore(SYNC_QUEUE_STORE_NAME, { autoIncrement: true });
-                }
-                if (!db.objectStoreNames.contains(METADATA_STORE_NAME)) {
-                    console.log(`Creating object store: ${METADATA_STORE_NAME}`);
-                    db.createObjectStore(METADATA_STORE_NAME);
-                }
-                if (!db.objectStoreNames.contains(CHAT_MESSAGES_STORE_NAME)) {
-                    console.log(`Creating object store: ${CHAT_MESSAGES_STORE_NAME}`);
-                    db.createObjectStore(CHAT_MESSAGES_STORE_NAME);
-                }
-            };
-
-            request.onsuccess = (event) => {
-                const db = event.target.result;
-                console.log('IndexedDB opened successfully');
-                console.log('DB Version:', db.version);
-                console.log('Object Stores:', Array.from(db.objectStoreNames));
-                db.close();
-            };
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+          if (!db.objectStoreNames.contains(MAIN_STORE_NAME)) {
+            console.log(`Creating object store: ${MAIN_STORE_NAME}`);
+            db.createObjectStore(MAIN_STORE_NAME);
+          }
+          if (!db.objectStoreNames.contains(SYNC_QUEUE_STORE_NAME)) {
+            console.log(`Creating object store: ${SYNC_QUEUE_STORE_NAME}`);
+            db.createObjectStore(SYNC_QUEUE_STORE_NAME, {
+              autoIncrement: true,
+            });
+          }
+          if (!db.objectStoreNames.contains(METADATA_STORE_NAME)) {
+            console.log(`Creating object store: ${METADATA_STORE_NAME}`);
+            db.createObjectStore(METADATA_STORE_NAME);
+          }
+          if (!db.objectStoreNames.contains(CHAT_MESSAGES_STORE_NAME)) {
+            console.log(`Creating object store: ${CHAT_MESSAGES_STORE_NAME}`);
+            db.createObjectStore(CHAT_MESSAGES_STORE_NAME);
+          }
         };
+
+        request.onsuccess = (event) => {
+          const db = event.target.result;
+          console.log('IndexedDB opened successfully');
+          console.log('DB Version:', db.version);
+          console.log('Object Stores:', Array.from(db.objectStoreNames));
+          db.close();
+        };
+      };
     </script>
-</body>
+  </body>
 </html>

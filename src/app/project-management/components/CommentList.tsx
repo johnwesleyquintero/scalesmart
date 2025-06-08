@@ -1,6 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { useSession } from 'next-auth/react'; // Import useSession hook
-import { Task, TaskComment } from '@/lib/indexeddb/project-management-db'; // Updated import path
+import { Task, TaskComment } from '@/lib/indexeddb-service'; // Import TaskComment type
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner'; // Import toast for user feedback
@@ -18,10 +17,6 @@ const CommentList: React.FC<CommentListProps> = ({
   onAddComment,
 }) => {
   const [newCommentText, setNewCommentText] = useState('');
-  const { data: session } = useSession(); // Get session data
-
-  // Determine the author's name or ID
-  const currentAuthor = session?.user?.name || session?.user?.id || 'Anonymous';
 
   /**
    * Handles adding a new comment. Creates the comment object and passes it
@@ -36,9 +31,9 @@ const CommentList: React.FC<CommentListProps> = ({
     const newComment: TaskComment = {
       // Use TaskComment
       id: crypto.randomUUID(), // Use crypto.randomUUID() for robust ID generation
-      content: newCommentText, // Changed 'text' to 'content'
-      userId: currentAuthor, // Changed 'author' to 'userId'
-      taskId: taskId, // Added taskId
+      taskId: taskId, // Add the missing taskId
+      content: newCommentText,
+      userId: 'CurrentUser', // TODO: Integrate with actual user authentication to get the current user's ID/name
       createdAt: Date.now(),
     };
 
@@ -49,7 +44,7 @@ const CommentList: React.FC<CommentListProps> = ({
       console.error('Failed to add comment:', error);
       toast.error('Failed to add comment. Please try again.'); // Show error toast
     }
-  }, [newCommentText, onAddComment, currentAuthor, taskId]); // Added taskId to dependencies
+  }, [newCommentText, onAddComment, taskId]);
   return (
     <div>
       <h4 className="text-sm font-semibold text-foreground mb-2">Comments</h4>

@@ -11,7 +11,7 @@ import {
   getAllQuizResultsForUser,
   ModuleProgressRecord,
   QuizResultRecord,
-} from '@/lib/indexeddb/academy-db'; // Updated import path
+} from '@/lib/indexeddb-service';
 import useUserProfile from './use-user-profile';
 
 // Define the comprehensive AcademyDataType here

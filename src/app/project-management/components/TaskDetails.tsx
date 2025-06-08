@@ -2,11 +2,7 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
-import {
-  Task,
-  Project,
-  TaskComment,
-} from '@/lib/indexeddb/project-management-db'; // Updated import path
+import { Task, Project, TaskComment } from '@/lib/indexeddb-service';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils/date-utils'; // Import formatDate
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +14,7 @@ import {
   Edit,
   CheckCircle,
 } from 'lucide-react'; // Import CheckCircle icon
-import { TaskStatus } from '@/lib/constants/project-management'; // Import TaskStatus
+import { TaskStatus, TaskPriority } from '@/types/indexeddb'; // Import TaskStatus and TaskPriority
 import CommentList from './CommentList';
 import TaskForm from './TaskForm'; // To allow editing within details view
 import { toast } from 'sonner';
@@ -61,11 +57,11 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   // Memoize the priority class for styling
   const priorityClass = useMemo(() => {
     switch (currentTask.priority) {
-      case 'high':
+      case TaskPriority.High:
         return 'text-red-500';
-      case 'medium':
+      case TaskPriority.Medium:
         return 'text-yellow-500';
-      case 'low':
+      case TaskPriority.Low:
         return 'text-green-500';
       default:
         return 'text-muted-foreground';
@@ -99,12 +95,12 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       const updatedTask: Task = {
         ...currentTask,
         comments: [...comments, newComment],
-        updatedAt: Date.now(), // Changed to updatedAt
+        updatedAt: Date.now(),
       };
       // Propagate update to parent, which will handle persistence
       await onTaskPersist(updatedTask); // Await the parent's update handler
       setCurrentTask(updatedTask); // Update local state optimistically
-      toast.success(`Task "${updatedTask.title}" marked as completed!`);
+      toast.success('Comment added successfully!'); // Corrected toast message
     },
     [currentTask, onTaskPersist], // Update dependency
   );
@@ -122,15 +118,15 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
 
   const handleMarkComplete = useCallback(async () => {
     // Make this async
-    if (currentTask.status === TaskStatus.COMPLETED) {
+    if (currentTask.status === TaskStatus.Completed) {
       toast.info('Task is already completed.');
       return;
     }
 
     const updatedTask: Task = {
       ...currentTask,
-      status: TaskStatus.COMPLETED,
-      updatedAt: Date.now(), // Changed to updatedAt
+      status: TaskStatus.Completed,
+      updatedAt: Date.now(),
     };
     // Propagate update to parent, which will handle persistence
     await onTaskPersist(updatedTask); // Await the parent's update handler
@@ -158,7 +154,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           {currentTask.title}
         </CardTitle>
         <div className="flex items-center space-x-2">
-          {currentTask.status !== TaskStatus.COMPLETED && (
+          {currentTask.status !== TaskStatus.Completed && (
             <Button
               variant="secondary"
               size="sm"
@@ -195,7 +191,7 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             </h4>
             <div className="flex items-center text-sm text-foreground">
               <UserRound className="h-4 w-4 mr-2" />
-              <span>{currentTask.assignee || 'Unassigned'}</span>
+              <span>{currentTask.assigneeId || 'Unassigned'}</span>
             </div>
           </div>
           <div>
@@ -223,9 +219,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             <div className="flex items-center text-sm text-foreground">
               <span
                 className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  currentTask.status === TaskStatus.COMPLETED
+                  currentTask.status === TaskStatus.Completed
                     ? 'bg-green-500/10 text-green-500'
-                    : currentTask.status === TaskStatus.IN_PROGRESS
+                    : currentTask.status === TaskStatus.InProgress
                       ? 'bg-blue-500/10 text-blue-500'
                       : 'bg-gray-500/10 text-gray-500'
                 }`}
@@ -269,13 +265,13 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
           </div>
         )}
 
-        {currentTask.subtasks && currentTask.subtasks.length > 0 && (
+        {currentTask.subtaskIds && currentTask.subtaskIds.length > 0 && (
           <div className="border-t border-border pt-4">
             <h4 className="font-semibold text-sm text-muted-foreground mb-2">
               Subtasks
             </h4>
             <ul className="list-disc pl-5 space-y-1 text-sm text-foreground">
-              {currentTask.subtasks.map((subtaskId: string) => {
+              {currentTask.subtaskIds.map((subtaskId: string) => {
                 const subtask = allTasks.find((t) => t.id === subtaskId);
                 return (
                   <li key={subtaskId}>

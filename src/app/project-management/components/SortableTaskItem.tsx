@@ -3,7 +3,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import TaskItem from './TaskItem';
-import { Task, Project } from '@/lib/indexeddb/project-management-db'; // Updated import path
+import { Task, Project } from '@/lib/indexeddb-service';
 
 interface SortableTaskItemProps {
   task: Task;
@@ -48,7 +48,6 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
         onEditClick={onEditClick}
         onDeleteTask={onDeleteTask}
         allTasks={allTasks} // Pass allTasks to TaskItem
-        onTaskUpdated={onTaskUpdated}
         onViewTaskDetails={onViewTaskDetails} // Pass onViewTaskDetails to TaskItem
       />
     </div>

@@ -3,72 +3,60 @@ import {
   getItem,
   deleteItem,
   getAllItemsFromStore,
-} from '@/lib/indexeddb-service';
+  db,
+} from 'lib/indexeddb-service.ts';
 
-// --- IndexedDB Store Names for Project Management Data ---
-const PROJECT_STORE = 'projects';
-const TASK_STORE = 'tasks';
-const TASK_COMMENT_STORE = 'task-comments';
+import {
+  PROJECT_STORE,
+  TASK_STORE,
+  TASK_COMMENT_STORE,
+} from '@/lib/constants/project-management';
 
-// --- Types for Project Management IndexedDB Records ---
-export interface Project {
-  id: string;
-  name: string;
-  description?: string;
-  createdAt: number;
-  updatedAt: number;
-  status: 'active' | 'completed' | 'archived';
-}
-
-export interface Task {
-  id: string;
-  projectId?: string; // Made projectId optional
-  title: string;
-  description?: string;
-  status: 'to-do' | 'in-progress' | 'completed'; // Aligned with TaskStatus enum
-  priority?: 'low' | 'medium' | 'high'; // Made priority optional
-  dueDate?: number; // Timestamp
-  assignee?: string; // Added assignee
-  dependencies?: string[]; // Added dependencies
-  subtasks?: string[]; // Added subtasks
-  comments?: TaskComment[]; // Added comments
-  order?: number; // Added order property for sorting
-  createdAt: number;
-  updatedAt: number;
-}
-
-export interface TaskComment {
-  id: string;
-  taskId: string;
-  userId: string;
-  content: string;
-  createdAt: number;
-}
+import {
+  Project,
+  Task,
+  TaskComment,
+  ProjectStatus,
+  TaskStatus,
+  TaskPriority,
+} from '@/types/indexeddb';
 
 // --- Project Management-specific IndexedDB Operations ---
 
 /**
  * Creates a new project.
  * @param project The project object to create.
+ * @returns A promise that resolves with the created project.
  */
 export async function createProject(project: Project): Promise<Project> {
-  await setItem(PROJECT_STORE, project.id, project);
-  return project;
+  try {
+    await db.projects.put(project);
+    return project;
+  } catch (error) {
+    console.error('Error creating project:', error);
+    throw error;
+  }
 }
 
 /**
  * Updates an existing project.
  * @param project The project object to update.
- * @returns The updated project.
+ * @returns A promise that resolves with the updated project.
  */
 export async function updateProject(project: Project): Promise<Project> {
-  await setItem(PROJECT_STORE, project.id, project);
-  return project;
+  try {
+    await db.projects.put(project);
+    return project;
+  } catch (error) {
+    console.error('Error updating project:', error);
+    throw error;
+  }
 }
 
 /**
  * Deletes a project by its ID.
  * @param projectId The ID of the project to delete.
+ * @returns A promise that resolves when the project is deleted.
  */
 export async function deleteProject(projectId: string): Promise<void> {
   await deleteItem(PROJECT_STORE, projectId);
@@ -77,78 +65,124 @@ export async function deleteProject(projectId: string): Promise<void> {
 /**
  * Gets a project by its ID.
  * @param projectId The ID of the project.
- * @returns The project object, or undefined if not found.
+ * @returns A promise that resolves with the project object, or undefined if not found.
  */
 export async function getProject(
   projectId: string,
 ): Promise<Project | undefined> {
-  return getItem<Project>(`${PROJECT_STORE}-${projectId}`);
+  try {
+    return await db.projects.get(projectId);
+  } catch (error) {
+    console.error('Error getting project:', error);
+    throw error;
+  }
 }
 
 /**
  * Gets all projects.
- * @returns An array of Project objects.
+ * @returns A promise that resolves with an array of Project objects.
  */
 export async function getAllProjects(): Promise<Project[]> {
-  return getAllItemsFromStore<Project>(PROJECT_STORE);
+  try {
+    return await db.projects.toArray();
+  } catch (error) {
+    console.error('Error getting all projects:', error);
+    throw error;
+  }
 }
 
 /**
  * Creates a new task.
  * @param task The task object to create.
+ * @returns A promise that resolves with the created task.
  */
 export async function createTask(task: Task): Promise<Task> {
-  await setItem(TASK_STORE, task.id, task);
-  return task;
+  try {
+    await db.tasks.put(task);
+    return task;
+  } catch (error) {
+    console.error('Error creating task:', error);
+    throw error;
+  }
 }
 
 /**
  * Updates an existing task.
  * @param task The task object to update.
- * @returns The updated task.
+ * @returns A promise that resolves with the updated task.
  */
 export async function updateTask(task: Task): Promise<Task> {
-  await setItem(TASK_STORE, task.id, task);
-  return task;
+  try {
+    await db.tasks.put(task);
+    return task;
+  } catch (error) {
+    console.error('Error updating task:', error);
+    throw error;
+  }
 }
 
 /**
  * Deletes a task by its ID.
  * @param taskId The ID of the task to delete.
+ * @returns A promise that resolves when the task is deleted.
  */
 export async function deleteTask(taskId: string): Promise<void> {
-  await deleteItem(TASK_STORE, taskId);
+  try {
+    await db.tasks.delete(taskId);
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    throw error;
+  }
 }
 
 /**
  * Gets a task by its ID.
  * @param taskId The ID of the task.
- * @returns The task object, or undefined if not found.
+ * @returns A promise that resolves with the task object, or undefined if not found.
  */
 export async function getTask(taskId: string): Promise<Task | undefined> {
-  return getItem<Task>(`${TASK_STORE}-${taskId}`);
+  try {
+    return await db.tasks.get(taskId);
+  } catch (error) {
+    console.error('Error getting task:', error);
+    throw error;
+  }
 }
 
 /**
  * Gets all tasks.
- * @returns An array of Task objects.
+ * @returns A promise that resolves with an array of Task objects.
  */
 export async function getAllTasks(): Promise<Task[]> {
-  return getAllItemsFromStore<Task>(TASK_STORE);
+  try {
+    return await db.tasks.toArray();
+  } catch (error) {
+    console.error('Error getting all tasks:', error);
+    throw error;
+  }
 }
 
 /**
  * Creates a new task comment.
  * @param comment The task comment object to create.
+ * @returns A promise that resolves when the comment is created.
  */
 export async function createTaskComment(comment: TaskComment): Promise<void> {
-  await setItem(TASK_COMMENT_STORE, comment.id, comment);
+  try {
+    await db.taskComments.put(comment);
+  } catch (error) {
+    console.error('Error creating task comment:', error);
+    throw error;
+  }
 }
 
 /**
  * Gets all comments for a specific task.
+ * Note: This fetches all comments and filters. For large numbers of comments,
+ * consider adding an index on `taskId` in your IndexedDB service and using
+ * a query method if available.
  * @param taskId The ID of the task.
- * @returns An array of TaskComment objects.
+ * @returns A promise that resolves with an array of TaskComment objects for the given task.
  */
 export async function getTaskCommentsByTaskId(
   taskId: string,

@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-    "baseUrl": ".", // Set base URL to project root
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["src/*"], // Map @/ to src/
-      "@/components/*": ["src/components/*"],
-      "@/lib/*": ["src/lib/*"], // Corrected: Map @/lib to src/lib/
-      "@/app/components/*": ["src/app/components/*"],
-      "@/hooks/*": ["src/hooks/*"] // Map @/hooks to src/hooks
+      "@/*": ["*"],
+      "@/components/*": ["components/*"],
+      "@/lib/*": ["lib/*"],
+      "@/app/components/*": ["app/components/*"],
+      "@/hooks/*": ["app/hooks/*"]
     }
   },
-  "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+  "include": ["**/*.js", "**/*.jsx"],
   "exclude": ["node_modules"]
 }

@@ -6,8 +6,6 @@ import GithubProvider from 'next-auth/providers/github';
 // Ensure environment variables are defined for GitHub OAuth
 const githubId = process.env.GITHUB_ID;
 const githubSecret = process.env.GITHUB_SECRET;
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!githubId) {
   throw new Error('GITHUB_ID is not defined. Please check your .env file.');
@@ -15,22 +13,12 @@ if (!githubId) {
 if (!githubSecret) {
   throw new Error('GITHUB_SECRET is not defined. Please check your .env file.');
 }
-if (!supabaseUrl) {
-  throw new Error(
-    'NEXT_PUBLIC_SUPABASE_URL is not defined. Please check your .env file.',
-  );
-}
-if (!supabaseServiceRoleKey) {
-  throw new Error(
-    'SUPABASE_SERVICE_ROLE_KEY is not defined. Please check your .env file.',
-  );
-}
 
 export const authOptions: NextAuthOptions = {
   adapter: SupabaseAdapter(
     {
-      url: supabaseUrl,
-      secret: supabaseServiceRoleKey,
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      secret: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
     },
     // The schema option is typically configured directly on the Supabase client,
     // not directly on the SupabaseAdapter. The error "The schema must be one of
