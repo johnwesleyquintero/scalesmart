@@ -1,3 +1,5 @@
+'use client';
+
 import { useToast } from '@/hooks/use-toast.ts';
 import { type TrendDataPoint } from '@/lib/amazon-tools/keyword-trend-service';
 import {
@@ -10,7 +12,6 @@ import {
   Upload,
   XCircle,
 } from 'lucide-react';
-import Papa from 'papaparse';
 import React, { useCallback, useRef, useState } from 'react';
 import {
   CartesianGrid,
@@ -32,8 +33,16 @@ import { Progress } from '@/components/ui/progress';
 import { KeywordTrendService } from '@/lib/amazon-tools/keyword-trend-service';
 import DataCard from './DataCard';
 
+// Utility Imports
+import { useCsvParser } from '@/lib/hooks/use-csv-parser';
+import { exportToCSV, type ExportData } from '@/lib/amazon-tools/export-utils'; // Import ExportData type
+import {
+  keywordTrendHeaders,
+  validateKeywordTrendRow,
+  KeywordTrendCsvRow,
+} from '@/lib/hooks/use-keyword-trend-validator';
+
 // --- Constants ---
-const REQUIRED_COLUMNS = ['keyword', 'date', 'search_volume'];
 // Simple color palette for chart lines
 const LINE_COLORS = [
   '#8884d8',
@@ -48,23 +57,208 @@ const LINE_COLORS = [
   '#d0ed57',
 ];
 
+/**
+ * Message displayed when there is no data available for export.
+ * This constant prevents duplication of the literal string across the codebase.
+ */
+const NO_DATA_MESSAGE = 'No data to export.';
+
+/**
+ * Message displayed when the uploaded CSV file is empty or has no data rows.
+ */
+const EMPTY_OR_NO_DATA_MESSAGE =
+  'The uploaded CSV file appears to be empty or contains no data rows.';
+
+/**
+ * Prefix for the message indicating no valid data was found after initial parsing.
+ */
+const NO_VALID_DATA_PREFIX =
+  'No valid data found in the CSV after initial parsing.';
+
+/**
+ * Suffix for the message indicating how many rows were skipped during initial parsing.
+ */
+const ROWS_SKIPPED_SUFFIX = 'rows were skipped.';
+
+/**
+ * Message displayed when no valid trend data is found after processing.
+ */
+const NO_VALID_TREND_DATA_MESSAGE =
+  'No valid trend data found after processing. Please check your data format.';
+
+/**
+ * Prefix for the message indicating successful trend analysis.
+ */
+const SUCCESS_ANALYSIS_PREFIX = 'Successfully analyzed trends for';
+
+/**
+ * Suffix for the message indicating the number of keywords and dates analyzed.
+ */
+const KEYWORDS_OVER_DATES_SUFFIX = 'keywords over';
+
+/**
+ * Suffix for the message indicating the number of dates analyzed.
+ */
+const DATES_SUFFIX = 'dates.';
+
+/**
+ * Message displayed when the keyword input is empty.
+ */
+const KEYWORD_INPUT_REQUIRED_MESSAGE = 'Please enter a keyword.';
+
+/**
+ * Default error message when fetching keyword trends fails.
+ */
+const FETCH_TRENDS_FAILED_MESSAGE = 'Failed to fetch keyword trends.';
+
+/**
+ * Message displayed when no data is found for a manually entered keyword.
+ */
+const NO_KEYWORD_DATA_MESSAGE = 'No data found for the specified keyword.';
+
+/**
+ * Toast description when no trend data is found for a manually entered keyword.
+ */
+const NO_KEYWORD_TREND_DATA_DESCRIPTION =
+  'No trend data found for this keyword. Try uploading a CSV first.';
+
+/**
+ * Prefix for the message indicating successful fetching of keyword trend data.
+ */
+const SUCCESS_FETCH_TREND_PREFIX = 'Successfully fetched trend for';
+
+/**
+ * Suffix for the message indicating successful fetching of keyword trend data.
+ */
+const SUCCESS_FETCH_TREND_SUFFIX = '.';
+
+/**
+ * Default error message for unknown errors during manual keyword analysis.
+ */
+const UNKNOWN_ANALYSIS_ERROR_MESSAGE =
+  'An unknown error occurred during analysis.';
+
+/**
+ * Title for toast notifications indicating a processing failure.
+ */
+const PROCESSING_FAILED_TITLE = 'Processing Failed';
+
 // --- Component ---
 export default function KeywordTrendAnalyzer() {
   const { toast } = useToast();
   const [chartData, setChartData] = useState<TrendDataPoint[]>([]);
   const [keywords, setKeywords] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>(undefined);
+  const [error, setError] = useState<string | undefined | null>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // State for manual input
+  // State for manual input keyword
   const [keyword, setKeyword] = useState<string>('');
 
+  /**
+   * CSV parser instance using the custom hook.
+   * It handles parsing, initial row validation, and provides callbacks for success/error.
+   * @param {object} config - Configuration for the CSV parser, including required headers and row validation.
+   * @param {function} onError - Callback function for parsing errors.
+   * @param {function} onSuccess - Callback function for successful parsing and data processing.
+   */
+  const csvParser = useCsvParser<KeywordTrendCsvRow>(
+    {
+      requiredHeaders: keywordTrendHeaders.required,
+      validateRow: (row) =>
+        validateKeywordTrendRow(row as Record<string, string>, 0),
+    },
+    (parseError: Error) => {
+      setError(null); // Clear previous error
+      setIsLoading(false);
+      toast({
+        title: 'CSV Parsing Error',
+        description: parseError.message,
+        variant: 'destructive',
+      });
+    },
+    async (result: {
+      data: KeywordTrendCsvRow[];
+      skippedRows: Array<{ index: number; reason: string }>;
+    }) => {
+      if (result.data.length === 0) {
+        const msg =
+          result.skippedRows.length > 0
+            ? `${NO_VALID_DATA_PREFIX} ${result.skippedRows.length} ${ROWS_SKIPPED_SUFFIX}`
+            : EMPTY_OR_NO_DATA_MESSAGE;
+        setError(msg);
+        setIsLoading(false);
+        toast({
+          title: PROCESSING_FAILED_TITLE,
+          description: msg,
+          variant: 'destructive',
+        });
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''; // Reset file input
+        }
+        return;
+      }
+
+      try {
+        // Process the data using the KeywordTrendService
+        const { chartData: processedData, keywords: foundKeywords } =
+          await KeywordTrendService.analyzeTrends(result.data);
+
+        if (processedData.length === 0) {
+          const msg = NO_VALID_TREND_DATA_MESSAGE;
+          setError(msg);
+          toast({
+            title: PROCESSING_FAILED_TITLE,
+            description: msg,
+            variant: 'destructive',
+          });
+        } else {
+          setChartData(processedData);
+          setKeywords(foundKeywords);
+          setError(undefined);
+          const processedMessage = `${SUCCESS_ANALYSIS_PREFIX} ${foundKeywords.length} ${KEYWORDS_OVER_DATES_SUFFIX} ${processedData.length} ${DATES_SUFFIX}`;
+          const skippedMessage =
+            result.skippedRows.length > 0
+              ? ` Skipped ${result.skippedRows.length} invalid rows.`
+              : '';
+          toast({
+            title: 'Analysis Complete',
+            description: `${processedMessage}${skippedMessage}`,
+            variant: 'success',
+          });
+        }
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error
+            ? err.message
+            : 'An unknown error occurred during processing.';
+        setError(message);
+        setChartData([]);
+        setKeywords([]);
+        toast({
+          title: PROCESSING_FAILED_TITLE,
+          description: message,
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''; // Reset file input
+        }
+      }
+    },
+  );
+
+  /**
+   * Handles the analysis of a manually entered keyword.
+   * Fetches trend data from the API and updates the chart and keyword states.
+   * Displays toast notifications for success, no data, or errors.
+   */
   const handleAnalyze = useCallback(async () => {
     if (!keyword) {
       toast({
         title: 'Input Required',
-        description: 'Please enter a keyword.',
+        description: KEYWORD_INPUT_REQUIRED_MESSAGE,
         variant: 'warning',
       });
       return;
@@ -81,16 +275,15 @@ export default function KeywordTrendAnalyzer() {
       );
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to fetch keyword trends.');
+        throw new Error(errorData.message || FETCH_TRENDS_FAILED_MESSAGE);
       }
       const data: TrendDataPoint[] = await response.json();
 
       if (data.length === 0) {
-        setError('No data found for the specified keyword.');
+        setError(NO_KEYWORD_DATA_MESSAGE);
         toast({
           title: 'No Data',
-          description:
-            'No trend data found for this keyword. Try uploading a CSV first.',
+          description: NO_KEYWORD_TREND_DATA_DESCRIPTION,
           variant: 'info',
         });
         return;
@@ -111,14 +304,12 @@ export default function KeywordTrendAnalyzer() {
 
       toast({
         title: 'Analysis Complete',
-        description: `Successfully fetched trend for "${keyword}".`,
+        description: `${SUCCESS_FETCH_TREND_PREFIX} "${keyword}"${SUCCESS_FETCH_TREND_SUFFIX}`,
         variant: 'success',
       });
     } catch (err: unknown) {
       const message =
-        err instanceof Error
-          ? err.message
-          : 'An unknown error occurred during analysis.';
+        err instanceof Error ? err.message : UNKNOWN_ANALYSIS_ERROR_MESSAGE;
       setError(message);
       setChartData([]);
       setKeywords([]);
@@ -132,134 +323,40 @@ export default function KeywordTrendAnalyzer() {
     }
   }, [keyword, toast]);
 
+  /**
+   * Handles the file upload event for CSV files.
+   * Initiates the CSV parsing process and updates loading/error states.
+   * @param {React.ChangeEvent<HTMLInputElement>} event - The file input change event.
+   */
   const handleFileUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
-      if (!file) return;
+      if (!file) {
+        setError('No file selected.');
+        return;
+      }
 
       setIsLoading(true);
       setError(undefined);
-      setChartData([]); // Clear previous results
+      setChartData([]);
       setKeywords([]);
 
-      Papa.parse(file, {
-        header: true,
-        skipEmptyLines: true,
-        dynamicTyping: true, // Enable dynamic typing for numeric values
-        complete: async (result: Papa.ParseResult<TrendDataPoint>) => {
-          try {
-            // Log the start of processing
-            console.info('Starting trend data processing', {
-              fileName: file.name,
-              rowCount: result.data.length,
-            });
-
-            if (result.errors.length > 0) {
-              const errorMessage = `CSV parsing error: ${result.errors[0].message}. Check row ${result.errors[0].row}.`;
-              console.error(errorMessage, {
-                fileName: file.name,
-                rowIndex: result.errors[0].row,
-                error: result.errors[0],
-              });
-              throw new Error(errorMessage);
-            }
-
-            const actualHeaders =
-              result.meta.fields?.map((h: string) => h.toLowerCase()) || [];
-            const missingHeaders = REQUIRED_COLUMNS.filter(
-              (header) => !actualHeaders.includes(header),
-            );
-
-            if (missingHeaders.length > 0) {
-              const errorMessage = `Missing required CSV columns: ${missingHeaders.join(', ')}. Found: ${actualHeaders.join(', ') || 'None'}`;
-              console.error(errorMessage, {
-                fileName: file.name,
-                missingHeaders,
-                foundHeaders: actualHeaders,
-              });
-              throw new Error(errorMessage);
-            }
-
-            if (result.data.length === 0) {
-              const errorMessage =
-                'The uploaded CSV file appears to be empty or contains no data rows.';
-              console.warn(errorMessage, { fileName: file.name });
-              throw new Error(errorMessage);
-            }
-
-            // Process the data using the KeywordTrendService
-            const { chartData: processedData, keywords: foundKeywords } =
-              await KeywordTrendService.analyzeTrends(result.data);
-
-            if (processedData.length === 0) {
-              const errorMessage =
-                'No valid trend data found after processing. Please check your data format.';
-              console.error(errorMessage, {
-                fileName: file.name,
-                rowCount: result.data.length,
-              });
-              throw new Error(errorMessage);
-            }
-
-            setChartData(processedData);
-            setKeywords(foundKeywords);
-            setError(undefined);
-
-            toast({
-              title: 'Analysis Complete',
-              description: `Successfully analyzed trends for ${foundKeywords.length} keywords over ${processedData.length} dates.`,
-              variant: 'success',
-            });
-
-            console.info('Trend analysis completed successfully', {
-              fileName: file.name,
-              keywordCount: foundKeywords.length,
-              datePoints: processedData.length,
-            });
-          } catch (err: unknown) {
-            const message =
-              err instanceof Error
-                ? err.message
-                : 'An unknown error occurred during processing.';
-            setError(message);
-            setChartData([]);
-            setKeywords([]);
-            toast({
-              title: 'Processing Failed',
-              description: message,
-              variant: 'destructive',
-            });
-          } finally {
-            setIsLoading(false);
-            // Reset file input
-            if (event.target) {
-              event.target.value = '';
-            }
-          }
-        },
-        error: (err: Error) => {
-          setError(`Error reading CSV file: ${err.message}`);
-          setIsLoading(false);
-          setChartData([]);
-          setKeywords([]);
-          toast({
-            title: 'Upload Failed',
-            description: `Error reading CSV file: ${err.message}`,
-            variant: 'destructive',
-          });
-          // Reset file input on read error too
-          if (event.target) {
-            event.target.value = '';
-          }
-        },
+      csvParser.parseFile(file).catch((err) => {
+        // Error is already handled by csvParser's error callback, but catch here for completeness
+        console.error('File parsing initiation failed:', err);
       });
     },
-    [toast],
+    [csvParser],
   );
 
+  /**
+   * Handles the export of chart data to a CSV file.
+   * Maps the internal `TrendDataPoint` array to a generic `ExportData` format
+   * and uses `exportToCSV` utility. Displays toast notifications for success or failure.
+   */
   const handleExport = useCallback(() => {
     if (chartData.length === 0) {
-      const msg = 'No data to export.';
+      const msg = NO_DATA_MESSAGE;
       setError(msg);
       toast({
         title: 'Export Error',
@@ -270,18 +367,38 @@ export default function KeywordTrendAnalyzer() {
     }
     setError(undefined);
 
-    // Export the processed chart data
+    // Map TrendDataPoint[] to ExportData[] for generic CSV export.
+    // This ensures that all properties of each TrendDataPoint are included in the export,
+    // and values are converted to string, number, boolean, null, or undefined as required by ExportData.
+    const exportableData: ExportData[] = chartData.map((item) => {
+      const exportItem: ExportData = {};
+      for (const key in item) {
+        if (Object.prototype.hasOwnProperty.call(item, key)) {
+          const value = item[key as keyof TrendDataPoint];
+          // Ensure value is compatible with ExportData.
+          // TrendDataPoint typically contains string (date) and number (search_volume) values.
+          // The explicit checks here ensure robustness for the ExportData type,
+          // which is more general and can handle boolean, null, or undefined.
+          if (
+            typeof value === 'string' ||
+            typeof value === 'number' ||
+            typeof value === 'boolean' ||
+            value === null ||
+            value === undefined
+          ) {
+            exportItem[key] = value;
+          } else {
+            // Fallback for other types, converting them to string.
+            // This might be useful if TrendDataPoint were to include complex objects in the future.
+            exportItem[key] = String(value);
+          }
+        }
+      }
+      return exportItem;
+    });
+
     try {
-      const csv = Papa.unparse(chartData);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'keyword_trends_analysis.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      exportToCSV(exportableData, 'keyword_trends_analysis.csv');
       toast({
         title: 'Export Successful',
         description: 'Keyword trend analysis exported to CSV.',
@@ -299,6 +416,10 @@ export default function KeywordTrendAnalyzer() {
     }
   }, [chartData, toast]);
 
+  /**
+   * Clears all loaded chart data, keywords, and error messages.
+   * Resets the file input field and displays a toast notification.
+   */
   const clearData = useCallback(() => {
     setChartData([]);
     setKeywords([]);
@@ -364,7 +485,7 @@ export default function KeywordTrendAnalyzer() {
                     Click or drag CSV file here
                   </span>
                   <span className="text-xs text-muted-foreground mt-1">
-                    (Requires: {REQUIRED_COLUMNS.join(', ')})
+                    (Requires: {keywordTrendHeaders.required.join(', ')})
                   </span>
                   <input
                     type="file"

@@ -13,7 +13,9 @@ import type { UseAmazonDataIntegrationReturn } from '@/lib/hooks/useAmazonDataIn
  * @param {UseAmazonDataIntegrationReturn} props - The data and callbacks from the `useAmazonDataIntegration` hook.
  * @returns {JSX.Element} The Data Integration tab content.
  */
-const DataIntegrationTab: React.FC<UseAmazonDataIntegrationReturn> = (props) => {
+const DataIntegrationTab: React.FC<UseAmazonDataIntegrationReturn> = (
+  props,
+) => {
   // Destructure props if needed, or use `props.propertyName` directly in JSX
   // For now, we'll just pass props directly to any child components that need them.
 

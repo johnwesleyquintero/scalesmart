@@ -9,7 +9,6 @@ import {
   Upload,
   XCircle,
 } from 'lucide-react';
-import Papa from 'papaparse';
 import React, { useCallback, useRef, useState } from 'react';
 import ManualFbaForm from './ManualFbaForm';
 
@@ -26,7 +25,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import DataCard from './DataCard';
-// import SampleCsvButton from './sample-csv-button'; // Removed SampleCsvButton import
 
 // Types
 export interface FbaCalculationInput {
@@ -42,39 +40,53 @@ interface FbaCalculationResult extends FbaCalculationInput {
   margin: number; // Profit Margin (%)
 }
 
-type CsvInputRow = {
-  product?: string | null;
-  cost?: number | string | null;
-  price?: number | string | null;
-  fees?: number | string | null;
-};
-
-// Import validation schemas and logger
+// Utility Imports
+import { exportToCSV } from '@/lib/amazon-tools/export-utils';
+import { useCsvParser } from '@/lib/hooks/use-csv-parser';
+import {
+  fbaHeaders,
+  validateFbaRow,
+  FbaCsvRow,
+} from '@/lib/hooks/use-fba-validator';
+import { monetaryValueSchema } from '@/lib/input-validation';
 
 /**
- * Calculates FBA metrics with improved error handling and validation
+ * Calculates ROI (Return on Investment).
+ * @param profit The calculated profit.
+ * @param cost The cost of the product.
+ * @returns The ROI as a percentage. Handles division by zero.
  */
 const calculateRoi = (profit: number, cost: number): number => {
   if (cost === 0) {
-    if (profit === 0) return 0;
-    return profit > 0 ? Infinity : -Infinity;
+    return profit === 0 ? 0 : profit > 0 ? Infinity : -Infinity;
   }
   return (profit / cost) * 100;
 };
 
+/**
+ * Calculates Profit Margin.
+ * @param profit The calculated profit.
+ * @param price The selling price of the product.
+ * @returns The profit margin as a percentage. Handles division by zero.
+ */
 const calculateMargin = (profit: number, price: number): number => {
   if (price === 0) {
-    if (profit === 0) return 0;
-    return profit > 0 ? Infinity : -Infinity;
+    return profit === 0 ? 0 : profit > 0 ? Infinity : -Infinity;
   }
   return (profit / price) * 100;
 };
 
+/**
+ * Calculates FBA metrics (profit, ROI, margin) for a given input.
+ * Includes validation for monetary values.
+ * @param input The FBA calculation input (product, cost, price, fees).
+ * @returns A promise resolving to an object containing profit, ROI, and margin.
+ * @throws Error if input values are invalid.
+ */
 const calculateFbaMetrics = async (
   input: FbaCalculationInput,
 ): Promise<Pick<FbaCalculationResult, 'profit' | 'roi' | 'margin'>> => {
   try {
-    const { monetaryValueSchema } = await import('@/lib/input-validation');
     const validatedCost = monetaryValueSchema.parse(input.cost);
     const validatedPrice = monetaryValueSchema.parse(input.price);
     const validatedFees = monetaryValueSchema.parse(input.fees);
@@ -85,27 +97,35 @@ const calculateFbaMetrics = async (
 
     return { profit, roi, margin };
   } catch (error: unknown) {
-    // Log the error with detailed information
     console.error('Failed to calculate FBA metrics', {
       component: 'FbaCalculator',
-      error:
-        error instanceof Error ? (error as Error).message : 'Unknown error',
+      error: error instanceof Error ? error.message : 'Unknown error',
       input,
     });
-    // Rethrow with more descriptive message
     throw new Error(
       `Failed to calculate FBA metrics: ${error instanceof Error ? error.message : 'Invalid input values'}`,
     );
   }
 };
 
-// --- Component ---
+/**
+ * `FbaCalculator` component provides tools for calculating FBA (Fulfillment by Amazon)
+ * profitability metrics. Users can upload a CSV file with product data or manually
+ * enter details for a single product.
+ *
+ * Features:
+ * - CSV upload and parsing for bulk calculations.
+ * - Manual input form for single product calculations.
+ * - Calculates Profit, Return on Investment (ROI), and Profit Margin.
+ * - Displays results in a table.
+ * - Provides export functionality for calculated results.
+ * - Includes robust error handling and user feedback via toasts.
+ */
 export default function FbaCalculator() {
   const { toast } = useToast();
   const [results, setResults] = useState<FbaCalculationResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Simplified state for manual input form
   const [manualInput, setManualInput] = useState<FbaCalculationInput>({
     product: '',
     cost: 0,
@@ -114,181 +134,132 @@ export default function FbaCalculator() {
   });
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * CSV parser instance using the custom hook.
+   * It handles parsing, initial row validation, and provides callbacks for success/error.
+   */
+  const csvParser = useCsvParser<FbaCsvRow>(
+    {
+      requiredHeaders: fbaHeaders.required,
+      validateRow: (row) => validateFbaRow(row as Record<string, string>, 0), // Explicitly cast to string record
+    },
+    (parseError: Error) => {
+      setError(null); // Clear previous error
+      setIsLoading(false);
+      toast({
+        title: 'CSV Parsing Error',
+        description: parseError.message,
+        variant: 'destructive',
+      });
+    },
+    async (result: {
+      data: FbaCsvRow[];
+      skippedRows: Array<{ index: number; reason: string }>;
+    }) => {
+      let skippedRowCount = 0;
+      const processedResults = await Promise.all(
+        result.data.map(async (row, index) => {
+          const productName = row.product?.trim();
+          const cost = Number(row.cost);
+          const price = Number(row.price);
+          const fees = Number(row.fees);
+
+          // Additional numeric validation after initial CSV parsing
+          if (
+            !productName ||
+            isNaN(cost) ||
+            cost < 0 ||
+            isNaN(price) ||
+            price < 0 ||
+            isNaN(fees) ||
+            fees < 0
+          ) {
+            skippedRowCount++;
+            console.warn(
+              `Skipping row ${index + 2} due to invalid numeric values or missing product name.`,
+            );
+            return null;
+          }
+
+          const inputData: FbaCalculationInput = {
+            product: productName,
+            cost,
+            price,
+            fees,
+          };
+
+          try {
+            const metrics = await calculateFbaMetrics(inputData);
+            return { ...inputData, ...metrics };
+          } catch (calcError) {
+            skippedRowCount++;
+            console.warn(
+              `Skipping row ${index + 2} for "${productName}" due to calculation error: ${calcError instanceof Error ? calcError.message : 'Unknown error'}`,
+            );
+            return null;
+          }
+        }),
+      );
+
+      const validResults = processedResults.filter(
+        (item): item is FbaCalculationResult => item !== null,
+      );
+
+      if (validResults.length === 0) {
+        const msg =
+          result.data.length > 0
+            ? `No valid data found in the CSV after processing ${result.data.length} rows. Ensure 'product', 'cost', 'price', 'fees' columns are present and contain valid non-negative numbers.`
+            : 'The uploaded CSV file appears to be empty or contains no data rows.';
+        setError(msg);
+        toast({
+          title: 'Processing Failed',
+          description: msg,
+          variant: 'destructive',
+        });
+      } else {
+        setResults(validResults);
+        const processedMessage = `Processed ${validResults.length} products`;
+        const skippedMessage =
+          skippedRowCount > 0 ? ` Skipped ${skippedRowCount} invalid rows` : '';
+        setError(
+          skippedRowCount > 0 ? `${processedMessage}.${skippedMessage}` : null,
+        );
+        toast({
+          title: 'CSV Processed',
+          description: `${processedMessage}.${skippedMessage}`,
+          variant: 'success',
+        });
+      }
+      setIsLoading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Reset file input
+      }
+    },
+  );
+
+  /**
+   * Handles the file upload event, initiating CSV parsing.
+   */
   const handleFileUpload = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
-      if (!file) return;
-
+      if (!file) {
+        setError('No file selected.');
+        return;
+      }
       setIsLoading(true);
       setError(null);
-      setResults([]); // Clear previous results
-
-      Papa.parse<CsvInputRow>(file, {
-        header: true,
-        dynamicTyping: false, // Parse everything as string initially for better validation control
-        skipEmptyLines: true,
-        complete: async (result) => {
-          try {
-            if (result.errors.length > 0) {
-              throw new Error(
-                `CSV parsing error: ${result.errors[0].message}. Check row ${result.errors[0].row}.`,
-              );
-            }
-
-            // Validate required headers (case-insensitive)
-            const requiredHeaders = ['product', 'cost', 'price', 'fees'];
-            const actualHeaders =
-              result.meta.fields?.map((h) => h.toLowerCase()) || [];
-            const missingHeaders = requiredHeaders.filter(
-              (header) => !actualHeaders.includes(header),
-            );
-
-            if (missingHeaders.length > 0) {
-              throw new Error(
-                `Missing required CSV columns: ${missingHeaders.join(', ')}. Found: ${result.meta.fields?.join(', ') || 'None'}`,
-              );
-            }
-
-            let skippedRowCount = 0;
-            // Process the parsed data
-            const processedResults = await Promise.all(
-              result.data.map(async (row, index) => {
-                const productName = row.product?.trim();
-                const costStr =
-                  typeof row.cost === 'string' ? row.cost.trim() : row.cost;
-                const priceStr =
-                  typeof row.price === 'string' ? row.price.trim() : row.price;
-                const feesStr =
-                  typeof row.fees === 'string' ? row.fees.trim() : row.fees;
-
-                // Validate product name
-                if (!productName) {
-                  console.warn(
-                    `Skipping row ${index + 2}: Missing product name.`,
-                  );
-                  skippedRowCount++;
-                  return null;
-                }
-
-                // Validate and convert numeric values
-                const cost = Number(costStr);
-                const price = Number(priceStr);
-                const fees = Number(feesStr);
-
-                if (isNaN(cost) || cost < 0) {
-                  console.warn(
-                    `Skipping row ${index + 2} for "${productName}": Invalid or negative cost value ('${costStr}').`,
-                  );
-                  skippedRowCount++;
-                  return null;
-                }
-                if (isNaN(price) || price < 0) {
-                  console.warn(
-                    `Skipping row ${index + 2} for "${productName}": Invalid or negative price value ('${priceStr}').`,
-                  );
-                  skippedRowCount++;
-                  return null;
-                }
-                if (isNaN(fees) || fees < 0) {
-                  console.warn(
-                    `Skipping row ${index + 2} for "${productName}": Invalid or negative fees value ('${feesStr}').`,
-                  );
-                  skippedRowCount++;
-                  return null;
-                }
-
-                const inputData: FbaCalculationInput = {
-                  product: productName,
-                  cost,
-                  price,
-                  fees,
-                };
-                const metrics = await calculateFbaMetrics(inputData);
-
-                return { ...inputData, ...metrics };
-              }),
-            );
-
-            // Filter out null results and ensure type safety
-            const validResults = processedResults.filter(
-              (item): item is FbaCalculationResult => {
-                return (
-                  item !== null &&
-                  typeof item === 'object' &&
-                  'profit' in item &&
-                  'roi' in item &&
-                  'margin' in item
-                );
-              },
-            );
-
-            if (validResults.length === 0) {
-              if (result.data.length > 0) {
-                throw new Error(
-                  `No valid data found in the CSV after processing ${result.data.length} rows. Ensure 'product', 'cost', 'price', 'fees' columns are present and contain valid non-negative numbers.`,
-                );
-              } else {
-                throw new Error(
-                  'The uploaded CSV file appears to be empty or contains no data rows.',
-                );
-              }
-            }
-
-            setResults(validResults);
-            const processedMessage = `Processed ${validResults.length} products`;
-            const skippedMessage =
-              skippedRowCount > 0
-                ? ` Skipped ${skippedRowCount} invalid rows`
-                : '';
-            setError(
-              skippedRowCount > 0
-                ? `${processedMessage}.${skippedMessage}`
-                : null,
-            );
-            toast({
-              title: 'CSV Processed',
-              description: `${processedMessage}.${skippedMessage}`,
-              variant: 'success',
-            });
-          } catch (err: unknown) {
-            const message =
-              err instanceof Error
-                ? err.message
-                : 'An unknown error occurred during processing.';
-            setError(message);
-            setResults([]);
-            toast({
-              title: 'Processing Failed',
-              description: message,
-              variant: 'destructive',
-            });
-          } finally {
-            setIsLoading(false);
-
-            if (event.target) {
-              event.target.value = '';
-            }
-          }
-        },
-        error: (err: Error) => {
-          setError(`Error reading CSV file: ${err.message}`);
-          setIsLoading(false);
-          setResults([]);
-          toast({
-            title: 'Upload Failed',
-            description: `Error reading CSV file: ${err.message}`,
-            variant: 'destructive',
-          });
-
-          if (event.target) {
-            event.target.value = '';
-          }
-        },
+      csvParser.parseFile(file).catch((err) => {
+        // Error is already handled by csvParser's error callback, but catch here for completeness
+        console.error('File parsing initiation failed:', err);
       });
     },
-    [toast], // Added toast dependency
+    [csvParser],
   );
 
+  /**
+   * Handles exporting the current calculation results to a CSV file.
+   */
   const handleExport = useCallback(() => {
     if (results.length === 0) {
       const msg = 'No data to export.';
@@ -298,30 +269,20 @@ export default function FbaCalculator() {
     }
     setError(null);
 
-    // Prepare data for CSV export, formatting numbers
     const exportData = results.map((item) => ({
       Product: item.product,
       Cost: item.cost.toFixed(2),
       Price: item.price.toFixed(2),
       Fees: item.fees.toFixed(2),
       Profit: item.profit.toFixed(2),
-      ROI_Percent: isFinite(item.roi) ? item.roi.toFixed(2) : 'Infinity', // Handle Infinity
+      ROI_Percent: isFinite(item.roi) ? item.roi.toFixed(2) : 'Infinity',
       Margin_Percent: isFinite(item.margin)
         ? item.margin.toFixed(2)
-        : 'Infinity', // Handle Infinity
+        : 'Infinity',
     }));
 
     try {
-      const csv = Papa.unparse(exportData);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'fba_calculator_results.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url); // Clean up blob URL
+      exportToCSV(exportData, 'fba_calculator_results.csv');
       toast({
         title: 'Export Successful',
         description: 'FBA calculation results exported to CSV.',
@@ -339,23 +300,25 @@ export default function FbaCalculator() {
         variant: 'destructive',
       });
     }
-  }, [results, toast]); // Added dependencies
+  }, [results, toast]);
 
+  /**
+   * Clears all calculation results and resets the form.
+   */
   const clearData = useCallback(() => {
     setResults([]);
     setError(null);
-    setManualInput({ product: '', cost: 0, price: 0, fees: 0 }); // Reset manual form
+    setManualInput({ product: '', cost: 0, price: 0, fees: 0 });
     if (fileInputRef.current) {
-      fileInputRef.current.value = ''; // Reset file input
+      fileInputRef.current.value = '';
     }
     toast({
       title: 'Data Cleared',
       description: 'All calculation results have been removed.',
       variant: 'info',
     });
-  }, [toast]); // Added dependency
+  }, [toast]);
 
-  // --- Render ---
   return (
     <div className="space-y-6">
       {/* Info Box */}

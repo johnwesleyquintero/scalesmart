@@ -1,4 +1,3 @@
-// Move 'use client' directive to the top of the file if not already present
 'use client';
 
 import {
@@ -29,7 +28,6 @@ import {
 } from '@/lib/input-validation';
 import { AlertCircle, Download, Info, Upload, X, XCircle } from 'lucide-react';
 import { AcosTrendChart } from './AcosTrendChart';
-import Papa from 'papaparse';
 import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
@@ -44,7 +42,6 @@ import {
   YAxis,
 } from 'recharts';
 import { CurrencySelector } from './CurrencySelector';
-import { saveCalculation, getCalculations } from '@/lib/indexeddb-service';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from '@/lib/constants';
 import { format } from 'date-fns';
 import { CalculationData } from '@/lib/indexeddb-service';
@@ -55,6 +52,13 @@ import {
   calculateAcosRoas,
 } from '@/lib/amazon-tools/acos-calculator-utils';
 import { CalculationHistoryTable } from './CalculationHistoryTable';
+import {
+  setItem,
+  getCalculations,
+  saveCalculation,
+} from '@/lib/indexeddb-service';
+import { useToast } from '@/app/hooks/use-toast';
+import { exportToCSV } from '@/lib/amazon-tools/export-utils'; // Import exportToCSV
 
 // --- Interfaces & Types ---
 
@@ -80,6 +84,8 @@ const chartConfig = {
 // --- Component ---
 
 export default function AcosCalculator() {
+  const { toast } = useToast(); // Moved toast declaration to the top
+
   const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -156,8 +162,13 @@ export default function AcosCalculator() {
       },
     },
     (error: Error) => {
-      setError(`CSV Parsing Error: ${error.message}`);
+      setError(undefined); // Clear previous error
       setIsLoading(false);
+      toast({
+        title: 'CSV Parsing Error',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
     (result: {
       data: CampaignData[];
@@ -241,22 +252,20 @@ export default function AcosCalculator() {
       revenuePerClickRate: campaign.revenuePerClickRate?.toFixed(2) ?? '',
     }));
     try {
-      const csv = Papa.unparse(exportData);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'acos_calculations.csv');
-      document.body.append(link);
-      link.click();
-      link.remove();
-      URL.revokeObjectURL(url);
+      exportToCSV(exportData, 'acos_calculations.csv');
+      toast({
+        title: 'Export Successful',
+        description: 'ACoS calculations exported to CSV.',
+      });
     } catch (err) {
-      setError(
-        `Failed to generate CSV: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      console.error('Failed to export ACoS calculations:', err);
+      toast({
+        title: 'Export Failed',
+        description: `Failed to generate CSV: ${err instanceof Error ? err.message : String(err)}`,
+        variant: 'destructive',
+      });
     }
-  }, [campaigns]);
+  }, [campaigns, toast]);
 
   const clearData = useCallback(() => {
     setCampaigns([]);
@@ -393,16 +402,58 @@ export default function AcosCalculator() {
         impressions: '',
         clicks: '',
       });
-    } catch (error) {
-      if (error instanceof Error) {
-        setError(error.message);
-      } else {
-        setError('An unknown error occurred during manual calculation.');
+
+      // Save the calculation to IndexedDB
+      try {
+        const calculationData: CalculationData = {
+          campaignName: newCampaign.campaign,
+          adSpend: newCampaign.adSpend,
+          sales: newCampaign.sales,
+          acos: newCampaign.acos!,
+          roas: newCampaign.roas!,
+          date: new Date(newCampaign.date!).getTime(), // Convert ISO string date to timestamp
+          currencySymbol: newCampaign.currencySymbol!,
+        };
+        await saveCalculation(calculationData); // Use saveCalculation
+        setCalculationHistory((prevHistory) => [
+          ...prevHistory,
+          calculationData,
+        ]); // Add calculationData to history
+        toast({
+          title: 'Calculation Added',
+          description: `Campaign "${newCampaign.campaign}" added to history.`,
+        });
+      } catch (dbError) {
+        console.error('Error saving calculation to IndexedDB:', dbError);
+        toast({
+          title: 'Database Error',
+          description: 'Failed to save calculation history.',
+          variant: 'destructive',
+        });
       }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'An unknown error occurred during manual calculation.';
+      setError(errorMessage); // Still set local error state for display if needed
+      toast({
+        title: 'Calculation Failed',
+        description: errorMessage,
+        variant: 'destructive',
+      });
     } finally {
       setIsLoading(false);
     }
-  }, [selectedCurrency, manualCampaign, setError, setIsLoading, setCampaigns]);
+  }, [
+    selectedCurrency,
+    manualCampaign,
+    setError,
+    setIsLoading,
+    setCampaigns,
+    setCalculationHistory,
+    toast,
+  ]);
 
   // --- Render ---
   return (
@@ -467,7 +518,7 @@ export default function AcosCalculator() {
             manualCampaign={manualCampaign}
             setManualCampaign={setManualCampaign}
             handleManualCalculate={handleManualCalculate}
-            isManualInputValid={isManualInputValid} // Corrected prop
+            isManualInputValid={isManualInputValid}
             isLoading={isLoading}
           />
         </Card>
@@ -488,4 +539,3 @@ export default function AcosCalculator() {
     </div>
   );
 }
-// --- End of Component ---

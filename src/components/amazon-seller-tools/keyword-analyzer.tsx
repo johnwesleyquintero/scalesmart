@@ -1,4 +1,3 @@
-// src/components/amazon-seller-tools/keyword-analyzer.tsx
 'use client';
 
 import { useToast } from '@/hooks/use-toast.ts';
@@ -14,7 +13,6 @@ import {
   Upload,
   XCircle,
 } from 'lucide-react';
-import Papa from 'papaparse';
 import React, { useCallback, useRef, useState, useEffect } from 'react';
 import {
   Bar,
@@ -34,13 +32,20 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
-// import SampleCsvButton from './sample-csv-button'; // Removed SampleCsvButton import
 import DataCard from './DataCard';
+
+// Utility Imports
+import { useCsvParser } from '@/lib/hooks/use-csv-parser';
+import { exportToCSV } from '@/lib/amazon-tools/export-utils';
+import {
+  keywordAnalyzerHeaders,
+  validateKeywordAnalyzerRow,
+  KeywordAnalyzerCsvRow,
+} from '@/lib/hooks/use-keyword-analyzer-validator';
 
 // --- Constants ---
 const BATCH_SIZE = 50; // Process keywords in batches
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const REQUIRED_CSV_HEADERS = ['product', 'keywords'];
 
 // --- Types ---
 type KeywordData = {
@@ -54,124 +59,6 @@ type KeywordData = {
   averageScore: number;
   averageConfidence: number;
 };
-
-interface CsvInputRow {
-  product?: string;
-  keywords: string;
-  searchVolume: number | undefined;
-  competition?: string;
-}
-
-// --- Helper Functions ---
-
-// Processes keywords in batches using KeywordIntelligence
-async function processKeywordBatch(
-  keywords: string[],
-): Promise<KeywordAnalysis[]> {
-  const results: KeywordAnalysis[] = [];
-  for (let i = 0; i < keywords.length; i += BATCH_SIZE) {
-    const batch = keywords.slice(i, i + BATCH_SIZE);
-    try {
-      // Use the analyze method from KeywordIntelligence
-      const batchResults = await fetchKeywordAnalysis(batch);
-      results.push(...batchResults);
-    } catch (error) {
-      logError({
-        message: 'Error analyzing keyword batch',
-        component: 'KeywordAnalyzer/processKeywordBatch',
-        severity: 'medium',
-        error: error as Error,
-        context: { batchSize: batch.length, startIndex: i },
-      });
-      // Propagate error to be handled by the caller
-      throw new Error(
-        `Failed to analyze batch starting at index ${i}: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      );
-    }
-  }
-  return results;
-}
-
-// Processes a single row from the CSV data
-async function processCsvRow(
-  item: CsvInputRow,
-  rowIndex: number,
-): Promise<KeywordData | null> {
-  const productName = item.product?.trim();
-  if (!productName) {
-    // Log silently or with low severity, handled by filtering later
-    return null;
-  }
-
-  const keywords =
-    item.keywords
-      ?.split(',')
-      .map((k) => k.trim().toLowerCase())
-      .filter(Boolean) ?? [];
-
-  if (keywords.length === 0) {
-    return null;
-  }
-
-  try {
-    const analysis = await processKeywordBatch(keywords); // Use batch processing
-
-    const searchVolumeRaw = item.searchVolume;
-    const searchVolume =
-      typeof searchVolumeRaw === 'string' &&
-      searchVolumeRaw !== '' &&
-      !isNaN(Number(searchVolumeRaw))
-        ? Number(searchVolumeRaw)
-        : undefined;
-
-    const competitionRaw = item.competition?.trim().toLowerCase();
-    const competition =
-      competitionRaw &&
-      (competitionRaw === 'low' ||
-        competitionRaw === 'medium' ||
-        competitionRaw === 'high')
-        ? ((competitionRaw.charAt(0).toUpperCase() +
-            competitionRaw.slice(1)) as 'Low' | 'Medium' | 'High')
-        : undefined;
-
-    const prohibitedCount = analysis.filter((a) => a.isProhibited).length;
-    const totalScore = analysis.reduce((sum, a) => sum + a.score, 0);
-    const totalConfidence = analysis.reduce((sum, a) => sum + a.confidence, 0);
-    const averageScore = analysis.length > 0 ? totalScore / analysis.length : 0;
-    const averageConfidence =
-      analysis.length > 0 ? totalConfidence / analysis.length : 0;
-
-    // Example suggestion logic (adjust as needed)
-    const suggestions = analysis
-      .filter((a) => !a.isProhibited && a.score >= 70 && a.confidence >= 0.8)
-      .map((a) => a.keyword);
-
-    return {
-      product: productName,
-      keywords,
-      searchVolume,
-      competition,
-      analysis,
-      suggestions,
-      prohibitedCount,
-      averageScore,
-      averageConfidence,
-    };
-  } catch (error) {
-    logError({
-      message: 'Error processing CSV row analysis',
-      component: 'KeywordAnalyzer/processCsvRow',
-      severity: 'medium',
-      error: error as Error,
-      context: {
-        rowIndex: rowIndex + 1,
-        product: productName,
-        keywordCount: keywords.length,
-      },
-    });
-    return null; // Skip row on analysis error
-  }
-}
 
 // Gets badge variant based on competition level
 const getCompetitionVariant = (
@@ -198,13 +85,12 @@ const KeywordAnalyzerInfoBox: React.FC = () => (
       <p className="font-medium">How it Works:</p>
       <ul className="list-disc list-inside ml-4">
         <li>
-          Upload a CSV with &apos;product&apos; and comma-separated
-          &apos;keywords&apos; columns. Optional: &apos;searchVolume&apos;,
-          &apos;competition&apos; (Low/Medium/High).
+          Upload a CSV with 'product' and comma-separated 'keywords' columns.
+          Optional: 'searchVolume', 'competition' (Low/Medium/High).
         </li>
         <li>Or, manually enter comma-separated keywords for quick analysis.</li>
         <li>
-          The tool analyzes each keyword&apos;s potential (score, confidence,
+          The tool analyzes each keyword's potential (score, confidence,
           prohibited status).
         </li>
         <li>
@@ -429,6 +315,7 @@ const ProductAnalysisCard: React.FC<ProductAnalysisCardProps> = ({
       {/* Header */}
       <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 border-b pb-3">
         <h3 className="text-lg font-medium break-all">{product.product}</h3>
+        {/* Wrap badges in a div for flexbox styling */}
         <div className="flex items-center gap-2 flex-wrap self-start sm:self-center">
           {product.searchVolume !== undefined && (
             <>
@@ -614,108 +501,221 @@ export default function KeywordAnalyzer({
   }, [initialKeyword]);
 
   // --- Handlers ---
-  const handleFileUpload = useCallback(
-    async (event: React.ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) return;
 
+  /**
+   * Processes parsed CSV data rows and performs keyword analysis.
+   * @param data The parsed CSV data rows.
+   * @param totalRows The total number of rows for progress calculation.
+   * @param onProgress A callback function to update progress.
+   * @returns A promise resolving to an array of processed KeywordData.
+   */
+  const processCsvData = async (
+    data: KeywordAnalyzerCsvRow[],
+    totalRows: number,
+    onProgress: (progress: number) => void,
+  ): Promise<{ processedProducts: KeywordData[]; skippedCount: number }> => {
+    let skippedRowCount = 0;
+    const processedProducts: KeywordData[] = [];
+
+    for (let i = 0; i < totalRows; i++) {
+      const row = data[i];
+      const productName = row.product?.trim();
+      const keywords =
+        row.keywords
+          ?.split(',')
+          .map((k) => k.trim().toLowerCase())
+          .filter(Boolean) ?? [];
+
+      if (!productName || keywords.length === 0) {
+        skippedRowCount++;
+        console.warn(
+          `Skipping row ${i + 2} due to missing product name or keywords.`,
+        );
+        onProgress(Math.round(((i + 1) / totalRows) * 100));
+        continue;
+      }
+
+      try {
+        const analysis = await fetchKeywordAnalysis(keywords);
+
+        const searchVolumeRaw = row.searchvolume;
+        const searchVolume =
+          searchVolumeRaw && !isNaN(Number(searchVolumeRaw))
+            ? Number(searchVolumeRaw)
+            : undefined;
+
+        const competitionRaw = row.competition?.trim().toLowerCase();
+        const competition =
+          competitionRaw &&
+          (competitionRaw === 'low' ||
+            competitionRaw === 'medium' ||
+            competitionRaw === 'high')
+            ? ((competitionRaw.charAt(0).toUpperCase() +
+                competitionRaw.slice(1)) as 'Low' | 'Medium' | 'High')
+            : undefined;
+
+        const prohibitedCount = analysis.filter((a) => a.isProhibited).length;
+        const totalScore = analysis.reduce((sum, a) => sum + a.score, 0);
+        const totalConfidence = analysis.reduce(
+          (sum, a) => sum + a.confidence,
+          0,
+        );
+        const averageScore =
+          analysis.length > 0 ? totalScore / analysis.length : 0;
+        const averageConfidence =
+          analysis.length > 0 ? totalConfidence / analysis.length : 0;
+
+        const suggestions = analysis
+          .filter(
+            (a) => !a.isProhibited && a.score >= 70 && a.confidence >= 0.8,
+          )
+          .map((a) => a.keyword);
+
+        processedProducts.push({
+          product: productName,
+          keywords,
+          searchVolume,
+          competition,
+          analysis,
+          suggestions,
+          prohibitedCount,
+          averageScore,
+          averageConfidence,
+        });
+      } catch (analysisError) {
+        skippedRowCount++;
+        console.warn(
+          `Skipping row ${i + 2} for "${productName}" due to analysis error: ${analysisError instanceof Error ? analysisError.message : 'Unknown error'}`,
+        );
+      }
+      onProgress(Math.round(((i + 1) / totalRows) * 100));
+    }
+
+    return { processedProducts, skippedCount: skippedRowCount };
+  };
+
+  /**
+   * CSV parser instance using the custom hook.
+   * It handles parsing, initial row validation, and provides callbacks for success/error.
+   */
+  const csvParser = useCsvParser<KeywordAnalyzerCsvRow>(
+    {
+      requiredHeaders: keywordAnalyzerHeaders.required,
+      validateRow: (row) =>
+        validateKeywordAnalyzerRow(row as Record<string, string>, 0), // Explicitly cast to string record
+    },
+    (parseError: Error) => {
+      setError(null); // Clear previous error
+      setIsLoading(false);
+      setProgress(null);
+      toast({
+        title: 'CSV Parsing Error',
+        description: parseError.message,
+        variant: 'destructive',
+      });
+    },
+    async (result: {
+      data: KeywordAnalyzerCsvRow[];
+      skippedRows: Array<{ index: number; reason: string }>;
+    }) => {
+      if (result.data.length === 0) {
+        const msg =
+          result.skippedRows.length > 0
+            ? `No valid data found in the CSV after initial parsing. ${result.skippedRows.length} rows were skipped.`
+            : 'The uploaded CSV file appears to be empty or contains no data rows.';
+        setError(msg);
+        setIsLoading(false);
+        setProgress(null);
+        toast({
+          title: 'Processing Failed',
+          description: msg,
+          variant: 'destructive',
+        });
+        if (fileInputRef.current) {
+          fileInputRef.current.value = ''; // Reset file input
+        }
+        return;
+      }
+
+      const { processedProducts, skippedCount } = await processCsvData(
+        result.data,
+        result.data.length,
+        setProgress,
+      );
+
+      if (processedProducts.length === 0) {
+        const msg =
+          result.data.length > 0
+            ? `No valid product/keyword data found in the CSV after analysis. Skipped ${skippedCount} rows.`
+            : 'The uploaded CSV file appears to be empty or contains no data rows.';
+        setError(msg);
+        toast({
+          title: 'Processing Failed',
+          description: msg,
+          variant: 'destructive',
+        });
+      } else {
+        setProducts(processedProducts);
+        setError(null);
+        const processedMessage = `Processed ${processedProducts.length} products`;
+        const skippedMessage =
+          skippedCount > 0 ? ` Skipped ${skippedCount} invalid rows` : '';
+        toast({
+          title: 'Analysis Complete',
+          description: `${processedMessage}.${skippedMessage}`,
+          variant: 'success',
+        });
+      }
+      setIsLoading(false);
+      setProgress(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''; // Reset file input
+      }
+    },
+  );
+
+  /**
+   * Handles the file upload event, initiating CSV parsing.
+   */
+  const handleFileUpload = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        setError('No file selected.');
+        return;
+      }
       setIsLoading(true);
       setError(null);
       setProducts([]);
-      setProgress(0); // Start progress
+      setProgress(0);
 
-      try {
-        if (file.size > MAX_FILE_SIZE) {
-          throw new Error(
-            `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`,
-          );
-        }
-
-        const parseResult = await new Promise<Papa.ParseResult<CsvInputRow>>(
-          (resolve, reject) => {
-            Papa.parse<CsvInputRow>(file, {
-              header: true,
-              skipEmptyLines: true,
-              complete: resolve,
-              error: reject,
-            });
-          },
-        );
-
-        if (parseResult.errors.length > 0) {
-          const errorMessage = parseResult.errors
-            .map((err) => `Row ${err.row}: ${err.message}`)
-            .join('; ');
-          throw new Error(`CSV parsing errors: ${errorMessage}`);
-        }
-
-        const actualHeaders =
-          parseResult.meta.fields?.map((h) => h.toLowerCase()) || [];
-        const missingHeaders = REQUIRED_CSV_HEADERS.filter(
-          (header) => !actualHeaders.includes(header),
-        );
-
-        if (missingHeaders.length > 0) {
-          throw new Error(
-            `Missing required CSV columns: ${missingHeaders.join(', ')}. Found: ${actualHeaders.join(', ') || 'None'}`,
-          );
-        }
-
-        if (parseResult.data.length === 0) {
-          throw new Error(
-            'The uploaded CSV file appears to be empty or contains no data rows.',
-          );
-        }
-
-        // Process rows and update progress
-        const processedProducts: KeywordData[] = [];
-        const totalRows = parseResult.data.length;
-
-        for (let i = 0; i < totalRows; i++) {
-          const result = await processCsvRow(parseResult.data[i], i);
-          if (result) {
-            processedProducts.push(result);
-          }
-          // Update progress after each row (or batch if preferred)
-          setProgress(Math.round(((i + 1) / totalRows) * 100));
-        }
-
-        if (processedProducts.length === 0) {
-          throw new Error(
-            "No valid product/keyword data found in the CSV after processing. Ensure 'product' and 'keywords' columns are present and populated.",
-          );
-        }
-
-        setProducts(processedProducts);
-        setError(null);
+      if (file.size > MAX_FILE_SIZE) {
+        const msg = `File size exceeds ${MAX_FILE_SIZE / 1024 / 1024}MB limit`;
+        setError(msg);
+        setIsLoading(false);
+        setProgress(null);
         toast({
-          title: 'Analysis Complete',
-          description: `Successfully analyzed ${processedProducts.length} products.`,
-          variant: 'success',
-        });
-      } catch (err) {
-        const message =
-          err instanceof Error
-            ? err.message
-            : 'An unknown error occurred during processing.';
-        setError(message);
-        setProducts([]);
-        toast({
-          title: 'Processing Failed',
-          description: message,
+          title: 'Upload Failed',
+          description: msg,
           variant: 'destructive',
         });
-      } finally {
-        setIsLoading(false);
-        setProgress(null); // Reset progress
         if (event.target) {
           event.target.value = ''; // Reset file input
         }
+        return;
       }
+
+      csvParser.parseFile(file).catch((err) => {
+        // Error is already handled by csvParser's error callback, but catch here for completeness
+        console.error('File parsing initiation failed:', err);
+      });
     },
-    [toast], // Keep toast dependency
+    [csvParser, toast],
   );
 
+  /**
+   * Handles manual keyword analysis.
+   */
   const handleManualAnalysis = useCallback(async () => {
     const trimmedKeywords = manualKeywords.trim();
     if (!trimmedKeywords) {
@@ -742,7 +742,7 @@ export default function KeywordAnalyzer({
         throw new Error('No valid keywords entered after trimming.');
       }
 
-      const analysis = await processKeywordBatch(keywords); // Use batch processing
+      const analysis = await fetchKeywordAnalysis(keywords); // Use batch processing internally in API client
 
       const prohibitedCount = analysis.filter((a) => a.isProhibited).length;
       const totalScore = analysis.reduce((sum, a) => sum + a.score, 0);
@@ -791,6 +791,9 @@ export default function KeywordAnalyzer({
     }
   }, [manualKeywords, toast]);
 
+  /**
+   * Handles exporting the current analysis results to a CSV file.
+   */
   const handleExport = useCallback(() => {
     if (products.length === 0) {
       setError('No data to export.');
@@ -822,17 +825,7 @@ export default function KeywordAnalyzer({
     );
 
     try {
-      const csv = Papa.unparse(exportData);
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'keyword_analysis_export.csv');
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
+      exportToCSV(exportData, 'keyword_analysis_export.csv');
       toast({
         title: 'Export Successful',
         description: 'Keyword analysis exported to CSV.',
@@ -850,6 +843,9 @@ export default function KeywordAnalyzer({
     }
   }, [products, toast]);
 
+  /**
+   * Clears all analysis results and resets the form.
+   */
   const clearData = useCallback(() => {
     setProducts([]);
     setError(null);

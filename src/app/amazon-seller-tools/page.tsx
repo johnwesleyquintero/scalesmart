@@ -35,90 +35,60 @@ import type {
 } from '@/lib/amazon-tools/types';
 import type { TargetMetricConfig } from '@/lib/amazon-tools/types';
 import { TARGET_METRICS_CONFIG } from '@/config/amazon-tools-config';
+import { WHATS_NEW_LOCAL_STORAGE_KEY } from '@/lib/constants'; // Import the constant
 
-/**
- * Checks if a value is a primitive type compatible with CSV export.
- */
 /**
  * Type for values that are compatible with CSV export (primitive types or stringified objects).
  */
 type ExportCompatibleValue = string | number | boolean | null | undefined;
 
 /**
- * Helper function to determine if a value is a primitive type compatible with CSV export.
- * @param value The value to check.
- * @returns True if the value is a string, number, boolean, null, or undefined.
- */
-const isExportCompatiblePrimitive = (
-  value: unknown,
-): value is ExportCompatibleValue => {
-  const type = typeof value;
-  return (
-    type === 'string' ||
-    type === 'number' ||
-    type === 'boolean' ||
-    value === null ||
-    value === undefined
-  );
-};
-
-/**
- * Flattens the `validation_flags` object into a new object with prefixed keys.
- * Non-primitive values within `validation_flags` are stringified.
- * @param validationFlags - The partial ValidationFlags object to flatten.
+ * Recursively flattens an object, handling nested objects and arrays for CSV export.
+ * Non-primitive values are stringified. Keys are prefixed to avoid collisions.
+ * @param obj The object to flatten.
+ * @param prefix The prefix for the keys (used in recursion).
  * @returns A flat object with prefixed keys and export-compatible values.
  */
-const flattenValidationFlags = (
-  validationFlags: Partial<ValidationFlags> | undefined,
+const flattenObjectForExport = (
+  obj: Record<string, unknown>,
+  prefix: string = '',
 ): Record<string, ExportCompatibleValue> => {
   const flattened: Record<string, ExportCompatibleValue> = {};
-  if (validationFlags) {
-    for (const [key, value] of Object.entries(validationFlags)) {
-      const prefixedKey = `validation_flags_${key}`;
-      if (isExportCompatiblePrimitive(value)) {
-        flattened[prefixedKey] = value;
-      } else {
-        // Stringify complex objects or arrays within validation_flags for CSV compatibility
-        flattened[prefixedKey] = JSON.stringify(value);
-      }
+
+  for (const [key, value] of Object.entries(obj)) {
+    const newKey = prefix ? `${prefix}_${key}` : key;
+
+    if (
+      typeof value === 'string' ||
+      typeof value === 'number' ||
+      typeof value === 'boolean' ||
+      value === null ||
+      value === undefined
+    ) {
+      flattened[newKey] = value;
+    } else if (typeof value === 'object' && value !== null) {
+      // Recursively flatten nested objects, ensuring the type is compatible
+      Object.assign(
+        flattened,
+        flattenObjectForExport(value as Record<string, unknown>, newKey),
+      );
     }
+    // Functions, symbols, and bigints are intentionally ignored as they are not suitable for CSV.
   }
   return flattened;
 };
 
 /**
  * Transforms a single `DashboardMetrics` object into a flat object suitable for CSV export.
- * This flattens nested objects like `validation_flags` and ensures all values are
- * compatible with CSV export (primitive types or stringified objects).
+ * This flattens all nested objects and ensures all values are compatible with CSV export.
  * @param metric - The DashboardMetrics object to transform.
  * @returns A flat object suitable for CSV export.
  */
 const transformMetricForExport = (
   metric: DashboardMetrics,
 ): Record<string, ExportCompatibleValue> => {
-  const flatMetric: Record<string, ExportCompatibleValue> = {};
-
-  for (const [key, value] of Object.entries(metric)) {
-    if (key === 'validation_flags') {
-      Object.assign(
-        flatMetric,
-        flattenValidationFlags(value as ValidationFlags),
-      );
-    } else if (isExportCompatiblePrimitive(value)) {
-      flatMetric[key] = value;
-    } else if (typeof value === 'object' && value !== null) {
-      // Stringify any other unexpected complex types (objects/arrays) for CSV compatibility
-      flatMetric[key] = JSON.stringify(value);
-    }
-    // Functions, symbols, and bigints are intentionally ignored as they are not suitable for CSV.
-  }
-  return flatMetric;
+  return flattenObjectForExport(metric);
 };
-
-/**
- * Constant for the local storage key used to track if the "What's New" modal has been seen.
- */
-const WHATS_NEW_LOCAL_STORAGE_KEY = 'hasSeenWhatsNew_v1.0';
 
 /**
  * Type for a single tab configuration within a ToolCategorySection.

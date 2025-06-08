@@ -13,7 +13,7 @@ import Papa from 'papaparse';
  * Defines the structure for data records that can be exported to CSV.
  * It's a generic object where keys are strings and values can be various primitive types or null/undefined.
  */
-type ExportData = {
+export type ExportData = {
   [key: string]: string | number | boolean | null | undefined;
 };
 
