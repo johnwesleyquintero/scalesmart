@@ -64,6 +64,23 @@ export class AmazonToolsDB extends Dexie {
       kpiConfigs: kpiConfigsStore, // 'configName' will be unique for KPI configs
     });
   }
+
+  // Add logging to check data being stored in userCsvMappings
+  async storeUserCsvMapping(data: UserCsvMappingRecord) {
+    console.log(
+      'Storing userCsvMapping in src/lib/indexeddb/amazon-tools-db.ts:',
+      data,
+    );
+    try {
+      await this.userCsvMappings.put(data);
+    } catch (error) {
+      console.error(
+        'Error storing userCsvMapping in src/lib/indexeddb/amazon-tools-db.ts:',
+        error,
+      );
+      throw error;
+    }
+  }
 }
 
 export const db = new AmazonToolsDB();
