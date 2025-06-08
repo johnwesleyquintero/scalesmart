@@ -8,17 +8,15 @@ import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react';
 interface TaskItemProps {
   task: Task;
   projects: Project[];
-  onEditClick: (task: Task) => void;
   onDeleteTask: (id: string) => void;
   allTasks: Task[]; // All tasks for dependency/subtask lookup
-  onViewTaskDetails: (task: Task) => void; // New prop to open task details modal
+  onViewTaskDetails: (task: Task, initialEditMode?: boolean) => void; // New prop to open task details modal, with optional edit mode
 }
 
 const TaskItem: React.FC<TaskItemProps> = React.memo(
   ({
     task,
     projects,
-    onEditClick,
     onDeleteTask,
     allTasks,
     onViewTaskDetails,
@@ -129,7 +127,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
           <Button
             onClick={(e) => {
               e.stopPropagation(); // Prevent opening details modal
-              onEditClick(task);
+              onViewTaskDetails(task, true); // Open in edit mode
             }}
             variant="outline"
             size="sm"

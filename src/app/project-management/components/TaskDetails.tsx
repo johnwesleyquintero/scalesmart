@@ -24,7 +24,9 @@ interface TaskDetailsProps {
   projects: Project[];
   allTasks: Task[]; // For resolving dependencies and subtasks
   onTaskPersist: (updatedTask: Task) => Promise<void>; // To propagate updates back to parent for persistence
+  onDeleteTask: (id: string) => Promise<void>; // New prop to handle task deletion
   onClose: () => void; // To close the details modal
+  initialEditMode?: boolean; // Optional prop to open in edit mode
 }
 
 /**
@@ -42,10 +44,12 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
   task,
   projects,
   allTasks,
-  onTaskPersist, // Renamed prop
+  onTaskPersist,
+  onDeleteTask, // Destructure new prop
   onClose,
+  initialEditMode = false, // Default to false
 }) => {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(initialEditMode); // Initialize with prop
   const [currentTask, setCurrentTask] = useState<Task>(task);
 
   // Update currentTask if the prop task changes (e.g., from parent update)
@@ -171,6 +175,23 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
             aria-label="Edit task"
           >
             <Edit className="h-4 w-4 mr-2" /> Edit
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={async () => {
+              if (
+                window.confirm(
+                  `Are you sure you want to delete "${currentTask.title}"?`,
+                )
+              ) {
+                await onDeleteTask(currentTask.id);
+                onClose(); // Close modal after deletion
+              }
+            }}
+            aria-label="Delete task"
+          >
+            Delete
           </Button>
         </div>
       </CardHeader>

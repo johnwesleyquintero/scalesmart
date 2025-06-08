@@ -143,10 +143,6 @@ const TaskList = ({
    * Uses `useCallback` for memoization.
    * @param {Task} task - The task object to be edited.
    */
-  const handleEditClick = useCallback((task: Task) => {
-    setSelectedTask(task);
-    setIsEditModalOpen(true);
-  }, []);
 
   /**
    * @brief Handles opening the task details modal.
@@ -214,7 +210,6 @@ const TaskList = ({
                   key={task.id}
                   task={task}
                   projects={projects}
-                  onEditClick={handleEditClick}
                   onDeleteTask={handleDeleteTaskClick} // Use the new handler
                   allTasks={allTasks}
                   onTaskUpdated={handleTaskFormUpdated}
@@ -226,23 +221,6 @@ const TaskList = ({
         </div>
 
         {/* Modal for editing a task */}
-        {isEditModalOpen && (
-          <Modal
-            isOpen={isEditModalOpen}
-            onClose={handleCloseEditModal}
-            title="Edit Task"
-          >
-            <TaskForm
-              key={selectedTask?.id || 'new-task-form'}
-              task={selectedTask}
-              onUpdateTask={onTaskPersist} // Pass the parent's onTaskPersist as onUpdateTask
-              onTaskSaved={handleCloseEditModal} // Close modal after task is saved
-              onCancel={handleCloseEditModal}
-              projects={projects}
-              allTasks={allTasks}
-            />
-          </Modal>
-        )}
       </CardContent>
     </Card>
   );

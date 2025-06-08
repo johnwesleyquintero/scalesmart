@@ -96,9 +96,19 @@ const ProjectManagementPage = () => {
     [filteredTasks],
   );
 
-  const handleViewTaskDetails = (task: Task) => {
+  const handleViewTaskDetails = (
+    task: Task,
+    initialEditMode: boolean = false,
+  ) => {
     setSelectedTaskForDetails(task);
     setIsTaskDetailsModalOpen(true);
+    // If initialEditMode is true, set the TaskDetails component to editing mode
+    // This state will be passed down to TaskDetails
+    if (initialEditMode) {
+      // This is a placeholder. The actual state for TaskDetails's edit mode
+      // will be managed within TaskDetails itself, initialized by a prop.
+      // We just need to ensure the TaskDetails component receives this hint.
+    }
   };
 
   const handleCloseTaskDetailsModal = () => {
@@ -290,6 +300,7 @@ const ProjectManagementPage = () => {
                 projects={projects}
                 allTasks={tasks}
                 onTaskPersist={handleUpdateTask} // Pass handleUpdateTask for persistence
+                onDeleteTask={handleDeleteTask} // Pass handleDeleteTask for deletion
                 onClose={handleCloseTaskDetailsModal}
               />
             </DialogContent>

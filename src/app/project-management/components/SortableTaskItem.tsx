@@ -8,17 +8,15 @@ import { Task, Project } from '@/lib/indexeddb-service';
 interface SortableTaskItemProps {
   task: Task;
   projects: Project[];
-  onEditClick: (task: Task) => void;
   onDeleteTask: (id: string) => void;
   allTasks: Task[]; // All tasks for dependency/subtask lookup
   onTaskUpdated: (updatedTask: Task) => void;
-  onViewTaskDetails: (task: Task) => void; // New prop to open task details modal
+  onViewTaskDetails: (task: Task, initialEditMode?: boolean) => void; // New prop to open task details modal, with optional edit mode
 }
 
 const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
   task,
   projects,
-  onEditClick,
   onDeleteTask,
   allTasks, // Destructure allTasks
   onTaskUpdated,
@@ -45,7 +43,6 @@ const SortableTaskItem: React.FC<SortableTaskItemProps> = ({
       <TaskItem
         task={task}
         projects={projects}
-        onEditClick={onEditClick}
         onDeleteTask={onDeleteTask}
         allTasks={allTasks} // Pass allTasks to TaskItem
         onViewTaskDetails={onViewTaskDetails} // Pass onViewTaskDetails to TaskItem
