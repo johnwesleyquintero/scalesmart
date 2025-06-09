@@ -74,7 +74,7 @@ const TaskForm = ({
       message: 'Task title is required.',
     }),
     description: z.string().optional(),
-    status: z.string().optional().default('to-do'), // Default status for new tasks
+    status: z.string().optional().default(TASK_STATUSES[0].id), // Default status for new tasks
     assigneeId: z.string().optional(),
     dueDate: z.date().optional(), // Zod handles date objects, convert to timestamp on submit
     projectId: z.string(), // Project ID is required, but can be NO_PROJECT_VALUE
@@ -96,35 +96,21 @@ const TaskForm = ({
     formState: { errors, isSubmitSuccessful }, // isSubmitSuccessful for resetting form
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: initialTask?.title || '',
-      description: initialTask?.description || '',
-      status: initialTask?.status || 'to-do',
-      assigneeId: initialTask?.assigneeId || '',
-      // Convert timestamp to Date object for react-hook-form's date input
-      dueDate: initialTask?.dueDate ? new Date(initialTask.dueDate) : undefined,
-      projectId: initialTask?.projectId || NO_PROJECT_VALUE, // Default to 'No Project'
-      priority: initialTask?.priority as TaskPriority | undefined, // Ensure type compatibility
-    },
+    defaultValues: initialTask
+      ? {
+          title: initialTask.title || '',
+          description: initialTask.description || '',
+          status: initialTask.status || TASK_STATUSES[0].id,
+          assigneeId: initialTask.assigneeId || '',
+          // Convert timestamp to Date object for react-hook-form's date input
+          dueDate: initialTask.dueDate
+            ? new Date(initialTask.dueDate)
+            : undefined,
+          projectId: initialTask.projectId || NO_PROJECT_VALUE, // Default to 'No Project'
+          priority: initialTask.priority as TaskPriority | undefined, // Ensure type compatibility
+        }
+      : undefined,
   });
-
-  // Effect to reset the form after successful submission when creating a new task
-  useEffect(() => {
-    if (isSubmitSuccessful && !initialTask) {
-      // Only reset if it's a new task creation (not an update)
-      reset({
-        title: '',
-        description: '',
-        status: 'to-do', // Reset to default status
-        assigneeId: '',
-        dueDate: undefined,
-        projectId: NO_PROJECT_VALUE, // Reset to 'No Project'
-        dependencies: [],
-        subtaskIds: [],
-        priority: undefined,
-      });
-    }
-  }, [isSubmitSuccessful, reset, initialTask]);
 
   /**
    * @brief Handles form submission for creating or updating a task.

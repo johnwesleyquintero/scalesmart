@@ -3,6 +3,7 @@ import { Task, Project } from '@/lib/indexeddb-service';
 import { TaskPriority } from '@/types/indexeddb';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils/date-utils';
+import { useTaskManagementMaps } from '@/hooks/use-task-management-maps';
 import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react';
 import {
   Dialog,
@@ -59,41 +60,10 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
     const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] =
       useState(false);
 
-    /**
-     * @brief Memoizes all projects into a Map for efficient O(1) lookup by ID.
-     *
-     * This map is used to quickly retrieve project names when displaying task details,
-     * avoiding linear searches through the `projects` array.
-     *
-     * @returns {Map<string, Project>} A Map where keys are project IDs and values are Project objects.
-     */
-    const projectsMap = useMemo(() => {
-      const map = new Map<string, Project>();
-      projects.forEach((project) => {
-        if (project.id) {
-          map.set(project.id, project);
-        }
-      });
-      return map;
-    }, [projects]);
-
-    /**
-     * @brief Memoizes all tasks into a Map for efficient O(1) lookup by ID.
-     *
-     * This map is used to quickly resolve task titles for displaying dependencies and subtasks,
-     * avoiding linear searches through the `allTasks` array.
-     *
-     * @returns {Map<string, Task>} A Map where keys are task IDs and values are Task objects.
-     */
-    const allTasksMap = useMemo(() => {
-      const map = new Map<string, Task>();
-      allTasks.forEach((task) => {
-        if (task.id) {
-          map.set(task.id, task);
-        }
-      });
-      return map;
-    }, [allTasks]);
+    const { projectsMap, allTasksMap } = useTaskManagementMaps({
+      projects,
+      allTasks,
+    });
 
     /**
      * @brief Retrieves the name of a project given its ID.

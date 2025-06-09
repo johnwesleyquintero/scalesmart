@@ -1,14 +1,7 @@
-'use client';
-
-// src/hooks/use-task-management.ts
-'use client';
-
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   Task,
   Project,
-  getAllTasks,
-  getAllProjects,
   updateTask,
   createTask,
   deleteTask,
@@ -16,10 +9,11 @@ import {
   updateProject,
   deleteProject,
 } from '@/lib/indexeddb-service';
-import { TaskStatus } from '@/types/indexeddb'; // Import TaskStatus
+import { TaskStatus } from '@/types/indexeddb';
 import { toast } from 'sonner';
 import { DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
+import { useTaskManagementData } from './use-task-management-data';
 
 /**
  * @interface UseTaskManagementReturn
@@ -51,36 +45,8 @@ import { arrayMove } from '@dnd-kit/sortable';
  * @returns {UseTaskManagementReturn} An object containing tasks, projects, loading state, error state, and various handler functions.
  */
 export const useTaskManagement = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  /**
-   * @brief Effect hook to load initial tasks and projects data from IndexedDB on component mount.
-   * Sets loading state, fetches data, updates state, and handles errors.
-   */
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setIsLoading(true);
-        const loadedTasks = await getAllTasks();
-        const loadedProjects = await getAllProjects();
-        // Sort tasks by order for consistent display within columns
-        setTasks(loadedTasks.sort((a, b) => (a.order || 0) - (b.order || 0)));
-        setProjects(loadedProjects);
-      } catch (err) {
-        console.error('Failed to load initial data:', err);
-        setError('Failed to load data. Please refresh the page.');
-        toast.error(
-          `Failed to load project management data: ${(err as Error).message}`,
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, []); // Empty dependency array ensures this effect runs only once on mount
+  const { tasks, setTasks, projects, setProjects, isLoading, error } =
+    useTaskManagementData();
 
   /**
    * @brief A generic helper function to perform optimistic updates and handle persistence.
@@ -119,8 +85,8 @@ export const useTaskManagement = () => {
         const persistenceResult = await persistenceLogic();
         // If persistence is successful and a success handler is provided, apply the final state update
         if (onPersistenceSuccess) {
-          setStateFunction((prev) =>
-            onPersistenceSuccess(persistenceResult, prev),
+          setStateFunction((prev: T[]) =>
+            onPersistenceSuccess(persistenceResult, prev as T[]),
           );
         }
         return persistenceResult; // Return the result of the persistence logic
@@ -132,7 +98,7 @@ export const useTaskManagement = () => {
         throw error; // Re-throw the error to be caught by specific handlers if needed
       }
     },
-    [], // This helper function has no external dependencies that change over time
+    [],
   );
 
   /**
@@ -167,10 +133,10 @@ export const useTaskManagement = () => {
         `Failed to update task status. Please try again.`, // Error message
         originalTasks, // Original state for revert
         setTasks, // State setter function
-        undefined, // No onPersistenceSuccess needed as ID doesn't change
+        undefined,
       );
     },
-    [performOptimisticUpdate], // Dependency array includes the helper function
+    [performOptimisticUpdate, setTasks],
   );
 
   /**
@@ -241,10 +207,10 @@ export const useTaskManagement = () => {
         `Failed to reorder task. Please try again.`, // Error message
         originalTasks, // Original state for revert
         setTasks, // State setter function
-        undefined, // No onPersistenceSuccess needed as IDs don't change
+        undefined,
       );
     },
-    [tasks, performOptimisticUpdate], // Dependencies include tasks state and the helper function
+    [tasks, performOptimisticUpdate, setTasks],
   );
 
   /**
@@ -321,7 +287,7 @@ export const useTaskManagement = () => {
         );
       }
     },
-    [tasks, handleTaskStatusChange, handleTaskReorder], // Dependencies include tasks state and the specific handlers
+    [tasks, handleTaskStatusChange, handleTaskReorder],
   );
 
   /**
@@ -350,7 +316,7 @@ export const useTaskManagement = () => {
         setTasks, // State setter function
       );
     },
-    [tasks, performOptimisticUpdate], // Dependencies include tasks state and the helper function
+    [tasks, performOptimisticUpdate, setTasks],
   );
 
   /**
@@ -399,7 +365,7 @@ export const useTaskManagement = () => {
           `Failed to create task "${taskData.title}". Please try again.`, // Error message
           originalTasks, // Original state for revert
           setTasks, // State setter function
-          (newTaskFromDb, optimisticState) => {
+          (newTaskFromDb: Task, optimisticState: Task[]) => {
             // onPersistenceSuccess handler: replace the optimistic task with the real one from the database
             finalCreatedTask = newTaskFromDb; // Update with the real task from the database
             return optimisticState.map(
@@ -413,7 +379,7 @@ export const useTaskManagement = () => {
         return undefined; // Return undefined on failure
       }
     },
-    [tasks, performOptimisticUpdate], // Dependencies include tasks state and the helper function
+    [tasks, performOptimisticUpdate, setTasks],
   );
 
   /**
@@ -437,7 +403,7 @@ export const useTaskManagement = () => {
         setTasks, // State setter function
       );
     },
-    [tasks, performOptimisticUpdate], // Dependencies include tasks state and the helper function
+    [tasks, performOptimisticUpdate, setTasks],
   );
 
   /**
@@ -483,8 +449,8 @@ export const useTaskManagement = () => {
           `Project "${projectData.name}" created successfully!`, // Success message
           `Failed to create project "${projectData.name}". Please try again.`, // Error message
           originalProjects, // Original state for revert
-          setProjects, // State setter function
-          (realProjectIdFromDb, optimisticState) => {
+          setProjects, // Projects state setter function
+          (realProjectIdFromDb: string, optimisticState: Project[]) => {
             // onPersistenceSuccess handler: replace the optimistic project ID with the real one
             finalCreatedProjectId = realProjectIdFromDb; // Update with the real ID from the database
             return optimisticState.map((project) =>
@@ -500,7 +466,7 @@ export const useTaskManagement = () => {
         return undefined; // Return undefined on failure
       }
     },
-    [projects, performOptimisticUpdate], // Dependencies include projects state and the helper function
+    [projects, performOptimisticUpdate, setProjects],
   );
 
   /**
@@ -520,7 +486,8 @@ export const useTaskManagement = () => {
 
       try {
         await performOptimisticUpdate(
-          (prevProjects) => prevProjects.filter((project) => project.id !== id), // Optimistic update: remove the project from the state
+          (prevProjects: Project[]) =>
+            prevProjects.filter((project) => project.id !== id), // Optimistic update: remove the project from the state
           async () => {
             await deleteProject(id); // Persistence logic: delete the project from IndexedDB
             return id; // Return the ID of the deleted project for onPersistenceSuccess
@@ -529,7 +496,7 @@ export const useTaskManagement = () => {
           'Failed to delete project. Please try again.', // Error message
           originalProjects, // Original projects state for revert
           setProjects, // Projects state setter function
-          (deletedProjectId, optimisticProjects) => {
+          (deletedProjectId: string, optimisticProjects: Project[]) => {
             // onPersistenceSuccess handler: filter out tasks associated with the deleted project
             setTasks((prevTasks) =>
               prevTasks.filter((task) => task.projectId !== deletedProjectId),
@@ -546,7 +513,7 @@ export const useTaskManagement = () => {
         setTasks(originalTasks);
       }
     },
-    [projects, tasks, setTasks, performOptimisticUpdate], // Dependencies: projects state, tasks state, setTasks setter, and performOptimisticUpdate
+    [projects, tasks, setTasks, performOptimisticUpdate, setProjects],
   );
 
   /**
@@ -574,7 +541,7 @@ export const useTaskManagement = () => {
         setProjects, // State setter function
       );
     },
-    [projects, performOptimisticUpdate], // Dependencies include projects state and the helper function
+    [projects, performOptimisticUpdate, setProjects],
   );
 
   return {
