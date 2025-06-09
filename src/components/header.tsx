@@ -94,6 +94,13 @@ export default function Header() {
           description: 'Organize tasks and keep projects on track.',
         },
         {
+          name: 'Markdown Notepad',
+          href: '/markdown-notepad',
+          category: productsCategories[1], // Productivity & Automation
+          description:
+            'Create and manage markdown notes with categories and search.',
+        },
+        {
           name: 'Workflow Builder',
           href: '/workflow-builder',
           category: productsCategories[1], // Productivity & Automation

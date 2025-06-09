@@ -111,4 +111,13 @@ export interface CalculationData {
   date: number;
   currencySymbol: string;
 }
+export interface Note {
+  id: string;
+  title: string; // Add title field for better tab organization
+  markdown: string;
+  category: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 // Define constants for duplicate strings
