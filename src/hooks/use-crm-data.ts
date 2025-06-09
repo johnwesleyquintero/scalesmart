@@ -18,6 +18,7 @@ import {
 } from '@/lib/indexeddb-service';
 import type { Contact, CommunicationLog } from '@/app/crm/types';
 import { useCrmCategories } from './use-crm-categories';
+import { produce } from 'immer';
 
 const LOAD_DATA_ERROR =
   'Failed to load data. Please check console for details.';
@@ -99,15 +100,18 @@ export const useCRMData = () => {
         };
         try {
           await updateContact(updatedCustomer);
-          setCustomers((prevCustomers: Contact[]) =>
-            prevCustomers.map((customer: Contact) =>
-              customer.id === editingCustomer.id
-                ? {
-                    ...customer,
-                    ...updatedCustomer,
-                  }
-                : customer,
-            ),
+          setCustomers(
+            produce((draftCustomers: Contact[]) => {
+              const index = draftCustomers.findIndex(
+                (customer: Contact) => customer.id === editingCustomer.id,
+              );
+              if (index !== -1) {
+                draftCustomers[index] = {
+                  ...draftCustomers[index],
+                  ...updatedCustomer,
+                };
+              }
+            }),
           );
           toast.success('Customer updated successfully!');
         } catch (error: unknown) {
@@ -152,10 +156,11 @@ export const useCRMData = () => {
             createdAt: Date.now(), // Set creation timestamp
             updatedAt: Date.now(), // Set update timestamp
           } as Contact;
-          setCustomers((prevCustomers: Contact[]) => [
-            ...prevCustomers,
-            completeNewCustomer,
-          ]);
+          setCustomers(
+            produce((draftCustomers: Contact[]) => {
+              draftCustomers.push(completeNewCustomer);
+            }),
+          );
           toast.success('Customer added successfully!');
         } catch (error: unknown) {
           console.error('Error adding customer to IndexedDB:', error);
@@ -171,8 +176,12 @@ export const useCRMData = () => {
   const handleDeleteCustomerAction = useCallback(async (id: string) => {
     try {
       await deleteContact(id);
-      setCustomers((prevCustomers: Contact[]) =>
-        prevCustomers.filter((customer: Contact) => customer.id !== id),
+      setCustomers(
+        produce((draftCustomers: Contact[]) => {
+          return draftCustomers.filter(
+            (customer: Contact) => customer.id !== id,
+          );
+        }),
       );
       toast.info('Customer deleted.');
     } catch (error: unknown) {
@@ -199,11 +208,13 @@ export const useCRMData = () => {
 
       await Promise.all(updatePromises);
 
-      setCustomers((prevCustomers: Contact[]) =>
-        prevCustomers.map((customer: Contact) =>
-          customer.category === deletedCategoryName
-            ? { ...customer, category: '' }
-            : customer,
+      setCustomers(
+        produce((draftCustomers: Contact[]) =>
+          draftCustomers.map((customer: Contact) =>
+            customer.category === deletedCategoryName
+              ? { ...customer, category: '' }
+              : customer,
+          ),
         ),
       );
       toast.info(
@@ -229,11 +240,13 @@ export const useCRMData = () => {
 
       await Promise.all(updatePromises);
 
-      setCustomers((prevCustomers: Contact[]) =>
-        prevCustomers.map((customer: Contact) =>
-          customer.category === oldName
-            ? { ...customer, category: newName }
-            : customer,
+      setCustomers(
+        produce((draftCustomers: Contact[]) =>
+          draftCustomers.map((customer: Contact) =>
+            customer.category === oldName
+              ? { ...customer, category: newName }
+              : customer,
+          ),
         ),
       );
       toast.info(
@@ -248,19 +261,21 @@ export const useCRMData = () => {
       try {
         const newLogId = await createCommunicationLog(log);
         if (newLogId) {
-          setCustomers((prevCustomers: Contact[]) =>
-            prevCustomers.map((cust: Contact) =>
-              cust.id === log.customerId
-                ? {
-                    ...cust,
-                    communicationLogs: [
-                      ...(cust.communicationLogs || []),
-                      { ...log, id: newLogId },
-                    ],
-                    lastContacted: Date.now(), // Update lastContacted timestamp
-                  }
-                : cust,
-            ),
+          setCustomers(
+            produce((draftCustomers: Contact[]) => {
+              draftCustomers.map((cust: Contact) =>
+                cust.id === log.customerId
+                  ? {
+                      ...cust,
+                      communicationLogs: [
+                        ...(cust.communicationLogs || []),
+                        { ...log, id: newLogId },
+                      ],
+                      lastContacted: Date.now(), // Update lastContacted timestamp
+                    }
+                  : cust,
+              );
+            }),
           );
           toast.success('Communication log created successfully!');
         }
@@ -284,14 +299,16 @@ export const useCRMData = () => {
       customerId: string,
       updateFn: (logs: CommunicationLog[]) => CommunicationLog[],
     ) => {
-      setCustomers((prevCustomers: Contact[]) =>
-        prevCustomers.map((cust: Contact) =>
-          cust.id === customerId
-            ? {
-                ...cust,
-                communicationLogs: updateFn(cust.communicationLogs || []),
-              }
-            : cust,
+      setCustomers(
+        produce((draftCustomers: Contact[]) =>
+          draftCustomers.map((cust: Contact) =>
+            cust.id === customerId
+              ? {
+                  ...cust,
+                  communicationLogs: updateFn(cust.communicationLogs || []),
+                }
+              : cust,
+          ),
         ),
       );
     },

@@ -69,56 +69,49 @@ export const filterCustomers = (
   selectedCategory: string | null,
   selectedSalesStage: SalesStage | null, // Add new parameter
 ): Contact[] => {
-  let results = customers;
+  let results = [...customers];
 
-  // Apply category filter if a category is selected.
   if (selectedCategory) {
-    results = results.filter(
-      (customer) =>
-        customer.category === selectedCategory ||
-        // Include uncategorized customers if 'Uncategorized' is selected.
-        (!customer.category && selectedCategory === 'Uncategorized'),
+    results = results.filter((customer) =>
+      selectedCategory === 'Uncategorized'
+        ? !customer.category
+        : customer.category === selectedCategory,
     );
   }
 
-  // Apply sales stage filter if a stage is selected.
   if (selectedSalesStage) {
     results = results.filter(
       (customer) => customer.salesStage === selectedSalesStage,
     );
   }
 
-  // Apply search if a search query is provided.
   if (searchQuery) {
     const lowerCaseQuery = searchQuery.toLowerCase();
-    results = results
-      .map((customer) => {
-        const matches =
-          customer.name.toLowerCase().includes(lowerCaseQuery) ||
-          (customer.email &&
-            customer.email.toLowerCase().includes(lowerCaseQuery)) ||
-          (customer.phone &&
-            customer.phone.toLowerCase().includes(lowerCaseQuery)) ||
-          (customer.company &&
-            customer.company.toLowerCase().includes(lowerCaseQuery)) ||
-          (customer.notes &&
-            customer.notes.toLowerCase().includes(lowerCaseQuery));
+    results = results.map((customer) => {
+      const highlightedName = customer.name
+        .toLowerCase()
+        .includes(lowerCaseQuery)
+        ? customer.name.replace(
+            new RegExp(searchQuery, 'gi'),
+            `<mark>$&</mark>`,
+          )
+        : customer.name;
 
-        return matches
-          ? {
-              ...customer,
-              highlightedName: customer.name
-                .toLowerCase()
-                .includes(lowerCaseQuery)
-                ? customer.name.replace(
-                    new RegExp(searchQuery, 'gi'),
-                    `<mark>$&</mark>`,
-                  )
-                : customer.name,
-            }
-          : customer;
-      })
-      .filter((customer) => customer.highlightedName);
+      const matches =
+        highlightedName.toLowerCase().includes(lowerCaseQuery) ||
+        (customer.email &&
+          customer.email.toLowerCase().includes(lowerCaseQuery)) ||
+        (customer.phone &&
+          customer.phone.toLowerCase().includes(lowerCaseQuery)) ||
+        (customer.company &&
+          customer.company.toLowerCase().includes(lowerCaseQuery)) ||
+        (customer.notes &&
+          customer.notes.toLowerCase().includes(lowerCaseQuery));
+
+      return matches ? { ...customer, highlightedName } : customer;
+    });
+
+    results = results.filter((customer) => customer.highlightedName);
   }
 
   return results;

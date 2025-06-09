@@ -102,6 +102,7 @@
     "gradient-string": "^3.0.0",
     "gray-matter": "^4.0.3",
     "hast-util-to-string": "^3.0.1",
+    "immer": "^10.1.1",
     "input-otp": "^1.4.1",
     "ioredis": "^5.6.1",
     "isomorphic-dompurify": "^2.23.0",

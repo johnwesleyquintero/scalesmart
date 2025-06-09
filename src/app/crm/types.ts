@@ -51,7 +51,7 @@ export const SALES_STAGES = [
   'Negotiation',
   'Closed Won',
   'Closed Lost',
-] as const;
+] as const satisfies readonly string[];
 
 /**
  * Defines the structure for a Communication Log entry.

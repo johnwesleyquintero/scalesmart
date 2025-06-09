@@ -19,7 +19,7 @@ export const COMMUNICATION_TYPES = [
   'Email',
   'Meeting',
   'Other',
-] as const;
+] as const satisfies readonly string[];
 // Derive a union type from the array for strict type checking.
 export type CommunicationType = (typeof COMMUNICATION_TYPES)[number];
 

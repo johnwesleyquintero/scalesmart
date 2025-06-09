@@ -164,18 +164,26 @@ export default function CRMComponent() {
   );
 }
 
-interface CRMTabsTriggerProps {
+import React, { forwardRef } from 'react';
+
+interface CRMTabsTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
   value: string;
   children: React.ReactNode;
 }
 
-const CRMTabsTrigger: React.FC<CRMTabsTriggerProps> = ({ value, children }) => {
-  return (
-    <TabsTrigger
-      value={value}
-      className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
-    >
-      {children}
-    </TabsTrigger>
-  );
-};
+const CRMTabsTrigger = forwardRef<HTMLButtonElement, CRMTabsTriggerProps>(
+  ({ value, children, className, ...props }, ref) => {
+    return (
+      <TabsTrigger
+        {...props}
+        value={value}
+        className={`data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground ${className || ''}`}
+        ref={ref}
+      >
+        {children}
+      </TabsTrigger>
+    );
+  },
+);
+
+CRMTabsTrigger.displayName = 'CRMTabsTrigger';

@@ -20,29 +20,28 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-// Removed direct IndexedDB imports
 import type { Category } from '../types';
 import { toast } from 'sonner';
+import {
+  validateCategoryName,
+  canDeleteCategory,
+} from '../utils/categoryUtils';
 
 /**
  * Props for the CategoryManager component.
  */
 interface CategoryManagerProps {
-  categories: Category[]; // List of all available categories passed from parent.
-  onAddCategory: (name: string) => Promise<void>; // Callback to add a new category.
-  onUpdateCategory: (category: Category) => Promise<void>; // Callback to update an existing category.
-  onDeleteCategory: (id: string) => Promise<void>; // Callback to delete a category.
-  onCategorySuccessfullyDeleted: (deletedCategoryName: string) => void; // Callback when a category is successfully deleted (for parent state update).
-  onCategoryRenamed: (oldName: string, newName: string) => void; // Callback when a category is renamed (for parent state update).
-  customerCounts: Map<string | null, number>; // Map of category names to customer counts.
+  categories: Category[];
+  onAddCategory: (name: string) => Promise<void>;
+  onUpdateCategory: (category: Category) => Promise<void>;
+  onDeleteCategory: (id: string) => Promise<void>;
+  onCategorySuccessfullyDeleted: (deletedCategoryName: string) => void;
+  onCategoryRenamed: (oldName: string, newName: string) => void;
+  customerCounts: Map<string | null, number>;
 }
 
-/**
- * CategoryManager component.
- * Manages the state and operations for categories.
- */
 const CategoryManager = ({
-  categories, // Use categories prop directly
+  categories,
   onAddCategory,
   onUpdateCategory,
   onDeleteCategory,
@@ -50,14 +49,9 @@ const CategoryManager = ({
   onCategoryRenamed,
   customerCounts,
 }: CategoryManagerProps) => {
-  // State for the input field where new or edited category names are entered.
   const [categoryInputName, setCategoryInputName] = useState('');
-  // State to hold the category currently being edited, or null if not editing.
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-  /**
-   * Effect to populate the input field when editingCategory changes.
-   */
   useEffect(() => {
     if (editingCategory) {
       setCategoryInputName(editingCategory.name);
@@ -66,10 +60,6 @@ const CategoryManager = ({
     }
   }, [editingCategory]);
 
-  /**
-   * Handles adding a new category.
-   * Validates input and calls the parent's add handler.
-   */
   const handleAddCategory = async () => {
     const trimmedCategoryName = categoryInputName.trim();
     if (!validateCategoryName(trimmedCategoryName, categories)) return;
@@ -78,19 +68,11 @@ const CategoryManager = ({
     setCategoryInputName('');
   };
 
-  /**
-   * Sets the state for editing a category.
-   * Populates the input field with the category's current name.
-   */
   const handleEditCategory = (category: Category) => {
     setEditingCategory(category);
     setCategoryInputName(category.name);
   };
 
-  /**
-   * Handles updating an existing category.
-   * Validates input, checks for duplicates (excluding itself), and calls the parent's update handler.
-   */
   const handleUpdateCategory = async () => {
     if (!editingCategory) {
       toast.error('No category selected for update.');
@@ -119,10 +101,6 @@ const CategoryManager = ({
     }
   };
 
-  /**
-   * Handles deleting a category.
-   * Prevents deletion if customers are associated with it and calls the parent's delete handler.
-   */
   const handleDeleteCategory = async (id: string) => {
     const categoryToDelete = categories.find((cat) => cat.id === id);
     if (!categoryToDelete) {
@@ -136,58 +114,6 @@ const CategoryManager = ({
     onCategorySuccessfullyDeleted(categoryToDelete.name);
   };
 
-  /**
-   * Validates a category name for adding or updating.
-   * @param name The category name to validate.
-   * @param categories The list of existing categories.
-   * @param editingId Optional ID of the category being edited.
-   * @returns True if the name is valid, false otherwise.
-   */
-  const validateCategoryName = (
-    name: string,
-    categories: Category[],
-    editingId?: string,
-  ): boolean => {
-    if (!name) {
-      toast.error('Category name cannot be empty.');
-      return false;
-    }
-
-    const categoryExists = categories.some(
-      (category) =>
-        category.id !== editingId &&
-        category.name.toLowerCase() === name.toLowerCase(),
-    );
-
-    if (categoryExists) {
-      toast.error(`Category "${name}" already exists.`);
-      return false;
-    }
-
-    return true;
-  };
-
-  /**
-   * Checks if a category can be deleted based on customer counts.
-   * @param categoryName The name of the category to check.
-   * @param customerCounts The map of category names to customer counts.
-   * @returns True if the category can be deleted, false otherwise.
-   */
-  const canDeleteCategory = (
-    categoryName: string,
-    customerCounts: Map<string | null, number>,
-  ): boolean => {
-    const count = customerCounts.get(categoryName) || 0;
-    if (count > 0) {
-      toast.error(
-        `Cannot delete category "${categoryName}" because ${count} customer(s) are assigned to it.`,
-      );
-      return false;
-    }
-    return true;
-  };
-
-  // Determine if the add/update button should be disabled.
   const isButtonDisabled = categoryInputName.trim() === '';
 
   return (
@@ -209,13 +135,12 @@ const CategoryManager = ({
           </div>
           <div className="flex items-end justify-end space-x-2">
             {editingCategory ? (
-              // In Edit Mode: Show Cancel and Update buttons
               <>
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setEditingCategory(null); // Clear editing state.
-                    setCategoryInputName(''); // Clear input field.
+                    setEditingCategory(null);
+                    setCategoryInputName('');
                   }}
                 >
                   Cancel
@@ -228,7 +153,6 @@ const CategoryManager = ({
                 </Button>
               </>
             ) : (
-              // In Add Mode: Show Add Category button
               <Button onClick={handleAddCategory} disabled={isButtonDisabled}>
                 Add Category
               </Button>
@@ -247,7 +171,7 @@ const CategoryManager = ({
             <TableBody>
               {categories.map((category) => {
                 const customerCount = customerCounts.get(category.name) || 0;
-                const canDelete = customerCount === 0; // Can only delete if no customers are assigned.
+                const canDelete = customerCount === 0;
 
                 return (
                   <TableRow key={category.id}>
@@ -272,7 +196,7 @@ const CategoryManager = ({
                         variant="destructive"
                         size="sm"
                         onClick={() => handleDeleteCategory(category.id)}
-                        disabled={!canDelete} // Disable delete button if customers are assigned.
+                        disabled={!canDelete}
                         title={
                           !canDelete
                             ? `Cannot delete: ${customerCount} customer(s) assigned.`
@@ -285,7 +209,6 @@ const CategoryManager = ({
                   </TableRow>
                 );
               })}
-              {/* Row for Uncategorized customers count */}
               <TableRow>
                 <TableCell className="font-medium italic text-muted-foreground">
                   Uncategorized

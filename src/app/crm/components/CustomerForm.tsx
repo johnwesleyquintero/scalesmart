@@ -46,18 +46,20 @@ const customerSchema = z.object({
     .string()
     .email({ message: 'Please enter a valid email address.' })
     .optional()
-    .or(z.literal('')), // Allow empty string for optional email.
+    .or(z.literal(''))
+    .transform((e) => (e === '' ? undefined : e)), // Allow empty string for optional email.
   phone: z
     .string()
     .regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, {
       message: 'Please enter a valid phone number.',
     })
     .optional()
-    .or(z.literal('')), // Allow empty string for optional phone.
-  company: z.string().optional().nullable(), // Company can be optional and null.
-  notes: z.string().optional().nullable(), // Notes can be optional and null.
-  category: z.string().optional().nullable(), // Category can be optional and null.
-  salesStage: z.enum(SALES_STAGES).optional().nullable(), // Sales stage can be optional and null.
+    .or(z.literal(''))
+    .transform((p) => (p === '' ? undefined : p)), // Allow empty string for optional phone.
+  company: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  salesStage: z.enum(SALES_STAGES).optional().nullable(),
 });
 
 /**
