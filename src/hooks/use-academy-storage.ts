@@ -46,7 +46,7 @@ const useAcademyStorage = () => {
         quizResults[record.moduleId] = record.result;
       });
 
-      setAcademyDataValue((currentData) => ({
+      setAcademyDataValue((currentData: AcademyDataType) => ({
         ...currentData,
         moduleProgress: moduleProgress,
         quizResults: quizResults,
@@ -81,10 +81,6 @@ const useAcademyStorage = () => {
             quizResults: newQuizResults,
           };
         });
-        toast({
-          title: 'Data Saved',
-          description: 'Academy data has been updated successfully.',
-        });
       } catch (error: unknown) {
         console.error('Failed to save academy data:', error);
         if (
@@ -102,6 +98,11 @@ const useAcademyStorage = () => {
             description: 'Could not save academy data. Please try again.',
           });
         }
+      } finally {
+        toast({
+          title: 'Data Saved',
+          description: 'Academy data has been updated successfully.',
+        });
       }
     },
     [setAcademyDataValue, toast],
@@ -112,12 +113,13 @@ const useAcademyStorage = () => {
       await updateModuleProgressDB(userId, courseId, moduleId, progress);
 
       // Update local state directly and then save
-      setAcademyDataValue((currentData) => {
-        const newModuleProgress = {
-          ...(currentData.moduleProgress || {}),
-          [moduleId]: progress,
-        };
 
+      const newModuleProgress = {
+        ...(academyData?.moduleProgress || {}),
+        [moduleId]: progress,
+      };
+
+      setAcademyDataValue((currentData) => {
         const currentCourses = currentData.courses || [];
         const updatedCourses = currentCourses.map((course: Course) => {
           if (course.id === courseId) {
@@ -151,14 +153,14 @@ const useAcademyStorage = () => {
         };
       });
     },
-    [userId, setAcademyDataValue],
+    [userId, academyData?.moduleProgress, setAcademyDataValue],
   );
 
   const getModuleProgress = useCallback(
     (moduleId: string) => {
       return academyData?.moduleProgress?.[moduleId] || 0;
     },
-    [academyData?.moduleProgress],
+    [academyData],
   );
 
   const updateQuizResult = useCallback(
@@ -168,7 +170,7 @@ const useAcademyStorage = () => {
       setAcademyDataValue((currentData) => ({
         ...currentData,
         quizResults: {
-          ...(currentData.quizResults || {}),
+          ...(currentData?.quizResults || {}),
           [moduleId]: result,
         },
       }));
@@ -178,9 +180,9 @@ const useAcademyStorage = () => {
 
   const getQuizResult = useCallback(
     (moduleId: string) => {
-      return academyData?.quizResults?.[moduleId];
+      return academyData?.quizResults?.[moduleId] || undefined;
     },
-    [academyData?.quizResults],
+    [academyData],
   );
 
   const markCourseVisited = useCallback(

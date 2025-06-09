@@ -103,6 +103,14 @@ export async function generateMetadata({
     return {
       title: 'Error' + DEFAULT_TITLE_SUFFIX,
       description: ERROR_DESCRIPTION,
+      openGraph: {
+        title: 'Error' + DEFAULT_TITLE_SUFFIX,
+        description: ERROR_DESCRIPTION,
+      },
+      twitter: {
+        title: 'Error' + DEFAULT_TITLE_SUFFIX,
+        description: ERROR_DESCRIPTION,
+      },
     };
   }
 }
@@ -112,10 +120,15 @@ interface ArticleSlug {
 }
 
 export async function generateStaticParams() {
-  const articles = await getAllAcademyArticles();
-  return articles.map((article: ArticleSlug) => ({
-    slug: article.slug,
-  }));
+  try {
+    const articles = await getAllAcademyArticles();
+    return articles.map((article: ArticleSlug) => ({
+      slug: article.slug,
+    }));
+  } catch (error: unknown) {
+    console.error('Error generating static params:', error);
+    return []; // Return an empty array to prevent the build from failing
+  }
 }
 
 export default async function AcademyArticlePage({

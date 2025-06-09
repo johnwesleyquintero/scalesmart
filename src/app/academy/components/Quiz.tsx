@@ -106,7 +106,7 @@ const QuizCompletedView: React.FC<QuizCompletedViewProps> = React.memo(
         {isCertificateEarned ? (
           <>
             <p className="mt-4 font-medium text-emerald-600 dark:text-emerald-400 text-lg">
-              Congratulations! You&apos;ve earned the certificate for this quiz!
+              Congratulations! You've earned the certificate for this quiz!
             </p>
             <input
               type="text"
@@ -130,8 +130,8 @@ const QuizCompletedView: React.FC<QuizCompletedViewProps> = React.memo(
           </>
         ) : passedCurrentAttempt && totalAttempts > MAX_CERTIFICATE_ATTEMPTS ? (
           <p className="mt-4 font-medium text-orange-500 dark:text-orange-400">
-            Great score! However, you&apos;ve used more than{' '}
-            {MAX_CERTIFICATE_ATTEMPTS} attempt&apos;s for the certificate.
+            Great score! However, you've used more than{' '}
+            {MAX_CERTIFICATE_ATTEMPTS} attempt's for the certificate.
           </p>
         ) : !passedCurrentAttempt &&
           totalAttempts < MAX_CERTIFICATE_ATTEMPTS ? (
@@ -142,7 +142,7 @@ const QuizCompletedView: React.FC<QuizCompletedViewProps> = React.memo(
         ) : (
           <p className="mt-4 font-medium text-red-600 dark:text-red-400">
             You did not pass this time and have no more attempts for the
-            certificate, or you&apos;ve exceeded the attempt limit.
+            certificate, or you've exceeded the attempt limit.
           </p>
         )}
         <p
@@ -182,87 +182,84 @@ const ActiveQuestionDisplay: React.FC<ActiveQuestionDisplayProps> = React.memo(
     onSubmitAnswer,
     onNextQuestion,
     onFinishQuiz,
-  }) => (
-    <div className="question-section">
-      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
-        Question {currentQuestionIndex + 1} of {totalQuestions}
-      </h3>
-      <p className="mb-4 text-gray-800 dark:text-gray-200">
-        {currentQuestion.question}
-      </p>
-      <div className="options-grid grid gap-2">
-        {currentQuestion.options.map((option) => (
-          <label
-            key={option}
-            className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors duration-200 text-gray-800 dark:text-gray-100 ${
-              selectedAnswer === option
-                ? 'bg-blue-100 border-blue-500 dark:bg-blue-800 dark:border-blue-500 dark:text-white'
-                : 'bg-white hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600'
+  }) => {
+    const { options, question, correctAnswer } = currentQuestion;
+    return (
+      <div className="question-section">
+        <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
+          Question {currentQuestionIndex + 1} of {totalQuestions}
+        </h3>
+        <p className="mb-4 text-gray-800 dark:text-gray-200">{question}</p>
+        <div className="options-grid grid gap-2">
+          {options.map((option) => (
+            <label
+              key={option}
+              className={`flex items-center p-3 border rounded-md cursor-pointer transition-colors duration-200 text-gray-800 dark:text-gray-100 ${
+                selectedAnswer === option
+                  ? 'bg-blue-100 border-blue-500 dark:bg-blue-800 dark:border-blue-500 dark:text-white'
+                  : 'bg-white hover:bg-gray-50 dark:bg-gray-700 dark:hover:bg-gray-600 dark:border-gray-600'
+              }`}
+            >
+              <input
+                type="radio"
+                value={option}
+                checked={selectedAnswer === option}
+                onChange={onAnswerChange}
+                className="mr-2"
+              />
+              {option}
+            </label>
+          ))}
+        </div>
+
+        {showFeedback && (
+          <div className="feedback-section mt-4 p-3 border rounded-md bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
+            {selectedAnswer === options[correctAnswer] ? (
+              <p className="text-success font-medium dark:text-success-dark">
+                Correct!
+              </p>
+            ) : (
+              <p className="text-red-600 font-medium dark:text-red-400">
+                Incorrect. The correct answer is{' '}
+                <span className="font-bold">{options[correctAnswer]}</span>.
+              </p>
+            )}
+            {currentQuestion.explanation && (
+              <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
+                Explanation: {currentQuestion.explanation}
+              </p>
+            )}
+            <button
+              onClick={
+                currentQuestionIndex < totalQuestions - 1
+                  ? onNextQuestion
+                  : onFinishQuiz
+              }
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors dark:bg-blue-700 dark:hover:bg-blue-800"
+            >
+              {currentQuestionIndex < totalQuestions - 1
+                ? 'Next Question'
+                : 'Finish Quiz'}
+            </button>
+          </div>
+        )}
+
+        {!showFeedback && (
+          <button
+            onClick={onSubmitAnswer}
+            disabled={selectedAnswer === null}
+            className={`mt-4 px-4 py-2 rounded-md transition-colors ${
+              selectedAnswer === null
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400'
+                : 'bg-success text-success-foreground hover:bg-success/90 dark:bg-green-700 dark:hover:bg-green-800 dark:text-white'
             }`}
           >
-            <input
-              type="radio"
-              value={option}
-              checked={selectedAnswer === option}
-              onChange={onAnswerChange}
-              className="mr-2"
-            />
-            {option}
-          </label>
-        ))}
-      </div>
-
-      {showFeedback && (
-        <div className="feedback-section mt-4 p-3 border rounded-md bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600">
-          {selectedAnswer ===
-          currentQuestion.options[currentQuestion.correctAnswer] ? (
-            <p className="text-success font-medium dark:text-success-dark">
-              Correct!
-            </p>
-          ) : (
-            <p className="text-red-600 font-medium dark:text-red-400">
-              Incorrect. The correct answer is{' '}
-              <span className="font-bold">
-                {currentQuestion.options[currentQuestion.correctAnswer]}
-              </span>
-              .
-            </p>
-          )}
-          {currentQuestion.explanation && (
-            <p className="text-sm text-gray-700 dark:text-gray-300 mt-2">
-              Explanation: {currentQuestion.explanation}
-            </p>
-          )}
-          <button
-            onClick={
-              currentQuestionIndex < totalQuestions - 1
-                ? onNextQuestion
-                : onFinishQuiz
-            }
-            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors dark:bg-blue-700 dark:hover:bg-blue-800"
-          >
-            {currentQuestionIndex < totalQuestions - 1
-              ? 'Next Question'
-              : 'Finish Quiz'}
+            Check Answer
           </button>
-        </div>
-      )}
-
-      {!showFeedback && (
-        <button
-          onClick={onSubmitAnswer}
-          disabled={selectedAnswer === null}
-          className={`mt-4 px-4 py-2 rounded-md transition-colors ${
-            selectedAnswer === null
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-600 dark:text-gray-400'
-              : 'bg-success text-success-foreground hover:bg-success/90 dark:bg-green-700 dark:hover:bg-green-800 dark:text-white'
-          }`}
-        >
-          Check Answer
-        </button>
-      )}
-    </div>
-  ),
+        )}
+      </div>
+    );
+  },
 );
 ActiveQuestionDisplay.displayName = 'ActiveQuestionDisplay';
 
@@ -360,9 +357,15 @@ const Quiz: React.FC<QuizProps> = ({
     let correctAnswersCount = 0;
     questions.forEach((question, index) => {
       const selectedOpt = userAnswers[index];
-      const correctOpt = question.options[question.correctAnswer];
-      if (selectedOpt === correctOpt) {
-        correctAnswersCount++;
+
+      // Validate correctAnswer before accessing options
+      if (
+        question.correctAnswer >= 0 &&
+        question.correctAnswer < question.options.length
+      ) {
+        if (selectedOpt === question.options[question.correctAnswer]) {
+          correctAnswersCount++;
+        }
       }
     });
 
@@ -385,7 +388,6 @@ const Quiz: React.FC<QuizProps> = ({
       passedThisAttempt &&
       updatedAttempts <= MAX_CERTIFICATE_ATTEMPTS
     ) {
-      newCertificateStatus = true;
       newCertificateStatus = true;
       currentCompletionDate = new Date().toISOString(); // Set completion date
       currentCertificateId = crypto.randomUUID(); // Generate unique ID

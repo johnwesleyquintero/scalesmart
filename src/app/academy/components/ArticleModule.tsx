@@ -29,13 +29,7 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
 
   useEffect(() => {
     if (activeCourse && activeModule) {
-      updateModuleProgress(activeCourse.id, activeModule.id, 1);
-    }
-  }, [activeCourse, activeModule, updateModuleProgress]);
-
-  useEffect(() => {
-    if (activeCourse && activeModule) {
-      updateModuleProgress(activeCourse.id, activeModule.id, 1);
+      updateModuleProgress(activeCourse.id, activeModule.id, 100);
     }
   }, [activeCourse, activeModule, updateModuleProgress]);
 

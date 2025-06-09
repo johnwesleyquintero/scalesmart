@@ -62,8 +62,8 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
    */
   const startModule = async (module: Module) => {
     if (!activeCourse) {
-      // Throw an error if no active course is found, which allows the error boundary to catch it.
-      throw new Error('No active course found.');
+      console.error('No active course found when starting module.');
+      return;
     }
 
     // Use updateModuleProgress as defined in useAcademyStorage.

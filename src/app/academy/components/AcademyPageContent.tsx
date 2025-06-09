@@ -105,11 +105,13 @@ const fetchAndSyncCourses = async (): Promise<Course[]> => {
 
     // Re-fetch from local DB to ensure data is current after sync operations
     return await getAllCourses();
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error fetching and syncing courses:', error);
     if (error instanceof Error) {
+      console.error('Error details:', error.message, error.stack);
       throw error;
     } else {
+      console.error('Unknown error:', error);
       throw new Error(
         `An unknown error occurred during course sync: ${String(error)}`,
       );

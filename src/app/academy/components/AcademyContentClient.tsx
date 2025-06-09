@@ -62,35 +62,34 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
 
   // Effect to mark article/video/case study/simulation modules as complete when viewed
   useEffect(() => {
-    if (activeModule) {
-      const typesToMarkComplete = [
-        ModuleType.ARTICLE,
-        ModuleType.VIDEO,
-        ModuleType.CASE_STUDY,
-        ModuleType.SIMULATION,
-      ];
-      if (typesToMarkComplete.includes(activeModule.type)) {
-        // For simplicity, mark as complete immediately upon viewing.
-        // In a real application, video completion might be based on playback percentage,
-        // and article completion on scroll depth or time spent.
-        onModuleComplete(activeModule.id);
-      }
-    }
+    if (!activeModule) return;
+
+    const typesToMarkComplete = [
+      ModuleType.ARTICLE,
+      ModuleType.VIDEO,
+      ModuleType.CASE_STUDY,
+      ModuleType.SIMULATION,
+    ];
+
+    if (!typesToMarkComplete.includes(activeModule.type)) return;
+
+    // For simplicity, mark as complete immediately upon viewing.
+    // In a real application, video completion might be based on playback percentage,
+    // and article completion on scroll depth or time spent.
+    onModuleComplete(activeModule.id);
   }, [activeModule, onModuleComplete]);
 
-  switch (activeModule.type) {
-    case ModuleType.ARTICLE:
-      return activeModule.contentSlug ? (
+  const moduleTypeMap: Record<ModuleType | string, React.FC> = {
+    [ModuleType.ARTICLE]: () =>
+      activeModule.contentSlug ? (
         <ArticleModule contentSlug={activeModule.contentSlug} />
       ) : (
         <p>No content available for this module.</p>
-      );
-    case ModuleType.VIDEO:
-      return <VideoModule />;
-    case ModuleType.CASE_STUDY:
-      return <CaseStudyModule />;
-    case ModuleType.QUIZ:
-      return activeModule.quiz && activeModule.quiz.questions.length > 0 ? (
+      ),
+    [ModuleType.VIDEO]: () => <VideoModule />,
+    [ModuleType.CASE_STUDY]: () => <CaseStudyModule />,
+    [ModuleType.QUIZ]: () =>
+      activeModule.quiz && activeModule.quiz.questions.length > 0 ? (
         <Quiz
           questions={activeModule.quiz.questions.map((q) => {
             const questionData = q as typeof q & {
@@ -117,23 +116,28 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
             };
           })}
           moduleId={activeModule.id}
-          onQuizComplete={(result) => onQuizComplete(activeModule.id, result)} // Pass quiz completion callback
+          onQuizComplete={(result) => onQuizComplete(activeModule.id, result)}
           instructorName={
             activeModule.quiz.instructorName || 'ScaleSmart Academy Instructor'
-          } // Pass instructor name
+          }
           instructorTitle={
             activeModule.quiz.instructorTitle || 'Lead Instructor'
-          } // Pass instructor title
-          issuingOrganizationName={'ScaleSmart Academy'} // Pass issuing organization name
+          }
+          issuingOrganizationName={'ScaleSmart Academy'}
         />
       ) : (
         <p>No quiz questions available for this module.</p>
-      );
-    case ModuleType.SIMULATION:
-      return <p>Simulation Content Here for {activeModule.title}</p>;
-    default:
-      return <p>Unknown Module Type: {activeModule.type}</p>;
-  }
+      ),
+    [ModuleType.SIMULATION]: () => (
+      <p>Simulation Content Here for {activeModule.title}</p>
+    ),
+    DEFAULT: () => <p>Unknown Module Type: {activeModule.type}</p>,
+  };
+
+  const ModuleContent =
+    moduleTypeMap[activeModule.type] || moduleTypeMap['DEFAULT'];
+
+  return <ModuleContent />;
 };
 
 function AcademyContentClient({
@@ -161,23 +165,23 @@ function AcademyContentClient({
 
   useEffect(() => {
     if (
-      initialCourseId &&
-      allCourses.length > 0 &&
-      !activeCourse &&
-      !initialCourseHandled
-    ) {
-      const courseToSelect = allCourses.find((c) => c.id === initialCourseId);
-      if (courseToSelect) {
-        startCourseAction(courseToSelect);
-        setInitialCourseHandled(true);
-      }
-    }
+      initialCourseHandled ||
+      !initialCourseId ||
+      !allCourses.length ||
+      activeCourse
+    )
+      return;
+
+    const courseToSelect = allCourses.find((c) => c.id === initialCourseId);
+    if (!courseToSelect) return;
+
+    startCourseAction(courseToSelect);
+    setInitialCourseHandled(true);
   }, [
     initialCourseId,
     allCourses,
     activeCourse,
     startCourseAction,
-    setInitialCourseHandled,
     initialCourseHandled,
   ]);
 
