@@ -8,7 +8,7 @@ import {
   IDBPCursorWithValue,
 } from 'idb';
 import { v4 as uuidv4 } from 'uuid';
-import { Note, Category } from '@/types/indexeddb'; // Import Note and Category interfaces
+import { Note, Category, MarkdownNoteVersion } from '@/types/indexeddb'; // Import Note, Category, and MarkdownNoteVersion interfaces
 
 interface MarkdownNotepadDB extends DBSchema {
   notes: {
@@ -21,12 +21,18 @@ interface MarkdownNotepadDB extends DBSchema {
     value: Category;
     indexes: { name: string };
   };
+  note_versions: {
+    key: number; // Auto-incrementing ID for versions
+    value: MarkdownNoteVersion;
+    indexes: { noteId: string; timestamp: number };
+  };
 }
 
 const DB_NAME = 'markdown-notepad-db';
-const DB_VERSION = 4; // Increment DB_VERSION to trigger the upgrade logic
+const DB_VERSION = 5; // Increment DB_VERSION to trigger the upgrade logic
 const NOTES_STORE_NAME = 'notes';
 const CATEGORIES_STORE_NAME = 'categories';
+const NOTE_VERSIONS_STORE_NAME = 'note_versions';
 
 let dbPromise: Promise<IDBPDatabase<MarkdownNotepadDB>> | null = null;
 
@@ -183,10 +189,109 @@ async function getDB(): Promise<IDBPDatabase<MarkdownNotepadDB>> {
             });
           }
         }
+        if (oldVersion < 5) {
+          // Upgrade to version 5: Add 'note_versions' object store
+          if (!db.objectStoreNames.contains(NOTE_VERSIONS_STORE_NAME)) {
+            const noteVersionsStore = db.createObjectStore(
+              NOTE_VERSIONS_STORE_NAME,
+              { keyPath: 'id', autoIncrement: true },
+            );
+            noteVersionsStore.createIndex('noteId', 'noteId');
+            noteVersionsStore.createIndex('timestamp', 'timestamp');
+          }
+        }
       },
     });
   }
   return dbPromise;
+}
+
+// Function to add a new version of a note
+export async function addNoteVersion(
+  noteId: string,
+  markdown: string,
+): Promise<number> {
+  try {
+    const db = await getDB();
+    const now = Date.now();
+    const version: MarkdownNoteVersion = { noteId, markdown, timestamp: now };
+    const id = await db.add(NOTE_VERSIONS_STORE_NAME, version);
+    return id as number;
+  } catch (error) {
+    console.error(`Error adding note version for note ID ${noteId}:`, error);
+    throw error;
+  }
+}
+
+// Function to get all versions for a specific note, ordered by timestamp
+export async function getNoteVersions(
+  noteId: string,
+): Promise<MarkdownNoteVersion[]> {
+  try {
+    const db = await getDB();
+    const tx = db.transaction(NOTE_VERSIONS_STORE_NAME, 'readonly');
+    const store = tx.objectStore(NOTE_VERSIONS_STORE_NAME);
+    const index = store.index('noteId');
+    const versions = await index.getAll(noteId);
+    await tx.done;
+    return versions.sort((a, b) => b.timestamp - a.timestamp); // Sort by timestamp descending
+  } catch (error) {
+    console.error(`Error getting note versions for note ID ${noteId}:`, error);
+    throw error;
+  }
+}
+
+// Function to delete old versions of a note, keeping only the latest N versions
+export async function cleanOldNoteVersions(
+  noteId: string,
+  keepCount: number = 10,
+): Promise<void> {
+  try {
+    const db = await getDB();
+    const tx = db.transaction(NOTE_VERSIONS_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(NOTE_VERSIONS_STORE_NAME);
+    const index = store.index('noteId');
+
+    const versions = await index.getAll(noteId);
+    versions.sort((a, b) => b.timestamp - a.timestamp); // Sort descending by timestamp
+
+    if (versions.length > keepCount) {
+      for (let i = keepCount; i < versions.length; i++) {
+        if (versions[i].id !== undefined) {
+          await store.delete(versions[i].id as number);
+        }
+      }
+    }
+    await tx.done;
+  } catch (error) {
+    console.error(
+      `Error cleaning old note versions for note ID ${noteId}:`,
+      error,
+    );
+    throw error;
+  }
+}
+
+// Function to delete all versions for a specific note (e.g., when the note itself is deleted)
+export async function deleteAllNoteVersions(noteId: string): Promise<void> {
+  try {
+    const db = await getDB();
+    const tx = db.transaction(NOTE_VERSIONS_STORE_NAME, 'readwrite');
+    const store = tx.objectStore(NOTE_VERSIONS_STORE_NAME);
+    const index = store.index('noteId');
+    let cursor = await index.openCursor(IDBKeyRange.only(noteId));
+    while (cursor) {
+      await cursor.delete();
+      cursor = await cursor.continue();
+    }
+    await tx.done;
+  } catch (error) {
+    console.error(
+      `Error deleting all note versions for note ID ${noteId}:`,
+      error,
+    );
+    throw error;
+  }
 }
 
 async function ensureCategoryExists(categoryName: string): Promise<void> {

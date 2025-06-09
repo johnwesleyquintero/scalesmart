@@ -5,18 +5,21 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'; // Import Select components
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useMarkdownNotepadContext } from '@/context/MarkdownNotepadContext';
-import { updateNote } from '@/lib/indexeddb/markdown-notepad-db';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useToast } from '@/hooks/use-toast';
 import useDebounceCallback from '@/hooks/use-debounce-callback';
+import { format } from 'date-fns';
+import { MarkdownNoteVersion } from '@/types/indexeddb';
 
 interface MarkdownEditorProps {
   noteId: string;
@@ -34,28 +37,28 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   const [markdown, setMarkdown] = useState(initialMarkdown);
   const [title, setTitle] = useState(initialTitle); // State for title
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
-  const [noteCategory, setNoteCategory] = useState(''); // State for note's category
-  const { category: globalCategory, allCategories } =
-    useMarkdownNotepadContext(); // Rename category to globalCategory
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [noteVersions, setNoteVersions] = useState<MarkdownNoteVersion[]>([]);
+  const {
+    category: globalCategory, // Still need globalCategory to set initial title
+    handleUpdateNote, // Use handleUpdateNote from context
+    fetchNoteVersions,
+    restoreNoteVersion,
+  } = useMarkdownNotepadContext();
   const { toast } = useToast();
 
   // Update markdown and title state when initialMarkdown/initialTitle prop changes (when switching tabs)
   useEffect(() => {
     setMarkdown(initialMarkdown);
     setTitle(initialTitle);
-    // Set initial category from global context, defaulting to 'uncategorized' if globalCategory is 'all' or empty
-    setNoteCategory(
-      globalCategory === 'all' || !globalCategory
-        ? 'uncategorized'
-        : globalCategory,
-    );
-  }, [initialMarkdown, initialTitle, globalCategory]);
+  }, [initialMarkdown, initialTitle]);
 
   const saveNote = useCallback(
-    async (currentTitle: string, content: string, currentCategory: string) => {
+    async (currentTitle: string, content: string) => {
       if (noteId) {
         try {
-          await updateNote(noteId, currentTitle, content, currentCategory);
+          // When saving from the editor, use the global category from context
+          await handleUpdateNote(noteId, currentTitle, content, globalCategory);
           toast({
             title: 'Success',
             description: 'Note saved successfully.',
@@ -79,13 +82,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
         );
       }
     },
-    [noteId, toast, onSaveSuccess],
+    [noteId, toast, onSaveSuccess, handleUpdateNote, globalCategory], // Add globalCategory to dependencies
   );
 
   const debouncedSave = useDebounceCallback(
     useCallback(
-      (title: string, content: string, category: string) => {
-        saveNote(title, content, category);
+      (title: string, content: string) => {
+        saveNote(title, content);
       },
       [saveNote],
     ),
@@ -97,39 +100,16 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
     setMarkdown(newMarkdown);
     const newTitle = newMarkdown.split('\n')[0]?.trim() || 'Untitled Note';
     setTitle(newTitle);
-    debouncedSave(newTitle, newMarkdown, noteCategory); // Trigger debounced save on change
-  };
-
-  const handleCategoryChange = (newCategory: string) => {
-    setNoteCategory(newCategory);
-    debouncedSave(title, markdown, newCategory); // Trigger debounced save on category change
+    debouncedSave(newTitle, newMarkdown); // Trigger debounced save on change
   };
 
   const handleManualSave = () => {
-    saveNote(title, markdown, noteCategory); // Allow manual save
+    saveNote(title, markdown); // Allow manual save
   };
 
   return (
     <div className="flex flex-col space-y-4">
-      <div className="flex justify-between items-center">
-        <Select onValueChange={handleCategoryChange} value={noteCategory}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select category" />
-          </SelectTrigger>
-          <SelectContent>
-            {allCategories
-              .filter((cat) => cat.name !== '')
-              .map((cat) => (
-                <SelectItem key={cat.id} value={cat.name} label={cat.name}>
-                  {cat.name}
-                </SelectItem>
-              ))}
-            <SelectItem value="uncategorized" label="Uncategorized">
-              Uncategorized
-            </SelectItem>{' '}
-            {/* Option for uncategorized */}
-          </SelectContent>
-        </Select>
+      <div className="flex justify-end items-center">
         <div className="flex space-x-2">
           <Toggle
             pressed={viewMode === 'preview'}
@@ -141,6 +121,66 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             {viewMode === 'edit' ? 'Preview Mode' : 'Edit Mode'}
           </Toggle>
           <Button onClick={handleManualSave}>Save Note</Button>
+          <Dialog
+            open={showVersionHistory}
+            onOpenChange={setShowVersionHistory}
+          >
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  const versions = await fetchNoteVersions(noteId);
+                  setNoteVersions(versions);
+                }}
+              >
+                Version History
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px] h-[500px] flex flex-col">
+              <DialogHeader>
+                <DialogTitle>Note Version History</DialogTitle>
+                <DialogDescription>
+                  Select a version to restore your note.
+                </DialogDescription>
+              </DialogHeader>
+              <ScrollArea className="flex-grow pr-4">
+                {noteVersions.length === 0 ? (
+                  <p>No versions available for this note.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {noteVersions.map((version) => (
+                      <div
+                        key={version.id}
+                        className="flex items-center justify-between p-2 border rounded-md"
+                      >
+                        <span>
+                          {format(
+                            new Date(version.timestamp),
+                            'MMM dd, yyyy HH:mm:ss',
+                          )}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            await restoreNoteVersion(noteId, version.markdown);
+                            setMarkdown(version.markdown); // Update editor with restored content
+                            setTitle(
+                              version.markdown.split('\n')[0]?.trim() ||
+                                'Restored Note',
+                            );
+                            setShowVersionHistory(false); // Close dialog
+                          }}
+                        >
+                          Restore
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </DialogContent>
+          </Dialog>
           <Button
             onClick={() => {
               navigator.clipboard.writeText(markdown);

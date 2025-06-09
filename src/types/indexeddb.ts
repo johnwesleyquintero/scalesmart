@@ -120,4 +120,11 @@ export interface Note {
   updatedAt: number;
 }
 
+export interface MarkdownNoteVersion {
+  id?: number; // IndexedDB key
+  noteId: string;
+  markdown: string;
+  timestamp: number; // When this version was saved
+}
+
 // Define constants for duplicate strings

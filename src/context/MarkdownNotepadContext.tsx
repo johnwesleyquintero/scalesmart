@@ -5,10 +5,18 @@ import React, {
   useCallback,
   useEffect,
 } from 'react';
-import { addNote } from '@/lib/indexeddb/markdown-notepad-db';
+import {
+  addNote,
+  updateNote, // Import updateNote
+  deleteNote, // Import deleteNote
+  addNoteVersion,
+  getNoteVersions,
+  cleanOldNoteVersions,
+  deleteAllNoteVersions,
+} from '@/lib/indexeddb/markdown-notepad-db';
 import { useToast } from '@/hooks/use-toast';
 import { useMarkdownCategories } from '@/hooks/use-markdown-categories'; // Import the new hook
-import { Category } from '@/types/indexeddb'; // Import Category type
+import { Category, Note, MarkdownNoteVersion } from '@/types/indexeddb'; // Import Category, Note, and MarkdownNoteVersion types
 
 interface MarkdownNotepadContextType {
   category: string;
@@ -21,6 +29,19 @@ interface MarkdownNotepadContextType {
   handleUpdateCategory: (category: Category) => Promise<void>;
   handleDeleteCategory: (id: string) => Promise<void>;
   fetchCategories: () => Promise<void>; // Expose fetchCategories
+  // New version history functions
+  fetchNoteVersions: (noteId: string) => Promise<MarkdownNoteVersion[]>;
+  restoreNoteVersion: (
+    noteId: string,
+    versionMarkdown: string,
+  ) => Promise<void>;
+  handleUpdateNote: (
+    id: string,
+    title: string,
+    markdown: string,
+    category: string,
+  ) => Promise<void>;
+  handleDeleteNote: (id: string) => Promise<void>;
 }
 
 const MarkdownNotepadContext = createContext<
@@ -89,6 +110,95 @@ export const MarkdownNotepadProvider = ({
     handleAddCategoryAction,
   ]);
 
+  const fetchNoteVersions = useCallback(
+    async (noteId: string) => {
+      try {
+        return await getNoteVersions(noteId);
+      } catch (error) {
+        console.error(`Failed to fetch versions for note ${noteId}:`, error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load note versions.',
+          variant: 'destructive',
+        });
+        return [];
+      }
+    },
+    [toast],
+  );
+
+  const restoreNoteVersion = useCallback(
+    async (noteId: string, versionMarkdown: string) => {
+      try {
+        // First, get the existing note to preserve its title and category
+        const existingNote = await updateNote(
+          noteId,
+          'Restored Note', // Placeholder, will be updated by the editor
+          versionMarkdown,
+          'uncategorized', // Placeholder, will be updated by the editor
+        );
+        toast({
+          title: 'Success',
+          description: 'Note restored to selected version.',
+        });
+      } catch (error) {
+        console.error(`Failed to restore note version for ${noteId}:`, error);
+        toast({
+          title: 'Error',
+          description: 'Failed to restore note version.',
+          variant: 'destructive',
+        });
+        throw error;
+      }
+    },
+    [toast],
+  );
+
+  const handleUpdateNote = useCallback(
+    async (id: string, title: string, markdown: string, category: string) => {
+      try {
+        await updateNote(id, title, markdown, category);
+        await addNoteVersion(id, markdown); // Save a new version on update
+        await cleanOldNoteVersions(id); // Clean up old versions
+        toast({
+          title: 'Success',
+          description: 'Note updated.',
+        });
+      } catch (error) {
+        console.error(`Failed to update note ${id}:`, error);
+        toast({
+          title: 'Error',
+          description: 'Failed to update note.',
+          variant: 'destructive',
+        });
+        throw error;
+      }
+    },
+    [toast],
+  );
+
+  const handleDeleteNote = useCallback(
+    async (id: string) => {
+      try {
+        await deleteNote(id);
+        await deleteAllNoteVersions(id); // Delete all versions when the note is deleted
+        toast({
+          title: 'Success',
+          description: 'Note deleted.',
+        });
+      } catch (error) {
+        console.error(`Failed to delete note ${id}:`, error);
+        toast({
+          title: 'Error',
+          description: 'Failed to delete note.',
+          variant: 'destructive',
+        });
+        throw error;
+      }
+    },
+    [toast],
+  );
+
   return (
     <MarkdownNotepadContext.Provider
       value={{
@@ -102,6 +212,10 @@ export const MarkdownNotepadProvider = ({
         handleUpdateCategory: handleUpdateCategoryAction,
         handleDeleteCategory: handleDeleteCategoryAction,
         fetchCategories,
+        fetchNoteVersions,
+        restoreNoteVersion,
+        handleUpdateNote,
+        handleDeleteNote,
       }}
     >
       {children}

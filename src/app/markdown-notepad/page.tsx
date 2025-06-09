@@ -12,10 +12,8 @@ import {
   getNotesByCategory,
   searchNotes,
   getNote,
-  deleteNote,
-  updateNote,
   getAllNotes,
-} from '@/lib/indexeddb/markdown-notepad-db';
+} from '@/lib/indexeddb/markdown-notepad-db'; // Removed direct deleteNote, updateNote
 import ReactMarkdown from 'react-markdown';
 import { Button } from '@/components/ui/button';
 import remarkGfm from 'remark-gfm';
@@ -49,6 +47,8 @@ const NotepadContent = () => {
     createNewNote,
     allCategories,
     fetchCategories, // Added fetchCategories to refresh categories after note operations
+    handleDeleteNote, // Import handleDeleteNote from context
+    handleUpdateNote, // Import handleUpdateNote from context
   } = useMarkdownNotepadContext();
   const [notes, setNotes] = useState<Note[]>([]);
   const [activeNoteContent, setActiveNoteContent] = useState<string>('');
@@ -67,6 +67,13 @@ const NotepadContent = () => {
         loadedNotes = await searchNotes(searchQuery);
       }
       setNotes(loadedNotes || []);
+      // Automatically select the first note if notes are loaded and no note is currently selected
+      if (loadedNotes && loadedNotes.length > 0 && !selectedNoteId) {
+        setSelectedNoteId(loadedNotes[0].id);
+      } else if (!loadedNotes || loadedNotes.length === 0) {
+        // If no notes are loaded, clear the selected note
+        setSelectedNoteId(null);
+      }
     } catch (error: unknown) {
       console.error('Failed to load notes:', error);
       let errorMessage = 'Failed to load notes.';
@@ -79,7 +86,7 @@ const NotepadContent = () => {
         variant: 'destructive',
       });
     }
-  }, [category, searchQuery, toast]);
+  }, [category, searchQuery, toast, selectedNoteId]);
 
   useEffect(() => {
     loadNotes();
@@ -114,10 +121,10 @@ const NotepadContent = () => {
     loadSelectedNote();
   }, [selectedNoteId, toast]);
 
-  const handleDeleteNote = async (noteId: string) => {
+  const handleDeleteNoteClick = async (noteId: string) => {
     if (window.confirm('Are you sure you want to delete this note?')) {
       try {
-        await deleteNote(noteId);
+        await handleDeleteNote(noteId); // Use context's handleDeleteNote
         setSelectedNoteId(null);
         setSelectedNoteIds((prev) => prev.filter((id) => id !== noteId)); // Remove from multi-selection
         await loadNotes(); // Reload notes after deletion
@@ -161,7 +168,8 @@ const NotepadContent = () => {
       for (const noteId of selectedNoteIds) {
         const noteToUpdate = await getNote(noteId);
         if (noteToUpdate) {
-          await updateNote(
+          await handleUpdateNote(
+            // Use context's handleUpdateNote
             noteId,
             noteToUpdate.title,
             noteToUpdate.markdown,
@@ -208,7 +216,7 @@ const NotepadContent = () => {
     ) {
       try {
         for (const noteId of selectedNoteIds) {
-          await deleteNote(noteId);
+          await handleDeleteNote(noteId); // Use context's handleDeleteNote
         }
         toast({
           title: 'Success',
@@ -393,7 +401,7 @@ const NotepadContent = () => {
                       <Button
                         variant="destructive"
                         size="sm"
-                        onClick={() => handleDeleteNote(note.id)}
+                        onClick={() => handleDeleteNoteClick(note.id)}
                       >
                         Delete
                       </Button>
