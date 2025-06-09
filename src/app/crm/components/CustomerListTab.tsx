@@ -1,16 +1,20 @@
 'use client';
 
-'use client';
-
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
+import {
+  useReactTable,
+  getCoreRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  flexRender,
+} from '@tanstack/react-table';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Download, Trash2 } from 'lucide-react'; // Removed Loader2 as it's now in CustomerListContent
+import { Download, Trash2 } from 'lucide-react';
 import ReactPaginate from 'react-paginate';
 import { toast } from 'sonner';
 import useDebounce from '@/hooks/use-debounce';
-import { CustomerListContent } from './CustomerListContent'; // Import the extracted component
 import type { Contact, CommunicationLog, Category, SalesStage } from '../types';
 import {
   filterCustomers,
@@ -41,7 +45,7 @@ interface CustomerListTabProps {
     logId: string,
     customerId: string,
   ) => Promise<void>;
-  onEditCustomerAction: (customer: Contact) => void; // Prop name already ends with Action
+  onEditCustomerAction: (customer: Contact) => void;
 }
 
 interface CustomerListFiltersProps {
@@ -142,8 +146,46 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
   const [itemsPerPage] = useState(5);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSalesStage, setSelectedSalesStage] =
-    useState<SalesStage | null>(null); // New state for sales stage filter
+    useState<SalesStage | null>(null);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
+
+  const columns = useMemo(
+    () => [
+      {
+        header: 'Name',
+        accessorKey: 'name',
+      },
+      {
+        header: 'Email',
+        accessorKey: 'email',
+      },
+      {
+        header: 'Phone',
+        accessorKey: 'phone',
+      },
+      {
+        header: 'Company',
+        accessorKey: 'company',
+      },
+      {
+        header: 'Category',
+        accessorKey: 'category',
+      },
+      {
+        header: 'Sales Stage',
+        accessorKey: 'salesStage',
+      },
+    ],
+    [],
+  );
+
+  const table = useReactTable({
+    data: customers,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
 
   const handlePageClick = (selectedObject: { selected: number }) => {
     setCurrentPage(selectedObject.selected);
@@ -195,7 +237,7 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
     customers,
     debouncedSearchQuery,
     selectedCategory,
-    selectedSalesStage, // Pass the new sales stage filter
+    selectedSalesStage,
   );
 
   const pageCount = Math.ceil(filteredCustomers.length / itemsPerPage);
@@ -250,21 +292,40 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
         />
       </CardHeader>
       <CardContent>
-        <CustomerListContent
-          customers={filteredCustomers}
-          searchQuery={searchQuery}
-          hasAttemptedInitialLoad={hasAttemptedInitialLoad}
-          onEditAction={onEditCustomerAction} // Pass with new prop name
-          onDeleteAction={handleDelete} // Pass with new prop name
-          onCopyNotesAction={handleCopyToClipboard} // Pass with new prop name
-          itemsPerPage={itemsPerPage}
-          currentPage={currentPage}
-          onCommunicationLogSaveAction={handleCreateCommunicationLogAction}
-          onCommunicationLogUpdateAction={handleUpdateCommunicationLogAction}
-          onCommunicationLogDeleteAction={handleDeleteCommunicationLogAction}
-          selectedCustomerIds={selectedCustomerIds}
-          onSelectAction={handleSelectCustomer} // Pass with new prop name
-        />
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <tr key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => (
+                    <th key={header.id} className="border p-2 text-left">
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </th>
+                  ))}
+                </tr>
+              ))}
+            </thead>
+            <tbody>
+              {table.getRowModel().rows.map((row) => (
+                <tr key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <td key={cell.id} className="border p-2">
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         <ReactPaginate
           previousLabel={'Previous'}
           nextLabel={'Next'}

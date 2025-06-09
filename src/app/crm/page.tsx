@@ -195,6 +195,16 @@ export default function CRMComponent() {
             )}
           </TabsContent>
 
+          {/* Tab Content for Sales Pipeline */}
+          <TabsContent value="sales-pipeline" className="space-y-4 mt-4">
+            <SalesPipelineBoard
+              customers={customers}
+              onUpdateCustomer={(customer: Contact) =>
+                handleSaveCustomerAction(customer, customer)
+              }
+            />
+          </TabsContent>
+
           {/* Tab Content for Live Chat Widget */}
           <TabsContent value="live-chat" className="space-y-4 mt-4">
             {editingCustomer ? (
@@ -219,3 +229,5 @@ export default function CRMComponent() {
     </>
   );
 }
+
+import SalesPipelineBoard from './components/SalesPipelineBoard';
