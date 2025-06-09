@@ -157,10 +157,15 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
             Last Contacted: {new Date(customer.lastContacted).toLocaleString()}
           </p>
         )}
+        {customer.lastActivity && (
+          <p className="text-muted-foreground">
+            Last Activity: {new Date(customer.lastActivity).toLocaleString()}
+          </p>
+        )}
         {/* Section for displaying customer notes */}
         {customer.notes && (
-          <>
-            <p className="font-semibold mt-2">Notes:</p>
+          <div className="mt-2">
+            <p className="font-semibold">Notes:</p>
             {/* Conditionally render notes using MDXRemote if serialization is successful,
                 otherwise fallback to plain text. */}
             {serializedNotes ? (
@@ -173,9 +178,11 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
               </div>
             ) : (
               // Fallback to plain text if MDX serialization fails or notes are not MDX.
-              <p className="text-sm text-muted-foreground">{customer.notes}</p>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                {customer.notes}
+              </p>
             )}
-          </>
+          </div>
         )}
       </CardContent>
       {/* Card footer area for action buttons and collapsible sections */}

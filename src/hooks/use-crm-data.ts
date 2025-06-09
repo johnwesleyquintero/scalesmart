@@ -97,6 +97,7 @@ export const useCRMData = () => {
           id: editingCustomer.id, // Retain the original ID for update.
           lastContacted: editingCustomer.lastContacted, // Preserve existing lastContacted
           communicationLogs: editingCustomer.communicationLogs, // Preserve existing communication logs
+          lastActivity: Date.now(), // Update lastActivity on customer update
         };
         try {
           await updateContact(updatedCustomer);
@@ -155,6 +156,7 @@ export const useCRMData = () => {
             communicationLogs: [], // New customers start with an empty array of logs.
             createdAt: Date.now(), // Set creation timestamp
             updatedAt: Date.now(), // Set update timestamp
+            lastActivity: Date.now(), // Set lastActivity on new customer creation
           } as Contact;
           setCustomers(
             produce((draftCustomers: Contact[]) => {
@@ -272,6 +274,7 @@ export const useCRMData = () => {
                         { ...log, id: newLogId },
                       ],
                       lastContacted: Date.now(), // Update lastContacted timestamp
+                      lastActivity: Date.now(), // Update lastActivity on communication log creation
                     }
                   : cust,
               );
@@ -306,6 +309,7 @@ export const useCRMData = () => {
               ? {
                   ...cust,
                   communicationLogs: updateFn(cust.communicationLogs || []),
+                  lastActivity: Date.now(), // Update lastActivity on communication log update/delete
                 }
               : cust,
           ),

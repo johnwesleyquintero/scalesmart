@@ -26,6 +26,8 @@ export interface Contact {
   address?: string; // Optional: The physical address of the contact.
   communicationLogs?: CommunicationLog[]; // Optional: An array of communication log entries associated with this contact.
   highlightedName?: string; // Optional: Highlighted name for search results.
+  // Add a new field for the last activity date, useful for CRM dashboards
+  lastActivity?: number; // Optional: Timestamp (milliseconds since epoch) of the last activity (e.g., communication, update).
 }
 
 /**

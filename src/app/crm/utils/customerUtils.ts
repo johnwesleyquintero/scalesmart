@@ -30,6 +30,7 @@ export const generateCustomerCSVData = (
     'category',
     'salesStage', // Add salesStage to CSV fields
     'lastContacted', // Add lastContacted to CSV fields
+    'lastActivity', // Add lastActivity to CSV fields
   ];
 
   // Map customer objects to plain objects with only the desired fields.
@@ -44,6 +45,9 @@ export const generateCustomerCSVData = (
     salesStage: customer.salesStage, // Include salesStage
     lastContacted: customer.lastContacted
       ? new Date(customer.lastContacted).toISOString()
+      : '', // Format timestamp for CSV
+    lastActivity: customer.lastActivity
+      ? new Date(customer.lastActivity).toISOString()
       : '', // Format timestamp for CSV
   }));
 

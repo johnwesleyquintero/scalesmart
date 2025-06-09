@@ -98,11 +98,16 @@ export function CustomerForm({
     setValue,
     formState: { errors },
     reset,
+    watch, // Add watch to get current form values
   } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerSchema),
     defaultValues: defaultFormData,
     mode: 'onChange', // Validate on change for immediate feedback.
   });
+
+  // Watch for changes in category and salesStage to control Select components
+  const watchedCategory = watch('category');
+  const watchedSalesStage = watch('salesStage');
 
   /**
    * Effect to populate the form when `initialData` changes (e.g., when editing a customer).
@@ -116,8 +121,10 @@ export function CustomerForm({
       setValue('phone', initialData.phone || '');
       setValue('company', initialData.company || '');
       setValue('notes', initialData.notes || '');
+      // Ensure category is set to an empty string if null/undefined for the Select component
       setValue('category', initialData.category || '');
-      setValue('salesStage', initialData.salesStage || null); // Set sales stage, default to null if not set
+      // Ensure salesStage is set to null if null/undefined for the Select component
+      setValue('salesStage', initialData.salesStage || null);
     } else {
       reset(defaultFormData); // Reset form to default if no initial data.
     }
@@ -211,10 +218,12 @@ export function CustomerForm({
       <div>
         <Label htmlFor="category">Category (optional)</Label>
         <Select
-          onValueChange={(
-            value: string, // Explicitly type 'value' as string
-          ) => setValue('category', value === '__no_category__' ? '' : value)}
-          value={initialData?.category || '__no_category__'} // Map empty string to special value for display
+          onValueChange={(value: string) =>
+            setValue('category', value === '__no_category__' ? '' : value, {
+              shouldValidate: true,
+            })
+          }
+          value={watchedCategory || '__no_category__'} // Use watched value
         >
           <SelectTrigger id="category">
             <SelectValue placeholder="Select a category" />
@@ -242,9 +251,10 @@ export function CustomerForm({
             setValue(
               'salesStage',
               value === '__no_sales_stage__' ? null : (value as SalesStage),
+              { shouldValidate: true },
             )
           }
-          value={initialData?.salesStage || '__no_sales_stage__'} // Map null/undefined to special value for display
+          value={watchedSalesStage || '__no_sales_stage__'} // Use watched value
         >
           <SelectTrigger id="salesStage">
             <SelectValue placeholder="Select sales stage" />

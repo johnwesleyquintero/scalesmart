@@ -3,13 +3,14 @@
 import { Toaster } from 'sonner';
 import { useState, useCallback } from 'react';
 import type { Contact } from './types';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { useCRMData } from '@/hooks/use-crm-data';
 import { AddCustomerTab } from './components/AddCustomerTab';
 import CustomerEditModal from './components/CustomerEditModal';
 import { CustomerListTab } from './components/CustomerListTab';
 import { CategoryManagementTab } from './components/CategoryManagementTab';
 import { CommunicationLogsTab } from './components/CommunicationLogsTab';
+import { CRMTabsTrigger } from './components/CRMTabsTrigger';
 
 /**
  * CRMComponent is the main page component for the CRM dashboard.
@@ -163,27 +164,3 @@ export default function CRMComponent() {
     </>
   );
 }
-
-import React, { forwardRef } from 'react';
-
-interface CRMTabsTriggerProps extends React.HTMLAttributes<HTMLButtonElement> {
-  value: string;
-  children: React.ReactNode;
-}
-
-const CRMTabsTrigger = forwardRef<HTMLButtonElement, CRMTabsTriggerProps>(
-  ({ value, children, className, ...props }, ref) => {
-    return (
-      <TabsTrigger
-        {...props}
-        value={value}
-        className={`data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground ${className || ''}`}
-        ref={ref}
-      >
-        {children}
-      </TabsTrigger>
-    );
-  },
-);
-
-CRMTabsTrigger.displayName = 'CRMTabsTrigger';
