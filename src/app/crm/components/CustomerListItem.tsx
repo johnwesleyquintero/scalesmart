@@ -162,6 +162,29 @@ const CustomerListItem: React.FC<CustomerListItemProps> = ({
             Last Activity: {new Date(customer.lastActivity).toLocaleString()}
           </p>
         )}
+        {/* Display Lead Score and Category */}
+        {customer.leadScore !== undefined && (
+          <p className="text-muted-foreground">
+            Lead Score:{' '}
+            <span className="font-semibold">{customer.leadScore}</span>
+          </p>
+        )}
+        {customer.leadScoreCategory && (
+          <p className="text-muted-foreground">
+            Lead Category:{' '}
+            <span
+              className={`font-semibold ${
+                customer.leadScoreCategory === 'Hot'
+                  ? 'text-red-500'
+                  : customer.leadScoreCategory === 'Warm'
+                    ? 'text-yellow-500'
+                    : 'text-blue-500'
+              }`}
+            >
+              {customer.leadScoreCategory}
+            </span>
+          </p>
+        )}
         {/* Section for displaying customer notes */}
         {customer.notes && (
           <div className="mt-2">

@@ -11,6 +11,10 @@ import { CustomerListTab } from './components/CustomerListTab';
 import { CategoryManagementTab } from './components/CategoryManagementTab';
 import { CommunicationLogsTab } from './components/CommunicationLogsTab';
 import { CRMTabsTrigger } from './components/CRMTabsTrigger';
+import { ActivityFeed } from './components/ActivityFeed'; // Import the new ActivityFeed component
+import EmailTemplateManager from './components/EmailTemplateManager'; // Import EmailTemplateManager
+import EmailComposer from './components/EmailComposer'; // Import EmailComposer
+import LiveChatWidget from './components/LiveChatWidget'; // Import LiveChatWidget
 
 /**
  * CRMComponent is the main page component for the CRM dashboard.
@@ -97,6 +101,13 @@ export default function CRMComponent() {
             <CRMTabsTrigger value="communication-logs">
               Communication Logs (Overall)
             </CRMTabsTrigger>
+            <CRMTabsTrigger value="email-templates">
+              Email Templates
+            </CRMTabsTrigger>
+            <CRMTabsTrigger value="email-composer">
+              Email Composer
+            </CRMTabsTrigger>
+            <CRMTabsTrigger value="live-chat">Live Chat</CRMTabsTrigger>
           </TabsList>
 
           {/* Tab Content for Adding a Customer */}
@@ -150,6 +161,50 @@ export default function CRMComponent() {
           {/* Displays a consolidated view of communication logs across all customers. */}
           <TabsContent value="communication-logs" className="space-y-4 mt-4">
             <CommunicationLogsTab customers={customers} />
+          </TabsContent>
+
+          {/* Tab Content for Activity Feed */}
+          {/* Displays a chronological list of recent customer activities. */}
+          <TabsContent value="activity-feed" className="space-y-4 mt-4">
+            {/* For now, we'll display activities for the currently editing customer, if any.
+                A more robust solution might involve a global customer selection or a dedicated activity view. */}
+            {editingCustomer ? (
+              <ActivityFeed customerId={editingCustomer.id} />
+            ) : (
+              <div className="text-muted-foreground">
+                Select a customer from the "Customer List" tab to view their
+                activity feed.
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Tab Content for Email Template Manager */}
+          <TabsContent value="email-templates" className="space-y-4 mt-4">
+            <EmailTemplateManager />
+          </TabsContent>
+
+          {/* Tab Content for Email Composer */}
+          <TabsContent value="email-composer" className="space-y-4 mt-4">
+            {editingCustomer ? (
+              <EmailComposer customerId={editingCustomer.id} />
+            ) : (
+              <div className="text-muted-foreground">
+                Select a customer from the "Customer List" tab to compose an
+                email.
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Tab Content for Live Chat Widget */}
+          <TabsContent value="live-chat" className="space-y-4 mt-4">
+            {editingCustomer ? (
+              <LiveChatWidget customerId={editingCustomer.id} />
+            ) : (
+              <div className="text-muted-foreground">
+                Select a customer from the "Customer List" tab to initiate a
+                live chat.
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 

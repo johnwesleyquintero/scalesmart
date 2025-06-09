@@ -38,10 +38,10 @@ interface CommunicationLogsTabProps {
 // Constants for communication type filter options.
 const COMMUNICATION_TYPES_FILTER = [
   { value: 'All', label: 'All Types' },
-  { value: 'Call', label: 'Call' },
-  { value: 'Email', label: 'Email' },
-  { value: 'Meeting', label: 'Meeting' },
-  { value: 'Other', label: 'Other' },
+  { value: 'call', label: 'Call' },
+  { value: 'email', label: 'Email' },
+  { value: 'meeting', label: 'Meeting' },
+  { value: 'chat', label: 'Chat' },
 ] as const;
 
 // Constants for sorting options.

@@ -31,6 +31,8 @@ export const generateCustomerCSVData = (
     'salesStage', // Add salesStage to CSV fields
     'lastContacted', // Add lastContacted to CSV fields
     'lastActivity', // Add lastActivity to CSV fields
+    'leadScore', // Add leadScore to CSV fields
+    'leadScoreCategory', // Add leadScoreCategory to CSV fields
   ];
 
   // Map customer objects to plain objects with only the desired fields.
@@ -49,6 +51,8 @@ export const generateCustomerCSVData = (
     lastActivity: customer.lastActivity
       ? new Date(customer.lastActivity).toISOString()
       : '', // Format timestamp for CSV
+    leadScore: customer.leadScore !== undefined ? customer.leadScore : '', // Include leadScore
+    leadScoreCategory: customer.leadScoreCategory || '', // Include leadScoreCategory
   }));
 
   // Use PapaParse to unparse the data into a CSV string.

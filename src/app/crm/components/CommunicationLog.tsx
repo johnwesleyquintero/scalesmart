@@ -15,10 +15,10 @@ import { toast } from 'sonner';
 
 // Define the allowed communication types using a const assertion for type safety.
 export const COMMUNICATION_TYPES = [
-  'Call',
-  'Email',
-  'Meeting',
-  'Other',
+  'call',
+  'email',
+  'meeting',
+  'chat',
 ] as const satisfies readonly string[];
 // Derive a union type from the array for strict type checking.
 export type CommunicationType = (typeof COMMUNICATION_TYPES)[number];
@@ -42,7 +42,7 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
   onDelete,
 }) => {
   // State for the type of new/editing log.
-  const [newLogType, setNewLogType] = useState<CommunicationType>('Call');
+  const [newLogType, setNewLogType] = useState<CommunicationType>('call');
   // State for the subject of new/editing log.
   const [newLogSubject, setNewLogSubject] = useState('');
   // State for the notes of new/editing log.
@@ -83,7 +83,7 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
       toast.success('Communication log added!');
     }
     // Reset form fields after submission.
-    setNewLogType('Call');
+    setNewLogType('call');
     setNewLogSubject('');
     setNewLogNotes('');
   };
@@ -104,7 +104,7 @@ const CommunicationLogComponent: React.FC<CommunicationLogProps> = ({
    */
   const handleCancelEdit = () => {
     setEditingLog(null);
-    setNewLogType('Call');
+    setNewLogType('call');
     setNewLogSubject('');
     setNewLogNotes('');
   };

@@ -15,10 +15,15 @@ import {
   createCommunicationLog,
   updateCommunicationLog,
   deleteCommunicationLog,
-} from '@/lib/indexeddb-service';
+} from '@/lib/indexeddb/crm-db'; // Updated import path to crm-db.ts
 import type { Contact, CommunicationLog } from '@/app/crm/types';
 import { useCrmCategories } from './use-crm-categories';
 import { produce } from 'immer';
+import {
+  calculateLeadScore,
+  getLeadScoreCategory,
+} from '@/app/crm/utils/leadScoringUtils';
+import { logActivity } from '@/app/crm/utils/activityLogger'; // Import the new activity logger
 
 const LOAD_DATA_ERROR =
   'Failed to load data. Please check console for details.';
@@ -99,6 +104,13 @@ export const useCRMData = () => {
           communicationLogs: editingCustomer.communicationLogs, // Preserve existing communication logs
           lastActivity: Date.now(), // Update lastActivity on customer update
         };
+
+        // Calculate lead score and category for the updated customer
+        updatedCustomer.leadScore = calculateLeadScore(updatedCustomer);
+        updatedCustomer.leadScoreCategory = getLeadScoreCategory(
+          updatedCustomer.leadScore,
+        );
+
         try {
           await updateContact(updatedCustomer);
           setCustomers(
@@ -115,6 +127,12 @@ export const useCRMData = () => {
             }),
           );
           toast.success('Customer updated successfully!');
+          // Log activity for customer update
+          await logActivity(
+            updatedCustomer.id,
+            'customer_updated',
+            `Customer "${updatedCustomer.name}" was updated.`,
+          );
         } catch (error: unknown) {
           console.error('Error updating customer in IndexedDB:', error);
           toast.error(
@@ -158,12 +176,26 @@ export const useCRMData = () => {
             updatedAt: Date.now(), // Set update timestamp
             lastActivity: Date.now(), // Set lastActivity on new customer creation
           } as Contact;
+
+          // Calculate lead score and category for the new customer
+          completeNewCustomer.leadScore =
+            calculateLeadScore(completeNewCustomer);
+          completeNewCustomer.leadScoreCategory = getLeadScoreCategory(
+            completeNewCustomer.leadScore,
+          );
+
           setCustomers(
             produce((draftCustomers: Contact[]) => {
               draftCustomers.push(completeNewCustomer);
             }),
           );
           toast.success('Customer added successfully!');
+          // Log activity for new customer creation
+          await logActivity(
+            completeNewCustomer.id,
+            'customer_created',
+            `New customer "${completeNewCustomer.name}" was created.`,
+          );
         } catch (error: unknown) {
           console.error('Error adding customer to IndexedDB:', error);
           toast.error(
@@ -186,6 +218,12 @@ export const useCRMData = () => {
         }),
       );
       toast.info('Customer deleted.');
+      // Log activity for customer deletion
+      await logActivity(
+        id,
+        'customer_deleted',
+        `Customer with ID "${id}" was deleted.`,
+      );
     } catch (error: unknown) {
       console.error('Error deleting customer from IndexedDB:', error);
       toast.error(
@@ -281,6 +319,12 @@ export const useCRMData = () => {
             }),
           );
           toast.success('Communication log created successfully!');
+          // Log activity for communication log creation
+          await logActivity(
+            log.customerId,
+            'communication_logged',
+            `New communication log for "${log.customerId}" (Type: ${log.type}, Subject: ${log.subject || 'N/A'}).`,
+          );
         }
       } catch (error: unknown) {
         console.error('Error creating communication log:', error);
@@ -329,6 +373,12 @@ export const useCRMData = () => {
           ),
         );
         toast.success('Communication log updated successfully!');
+        // Log activity for communication log update
+        await logActivity(
+          log.customerId,
+          'communication_updated',
+          `Communication log for "${log.customerId}" (ID: ${log.id}) was updated.`,
+        );
       } catch (error: unknown) {
         console.error('Error updating communication log:', error);
         toast.error(
@@ -342,11 +392,17 @@ export const useCRMData = () => {
   const handleDeleteCommunicationLogAction = useCallback(
     async (logId: string, customerId: string) => {
       try {
-        await deleteCommunicationLog(logId, customerId);
+        await deleteCommunicationLog(logId);
         updateCustomerCommunicationLogs(customerId, (logs) =>
           logs.filter((existingLog) => existingLog.id !== logId),
         );
         toast.info('Communication log deleted.');
+        // Log activity for communication log deletion
+        await logActivity(
+          customerId,
+          'communication_deleted',
+          `Communication log with ID "${logId}" for customer "${customerId}" was deleted.`,
+        );
       } catch (error: unknown) {
         console.error('Error deleting communication log:', error);
         toast.error(

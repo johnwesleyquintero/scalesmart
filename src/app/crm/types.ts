@@ -28,6 +28,8 @@ export interface Contact {
   highlightedName?: string; // Optional: Highlighted name for search results.
   // Add a new field for the last activity date, useful for CRM dashboards
   lastActivity?: number; // Optional: Timestamp (milliseconds since epoch) of the last activity (e.g., communication, update).
+  leadScore?: number; // Optional: The calculated lead score for the contact.
+  leadScoreCategory?: 'Hot' | 'Warm' | 'Cold'; // Optional: Categorization of the lead score.
 }
 
 /**
@@ -62,8 +64,48 @@ export const SALES_STAGES = [
 export interface CommunicationLog {
   id: string; // Unique identifier for the communication log entry.
   customerId: string; // Required: The ID of the customer this communication log is associated with.
-  type: 'Call' | 'Email' | 'Meeting' | 'Other'; // Required: The type of communication.
+  type: 'email' | 'chat' | 'call' | 'meeting'; // Required: The type of communication.
   date: number; // Required: Timestamp (milliseconds since epoch) of when the communication occurred.
   subject?: string; // Optional: A brief subject or title for the communication.
+  body?: string; // Optional: The full body of the communication.
+  direction?: 'inbound' | 'outbound'; // Optional: The direction of the communication.
   notes: string; // Required: Detailed notes about the communication.
+}
+
+/**
+ * Defines the structure for an Email Template.
+ */
+export interface EmailTemplate {
+  id: string; // Unique identifier for the email template.
+  name: string; // The name of the email template.
+  subject: string; // The subject line of the email.
+  body: string; // The body content of the email, can include rich text.
+}
+
+/**
+ * Defines the possible types of customer activities.
+ */
+export type ActivityType =
+  | 'email_open'
+  | 'website_visit'
+  | 'form_submission'
+  | 'support_ticket_update'
+  | 'product_usage'
+  | 'customer_created'
+  | 'customer_updated'
+  | 'customer_deleted' // Added for customer deletion
+  | 'communication_logged'
+  | 'communication_updated'
+  | 'communication_deleted';
+
+/**
+ * Defines the structure for an Activity Log entry.
+ * Records various interactions and events related to a customer.
+ */
+export interface ActivityLog {
+  id: string; // Unique identifier for the activity log entry.
+  customerId: string; // Required: The ID of the customer this activity log is associated with.
+  type: ActivityType; // Required: The type of activity (e.g., 'email_open', 'website_visit').
+  description: string; // Required: A detailed description of the activity.
+  timestamp: number; // Required: Timestamp (milliseconds since epoch) when the activity occurred.
 }

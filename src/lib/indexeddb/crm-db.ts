@@ -4,12 +4,18 @@ import {
   deleteItem,
   getAllItemsFromStore,
 } from '../indexeddb-service'; // Assuming this service exists and works as intended.
-import type { Category, Contact, CommunicationLog } from '@/app/crm/types';
+import type {
+  Category,
+  Contact,
+  CommunicationLog,
+  ActivityLog,
+} from '@/app/crm/types';
 
 // --- Constants for CRM IndexedDB Store Names ---
 const CRM_CONTACTS_STORE_NAME = 'crm-contacts';
 const CRM_CATEGORIES_STORE_NAME = 'crm-categories';
 const CRM_COMMUNICATION_LOGS_STORE_NAME = 'crm-communication-logs';
+const CRM_ACTIVITY_LOGS_STORE_NAME = 'crm-activity-logs'; // New store for activity logs
 
 // --- Generic CRUD Service Factory ---
 
@@ -18,7 +24,7 @@ const CRM_COMMUNICATION_LOGS_STORE_NAME = 'crm-communication-logs';
  * @param storeName The name of the IndexedDB store.
  * @returns An object containing CRUD operations (create, update, delete, getAll).
  */
-function createCrudService<T extends { id: string }>(storeName: string) {
+export function createCrudService<T extends { id: string }>(storeName: string) {
   return {
     /**
      * Creates a new item in the store.
@@ -83,6 +89,10 @@ export const communicationLogService = createCrudService<CommunicationLog>(
   CRM_COMMUNICATION_LOGS_STORE_NAME,
 );
 
+export const activityLogService = createCrudService<ActivityLog>(
+  CRM_ACTIVITY_LOGS_STORE_NAME,
+);
+
 // Export specific functions for easier import if preferred, linking to the service methods
 export const createContact = contactService.create;
 export const updateContact = contactService.update;
@@ -101,3 +111,6 @@ export const updateCommunicationLog = communicationLogService.update;
 // generic service or a more complex service might be required.
 export const deleteCommunicationLog = communicationLogService.delete;
 export const getAllCommunicationLogs = communicationLogService.getAll;
+
+export const createActivityLog = activityLogService.create;
+export const getAllActivityLogs = activityLogService.getAll;
