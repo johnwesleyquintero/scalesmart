@@ -191,16 +191,58 @@ const NotepadContent = () => {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedNoteIds.length === 0) {
+      toast({
+        title: 'Info',
+        description: 'Please select notes to delete.',
+        variant: 'default',
+      });
+      return;
+    }
+
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedNoteIds.length} selected notes?`,
+      )
+    ) {
+      try {
+        for (const noteId of selectedNoteIds) {
+          await deleteNote(noteId);
+        }
+        toast({
+          title: 'Success',
+          description: `${selectedNoteIds.length} notes deleted successfully.`,
+        });
+        setSelectedNoteId(null); // Clear active note if it was deleted
+        setSelectedNoteIds([]); // Clear selection
+        await loadNotes(); // Reload notes after deletion
+        await fetchCategories(); // Refresh categories
+      } catch (error: unknown) {
+        console.error('Failed to bulk delete notes:', error);
+        let errorMessage = 'Failed to delete selected notes.';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-2 text-center">
         Markdown Notepad Dashboard
       </h1>
-      <p className="text-center text-gray-600 mb-8">
+      <p className="text-center text-muted-foreground mb-8">
         Manage your notes, categories, and search through your markdown content.
       </p>
 
-      <div className="bg-white p-6 rounded-lg shadow-md">
+      <div className="bg-card p-6 rounded-lg shadow-md">
         <Tabs defaultValue="notes" className="w-full">
           <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-muted">
             <Button
@@ -232,7 +274,7 @@ const NotepadContent = () => {
                 onSaveSuccess={loadNotes}
               />
             ) : (
-              <div className="p-4 text-center text-gray-500">
+              <div className="p-4 text-center text-muted-foreground">
                 Select a note or create a new one.
               </div>
             )}
@@ -268,13 +310,46 @@ const NotepadContent = () => {
                   >
                     Assign to Selected ({selectedNoteIds.length})
                   </Button>
+                  <Button
+                    variant="destructive"
+                    onClick={handleBulkDelete}
+                    disabled={selectedNoteIds.length === 0}
+                  >
+                    Delete Selected ({selectedNoteIds.length})
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      const selectedNotes = notes.filter((note) =>
+                        selectedNoteIds.includes(note.id),
+                      );
+                      const json = JSON.stringify(selectedNotes, null, 2);
+                      const blob = new Blob([json], {
+                        type: 'application/json',
+                      });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'markdown_notes.json';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                      toast({
+                        title: 'Success',
+                        description: 'Selected notes exported as JSON.',
+                      });
+                    }}
+                    disabled={selectedNoteIds.length === 0}
+                  >
+                    Export Selected ({selectedNoteIds.length})
+                  </Button>
                 </div>
               )}
               <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {notes.map((note) => (
                   <li
                     key={note.id}
-                    className="p-4 border rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer flex flex-col justify-between"
+                    className="p-4 border border-border bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer flex flex-col justify-between"
                   >
                     <div className="flex items-start">
                       <Checkbox
@@ -284,15 +359,15 @@ const NotepadContent = () => {
                         }
                         className="mr-2 mt-1"
                       />
-                      <div className="flex-grow">
+                      <div className="flex-grow min-w-0">
                         <h3
-                          className="font-bold mb-2"
+                          className="font-bold mb-2 overflow-hidden text-ellipsis whitespace-nowrap"
                           onClick={() => setSelectedNoteId(note.id)}
                         >
                           {note?.title || 'Untitled Note'}
                         </h3>
                         <div
-                          className="text-sm text-gray-600 line-clamp-3"
+                          className="text-sm text-muted-foreground line-clamp-3 overflow-hidden text-ellipsis"
                           onClick={() => setSelectedNoteId(note.id)}
                         >
                           <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -304,7 +379,7 @@ const NotepadContent = () => {
                       </div>
                     </div>
                     <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-muted-foreground">
                         Created: {new Date(note.createdAt).toLocaleDateString()}
                         {note.updatedAt &&
                           note.createdAt !== note.updatedAt && (
