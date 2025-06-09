@@ -84,7 +84,13 @@ const SearchInput = ({
 }) => {
   const [internalValue, setInternalValue] = useState(externalValue);
   const [isPending, startTransition] = useTransition();
-  const debouncedOnChange = useDebounceCallback(onChange, 300);
+  const debouncedOnChange: (value: string) => void = useDebounceCallback(
+    (value: string) => {
+      console.log('debouncedOnChange value:', value);
+      onChange(value);
+    },
+    300,
+  );
 
   useEffect(() => {
     if (externalValue !== internalValue) {

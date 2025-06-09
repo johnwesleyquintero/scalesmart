@@ -7,7 +7,7 @@ interface UseDebounce {
 
   // Overload for debouncing functions: preserves the function's signature
   // TFunc must be a function type.
-  <TFunc extends (...args: any[]) => any>(
+  <TFunc extends (...args: unknown[]) => unknown>(
     callback: TFunc,
     delay?: number,
   ): TFunc;
@@ -68,7 +68,9 @@ const useDebounce: UseDebounce = (<TParam>(
     // The conditional type `TParam extends (...a: any[]) => any ? TParam : never`
     // helps TypeScript ensure TParam is treated as a function type for `Parameters`.
     (
-      ...args: Parameters<TParam extends (...a: any[]) => any ? TParam : never>
+      ...args: Parameters<
+        TParam extends (...a: unknown[]) => unknown ? TParam : never
+      >
     ) => {
       let timerId: ReturnType<typeof setTimeout>;
       let effectCleanup: (() => void) | undefined; // To store cleanup from user's callback
@@ -78,7 +80,9 @@ const useDebounce: UseDebounce = (<TParam>(
         // Execute the latest callback stored in the ref.
         // `callbackRef.current` is of type TParam (a function type).
         // It's callable with `...args`.
-        const result = (callbackRef.current as (...a: any[]) => any)(...args);
+        const result = (callbackRef.current as (...a: unknown[]) => unknown)(
+          ...args,
+        );
 
         // If the user's callback returns a function, treat it as a cleanup function.
         if (typeof result === 'function') {

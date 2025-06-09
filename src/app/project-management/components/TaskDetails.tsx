@@ -196,10 +196,10 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
         await onTaskPersist(updatedTask); // Propagate update to parent for persistence
         setIsEditing(false); // Exit edit mode
         toast.success(`Task "${updatedTask.title}" updated successfully!`); // Show success toast
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.log('Error object:', error);
         toast.error(
-          `Failed to update task "${updatedTask.title}": ${error.message}. Please try again.`,
+          `Failed to update task "${updatedTask.title}": ${(error as Error).message}. Please try again.`,
         );
         logger.error('Failed to update task from details form:', error); // Log the error
       }
@@ -230,9 +230,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
     try {
       await onTaskPersist(updatedTask); // Propagate update to parent for persistence
       toast.success(`Task "${updatedTask.title}" marked as completed!`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(
-        `Failed to mark task "${task.title}" as complete: ${error.message}. Please try again.`,
+        `Failed to mark task "${task.title}" as complete: ${(error as Error).message}. Please try again.`,
       );
       logger.error('Failed to mark task complete:', error); // Log the error
     }
@@ -254,9 +254,9 @@ const TaskDetails: React.FC<TaskDetailsProps> = ({
       setIsDeleteConfirmModalOpen(false); // Close confirmation modal
       onClose(); // Close the main details modal
       toast.success(`Task "${task.title}" deleted successfully!`); // Show success toast
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(
-        `Failed to delete task "${task.title}": ${error.message}. Please try again.`,
+        `Failed to delete task "${task.title}": ${(error as Error).message}. Please try again.`,
       );
       logger.error('Failed to delete task from details:', error); // Log the error
       setIsDeleteConfirmModalOpen(false); // Ensure modal closes even on error

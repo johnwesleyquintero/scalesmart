@@ -24,7 +24,7 @@ interface ArticleData {
   source: MDXRemoteSerializeResult;
   frontmatter: {
     title?: string;
-    [key: string]: any;
+    [key: string]: unknown;
   };
 }
 

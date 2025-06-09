@@ -1,4 +1,4 @@
-// @ts-nocheck
+// // @ts-nocheck is not recommended
 
 'use client';
 
@@ -69,14 +69,16 @@ export function MessageBubble({
         } as ReactMarkdownProps)}
         components={{
           pre: (props: React.ComponentProps<'pre'>) => {
-            const { node } = props;
             return (
               <div className="relative group">
                 <pre {...props} className="rounded-md p-4 overflow-x-auto" />
                 <button
                   onClick={() =>
                     handleCopyClick(
-                      (node?.children[0]?.children[0]?.value as string) || '',
+                      (Array.isArray(props.children) &&
+                        props.children.length > 0 &&
+                        (props.children[0]?.children[0]?.value as string)) ||
+                        '',
                     )
                   }
                   className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -91,7 +93,9 @@ export function MessageBubble({
               </div>
             );
           },
-          code: (props: React.ComponentProps<'code'>) => {
+          code: (
+            props: React.ComponentProps<'code'> & { inline?: boolean },
+          ) => {
             return (
               <code
                 {...props}

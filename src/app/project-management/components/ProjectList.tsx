@@ -132,9 +132,9 @@ const ProjectList = ({
         toast.success(
           `Project "${projectToDelete.name}" deleted successfully.`,
         );
-      } catch (error: any) {
+      } catch (error: unknown) {
         toast.error(
-          `Failed to delete project "${projectToDelete.name}": ${error.message}.`,
+          `Failed to delete project "${projectToDelete.name}": ${(error as Error).message}.`,
         );
         logger.error('Failed to delete project:', error);
       } finally {

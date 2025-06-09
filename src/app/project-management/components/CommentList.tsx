@@ -68,8 +68,10 @@ const CommentList: React.FC<CommentListProps> = ({
       await onAddComment(newComment); // Call the parent's handler to persist the comment
       setNewCommentText(''); // Clear the input field on success
       toast.success('Comment added successfully!'); // Show success toast
-    } catch (error: any) {
-      toast.error(`Failed to add comment: ${error.message}. Please try again.`); // Show error toast
+    } catch (error: unknown) {
+      toast.error(
+        `Failed to add comment: ${(error as Error).message}. Please try again.`,
+      ); // Show error toast
       console.error('Failed to add comment:', error); // Log the error for debugging
     } finally {
       setLoading(false); // Reset loading state regardless of success or failure

@@ -197,7 +197,9 @@ const TableChart = <TData extends Record<string, unknown>>({
           console.error('Failed to remove table state from IndexedDB:', error),
       );
     }
-    onResetPreferences && onResetPreferences();
+    if (onResetPreferences) {
+      onResetPreferences();
+    }
   };
 
   const saveTimer = useRef<number | null>(null);

@@ -10,10 +10,6 @@ declare module '@upstash/ratelimit' {
     window: string;
   }
 
-  interface Ratelimit {
-    limit: (identifier: string) => Promise<{ success: boolean }>;
-  }
-
   export class Ratelimit {
     constructor(options: {
       redis: Redis;
@@ -27,8 +23,4 @@ declare module '@upstash/ratelimit' {
       prefix?: string;
     });
   }
-}
-
-declare module '@upstash/redis' {
-  export interface Redis {}
 }

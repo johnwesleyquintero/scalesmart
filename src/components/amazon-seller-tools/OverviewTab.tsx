@@ -49,7 +49,7 @@ import DataCard from './DataCard';
 import type { UseAmazonDataIntegrationReturn } from '@/lib/hooks/useAmazonDataIntegration';
 
 // Update OverviewTabProps to extend UseAmazonDataIntegrationReturn
-interface OverviewTabProps extends UseAmazonDataIntegrationReturn {}
+type OverviewTabProps = UseAmazonDataIntegrationReturn;
 
 const SHOW_KEYWORD_TABLE_DEFAULT = false;
 

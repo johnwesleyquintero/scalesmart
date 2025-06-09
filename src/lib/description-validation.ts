@@ -1,6 +1,6 @@
 import DOMPurify from 'isomorphic-dompurify';
-// @ts-ignore
-import { NodeJS } from 'node';
+// @ts-expect-error: NodeJS is not available in browser environments, but setTimeout types are needed.
+import type { NodeJS } from 'node';
 import { z } from 'zod';
 import { asinSchema, productNameSchema } from './input-validation';
 

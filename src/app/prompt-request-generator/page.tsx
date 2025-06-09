@@ -35,6 +35,9 @@ import {
 import { CategoryValue, PromptData } from '@/lib/prompt-generator/types';
 import { generatePrompt } from '@/lib/prompt-generator/utils';
 
+// Define a constant for the error border class to avoid duplication
+const ERROR_BORDER_CLASS = 'border-red-500';
+
 /**
  * A component for generating structured prompts based on user input for code assistance.
  * Allows selecting a category, providing context, describing the request, and including code snippets.
@@ -68,16 +71,22 @@ export default function PromptRequestGenerator() {
     Partial<Record<keyof PromptData, string>>
   >({});
 
+  type PromptDataKey = 'customCategory' | 'context' | 'request' | 'codeInput';
+
   // Debounced handler to update promptData state and perform validation based on local input state.
   const debouncedUpdatePromptData = useDebounceCallback(
-    (field: keyof Omit<PromptData, 'category'>, value: string) => {
-      setPromptData((prev) => ({ ...prev, [field]: value }));
+    (field, value) => {
+      console.log('debouncedUpdatePromptData field type:', typeof field);
+      setPromptData((prev) => ({
+        ...prev,
+        [field as keyof PromptData]: value,
+      }));
 
       // Perform validation for required fields on debounce
       setValidationErrors((prev) => {
         const newErrors = { ...prev };
         // Use the trimmed value for validation checks
-        const trimmedValue = value.trim();
+        const trimmedValue = String(value).trim();
         if (field === 'request' && !trimmedValue) {
           newErrors.request = "The 'Request' field is required.";
         } else if (
@@ -88,8 +97,8 @@ export default function PromptRequestGenerator() {
           newErrors.customCategory =
             "Please enter a value for the 'Custom Category'.";
         } else {
-          // Clear validation error for this field if it's now valid
-          newErrors[field] = undefined;
+          // Clear validation error for this field
+          newErrors[field as PromptDataKey] = undefined;
         }
         return newErrors;
       });
@@ -133,7 +142,7 @@ export default function PromptRequestGenerator() {
     return (
       categoryNotSelected || requestIsEmpty || customCategoryIsEmptyWhenRequired
     );
-  }, [promptData]); // Depend on the entire promptData object
+  }, [promptData]); // Dependency: Re-create if promptData changes.
 
   // Handler function to generate the prompt string.
   const generatePromptHandler = useCallback(() => {
@@ -262,25 +271,35 @@ export default function PromptRequestGenerator() {
                 >
                   <SelectTrigger
                     id="category"
-                    className="bg-background border-border"
-                    aria-label="Select category" // Accessibility label
-                    aria-required="true" // Indicate required state
+                    className={`bg-background border-border ${validationErrors.category ? ERROR_BORDER_CLASS : ''}`}
+                    aria-required="true"
+                    aria-invalid={!!validationErrors.category}
+                    aria-describedby={
+                      validationErrors.category ? 'category-error' : undefined
+                    }
                   >
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
                   <SelectContent className="bg-background border-border">
-                    {/* Map over standard categories to create SelectItems */}
-                    {CATEGORIES.map((cat) => (
-                      <SelectItem key={cat} value={cat} label={cat}>
-                        {cat}
+                    {CATEGORIES.map((category) => (
+                      <SelectItem
+                        key={category}
+                        value={category}
+                        label={category}
+                      >
+                        {category}
                       </SelectItem>
                     ))}
-                    {/* Add the 'Custom' option */}
                     <SelectItem value={CUSTOM_CATEGORY_VALUE} label="Custom">
                       Custom
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                {validationErrors.category && (
+                  <p id="category-error" className="text-red-500 text-sm mt-1">
+                    {validationErrors.category}
+                  </p>
+                )}
               </div>
 
               {/* Custom Category Input (conditionally rendered) */}
@@ -307,7 +326,7 @@ export default function PromptRequestGenerator() {
                         e.target.value,
                       )
                     }
-                    className={`bg-background border-border ${validationErrors.customCategory ? 'border-red-500' : ''}`}
+                    className={`bg-background border-border ${validationErrors.customCategory ? ERROR_BORDER_CLASS : ''}`}
                     aria-required={showCustomCategory} // Indicate required state for screen readers
                     aria-invalid={!!validationErrors.customCategory} // Indicate invalid state for screen readers
                     aria-describedby={
@@ -345,7 +364,7 @@ export default function PromptRequestGenerator() {
               />
             </div>
 
-            {/* Request Textarea (required) */}
+            {/* Request Textarea */}
             <div className="space-y-2">
               <Label htmlFor="request">
                 Request <span className="text-red-500">*</span>
@@ -360,7 +379,7 @@ export default function PromptRequestGenerator() {
                   debouncedUpdatePromptData('request', e.target.value);
                 }}
                 rows={3}
-                className={`bg-background border-border ${validationErrors.request ? 'border-red-500' : ''}`}
+                className={`bg-background border-border ${validationErrors.request ? ERROR_BORDER_CLASS : ''}`}
                 aria-required="true" // Indicate required state for screen readers
                 aria-invalid={!!validationErrors.request} // Indicate invalid state for screen readers
                 aria-describedby={
@@ -374,7 +393,7 @@ export default function PromptRequestGenerator() {
               )}
             </div>
 
-            {/* Code Input Textarea (optional) */}
+            {/* Code Input Textarea */}
             <div className="space-y-2">
               <Label htmlFor="codeInput">Relevant Code (optional)</Label>
               <Textarea
@@ -444,7 +463,7 @@ export default function PromptRequestGenerator() {
                 aria-label="Open WesAI Code Assistant in a new tab" // Accessibility label
               >
                 WesAI Code Assistant
-                <ExternalLink className="ml-2 h-4 w-4" />{' '}
+                <ExternalLink className="ml-2 h-4 w-4" />
                 {/* External link icon */}
               </Link>
             </div>
@@ -472,7 +491,7 @@ export default function PromptRequestGenerator() {
                 aria-label="Copy generated prompt to clipboard" // Accessibility label
               >
                 <Copy className="mr-2 h-4 w-4" />
-                {copied ? 'Copied!' : 'Copy'}{' '}
+                {copied ? 'Copied!' : 'Copy'}
                 {/* Button text changes on copy */}
               </Button>
             </CardHeader>

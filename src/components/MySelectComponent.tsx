@@ -72,7 +72,7 @@ export function MySelectComponent<T extends boolean = false>({
     const valueToSet = isMulti
       ? (defaultValue as string[] | undefined)
       : (defaultValue as string | undefined);
-    // @ts-ignore: Suppress type error related to complex conditional type inference
+
     setSelectedValue(valueToSet);
   }, [defaultValue, isMulti]);
 
