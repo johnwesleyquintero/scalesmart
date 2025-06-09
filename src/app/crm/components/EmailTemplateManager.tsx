@@ -6,11 +6,7 @@ import {
   updateEmailTemplate,
   deleteEmailTemplate,
 } from '../utils/emailTemplateUtils';
-import dynamic from 'next/dynamic';
-
-// Dynamically import QuillEditor to avoid SSR issues
-const QuillEditor = dynamic(() => import('react-quill'), { ssr: false });
-import 'react-quill/dist/quill.snow.css'; // Quill's CSS
+import MDEditor from '@uiw/react-md-editor';
 
 interface EmailTemplateManagerProps {
   onSelectTemplate?: (template: EmailTemplate) => void;
@@ -141,11 +137,9 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
           >
             Body
           </label>
-          <QuillEditor
+          <MDEditor
             value={newTemplateBody}
-            onChange={setNewTemplateBody}
-            theme="snow"
-            className="bg-white"
+            onChange={(value) => setNewTemplateBody(value || '')}
             style={{ height: '200px' }}
           />
         </div>

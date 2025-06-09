@@ -2,7 +2,7 @@ import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
 import { QuizResult, Course } from '@/types'; // Import QuizResult and Course from '@/types'
-import { Contact, CommunicationLog } from '@/app/crm/types'; // Import CRM types
+import { Contact, CommunicationLog, ActivityLog } from '@/app/crm/types'; // Import CRM types
 import { Category } from '@/types/indexeddb'; // Import Category from '@/types/indexeddb'
 import {
   ChatMessageRecord,
@@ -23,6 +23,7 @@ export type {
   Contact,
   Category,
   CommunicationLog,
+  ActivityLog,
   Event,
   ChatMessageRecord,
   ModuleProgressRecord,
@@ -46,6 +47,7 @@ class ChatDatabase extends Dexie {
   public projects!: Table<Project, string>;
   public categories!: Table<Category, string>;
   public communicationLogs!: Table<CommunicationLog, string>;
+  public activityLogs!: Table<ActivityLog, string>; // New table for activity logs
   public courses!: Table<Course, string>;
   public moduleProgress!: Table<ModuleProgressRecord, [string, string, string]>;
   public quizResults!: Table<QuizResultRecord, [string, string]>;
@@ -101,6 +103,16 @@ class ChatDatabase extends Dexie {
     this.version(14).stores({});
     this.version(15).stores({
       taskComments: 'id, taskId, createdAt, userId', // Changed index to improve query performance
+    });
+    this.version(16).stores({
+      'crm-contacts':
+        'id, name, email, phone, company, notes, category, createdAt, updatedAt',
+      'crm-categories': 'id, name',
+      'crm-communication-logs': 'id, customerId, type, date, subject, notes',
+      'crm-activity-logs': 'id, contactId, type, date, notes', // New store for activity logs
+    });
+    this.version(17).stores({
+      'crm-email-templates': 'id, name',
     });
   }
 }

@@ -14,7 +14,7 @@ export async function logActivity(
   description: string,
 ): Promise<void> {
   const newActivity: Omit<ActivityLog, 'id'> = {
-    customerId,
+    contactId: customerId,
     type,
     description,
     timestamp: Date.now(),
@@ -32,6 +32,6 @@ export async function getCustomerActivities(
 ): Promise<ActivityLog[]> {
   const allActivities = await getAllActivityLogs();
   return allActivities
-    .filter((activity) => activity.customerId === customerId)
+    .filter((activity) => activity.contactId === customerId)
     .sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent first
 }

@@ -104,7 +104,7 @@ export type ActivityType =
  */
 export interface ActivityLog {
   id: string; // Unique identifier for the activity log entry.
-  customerId: string; // Required: The ID of the customer this activity log is associated with.
+  contactId: string; // Required: The ID of the contact this activity log is associated with.
   type: ActivityType; // Required: The type of activity (e.g., 'email_open', 'website_visit').
   description: string; // Required: A detailed description of the activity.
   timestamp: number; // Required: Timestamp (milliseconds since epoch) when the activity occurred.

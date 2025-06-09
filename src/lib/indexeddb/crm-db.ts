@@ -113,4 +113,6 @@ export const deleteCommunicationLog = communicationLogService.delete;
 export const getAllCommunicationLogs = communicationLogService.getAll;
 
 export const createActivityLog = activityLogService.create;
+export const updateActivityLog = activityLogService.update;
+export const deleteActivityLog = activityLogService.delete;
 export const getAllActivityLogs = activityLogService.getAll;

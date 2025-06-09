@@ -2,11 +2,6 @@ import React, { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useCRMData } from '../../../hooks/use-crm-data';
 import { EmailTemplate } from '../../crm/types';
-import dynamic from 'next/dynamic';
-
-// Dynamically import QuillEditor to avoid SSR issues
-const QuillEditor = dynamic(() => import('react-quill'), { ssr: false });
-import 'react-quill/dist/quill.snow.css'; // Quill's CSS
 
 interface EmailComposerProps {
   customerId: string;
@@ -115,11 +110,12 @@ const EmailComposer: React.FC<EmailComposerProps> = ({
         >
           Body
         </label>
-        <QuillEditor
+        <textarea
+          id="emailBody"
+          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
           value={body}
-          onChange={setBody}
-          theme="snow"
-          className="bg-white"
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Write your email here..."
           style={{ height: '200px' }}
         />
       </div>
