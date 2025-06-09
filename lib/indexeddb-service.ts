@@ -2,9 +2,24 @@
 
 // --- Constants ---
 const DB_NAME = 'scalesmart-db';
-const STORE_NAME = 'key-value-store';
-const DB_VERSION = 1; // Increment this if you change the schema
+const DB_VERSION = 2; // Increment this if you change the schema
 const DB_NOT_INITIALIZED_ERROR = 'IndexedDB is not initialized.';
+
+// All known object store names
+const ALL_STORE_NAMES = [
+  'key-value-store',
+  'crm-contacts',
+  'crm-categories',
+  'crm-communication-logs',
+  'crm-activity-logs',
+  'chat-messages',
+  'userCsvMappings',
+  'keywordTrendsCache',
+  'crm-email-templates',
+];
+
+// Specific store names used by the service
+const KEY_VALUE_STORE_NAME = 'key-value-store';
 
 // --- Global State ---
 // Stores the database instance once successfully opened.
@@ -91,10 +106,13 @@ export function initializeDB(): Promise<void> {
     // Handles schema changes when DB_VERSION is incremented.
     request.onupgradeneeded = (event) => {
       const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        console.log(`Creating object store: ${STORE_NAME}`);
-        db.createObjectStore(STORE_NAME);
-      }
+      // Create all necessary object stores if they don't exist
+      ALL_STORE_NAMES.forEach((storeName) => {
+        if (!db.objectStoreNames.contains(storeName)) {
+          console.log(`Creating object store: ${storeName}`);
+          db.createObjectStore(storeName);
+        }
+      });
       // Future schema upgrades for different versions would go here:
       // if (event.oldVersion < 2) { ... create index ... }
       // if (event.oldVersion < 3) { ... add new store ... }
@@ -160,8 +178,8 @@ export async function setItem(key: string, value: unknown): Promise<void> {
   // Get the database instance, ensuring initialization.
   const db = await getDb();
   // Create a transaction with 'readwrite' mode.
-  const transaction = db.transaction([STORE_NAME], 'readwrite');
-  const store = transaction.objectStore(STORE_NAME);
+  const transaction = db.transaction([KEY_VALUE_STORE_NAME], 'readwrite');
+  const store = transaction.objectStore(KEY_VALUE_STORE_NAME);
 
   try {
     // Perform the put request to add/update the item.
@@ -192,8 +210,8 @@ export async function setItem(key: string, value: unknown): Promise<void> {
 export async function getItem<T>(key: string): Promise<T | undefined> {
   const db = await getDb();
   // Create a transaction with 'readonly' mode.
-  const transaction = db.transaction([STORE_NAME], 'readonly');
-  const store = transaction.objectStore(STORE_NAME);
+  const transaction = db.transaction([KEY_VALUE_STORE_NAME], 'readonly');
+  const store = transaction.objectStore(KEY_VALUE_STORE_NAME);
 
   try {
     // Perform the get request.
@@ -222,8 +240,8 @@ export async function getItem<T>(key: string): Promise<T | undefined> {
 export async function deleteItem(key: string): Promise<void> {
   const db = await getDb();
   // Create a transaction with 'readwrite' mode.
-  const transaction = db.transaction([STORE_NAME], 'readwrite');
-  const store = transaction.objectStore(STORE_NAME);
+  const transaction = db.transaction([KEY_VALUE_STORE_NAME], 'readwrite');
+  const store = transaction.objectStore(KEY_VALUE_STORE_NAME);
 
   try {
     // Perform the delete request.
