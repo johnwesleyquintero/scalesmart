@@ -6,22 +6,6 @@
 
 import type { Contact, SalesStage } from '../types'; // Import SalesStage
 import Papa from 'papaparse';
-import fuzzysort from 'fuzzysort';
-
-/**
- * Defines the keys used for fuzzy searching within customer objects.
- */
-export type FuzzysortKeys = Array<
-  'name' | 'email' | 'phone' | 'notes' | 'company'
->;
-
-/**
- * Configuration options for fuzzysort, including the keys to search and a threshold.
- */
-export const fuzzysortOptions: { keys: FuzzysortKeys; threshold: number } = {
-  keys: ['name', 'email', 'phone', 'notes', 'company'],
-  threshold: -700, // Adjust threshold as needed for search sensitivity.
-};
 
 /**
  * Generates CSV data from a list of customer contacts.
@@ -58,7 +42,7 @@ export const generateCustomerCSVData = (
     notes: customer.notes,
     category: customer.category,
     salesStage: customer.salesStage, // Include salesStage
-    lastContacted: customer.lastContacted // Include lastContacted
+    lastContacted: customer.lastContacted
       ? new Date(customer.lastContacted).toISOString()
       : '', // Format timestamp for CSV
   }));
@@ -71,7 +55,6 @@ export const generateCustomerCSVData = (
 
   return csvData;
 };
-
 /**
  * Filters a list of customers based on a search query and selected category.
  * @param customers An array of Contact objects to filter.
@@ -105,29 +88,37 @@ export const filterCustomers = (
     );
   }
 
-  // Apply fuzzy search if a search query is provided.
+  // Apply search if a search query is provided.
   if (searchQuery) {
-    const fuzzysortResults = fuzzysort.go(searchQuery, results, {
-      keys: fuzzysortOptions.keys,
-      threshold: fuzzysortOptions.threshold,
-    });
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    results = results
+      .map((customer) => {
+        const matches =
+          customer.name.toLowerCase().includes(lowerCaseQuery) ||
+          (customer.email &&
+            customer.email.toLowerCase().includes(lowerCaseQuery)) ||
+          (customer.phone &&
+            customer.phone.toLowerCase().includes(lowerCaseQuery)) ||
+          (customer.company &&
+            customer.company.toLowerCase().includes(lowerCaseQuery)) ||
+          (customer.notes &&
+            customer.notes.toLowerCase().includes(lowerCaseQuery));
 
-    results = fuzzysortResults.map((result) => {
-      let highlighted = null;
-      if (result) {
-        for (const key of fuzzysortOptions.keys) {
-          const target = result[key as keyof typeof result];
-          if (typeof target === 'string') {
-            highlighted = fuzzysort.highlight(target, '<mark>', '</mark>');
-            if (highlighted) break;
-          }
-        }
-      }
-      return {
-        ...result.obj,
-        highlightedName: highlighted || result.obj.name,
-      };
-    });
+        return matches
+          ? {
+              ...customer,
+              highlightedName: customer.name
+                .toLowerCase()
+                .includes(lowerCaseQuery)
+                ? customer.name.replace(
+                    new RegExp(searchQuery, 'gi'),
+                    `<mark>$&</mark>`,
+                  )
+                : customer.name,
+            }
+          : customer;
+      })
+      .filter((customer) => customer.highlightedName);
   }
 
   return results;

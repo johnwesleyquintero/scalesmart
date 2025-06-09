@@ -22,18 +22,17 @@ export default function CRMComponent() {
   const {
     customers, // Array of customer contact objects.
     hasAttemptedInitialLoad, // Boolean indicating if initial data load is complete.
-    categories, // Array of category objects.
     handleSaveCustomerAction, // Function to save (add or update) a customer.
     handleDeleteCustomerAction, // Function to delete a customer.
-    // Destructure new category action handlers
-    handleAddCategoryAction, // Function to add a new category.
-    handleUpdateCategoryAction, // Function to update an existing category.
-    handleDeleteCategoryAction, // Function to delete a category.
     handleCategorySuccessfullyDeletedAction, // Callback after a category is successfully deleted.
     handleCategoryRenamedAction, // Callback after a category is renamed.
     handleCreateCommunicationLogAction, // Function to create a new communication log.
     handleUpdateCommunicationLogAction, // Function to update an existing communication log.
     handleDeleteCommunicationLogAction, // Function to delete a communication log.
+    categories,
+    handleAddCategoryAction,
+    handleUpdateCategoryAction,
+    handleDeleteCategoryAction,
   } = useCRMData();
 
   // State to manage which customer is currently being edited.

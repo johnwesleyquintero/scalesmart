@@ -14,19 +14,21 @@ import { CommunicationLog } from '../types';
 import { toast } from 'sonner';
 
 // Define the allowed communication types using a const assertion for type safety.
-const COMMUNICATION_TYPES = ['Call', 'Email', 'Meeting', 'Other'] as const;
+export const COMMUNICATION_TYPES = [
+  'Call',
+  'Email',
+  'Meeting',
+  'Other',
+] as const;
 // Derive a union type from the array for strict type checking.
-type CommunicationType = (typeof COMMUNICATION_TYPES)[number];
+export type CommunicationType = (typeof COMMUNICATION_TYPES)[number];
 
-/**
- * Props for the CommunicationLogComponent.
- */
 interface CommunicationLogProps {
-  logs: CommunicationLog[]; // Array of communication logs for the current customer.
-  customerId: string; // The ID of the customer these logs belong to.
-  onSave: (log: Omit<CommunicationLog, 'id'>) => Promise<void>; // Callback to save a new log.
-  onUpdate: (log: CommunicationLog) => Promise<void>; // Callback to update an existing log.
-  onDelete: (logId: string, customerId: string) => Promise<void>; // Callback to delete a log.
+  logs: CommunicationLog[];
+  customerId: string;
+  onSave: (log: Omit<CommunicationLog, 'id'>) => Promise<void>;
+  onUpdate: (log: CommunicationLog) => Promise<void>;
+  onDelete: (logId: string, customerId: string) => Promise<void>;
 }
 
 /**

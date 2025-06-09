@@ -12,16 +12,12 @@ import {
   updateContact,
   deleteContact,
   getAllContacts,
-  getAllCategories,
-  // Import category specific IndexedDB functions
-  addCategory,
-  updateCategory,
-  deleteCategory,
   createCommunicationLog,
   updateCommunicationLog,
   deleteCommunicationLog,
 } from '@/lib/indexeddb-service';
-import type { Category, Contact, CommunicationLog } from '@/app/crm/types';
+import type { Contact, CommunicationLog } from '@/app/crm/types';
+import { useCrmCategories } from './use-crm-categories';
 
 const LOAD_DATA_ERROR =
   'Failed to load data. Please check console for details.';
@@ -37,9 +33,6 @@ const UPDATE_COMM_LOG_ERROR =
   'Failed to update communication log. Please check console for details.';
 const DELETE_COMM_LOG_ERROR =
   'Failed to delete communication log. Please check console for details.';
-const ADD_CATEGORY_ERROR = 'Failed to add category. Please try again.';
-const UPDATE_CATEGORY_ERROR = 'Failed to update category. Please try again.';
-const DELETE_CATEGORY_ERROR = 'Failed to delete category. Please try again.';
 
 /**
  * `useCRMData` is a custom hook that encapsulates the logic for managing CRM data.
@@ -51,11 +44,16 @@ export const useCRMData = () => {
   const [customers, setCustomers] = useState<Contact[]>([]);
   // State to track if the initial data load from IndexedDB has been attempted.
   const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
-  // State to store the list of categories.
-  const [categories, setCategories] = useState<Category[]>([]);
+
+  const {
+    categories,
+    handleAddCategoryAction,
+    handleUpdateCategoryAction,
+    handleDeleteCategoryAction,
+  } = useCrmCategories();
 
   /**
-   * useEffect hook to load initial customer and category data from IndexedDB
+   * useEffect hook to load initial customer data from IndexedDB
    * when the component mounts. This ensures data persistence across sessions.
    */
   useEffect(() => {
@@ -64,28 +62,24 @@ export const useCRMData = () => {
         // Fetch all contacts and map them to the Contact type, ensuring default values.
         const allContacts = await getAllContacts();
         const allCustomers: Contact[] = allContacts.map(
-          (contact) =>
+          (contact: Contact) =>
             ({
               ...contact,
-              id: contact.id!, // Ensure ID is present as it's expected for existing contacts.
+              id: contact.id, // Ensure ID is present as it's expected for existing contacts.
               category: contact.category || '', // Default category to empty string if null/undefined.
               communicationLogs: contact.communicationLogs || [], // Default logs to empty array.
             }) as Contact,
         );
         setCustomers(allCustomers);
-
-        // Fetch all categories.
-        const allCategories = await getAllCategories();
-        setCategories(allCategories);
       } catch (error: unknown) {
         console.error('Error loading data from IndexedDB:', error);
-        toast.error(LOAD_DATA_ERROR);
+        toast.error(`${LOAD_DATA_ERROR} ${(error as Error).message || error}`);
       } finally {
         setHasAttemptedInitialLoad(true); // Mark initial load as attempted regardless of success.
       }
     };
     loadInitialData();
-  }, []); // Empty dependency array ensures this effect runs only once on mount.
+  }, []);
 
   /**
    * Callback function to handle saving a customer (either creating a new one or updating an existing one).
@@ -105,7 +99,7 @@ export const useCRMData = () => {
         };
         try {
           await updateContact(updatedCustomer);
-          setCustomers((prevCustomers) =>
+          setCustomers((prevCustomers: Contact[]) =>
             prevCustomers.map((customer: Contact) =>
               customer.id === editingCustomer.id
                 ? {
@@ -118,7 +112,9 @@ export const useCRMData = () => {
           toast.success('Customer updated successfully!');
         } catch (error: unknown) {
           console.error('Error updating customer in IndexedDB:', error);
-          toast.error(UPDATE_CUSTOMER_ERROR);
+          toast.error(
+            `${UPDATE_CUSTOMER_ERROR} ${(error as Error).message || error}`,
+          );
         }
       } else {
         // If no `editingCustomer`, create a new contact.
@@ -156,106 +152,55 @@ export const useCRMData = () => {
             createdAt: Date.now(), // Set creation timestamp
             updatedAt: Date.now(), // Set update timestamp
           } as Contact;
-          setCustomers((prevCustomers) => [
+          setCustomers((prevCustomers: Contact[]) => [
             ...prevCustomers,
             completeNewCustomer,
           ]);
           toast.success('Customer added successfully!');
         } catch (error: unknown) {
           console.error('Error adding customer to IndexedDB:', error);
-          toast.error(ADD_CUSTOMER_ERROR);
+          toast.error(
+            `${ADD_CUSTOMER_ERROR} ${(error as Error).message || error}`,
+          );
         }
       }
     },
-    [], // No dependencies needed if using functional updates for setCustomers
+    [],
   );
 
   const handleDeleteCustomerAction = useCallback(async (id: string) => {
     try {
       await deleteContact(id);
-      setCustomers((prevCustomers) =>
+      setCustomers((prevCustomers: Contact[]) =>
         prevCustomers.filter((customer: Contact) => customer.id !== id),
       );
       toast.info('Customer deleted.');
     } catch (error: unknown) {
       console.error('Error deleting customer from IndexedDB:', error);
-      toast.error(DELETE_CUSTOMER_ERROR);
+      toast.error(
+        `${DELETE_CUSTOMER_ERROR} ${(error as Error).message || error}`,
+      );
     }
   }, []);
-
-  /**
-   * Handles adding a new category.
-   * Calls the IndexedDB service and updates the state.
-   */
-  const handleAddCategoryAction = useCallback(async (name: string) => {
-    try {
-      // The IndexedDB service handles ID generation
-      const newId = await addCategory({ name });
-      if (newId) {
-        const newCategory: Category = { id: newId, name };
-        setCategories((prevCategories) => [...prevCategories, newCategory]);
-        toast.success('Category added successfully!');
-      } else {
-        toast.error(
-          'Failed to add category. Please check console for details.',
-        );
-      }
-    } catch (error: unknown) {
-      console.error('Error adding category:', error);
-      toast.error(ADD_CATEGORY_ERROR);
-    }
-  }, []); // Dependency array is empty as it uses setCategories functional update
-
-  /**
-   * Handles updating an existing category.
-   * Calls the IndexedDB service and updates the state.
-   */
-  const handleUpdateCategoryAction = useCallback(async (category: Category) => {
-    try {
-      await updateCategory(category);
-      setCategories((prevCategories) =>
-        prevCategories.map((cat) => (cat.id === category.id ? category : cat)),
-      );
-      toast.success('Category updated successfully!');
-    } catch (error: unknown) {
-      console.error('Error updating category:', error);
-      toast.error(UPDATE_CATEGORY_ERROR);
-    }
-  }, []); // Dependency array is empty as it uses setCategories functional update
-
-  /**
-   * Handles deleting a category.
-   * Calls the IndexedDB service and updates the state.
-   */
-  const handleDeleteCategoryAction = useCallback(async (id: string) => {
-    try {
-      await deleteCategory(id);
-      setCategories((prevCategories) =>
-        prevCategories.filter((cat) => cat.id !== id),
-      );
-      toast.success('Category deleted successfully!');
-    } catch (error: unknown) {
-      console.error('Error deleting category:', error);
-      toast.error(DELETE_CATEGORY_ERROR);
-    }
-  }, []); // Dependency array is empty as it uses setCategories functional update
 
   const handleCategorySuccessfullyDeletedAction = useCallback(
     async (deletedCategoryName: string) => {
       const customersToUpdate = customers.filter(
-        (customer) => customer.category === deletedCategoryName,
+        (customer: Contact) => customer.category === deletedCategoryName,
       );
 
-      const updatePromises = customersToUpdate.map(async (customer) => {
-        const updatedCustomer = { ...customer, category: '' };
-        await updateContact(updatedCustomer);
-        return updatedCustomer;
-      });
+      const updatePromises = customersToUpdate.map(
+        async (customer: Contact) => {
+          const updatedCustomer = { ...customer, category: '' };
+          await updateContact(updatedCustomer);
+          return updatedCustomer;
+        },
+      );
 
       await Promise.all(updatePromises);
 
-      setCustomers((prevCustomers) =>
-        prevCustomers.map((customer) =>
+      setCustomers((prevCustomers: Contact[]) =>
+        prevCustomers.map((customer: Contact) =>
           customer.category === deletedCategoryName
             ? { ...customer, category: '' }
             : customer,
@@ -271,19 +216,21 @@ export const useCRMData = () => {
   const handleCategoryRenamedAction = useCallback(
     async (oldName: string, newName: string) => {
       const customersToUpdate = customers.filter(
-        (customer) => customer.category === oldName,
+        (customer: Contact) => customer.category === oldName,
       );
 
-      const updatePromises = customersToUpdate.map(async (customer) => {
-        const updatedCustomer = { ...customer, category: newName };
-        await updateContact(updatedCustomer);
-        return updatedCustomer;
-      });
+      const updatePromises = customersToUpdate.map(
+        async (customer: Contact) => {
+          const updatedCustomer = { ...customer, category: newName };
+          await updateContact(updatedCustomer);
+          return updatedCustomer;
+        },
+      );
 
       await Promise.all(updatePromises);
 
-      setCustomers((prevCustomers) =>
-        prevCustomers.map((customer) =>
+      setCustomers((prevCustomers: Contact[]) =>
+        prevCustomers.map((customer: Contact) =>
           customer.category === oldName
             ? { ...customer, category: newName }
             : customer,
@@ -301,8 +248,8 @@ export const useCRMData = () => {
       try {
         const newLogId = await createCommunicationLog(log);
         if (newLogId) {
-          setCustomers((prevCustomers) =>
-            prevCustomers.map((cust) =>
+          setCustomers((prevCustomers: Contact[]) =>
+            prevCustomers.map((cust: Contact) =>
               cust.id === log.customerId
                 ? {
                     ...cust,
@@ -319,7 +266,9 @@ export const useCRMData = () => {
         }
       } catch (error: unknown) {
         console.error('Error creating communication log:', error);
-        toast.error(CREATE_COMM_LOG_ERROR);
+        toast.error(
+          `${CREATE_COMM_LOG_ERROR} ${(error as Error).message || error}`,
+        );
       }
     },
     [],
@@ -335,8 +284,8 @@ export const useCRMData = () => {
       customerId: string,
       updateFn: (logs: CommunicationLog[]) => CommunicationLog[],
     ) => {
-      setCustomers((prevCustomers) =>
-        prevCustomers.map((cust) =>
+      setCustomers((prevCustomers: Contact[]) =>
+        prevCustomers.map((cust: Contact) =>
           cust.id === customerId
             ? {
                 ...cust,
@@ -361,7 +310,9 @@ export const useCRMData = () => {
         toast.success('Communication log updated successfully!');
       } catch (error: unknown) {
         console.error('Error updating communication log:', error);
-        toast.error(UPDATE_COMM_LOG_ERROR);
+        toast.error(
+          `${UPDATE_COMM_LOG_ERROR} ${(error as Error).message || error}`,
+        );
       }
     },
     [updateCustomerCommunicationLogs],
@@ -377,26 +328,26 @@ export const useCRMData = () => {
         toast.info('Communication log deleted.');
       } catch (error: unknown) {
         console.error('Error deleting communication log:', error);
-        toast.error(DELETE_COMM_LOG_ERROR);
+        toast.error(
+          `${DELETE_COMM_LOG_ERROR} ${(error as Error).message || error}`,
+        );
       }
     },
     [updateCustomerCommunicationLogs],
   );
 
+  const crmCategories = useCrmCategories();
+
   return {
     customers,
     hasAttemptedInitialLoad,
-    categories,
     handleSaveCustomerAction,
     handleDeleteCustomerAction,
-    // Include new category action handlers
-    handleAddCategoryAction,
-    handleUpdateCategoryAction,
-    handleDeleteCategoryAction,
     handleCategorySuccessfullyDeletedAction,
     handleCategoryRenamedAction,
     handleCreateCommunicationLogAction,
     handleUpdateCommunicationLogAction,
     handleDeleteCommunicationLogAction,
+    ...crmCategories,
   };
 };

@@ -4,11 +4,11 @@ import { AcademyDataType } from '@/hooks/use-academy-storage';
 
 const ACADEMY_DATA_KEY = 'academyData';
 
-const useAcademyStorageService = () => {
+const useAcademyStorageService = (key: string = ACADEMY_DATA_KEY) => {
   const [academyData, setAcademyData] = useLocalStorage<AcademyDataType>(
-    ACADEMY_DATA_KEY,
-    { courses: [] }, // Updated initial state
-    { courses: [] }, // Updated default value
+    key,
+    { courses: [] },
+    { courses: [] },
   );
 
   const getAcademyData = useCallback(() => academyData, [academyData]);
@@ -25,7 +25,16 @@ const useAcademyStorageService = () => {
   );
 
   const exportAcademyData = useCallback(() => {
-    return JSON.stringify(academyData);
+    const dataStr = JSON.stringify(academyData);
+    const dataUri =
+      'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+    const link = document.createElement('a');
+    link.setAttribute('href', dataUri);
+    link.setAttribute('download', 'academyData.json');
+    document.body.appendChild(link); // Required for FF
+    link.click();
+    link.remove();
   }, [academyData]);
 
   return { getAcademyData, setAcademyDataValue, exportAcademyData };

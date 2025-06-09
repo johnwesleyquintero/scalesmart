@@ -72,28 +72,10 @@ const CategoryManager = ({
    */
   const handleAddCategory = async () => {
     const trimmedCategoryName = categoryInputName.trim();
+    if (!validateCategoryName(trimmedCategoryName, categories)) return;
 
-    // Prevent adding empty category names.
-    if (!trimmedCategoryName) {
-      toast.error('Category name cannot be empty.');
-      return;
-    }
-
-    // Check for case-insensitive uniqueness.
-    const categoryExists = categories.some(
-      (category) =>
-        category.name.toLowerCase() === trimmedCategoryName.toLowerCase(),
-    );
-
-    if (categoryExists) {
-      toast.error(`Category "${trimmedCategoryName}" already exists.`);
-      return;
-    }
-
-    // Call the parent's add category action
     await onAddCategory(trimmedCategoryName);
-    // Parent will update the categories state and pass it back down
-    setCategoryInputName(''); // Clear input field.
+    setCategoryInputName('');
   };
 
   /**
@@ -116,39 +98,22 @@ const CategoryManager = ({
     }
 
     const trimmedCategoryName = categoryInputName.trim();
-
-    // Prevent updating with an empty category name.
-    if (!trimmedCategoryName) {
-      toast.error('Category name cannot be empty.');
+    if (
+      !validateCategoryName(trimmedCategoryName, categories, editingCategory.id)
+    )
       return;
-    }
 
-    // Check for case-insensitive uniqueness, excluding the category being edited.
-    const categoryExists = categories.some(
-      (category) =>
-        category.id !== editingCategory.id &&
-        category.name.toLowerCase() === trimmedCategoryName.toLowerCase(),
-    );
-
-    if (categoryExists) {
-      toast.error(`Category "${trimmedCategoryName}" already exists.`);
-      return;
-    }
-
-    const oldName = editingCategory.name; // Capture old name before update.
+    const oldName = editingCategory.name;
     const updatedCategory: Category = {
       ...editingCategory,
       name: trimmedCategoryName,
     };
 
-    // Call the parent's update category action
     await onUpdateCategory(updatedCategory);
-    // Parent will update the categories state and pass it back down
 
-    setEditingCategory(null); // Clear editing state.
-    setCategoryInputName(''); // Clear input field.
+    setEditingCategory(null);
+    setCategoryInputName('');
 
-    // If the name actually changed, notify the parent.
     if (oldName !== updatedCategory.name) {
       onCategoryRenamed(oldName, updatedCategory.name);
     }
@@ -165,19 +130,61 @@ const CategoryManager = ({
       return;
     }
 
-    // Prevent deletion if customers are assigned to this category.
-    const count = customerCounts.get(categoryToDelete.name) || 0;
-    if (count > 0) {
-      toast.error(
-        `Cannot delete category "${categoryToDelete.name}" because ${count} customer(s) are assigned to it.`,
-      );
-      return;
+    if (!canDeleteCategory(categoryToDelete.name, customerCounts)) return;
+
+    await onDeleteCategory(id);
+    onCategorySuccessfullyDeleted(categoryToDelete.name);
+  };
+
+  /**
+   * Validates a category name for adding or updating.
+   * @param name The category name to validate.
+   * @param categories The list of existing categories.
+   * @param editingId Optional ID of the category being edited.
+   * @returns True if the name is valid, false otherwise.
+   */
+  const validateCategoryName = (
+    name: string,
+    categories: Category[],
+    editingId?: string,
+  ): boolean => {
+    if (!name) {
+      toast.error('Category name cannot be empty.');
+      return false;
     }
 
-    // Call the parent's delete category action
-    await onDeleteCategory(id);
-    // Parent will update the categories state and pass it back down
-    onCategorySuccessfullyDeleted(categoryToDelete.name); // Notify parent about the specific category deleted.
+    const categoryExists = categories.some(
+      (category) =>
+        category.id !== editingId &&
+        category.name.toLowerCase() === name.toLowerCase(),
+    );
+
+    if (categoryExists) {
+      toast.error(`Category "${name}" already exists.`);
+      return false;
+    }
+
+    return true;
+  };
+
+  /**
+   * Checks if a category can be deleted based on customer counts.
+   * @param categoryName The name of the category to check.
+   * @param customerCounts The map of category names to customer counts.
+   * @returns True if the category can be deleted, false otherwise.
+   */
+  const canDeleteCategory = (
+    categoryName: string,
+    customerCounts: Map<string | null, number>,
+  ): boolean => {
+    const count = customerCounts.get(categoryName) || 0;
+    if (count > 0) {
+      toast.error(
+        `Cannot delete category "${categoryName}" because ${count} customer(s) are assigned to it.`,
+      );
+      return false;
+    }
+    return true;
   };
 
   // Determine if the add/update button should be disabled.

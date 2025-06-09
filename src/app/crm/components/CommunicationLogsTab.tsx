@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/select';
 import type { Contact, CommunicationLog } from '../types';
 import useDebounce from '@/hooks/use-debounce';
-import fuzzysort from 'fuzzysort';
+import { COMMUNICATION_TYPES } from './CommunicationLog';
 
 /**
  * Extends CommunicationLog to include the customer's name for display and filtering.
@@ -73,7 +73,7 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
   // State for search query input.
   const [searchQuery, setSearchQuery] = useState('');
   // Debounced search query to prevent excessive re-renders during typing.
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
   // State for selected communication type filter.
   const [selectedType, setSelectedType] =
     useState<CommunicationTypeFilter>('All');
@@ -111,13 +111,14 @@ export const CommunicationLogsTab: React.FC<CommunicationLogsTabProps> = ({
 
     // Apply fuzzy search if a query is present.
     if (debouncedSearchQuery) {
-      // Consider optimizing the search algorithm or using a more efficient library for large datasets.
-      results = fuzzysort
-        .go(debouncedSearchQuery, results, {
-          keys: ['subject', 'notes', 'customerName'],
-          threshold: -700, // Adjust threshold as needed for search sensitivity.
-        })
-        .map((result) => result.obj); // Extract the original object from fuzzysort result.
+      const lowerCaseQuery = debouncedSearchQuery.toLowerCase();
+      results = results.filter((log) => {
+        return (
+          log.subject?.toLowerCase().includes(lowerCaseQuery) ||
+          log.notes.toLowerCase().includes(lowerCaseQuery) ||
+          log.customerName.toLowerCase().includes(lowerCaseQuery)
+        );
+      });
     }
 
     return results;

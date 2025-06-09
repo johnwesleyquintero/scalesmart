@@ -62,9 +62,8 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
    */
   const startModule = async (module: Module) => {
     if (!activeCourse) {
-      // Log an error if no active course is found, which is crucial for debugging.
-      console.error('startModule: No active course found.');
-      return;
+      // Throw an error if no active course is found, which allows the error boundary to catch it.
+      throw new Error('No active course found.');
     }
 
     // Use updateModuleProgress as defined in useAcademyStorage.
@@ -84,10 +83,7 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
         ) || null;
     }
     setActiveModule(
-      initialModule ||
-        (course.modules && course.modules.length > 0
-          ? course.modules[0]
-          : null),
+      initialModule ?? (course.modules?.length > 0 ? course.modules[0] : null),
     );
   };
 
@@ -98,14 +94,14 @@ export const AcademyProvider: React.FC<AcademyProviderProps> = ({
     setActiveModule,
     courses,
     startModule,
-    academyData: { courses: academyData?.courses || [] },
-    saveData: (data) => saveData(data),
+    academyData: academyData || { courses: [] },
+    saveData,
     startCourseAction,
-    updateModuleProgress, // Expose updateModuleProgress for context consumers.
-    getModuleProgress, // Expose getModuleProgress for context consumers.
-    updateQuizResult, // Expose updateQuizResult for context consumers.
-    getQuizResult, // Expose getQuizResult for context consumers.
-    markCourseVisited, // Expose markCourseVisited for context consumers.
+    updateModuleProgress,
+    getModuleProgress,
+    updateQuizResult,
+    getQuizResult,
+    markCourseVisited,
   };
 
   return (
