@@ -8,28 +8,19 @@ import {
 import MarkdownEditor from './components/MarkdownEditor';
 import CategorySelector from './components/CategorySelector';
 import SearchBar from './components/SearchBar';
+import MarkdownTabs from './components/MarkdownTabs'; // Import MarkdownTabs
+import NoteContent from './components/NoteContent'; // Import NoteContent
 import {
   getNotesByCategory,
   searchNotes,
   getNote,
-  getAllNotes,
-} from '@/lib/indexeddb/markdown-notepad-db'; // Removed direct deleteNote, updateNote
-import ReactMarkdown from 'react-markdown';
+} from '@/lib/indexeddb/markdown-notepad-db';
 import { Button } from '@/components/ui/button';
-import remarkGfm from 'remark-gfm';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MarkdownCategoryManagementTab } from './components/MarkdownCategoryManagementTab';
+import NoteListAndActions from './components/NoteListAndActions';
 import { Note } from '@/types/indexeddb';
 import { useToast } from '@/hooks/use-toast';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
-import { CRMTabsTrigger } from '@/app/crm/components/CRMTabsTrigger'; // Reusing CRMTabsTrigger for consistency
-import { MarkdownCategoryManagementTab } from './components/MarkdownCategoryManagementTab'; // New category management tab
 
 const MarkdownNotepad = () => {
   return (
@@ -42,13 +33,13 @@ const MarkdownNotepad = () => {
 const NotepadContent = () => {
   const {
     category,
-    setCategory, // Added setCategory to allow tab changes to update the category filter
+    setCategory,
     searchQuery,
     createNewNote,
     allCategories,
-    fetchCategories, // Added fetchCategories to refresh categories after note operations
-    handleDeleteNote, // Import handleDeleteNote from context
-    handleUpdateNote, // Import handleUpdateNote from context
+    fetchCategories,
+    handleDeleteNote,
+    handleUpdateNote,
   } = useMarkdownNotepadContext();
   const [notes, setNotes] = useState<Note[]>([]);
   const [activeNoteContent, setActiveNoteContent] = useState<string>('');
@@ -57,6 +48,8 @@ const NotepadContent = () => {
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
   const [bulkCategory, setBulkCategory] = useState<string>('');
+  const [openNoteIds, setOpenNoteIds] = useState<string[]>([]); // Track open note IDs
+  const [noteTitles, setNoteTitles] = useState<{ [key: string]: string }>({}); // Store titles for tabs
 
   // Function to fetch notes based on current category and search query
   const fetchNotesContent = useCallback(async () => {
@@ -99,13 +92,28 @@ const NotepadContent = () => {
     }
   }, [notes, selectedNoteId]); // Depend on notes and selectedNoteId for this specific logic
 
+  // Effect to load content of the active note
   useEffect(() => {
-    const loadSelectedNote = async () => {
+    const loadActiveNoteContent = async () => {
       if (selectedNoteId) {
         try {
           const note = await getNote(selectedNoteId);
-          setActiveNoteContent(note?.markdown || '');
-          setActiveNoteTitle(note?.title || 'Untitled Note');
+          if (note) {
+            setActiveNoteContent(note.markdown || '');
+            setActiveNoteTitle(note.title || 'Untitled Note');
+            setNoteTitles((prev) => ({
+              ...prev,
+              [note.id]: note.title || 'Untitled',
+            }));
+          } else {
+            setActiveNoteContent('');
+            setActiveNoteTitle('');
+            setNoteTitles((prev) => {
+              const newTitles = { ...prev };
+              delete newTitles[selectedNoteId];
+              return newTitles;
+            });
+          }
         } catch (error: unknown) {
           console.error(`Failed to load note ${selectedNoteId}:`, error);
           let errorMessage = `Failed to load note content.`;
@@ -125,8 +133,41 @@ const NotepadContent = () => {
         setActiveNoteTitle('');
       }
     };
-    loadSelectedNote();
+    loadActiveNoteContent();
   }, [selectedNoteId, toast]);
+
+  // Function to handle opening a note in a new tab
+  const handleOpenNoteInTab = useCallback(
+    async (noteId: string) => {
+      if (!openNoteIds.includes(noteId)) {
+        setOpenNoteIds((prev) => [...prev, noteId]);
+      }
+      setSelectedNoteId(noteId);
+    },
+    [openNoteIds, setSelectedNoteId],
+  );
+
+  // Function to handle closing a note tab
+  const handleCloseNoteTab = useCallback(
+    (noteIdToClose: string) => {
+      setOpenNoteIds((prev) => {
+        const newOpenNoteIds = prev.filter((id) => id !== noteIdToClose);
+        // If the closed tab was the active one, select a new active tab
+        if (selectedNoteId === noteIdToClose) {
+          setSelectedNoteId(
+            newOpenNoteIds.length > 0 ? newOpenNoteIds[0] : null,
+          );
+        }
+        return newOpenNoteIds;
+      });
+      setNoteTitles((prev) => {
+        const newTitles = { ...prev };
+        delete newTitles[noteIdToClose];
+        return newTitles;
+      });
+    },
+    [selectedNoteId, setSelectedNoteId],
+  );
 
   const handleDeleteNoteClick = async (noteId: string) => {
     if (window.confirm('Are you sure you want to delete this note?')) {
@@ -134,6 +175,7 @@ const NotepadContent = () => {
         await handleDeleteNote(noteId); // Use context's handleDeleteNote
         setSelectedNoteId(null);
         setSelectedNoteIds((prev) => prev.filter((id) => id !== noteId)); // Remove from multi-selection
+        handleCloseNoteTab(noteId); // Close the tab if the note was open
         await fetchNotesContent(); // Reload notes after deletion
         await fetchCategories(); // Refresh categories as a note's category might have been removed
         toast({
@@ -153,12 +195,6 @@ const NotepadContent = () => {
         });
       }
     }
-  };
-
-  const handleNoteSelect = (noteId: string, isSelected: boolean) => {
-    setSelectedNoteIds((prev) =>
-      isSelected ? [...prev, noteId] : prev.filter((id) => id !== noteId),
-    );
   };
 
   const handleBulkCategoryAssign = async () => {
@@ -260,19 +296,19 @@ const NotepadContent = () => {
       <div className="bg-card p-6 rounded-lg shadow-md">
         <Tabs defaultValue="notes" className="w-full">
           <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-muted">
+            <TabsTrigger value="notes">Notes</TabsTrigger>
+            <TabsTrigger value="category-management">
+              Category Management
+            </TabsTrigger>
             <Button
               onClick={async () => {
                 const newNoteId = await createNewNote();
-                setSelectedNoteId(newNoteId);
+                handleOpenNoteInTab(newNoteId); // Open new note in a tab
               }}
-              className="mr-2"
+              className="ml-2"
             >
               Create New Note
             </Button>
-            <CRMTabsTrigger value="notes">Notes</CRMTabsTrigger>
-            <CRMTabsTrigger value="category-management">
-              Category Management
-            </CRMTabsTrigger>
           </TabsList>
 
           <TabsContent value="notes" className="space-y-4 mt-4">
@@ -281,8 +317,20 @@ const NotepadContent = () => {
               <CategorySelector />
             </div>
 
+            {/* Tabbed interface for open notes */}
+            {openNoteIds.length > 0 && (
+              <MarkdownTabs
+                openNoteIds={openNoteIds}
+                activeNoteId={selectedNoteId}
+                onTabChange={setSelectedNoteId}
+                onTabClose={handleCloseNoteTab}
+                noteTitles={noteTitles}
+              />
+            )}
+
             {selectedNoteId ? (
               <MarkdownEditor
+                key={selectedNoteId} // Key is crucial for re-mounting editor when tab changes
                 noteId={selectedNoteId}
                 initialTitle={activeNoteTitle}
                 initialMarkdown={activeNoteContent}
@@ -294,133 +342,22 @@ const NotepadContent = () => {
               </div>
             )}
 
-            <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-4">All Notes</h2>
-              {notes.length > 0 && (
-                <div className="flex items-center space-x-2 mb-4">
-                  <Select onValueChange={setBulkCategory} value={bulkCategory}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Bulk assign category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allCategories
-                        .filter((cat) => cat.name !== '')
-                        .map((cat) => (
-                          <SelectItem
-                            key={cat.id}
-                            value={cat.name}
-                            label={cat.name}
-                          >
-                            {cat.name}
-                          </SelectItem>
-                        ))}
-                      <SelectItem value="uncategorized" label="Uncategorized">
-                        Uncategorized
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleBulkCategoryAssign}
-                    disabled={selectedNoteIds.length === 0 || !bulkCategory}
-                  >
-                    Assign to Selected ({selectedNoteIds.length})
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    onClick={handleBulkDelete}
-                    disabled={selectedNoteIds.length === 0}
-                  >
-                    Delete Selected ({selectedNoteIds.length})
-                  </Button>
-                  <Button
-                    onClick={async () => {
-                      const selectedNotes = notes.filter((note) =>
-                        selectedNoteIds.includes(note.id),
-                      );
-                      const json = JSON.stringify(selectedNotes, null, 2);
-                      const blob = new Blob([json], {
-                        type: 'application/json',
-                      });
-                      const url = URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = 'markdown_notes.json';
-                      document.body.appendChild(a);
-                      a.click();
-                      document.body.removeChild(a);
-                      URL.revokeObjectURL(url);
-                      toast({
-                        title: 'Success',
-                        description: 'Selected notes exported as JSON.',
-                      });
-                    }}
-                    disabled={selectedNoteIds.length === 0}
-                  >
-                    Export Selected ({selectedNoteIds.length})
-                  </Button>
-                </div>
-              )}
-              <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {notes.map((note) => (
-                  <li
-                    key={note.id}
-                    className="p-4 border border-border bg-card rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer flex flex-col justify-between"
-                  >
-                    <div className="flex items-start">
-                      <Checkbox
-                        checked={selectedNoteIds.includes(note.id)}
-                        onCheckedChange={(checked) =>
-                          handleNoteSelect(note.id, checked as boolean)
-                        }
-                        className="mr-2 mt-1"
-                      />
-                      <div className="flex-grow min-w-0">
-                        <h3
-                          className="font-bold mb-2 overflow-hidden text-ellipsis whitespace-nowrap"
-                          onClick={() => setSelectedNoteId(note.id)}
-                        >
-                          {note?.title || 'Untitled Note'}
-                        </h3>
-                        <div
-                          className="text-sm text-muted-foreground line-clamp-3 overflow-hidden text-ellipsis"
-                          onClick={() => setSelectedNoteId(note.id)}
-                        >
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {note?.markdown
-                              ? note.markdown.substring(0, 150) + '...'
-                              : ''}
-                          </ReactMarkdown>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <p className="text-xs text-muted-foreground">
-                        Created: {new Date(note.createdAt).toLocaleDateString()}
-                        {note.updatedAt &&
-                          note.createdAt !== note.updatedAt && (
-                            <span>
-                              {' '}
-                              | Updated:{' '}
-                              {new Date(note.updatedAt).toLocaleDateString()}
-                            </span>
-                          )}
-                      </p>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDeleteNoteClick(note.id)}
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <NoteListAndActions
+              notes={notes}
+              selectedNoteIds={selectedNoteIds}
+              setSelectedNoteIds={setSelectedNoteIds}
+              onNoteClick={handleOpenNoteInTab} // Changed to onNoteClick
+              handleDeleteNoteClick={handleDeleteNoteClick}
+              handleBulkCategoryAssign={handleBulkCategoryAssign}
+              handleBulkDelete={handleBulkDelete}
+              allCategories={allCategories}
+              bulkCategory={bulkCategory}
+              setBulkCategory={setBulkCategory}
+            />
           </TabsContent>
 
           <TabsContent value="category-management" className="space-y-4 mt-4">
-            <MarkdownCategoryManagementTab notes={notes} />
+            <MarkdownCategoryManagementTab />
           </TabsContent>
         </Tabs>
       </div>

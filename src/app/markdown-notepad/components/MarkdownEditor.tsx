@@ -20,6 +20,7 @@ import { useToast } from '@/hooks/use-toast';
 import useDebounceCallback from '@/hooks/use-debounce-callback';
 import { format } from 'date-fns';
 import { MarkdownNoteVersion } from '@/types/indexeddb';
+import { getNote } from '@/lib/indexeddb/markdown-notepad-db'; // Import getNote
 
 interface MarkdownEditorProps {
   noteId: string;
@@ -164,11 +165,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                           size="sm"
                           onClick={async () => {
                             await restoreNoteVersion(noteId, version.markdown);
-                            setMarkdown(version.markdown); // Update editor with restored content
-                            setTitle(
-                              version.markdown.split('\n')[0]?.trim() ||
-                                'Restored Note',
-                            );
+                            // After restoring, re-fetch the note to get the updated title and content
+                            // This ensures consistency with the context's restore logic
+                            const updatedNote = await getNote(noteId);
+                            if (updatedNote) {
+                              setMarkdown(updatedNote.markdown);
+                              setTitle(updatedNote.title);
+                            }
                             setShowVersionHistory(false); // Close dialog
                           }}
                         >

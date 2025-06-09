@@ -7,8 +7,9 @@ import React, {
 } from 'react';
 import {
   addNote,
-  updateNote, // Import updateNote
-  deleteNote, // Import deleteNote
+  updateNote,
+  deleteNote,
+  getNote, // Import getNote
   addNoteVersion,
   getNoteVersions,
   cleanOldNoteVersions,
@@ -131,11 +132,15 @@ export const MarkdownNotepadProvider = ({
     async (noteId: string, versionMarkdown: string) => {
       try {
         // First, get the existing note to preserve its title and category
-        const existingNote = await updateNote(
+        const existingNote = await getNote(noteId);
+        if (!existingNote) {
+          throw new Error(`Note with ID ${noteId} not found for restoration.`);
+        }
+        await updateNote(
           noteId,
-          'Restored Note', // Placeholder, will be updated by the editor
+          existingNote.title, // Preserve original title
           versionMarkdown,
-          'uncategorized', // Placeholder, will be updated by the editor
+          existingNote.category, // Preserve original category
         );
         toast({
           title: 'Success',

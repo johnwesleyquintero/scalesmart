@@ -15,10 +15,10 @@ import {
 } from '@/components/ui/table';
 import { Category, Note } from '@/types/indexeddb';
 import { useToast } from '@/hooks/use-toast';
+import { getAllNotes } from '@/lib/indexeddb/markdown-notepad-db'; // Import getAllNotes
 
 interface MarkdownCategoryManagerProps {
   categories: Category[];
-  notes: Note[]; // Pass notes to calculate note counts per category
   onAddCategory: (name: string) => Promise<void>;
   onUpdateCategory: (category: Category) => Promise<void>;
   onDeleteCategory: (id: string) => Promise<void>;
@@ -27,7 +27,6 @@ interface MarkdownCategoryManagerProps {
 
 const MarkdownCategoryManager = ({
   categories,
-  notes,
   onAddCategory,
   onUpdateCategory,
   onDeleteCategory,
@@ -35,7 +34,21 @@ const MarkdownCategoryManager = ({
 }: MarkdownCategoryManagerProps) => {
   const [categoryInputName, setCategoryInputName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
+  const [notes, setNotes] = useState<Note[]>([]); // State to hold notes
   const { toast } = useToast();
+
+  // Fetch all notes on component mount and whenever categories change (to update counts)
+  useEffect(() => {
+    const fetchNotes = async () => {
+      try {
+        const fetchedNotes = await getAllNotes();
+        setNotes(fetchedNotes);
+      } catch (error) {
+        console.error('Failed to fetch notes for category manager:', error);
+      }
+    };
+    fetchNotes();
+  }, [categories]); // Re-fetch notes if categories change (e.g., a category is deleted)
 
   useEffect(() => {
     if (editingCategory) {
@@ -52,7 +65,7 @@ const MarkdownCategoryManager = ({
       counts.set(categoryName, (counts.get(categoryName) || 0) + 1);
     });
     return counts;
-  }, [notes]);
+  }, [notes]); // Depend on notes state
 
   const validateCategoryName = (
     name: string,
@@ -142,7 +155,7 @@ const MarkdownCategoryManager = ({
       setEditingCategory(null);
       setCategoryInputName('');
       if (oldName !== updatedCategory.name) {
-        onCategoryRenamed(oldName, updatedCategory.name);
+        await onCategoryRenamed(oldName, updatedCategory.name);
       }
     } catch (error) {
       // Error handled by useMarkdownCategories hook
@@ -164,8 +177,9 @@ const MarkdownCategoryManager = ({
 
     try {
       await onDeleteCategory(id);
-      // No need for onCategorySuccessfullyDeleted as notes are not directly tied to category objects
-      // and will be reloaded by the parent component.
+      // After deleting a category, re-fetch notes to update counts
+      const fetchedNotes = await getAllNotes();
+      setNotes(fetchedNotes);
     } catch (error) {
       // Error handled by useMarkdownCategories hook
     }
