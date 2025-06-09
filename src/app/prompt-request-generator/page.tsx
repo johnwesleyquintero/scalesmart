@@ -75,11 +75,10 @@ export default function PromptRequestGenerator() {
 
   // Debounced handler to update promptData state and perform validation based on local input state.
   const debouncedUpdatePromptData = useDebounceCallback(
-    (field, value) => {
-      console.log('debouncedUpdatePromptData field type:', typeof field);
+    (field: PromptDataKey, value: string) => {
       setPromptData((prev) => ({
         ...prev,
-        [field as keyof PromptData]: value,
+        [field]: value,
       }));
 
       // Perform validation for required fields on debounce
@@ -237,10 +236,12 @@ export default function PromptRequestGenerator() {
   const isCopyDisabled = useMemo(() => !output || copied, [output, copied]);
 
   return (
-    <div className="min-h-screen p-4 md:p-8 bg-background text-foreground">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="container mx-auto p-4">
+      <div className="bg-card p-6 rounded-lg shadow-md">
+        {' '}
+        {/* Main content wrapper */}
         {/* Header Section */}
-        <div className="text-center">
+        <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-foreground">
             Prompt Request Generator
           </h1>
@@ -248,266 +249,271 @@ export default function PromptRequestGenerator() {
             Create structured prompts for code assistance requests
           </p>
         </div>
+        <div className="space-y-6">
+          {' '}
+          {/* Wrapper for input and output cards */}
+          {/* Input Card */}
+          <Card className="bg-card border-border">
+            <CardHeader>
+              <CardTitle className="text-foreground">Request Details</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Fill in the sections below to generate a well-structured prompt
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Category Select */}
+                <div className="space-y-2">
+                  <Label htmlFor="category">
+                    Category <span className="text-red-500">*</span>
+                  </Label>
+                  {/* Indicate required */}
+                  <Select
+                    value={promptData.category}
+                    onValueChange={handleCategoryChange}
+                  >
+                    <SelectTrigger
+                      id="category"
+                      className={`bg-background border-border ${validationErrors.category ? ERROR_BORDER_CLASS : ''}`}
+                      aria-required="true"
+                      aria-invalid={!!validationErrors.category}
+                      aria-describedby={
+                        validationErrors.category ? 'category-error' : undefined
+                      }
+                    >
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border-border">
+                      {CATEGORIES.map((category) => (
+                        <SelectItem
+                          key={category}
+                          value={category}
+                          label={category}
+                        >
+                          {category}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value={CUSTOM_CATEGORY_VALUE} label="Custom">
+                        Custom
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {validationErrors.category && (
+                    <p
+                      id="category-error"
+                      className="text-red-500 text-sm mt-1"
+                    >
+                      {validationErrors.category}
+                    </p>
+                  )}
+                </div>
 
-        {/* Input Card */}
-        <Card className="bg-card border-border">
-          <CardHeader>
-            <CardTitle className="text-foreground">Request Details</CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Fill in the sections below to generate a well-structured prompt
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Category Select */}
+                {/* Custom Category Input (conditionally rendered) */}
+                {showCustomCategory && (
+                  <div className="space-y-2">
+                    <Label htmlFor="customCategory">
+                      Custom Category <span className="text-red-500">*</span>
+                    </Label>
+                    {/* Indicate required */}
+                    <Input
+                      id="customCategory"
+                      placeholder="e.g., AI Agent Development"
+                      value={promptData.customCategory} // This input still directly updates promptData as it's not debounced for typing smoothness
+                      onChange={(e) =>
+                        setPromptData((prev) => ({
+                          ...prev,
+                          customCategory: e.target.value,
+                        }))
+                      }
+                      onBlur={(e) =>
+                        // Trigger validation on blur for custom category
+                        debouncedUpdatePromptData(
+                          'customCategory',
+                          e.target.value,
+                        )
+                      }
+                      className={`bg-background border-border ${validationErrors.customCategory ? ERROR_BORDER_CLASS : ''}`}
+                      aria-required={showCustomCategory} // Indicate required state for screen readers
+                      aria-invalid={!!validationErrors.customCategory} // Indicate invalid state for screen readers
+                      aria-describedby={
+                        validationErrors.customCategory
+                          ? 'custom-category-error'
+                          : undefined
+                      } // Link to error message
+                    />
+                    {validationErrors.customCategory && (
+                      <p
+                        id="custom-category-error"
+                        className="text-red-500 text-sm mt-1"
+                      >
+                        {validationErrors.customCategory}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Context Textarea */}
               <div className="space-y-2">
-                <Label htmlFor="category">
-                  Category <span className="text-red-500">*</span>
+                <Label htmlFor="context">Context (optional)</Label>
+                <Textarea
+                  id="context"
+                  placeholder="Provide background information about your project or problem..."
+                  value={contextInput}
+                  onChange={(e) => {
+                    setContextInput(e.target.value);
+                    debouncedUpdatePromptData('context', e.target.value);
+                  }}
+                  rows={3}
+                  className="bg-background border-border"
+                  aria-label="Context for the request (optional)"
+                />
+              </div>
+
+              {/* Request Textarea */}
+              <div className="space-y-2">
+                <Label htmlFor="request">
+                  Request <span className="text-red-500">*</span>
                 </Label>
                 {/* Indicate required */}
-                <Select
-                  value={promptData.category}
-                  onValueChange={handleCategoryChange}
-                >
-                  <SelectTrigger
-                    id="category"
-                    className={`bg-background border-border ${validationErrors.category ? ERROR_BORDER_CLASS : ''}`}
-                    aria-required="true"
-                    aria-invalid={!!validationErrors.category}
-                    aria-describedby={
-                      validationErrors.category ? 'category-error' : undefined
-                    }
-                  >
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border-border">
-                    {CATEGORIES.map((category) => (
-                      <SelectItem
-                        key={category}
-                        value={category}
-                        label={category}
-                      >
-                        {category}
-                      </SelectItem>
-                    ))}
-                    <SelectItem value={CUSTOM_CATEGORY_VALUE} label="Custom">
-                      Custom
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-                {validationErrors.category && (
-                  <p id="category-error" className="text-red-500 text-sm mt-1">
-                    {validationErrors.category}
+                <Textarea
+                  id="request"
+                  placeholder="Clearly describe what you need help with..."
+                  value={requestInput}
+                  onChange={(e) => {
+                    setRequestInput(e.target.value);
+                    debouncedUpdatePromptData('request', e.target.value);
+                  }}
+                  rows={3}
+                  className={`bg-background border-border ${validationErrors.request ? ERROR_BORDER_CLASS : ''}`}
+                  aria-required="true" // Indicate required state for screen readers
+                  aria-invalid={!!validationErrors.request} // Indicate invalid state for screen readers
+                  aria-describedby={
+                    validationErrors.request ? 'request-error' : undefined
+                  } // Link to error message
+                />
+                {validationErrors.request && (
+                  <p id="request-error" className="text-red-500 text-sm mt-1">
+                    {validationErrors.request}
                   </p>
                 )}
               </div>
 
-              {/* Custom Category Input (conditionally rendered) */}
-              {showCustomCategory && (
-                <div className="space-y-2">
-                  <Label htmlFor="customCategory">
-                    Custom Category <span className="text-red-500">*</span>
-                  </Label>
-                  {/* Indicate required */}
-                  <Input
-                    id="customCategory"
-                    placeholder="e.g., AI Agent Development"
-                    value={promptData.customCategory} // This input still directly updates promptData as it's not debounced for typing smoothness
-                    onChange={(e) =>
-                      setPromptData((prev) => ({
-                        ...prev,
-                        customCategory: e.target.value,
-                      }))
-                    }
-                    onBlur={(e) =>
-                      // Trigger validation on blur for custom category
-                      debouncedUpdatePromptData(
-                        'customCategory',
-                        e.target.value,
-                      )
-                    }
-                    className={`bg-background border-border ${validationErrors.customCategory ? ERROR_BORDER_CLASS : ''}`}
-                    aria-required={showCustomCategory} // Indicate required state for screen readers
-                    aria-invalid={!!validationErrors.customCategory} // Indicate invalid state for screen readers
-                    aria-describedby={
-                      validationErrors.customCategory
-                        ? 'custom-category-error'
-                        : undefined
-                    } // Link to error message
-                  />
-                  {validationErrors.customCategory && (
-                    <p
-                      id="custom-category-error"
-                      className="text-red-500 text-sm mt-1"
-                    >
-                      {validationErrors.customCategory}
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Context Textarea */}
-            <div className="space-y-2">
-              <Label htmlFor="context">Context (optional)</Label>
-              <Textarea
-                id="context"
-                placeholder="Provide background information about your project or problem..."
-                value={contextInput}
-                onChange={(e) => {
-                  setContextInput(e.target.value);
-                  debouncedUpdatePromptData('context', e.target.value);
-                }}
-                rows={3}
-                className="bg-background border-border"
-                aria-label="Context for the request (optional)"
-              />
-            </div>
-
-            {/* Request Textarea */}
-            <div className="space-y-2">
-              <Label htmlFor="request">
-                Request <span className="text-red-500">*</span>
-              </Label>
-              {/* Indicate required */}
-              <Textarea
-                id="request"
-                placeholder="Clearly describe what you need help with..."
-                value={requestInput}
-                onChange={(e) => {
-                  setRequestInput(e.target.value);
-                  debouncedUpdatePromptData('request', e.target.value);
-                }}
-                rows={3}
-                className={`bg-background border-border ${validationErrors.request ? ERROR_BORDER_CLASS : ''}`}
-                aria-required="true" // Indicate required state for screen readers
-                aria-invalid={!!validationErrors.request} // Indicate invalid state for screen readers
-                aria-describedby={
-                  validationErrors.request ? 'request-error' : undefined
-                } // Link to error message
-              />
-              {validationErrors.request && (
-                <p id="request-error" className="text-red-500 text-sm mt-1">
-                  {validationErrors.request}
-                </p>
-              )}
-            </div>
-
-            {/* Code Input Textarea */}
-            <div className="space-y-2">
-              <Label htmlFor="codeInput">Relevant Code (optional)</Label>
-              <Textarea
-                id="codeInput"
-                placeholder="Paste any relevant code snippets..."
-                value={codeInput}
-                onChange={(e) => {
-                  setCodeInput(e.target.value);
-                  debouncedUpdatePromptData('codeInput', e.target.value);
-                }}
-                rows={5}
-                className="bg-background border-border font-mono"
-                aria-label="Relevant code snippet (optional)"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col md:flex-row gap-4">
-              {/* Generate Prompt Button */}
-              <Button
-                onClick={generatePromptHandler} // Use the renamed handler
-                className="w-full md:w-auto"
-                aria-label="Generate prompt based on details"
-                disabled={isGenerateDisabled || loading} // Disable based on validation state or loading
-              >
-                {loading ? (
-                  'Generating...'
-                ) : (
-                  <>
-                    <Wand2 className="mr-2 h-4 w-4" />
-                    Generate Prompt
-                  </>
-                )}
-              </Button>
-
-              {/* Clear Form Button */}
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setPromptData({
-                    category: '',
-                    customCategory: '',
-                    context: '',
-                    request: '',
-                    codeInput: '',
-                  });
-                  setContextInput(''); // Clear local state
-                  setRequestInput(''); // Clear local state
-                  setCodeInput(''); // Clear local state
-                  setOutput(''); // Clear output as well
-                  setValidationErrors({}); // Clear validation errors
-                  setCopied(false); // Reset copied state
-                }}
-                className="w-full md:w-auto"
-                aria-label="Clear all form fields"
-              >
-                Clear Form
-              </Button>
-
-              {/* Link to External AI Assistant */}
-              <Link
-                href="https://wesai.netlify.app/" // External link URL
-                target="_blank" // Open in new tab
-                rel="noopener noreferrer" // Security best practice for target="_blank"
-                // Apply Shadcn button styles using Tailwind classes
-                className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2 w-full md:w-auto"
-                aria-label="Open WesAI Code Assistant in a new tab" // Accessibility label
-              >
-                WesAI Code Assistant
-                <ExternalLink className="ml-2 h-4 w-4" />
-                {/* External link icon */}
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Output Card (conditionally rendered when output is available) */}
-        {output && (
-          <Card className="bg-card border-border">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-foreground">
-                  Generated Prompt
-                </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Ready to copy and use
-                </CardDescription>
+              {/* Code Input Textarea */}
+              <div className="space-y-2">
+                <Label htmlFor="codeInput">Relevant Code (optional)</Label>
+                <Textarea
+                  id="codeInput"
+                  placeholder="Paste any relevant code snippets..."
+                  value={codeInput}
+                  onChange={(e) => {
+                    setCodeInput(e.target.value);
+                    debouncedUpdatePromptData('codeInput', e.target.value);
+                  }}
+                  rows={5}
+                  className="bg-background border-border font-mono"
+                  aria-label="Relevant code snippet (optional)"
+                />
               </div>
-              {/* Copy Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={copyToClipboard}
-                disabled={isCopyDisabled} // Disable if no output or already copied
-                aria-label="Copy generated prompt to clipboard" // Accessibility label
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                {copied ? 'Copied!' : 'Copy'}
-                {/* Button text changes on copy */}
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {/* Output Display Area */}
-              <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-y-auto max-h-[300px]">
-                <ReactMarkdown
-                  components={components}
-                  remarkPlugins={[remarkGfm]}
+
+              {/* Action Buttons */}
+              <div className="flex flex-col md:flex-row gap-4">
+                {/* Generate Prompt Button */}
+                <Button
+                  onClick={generatePromptHandler} // Use the renamed handler
+                  className="w-full md:w-auto"
+                  aria-label="Generate prompt based on details"
+                  disabled={isGenerateDisabled || loading} // Disable based on validation state or loading
                 >
-                  {output}
-                </ReactMarkdown>
+                  {loading ? (
+                    'Generating...'
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Generate Prompt
+                    </>
+                  )}
+                </Button>
+
+                {/* Clear Form Button */}
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setPromptData({
+                      category: '',
+                      customCategory: '',
+                      context: '',
+                      request: '',
+                      codeInput: '',
+                    });
+                    setContextInput(''); // Clear local state
+                    setRequestInput(''); // Clear local state
+                    setCodeInput(''); // Clear local state
+                    setOutput(''); // Clear output as well
+                    setValidationErrors({}); // Clear validation errors
+                    setCopied(false); // Reset copied state
+                  }}
+                  className="w-full md:w-auto"
+                  aria-label="Clear all form fields"
+                >
+                  Clear Form
+                </Button>
+
+                {/* Link to External AI Assistant */}
+                <Link
+                  href="https://wesai.netlify.app/" // External link URL
+                  target="_blank" // Open in new tab
+                  rel="noopener noreferrer" // Security best practice for target="_blank"
+                  // Apply Shadcn button styles using Tailwind classes
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2 w-full md:w-auto"
+                  aria-label="Open WesAI Code Assistant in a new tab" // Accessibility label
+                >
+                  WesAI Code Assistant
+                  <ExternalLink className="ml-2 h-4 w-4" />
+                  {/* External link icon */}
+                </Link>
               </div>
             </CardContent>
           </Card>
-        )}
+          {/* Output Card (conditionally rendered when output is available) */}
+          {output && (
+            <Card className="bg-card border-border mt-6">
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-foreground">
+                    Generated Prompt
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground">
+                    Ready to copy and use
+                  </CardDescription>
+                </div>
+                {/* Copy Button */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={copyToClipboard}
+                  disabled={isCopyDisabled} // Disable if no output or already copied
+                  aria-label="Copy generated prompt to clipboard" // Accessibility label
+                >
+                  <Copy className="mr-2 h-4 w-4" />
+                  {copied ? 'Copied!' : 'Copy'}
+                  {/* Button text changes on copy */}
+                </Button>
+              </CardHeader>
+              <CardContent>
+                {/* Output Display Area */}
+                <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-y-auto max-h-[300px]">
+                  <ReactMarkdown
+                    components={components}
+                    remarkPlugins={[remarkGfm]}
+                  >
+                    {output}
+                  </ReactMarkdown>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
     </div>
   );
