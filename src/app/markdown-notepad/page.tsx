@@ -58,7 +58,8 @@ const NotepadContent = () => {
   const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
   const [bulkCategory, setBulkCategory] = useState<string>('');
 
-  const loadNotes = useCallback(async () => {
+  // Function to fetch notes based on current category and search query
+  const fetchNotesContent = useCallback(async () => {
     try {
       let loadedNotes: Note[] = [];
       if (category && category !== 'all') {
@@ -67,13 +68,6 @@ const NotepadContent = () => {
         loadedNotes = await searchNotes(searchQuery);
       }
       setNotes(loadedNotes || []);
-      // Automatically select the first note if notes are loaded and no note is currently selected
-      if (loadedNotes && loadedNotes.length > 0 && !selectedNoteId) {
-        setSelectedNoteId(loadedNotes[0].id);
-      } else if (!loadedNotes || loadedNotes.length === 0) {
-        // If no notes are loaded, clear the selected note
-        setSelectedNoteId(null);
-      }
     } catch (error: unknown) {
       console.error('Failed to load notes:', error);
       let errorMessage = 'Failed to load notes.';
@@ -86,11 +80,24 @@ const NotepadContent = () => {
         variant: 'destructive',
       });
     }
-  }, [category, searchQuery, toast, selectedNoteId]);
+  }, [category, searchQuery, toast]); // Dependencies are only for fetching logic
 
+  // Effect to trigger note fetching and reset selection when category or search query changes
   useEffect(() => {
-    loadNotes();
-  }, [loadNotes]);
+    fetchNotesContent();
+    // Crucially, reset selectedNoteId when category or search query changes
+    setSelectedNoteId(null);
+  }, [category, searchQuery, fetchNotesContent]); // Explicitly depend on category, searchQuery, and the memoized fetcher
+
+  // Effect to handle automatic selection of the first note or clearing selection
+  useEffect(() => {
+    if (notes.length > 0 && !selectedNoteId) {
+      setSelectedNoteId(notes[0].id);
+    } else if (notes.length === 0 && selectedNoteId) {
+      // If no notes are loaded, clear the selected note
+      setSelectedNoteId(null);
+    }
+  }, [notes, selectedNoteId]); // Depend on notes and selectedNoteId for this specific logic
 
   useEffect(() => {
     const loadSelectedNote = async () => {
@@ -127,7 +134,7 @@ const NotepadContent = () => {
         await handleDeleteNote(noteId); // Use context's handleDeleteNote
         setSelectedNoteId(null);
         setSelectedNoteIds((prev) => prev.filter((id) => id !== noteId)); // Remove from multi-selection
-        await loadNotes(); // Reload notes after deletion
+        await fetchNotesContent(); // Reload notes after deletion
         await fetchCategories(); // Refresh categories as a note's category might have been removed
         toast({
           title: 'Success',
@@ -183,7 +190,7 @@ const NotepadContent = () => {
       });
       setSelectedNoteIds([]); // Clear selection
       setBulkCategory(''); // Clear bulk category
-      await loadNotes(); // Reload notes to reflect changes
+      await fetchNotesContent(); // Reload notes to reflect changes
       await fetchCategories(); // Refresh categories as new categories might have been added
     } catch (error: unknown) {
       console.error('Failed to assign bulk category:', error);
@@ -224,7 +231,7 @@ const NotepadContent = () => {
         });
         setSelectedNoteId(null); // Clear active note if it was deleted
         setSelectedNoteIds([]); // Clear selection
-        await loadNotes(); // Reload notes after deletion
+        await fetchNotesContent(); // Reload notes after deletion
         await fetchCategories(); // Refresh categories
       } catch (error: unknown) {
         console.error('Failed to bulk delete notes:', error);
@@ -279,7 +286,7 @@ const NotepadContent = () => {
                 noteId={selectedNoteId}
                 initialTitle={activeNoteTitle}
                 initialMarkdown={activeNoteContent}
-                onSaveSuccess={loadNotes}
+                onSaveSuccess={fetchNotesContent}
               />
             ) : (
               <div className="p-4 text-center text-muted-foreground">
