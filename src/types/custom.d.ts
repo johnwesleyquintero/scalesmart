@@ -5,3 +5,13 @@ declare module '*.csv' {
 }
 
 // Add any other custom type declarations here if needed.
+
+export interface TagifyCustomEvent extends CustomEvent {
+  detail: {
+    tagify: {
+      value: string;
+    };
+  };
+}
+
+export {};

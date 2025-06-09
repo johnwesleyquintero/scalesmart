@@ -1,5 +1,5 @@
 'use client';
-
+import { TagifyCustomEvent } from '@/types/custom';
 /**
  * @file CustomerForm.tsx
  * @description This component provides a reusable form for adding or editing customer details.
@@ -11,10 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Contact, Category, SalesStage } from '../types'; // Import Category and SalesStage
 import { SALES_STAGES } from '../types';
 import { useForm } from 'react-hook-form';
+import Tagify from '@yaireo/tagify';
+import '@yaireo/tagify/dist/tagify.css';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import {
@@ -60,6 +62,7 @@ const customerSchema = z.object({
   notes: z.string().optional().nullable(),
   category: z.string().optional().nullable(),
   salesStage: z.enum(SALES_STAGES).optional().nullable(),
+  tags: z.string().array().optional(),
 });
 
 /**
@@ -78,6 +81,7 @@ const defaultFormData: CustomerFormValues = {
   notes: '',
   category: '', // Default to empty string for no category.
   salesStage: 'Lead', // Default to 'Lead' for sales stage.
+  tags: [],
 };
 
 /**
@@ -125,6 +129,7 @@ export function CustomerForm({
       setValue('category', initialData.category || '');
       // Ensure salesStage is set to null if null/undefined for the Select component
       setValue('salesStage', initialData.salesStage || null);
+      setValue('tags', initialData.tags || []);
     } else {
       reset(defaultFormData); // Reset form to default if no initial data.
     }
@@ -143,6 +148,7 @@ export function CustomerForm({
       notes: data.notes || '', // Coalesce null/undefined to empty string.
       salesStage: data.salesStage || null, // Coalesce null/undefined to null.
       category: data.category || '', // Coalesce null/undefined to empty string.
+      tags: data.tags || [],
     });
     // Reset form only if not in editing mode (i.e., adding a new customer).
     if (!isEditing) {
@@ -272,6 +278,16 @@ export function CustomerForm({
         </Select>
       </div>
       <div>
+        <Label htmlFor="tags">Tags (optional)</Label>
+        <TagsInput
+          key={watch('tags')?.join(', ')}
+          initialTags={watch('tags') || []}
+          onChange={(tags: string[]) => {
+            setValue('tags', tags);
+          }}
+        />
+      </div>
+      <div>
         <Label htmlFor="notes">Notes (optional)</Label>
         <Textarea
           id="notes"
@@ -298,3 +314,47 @@ export function CustomerForm({
     </form>
   );
 }
+
+interface TagsInputProps {
+  initialTags: string[];
+  onChange: (tags: string[]) => void;
+}
+
+const TagsInput: React.FC<TagsInputProps> = ({ initialTags, onChange }) => {
+  const [tags, setTags] = useState<string[]>([]);
+  const tagifyRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!tagifyRef.current) return;
+
+    const tagify = new Tagify(tagifyRef.current, {
+      whitelist: [], // You can add a whitelist of tags here
+      dropdown: {
+        maxItems: 20,
+        classname: 'tags-look',
+        enabled: 0,
+        closeOnSelect: false,
+      },
+    });
+
+    tagifyRef.current.addEventListener('change', (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const newTags = target.value.split(',').map((tag: string) => tag.trim());
+      setTags(newTags);
+      onChange(newTags);
+    });
+
+    return () => {
+      tagify.destroy();
+    };
+  }, [onChange]);
+
+  return (
+    <input
+      ref={tagifyRef}
+      defaultValue={initialTags.join(',')}
+      name="tags"
+      placeholder="Enter tags"
+    />
+  );
+};

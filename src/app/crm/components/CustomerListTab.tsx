@@ -1,5 +1,5 @@
 'use client';
-
+import type { Row, Cell } from '@tanstack/react-table';
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   useReactTable,
@@ -175,6 +175,22 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
         header: 'Sales Stage',
         accessorKey: 'salesStage',
       },
+      {
+        header: 'Tags',
+        accessorKey: 'tags',
+        cell: ({ row }: { row: Row<Contact> }) => (
+          <div>
+            {row.original.tags?.map((tag: string) => (
+              <span
+                key={tag}
+                className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        ),
+      },
     ],
     [],
   );
@@ -311,9 +327,9 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
               ))}
             </thead>
             <tbody>
-              {table.getRowModel().rows.map((row) => (
+              {table.getRowModel().rows.map((row: Row<Contact>) => (
                 <tr key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map((cell: Cell<Contact, unknown>) => (
                     <td key={cell.id} className="border p-2">
                       {flexRender(
                         cell.column.columnDef.cell,

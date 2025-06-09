@@ -30,6 +30,7 @@ export interface Contact {
   lastActivity?: number; // Optional: Timestamp (milliseconds since epoch) of the last activity (e.g., communication, update).
   leadScore?: number; // Optional: The calculated lead score for the contact.
   leadScoreCategory?: 'Hot' | 'Warm' | 'Cold'; // Optional: Categorization of the lead score.
+  tags?: string[]; // Optional: Tags for the contact.
 }
 
 /**
