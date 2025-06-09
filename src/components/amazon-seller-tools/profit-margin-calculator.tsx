@@ -1,5 +1,6 @@
 'use client';
 
+import { calculateProductPerformanceScore } from '@/lib/amazon-tools/scoring-utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -60,9 +61,6 @@ export default function ProfitMarginCalculator() {
     margin: number;
     roi: number;
   }
-
-  // Removed duplicate function export
-  // Existing implementation kept at line 37
 
   const [results, setResults] = useState<CalculatedResult[]>([]);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -164,16 +162,13 @@ export default function ProfitMarginCalculator() {
       const validatedCost = validateNumericValue(item.cost, 0);
       const validatedFees = validateNumericValue(item.fees, 0);
 
-      const productScore = AmazonCalculations.calculateProductScore({
+      const productScore = calculateProductPerformanceScore({
         conversionRate: item.conversionRate ?? 0, // Assuming a default or deriving it
         sessions: item.sessions ?? 0, // Assuming a default or deriving it
         reviewRating: item.reviewRating || 4.5,
         reviewCount: item.reviewCount || 0,
         priceCompetitiveness: item.priceCompetitiveness ?? 0,
         inventoryHealth: item.inventoryHealth ?? 0,
-        weight: item.weight ?? 0,
-        volume: item.volume ?? 0,
-        category: item.category || ProductCategory.STANDARD,
       });
 
       const adjustedPrice = AmazonCalculations.calculateOptimalPrice({

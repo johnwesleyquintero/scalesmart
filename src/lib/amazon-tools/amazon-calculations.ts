@@ -54,38 +54,6 @@ export class AmazonCalculations {
    *   - `inventoryHealth`: A metric indicating the health of the product's inventory (e.g., 0-1 scale).
    * @returns The calculated product score (0-100), rounded to two decimal places.
    */
-  static calculateProductScore(params: ProductScoreParams): number {
-    const {
-      conversionRate,
-      sessions,
-      reviewRating,
-      reviewCount,
-      priceCompetitiveness,
-      inventoryHealth,
-    } = params;
-
-    // Normalize metrics to a 0-1 scale based on predefined "excellent" thresholds.
-    // This ensures each metric contributes proportionally to the overall score.
-    const normalizedConversion = Math.min(
-      conversionRate / EXCELLENT_CONVERSION_RATE,
-      1,
-    );
-    const normalizedSessions = Math.min(sessions / EXCELLENT_SESSIONS, 1);
-    const normalizedRating = reviewRating / 5; // Assuming rating is out of 5
-    const normalizedReviews = Math.min(reviewCount / EXCELLENT_REVIEW_COUNT, 1);
-
-    // Calculate weighted score using predefined weights.
-    const score =
-      normalizedConversion * PRODUCT_SCORE_WEIGHTS.conversion +
-      normalizedSessions * PRODUCT_SCORE_WEIGHTS.sessions +
-      normalizedRating * PRODUCT_SCORE_WEIGHTS.rating +
-      normalizedReviews * PRODUCT_SCORE_WEIGHTS.reviews +
-      priceCompetitiveness * PRODUCT_SCORE_WEIGHTS.priceCompetitiveness +
-      inventoryHealth * PRODUCT_SCORE_WEIGHTS.inventoryHealth;
-
-    // Convert the score to a 0-100 scale and round to two decimal places.
-    return Number((score * 100).toFixed(2));
-  }
 
   /**
    * Determines an optimal selling price for a product based on competitor pricing and product quality.

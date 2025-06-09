@@ -224,21 +224,29 @@ const generateSuggestions = (
 export const calculateProductQualityScore = (
   data: ProductListingData,
   config: ScoringConfig = defaultScoringConfig,
+  performanceMetrics?: {
+    conversionRate: number;
+    sessions: number;
+    reviewRating: number;
+    reviewCount: number;
+    priceCompetitiveness: number;
+    inventoryHealth: number;
+  },
 ): ProductScore => {
   const asin = data.asin || 'N/A';
   console.info('Calculating product quality score', { asin: asin });
 
   const breakdown = {
-    title: applyThresholdScoring(data.title?.length || 0, config.title),
+    title: applyThresholdScoring(data.title?.length ?? 0, config.title),
     bulletPoints:
-      config.bulletPoints.customScoring?.(data.bulletPoints || []) || 0,
+      config.bulletPoints.customScoring?.(data.bulletPoints ?? []) ?? 0,
     description: scoreDescription(data.description, config),
-    images: applyThresholdScoring(data.imageCount || 0, config.images),
+    images: applyThresholdScoring(data.imageCount ?? 0, config.images),
     reviews:
       config.reviews.customScoring?.({
-        rating: data.rating || 0,
-        count: data.reviewCount || 0,
-      }) || 0,
+        rating: data.rating ?? 0,
+        count: data.reviewCount ?? 0,
+      }) ?? 0,
     aPlus: applyThresholdScoring(data.hasAPlusContent ? 1 : 0, config.aPlus),
     fulfillment: applyThresholdScoring(
       data.fulfillmentType === 'FBA' ? 1 : 0,
@@ -270,4 +278,140 @@ export const calculateProductQualityScore = (
   });
 
   return result;
+};
+
+/**
+ * Calculates an overall product score by combining the quality score and performance score.
+ * @param data - The product listing data.
+ * @param config - The scoring configuration (defaults to `defaultScoringConfig`).
+ * @param performanceMetrics - Optional performance metrics for the product.
+ * @param qualityWeight - The weight to apply to the quality score (0-1). Defaults to 0.5.
+ * @param performanceWeight - The weight to apply to the performance score (0-1). Defaults to 0.5.
+ * @returns The overall product score (0-100).
+ */
+export const calculateOverallProductScore = (
+  data: ProductListingData,
+  config: ScoringConfig = defaultScoringConfig,
+  performanceMetrics?: {
+    conversionRate: number;
+    sessions: number;
+    reviewRating: number;
+    reviewCount: number;
+    priceCompetitiveness: number;
+    inventoryHealth: number;
+  },
+  qualityWeight: number = 0.5,
+  performanceWeight: number = 0.5,
+): number => {
+  const qualityScore = calculateProductQualityScore(
+    data,
+    config,
+    performanceMetrics,
+  ).overall;
+  const performanceScore = performanceMetrics
+    ? calculateProductPerformanceScore(performanceMetrics)
+    : 0;
+
+  // Ensure weights are within the valid range (0-1) and sum up to 1.
+  const normalizedQualityWeight = Math.max(0, Math.min(1, qualityWeight));
+  const normalizedPerformanceWeight = Math.max(
+    0,
+    Math.min(1, performanceWeight),
+  );
+
+  if (normalizedQualityWeight + normalizedPerformanceWeight !== 1) {
+    console.warn(
+      'Quality and performance weights do not sum up to 1. Normalizing.',
+    );
+  }
+
+  const overallScore =
+    qualityScore * normalizedQualityWeight +
+    performanceScore * normalizedPerformanceWeight;
+
+  return Number(overallScore.toFixed(2));
+};
+
+// Constants for normalization thresholds
+const EXCELLENT_CONVERSION_RATE = 20; // Assuming 20% conversion rate is excellent
+const EXCELLENT_SESSIONS = 500; // Assuming 500 sessions is excellent
+const EXCELLENT_REVIEW_COUNT = 100; // Assuming 100 reviews is excellent
+
+// Weight factors for product score calculation (sum should ideally be 1)
+const PRODUCT_SCORE_WEIGHTS = {
+  conversion: 0.3,
+  sessions: 0.15,
+  rating: 0.2,
+  reviews: 0.15,
+  priceCompetitiveness: 0.1,
+  inventoryHealth: 0.1,
+};
+
+/**
+ * Calculates a comprehensive product score based on various performance and health metrics.
+ * This score helps in evaluating a product's overall market standing and potential.
+ * NOTE: This function uses a simplified scoring model based on normalization thresholds,
+ * distinct from the detailed quality score calculated by `calculateProductQualityScore`.
+ * Consider consolidating scoring logic if possible.
+ * @param params - Parameters for product score calculation:
+ *   - `conversionRate`: The product's conversion rate (e.g., in percentage).
+ *   - `sessions`: The number of sessions/visits the product page receives.
+ *   - `reviewRating`: The average review rating (e.g., out of 5).
+ *   - `reviewCount`: The total number of reviews.
+ *   - `priceCompetitiveness`: A metric indicating how competitive the product's price is (e.g., 0-1 scale).
+ *   - `inventoryHealth`: A metric indicating the health of the product's inventory (e.g., 0-1 scale).
+ * @returns The calculated product score (0-100), rounded to two decimal places.
+ */
+export const calculateProductPerformanceScore = (
+  params: {
+    conversionRate: number;
+    sessions: number;
+    reviewRating: number;
+    reviewCount: number;
+    priceCompetitiveness: number;
+    inventoryHealth: number;
+  },
+  thresholds?: {
+    conversionRate?: number;
+    sessions?: number;
+    reviewCount?: number;
+  },
+): number => {
+  const {
+    conversionRate,
+    sessions,
+    reviewRating,
+    reviewCount,
+    priceCompetitiveness,
+    inventoryHealth,
+  } = params;
+
+  // Use provided thresholds or default values
+  const excellentConversionRate =
+    thresholds?.conversionRate || EXCELLENT_CONVERSION_RATE;
+  const excellentSessions = thresholds?.sessions || EXCELLENT_SESSIONS;
+  const excellentReviewCount =
+    thresholds?.reviewCount || EXCELLENT_REVIEW_COUNT;
+
+  // Normalize metrics to a 0-1 scale based on predefined "excellent" thresholds.
+  // This ensures each metric contributes proportionally to the overall score.
+  const normalizedConversion = Math.min(
+    conversionRate / excellentConversionRate,
+    1,
+  );
+  const normalizedSessions = Math.min(sessions / excellentSessions, 1);
+  const normalizedRating = reviewRating / 5; // Assuming rating is out of 5
+  const normalizedReviews = Math.min(reviewCount / excellentReviewCount, 1);
+
+  // Calculate weighted score using predefined weights.
+  const score =
+    normalizedConversion * PRODUCT_SCORE_WEIGHTS.conversion +
+    normalizedSessions * PRODUCT_SCORE_WEIGHTS.sessions +
+    normalizedRating * PRODUCT_SCORE_WEIGHTS.rating +
+    normalizedReviews * PRODUCT_SCORE_WEIGHTS.reviews +
+    priceCompetitiveness * PRODUCT_SCORE_WEIGHTS.priceCompetitiveness +
+    inventoryHealth * PRODUCT_SCORE_WEIGHTS.inventoryHealth;
+
+  // Convert the score to a 0-100 scale and round to two decimal places.
+  return Number((score * 100).toFixed(2));
 };

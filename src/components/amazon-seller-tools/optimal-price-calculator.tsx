@@ -21,6 +21,7 @@ import { ProductCategory } from '@/lib/amazon-types';
 import type React from 'react'; // Import React explicitly
 import { useState } from 'react';
 import { ZodError, z } from 'zod'; // Import Zod for error handling type
+import { calculateProductPerformanceScore } from '@/lib/amazon-tools/scoring-utils';
 
 // Define the state structure, aligning with form inputs
 // competitorPrices will be stored as a string in state, parsed later
@@ -165,16 +166,13 @@ export default function OptimalPriceCalculator() {
         );
 
       // Calculate product score with validated inputs
-      const productScore = AmazonCalculations.calculateProductScore({
+      const productScore = calculateProductPerformanceScore({
         conversionRate: 0, // Default value, as it's not in OptimalPriceInputs
         sessions: 0, // Default value, as it's not in OptimalPriceInputs
         reviewRating: validatedData.reviewRating,
         reviewCount: validatedData.reviewCount,
         priceCompetitiveness: validatedData.priceCompetitiveness,
         inventoryHealth: validatedData.inventoryHealth,
-        weight: validatedData.weight,
-        volume: validatedData.volume,
-        category: validatedData.category,
       });
 
       // Calculate optimal price

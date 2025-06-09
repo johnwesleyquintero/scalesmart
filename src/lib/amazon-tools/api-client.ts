@@ -72,7 +72,11 @@ class ApiClient {
         } catch {
           // Ignore if body cannot be read
         }
-        const message = `API Error for ${fullUrl}: ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 100)}`;
+        const requestDetails =
+          typeof options.body === 'string'
+            ? `Body: ${options.body.substring(0, 100)}`
+            : 'No body';
+        const message = `API Error for ${fullUrl}: ${response.status} ${response.statusText}. ${requestDetails}`;
         logError({
           message,
           component: 'ApiClient',
