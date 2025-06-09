@@ -55,18 +55,18 @@ const flattenObjectForExport = (
   obj: Record<string, unknown>,
   prefix: string = '',
   stringifyNonPrimitive: (value: unknown) => string = JSON.stringify,
-  seen: object[] = [],
+  seen: WeakSet<object> = new WeakSet(), // Use WeakSet for circular reference detection
 ): Record<string, ExportCompatibleValue> => {
   const flattened: Record<string, ExportCompatibleValue> = {};
 
-  // Check for circular references
-  if (seen.includes(obj)) {
+  // Check for circular references using WeakSet
+  if (seen.has(obj)) {
     console.warn('Circular reference detected, skipping object.');
     flattened[prefix + '_circular_reference'] = 'Circular Reference Detected';
     return flattened;
   }
 
-  seen.push(obj);
+  seen.add(obj);
 
   for (const [key, value] of Object.entries(obj)) {
     const newKey = prefix ? `${prefix}_${key}` : key;
@@ -81,15 +81,13 @@ const flattenObjectForExport = (
       flattened[newKey] = value;
     } else if (typeof value === 'object' && value !== null) {
       // Recursively flatten nested objects
-      Object.assign(
-        flattened,
-        flattenObjectForExport(
-          value as Record<string, unknown>,
-          newKey,
-          stringifyNonPrimitive,
-          seen,
-        ),
+      const nested = flattenObjectForExport(
+        value as Record<string, unknown>,
+        newKey,
+        stringifyNonPrimitive,
+        seen,
       );
+      Object.assign(flattened, nested);
     } else {
       // Handle non-primitive values using the provided stringify function
       flattened[newKey] = stringifyNonPrimitive(value);
@@ -466,31 +464,20 @@ export default function UnifiedDashboard() {
    * with the URL search parameters when searchParams change.
    * This enables deep linking to specific tabs and pre-filling tool inputs based on the URL.
    */
-  // useEffect(() => {
-  //   const tabParam = searchParams.get('tab') || 'overview';
-  //   setActiveTab(tabParam);
-
-  //   // Extract and store initial params if present
-  //   const asinParam = searchParams.get('asin');
-  //   const keywordParam = searchParams.get('keyword');
-  //   setInitialAsin(asinParam);
-  //   setInitialKeyword(keywordParam);
-
-  //   // Note: Initial params are kept in state to be passed down to dynamic components.
-  //   // Components consuming these props should handle their own internal state updates
-  //   // if they need to react to changes in these initial values.
-  // }, [searchParams]); // Dependency array includes searchParams to react to URL changes
-
-  const tabParam = searchParams.get('tab') || 'overview';
-  const asinParam = searchParams.get('asin');
-  const keywordParam = searchParams.get('keyword');
-
-  // Directly set the active tab and initial parameters using the values from useSearchParams
   useEffect(() => {
+    const tabParam = searchParams.get('tab') || 'overview';
     setActiveTab(tabParam);
+
+    // Extract and store initial params if present
+    const asinParam = searchParams.get('asin');
+    const keywordParam = searchParams.get('keyword');
     setInitialAsin(asinParam);
     setInitialKeyword(keywordParam);
-  }, [tabParam, asinParam, keywordParam]);
+
+    // Note: Initial params are kept in state to be passed down to dynamic components.
+    // Components consuming these props should handle their own internal state updates
+    // if they need to react to changes in these initial values.
+  }, [searchParams]); // Dependency array includes searchParams to react to URL changes
 
   /**
    * Memoized callback to handle the closing of the "What's New" modal.

@@ -21,14 +21,14 @@ import {
   validateCampaignRow,
 } from '@/lib/hooks/use-campaign-validator';
 import { useCsvParser } from '@/lib/hooks/use-csv-parser';
-import { z } from 'zod'; // Import z from zod
+import { z } from 'zod';
 import {
   monetaryValueSchema,
-  positiveNumberSchema, // Use positiveNumberSchema for adSpend and sales
+  positiveNumberSchema,
 } from '@/lib/input-validation';
 import { AlertCircle, Download, Info, Upload, X, XCircle } from 'lucide-react';
 import { AcosTrendChart } from './AcosTrendChart';
-import type { ChangeEvent, Dispatch, SetStateAction } from 'react';
+import type { ChangeEvent } from 'react';
 import { useCallback, useEffect, useState, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
 import {
@@ -43,7 +43,6 @@ import {
 } from 'recharts';
 import { CurrencySelector } from './CurrencySelector';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from '@/lib/constants';
-import { format } from 'date-fns';
 import { CalculationData } from '@/lib/indexeddb-service';
 import { ManualCalculationForm } from './ManualCalculationForm';
 import { AcosRatingGuide } from './AcosRatingGuide';
@@ -58,7 +57,8 @@ import {
   saveCalculation,
 } from '@/lib/indexeddb-service';
 import { useToast } from '@/app/hooks/use-toast';
-import { exportToCSV } from '@/lib/amazon-tools/export-utils'; // Import exportToCSV
+import { exportToCSV } from '@/lib/amazon-tools/export-utils';
+import AcosChart from './AcosChart';
 
 // --- Interfaces & Types ---
 
@@ -75,7 +75,6 @@ const chartConfig = {
   },
 } as const satisfies {
   [key in 'acos' | 'roas' | 'ctr' | 'cpc' | 'revenuePerClickRate']: {
-    // Explicitly list keys present
     label: string;
     theme: { light: string; dark: string };
   };
@@ -84,7 +83,7 @@ const chartConfig = {
 // --- Component ---
 
 export default function AcosCalculator() {
-  const { toast } = useToast(); // Moved toast declaration to the top
+  const { toast } = useToast();
 
   const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -162,7 +161,7 @@ export default function AcosCalculator() {
       },
     },
     (error: Error) => {
-      setError(undefined); // Clear previous error
+      setError(undefined);
       setIsLoading(false);
       toast({
         title: 'CSV Parsing Error',
@@ -208,16 +207,35 @@ export default function AcosCalculator() {
       const file = acceptedFiles[0];
       if (!file) {
         setError('No file selected');
+        toast({
+          title: 'No file selected',
+          description: 'Please select a CSV file to upload.',
+          variant: 'destructive',
+        });
         return;
       }
       setIsLoading(true);
       setError(undefined);
-      csvParser.parseFile(file).catch((err) => {
-        setError(err instanceof Error ? err.message : String(err));
-        setIsLoading(false);
-      });
+      csvParser
+        .parseFile(file)
+        .then(() => {
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          const errorMessage =
+            err instanceof Error
+              ? err.message
+              : 'An unexpected error occurred.';
+          setError(errorMessage);
+          toast({
+            title: 'CSV Parsing Error',
+            description: errorMessage,
+            variant: 'destructive',
+          });
+          setIsLoading(false);
+        });
     },
-    [csvParser],
+    [csvParser, toast],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -271,68 +289,6 @@ export default function AcosCalculator() {
     setCampaigns([]);
     setError(undefined);
   }, []);
-
-  // --- Chart Content Logic ---
-  const renderChartContent = () => {
-    if (isLoading) {
-      return (
-        <div className="flex justify-center items-center h-80">
-          <Progress value={undefined} className="w-1/2" /> {/* Indeterminate */}
-          <p className="ml-4 text-muted-foreground">Loading chart...</p>
-        </div>
-      );
-    } else if (campaigns.length > 0) {
-      return (
-        <ResponsiveContainer width="100%" height={400}>
-          <BarChart
-            data={campaigns}
-            margin={{ top: 5, right: 10, left: 0, bottom: 60 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis
-              dataKey="campaign"
-              angle={-45}
-              textAnchor="end"
-              height={80}
-              interval={0}
-              tick={{ fontSize: 10 }}
-            />
-            <YAxis tick={{ fontSize: 10 }} domain={['auto', 'auto']} />
-            <Tooltip
-              contentStyle={{ fontSize: '12px', padding: '5px 10px' }}
-              formatter={(value: unknown) => {
-                if (Array.isArray(value)) {
-                  const firstValue = value[0];
-                  if (firstValue === Infinity) return 'Infinity';
-                  if (typeof firstValue === 'number')
-                    return firstValue.toFixed(2);
-                  return firstValue ?? 'N/A';
-                }
-                if (value === Infinity) return 'Infinity';
-                if (typeof value === 'number') return value.toFixed(2);
-                return value ?? 'N/A';
-              }}
-              labelFormatter={(label: string) => `Campaign: ${label}`}
-            />
-            <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-            <Bar
-              dataKey={selectedMetric}
-              name={chartConfig[selectedMetric].label}
-              fill={chartConfig[selectedMetric].theme.light}
-              radius={[4, 4, 0, 0]}
-              maxBarSize={60}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      );
-    } else {
-      return (
-        <div className="flex justify-center items-center h-80">
-          <p className="text-muted-foreground">No data to display.</p>
-        </div>
-      );
-    }
-  };
 
   const [manualCampaign, setManualCampaign] = useState({
     campaign: '',
@@ -455,7 +411,6 @@ export default function AcosCalculator() {
     toast,
   ]);
 
-  // --- Render ---
   return (
     <div className="space-y-6">
       {/* Info Box */}
@@ -491,7 +446,9 @@ export default function AcosCalculator() {
           <CardContent>
             <div
               {...getRootProps()}
-              className={`relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5 ${isDragActive ? 'border-primary bg-primary/10' : ''}`}
+              className={`relative flex w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/40 bg-background p-6 text-center transition-colors hover:bg-primary/5 ${
+                isDragActive ? 'border-primary bg-primary/10' : ''
+              }`}
             >
               <input {...getInputProps()} disabled={isLoading} />
               <Upload className="mb-2 h-8 w-8 text-primary/60" />
@@ -532,8 +489,12 @@ export default function AcosCalculator() {
         <CalculationHistoryTable calculationHistory={calculationHistory} />
       )}
       <div className="w-full overflow-x-auto">
-        {renderChartContent()}{' '}
-        {/* Render chart content using the new function */}
+        <AcosChart
+          isLoading={isLoading}
+          campaigns={campaigns}
+          selectedMetric={selectedMetric}
+          chartConfig={chartConfig}
+        />
       </div>
       <Button onClick={clearData}>Clear History</Button>
     </div>

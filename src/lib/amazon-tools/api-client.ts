@@ -72,9 +72,14 @@ class ApiClient {
         } catch {
           // Ignore if body cannot be read
         }
-        throw new Error(
-          `API Error for ${fullUrl}: ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 100)}`,
-        );
+        const message = `API Error for ${fullUrl}: ${response.status} ${response.statusText}. Body: ${errorBody.substring(0, 100)}`;
+        logError({
+          message,
+          component: 'ApiClient',
+          severity: 'high',
+          error: new Error(message),
+        });
+        throw new Error(message);
       }
 
       return response.json();

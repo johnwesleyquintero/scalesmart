@@ -6,10 +6,9 @@ import { Currency } from '@/components/amazon-seller-tools/CurrencySelector';
  * @returns The parsed number or undefined.
  */
 const parseNumber = (value: string | undefined | null): number | undefined => {
-  if (value === undefined || value === null) {
-    return undefined;
-  }
-  const num = Number(value);
+  if (!value) return undefined;
+
+  const num = parseFloat(value);
   return isNaN(num) ? undefined : num;
 };
 
