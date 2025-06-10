@@ -27,76 +27,125 @@ const ListingOptimization: React.FC<ListingOptimizationProps> = ({
 
     const suggestions: string[] = [];
     const inputKeywords = listingTitle.toLowerCase().split(' ').filter(Boolean);
-    const inputBulletPoints = bulletPoints.split(/[\n\r]+/).map(point => point.trim()).filter(Boolean);
+    const inputBulletPoints = bulletPoints
+      .split(/[\n\r]+/)
+      .map((point) => point.trim())
+      .filter(Boolean);
     const inputDescription = description.toLowerCase();
-    const inputBackendKeywords = backendKeywords.toLowerCase().split(',').map(kw => kw.trim()).filter(Boolean);
-    const inputSubjectMatter = subjectMatter.toLowerCase().split(',').map(sm => sm.trim()).filter(Boolean);
-
+    const inputBackendKeywords = backendKeywords
+      .toLowerCase()
+      .split(',')
+      .map((kw) => kw.trim())
+      .filter(Boolean);
+    const inputSubjectMatter = subjectMatter
+      .toLowerCase()
+      .split(',')
+      .map((sm) => sm.trim())
+      .filter(Boolean);
 
     // Suggestions based on parsed data
     parsedData.forEach((file) => {
       file.data.forEach((listing) => {
         const parsedTitle = listing.title?.toLowerCase() || '';
-        const parsedBulletPoints = listing.bulletPoints?.map(point => point.toLowerCase()) || [];
+        const parsedBulletPoints =
+          listing.bulletPoints?.map((point) => point.toLowerCase()) || [];
         const parsedDescription = listing.description?.toLowerCase() || '';
-        const parsedBackendKeywords = listing.backendKeywords?.toLowerCase().split(',').map(kw => kw.trim()).filter(Boolean) || [];
-        const parsedSubjectMatter = listing.subjectMatter?.toLowerCase().split(',').map(sm => sm.trim()).filter(Boolean) || [];
-
+        const parsedBackendKeywords =
+          listing.backendKeywords
+            ?.toLowerCase()
+            .split(',')
+            .map((kw) => kw.trim())
+            .filter(Boolean) || [];
+        const parsedSubjectMatter =
+          listing.subjectMatter
+            ?.toLowerCase()
+            .split(',')
+            .map((sm) => sm.trim())
+            .filter(Boolean) || [];
 
         // Suggest keywords from parsed data that are not in the input title
-        parsedTitle.split(' ').filter(Boolean).forEach(keyword => {
-          if (!inputKeywords.includes(keyword)) {
-             suggestions.push(`Consider adding "${keyword}" to your title based on other listings.`);
+        parsedTitle
+          .split(' ')
+          .filter(Boolean)
+          .forEach((keyword) => {
+            if (!inputKeywords.includes(keyword)) {
+              suggestions.push(
+                `Consider adding "${keyword}" to your title based on other listings.`,
+              );
+            }
+          });
+
+        // Suggest keywords from parsed data bullet points not in input bullet points
+        parsedBulletPoints.forEach((point) => {
+          point
+            .split(' ')
+            .filter(Boolean)
+            .forEach((keyword) => {
+              if (
+                !inputBulletPoints.some((bp) =>
+                  bp.toLowerCase().includes(keyword),
+                )
+              ) {
+                suggestions.push(
+                  `Consider incorporating "${keyword}" into your bullet points.`,
+                );
+              }
+            });
+        });
+
+        // Suggest keywords from parsed data description not in input description
+        parsedDescription
+          .split(' ')
+          .filter(Boolean)
+          .forEach((keyword) => {
+            if (!inputDescription.includes(keyword)) {
+              suggestions.push(
+                `Consider using "${keyword}" in your product description.`,
+              );
+            }
+          });
+
+        // Suggest backend keywords from parsed data not in input backend keywords
+        parsedBackendKeywords.forEach((keyword) => {
+          if (!inputBackendKeywords.includes(keyword)) {
+            suggestions.push(
+              `Consider adding "${keyword}" to your backend keywords.`,
+            );
           }
         });
 
-        // Suggest keywords from parsed data bullet points not in input bullet points
-         parsedBulletPoints.forEach(point => {
-           point.split(' ').filter(Boolean).forEach(keyword => {
-             if (!inputBulletPoints.some(bp => bp.toLowerCase().includes(keyword))) {
-               suggestions.push(`Consider incorporating "${keyword}" into your bullet points.`);
-             }
-           });
-         });
-
-        // Suggest keywords from parsed data description not in input description
-         parsedDescription.split(' ').filter(Boolean).forEach(keyword => {
-           if (!inputDescription.includes(keyword)) {
-             suggestions.push(`Consider using "${keyword}" in your product description.`);
-           }
-         });
-
-        // Suggest backend keywords from parsed data not in input backend keywords
-         parsedBackendKeywords.forEach(keyword => {
-           if (!inputBackendKeywords.includes(keyword)) {
-             suggestions.push(`Consider adding "${keyword}" to your backend keywords.`);
-           }
-         });
-
         // Suggest subject matter from parsed data not in input subject matter
-         parsedSubjectMatter.forEach(keyword => {
-           if (!inputSubjectMatter.includes(keyword)) {
-             suggestions.push(`Consider adding "${keyword}" to your subject matter.`);
-           }
-         });
-
+        parsedSubjectMatter.forEach((keyword) => {
+          if (!inputSubjectMatter.includes(keyword)) {
+            suggestions.push(
+              `Consider adding "${keyword}" to your subject matter.`,
+            );
+          }
+        });
       });
     });
 
     // Add some generic suggestions
     if (listingTitle.length < 50 || listingTitle.length > 200) {
-      suggestions.push('Suggestion: Optimize your title length (aim for 50-200 characters).');
+      suggestions.push(
+        'Suggestion: Optimize your title length (aim for 50-200 characters).',
+      );
     }
     if (inputBulletPoints.length < 5) {
-       suggestions.push('Suggestion: Aim for at least 5 bullet points to highlight key features.');
+      suggestions.push(
+        'Suggestion: Aim for at least 5 bullet points to highlight key features.',
+      );
     }
     if (description.length < 200) {
-       suggestions.push('Suggestion: Expand your product description to provide more details and benefits.');
+      suggestions.push(
+        'Suggestion: Expand your product description to provide more details and benefits.',
+      );
     }
     if (backendKeywords.split(',').filter(Boolean).length < 10) {
-        suggestions.push('Suggestion: Utilize more backend keywords to improve search visibility.');
+      suggestions.push(
+        'Suggestion: Utilize more backend keywords to improve search visibility.',
+      );
     }
-
 
     // Remove duplicate suggestions
     const uniqueSuggestions = Array.from(new Set(suggestions));
@@ -105,7 +154,14 @@ const ListingOptimization: React.FC<ListingOptimizationProps> = ({
 
     setOptimizationResults(uniqueSuggestions);
     setIsLoading(false);
-  }, [listingTitle, bulletPoints, description, backendKeywords, subjectMatter, parsedData]); // Added new states to dependencies
+  }, [
+    listingTitle,
+    bulletPoints,
+    description,
+    backendKeywords,
+    subjectMatter,
+    parsedData,
+  ]); // Added new states to dependencies
 
   return (
     <div className="space-y-6 p-4 max-w-3xl mx-auto">
@@ -156,8 +212,12 @@ const ListingOptimization: React.FC<ListingOptimizationProps> = ({
             rows={7} // Added rows
           />
         </div>
-         <div className="grid gap-2"> {/* Added input for backend keywords */}
-          <Label htmlFor="backend-keywords">Backend Keywords (comma-separated)</Label>
+        <div className="grid gap-2">
+          {' '}
+          {/* Added input for backend keywords */}
+          <Label htmlFor="backend-keywords">
+            Backend Keywords (comma-separated)
+          </Label>
           <Input
             id="backend-keywords"
             type="text"
@@ -166,8 +226,12 @@ const ListingOptimization: React.FC<ListingOptimizationProps> = ({
             onChange={(e) => setBackendKeywords(e.target.value)}
           />
         </div>
-         <div className="grid gap-2"> {/* Added input for subject matter */}
-          <Label htmlFor="subject-matter">Subject Matter (comma-separated)</Label>
+        <div className="grid gap-2">
+          {' '}
+          {/* Added input for subject matter */}
+          <Label htmlFor="subject-matter">
+            Subject Matter (comma-separated)
+          </Label>
           <Input
             id="subject-matter"
             type="text"

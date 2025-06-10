@@ -56,7 +56,9 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
 
       <div className="flex items-center gap-2">
         <div className="grid flex-grow gap-1.5">
-          <Label htmlFor="product-search">Product Keyword, ASIN, Brand, or Category</Label>
+          <Label htmlFor="product-search">
+            Product Keyword, ASIN, Brand, or Category
+          </Label>
           <Input
             id="product-search"
             type="text"
@@ -81,7 +83,9 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
           {searchResults.map((result) => (
             <Card key={result.id}>
               <CardHeader className="p-4">
-                <CardTitle className="text-lg">{result.name || 'N/A'}</CardTitle>
+                <CardTitle className="text-lg">
+                  {result.name || 'N/A'}
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0 text-sm text-muted-foreground dark:text-gray-400">
                 <p>Price: ${result.price?.toFixed(2) || 'N/A'}</p>

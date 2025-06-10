@@ -63,8 +63,11 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
     (sum, item) => sum + (item.roas || 0),
     0,
   );
-  const averageCpc = allAnalyticsData.length > 0 ? allAnalyticsData.reduce((sum, item) => sum + (item.cpc || 0), 0) / allAnalyticsData.length : 0;
-
+  const averageCpc =
+    allAnalyticsData.length > 0
+      ? allAnalyticsData.reduce((sum, item) => sum + (item.cpc || 0), 0) /
+        allAnalyticsData.length
+      : 0;
 
   const aggregatedSalesTrend = React.useMemo(() => {
     const trendMap = new Map<string, number>(); // Map to store sales by date
@@ -157,7 +160,8 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
           <CardContent className="p-4 pt-0">
             <p className="text-2xl font-bold">{totalAcos.toFixed(2)}%</p>
             <p className="text-sm text-muted-foreground dark:text-gray-400">
-              Sum of ACoS from {allAnalyticsData.length} entries (Aggregation may vary)
+              Sum of ACoS from {allAnalyticsData.length} entries (Aggregation
+              may vary)
             </p>
           </CardContent>
         </Card>
@@ -170,12 +174,13 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
           <CardContent className="p-4 pt-0">
             <p className="text-2xl font-bold">{totalRoas.toFixed(2)}</p>
             <p className="text-sm text-muted-foreground dark:text-gray-400">
-              Sum of ROAS from {allAnalyticsData.length} entries (Aggregation may vary)
+              Sum of ROAS from {allAnalyticsData.length} entries (Aggregation
+              may vary)
             </p>
           </CardContent>
         </Card>
 
-         {/* Card for Average CPC */}
+        {/* Card for Average CPC */}
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-lg">Average CPC</CardTitle>
@@ -187,7 +192,6 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
             </p>
           </CardContent>
         </Card>
-
 
         {/* Sales Trend Chart */}
         <Card className="lg:col-span-3">

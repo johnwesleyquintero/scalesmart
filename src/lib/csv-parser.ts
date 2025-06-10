@@ -2,16 +2,32 @@ import Papa from 'papaparse';
 import { z } from 'zod';
 import { logError } from './error-handling';
 
+/**
+ * Options for the CSV parser.
+ * @template T The expected type of the parsed row data.
+ */
 interface CsvParserOptions<T> {
+  /** An array of header names that must be present in the CSV. */
   requiredHeaders: string[];
+  /** A function to validate and transform each row of the parsed CSV data. */
   validateRow: (row: Record<string, unknown>) => T;
+  /** Optional callback for handling errors during parsing. */
   onError?: (error: Error) => void;
+  /** Optional callback for when parsing is complete. */
   onComplete?: (result: {
     data: T[];
     skippedRows: Array<{ index: number; reason: string }>;
   }) => void;
 }
 
+/**
+ * Parses a CSV file using PapaParse, with options for header validation, row validation, and error handling.
+ * Implements a streaming approach for efficient handling of large files.
+ * @template T The expected type of the parsed row data.
+ * @param file The File object to parse.
+ * @param options Configuration options for parsing, including required headers and row validation.
+ * @returns A promise that resolves to an object containing the parsed data and any skipped rows.
+ */
 export const parseCsvFile = async <T>(
   file: File,
   options: CsvParserOptions<T>,
@@ -26,37 +42,45 @@ export const parseCsvFile = async <T>(
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
-      complete: (results) => {
-        // Validate headers
-        const headers = results.meta.fields || [];
-        const missingHeaders = options.requiredHeaders.filter(
-          (header) => !headers.includes(header),
-        );
+      step: (results, parser) => {
+        const row = results.data as Record<string, unknown>;
+        const rowIndex = results.meta.cursor; // PapaParse provides cursor for row index
 
-        if (missingHeaders.length > 0) {
-          const error = new Error(
-            `Missing required headers: ${missingHeaders.join(', ')}`,
+        // Validate headers on the first step (or if headers are not yet validated)
+        if (
+          results.meta.fields &&
+          validData.length === 0 &&
+          skippedRows.length === 0
+        ) {
+          const headers = results.meta.fields || [];
+          const missingHeaders = options.requiredHeaders.filter(
+            (header) => !headers.includes(header),
           );
-          options.onError?.(error);
-          reject(error);
-          return;
+
+          if (missingHeaders.length > 0) {
+            const error = new Error(
+              `Missing required headers: ${missingHeaders.join(', ')}`,
+            );
+            options.onError?.(error);
+            parser.abort(); // Stop parsing on header error
+            reject(error);
+            return;
+          }
         }
 
-        // Process rows
-        results.data.forEach((row, index) => {
-          try {
-            const validatedRow = options.validateRow(
-              row as Record<string, unknown>,
-            );
-            validData.push(validatedRow);
-          } catch (error) {
-            skippedRows.push({
-              index,
-              reason: error instanceof Error ? error.message : String(error),
-            });
-          }
-        });
-
+        try {
+          // Skip header row if header option is true and it's the first row
+          const validatedRow = options.validateRow(row);
+          validData.push(validatedRow);
+        } catch (error) {
+          skippedRows.push({
+            index: rowIndex,
+            reason: error instanceof Error ? error.message : String(error),
+          });
+        }
+      },
+      complete: () => {
+        // This complete is called after all steps are done
         const result = { data: validData, skippedRows };
         options.onComplete?.(result);
         resolve(result);
@@ -77,6 +101,9 @@ export const parseCsvFile = async <T>(
 };
 
 // Common CSV validation schemas
+/**
+ * Zod schema for transforming a string to a number, handling invalid number formats.
+ */
 export const csvNumberSchema = z.string().transform((val, ctx) => {
   const parsed = Number(val);
   if (isNaN(parsed)) {
@@ -89,10 +116,16 @@ export const csvNumberSchema = z.string().transform((val, ctx) => {
   return parsed;
 });
 
+/**
+ * Zod schema for validating a string as a date format.
+ */
 export const csvDateSchema = z
   .string()
   .refine((val) => !isNaN(Date.parse(val)), 'Invalid date format');
 
+/**
+ * Zod schema for transforming a string to a boolean, handling various boolean representations.
+ */
 export const csvBooleanSchema = z.string().transform((val, ctx) => {
   const normalized = val.toLowerCase().trim();
   if (['true', '1', 'yes'].includes(normalized)) return true;

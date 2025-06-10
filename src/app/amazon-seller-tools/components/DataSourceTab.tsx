@@ -47,7 +47,6 @@ interface UploadedFile extends File {
   category: string;
 }
 
-
 const transformParsedData = (
   rawParsedData: Record<string, unknown>[],
   category: string,
@@ -56,7 +55,9 @@ const transformParsedData = (
   const config = getReportConfig(category);
 
   if (!config) {
-    console.warn(`No specific transformation defined or found for category: ${category}`);
+    console.warn(
+      `No specific transformation defined or found for category: ${category}`,
+    );
     return rawParsedData as Record<string, unknown>[]; // Return raw data if no transformation is defined or found
   }
 

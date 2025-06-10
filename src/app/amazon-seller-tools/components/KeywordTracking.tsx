@@ -36,7 +36,8 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
     parsedData.forEach((file) => {
       file.data.forEach((item, index) => {
         // Assuming 'keyword' field exists in KeywordTrackingData
-        if (item.keyword?.toLowerCase().includes(lowerCaseKeyword)) { // Added optional chaining
+        if (item.keyword?.toLowerCase().includes(lowerCaseKeyword)) {
+          // Added optional chaining
           filteredResults.push({
             id: filteredResults.length + 1, // Simple unique ID
             keyword: item.keyword,
@@ -50,7 +51,9 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
     });
 
     setTrackingResults(filteredResults);
-    console.log(`Keyword tracking complete for "${keyword}". Found ${filteredResults.length} results.`);
+    console.log(
+      `Keyword tracking complete for "${keyword}". Found ${filteredResults.length} results.`,
+    );
   };
 
   return (
@@ -93,13 +96,17 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
           {trackingResults.map((result) => (
             <Card key={result.id}>
               <CardHeader className="p-4">
-                <CardTitle className="text-lg">{result.keyword || 'N/A'}</CardTitle>
+                <CardTitle className="text-lg">
+                  {result.keyword || 'N/A'}
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0 text-sm text-muted-foreground dark:text-gray-400">
                 <p>Rank: {result.rank || 'N/A'}</p>
                 <p>Search Volume: {result.searchVolume || 'N/A'}</p>
-                <p>Competition: {result.competition || 'N/A'}</p> {/* Display new field */}
-                <p>CPC: {result.cpc?.toFixed(2) || 'N/A'}</p> {/* Display new field */}
+                <p>Competition: {result.competition || 'N/A'}</p>{' '}
+                {/* Display new field */}
+                <p>CPC: {result.cpc?.toFixed(2) || 'N/A'}</p>{' '}
+                {/* Display new field */}
               </CardContent>
             </Card>
           ))}
