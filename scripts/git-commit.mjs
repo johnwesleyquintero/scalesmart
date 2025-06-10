@@ -1,33 +1,22 @@
 import { exec, execSync } from 'child_process';
-import readline from 'readline';
 
 // Define quick commit templates
-const commitTemplates = [
-  'quick: minor changes',
-  'quick: bug fix',
-  'quick: feature addition',
-  'quick: documentation update',
-  'quick: code refactor',
-  'quick: performance improvement',
-  'quick: test addition',
-];
-
-// Function to display commit templates
-function displayTemplates() {
-  console.log('Available commit templates:');
-  commitTemplates.forEach((template, index) => {
-    console.log(`${index + 1}. ${template}`);
-  });
-}
 
 // Function to commit changes
-function commitChanges(commitMessage) {
-  exec(`git add . && git commit -m "${commitMessage}"`, (error) => {
+function commitAndPushChanges(commitMessage) {
+  exec(`git commit -m "${commitMessage}"`, (error) => {
     if (error) {
       console.error(`Error committing changes: ${error}`);
       return;
     }
     console.log(`Changes committed with message: ${commitMessage}`);
+    exec('git push', (pushError) => {
+      if (pushError) {
+        console.error(`Error pushing changes: ${pushError}`);
+        return;
+      }
+      console.log('Changes pushed successfully.');
+    });
   });
 }
 
@@ -111,49 +100,21 @@ function suggestCommitMessage() {
 
 
 // Create readline interface
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
 
 // Main script
-const suggestedMessage = suggestCommitMessage();
+exec('git add .', (addError) => {
+  if (addError) {
+    console.error(`Error adding files: ${addError}`);
+    return;
+  }
+  console.log('All changes added to staging.');
 
-if (suggestedMessage) {
-  console.log(`Suggested commit message: ${suggestedMessage}`);
-  rl.question('Use suggested message? (y/n/c - custom): ', (choice) => {
-    if (choice.toLowerCase() === 'y') {
-      commitChanges(suggestedMessage);
-      rl.close();
-    } else if (choice.toLowerCase() === 'c') {
-      rl.question('Enter custom commit message: ', (customMessage) => {
-        commitChanges(customMessage);
-        rl.close();
-      });
-    } else {
-      console.log('Select a commit template:');
-      displayTemplates();
-      rl.question('Enter the number of the commit template: ', (templateNumber) => {
-        const selectedTemplate = commitTemplates[templateNumber - 1];
-        if (selectedTemplate) {
-          commitChanges(selectedTemplate);
-        } else {
-          console.log('Invalid template number. Commit cancelled.');
-        }
-        rl.close();
-      });
-    }
-  });
-} else {
-  console.log('No staged changes found or error occurred. Select a commit template:');
-  displayTemplates();
-  rl.question('Enter the number of the commit template: ', (templateNumber) => {
-    const selectedTemplate = commitTemplates[templateNumber - 1];
-    if (selectedTemplate) {
-      commitChanges(selectedTemplate);
-    } else {
-      console.log('Invalid template number. Commit cancelled.');
-    }
-    rl.close();
-  });
-}
+  const suggestedMessage = suggestCommitMessage();
+
+  if (suggestedMessage) {
+    console.log(`Suggested commit message: ${suggestedMessage}`);
+    commitAndPushChanges(suggestedMessage);
+  } else {
+    console.log('No staged changes found or error occurred. No commit and push performed.');
+  }
+});
