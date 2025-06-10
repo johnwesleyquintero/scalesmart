@@ -184,7 +184,7 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
             console.error('Error parsing file', file.name, error); // Log error
           },
         };
-        PapaParse.parse(file as File, parseConfig); // Pass file and explicitly typed config
+        PapaParse.parse(file, parseConfig); // Pass file and explicitly typed config
       });
 
       event.target.value = '';
