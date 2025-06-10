@@ -45,6 +45,7 @@ const MarkdownTabs: React.FC<MarkdownTabsProps> = ({
                 e.stopPropagation(); // Prevent tab change when closing
                 onTabClose(noteId);
               }}
+              asChild
             >
               <X className="h-3 w-3" />
             </Button>

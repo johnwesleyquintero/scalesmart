@@ -14,6 +14,8 @@ import {
   getNoteVersions,
   cleanOldNoteVersions,
   deleteAllNoteVersions,
+  getNotesByCategory, // Import getNotesByCategory
+  searchNotes, // Import searchNotes
 } from '@/lib/indexeddb/markdown-notepad-db';
 import { useToast } from '@/hooks/use-toast';
 import { useMarkdownCategories } from '@/hooks/use-markdown-categories'; // Import the new hook
@@ -43,6 +45,7 @@ interface MarkdownNotepadContextType {
     category: string,
   ) => Promise<void>;
   handleDeleteNote: (id: string) => Promise<void>;
+  fetchNotesContent: () => Promise<Note[]>; // Add fetchNotesContent to context type
 }
 
 const MarkdownNotepadContext = createContext<
@@ -115,7 +118,7 @@ export const MarkdownNotepadProvider = ({
     async (noteId: string) => {
       try {
         return await getNoteVersions(noteId);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`Failed to fetch versions for note ${noteId}:`, error);
         toast({
           title: 'Error',
@@ -146,7 +149,7 @@ export const MarkdownNotepadProvider = ({
           title: 'Success',
           description: 'Note restored to selected version.',
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`Failed to restore note version for ${noteId}:`, error);
         toast({
           title: 'Error',
@@ -169,7 +172,7 @@ export const MarkdownNotepadProvider = ({
           title: 'Success',
           description: 'Note updated.',
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`Failed to update note ${id}:`, error);
         toast({
           title: 'Error',
@@ -191,7 +194,7 @@ export const MarkdownNotepadProvider = ({
           title: 'Success',
           description: 'Note deleted.',
         });
-      } catch (error) {
+      } catch (error: unknown) {
         console.error(`Failed to delete note ${id}:`, error);
         toast({
           title: 'Error',
@@ -203,6 +206,32 @@ export const MarkdownNotepadProvider = ({
     },
     [toast],
   );
+
+  // Function to fetch notes based on current category and search query
+  const fetchNotesContent = useCallback(async () => {
+    try {
+      let loadedNotes: Note[] = [];
+      if (category && category !== 'all') {
+        loadedNotes = await getNotesByCategory(category, searchQuery);
+      } else {
+        loadedNotes = await searchNotes(searchQuery);
+      }
+      // setNotes(loadedNotes || []); // State is now managed in NotesTabContent
+      return loadedNotes || [];
+    } catch (error: unknown) {
+      console.error('Failed to load notes:', error);
+      let errorMessage = 'Failed to load notes.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      throw error; // Re-throw to be handled by the component
+    }
+  }, [category, searchQuery, toast]); // Dependencies are only for fetching logic
 
   return (
     <MarkdownNotepadContext.Provider
@@ -221,6 +250,7 @@ export const MarkdownNotepadProvider = ({
         restoreNoteVersion,
         handleUpdateNote,
         handleDeleteNote,
+        fetchNotesContent, // Add fetchNotesContent here
       }}
     >
       {children}

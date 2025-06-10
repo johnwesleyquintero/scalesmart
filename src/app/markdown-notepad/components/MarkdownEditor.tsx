@@ -27,6 +27,7 @@ interface MarkdownEditorProps {
   initialTitle: string; // Add initialTitle prop
   initialMarkdown: string;
   onSaveSuccess?: () => void; // Callback for successful save
+  isLoading: boolean; // Add isLoading prop
 }
 
 const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -34,6 +35,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   initialTitle,
   initialMarkdown,
   onSaveSuccess,
+  isLoading, // Destructure isLoading prop
 }) => {
   const [markdown, setMarkdown] = useState(initialMarkdown);
   const [title, setTitle] = useState(initialTitle); // State for title
@@ -121,7 +123,10 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           >
             {viewMode === 'edit' ? 'Preview Mode' : 'Edit Mode'}
           </Toggle>
-          <Button onClick={handleManualSave}>Save Note</Button>
+          <Button onClick={handleManualSave} disabled={isLoading}>
+            Save Note
+          </Button>{' '}
+          {/* Disable when loading */}
           <Dialog
             open={showVersionHistory}
             onOpenChange={setShowVersionHistory}
@@ -133,6 +138,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                   const versions = await fetchNoteVersions(noteId);
                   setNoteVersions(versions);
                 }}
+                disabled={isLoading} // Disable when loading
               >
                 Version History
               </Button>
@@ -174,6 +180,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                             }
                             setShowVersionHistory(false); // Close dialog
                           }}
+                          disabled={isLoading} // Disable when loading
                         >
                           Restore
                         </Button>
@@ -193,6 +200,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
                 duration: 2000, // Short duration for quick feedback
               });
             }}
+            disabled={isLoading} // Disable when loading
           >
             Copy Markdown
           </Button>
@@ -204,6 +212,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           onChange={handleChange}
           placeholder="Write your markdown here..."
           className="min-h-[300px]"
+          disabled={isLoading} // Disable textarea when loading
         />
       ) : (
         <div className="border rounded-md p-4 overflow-y-auto min-h-[300px] prose dark:prose-invert">

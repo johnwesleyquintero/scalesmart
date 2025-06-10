@@ -24,6 +24,7 @@ interface NoteListAndActionsProps {
   allCategories: Category[];
   bulkCategory: string;
   setBulkCategory: React.Dispatch<React.SetStateAction<string>>;
+  isLoading: boolean; // Add isLoading prop
 }
 
 const NoteListAndActions: React.FC<NoteListAndActionsProps> = ({
@@ -37,6 +38,7 @@ const NoteListAndActions: React.FC<NoteListAndActionsProps> = ({
   allCategories,
   bulkCategory,
   setBulkCategory,
+  isLoading, // Destructure isLoading prop
 }) => {
   const { toast } = useToast();
 
@@ -99,20 +101,22 @@ const NoteListAndActions: React.FC<NoteListAndActionsProps> = ({
           </Select>
           <Button
             onClick={handleBulkCategoryAssign}
-            disabled={selectedNoteIds.length === 0 || !bulkCategory}
+            disabled={
+              selectedNoteIds.length === 0 || !bulkCategory || isLoading
+            } // Disable when loading
           >
             Assign to Selected ({selectedNoteIds.length})
           </Button>
           <Button
             variant="destructive"
             onClick={handleBulkDelete}
-            disabled={selectedNoteIds.length === 0}
+            disabled={selectedNoteIds.length === 0 || isLoading} // Disable when loading
           >
             Delete Selected ({selectedNoteIds.length})
           </Button>
           <Button
             onClick={handleExportSelected}
-            disabled={selectedNoteIds.length === 0}
+            disabled={selectedNoteIds.length === 0 || isLoading} // Disable when loading
           >
             Export Selected ({selectedNoteIds.length})
           </Button>
@@ -131,6 +135,7 @@ const NoteListAndActions: React.FC<NoteListAndActionsProps> = ({
                   handleNoteSelect(note.id, checked as boolean)
                 }
                 className="mr-2 mt-1"
+                disabled={isLoading} // Disable checkbox when loading
               />
               <div className="flex-grow min-w-0">
                 <h3
@@ -165,6 +170,7 @@ const NoteListAndActions: React.FC<NoteListAndActionsProps> = ({
                 variant="destructive"
                 size="sm"
                 onClick={() => handleDeleteNoteClick(note.id)}
+                disabled={isLoading} // Disable delete button when loading
               >
                 Delete
               </Button>

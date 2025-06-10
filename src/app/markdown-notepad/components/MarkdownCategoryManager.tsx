@@ -43,7 +43,7 @@ const MarkdownCategoryManager = ({
       try {
         const fetchedNotes = await getAllNotes();
         setNotes(fetchedNotes);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('Failed to fetch notes for category manager:', error);
       }
     };
@@ -72,7 +72,8 @@ const MarkdownCategoryManager = ({
     currentCategories: Category[],
     excludeId?: string,
   ) => {
-    if (!name.trim()) {
+    const trimmedName = name.trim();
+    if (!trimmedName) {
       toast({
         title: 'Error',
         description: 'Category name cannot be empty.',
@@ -80,9 +81,33 @@ const MarkdownCategoryManager = ({
       });
       return false;
     }
+
+    if (trimmedName.length > 50) {
+      toast({
+        title: 'Error',
+        description: 'Category name cannot exceed 50 characters.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
+    // Basic check for invalid characters (e.g., for potential file system or URL usage)
+    // Allows alphanumeric, spaces, hyphens, and underscores
+    const invalidCharRegex = /[^a-zA-Z0-9\s-_]/;
+    if (invalidCharRegex.test(trimmedName)) {
+      toast({
+        title: 'Error',
+        description:
+          'Category name contains invalid characters. Only alphanumeric, spaces, hyphens, and underscores are allowed.',
+        variant: 'destructive',
+      });
+      return false;
+    }
+
     const isDuplicate = currentCategories.some(
       (cat) =>
-        cat.name.toLowerCase() === name.toLowerCase() && cat.id !== excludeId,
+        cat.name.toLowerCase() === trimmedName.toLowerCase() &&
+        cat.id !== excludeId,
     );
     if (isDuplicate) {
       toast({
@@ -118,7 +143,7 @@ const MarkdownCategoryManager = ({
     try {
       await onAddCategory(trimmedCategoryName);
       setCategoryInputName('');
-    } catch (error) {
+    } catch (error: unknown) {
       // Error handled by useMarkdownCategories hook
     }
   };
@@ -157,7 +182,7 @@ const MarkdownCategoryManager = ({
       if (oldName !== updatedCategory.name) {
         await onCategoryRenamed(oldName, updatedCategory.name);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       // Error handled by useMarkdownCategories hook
     }
   };
@@ -180,7 +205,7 @@ const MarkdownCategoryManager = ({
       // After deleting a category, re-fetch notes to update counts
       const fetchedNotes = await getAllNotes();
       setNotes(fetchedNotes);
-    } catch (error) {
+    } catch (error: unknown) {
       // Error handled by useMarkdownCategories hook
     }
   };

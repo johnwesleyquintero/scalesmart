@@ -1,0 +1,332 @@
+'use client';
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { useMarkdownNotepadContext } from '@/context/MarkdownNotepadContext';
+import MarkdownEditor from './MarkdownEditor';
+import CategorySelector from './CategorySelector';
+import SearchBar from './SearchBar';
+import MarkdownTabs from './MarkdownTabs';
+import NoteContent from './NoteContent';
+import NoteListAndActions from './NoteListAndActions'; // Import NoteListAndActions
+import { getNote } from '@/lib/indexeddb/markdown-notepad-db';
+import { Button } from '@/components/ui/button';
+import { Note } from '@/types/indexeddb';
+import { useToast } from '@/hooks/use-toast';
+
+interface NotesTabContentProps {
+  isLoading: boolean;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+const NotesTabContent: React.FC<NotesTabContentProps> = ({
+  isLoading,
+  setIsLoading,
+}) => {
+  const {
+    category,
+    searchQuery,
+    createNewNote,
+    allCategories,
+    fetchCategories,
+    handleDeleteNote,
+    handleUpdateNote,
+    fetchNotesContent, // Get fetchNotesContent from context
+  } = useMarkdownNotepadContext();
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [activeNoteContent, setActiveNoteContent] = useState<string>('');
+  const [activeNoteTitle, setActiveNoteTitle] = useState<string>('');
+  const { toast } = useToast();
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
+  const [bulkCategory, setBulkCategory] = useState<string>('');
+  const [openNoteIds, setOpenNoteIds] = useState<string[]>([]);
+  const [noteTitles, setNoteTitles] = useState<{ [key: string]: string }>({});
+
+  // Effect to trigger note fetching and reset selection when category or search query changes
+  useEffect(() => {
+    const loadNotes = async () => {
+      setIsLoading(true); // Set loading to true before fetching
+      try {
+        const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
+        setNotes(loadedNotes || []);
+      } finally {
+        setIsLoading(false); // Set loading to false after fetching
+      }
+    };
+    loadNotes();
+    // Crucially, reset selectedNoteId when category or search query changes
+    setSelectedNoteId(null);
+  }, [category, searchQuery, fetchNotesContent, setIsLoading]); // Depend on category, searchQuery, and the context's fetcher
+
+  // Effect to handle automatic selection of the first note or clearing selection
+  useEffect(() => {
+    if (notes.length > 0 && !selectedNoteId) {
+      setSelectedNoteId(notes[0].id);
+    } else if (notes.length === 0 && selectedNoteId) {
+      // If no notes are loaded, clear the selected note
+      setSelectedNoteId(null);
+    }
+  }, [notes, selectedNoteId]);
+
+  // Effect to load content of the active note
+  useEffect(() => {
+    const loadActiveNoteContent = async () => {
+      if (selectedNoteId) {
+        try {
+          const note = await getNote(selectedNoteId);
+          if (note) {
+            setActiveNoteContent(note.markdown || '');
+            setActiveNoteTitle(note.title || 'Untitled Note');
+            setNoteTitles((prev) => ({
+              ...prev,
+              [note.id]: note.title || 'Untitled',
+            }));
+          } else {
+            setActiveNoteContent('');
+            setActiveNoteTitle('');
+            setNoteTitles((prev) => {
+              const newTitles = { ...prev };
+              delete newTitles[selectedNoteId];
+              return newTitles;
+            });
+          }
+        } catch (error: unknown) {
+          console.error(`Failed to load note ${selectedNoteId}:`, error);
+          let errorMessage = `Failed to load note content.`;
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          }
+          toast({
+            title: 'Error',
+            description: errorMessage,
+            variant: 'destructive',
+          });
+          setActiveNoteContent('');
+          setActiveNoteTitle('');
+        }
+      } else {
+        setActiveNoteContent('');
+        setActiveNoteTitle('');
+      }
+    };
+    loadActiveNoteContent();
+  }, [selectedNoteId, toast]);
+
+  // Function to handle opening a note in a new tab
+  const handleOpenNoteInTab = useCallback(
+    async (noteId: string) => {
+      if (!openNoteIds.includes(noteId)) {
+        setOpenNoteIds((prev) => [...prev, noteId]);
+      }
+      setSelectedNoteId(noteId);
+    },
+    [openNoteIds, setSelectedNoteId],
+  );
+
+  // Function to handle closing a note tab
+  const handleCloseNoteTab = useCallback(
+    (noteIdToClose: string) => {
+      setOpenNoteIds((prev) => {
+        const newOpenNoteIds = prev.filter((id) => id !== noteIdToClose);
+        // If the closed tab was the active one, select a new active tab
+        if (selectedNoteId === noteIdToClose) {
+          setSelectedNoteId(
+            newOpenNoteIds.length > 0 ? newOpenNoteIds[0] : null,
+          );
+        }
+        return newOpenNoteIds;
+      });
+      setNoteTitles((prev) => {
+        const newTitles = { ...prev };
+        delete newTitles[noteIdToClose];
+        return newTitles;
+      });
+    },
+    [selectedNoteId, setSelectedNoteId],
+  );
+
+  const handleDeleteNoteClick = async (noteId: string) => {
+    if (window.confirm('Are you sure you want to delete this note?')) {
+      setIsLoading(true); // Set loading to true before deletion
+      try {
+        await handleDeleteNote(noteId);
+        setSelectedNoteId(null);
+        setSelectedNoteIds((prev) => prev.filter((id) => id !== noteId));
+        handleCloseNoteTab(noteId);
+        const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
+        setNotes(loadedNotes || []);
+        await fetchCategories();
+        toast({
+          title: 'Success',
+          description: 'Note deleted successfully.',
+        });
+      } catch (error: unknown) {
+        console.error(`Failed to delete note with ID ${noteId}:`, error);
+        let errorMessage = 'Failed to delete note.';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false); // Set loading to false after deletion
+      }
+    }
+  };
+
+  const handleBulkCategoryAssign = async () => {
+    if (!bulkCategory || selectedNoteIds.length === 0) {
+      toast({
+        title: 'Info',
+        description: 'Please select notes and a category.',
+        variant: 'default',
+      });
+      return;
+    }
+
+    setIsLoading(true); // Set loading to true before bulk assign
+    try {
+      for (const noteId of selectedNoteIds) {
+        const noteToUpdate = await getNote(noteId);
+        if (noteToUpdate) {
+          await handleUpdateNote(
+            noteId,
+            noteToUpdate.title,
+            noteToUpdate.markdown,
+            bulkCategory,
+          );
+        }
+      }
+      toast({
+        title: 'Success',
+        description: `Assigned category "${bulkCategory}" to selected notes.`,
+      });
+      setSelectedNoteIds([]);
+      setBulkCategory('');
+      const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
+      setNotes(loadedNotes || []);
+      await fetchCategories();
+    } catch (error: unknown) {
+      console.error('Failed to assign bulk category:', error);
+      let errorMessage = 'Failed to assign category to selected notes.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoading(false); // Set loading to false after bulk assign
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedNoteIds.length === 0) {
+      toast({
+        title: 'Info',
+        description: 'Please select notes to delete.',
+        variant: 'default',
+      });
+      return;
+    }
+
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${selectedNoteIds.length} selected notes?`,
+      )
+    ) {
+      setIsLoading(true); // Set loading to true before bulk delete
+      try {
+        for (const noteId of selectedNoteIds) {
+          await handleDeleteNote(noteId);
+        }
+        toast({
+          title: 'Success',
+          description: `${selectedNoteIds.length} notes deleted successfully.`,
+        });
+        setSelectedNoteId(null);
+        setSelectedNoteIds([]);
+        const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
+        setNotes(loadedNotes || []);
+        await fetchCategories();
+      } catch (error: unknown) {
+        console.error('Failed to bulk delete notes:', error);
+        let errorMessage = 'Failed to delete selected notes.';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      } finally {
+        setIsLoading(false); // Set loading to false after bulk delete
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-4 mt-4">
+      <div className="flex space-x-4 mb-4">
+        <SearchBar />
+        <CategorySelector />
+      </div>
+
+      {/* Tabbed interface for open notes */}
+      {openNoteIds.length > 0 && (
+        <MarkdownTabs
+          openNoteIds={openNoteIds}
+          activeNoteId={selectedNoteId}
+          onTabChange={setSelectedNoteId}
+          onTabClose={handleCloseNoteTab}
+          noteTitles={noteTitles}
+        />
+      )}
+
+      {selectedNoteId ? (
+        <MarkdownEditor
+          key={selectedNoteId}
+          noteId={selectedNoteId}
+          initialTitle={activeNoteTitle}
+          initialMarkdown={activeNoteContent}
+          onSaveSuccess={async () => {
+            setIsLoading(true); // Set loading to true before fetching
+            try {
+              const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
+              setNotes(loadedNotes || []);
+            } finally {
+              setIsLoading(false); // Set loading to false after fetching
+            }
+          }}
+          isLoading={isLoading} // Pass isLoading prop
+        />
+      ) : (
+        <div className="p-4 text-center text-muted-foreground">
+          Select a note or create a new one.
+        </div>
+      )}
+
+      <NoteListAndActions
+        notes={notes}
+        selectedNoteIds={selectedNoteIds}
+        setSelectedNoteIds={setSelectedNoteIds}
+        onNoteClick={handleOpenNoteInTab}
+        handleDeleteNoteClick={handleDeleteNoteClick}
+        handleBulkCategoryAssign={handleBulkCategoryAssign}
+        handleBulkDelete={handleBulkDelete}
+        allCategories={allCategories}
+        bulkCategory={bulkCategory}
+        setBulkCategory={setBulkCategory}
+        isLoading={isLoading} // Pass isLoading to NoteListAndActions
+      />
+    </div>
+  );
+};
+
+export default NotesTabContent;

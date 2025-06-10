@@ -21,7 +21,7 @@ export const MarkdownCategoryManagementTab: React.FC = () => {
     try {
       const fetchedNotes = await getAllNotes();
       setNotes(fetchedNotes);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error(
         'Failed to fetch all notes for category management:',
         error,
