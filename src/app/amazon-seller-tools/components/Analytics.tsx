@@ -11,16 +11,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-interface ParsedFileData<T> {
-  fileName: string;
-  data: T[];
-}
+import { AnalyticsData, ParsedFileData } from '@/types/amazon-tools'; // Import ParsedFileData
 
 interface AnalyticsProps {
   parsedData: ParsedFileData<AnalyticsData>[];
 }
-
-import { AnalyticsData } from '@/types/amazon-tools'; // Import AnalyticsData type
 
 const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
   // Filter for Analytics data and flatten it
@@ -41,7 +36,7 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
 
   const allAnalyticsData = analyticsReports.flatMap((report) => report.data);
 
-  // Calculate total sales and units sold
+  // Calculate total sales, units sold, and aggregate other metrics
   const totalSales = allAnalyticsData.reduce(
     (sum, item) => sum + (item.totalSales || 0),
     0,
@@ -50,11 +45,37 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
     (sum, item) => sum + (item.unitsSold || 0),
     0,
   );
+  const totalImpressions = allAnalyticsData.reduce(
+    (sum, item) => sum + (item.impressions || 0),
+    0,
+  );
+  const totalClicks = allAnalyticsData.reduce(
+    (sum, item) => sum + (item.clicks || 0),
+    0,
+  );
+  // ACoS and ROAS are typically calculated per campaign/period, averaging might not be meaningful without more context.
+  // For simplicity, we'll just display the sum of available values, but a real-world scenario would need more complex aggregation.
+  const totalAcos = allAnalyticsData.reduce(
+    (sum, item) => sum + (item.acos || 0),
+    0,
+  );
+  const totalRoas = allAnalyticsData.reduce(
+    (sum, item) => sum + (item.roas || 0),
+    0,
+  );
+  const averageCpc = allAnalyticsData.length > 0 ? allAnalyticsData.reduce((sum, item) => sum + (item.cpc || 0), 0) / allAnalyticsData.length : 0;
+
 
   const aggregatedSalesTrend = React.useMemo(() => {
     const trendMap = new Map<string, number>(); // Map to store sales by date
 
     allAnalyticsData.forEach((item) => {
+      // Use the 'date' field from the transformed data
+      if (item.date && item.totalSales !== undefined) {
+        const existingSales = trendMap.get(item.date) || 0;
+        trendMap.set(item.date, existingSales + item.totalSales);
+      }
+      // Also consider the salesTrend array if it exists (for backward compatibility or specific report types)
       item.salesTrend?.forEach((trend) => {
         const existingSales = trendMap.get(trend.date) || 0;
         trendMap.set(trend.date, existingSales + trend.sales);
@@ -66,9 +87,6 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
       .map(([date, sales]) => ({ date, sales }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [allAnalyticsData]);
-
-  // Note: Sales trend visualization requires a charting library. This is a placeholder.
-  // You would typically process allAnalyticsData to aggregate sales by date for the trend chart.
 
   return (
     <div className="space-y-4 p-4">
@@ -86,7 +104,6 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <p className="text-2xl font-bold">${totalSales.toFixed(2)}</p>
-            {/* Placeholder for comparison */}
             <p className="text-sm text-muted-foreground dark:text-gray-400">
               Data from {allAnalyticsData.length} entries
             </p>
@@ -100,24 +117,85 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <p className="text-2xl font-bold">{totalUnitsSold}</p>
-            {/* Placeholder for comparison */}
             <p className="text-sm text-muted-foreground dark:text-gray-400">
               Data from {allAnalyticsData.length} entries
             </p>
           </CardContent>
         </Card>
 
-        {/* Placeholder Card for a chart area */}
+        {/* Card for Total Impressions */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Total Impressions</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{totalImpressions}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Data from {allAnalyticsData.length} entries
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Card for Total Clicks */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Total Clicks</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{totalClicks}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Data from {allAnalyticsData.length} entries
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Card for Total ACoS (Note: Aggregation might not be ideal) */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Total ACoS</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{totalAcos.toFixed(2)}%</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Sum of ACoS from {allAnalyticsData.length} entries (Aggregation may vary)
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Card for Total ROAS (Note: Aggregation might not be ideal) */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Total ROAS</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{totalRoas.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Sum of ROAS from {allAnalyticsData.length} entries (Aggregation may vary)
+            </p>
+          </CardContent>
+        </Card>
+
+         {/* Card for Average CPC */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Average CPC</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">${averageCpc.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Average Cost Per Click from {allAnalyticsData.length} entries
+            </p>
+          </CardContent>
+        </Card>
+
+
+        {/* Sales Trend Chart */}
         <Card className="lg:col-span-3">
           <CardHeader className="p-4">
-            <CardTitle className="text-lg">
-              Sales Trend (Placeholder Chart)
-            </CardTitle>
+            <CardTitle className="text-lg">Sales Trend</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
             <div className="h-64">
-              {' '}
-              {/* Increased height for better chart visibility */}
               {aggregatedSalesTrend.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart

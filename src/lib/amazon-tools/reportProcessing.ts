@@ -16,94 +16,175 @@ const productResearchConfig: CsvTransformerConfig = [
   {
     id: 'name',
     label: 'Product Name',
-    aliases: ['Product Title', 'Title'], // Example aliases
-    // transform: (value: unknown) => String(value), // Example transform
+    aliases: ['Product Title', 'Title', 'Item Name'],
+    transform: (value: unknown) => String(value || ''),
   },
   {
     id: 'price',
     label: 'Price',
-    aliases: ['Price', 'Current Price'], // Example aliases
-    transform: (value: unknown) => parseFloat(String(value)) || 0, // Convert to number
+    aliases: ['Price', 'Current Price', 'Your Price'],
+    transform: (value: unknown) => parseFloat(String(value).replace(/[^0-9.-]+/g, "")) || 0, // Remove currency symbols
   },
   {
     id: 'asin',
     label: 'ASIN',
-    aliases: ['ASIN', '(Parent) ASIN', '(Child) ASIN'], // Example aliases
-    // transform: (value: unknown) => String(value),
+    aliases: ['ASIN', '(Parent) ASIN', '(Child) ASIN', 'Product ASIN'],
+    transform: (value: unknown) => String(value || ''),
   },
-  // Add other relevant fields from ProductResearchData
+  {
+    id: 'brand',
+    label: 'Brand',
+    aliases: ['Brand', 'Brand Name'],
+    transform: (value: unknown) => String(value || ''),
+  },
+  {
+    id: 'category',
+    label: 'Category',
+    aliases: ['Category', 'Product Category'],
+    transform: (value: unknown) => String(value || ''),
+  },
+  {
+    id: 'reviews',
+    label: 'Reviews',
+    aliases: ['Customer Reviews', 'Number of Reviews'],
+    transform: (value: unknown) => parseInt(String(value)) || 0,
+  },
+  {
+    id: 'rating',
+    label: 'Rating',
+    aliases: ['Average Review Rating', 'Rating'],
+    transform: (value: unknown) => parseFloat(String(value)) || 0,
+  },
+  // Add more relevant fields as needed based on common product research reports
 ];
 
-// Placeholder CsvTransformerConfig for Keyword Tracking reports
 const keywordTrackingConfig: CsvTransformerConfig = [
   {
     id: 'keyword',
     label: 'Keyword',
-    aliases: ['Keyword', 'Search Term'], // Example aliases
-    // transform: (value: unknown) => String(value),
+    aliases: ['Keyword', 'Search Term', 'Customer Search Term'],
+    transform: (value: unknown) => String(value || ''),
   },
   {
     id: 'rank',
     label: 'Rank',
-    aliases: ['Rank', 'Keyword Rank'], // Example aliases
-    transform: (value: unknown) => parseInt(String(value)) || 0, // Convert to number
+    aliases: ['Rank', 'Keyword Rank', 'Organic Rank'],
+    transform: (value: unknown) => parseInt(String(value)) || 0,
   },
   {
     id: 'searchVolume',
     label: 'Search Volume',
-    aliases: ['Search Volume'], // Example aliases
-    transform: (value: unknown) => parseInt(String(value)) || 0, // Convert to number
+    aliases: ['Search Volume', 'Monthly Search Volume'],
+    transform: (value: unknown) => parseInt(String(value)) || 0,
   },
-  // Add other relevant fields from KeywordTrackingData
+  {
+    id: 'competition',
+    label: 'Competition',
+    aliases: ['Competition', 'Keyword Competition'],
+    transform: (value: unknown) => String(value || ''), // Or a numerical transformation if applicable
+  },
+  {
+    id: 'cpc',
+    label: 'CPC',
+    aliases: ['CPC', 'Cost Per Click'],
+    transform: (value: unknown) => parseFloat(String(value).replace(/[^0-9.-]+/g, "")) || 0,
+  },
+  // Add more relevant fields as needed based on common keyword tracking reports
 ];
 
-// Placeholder CsvTransformerConfig for Listing Optimization reports
 const listingOptimizationConfig: CsvTransformerConfig = [
   {
     id: 'title',
     label: 'Title',
-    aliases: ['Product Title', 'Title'], // Example aliases
-    // transform: (value: unknown) => String(value),
+    aliases: ['Product Title', 'Title', 'Item Name'],
+    transform: (value: unknown) => String(value || ''),
   },
   {
     id: 'bulletPoints',
     label: 'Bullet Points',
-    aliases: ['Bullet Points', 'Key Product Features'], // Example aliases
+    aliases: ['Bullet Points', 'Key Product Features', 'Feature Bullets'],
     transform: (value: unknown) =>
-      String(value)
-        .split('\\n')
-        .map((point) => point.trim()), // Example transform: split by newline
+      String(value || '')
+        .split(/[\n\r]+/) // Split by newline or carriage return
+        .map((point) => point.trim())
+        .filter(Boolean), // Remove empty strings
   },
   {
     id: 'description',
     label: 'Description',
-    aliases: ['Product Description', 'Description'], // Example aliases
-    // transform: (value: unknown) => String(value),
+    aliases: ['Product Description', 'Description', 'Item Description'],
+    transform: (value: unknown) => String(value || ''),
   },
-  // Add other relevant fields from ListingOptimizationData
+  {
+    id: 'backendKeywords',
+    label: 'Backend Keywords',
+    aliases: ['Search Terms', 'Backend Search Terms'],
+    transform: (value: unknown) => String(value || ''),
+  },
+  {
+    id: 'subjectMatter',
+    label: 'Subject Matter',
+    aliases: ['Subject Matter'],
+    transform: (value: unknown) => String(value || ''),
+  },
+  // Add more relevant fields as needed based on common listing optimization reports
 ];
 
-// Placeholder CsvTransformerConfig for Analytics reports
 const analyticsConfig: CsvTransformerConfig = [
+  {
+    id: 'date',
+    label: 'Date',
+    aliases: ['Date', 'Order Date', 'Ship Date'],
+    transform: (value: unknown) => {
+      const dateStr = String(value || '');
+      // Attempt to parse various date formats
+      const date = new Date(dateStr);
+      return isNaN(date.getTime()) ? dateStr : date.toISOString().split('T')[0]; // Return ISO date string or original if invalid
+    },
+  },
   {
     id: 'totalSales',
     label: 'Total Sales',
-    aliases: ['Total Sales', 'Sales'], // Example aliases
-    transform: (value: unknown) => parseFloat(String(value)) || 0, // Convert to number
+    aliases: ['Total Sales', 'Sales', 'Product Sales'],
+    transform: (value: unknown) => parseFloat(String(value).replace(/[^0-9.-]+/g, "")) || 0,
   },
   {
     id: 'unitsSold',
     label: 'Units Sold',
-    aliases: ['Units Sold', 'Units Ordered'], // Example aliases
-    transform: (value: unknown) => parseInt(String(value)) || 0, // Convert to number
+    aliases: ['Units Sold', 'Units Ordered', 'Quantity'],
+    transform: (value: unknown) => parseInt(String(value)) || 0,
   },
   {
-    id: 'salesTrend',
-    label: 'Sales Trend',
-    aliases: [], // This might require custom handling, not a direct column mapping
-    // transform: (value: unknown) => value, // Requires complex transformation
+    id: 'acos',
+    label: 'ACoS',
+    aliases: ['ACoS', 'Advertising Cost of Sales'],
+    transform: (value: unknown) => parseFloat(String(value).replace(/[^0-9.-]+/g, "")) || 0, // Handle percentage if needed
   },
-  // Add other relevant fields from AnalyticsData
+  {
+    id: 'roas',
+    label: 'ROAS',
+    aliases: ['ROAS', 'Return on Ad Spend'],
+    transform: (value: unknown) => parseFloat(String(value).replace(/[^0-9.-]+/g, "")) || 0,
+  },
+  {
+    id: 'impressions',
+    label: 'Impressions',
+    aliases: ['Impressions'],
+    transform: (value: unknown) => parseInt(String(value)) || 0,
+  },
+  {
+    id: 'clicks',
+    label: 'Clicks',
+    aliases: ['Clicks'],
+    transform: (value: unknown) => parseInt(String(value)) || 0,
+  },
+  {
+    id: 'cpc',
+    label: 'CPC',
+    aliases: ['CPC', 'Cost Per Click'],
+    transform: (value: unknown) => parseFloat(String(value).replace(/[^0-9.-]+/g, "")) || 0,
+  },
+  // salesTrend is calculated from aggregated data, not directly from a single column
 ];
 
 // Function to get the appropriate configuration based on category

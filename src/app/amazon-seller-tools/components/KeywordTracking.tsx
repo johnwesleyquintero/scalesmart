@@ -5,11 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface KeywordTrackingResult {
-  id: number;
-  keyword: string;
-  rank: number;
-  searchVolume: string; // Consider a more structured type if needed
+interface KeywordTrackingResult extends KeywordTrackingData {
+  id: number; // Add an ID for keying in lists
 }
 
 interface KeywordTrackingProps {
@@ -39,12 +36,14 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
     parsedData.forEach((file) => {
       file.data.forEach((item, index) => {
         // Assuming 'keyword' field exists in KeywordTrackingData
-        if (item.keyword.toLowerCase().includes(lowerCaseKeyword)) {
+        if (item.keyword?.toLowerCase().includes(lowerCaseKeyword)) { // Added optional chaining
           filteredResults.push({
             id: filteredResults.length + 1, // Simple unique ID
             keyword: item.keyword,
             rank: item.rank,
-            searchVolume: String(item.searchVolume), // Ensure searchVolume is string for display
+            searchVolume: item.searchVolume,
+            competition: item.competition, // Include new fields
+            cpc: item.cpc, // Include new fields
           });
         }
       });
@@ -94,16 +93,13 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
           {trackingResults.map((result) => (
             <Card key={result.id}>
               <CardHeader className="p-4">
-                <CardTitle className="text-lg">{result.keyword}</CardTitle>
+                <CardTitle className="text-lg">{result.keyword || 'N/A'}</CardTitle>
               </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <p className="text-sm text-muted-foreground dark:text-gray-400">
-                  Rank: {result.rank}
-                </p>
-                <p className="text-sm text-muted-foreground dark:text-gray-400">
-                  Search Volume: {result.searchVolume}
-                </p>
-                {/* Add more tracking details here based on actual data */}
+              <CardContent className="p-4 pt-0 text-sm text-muted-foreground dark:text-gray-400">
+                <p>Rank: {result.rank || 'N/A'}</p>
+                <p>Search Volume: {result.searchVolume || 'N/A'}</p>
+                <p>Competition: {result.competition || 'N/A'}</p> {/* Display new field */}
+                <p>CPC: {result.cpc?.toFixed(2) || 'N/A'}</p> {/* Display new field */}
               </CardContent>
             </Card>
           ))}
@@ -112,8 +108,8 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
 
       {/* Optionally display a message if no results */}
       {/* {keyword && trackingResults.length === 0 && (
-         <p className="text-muted-foreground dark:text-gray-400 italic">No results found for "{keyword}".</p>
-       )} */}
+           <p className="text-muted-foreground dark:text-gray-400 italic">No results found for "{keyword}".</p>
+         )} */}
     </div>
   );
 };

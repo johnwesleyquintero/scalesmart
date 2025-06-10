@@ -28,9 +28,17 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
 
     parsedData.forEach((file) => {
       file.data.forEach((product, index) => {
+        // Check if product and its properties exist before accessing them
+        const name = product?.name?.toLowerCase() || '';
+        const asin = product?.asin?.toLowerCase() || '';
+        const brand = product?.brand?.toLowerCase() || '';
+        const category = product?.category?.toLowerCase() || '';
+
         if (
-          product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-          product.asin.toLowerCase().includes(lowerCaseSearchTerm)
+          name.includes(lowerCaseSearchTerm) ||
+          asin.includes(lowerCaseSearchTerm) ||
+          brand.includes(lowerCaseSearchTerm) ||
+          category.includes(lowerCaseSearchTerm)
         ) {
           filteredResults.push({ ...product, id: filteredResults.length + 1 });
         }
@@ -48,11 +56,11 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
 
       <div className="flex items-center gap-2">
         <div className="grid flex-grow gap-1.5">
-          <Label htmlFor="product-search">Product Keyword or ASIN</Label>
+          <Label htmlFor="product-search">Product Keyword, ASIN, Brand, or Category</Label>
           <Input
             id="product-search"
             type="text"
-            placeholder="Enter keyword or ASIN"
+            placeholder="Enter keyword, ASIN, brand, or category"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyPress={(e) => {
@@ -73,15 +81,15 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
           {searchResults.map((result) => (
             <Card key={result.id}>
               <CardHeader className="p-4">
-                <CardTitle className="text-lg">{result.name}</CardTitle>
+                <CardTitle className="text-lg">{result.name || 'N/A'}</CardTitle>
               </CardHeader>
-              <CardContent className="p-4 pt-0">
-                <p className="text-sm text-muted-foreground dark:text-gray-400">
-                  Price: ${result.price.toFixed(2)}
-                </p>
-                <p className="text-sm text-muted-foreground dark:text-gray-400">
-                  ASIN: {result.asin}
-                </p>
+              <CardContent className="p-4 pt-0 text-sm text-muted-foreground dark:text-gray-400">
+                <p>Price: ${result.price?.toFixed(2) || 'N/A'}</p>
+                <p>ASIN: {result.asin || 'N/A'}</p>
+                <p>Brand: {result.brand || 'N/A'}</p>
+                <p>Category: {result.category || 'N/A'}</p>
+                <p>Reviews: {result.reviews || 'N/A'}</p>
+                <p>Rating: {result.rating?.toFixed(2) || 'N/A'}</p>
               </CardContent>
             </Card>
           ))}

@@ -25,24 +25,38 @@ export interface ProductResearchData {
   name: string;
   price: number;
   asin: string;
+  brand?: string; // Added brand
+  category?: string; // Added category
+  reviews?: number; // Added reviews
+  rating?: number; // Added rating
 }
 
 export interface KeywordTrackingData {
   keyword: string;
   rank: number;
   searchVolume: number;
+  competition?: string; // Added competition
+  cpc?: number; // Added cpc
 }
 
 export interface ListingOptimizationData {
   title: string;
   bulletPoints: string[];
   description: string;
+  backendKeywords?: string; // Added backendKeywords
+  subjectMatter?: string; // Added subjectMatter
 }
 
 export interface AnalyticsData {
+  date?: string; // Added date for potential time-series analysis
   totalSales: number;
   unitsSold: number;
   salesTrend: { date: string; sales: number }[];
+  acos?: number; // Added acos
+  roas?: number; // Added roas
+  impressions?: number; // Added impressions
+  clicks?: number; // Added clicks
+  cpc?: number; // Added cpc
 }
 
 export type DataType =
