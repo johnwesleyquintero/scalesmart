@@ -1,4 +1,10 @@
 import { Contact, CommunicationLog } from '../app/crm/types';
+import {
+  ProductResearchData,
+  KeywordTrackingData,
+  ListingOptimizationData,
+  AnalyticsData,
+} from './amazon-tools';
 import { QuizResult, Course } from './index';
 
 // Define Category interface
@@ -137,5 +143,10 @@ export interface AmazonReport {
   fileName: string;
   category: string;
   uploadDate: number; // Timestamp
-  parsedData: Record<string, unknown>[]; // Array of parsed rows
+  parsedData: (
+    | ProductResearchData
+    | KeywordTrackingData
+    | ListingOptimizationData
+    | AnalyticsData
+  )[]; // Array of parsed rows
 }

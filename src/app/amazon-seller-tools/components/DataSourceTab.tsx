@@ -1,48 +1,67 @@
 // src/app/amazon-seller-tools/components/DataSourceTab.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'; // Import Card components
-import { Badge } from '@/components/ui/badge'; // Import Badge component
-import Papa from 'papaparse'; // Import PapaParse
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import * as PapaParse from 'papaparse';
 import {
   addAmazonReport,
   getAllAmazonReports,
   updateAmazonReport,
-} from '@/lib/indexeddb/amazon-tools-db'; // Import IndexedDB functions
-import { AmazonReport } from '@/types/indexeddb'; // Import AmazonReport type
-import { useEffect } from 'react'; // Import useEffect
+} from '@/lib/indexeddb/amazon-tools-db';
+import { AmazonReport } from '@/types/indexeddb';
+import {
+  ProductResearchData,
+  KeywordTrackingData,
+  ListingOptimizationData,
+  AnalyticsData,
+  ParsedFileData,
+} from '@/types/amazon-tools';
+
+const PRODUCT_RESEARCH = 'product-research';
+const KEYWORD_TRACKING = 'keyword-tracking';
+const LISTING_OPTIMIZATION = 'listing-optimization';
+const ANALYTICS = 'analytics';
+
+type DataType =
+  | ProductResearchData
+  | KeywordTrackingData
+  | ListingOptimizationData
+  | AnalyticsData;
 
 interface DataSourceTabProps {
-  // Define props needed for this component, e.g., onFileUpload
-  onFileUpload?: (files: File[], parsedData: Record<string, unknown>[]) => void; // Updated prop to include parsed data
+  currentTab: string;
+  onFileUpload?: (files: File[], parsedData: Record<string, unknown>[]) => void;
 }
 
-const DataSourceTab: React.FC<DataSourceTabProps> = ({ onFileUpload }) => {
-  // Define a type for files with category information, including an optional ID for IndexedDB
-  interface UploadedFile extends File {
-    id?: string; // Added for IndexedDB key
-    category?: string;
-  }
+interface UploadedFile extends File {
+  id?: string;
+  category: string;
+}
 
-  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]); // State to store uploaded files with category
-  // Define a type for the parsed data stored in state
-  interface ParsedFileData {
-    fileName: string;
-    data: Record<string, unknown>[];
-  }
+const transformParsedData = (
+  rawParsedData: Record<string, unknown>[],
+  category: string,
+  fileName: string,
+): DataType[] | Record<string, unknown>[] => {
+  // TODO: Implement data transformation logic based on category
+  console.warn(`Data transformation not implemented for category: ${category}`);
+  return rawParsedData as Record<string, unknown>[]; // Placeholder return
+};
 
-  const [parsedData, setParsedData] = useState<ParsedFileData[]>([]); // State to store parsed data with file name
+const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
+  const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
 
-  // Load existing reports from IndexedDB on component mount
+  const [parsedData, setParsedData] = useState<ParsedFileData<DataType>[]>([]);
+
   useEffect(() => {
     const loadReports = async () => {
       try {
         const reports = await getAllAmazonReports();
         const filesFromReports: UploadedFile[] = reports.map((report) => {
-          // Reconstruct a File-like object for display
           const file = new File([], report.fileName, {
             type: 'text/csv',
             lastModified: report.uploadDate,
@@ -57,7 +76,7 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({ onFileUpload }) => {
         setParsedData(
           reports.map((report) => ({
             fileName: report.fileName,
-            data: report.parsedData,
+            data: report.parsedData as DataType[],
           })),
         );
       } catch (error) {
@@ -72,57 +91,80 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({ onFileUpload }) => {
     if (files) {
       const newFiles: UploadedFile[] = Array.from(files).map((file) => ({
         ...file,
-        category: '', // Initialize category as empty string
+        category: PRODUCT_RESEARCH, // Default category
       }));
-      setUploadedFiles((prevFiles) => [...prevFiles, ...newFiles]); // Add new files to state
+      setUploadedFiles((prevFiles) => [...prevFiles, ...newFiles]);
 
       newFiles.forEach((file) => {
-        Papa.parse(file, {
-          header: true, // Assuming the first row is headers
+        console.log('Parsing file:', file.name, file); // Log file object
+        console.log('Parsing file:', file.name, file); // Log file object
+        const parseConfig: PapaParse.ParseLocalConfig<
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          Record<string, any>,
+          File
+        > = {
+          // Explicitly type config
+          header: true,
           skipEmptyLines: true,
-          complete: async (results) => {
-            console.log('Parsed data for', file.name, results.data); // Log parsed data
+          complete: async (
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            results: PapaParse.ParseResult<Record<string, any>>,
+          ) => {
+            // Add type to results
+            console.log('Parsing complete for', file.name, 'Results:', results); // Log results
+
+            const rawParsedData: Record<string, unknown>[] = results.data; // Explicitly type raw data
+
+            const transformedData = transformParsedData(
+              rawParsedData,
+              file.category,
+              file.name,
+            ); // Transform data
+
             const report: AmazonReport = {
               fileName: file.name,
-              category: '', // Initial category
+              category: file.category,
               uploadDate: Date.now(),
-              parsedData: results.data as Record<string, unknown>[], // Cast parsed data to the expected type
+              parsedData: transformedData as DataType[], // Use transformed data
             };
             try {
-              const id = await addAmazonReport(report); // Save to IndexedDB
+              const id = await addAmazonReport(report);
               setUploadedFiles((prevFiles) =>
                 prevFiles.map((f) =>
                   f === file ? { ...f, id: id as string } : f,
                 ),
               );
-              setParsedData((prevData) => [
+              setParsedData((prevData: ParsedFileData<DataType>[]) => [
                 ...prevData,
                 {
                   fileName: file.name,
-                  data: results.data as Record<string, unknown>[],
+                  data: transformedData as DataType[], // Use transformed data
                 },
-              ]); // Store parsed data with file name
+              ]);
               if (onFileUpload) {
-                onFileUpload([file], results.data as Record<string, unknown>[]); // Cast when passing to prop
+                onFileUpload(
+                  [file],
+                  transformedData as Record<string, unknown>[],
+                ); // Pass transformed data to prop
               }
             } catch (dbError) {
               console.error('Error saving report to IndexedDB:', dbError);
             }
           },
-          error: (error) => {
-            console.error('Error parsing file', file.name, error);
-            // Handle parsing errors, maybe update UI to show error for the file
+          error: (error: Error, file: File) => {
+            // Correct error type to Error
+            console.error('Error parsing file', file.name, error); // Log error
           },
-        });
+        };
+        PapaParse.parse(file as File, parseConfig); // Pass file and explicitly typed config
       });
 
-      // Clear the input value so the same file can be uploaded again if needed
       event.target.value = '';
     }
   };
 
   const handleCategoryChange = async (index: number, category: string) => {
-    const updatedFiles = uploadedFiles.map((file, i) =>
+    const updatedFiles = uploadedFiles.map((file: UploadedFile, i: number) =>
       i === index ? { ...file, category } : file,
     );
     setUploadedFiles(updatedFiles);
@@ -133,10 +175,10 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({ onFileUpload }) => {
         id: fileToUpdate.id,
         fileName: fileToUpdate.name,
         category: category,
-        uploadDate: fileToUpdate.lastModified, // Use existing timestamp
+        uploadDate: fileToUpdate.lastModified,
         parsedData:
           parsedData.find((data) => data.fileName === fileToUpdate.name)
-            ?.data || [], // Access the 'data' property
+            ?.data || [],
       };
       try {
         await updateAmazonReport(reportToUpdate);
@@ -159,19 +201,16 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({ onFileUpload }) => {
           Upload your Amazon reports (CSV, Google Sheets) here for analysis.
         </p>
         <div className="grid w-full max-w-sm items-center gap-1.5 mb-6">
-          {' '}
-          {/* Added mb-6 for spacing */}
           <Label htmlFor="report-upload">Upload Reports</Label>
           <Input
             id="report-upload"
             type="file"
             multiple
-            accept=".csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" // Accept CSV and common spreadsheet formats
+            accept=".csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             onChange={handleFileChange}
           />
         </div>
 
-        {/* Display list of uploaded files */}
         {uploadedFiles.length > 0 && (
           <div className="space-y-4">
             <h3 className="text-xl font-semibold">Uploaded Files</h3>
@@ -185,37 +224,32 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({ onFileUpload }) => {
                     Size: {(file.size / 1024).toFixed(2)} KB | Type:{' '}
                     {file.type || 'N/A'}
                   </p>
-                  {/* Category Input */}
                   <div className="flex items-center gap-2 mb-2">
-                    {' '}
-                    {/* Added mb-2 for spacing */}
                     <Label htmlFor={`category-${index}`} className="shrink-0">
                       Category:
                     </Label>
                     <Input
                       id={`category-${index}`}
                       type="text"
-                      value={file.category || ''} // Use file.category
+                      value={file.category || ''}
                       onChange={(e) =>
                         handleCategoryChange(index, e.target.value)
                       }
                       placeholder="e.g., Search Term Report"
-                      className="flex-grow" // Allow input to grow
+                      className="flex-grow"
                     />
                   </div>
-                  {/* Optional: Display a summary of parsed data, e.g., number of rows */}
                   {parsedData.find((data) => data.fileName === file.name)
                     ?.data &&
                     parsedData.find((data) => data.fileName === file.name)!.data
-                      .length > 0 && ( // Safely access data and length
+                      .length > 0 && (
                       <p className="text-sm text-muted-foreground dark:text-gray-400 mt-2">
                         Parsed Rows:{' '}
                         {
                           parsedData.find(
                             (data) => data.fileName === file.name,
                           )!.data.length
-                        }{' '}
-                        {/* Safely access data and length */}
+                        }
                       </p>
                     )}
                 </CardContent>

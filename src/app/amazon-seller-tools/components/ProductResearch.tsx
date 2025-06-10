@@ -10,13 +10,13 @@ interface ProductSearchResult {
   price: string; // Or number, depending on intended data type
 }
 
-interface ParsedFileData {
+interface ParsedFileData<T> {
   fileName: string;
-  data: Record<string, unknown>[];
+  data: T[];
 }
 
 interface ProductResearchProps {
-  parsedData: ParsedFileData[];
+  parsedData: ParsedFileData<Record<string, unknown>>[];
 }
 
 const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
@@ -25,8 +25,7 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
 
   const handleSearch = () => {
     // Basic placeholder search logic
-    console.log('Searching for:', searchTerm);
-    console.log('Available parsed data:', parsedData);
+
     // In a real application, you would call an API or perform logic here
     // For now, let's simulate some results
     setSearchResults([

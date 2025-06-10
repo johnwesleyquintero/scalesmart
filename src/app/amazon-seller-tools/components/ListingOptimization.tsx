@@ -5,13 +5,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card'; // Removed unused imports
 import { Textarea } from '@/components/ui/textarea';
 
-interface ParsedFileData {
+interface ParsedFileData<T> {
   fileName: string;
-  data: Record<string, unknown>[];
+  data: T[];
 }
 
 interface ListingOptimizationProps {
-  parsedData: ParsedFileData[];
+  parsedData: ParsedFileData<Record<string, unknown>>[];
 }
 
 const ListingOptimization: React.FC<ListingOptimizationProps> = ({
@@ -27,12 +27,7 @@ const ListingOptimization: React.FC<ListingOptimizationProps> = ({
     setIsLoading(true);
     setOptimizationResults([]); // Clear previous results
 
-    console.log('Optimizing listing:', {
-      listingTitle,
-      bulletPoints,
-      description,
-    });
-    console.log('Available parsed data:', parsedData);
+    // Simulate an asynchronous optimization process
 
     // Simulate an asynchronous optimization process
     await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call delay
@@ -48,7 +43,7 @@ const ListingOptimization: React.FC<ListingOptimizationProps> = ({
 
     setOptimizationResults(simulatedSuggestions);
     setIsLoading(false);
-  }, [listingTitle, bulletPoints, description, parsedData]); // Include dependencies
+  }, []); // Removed dependencies
 
   return (
     <div className="space-y-6 p-4 max-w-3xl mx-auto">

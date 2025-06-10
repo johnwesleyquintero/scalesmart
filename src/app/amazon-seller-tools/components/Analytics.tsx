@@ -1,13 +1,13 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-interface ParsedFileData {
+interface ParsedFileData<T> {
   fileName: string;
-  data: Record<string, unknown>[];
+  data: T[];
 }
 
 interface AnalyticsProps {
-  parsedData: ParsedFileData[];
+  parsedData: ParsedFileData<Record<string, unknown>>[];
 }
 
 const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {

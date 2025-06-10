@@ -8,14 +8,22 @@ import KeywordTracking from './components/KeywordTracking';
 import ListingOptimization from './components/ListingOptimization';
 import Analytics from './components/Analytics';
 // Import the shared type definition
-import { ParsedFileData } from '@/types/amazon-tools'; // Assuming this file exists and exports ParsedFileData
+import {
+  ParsedFileData,
+  ProductResearchData,
+  KeywordTrackingData,
+  ListingOptimizationData,
+  AnalyticsData,
+} from '@/types/amazon-tools'; // Assuming this file exists and exports ParsedFileData
 
 const AmazonSellerToolsPage: React.FC = () => {
   const [recommendation, setRecommendation] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   // Use the imported shared type for state
-  const [allParsedData, setAllParsedData] = useState<ParsedFileData[]>([]);
+  const [allParsedData, setAllParsedData] = useState<
+    ParsedFileData<Record<string, unknown>>[]
+  >([]);
 
   // Callback function to receive parsed data from DataSourceTab.
   // Assuming DataSourceTab calls this with a single file's name and its parsed data.
@@ -103,7 +111,10 @@ const AmazonSellerToolsPage: React.FC = () => {
         <TabsContent value="data-source" className="space-y-4 mt-4">
           <h2 className="text-2xl font-semibold mb-4">Data Source</h2>
           {/* Pass the refined callback function */}
-          <DataSourceTab onFileUpload={handleFileUpload} />
+          <DataSourceTab
+            currentTab="data-source"
+            onFileUpload={handleFileUpload}
+          />
         </TabsContent>
       </Tabs>
 

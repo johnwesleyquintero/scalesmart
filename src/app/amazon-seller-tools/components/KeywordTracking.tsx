@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ParsedFileData } from '@/types/amazon-tools';
+import { ParsedFileData, KeywordTrackingData } from '@/types/amazon-tools';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -17,7 +17,7 @@ interface KeywordTrackingProps {
    * Data parsed from an uploaded file.
    * Currently not used in the basic tracking logic but available.
    */
-  parsedData: ParsedFileData[];
+  parsedData: ParsedFileData<Record<string, unknown>>[];
 }
 
 const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
@@ -35,8 +35,7 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
     // 4. Handle success and error states.
     // 5. Update the trackingResults state with actual data.
 
-    console.log('Attempting to track keyword:', keyword);
-    // console.log('Available parsed data (unused in this placeholder logic):', parsedData);
+    // --- Start: Placeholder Tracking Logic ---
 
     // --- Start: Placeholder Tracking Logic ---
     // Simulate an asynchronous operation and update results

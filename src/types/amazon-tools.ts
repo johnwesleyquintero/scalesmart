@@ -16,7 +16,31 @@ export interface CalculationData {
   currencySymbol?: string; // Added based on usage in acos-calculator
 }
 
-export interface ParsedFileData {
+export interface ParsedFileData<T> {
   fileName: string;
-  data: Record<string, unknown>[]; // Or a more specific type based on expected data structure
+  data: T[]; // Or a more specific type based on expected data structure
+}
+
+export interface ProductResearchData {
+  name: string;
+  price: number;
+  asin: string;
+}
+
+export interface KeywordTrackingData {
+  keyword: string;
+  rank: number;
+  searchVolume: number;
+}
+
+export interface ListingOptimizationData {
+  title: string;
+  bulletPoints: string[];
+  description: string;
+}
+
+export interface AnalyticsData {
+  totalSales: number;
+  unitsSold: number;
+  salesTrend: { date: string; sales: number }[];
 }
