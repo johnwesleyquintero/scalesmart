@@ -42,7 +42,7 @@ export default supabase;
  *
  * @param {string} email - The user's email address.
  * @param {string} password - The user's password.
- * @returns {Promise<{ user: any | null; error: Error | null }>} An object containing the user data or an error.
+ * @returns {Promise<{ user: User | null; error: Error | null }>} An object containing the user data or an error.
  */
 export async function authenticateUser(email: string, password: string) {
   const { data, error } = await supabase.auth.signInWithPassword({

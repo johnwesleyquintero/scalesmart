@@ -372,10 +372,26 @@ export async function getNoteCountsByCategory(): Promise<Map<string, number>> {
 
     const counts = new Map<string, number>();
     let cursor = await index.openCursor();
+    let iterationCount = 0;
+    const maxIterations = 10000; // Add a maximum number of iterations
     while (cursor) {
       const category = cursor.key as string;
       counts.set(category, (counts.get(category) || 0) + 1);
+      const previousKey = cursor.key;
       cursor = await cursor.continue();
+      iterationCount++;
+
+      if (cursor && cursor.key === previousKey) {
+        console.warn(
+          'Cursor is not advancing. Possible infinite loop detected.',
+        );
+        break; // Exit the loop if the cursor is not advancing
+      }
+
+      if (iterationCount > maxIterations) {
+        console.warn('Maximum iterations reached. Possible performance issue.');
+        break; // Exit the loop if the maximum number of iterations is reached
+      }
     }
     await tx.done;
     return counts;
@@ -383,6 +399,20 @@ export async function getNoteCountsByCategory(): Promise<Map<string, number>> {
     console.error('Error getting note counts by category:', error);
     throw error;
   }
+}
+
+async function filterNotesBySearchQuery(
+  notes: Note[],
+  searchQuery: string,
+): Promise<Note[]> {
+  if (searchQuery) {
+    return notes.filter(
+      (note) =>
+        note.markdown.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        note.title.toLowerCase().includes(searchQuery.toLowerCase()),
+    );
+  }
+  return notes;
 }
 
 export async function getNotesByCategory(
@@ -393,13 +423,7 @@ export async function getNotesByCategory(
     const db = await getDB();
     const index = db.transaction(NOTES_STORE_NAME).store.index('category');
     let notes = await index.getAll(category);
-    if (searchQuery) {
-      notes = notes.filter(
-        (note) =>
-          note.markdown.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          note.title.toLowerCase().includes(searchQuery.toLowerCase()),
-      );
-    }
+    notes = await filterNotesBySearchQuery(notes, searchQuery);
     return notes;
   } catch (error) {
     console.error(`Error getting notes by category ${category}:`, error);
@@ -411,11 +435,7 @@ export async function searchNotes(searchQuery: string): Promise<Note[]> {
   try {
     const db = await getDB();
     const notes = await db.getAll(NOTES_STORE_NAME);
-    return notes.filter(
-      (note) =>
-        note.markdown.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+    return filterNotesBySearchQuery(notes, searchQuery);
   } catch (error) {
     console.error('Error searching notes:', error);
     throw error;

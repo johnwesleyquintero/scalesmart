@@ -46,8 +46,8 @@ interface MarkdownNotepadContextType {
     category: string,
   ) => Promise<void>;
   handleDeleteNote: (id: string) => Promise<void>;
-  fetchNotesContent: () => Promise<Note[]>; // Add fetchNotesContent to context type
-  getNoteCountsByCategory: () => Promise<Map<string, number>>; // Add getNoteCountsByCategory to context type
+  fetchNotesContent: () => Promise<Note[]>;
+  getNoteCountsByCategory: () => Promise<Map<string, number>>;
 }
 
 const MarkdownNotepadContext = createContext<
@@ -233,7 +233,21 @@ export const MarkdownNotepadProvider = ({
       });
       throw error; // Re-throw to be handled by the component
     }
-  }, [category, searchQuery, toast]); // Dependencies are only for fetching logic
+  }, [category, searchQuery, toast]);
+
+  const getNoteCountsByCategory = useCallback(async () => {
+    try {
+      return await getNoteCountsByCategory(); // Call the imported function
+    } catch (error: unknown) {
+      console.error('Failed to get note counts by category:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to get note counts by category.',
+        variant: 'destructive',
+      });
+      return new Map<string, number>(); // Return an empty map in case of error
+    }
+  }, [toast]);
 
   return (
     <MarkdownNotepadContext.Provider
@@ -252,8 +266,8 @@ export const MarkdownNotepadProvider = ({
         restoreNoteVersion,
         handleUpdateNote,
         handleDeleteNote,
-        fetchNotesContent, // Add fetchNotesContent here
-        getNoteCountsByCategory, // Add getNoteCountsByCategory here
+        fetchNotesContent,
+        getNoteCountsByCategory,
       }}
     >
       {children}

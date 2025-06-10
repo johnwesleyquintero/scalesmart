@@ -4,6 +4,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
+import { jsPDF } from 'jspdf';
+import { unified } from 'unified';
+import remarkParse from 'remark-parse';
+import remarkHtml from 'remark-html';
 import {
   Dialog,
   DialogContent,
@@ -90,7 +94,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
   const debouncedSave = useDebounceCallback(
     useCallback(
-      (title: string, content: string) => {
+      (...args: unknown[]) => {
+        const title = args[0] as string;
+        const content = args[1] as string;
         saveNote(title, content);
       },
       [saveNote],
@@ -203,6 +209,103 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             disabled={isLoading} // Disable when loading
           >
             Copy Markdown
+          </Button>
+          <Button
+            onClick={async () => {
+              try {
+                const html = String(
+                  await unified()
+                    .use(remarkParse)
+                    .use(remarkHtml)
+                    .process(markdown),
+                );
+                const blob = new Blob([html], { type: 'text/html' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${title}.html`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+              } catch (error) {
+                toast({
+                  title: 'Error',
+                  description: 'Failed to export to HTML.',
+                  variant: 'destructive',
+                });
+              }
+            }}
+            disabled={isLoading}
+          >
+            Export to HTML
+          </Button>
+          <Button
+            onClick={async () => {
+              try {
+                const html = String(
+                  await unified()
+                    .use(remarkParse)
+                    .use(remarkHtml)
+                    .process(markdown),
+                );
+
+                // Create a temporary element to render the HTML
+                const tempElement = document.createElement('div');
+                tempElement.innerHTML = html;
+                tempElement.style.width = '595px'; // A4 width in pixels
+                tempElement.style.position = 'absolute';
+                tempElement.style.top = '0';
+                tempElement.style.left = '0';
+                tempElement.style.padding = '20px';
+                document.body.appendChild(tempElement);
+
+                // Import html2canvas here to avoid errors if it's not already imported
+                const html2canvas = (await import('html2canvas')).default;
+
+                const pdf = new jsPDF('p', 'mm', 'a4'); // portrait, millimeters, A4
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+
+                let currentHeight = 0;
+
+                while (currentHeight < tempElement.scrollHeight) {
+                  // Set the top style to move the content for each page
+                  tempElement.style.top = `-${currentHeight}px`;
+
+                  // Use html2canvas to render the HTML to a canvas
+                  const canvas = await html2canvas(tempElement, {
+                    scale: 2, // Increase scale for better resolution
+                    y: currentHeight,
+                    height: pageHeight * 2, // Double the height for scale
+                  });
+
+                  const imgData = canvas.toDataURL('image/png');
+                  const imgWidth = pageWidth;
+                  const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                  if (currentHeight > 0) {
+                    pdf.addPage();
+                  }
+
+                  pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+                  currentHeight += pageHeight * 2; // Move to the next page
+                }
+
+                document.body.removeChild(tempElement);
+                pdf.save(`${title}.pdf`);
+              } catch (error) {
+                console.error('Failed to export to PDF:', error);
+                toast({
+                  title: 'Error',
+                  description: 'Failed to export to PDF.',
+                  variant: 'destructive',
+                });
+              }
+            }}
+          >
+            Export to PDF
           </Button>
         </div>
       </div>

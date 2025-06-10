@@ -74,8 +74,10 @@ export default function PromptRequestGenerator() {
   type PromptDataKey = 'customCategory' | 'context' | 'request' | 'codeInput';
 
   // Debounced handler to update promptData state and perform validation based on local input state.
-  const debouncedUpdatePromptData = useDebounceCallback(
-    (field: PromptDataKey, value: string) => {
+  const debouncedUpdatePromptData = useDebounceCallback<
+    (field: PromptDataKey, value: string) => void
+  >(
+    (field, value) => {
       setPromptData((prev) => ({
         ...prev,
         [field]: value,

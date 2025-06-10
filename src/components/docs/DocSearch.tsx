@@ -102,7 +102,7 @@ const SearchInput = ({
     const newValue = e.target.value;
     setInternalValue(newValue);
     startTransition(() => {
-      debouncedOnChange(newValue);
+      debouncedOnChange(newValue as string);
     });
   };
 
