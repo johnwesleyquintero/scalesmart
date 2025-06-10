@@ -49,8 +49,8 @@ export interface ListingOptimizationData {
 
 export interface AnalyticsData {
   date?: string; // Added date for potential time-series analysis
-  totalSales: number;
-  unitsSold: number;
+  totalSales?: number; // Made optional to allow for missing data in tests/real-world scenarios
+  unitsSold?: number; // Made optional for consistency with totalSales
   salesTrend: { date: string; sales: number }[];
   acos?: number; // Added acos
   roas?: number; // Added roas

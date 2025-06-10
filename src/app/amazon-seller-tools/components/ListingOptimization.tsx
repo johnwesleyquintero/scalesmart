@@ -164,9 +164,9 @@ const ListingOptimization: React.FC<ListingOptimizationProps> = ({
   ]); // Added new states to dependencies
 
   return (
-    <div className="space-y-6 p-4 max-w-3xl mx-auto">
+    <div className="space-y-6 p-4 mx-auto">
       {' '}
-      {/* Added max-width and auto margin for centering */}
+      {/* Added auto margin for centering */}
       <div>
         {' '}
         {/* Grouping title and description */}
