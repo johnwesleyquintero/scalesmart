@@ -28,39 +28,30 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
   >([]);
 
   const handleTrackKeyword = () => {
-    // In a real application, this is where you would typically:
-    // 1. Validate the keyword input.
-    // 2. Potentially show a loading state.
-    // 3. Make an asynchronous call to an API or perform background processing.
-    // 4. Handle success and error states.
-    // 5. Update the trackingResults state with actual data.
+    if (!keyword) {
+      setTrackingResults([]);
+      return;
+    }
 
-    // --- Start: Placeholder Tracking Logic ---
+    const lowerCaseKeyword = keyword.toLowerCase();
+    const filteredResults: KeywordTrackingResult[] = [];
 
-    // --- Start: Placeholder Tracking Logic ---
-    // Simulate an asynchronous operation and update results
-    setTimeout(() => {
-      const simulatedResults: KeywordTrackingResult[] = keyword
-        ? [
-            {
-              id: 1,
-              keyword: keyword,
-              rank: Math.floor(Math.random() * 50) + 1,
-              searchVolume: '1k-2k',
-            },
-            {
-              id: 2,
-              keyword: `${keyword} alternative`,
-              rank: Math.floor(Math.random() * 100) + 1,
-              searchVolume: '500-1k',
-            },
-          ]
-        : []; // Return empty array if keyword is empty
+    parsedData.forEach((file) => {
+      file.data.forEach((item, index) => {
+        // Assuming 'keyword' field exists in KeywordTrackingData
+        if (item.keyword.toLowerCase().includes(lowerCaseKeyword)) {
+          filteredResults.push({
+            id: filteredResults.length + 1, // Simple unique ID
+            keyword: item.keyword,
+            rank: item.rank,
+            searchVolume: String(item.searchVolume), // Ensure searchVolume is string for display
+          });
+        }
+      });
+    });
 
-      setTrackingResults(simulatedResults);
-      console.log('Simulated tracking complete.');
-    }, 500); // Simulate network delay
-    // --- End: Placeholder Tracking Logic ---
+    setTrackingResults(filteredResults);
+    console.log(`Keyword tracking complete for "${keyword}". Found ${filteredResults.length} results.`);
   };
 
   return (

@@ -28,23 +28,44 @@ const ListingOptimization: React.FC<ListingOptimizationProps> = ({
     setIsLoading(true);
     setOptimizationResults([]); // Clear previous results
 
-    // Simulate an asynchronous optimization process
+    const suggestions: string[] = [];
+    const inputKeywords = listingTitle.toLowerCase().split(' ').filter(Boolean);
 
-    // Simulate an asynchronous optimization process
-    await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call delay
+    // Basic suggestion based on parsed data
+    parsedData.forEach((file) => {
+      file.data.forEach((listing) => {
+        const parsedTitle = listing.title.toLowerCase();
+        inputKeywords.forEach((keyword) => {
+          if (parsedTitle.includes(keyword)) {
+            suggestions.push(
+              `Consider using the keyword "${keyword}" in your listing title, as it appears in other listings.`
+            );
+          }
+        });
+        // Add more sophisticated logic here based on bulletPoints and description from parsedData
+      });
+    });
 
-    // In a real application, you would call an API or perform logic here
-    // Based on inputs and parsedData
-    const simulatedSuggestions = [
-      'Suggestion 1: Include relevant keywords from parsed data in the title.',
-      'Suggestion 2: Use strong action verbs in bullet points.',
-      'Suggestion 3: Write a compelling product description highlighting benefits.',
-      'Suggestion 4: Consider competitor analysis from parsed data if available.',
-    ];
+    // Add some generic suggestions
+    if (listingTitle.length < 50) {
+      suggestions.push('Suggestion: Your title is a bit short. Consider adding more descriptive keywords.');
+    }
+    if (bulletPoints.split('\\n').length < 5) {
+       suggestions.push('Suggestion: Aim for at least 5 bullet points to highlight key features.');
+    }
+    if (description.length < 200) {
+       suggestions.push('Suggestion: Expand your product description to provide more details and benefits.');
+    }
 
-    setOptimizationResults(simulatedSuggestions);
+
+    // Remove duplicate suggestions
+    const uniqueSuggestions = Array.from(new Set(suggestions));
+
+    await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate processing delay
+
+    setOptimizationResults(uniqueSuggestions);
     setIsLoading(false);
-  }, []); // Removed dependencies
+  }, [listingTitle, bulletPoints, description, parsedData]);
 
   return (
     <div className="space-y-6 p-4 max-w-3xl mx-auto">

@@ -5,10 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProductResearchData } from '@/types/amazon-tools';
 
-interface ProductSearchResult {
-  id: number;
-  name: string;
-  price: string; // Or number, depending on intended data type
+interface ProductSearchResult extends ProductResearchData {
+  id: number; // Add an ID for keying in lists
 }
 
 interface ParsedFileData<T> {
@@ -22,17 +20,23 @@ interface ProductResearchProps {
 
 const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([]); // Placeholder for results
+  const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([]);
 
   const handleSearch = () => {
-    // Basic placeholder search logic
+    const lowerCaseSearchTerm = searchTerm.toLowerCase();
+    const filteredResults: ProductSearchResult[] = [];
 
-    // In a real application, you would call an API or perform logic here
-    // For now, let's simulate some results
-    setSearchResults([
-      { id: 1, name: 'Sample Product 1', price: '$19.99' },
-      { id: 2, name: 'Sample Product 2', price: '$29.99' },
-    ]);
+    parsedData.forEach((file) => {
+      file.data.forEach((product, index) => {
+        if (
+          product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+          product.asin.toLowerCase().includes(lowerCaseSearchTerm)
+        ) {
+          filteredResults.push({ ...product, id: filteredResults.length + 1 });
+        }
+      });
+    });
+    setSearchResults(filteredResults);
   };
 
   return (
@@ -51,6 +55,11 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
             placeholder="Enter keyword or ASIN"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleSearch();
+              }
+            }}
           />
         </div>
         <Button onClick={handleSearch} className="self-end">
@@ -68,13 +77,21 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <p className="text-sm text-muted-foreground dark:text-gray-400">
-                  Price: {result.price}
+                  Price: ${result.price.toFixed(2)}
                 </p>
-                {/* Add more product details here */}
+                <p className="text-sm text-muted-foreground dark:text-gray-400">
+                  ASIN: {result.asin}
+                </p>
               </CardContent>
             </Card>
           ))}
         </div>
+      )}
+
+      {searchTerm && searchResults.length === 0 && (
+        <p className="text-muted-foreground dark:text-gray-400 italic text-center">
+          No products found matching "{searchTerm}".
+        </p>
       )}
     </div>
   );

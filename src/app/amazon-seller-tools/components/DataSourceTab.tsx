@@ -24,6 +24,7 @@ import {
 import { transformCsvData } from '@/lib/utils/csv-transformer';
 import { CsvColumnMapping } from '@/types/data-mapping';
 import { CsvTransformerConfig } from '@/types/csv-transformer-config';
+import { getReportConfig } from '@/lib/amazon-tools/reportProcessing';
 
 const PRODUCT_RESEARCH = 'product-research';
 const KEYWORD_TRACKING = 'keyword-tracking';
@@ -46,159 +47,39 @@ interface UploadedFile extends File {
   category: string;
 }
 
-// Define CSV transformer configurations for each category
-const productResearchConfig: CsvTransformerConfig = [
-  {
-    id: 'name',
-    label: 'Product Name',
-    required: true,
-    aliases: ['Product Name', 'Title'],
-  },
-  {
-    id: 'price',
-    label: 'Price',
-    required: true,
-    aliases: ['Price', 'Current Price'],
-    transform: (value) => parseFloat(value as string) || 0,
-  },
-  {
-    id: 'asin',
-    label: 'ASIN',
-    required: true,
-    aliases: ['ASIN', '(Parent) ASIN', '(Child) ASIN'],
-  },
-  // Add other relevant fields from ProductResearchData
-];
-
-const keywordTrackingConfig: CsvTransformerConfig = [
-  {
-    id: 'keyword',
-    label: 'Keyword',
-    required: true,
-    aliases: ['Keyword', 'Search Term'],
-  },
-  {
-    id: 'rank',
-    label: 'Rank',
-    required: true,
-    aliases: ['Rank', 'Keyword Rank'],
-    transform: (value) => parseInt(value as string, 10) || 0,
-  },
-  {
-    id: 'searchVolume',
-    label: 'Search Volume',
-    required: true,
-    aliases: ['Search Volume'],
-    transform: (value) => parseInt(value as string, 10) || 0,
-  },
-  // Add other relevant fields from KeywordTrackingData
-];
-
-const listingOptimizationConfig: CsvTransformerConfig = [
-  {
-    id: 'title',
-    label: 'Title',
-    required: true,
-    aliases: ['Product Title', 'Title'],
-  },
-  {
-    id: 'bulletPoints',
-    label: 'Bullet Points',
-    required: false,
-    aliases: ['Bullet Points', 'Key Product Features'],
-    transform: (value) =>
-      (value as string)?.split(',').map((item) => item.trim()) || [],
-  },
-  {
-    id: 'description',
-    label: 'Description',
-    required: false,
-    aliases: ['Product Description', 'Description'],
-  },
-  // Add other relevant fields from ListingOptimizationData
-];
-
-const analyticsConfig: CsvTransformerConfig = [
-  {
-    id: 'totalSales',
-    label: 'Total Sales',
-    required: true,
-    aliases: ['Total Sales', 'Sales'],
-    transform: (value) => parseFloat(value as string) || 0,
-  },
-  {
-    id: 'unitsSold',
-    label: 'Units Sold',
-    required: true,
-    aliases: ['Units Sold', 'Units Ordered'],
-    transform: (value) => parseInt(value as string, 10) || 0,
-  },
-  {
-    id: 'salesTrend',
-    label: 'Sales Trend',
-    required: false,
-    aliases: [],
-    transform: (value) => {
-      /* Requires complex transformation */ console.warn(
-        'Sales trend transformation not implemented',
-      );
-      return [];
-    },
-  },
-  // Add other relevant fields from AnalyticsData
-];
 
 const transformParsedData = (
   rawParsedData: Record<string, unknown>[],
   category: string,
   fileName: string,
 ): DataType[] | Record<string, unknown>[] => {
-  let config: CsvTransformerConfig | undefined;
+  const config = getReportConfig(category);
 
-  switch (category) {
-    case PRODUCT_RESEARCH:
-      config = productResearchConfig;
-      break;
-    case KEYWORD_TRACKING:
-      config = keywordTrackingConfig;
-      break;
-    case LISTING_OPTIMIZATION:
-      config = listingOptimizationConfig;
-      break;
-    case ANALYTICS:
-      config = analyticsConfig;
-      break;
-    default:
-      console.warn(
-        `No specific transformation defined for category: ${category}`,
-      );
-      return rawParsedData as Record<string, unknown>[]; // Return raw data if no transformation is defined
+  if (!config) {
+    console.warn(`No specific transformation defined or found for category: ${category}`);
+    return rawParsedData as Record<string, unknown>[]; // Return raw data if no transformation is defined or found
   }
 
-  if (config) {
-    try {
-      // Use the generic transformCsvData function
-      // transformCsvData uses aliases in config to find columns, no separate mapping needed
-      const transformed = transformCsvData(
-        rawParsedData,
-        {} as CsvColumnMapping,
-        config,
-      ); // Pass empty mapping as it's not used by transformCsvData with aliases
-      console.log(
-        `Data transformed for category: ${category}, file: ${fileName}`,
-      );
-      return transformed as unknown as DataType[];
-    } catch (error) {
-      console.error(
-        `Error transforming data for category ${category}, file ${fileName}:`,
-        error,
-      );
-      // Return raw data or an empty array in case of transformation error
-      return rawParsedData as Record<string, unknown>[];
-    }
+  try {
+    // Use the generic transformCsvData function
+    // transformCsvData uses aliases in config to find columns, no separate mapping needed
+    const transformed = transformCsvData(
+      rawParsedData,
+      {} as CsvColumnMapping,
+      config,
+    ); // Pass empty mapping as it's not used by transformCsvData with aliases
+    console.log(
+      `Data transformed for category: ${category}, file: ${fileName}`,
+    );
+    return transformed as unknown as DataType[];
+  } catch (error) {
+    console.error(
+      `Error transforming data for category ${category}, file ${fileName}:`,
+      error,
+    );
+    // Return raw data or an empty array in case of transformation error
+    return rawParsedData as Record<string, unknown>[];
   }
-
-  return rawParsedData as Record<string, unknown>[]; // Should not reach here if default case is handled
 };
 
 const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
