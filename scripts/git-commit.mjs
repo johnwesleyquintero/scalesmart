@@ -87,10 +87,13 @@ function suggestCommitMessage() {
     }
 
 
-    // Basic description based on file count
-    const description = fileCount === 1 ? `update ${stagedFiles[0]}` : `update ${fileCount} files`;
+    // Basic description based on file count and names
+    const description = fileCount === 1 ? `update ${stagedFiles[0]}` : `update ${fileCount} files:\n${stagedFiles.join('\n')}`;
 
-    return `${type}${scope ? '(' + scope + ')' : ''}: ${description}`;
+    // Add a placeholder for a more detailed body
+    const detailedBodyPlaceholder = "\n\n[Detailed description of changes]";
+
+    return `${type}${scope ? '(' + scope + ')' : ''}: ${description}${detailedBodyPlaceholder}`;
 
   } catch (error) {
     console.error(`Error getting staged files: ${error}`);
