@@ -59,7 +59,7 @@ const NoteContent: React.FC<NoteContentProps> = ({ markdown }) => {
             inline?: boolean;
             className?: string;
             children?: React.ReactNode;
-          } & React.HTMLAttributes<HTMLElement>) {
+          }) {
             const match = /language-(\w+)/.exec(className || '');
             const codeContent = String(children).replace(/\n$/, '');
             return !inline && match ? (
