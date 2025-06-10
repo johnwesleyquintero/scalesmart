@@ -44,3 +44,9 @@ export interface AnalyticsData {
   unitsSold: number;
   salesTrend: { date: string; sales: number }[];
 }
+
+export type DataType =
+  | ProductResearchData
+  | KeywordTrackingData
+  | ListingOptimizationData
+  | AnalyticsData;

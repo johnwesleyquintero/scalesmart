@@ -8,6 +8,7 @@ export interface CsvTransformerFieldConfig {
   label: string; // Display label for the field
   required?: boolean; // Whether the field is required
   transform?: (value: unknown) => unknown; // Optional transformation function
+  aliases: string[]; // Array of possible raw CSV headers for this field
   // Add other potential configuration properties as needed
 }
 
