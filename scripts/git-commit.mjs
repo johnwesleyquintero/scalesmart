@@ -2,7 +2,7 @@ import { exec, execSync } from 'child_process';
 import readline from 'readline';
 const rl = readline.createInterface({
   input: process.stdin,
-  output: process.stdout
+  output: process.stdout,
 });
 
 // Configuration for commit types and scopes
@@ -20,10 +20,10 @@ const commitConfig = {
     'src/data/': { type: 'data', scope: 'data' },
     'src/context/': { type: 'refactor', scope: 'context' },
     'src/utils/': { type: 'refactor', scope: 'utils' },
-    'src/pages/': { type: 'feat', scope: 'pages' }
+    'src/pages/': { type: 'feat', scope: 'pages' },
   },
   defaultType: 'chore',
-  defaultScope: ''
+  defaultScope: '',
 };
 
 // Function to commit changes
@@ -47,17 +47,27 @@ function commitAndPushChanges(commitMessage) {
 // Function to suggest commit message based on staged files
 function suggestCommitMessage() {
   try {
-    const stagedFiles = execSync('git diff --staged --name-only', { encoding: 'utf8' }).trim().split('\n');
+    const stagedFiles = execSync('git diff --staged --name-only', {
+      encoding: 'utf8',
+    })
+      .trim()
+      .split('\n');
 
-    if (stagedFiles.length === 0 || (stagedFiles.length === 1 && stagedFiles[0] === '')) {
+    if (
+      stagedFiles.length === 0 ||
+      (stagedFiles.length === 1 && stagedFiles[0] === '')
+    ) {
       return null; // No staged changes
     }
 
     // Determine type and scope based on file paths
-    let { type, scope } = { type: commitConfig.defaultType, scope: commitConfig.defaultScope };
+    let { type, scope } = {
+      type: commitConfig.defaultType,
+      scope: commitConfig.defaultScope,
+    };
 
     for (const [pathPrefix, config] of Object.entries(commitConfig.types)) {
-      if (stagedFiles.some(file => file.startsWith(pathPrefix))) {
+      if (stagedFiles.some((file) => file.startsWith(pathPrefix))) {
         type = config.type;
         scope = config.scope;
         break;
@@ -65,11 +75,13 @@ function suggestCommitMessage() {
     }
 
     // Basic description based on file count and names
-    const description = stagedFiles.length === 1 ? `update ${stagedFiles[0]}` : `update ${stagedFiles.length} files`;
+    const description =
+      stagedFiles.length === 1
+        ? `update ${stagedFiles[0]}`
+        : `update ${stagedFiles.length} files`;
 
     // Add a placeholder for a more detailed body
-        return `${type}${scope ? `(${scope})` : ''}: ${description}`;
-
+    return `${type}${scope ? `(${scope})` : ''}: ${description}`;
   } catch (error) {
     console.error(`Error getting staged files: ${error.message}`);
     return null;
@@ -78,15 +90,18 @@ function suggestCommitMessage() {
 
 // Function to confirm commit message with user
 function confirmCommitMessage(suggestedMessage, callback) {
-  rl.question(`Suggested commit message: ${suggestedMessage}\nDo you want to proceed with this message? (yes/no): `, (answer) => {
-    if (answer.toLowerCase() === 'yes') {
-      callback(suggestedMessage);
-    } else {
-      rl.question('Enter your custom commit message: ', (customMessage) => {
-        callback(customMessage || suggestedMessage);
-      });
-    }
-  });
+  rl.question(
+    `Suggested commit message: ${suggestedMessage}\nDo you want to proceed with this message? (yes/no): `,
+    (answer) => {
+      if (answer.toLowerCase() === 'yes') {
+        callback(suggestedMessage);
+      } else {
+        rl.question('Enter your custom commit message: ', (customMessage) => {
+          callback(customMessage || suggestedMessage);
+        });
+      }
+    },
+  );
 }
 
 // Main script
@@ -102,7 +117,9 @@ exec('git add .', (addError) => {
   if (suggestedMessage) {
     confirmCommitMessage(suggestedMessage, commitAndPushChanges);
   } else {
-    console.log('No staged changes found or error occurred. No commit and push performed.');
+    console.log(
+      'No staged changes found or error occurred. No commit and push performed.',
+    );
     rl.close();
   }
 });

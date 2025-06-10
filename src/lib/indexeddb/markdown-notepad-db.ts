@@ -362,6 +362,29 @@ export async function getAllNotes(): Promise<Note[]> {
   }
 }
 
+// Function to get the count of notes per category
+export async function getNoteCountsByCategory(): Promise<Map<string, number>> {
+  try {
+    const db = await getDB();
+    const tx = db.transaction(NOTES_STORE_NAME, 'readonly');
+    const store = tx.objectStore(NOTES_STORE_NAME);
+    const index = store.index('category');
+
+    const counts = new Map<string, number>();
+    let cursor = await index.openCursor();
+    while (cursor) {
+      const category = cursor.key as string;
+      counts.set(category, (counts.get(category) || 0) + 1);
+      cursor = await cursor.continue();
+    }
+    await tx.done;
+    return counts;
+  } catch (error) {
+    console.error('Error getting note counts by category:', error);
+    throw error;
+  }
+}
+
 export async function getNotesByCategory(
   category: string,
   searchQuery: string = '',

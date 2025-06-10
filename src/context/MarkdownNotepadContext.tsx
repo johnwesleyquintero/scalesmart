@@ -16,6 +16,7 @@ import {
   deleteAllNoteVersions,
   getNotesByCategory, // Import getNotesByCategory
   searchNotes, // Import searchNotes
+  getNoteCountsByCategory, // Import getNoteCountsByCategory
 } from '@/lib/indexeddb/markdown-notepad-db';
 import { useToast } from '@/hooks/use-toast';
 import { useMarkdownCategories } from '@/hooks/use-markdown-categories'; // Import the new hook
@@ -46,6 +47,7 @@ interface MarkdownNotepadContextType {
   ) => Promise<void>;
   handleDeleteNote: (id: string) => Promise<void>;
   fetchNotesContent: () => Promise<Note[]>; // Add fetchNotesContent to context type
+  getNoteCountsByCategory: () => Promise<Map<string, number>>; // Add getNoteCountsByCategory to context type
 }
 
 const MarkdownNotepadContext = createContext<
@@ -251,6 +253,7 @@ export const MarkdownNotepadProvider = ({
         handleUpdateNote,
         handleDeleteNote,
         fetchNotesContent, // Add fetchNotesContent here
+        getNoteCountsByCategory, // Add getNoteCountsByCategory here
       }}
     >
       {children}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react'; // Removed useMemo
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,9 +13,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Category, Note } from '@/types/indexeddb';
+import { Category } from '@/types/indexeddb'; // Removed Note import
 import { useToast } from '@/hooks/use-toast';
-import { getAllNotes } from '@/lib/indexeddb/markdown-notepad-db'; // Import getAllNotes
+// Removed getAllNotes import
 
 interface MarkdownCategoryManagerProps {
   categories: Category[];
@@ -23,6 +23,7 @@ interface MarkdownCategoryManagerProps {
   onUpdateCategory: (category: Category) => Promise<void>;
   onDeleteCategory: (id: string) => Promise<void>;
   onCategoryRenamed: (oldName: string, newName: string) => Promise<void>;
+  getNoteCountsByCategory: () => Promise<Map<string, number>>; // Add the new prop
 }
 
 const MarkdownCategoryManager = ({
@@ -31,24 +32,28 @@ const MarkdownCategoryManager = ({
   onUpdateCategory,
   onDeleteCategory,
   onCategoryRenamed,
+  getNoteCountsByCategory, // Destructure the new prop
 }: MarkdownCategoryManagerProps) => {
   const [categoryInputName, setCategoryInputName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [notes, setNotes] = useState<Note[]>([]); // State to hold notes
   const { toast } = useToast();
+  const [noteCounts, setNoteCounts] = useState<Map<string, number>>(new Map()); // State for note counts
 
-  // Fetch all notes on component mount and whenever categories change (to update counts)
+  // Fetch note counts on component mount and whenever categories change
   useEffect(() => {
-    const fetchNotes = async () => {
+    const fetchCounts = async () => {
       try {
-        const fetchedNotes = await getAllNotes();
-        setNotes(fetchedNotes);
+        const counts = await getNoteCountsByCategory();
+        setNoteCounts(counts);
       } catch (error: unknown) {
-        console.error('Failed to fetch notes for category manager:', error);
+        console.error(
+          'Failed to fetch note counts for category manager:',
+          error,
+        );
       }
     };
-    fetchNotes();
-  }, [categories]); // Re-fetch notes if categories change (e.g., a category is deleted)
+    fetchCounts();
+  }, [categories, getNoteCountsByCategory]); // Depend on categories and the fetch function
 
   useEffect(() => {
     if (editingCategory) {
@@ -57,15 +62,6 @@ const MarkdownCategoryManager = ({
       setCategoryInputName('');
     }
   }, [editingCategory]);
-
-  const noteCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    notes.forEach((note) => {
-      const categoryName = note.category || 'uncategorized';
-      counts.set(categoryName, (counts.get(categoryName) || 0) + 1);
-    });
-    return counts;
-  }, [notes]); // Depend on notes state
 
   const validateCategoryName = (
     name: string,
@@ -202,9 +198,9 @@ const MarkdownCategoryManager = ({
 
     try {
       await onDeleteCategory(id);
-      // After deleting a category, re-fetch notes to update counts
-      const fetchedNotes = await getAllNotes();
-      setNotes(fetchedNotes);
+      // After deleting a category, re-fetch note counts to update the display
+      const updatedCounts = await getNoteCountsByCategory();
+      setNoteCounts(updatedCounts);
     } catch (error: unknown) {
       // Error handled by useMarkdownCategories hook
     }

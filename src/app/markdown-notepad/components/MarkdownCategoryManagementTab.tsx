@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react'; // Removed useMemo
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import MarkdownCategoryManager from './MarkdownCategoryManager';
 import { useMarkdownNotepadContext } from '@/context/MarkdownNotepadContext';
-import { Note } from '@/types/indexeddb';
-import { getAllNotes } from '@/lib/indexeddb/markdown-notepad-db'; // Import getAllNotes
+// Removed Note import and getAllNotes import
 
 export const MarkdownCategoryManagementTab: React.FC = () => {
   const {
@@ -14,31 +13,16 @@ export const MarkdownCategoryManagementTab: React.FC = () => {
     handleUpdateCategory,
     handleDeleteCategory,
     fetchCategories,
+    getNoteCountsByCategory, // Import the new function
   } = useMarkdownNotepadContext();
-  const [notes, setNotes] = useState<Note[]>([]);
-
-  const fetchAllNotes = async () => {
-    try {
-      const fetchedNotes = await getAllNotes();
-      setNotes(fetchedNotes);
-    } catch (error: unknown) {
-      console.error(
-        'Failed to fetch all notes for category management:',
-        error,
-      );
-    }
-  };
-
-  useEffect(() => {
-    fetchAllNotes();
-  }, []); // Fetch notes on component mount
+  // Removed notes state
 
   // This callback is for when a category is renamed.
-  // We need to trigger a reload of notes in the parent component (page.tsx)
-  // to reflect the category name changes in the note list.
+  // We need to trigger a reload of categories to ensure UI is updated.
+  // Note counts will be handled by MarkdownCategoryManager using the context function.
   const handleCategoryRenamed = async (oldName: string, newName: string) => {
     await fetchCategories(); // Re-fetch categories to ensure UI is updated
-    await fetchAllNotes(); // Re-fetch notes to reflect category name changes
+    // Removed fetchAllNotes
   };
 
   return (
@@ -55,6 +39,7 @@ export const MarkdownCategoryManagementTab: React.FC = () => {
           onUpdateCategory={handleUpdateCategory}
           onDeleteCategory={handleDeleteCategory}
           onCategoryRenamed={handleCategoryRenamed}
+          getNoteCountsByCategory={getNoteCountsByCategory} // Pass the new function
         />
       </CardContent>
     </Card>
