@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import DocSearch from '../../components/docs/DocSearch';
+import DocSearch from './components/DocSearch';
 
 interface DocsLayoutClientProps {
   children: React.ReactNode;

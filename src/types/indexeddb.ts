@@ -128,3 +128,14 @@ export interface MarkdownNoteVersion {
 }
 
 // Define constants for duplicate strings
+
+/**
+ * Defines the structure for an Amazon report stored in IndexedDB.
+ */
+export interface AmazonReport {
+  id?: string; // Unique ID for the report (optional for new entries)
+  fileName: string;
+  category: string;
+  uploadDate: number; // Timestamp
+  parsedData: Record<string, unknown>[]; // Array of parsed rows
+}

@@ -15,3 +15,8 @@ export interface CalculationData {
   date: string; // ISO string
   currencySymbol?: string; // Added based on usage in acos-calculator
 }
+
+export interface ParsedFileData {
+  fileName: string;
+  data: Record<string, unknown>[]; // Or a more specific type based on expected data structure
+}

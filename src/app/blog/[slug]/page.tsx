@@ -1,5 +1,5 @@
-import BlogImage from '@/components/blog/blog-image';
-import { MDXComponents as mdxComponents } from '@/components/blog/mdx-components';
+import BlogImage from '@/app/blog/components/blog-image';
+import { MDXComponents as mdxComponents } from '@/app/blog/components/mdx-components';
 import { Badge } from '@/components/ui/badge';
 import type { BlogPost } from '@/types';
 import { getAllBlogPosts, getBlogPostBySlug } from '@/lib/mdx';

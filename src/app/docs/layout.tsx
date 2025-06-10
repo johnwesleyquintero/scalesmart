@@ -1,9 +1,9 @@
 import React from 'react';
 import Link from 'next/link';
-import DocsSidebar from '../../components/docs/Sidebar';
+import DocsSidebar from './components/Sidebar';
 import { ErrorBoundary } from '@/components/error-boundary';
 import DocsLayoutClient from './DocsLayoutClient';
-import { Breadcrumbs } from '@/components/docs/Breadcrumbs';
+import { Breadcrumbs } from './components/Breadcrumbs';
 
 interface DocsLayoutProps {
   children: React.ReactNode;

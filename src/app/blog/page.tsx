@@ -1,4 +1,4 @@
-import BlogListingClient from '@/components/blog/blog-listing-client';
+import BlogSection from '@/components/blog-section';
 import { getAllBlogPosts } from '@/lib/mdx';
 import type { BlogPost } from '@/types';
 import type { Metadata } from 'next';
@@ -12,5 +12,5 @@ export const metadata: Metadata = {
 export default async function BlogPage() {
   const posts = await getAllBlogPosts();
 
-  return <BlogListingClient initialPosts={posts} />;
+  return <BlogSection />;
 }

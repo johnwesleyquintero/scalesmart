@@ -1,13 +1,18 @@
 // src/types/csv-transformer-config.ts
-import type { DashboardMetrics } from '@/lib/amazon-tools/types';
 
-export type CsvTransformerFieldType = keyof DashboardMetrics; // Type alias for convenience
-
+/**
+ * Defines the configuration for a single field transformation.
+ */
 export interface CsvTransformerFieldConfig {
-  id: string; // Changed to string
-  label: string;
-  required: boolean;
-  transform?: (value: unknown) => unknown; // Allow any transform function
+  id: string; // Standardized field ID
+  label: string; // Display label for the field
+  required?: boolean; // Whether the field is required
+  transform?: (value: unknown) => unknown; // Optional transformation function
+  // Add other potential configuration properties as needed
 }
 
+/**
+ * Defines the overall configuration for the CSV transformer.
+ * It's an array of field configurations.
+ */
 export type CsvTransformerConfig = CsvTransformerFieldConfig[];
