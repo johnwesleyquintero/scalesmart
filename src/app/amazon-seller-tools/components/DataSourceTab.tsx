@@ -38,7 +38,7 @@ type DataType =
 
 interface DataSourceTabProps {
   currentTab: string;
-  onFileUpload?: (files: File[], parsedData: Record<string, unknown>[]) => void;
+  onFileUpload?: (files: File[], parsedData: DataType[]) => void;
 }
 
 interface UploadedFile extends File {
@@ -291,10 +291,7 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
                 },
               ]);
               if (onFileUpload) {
-                onFileUpload(
-                  [file],
-                  transformedData as Record<string, unknown>[],
-                ); // Pass transformed data to prop
+                onFileUpload([file], transformedData as DataType[]); // Pass transformed data to prop
               }
             } catch (dbError) {
               console.error('Error saving report to IndexedDB:', dbError);

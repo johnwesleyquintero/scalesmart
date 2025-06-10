@@ -17,7 +17,7 @@ interface KeywordTrackingProps {
    * Data parsed from an uploaded file.
    * Currently not used in the basic tracking logic but available.
    */
-  parsedData: ParsedFileData<Record<string, unknown>>[];
+  parsedData: ParsedFileData<KeywordTrackingData>[];
 }
 
 const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {

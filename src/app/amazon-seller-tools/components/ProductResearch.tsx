@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ProductResearchData } from '@/types/amazon-tools';
 
 interface ProductSearchResult {
   id: number;
@@ -16,7 +17,7 @@ interface ParsedFileData<T> {
 }
 
 interface ProductResearchProps {
-  parsedData: ParsedFileData<Record<string, unknown>>[];
+  parsedData: ParsedFileData<ProductResearchData>[];
 }
 
 const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {

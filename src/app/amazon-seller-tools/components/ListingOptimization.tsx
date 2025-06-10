@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card'; // Removed unused imports
 import { Textarea } from '@/components/ui/textarea';
+import { ListingOptimizationData } from '@/types/amazon-tools';
 
 interface ParsedFileData<T> {
   fileName: string;
@@ -11,7 +12,7 @@ interface ParsedFileData<T> {
 }
 
 interface ListingOptimizationProps {
-  parsedData: ParsedFileData<Record<string, unknown>>[];
+  parsedData: ParsedFileData<ListingOptimizationData>[];
 }
 
 const ListingOptimization: React.FC<ListingOptimizationProps> = ({

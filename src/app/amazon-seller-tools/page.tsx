@@ -14,6 +14,7 @@ import {
   KeywordTrackingData,
   ListingOptimizationData,
   AnalyticsData,
+  DataType, // Import DataType
 } from '@/types/amazon-tools'; // Assuming this file exists and exports ParsedFileData
 
 const AmazonSellerToolsPage: React.FC = () => {
@@ -22,15 +23,12 @@ const AmazonSellerToolsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   // Use the imported shared type for state
   const [allParsedData, setAllParsedData] = useState<
-    ParsedFileData<Record<string, unknown>>[]
+    ParsedFileData<DataType>[]
   >([]);
 
   // Callback function to receive parsed data from DataSourceTab.
   // Assuming DataSourceTab calls this with a single file's name and its parsed data.
-  const handleFileUpload = (
-    files: File[],
-    parsedData: Record<string, unknown>[],
-  ) => {
+  const handleFileUpload = (files: File[], parsedData: DataType[]) => {
     setAllParsedData((prevData) => {
       // Check if data for this file already exists
       const existingIndex = prevData.findIndex(
@@ -90,22 +88,58 @@ const AmazonSellerToolsPage: React.FC = () => {
 
         <TabsContent value="product-research" className="space-y-4 mt-4">
           {/* Pass parsed data. Ensure ProductResearch component expects ParsedFileData[] */}
-          <ProductResearch parsedData={allParsedData} />
+          <ProductResearch
+            parsedData={
+              allParsedData.filter(
+                (data) =>
+                  data.data.length > 0 &&
+                  'name' in data.data[0] &&
+                  'price' in data.data[0],
+              ) as ParsedFileData<ProductResearchData>[]
+            }
+          />
         </TabsContent>
 
         <TabsContent value="keyword-tracking" className="space-y-4 mt-4">
           {/* Pass parsed data. Ensure KeywordTracking component expects ParsedFileData[] */}
-          <KeywordTracking parsedData={allParsedData} />
+          <KeywordTracking
+            parsedData={
+              allParsedData.filter(
+                (data) =>
+                  data.data.length > 0 &&
+                  'keyword' in data.data[0] &&
+                  'rank' in data.data[0],
+              ) as ParsedFileData<KeywordTrackingData>[]
+            }
+          />
         </TabsContent>
 
         <TabsContent value="listing-optimization" className="space-y-4 mt-4">
           {/* Pass parsed data. Ensure ListingOptimization component expects ParsedFileData[] */}
-          <ListingOptimization parsedData={allParsedData} />
+          <ListingOptimization
+            parsedData={
+              allParsedData.filter(
+                (data) =>
+                  data.data.length > 0 &&
+                  'title' in data.data[0] &&
+                  'bulletPoints' in data.data[0],
+              ) as ParsedFileData<ListingOptimizationData>[]
+            }
+          />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-4 mt-4">
           {/* Pass parsed data. Ensure Analytics component expects ParsedFileData[] */}
-          <Analytics parsedData={allParsedData} />
+          <Analytics
+            parsedData={
+              allParsedData.filter(
+                (data) =>
+                  data.data.length > 0 &&
+                  'totalSales' in data.data[0] &&
+                  'unitsSold' in data.data[0],
+              ) as ParsedFileData<AnalyticsData>[]
+            }
+          />
         </TabsContent>
 
         <TabsContent value="data-source" className="space-y-4 mt-4">
@@ -118,7 +152,6 @@ const AmazonSellerToolsPage: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Example section for recommendation (can be moved/integrated elsewhere) */}
       <div className="mt-8 p-4 border rounded">
         <h2 className="text-2xl font-semibold mb-4">AI Recommendation</h2>
         <button
