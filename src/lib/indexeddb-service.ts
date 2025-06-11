@@ -201,6 +201,93 @@ export async function deleteItem(
   }
 }
 
+/**
+ * Fetches courses from the server API.
+ * @returns A promise resolving to an array of Course objects from the server.
+ * @throws Error if the network request fails or the server responds with an error status.
+ */
+export const fetchServerCourses = async (): Promise<Course[]> => {
+  const serverResponse = await fetch('/api/academy/courses');
+  if (!serverResponse.ok) {
+    const errorText = await serverResponse
+      .text()
+      .catch(() => 'Unknown error body');
+    throw new Error(
+      `HTTP error! status: ${serverResponse.status} from /api/academy/courses. Details: ${errorText}`,
+    );
+  }
+  return serverResponse.json();
+};
+
+/**
+ * Syncs local IndexedDB courses with server courses.
+ * Deletes courses present locally but not on the server, and updates/adds courses from the server.
+ * @param indexedDBCourses - Courses currently stored in IndexedDB.
+ * @param serverCourses - Courses fetched from the server.
+ */
+export const syncLocalCourses = async (
+  indexedDBCourses: Course[],
+  serverCourses: Course[],
+): Promise<void> => {
+  const serverCourseIds = new Set(serverCourses.map((c) => c.id));
+  const coursesToDelete = indexedDBCourses.filter(
+    (c) => !serverCourseIds.has(c.id),
+  );
+
+  if (coursesToDelete.length > 0) {
+    await deleteCoursesByIds(coursesToDelete.map((c) => c.id));
+  }
+
+  const updatePromises = serverCourses.map(async (serverCourse) => {
+    const existingCourse = indexedDBCourses.find(
+      (c) => c.id === serverCourse.id,
+    );
+    const serverTimestamp = serverCourse.updatedAt
+      ? new Date(serverCourse.updatedAt).getTime()
+      : 0;
+    const existingTimestamp = existingCourse?.updatedAt
+      ? new Date(existingCourse.updatedAt).getTime()
+      : 0;
+
+    if (!existingCourse || serverTimestamp > existingTimestamp) {
+      await updateCourse(serverCourse);
+    }
+  });
+
+  await Promise.all(updatePromises);
+};
+
+/**
+ * Fetches courses from the server and syncs them with IndexedDB.
+ * Handles updates and deletions to keep local data consistent with the server.
+ * @returns A promise resolving to an array of Course objects from IndexedDB.
+ * @throws Error if fetching or syncing fails.
+ */
+export const fetchAndSyncCourses = async (): Promise<Course[]> => {
+  try {
+    const [indexedDBCourses, serverCourses] = await Promise.all([
+      getAllCourses(),
+      fetchServerCourses(),
+    ]);
+
+    await syncLocalCourses(indexedDBCourses, serverCourses);
+
+    // Re-fetch from local DB to ensure data is current after sync operations
+    return await getAllCourses();
+  } catch (error: unknown) {
+    console.error('Error fetching and syncing courses:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message, error.stack);
+      throw error;
+    } else {
+      console.error('Unknown error:', error);
+      throw new Error(
+        `An unknown error occurred during course sync: ${String(error)}`,
+      );
+    }
+  }
+};
+
 export async function getAllItemsFromStore<T>(storeName: string): Promise<T[]> {
   try {
     const table = db.table(storeName);

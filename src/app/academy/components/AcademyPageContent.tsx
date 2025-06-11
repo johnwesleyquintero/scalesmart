@@ -13,111 +13,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import useAcademyStorage from '@/hooks/use-academy-storage';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import {
-  getAllCourses,
-  updateCourse,
-  deleteCoursesByIds,
-} from '@/lib/indexeddb-service';
+import { fetchAndSyncCourses } from '@/lib/indexeddb-service';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 
 const DURATION_DESCENDING_SORT = 'Duration (descending)';
 const sortOptions = ['Title', 'Duration', 'Level', DURATION_DESCENDING_SORT];
 
-/**
- * Fetches courses from the server and syncs them with IndexedDB.
- * Handles updates and deletions to keep local data consistent with the server.
- * @returns A promise resolving to an array of Course objects from IndexedDB.
- * @throws Error if fetching or syncing fails.
- */
-import { parseDuration } from '@/lib/core-utils'; // Centralized utility
+// Removed duplicate import: import { fetchAndSyncCourses } from '@/lib/academy-storage-service';
 
-/**
- * Fetches courses from the server API.
- * @returns A promise resolving to an array of Course objects from the server.
- * @throws Error if the network request fails or the server responds with an error status.
- */
-const fetchServerCourses = async (): Promise<Course[]> => {
-  const serverResponse = await fetch('/api/academy/courses');
-  if (!serverResponse.ok) {
-    const errorText = await serverResponse
-      .text()
-      .catch(() => 'Unknown error body');
-    throw new Error(
-      `HTTP error! status: ${serverResponse.status} from /api/academy/courses. Details: ${errorText}`,
-    );
-  }
-  return serverResponse.json();
-};
-
-/**
- * Syncs local IndexedDB courses with server courses.
- * Deletes courses present locally but not on the server, and updates/adds courses from the server.
- * @param indexedDBCourses - Courses currently stored in IndexedDB.
- * @param serverCourses - Courses fetched from the server.
- */
-const syncLocalCourses = async (
-  indexedDBCourses: Course[],
-  serverCourses: Course[],
-): Promise<void> => {
-  const serverCourseIds = new Set(serverCourses.map((c) => c.id));
-  const coursesToDelete = indexedDBCourses.filter(
-    (c) => !serverCourseIds.has(c.id),
-  );
-
-  if (coursesToDelete.length > 0) {
-    await deleteCoursesByIds(coursesToDelete.map((c) => c.id));
-  }
-
-  const updatePromises = serverCourses.map(async (serverCourse) => {
-    const existingCourse = indexedDBCourses.find(
-      (c) => c.id === serverCourse.id,
-    );
-    const serverTimestamp = serverCourse.updatedAt
-      ? new Date(serverCourse.updatedAt).getTime()
-      : 0;
-    const existingTimestamp = existingCourse?.updatedAt
-      ? new Date(existingCourse.updatedAt).getTime()
-      : 0;
-
-    if (!existingCourse || serverTimestamp > existingTimestamp) {
-      await updateCourse(serverCourse);
-    }
-  });
-
-  await Promise.all(updatePromises);
-};
-
-/**
- * Fetches courses from the server and syncs them with IndexedDB.
- * Handles updates and deletions to keep local data consistent with the server.
- * @returns A promise resolving to an array of Course objects from IndexedDB.
- * @throws Error if fetching or syncing fails.
- */
-const fetchAndSyncCourses = async (): Promise<Course[]> => {
-  try {
-    const [indexedDBCourses, serverCourses] = await Promise.all([
-      getAllCourses(),
-      fetchServerCourses(),
-    ]);
-
-    await syncLocalCourses(indexedDBCourses, serverCourses);
-
-    // Re-fetch from local DB to ensure data is current after sync operations
-    return await getAllCourses();
-  } catch (error: unknown) {
-    console.error('Error fetching and syncing courses:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message, error.stack);
-      throw error;
-    } else {
-      console.error('Unknown error:', error);
-      throw new Error(
-        `An unknown error occurred during course sync: ${String(error)}`,
-      );
-    }
-  }
-};
 
 /**
  * AcademyPageContent Component
@@ -140,6 +44,23 @@ const fetchAndSyncCourses = async (): Promise<Course[]> => {
  * Uses React Query for data fetching and state management, useAcademyStorage
  * for persisting user progress, and various Shadcn UI components.
  */
+// Helper function to parse duration strings (e.g., "1h 30m") into minutes
+const parseDuration = (durationString: string | undefined): number => {
+  if (!durationString) return 0;
+
+  let totalMinutes = 0;
+  const hoursMatch = durationString.match(/(\d+)h/);
+  const minutesMatch = durationString.match(/(\d+)m/);
+
+  if (hoursMatch) {
+    totalMinutes += parseInt(hoursMatch[1], 10) * 60;
+  }
+  if (minutesMatch) {
+    totalMinutes += parseInt(minutesMatch[1], 10);
+  }
+  return totalMinutes;
+};
+
 export function AcademyPageContent() {
   // State for managing the active category tab and the selected sort option
   const [activeTab, setActiveTab] = useState('All');
