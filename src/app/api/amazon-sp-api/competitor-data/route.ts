@@ -17,7 +17,6 @@ export async function POST(request: Request) {
     // For 'getCatalogItem' operation with path `/catalog/2022-04-01/items/{asin}`,
     // the response typically contains the item details directly or within a 'payload' object.
     // We'll cast to 'any' for flexibility and add a TODO to refine the type.
-    // TODO: Refine SearchCatalogItemsResponse type based on actual library response structure.
     // The response structure from amazon-sp-api can vary.
     const productDetailsResponse: SearchCatalogItemsResponse =
       await client.callAPI({
@@ -29,7 +28,6 @@ export async function POST(request: Request) {
         },
       });
 
-    // TODO: Refine this type based on the actual 'amazon-sp-api' library's GetCatalogItemResponse type.
     // The item data might be directly in productDetailsResponse or nested under 'payload' or 'items'.
     const item = productDetailsResponse.items?.[0]; // Removed payload as it seems incorrect based on the error
 
