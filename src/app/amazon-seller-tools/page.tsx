@@ -1,6 +1,5 @@
 'use client';
 import React, { useState } from 'react';
-import { getAIDrivenRecommendation } from '@/lib/amazon-tools/gemini-api';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataSourceTab from './components/DataSourceTab';
 import ProductResearch from './components/ProductResearch';
@@ -61,8 +60,24 @@ const AmazonSellerToolsPage: React.FC = () => {
       // Example prompt - potentially make this dynamic based on uploaded data
       const prompt =
         'Generate a short, catchy product title for a new eco-friendly water bottle.';
-      const rec = await getAIDrivenRecommendation(prompt);
-      setRecommendation(rec);
+
+      // Call the new server-side API route
+      const response = await fetch('/api/amazon-tools/recommendation', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch recommendation from API');
+      }
+
+      const data = await response.json();
+      setRecommendation(data.recommendation);
+
     } catch (err) {
       setError(
         `Failed to get recommendation: ${err instanceof Error ? err.message : String(err)}`,
