@@ -59,8 +59,52 @@ export interface AnalyticsData {
   cpc?: number; // Added cpc
 }
 
+export interface CompetitorMonitoringData {
+  asin: string;
+  productName: string;
+  currentPrice: number;
+  historicalPrices?: { date: string; price: number }[];
+  bsr?: number; // Best Seller Rank
+  reviewsCount?: number;
+  rating?: number;
+  stockLevel?: string; // e.g., "In Stock", "Low Stock", "Out of Stock"
+  keywordPerformance?: { keyword: string; rank: number }[];
+}
+
+export enum InventoryHealthStatus {
+  HEALTHY = 'healthy',
+  LOW = 'low',
+  EXCESS = 'excess',
+  CRITICAL = 'critical',
+}
+
+export interface InventoryData {
+  productId: string;
+  currentInventory: number;
+  averageDailySales: number;
+  salesLast30Days?: number;
+  leadTime?: number;
+  safetyStock: number;
+  status: InventoryHealthStatus;
+  lastUpdated?: string; // ISO date string
+}
+
+export interface CustomerReviewData {
+  reviewId: string;
+  asin: string;
+  rating: number;
+  title: string;
+  body: string;
+  date: string; // ISO date string
+  sentiment?: 'positive' | 'negative' | 'neutral'; // AI-derived sentiment
+  themes?: string[]; // AI-derived themes
+}
+
 export type DataType =
   | ProductResearchData
   | KeywordTrackingData
   | ListingOptimizationData
-  | AnalyticsData;
+  | AnalyticsData
+  | CompetitorMonitoringData
+  | InventoryData
+  | CustomerReviewData;

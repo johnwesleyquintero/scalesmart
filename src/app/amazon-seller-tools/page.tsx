@@ -7,6 +7,9 @@ import ProductResearch from './components/ProductResearch';
 import KeywordTracking from './components/KeywordTracking';
 import ListingOptimization from './components/ListingOptimization';
 import Analytics from './components/Analytics';
+import CompetitorMonitoring from './components/CompetitorMonitoring';
+import InventoryManagement from './components/InventoryManagement';
+import CustomerReviews from './components/CustomerReviews';
 // Import the shared type definition
 import {
   ParsedFileData,
@@ -14,6 +17,9 @@ import {
   KeywordTrackingData,
   ListingOptimizationData,
   AnalyticsData,
+  CompetitorMonitoringData, // Import CompetitorMonitoringData
+  InventoryData, // Import InventoryData
+  CustomerReviewData, // Import CustomerReviewData
   DataType, // Import DataType
 } from '@/types/amazon-tools'; // Assuming this file exists and exports ParsedFileData
 
@@ -84,6 +90,13 @@ const AmazonSellerToolsPage: React.FC = () => {
           </TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="data-source">Data Source</TabsTrigger>
+          <TabsTrigger value="competitor-monitoring">
+            Competitor Monitoring
+          </TabsTrigger>
+          <TabsTrigger value="inventory-management">
+            Inventory Management
+          </TabsTrigger>
+          <TabsTrigger value="customer-reviews">Customer Reviews</TabsTrigger>
         </TabsList>
 
         <TabsContent value="product-research" className="space-y-4 mt-4">
@@ -142,12 +155,61 @@ const AmazonSellerToolsPage: React.FC = () => {
           />
         </TabsContent>
 
+        <TabsContent value="competitor-monitoring" className="space-y-4 mt-4">
+          <CompetitorMonitoring
+            parsedData={
+              allParsedData.filter(
+                (data) =>
+                  data.data.length > 0 &&
+                  'asin' in data.data[0] &&
+                  'productName' in data.data[0],
+              ) as ParsedFileData<CompetitorMonitoringData>[]
+            }
+          />
+        </TabsContent>
+
         <TabsContent value="data-source" className="space-y-4 mt-4">
           <h2 className="text-2xl font-semibold mb-4">Data Source</h2>
           {/* Pass the refined callback function */}
           <DataSourceTab
             currentTab="data-source"
             onFileUpload={handleFileUpload}
+          />
+        </TabsContent>
+
+        <TabsContent value="inventory-management" className="space-y-4 mt-4">
+          <h2 className="text-2xl font-semibold mb-4">
+            Automated Inventory & Restock Management
+          </h2>
+          {/* InventoryManagement component will be added here */}
+        </TabsContent>
+
+        <TabsContent value="inventory-management" className="space-y-4 mt-4">
+          <InventoryManagement
+            parsedData={
+              allParsedData.filter(
+                (data) =>
+                  data.data.length > 0 &&
+                  'productId' in data.data[0] &&
+                  'currentInventory' in data.data[0],
+              ) as ParsedFileData<InventoryData>[]
+            }
+          />
+        </TabsContent>
+
+        <TabsContent value="customer-reviews" className="space-y-4 mt-4">
+          <h2 className="text-2xl font-semibold mb-4">
+            Customer Review & Feedback Analysis
+          </h2>
+          <CustomerReviews
+            parsedData={
+              allParsedData.filter(
+                (data) =>
+                  data.data.length > 0 &&
+                  'reviewId' in data.data[0] &&
+                  'rating' in data.data[0],
+              ) as ParsedFileData<CustomerReviewData>[]
+            }
           />
         </TabsContent>
       </Tabs>

@@ -264,3 +264,53 @@ export interface ProcessedKeywordData {
   trend: string; // Description or identifier for search volume trend
   cpc: number; // Average Cost Per Click
 }
+
+// Interfaces for Amazon SP-API Catalog Items v2022-04-01 response
+// These are simplified and should be expanded based on actual API documentation
+export interface CatalogItemAttribute {
+  locale?: string;
+  value?: string;
+}
+
+export interface CatalogItemAttributes {
+  item_name?: CatalogItemAttribute[];
+  // Add other attributes as needed, e.g., brand, color, size
+}
+
+export interface CatalogItemBuyingPrice {
+  amount?: number;
+  currency?: string;
+}
+
+export interface CatalogItemSummary {
+  buyingPrice?: CatalogItemBuyingPrice;
+  itemClassification?: string; // e.g., "PRODUCT"
+  // Add other summary fields as needed
+}
+
+export interface CatalogItemSalesRank {
+  rank?: number;
+  // Add other sales rank fields as needed
+}
+
+export interface CatalogItemCustomerReviews {
+  count?: number;
+  averageRating?: number;
+}
+
+export interface CatalogItem {
+  asin: string;
+  attributes?: CatalogItemAttributes;
+  summaries?: CatalogItemSummary[];
+  salesRanks?: CatalogItemSalesRank[];
+  customerReviews?: CatalogItemCustomerReviews;
+  // Add other top-level item properties as needed
+}
+
+export interface SearchCatalogItemsResponse {
+  items?: CatalogItem[];
+  pagination?: {
+    nextToken?: string;
+  };
+  // Add other response properties as needed
+}

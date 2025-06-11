@@ -257,6 +257,99 @@ Provide insights on performance trends, areas for improvement, and specific acti
         </CardContent>
       </Card>
 
+      {/* AI-Powered PPC Optimization Section */}
+      <Card>
+        <CardHeader className="p-4">
+          <CardTitle className="text-lg">AI-Powered PPC Optimization</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <p className="text-muted-foreground dark:text-gray-400 mb-4">
+            Get AI-driven recommendations to optimize your PPC campaigns based
+            on your analytics data.
+          </p>
+          <Button
+            onClick={async () => {
+              setLoadingInsights(true); // Reuse loading state for simplicity
+              setInsightError(null); // Reuse error state
+              setAiInsights(null); // Clear previous insights
+              try {
+                const { getAIDrivenRecommendation } = await import(
+                  '@/lib/amazon-tools/gemini-api'
+                );
+                // Construct a prompt specifically for PPC optimization
+                const prompt = `Analyze the following Amazon seller analytics data for the period ${startDate} to ${endDate} focusing on PPC performance. Provide actionable recommendations to optimize PPC campaigns, including suggestions for keyword targeting, bid adjustments, and budget allocation.
+ 
+ Aggregated PPC Metrics:
+ Impressions: ${totalImpressions}
+ Clicks: ${totalClicks}
+ Total ACoS: ${totalAcos.toFixed(2)}%
+ Total ROAS: ${totalRoas.toFixed(2)}
+ Average CPC: ${averageCpc.toFixed(2)}
+ 
+ Sales Trend Data (Date, Sales - for context):
+ ${aggregatedSalesTrend.map((item) => `${item.date}: ${item.sales.toFixed(2)}`).join('\\n')}
+ 
+ Provide specific, actionable steps to improve PPC performance.`;
+
+                const insights = await getAIDrivenRecommendation(prompt);
+                setAiInsights(insights); // Display insights in the same section for now
+              } catch (error: unknown) {
+                console.error(
+                  'Error generating AI PPC optimization insights:',
+                  error,
+                );
+                setInsightError(
+                  error instanceof Error
+                    ? error.message
+                    : 'Failed to generate AI PPC optimization insights.',
+                );
+              } finally {
+                setLoadingInsights(false);
+              }
+            }}
+            disabled={loadingInsights || filteredAnalyticsData.length === 0}
+          >
+            {loadingInsights
+              ? 'Generating PPC Recommendations...'
+              : 'Generate PPC Optimization Recommendations'}
+          </Button>
+
+          {/* Display insights and errors in the same area for now */}
+          {insightError && (
+            <p className="text-red-600 dark:text-red-400 mt-2">
+              Error: {insightError}
+            </p>
+          )}
+
+          {aiInsights && (
+            <div className="mt-4 p-4 bg-gray-200 dark:bg-gray-700 rounded-md whitespace-pre-wrap">
+              <h4 className="text-lg font-semibold mb-2">
+                PPC Optimization Recommendations:
+              </h4>
+              {aiInsights}
+            </div>
+          )}
+
+          {!loadingInsights &&
+            !insightError &&
+            !aiInsights &&
+            filteredAnalyticsData.length > 0 && (
+              <p className="text-muted-foreground dark:text-gray-400 mt-2">
+                Click "Generate PPC Optimization Recommendations" to get
+                AI-driven suggestions.
+              </p>
+            )}
+          {!loadingInsights &&
+            !insightError &&
+            filteredAnalyticsData.length === 0 && (
+              <p className="text-muted-foreground dark:text-gray-400 mt-2">
+                Upload analytics data and select a date range to generate PPC
+                optimization recommendations.
+              </p>
+            )}
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {/* Card for Aggregated Metrics Bar Chart */}
         <Card className="lg:col-span-3">
@@ -347,7 +440,6 @@ Provide insights on performance trends, areas for improvement, and specific acti
           </CardContent>
         </Card>
 
-        {/* Card for Total ACoS (Note: Aggregation might not be ideal) */}
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-lg">Total ACoS</CardTitle>
