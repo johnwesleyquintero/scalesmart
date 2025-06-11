@@ -8,6 +8,7 @@ import { ModuleType, QuizResult } from '@/types';
 import { useAcademy } from '@/context/AcademyContext';
 import CertificateDisplay from './CertificateDisplay';
 import { UserProfile } from '@/lib/models/user';
+import { MAX_CERTIFICATE_ATTEMPTS, PASS_THRESHOLD } from '@/lib/constants/quiz';
 
 interface QuestionInput {
   id?: number;
@@ -16,9 +17,6 @@ interface QuestionInput {
   correctAnswer: number;
   explanation?: string;
 }
-
-const MAX_CERTIFICATE_ATTEMPTS = 3;
-const PASS_THRESHOLD = 70; // Only one definition, top-level
 
 interface QuizProps {
   questions: QuestionInput[];
