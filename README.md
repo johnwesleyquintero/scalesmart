@@ -2,21 +2,38 @@
 
 ## Description
 
-This project is a comprehensive portfolio platform, the "Wes-verse," built with Next.js, TypeScript, and Tailwind CSS. It showcases an integrated suite of custom-built applications and tools, demonstrating a wide range of skills. The current "Wes-apps" include:
+This project is a comprehensive portfolio platform, the "ScaleSmart" (AKA WesVerse) built with Next.js, TypeScript, and Tailwind CSS. It showcases an integrated suite of custom-built applications and tools, demonstrating a wide range of skills. The current "WesApps" include:
 
-- Blog
-- **ScaleSmart Academy:** An online learning platform.
+- Blog (Content managed via MDX files in `src/app/content/blog/`)
+- **ScaleSmart Academy:** An online learning platform with course progress tracking. (Content managed via MDX files in `src/app/content/academy/`)
 - **Admin Dashboard:** For managing project content and settings.
-- **Amazon Seller Tools:** A suite of tools for Amazon sellers (Bootleg Helium 10).
+- **Amazon Seller Tools:** A suite of tools for Amazon sellers, including Analytics Processing, Data Filtering, Listing Optimization AI, and Report Processing.
 - **Resume Scan:** A Resume Scanner/ATS tool.
-- Chat Interface
-- **CRM:** A Customer Relationship Management tool (Bootleg Hubspot CRM).
-- **Project Board:** A project management tool (Bootleg Asana).
-- **Workflow Builder:** A workflow automation builder (Bootleg n8n).
+- **AI Chat Interface:**
+- **CRM:** A Customer Relationship Management tool.
+- **Project Board:** A project management tool with task and comment management.
+- **Workflow Builder:** A workflow automation builder with a visual interface for creating and managing workflows using a node registry and engine.
+- **Markdown Notepad:** A tool for creating and managing markdown notes with category support.
+- **Privacy Policy:** A dedicated page for the project's privacy policy.
+- **User Profile:** A page for managing user profile information.
+- **Prompt Request Generator:** A tool for generating prompt requests.
 
 The platform is designed to be an ever-expanding ecosystem, with potential for more "WesIntegrations" in the future.
 
-The project also includes API routes for various functionalities, such as:
+## Project Structure
+
+Key directories and their purposes:
+
+- `src/app/`: Contains Next.js app router pages and components.
+- `src/app/content/`: Houses MDX files for various content sections like blog posts, academy articles, and documentation.
+- `src/lib/`: Contains utility functions, services, and libraries used across the project.
+- `src/hooks/`: Custom React hooks.
+- `src/data/`: Static data files (JSON, etc.).
+- `supabase/`: Supabase database migrations and configuration.
+
+## API Routes
+
+The project includes API routes for various functionalities, such as:
 
 - Academy Articles
 - Academy Courses
@@ -36,6 +53,8 @@ The project also includes API routes for various functionalities, such as:
 - Resume
 - Search
 
+Detailed API documentation can be found in the `src/app/content/docs/api-*.mdx` files.
+
 ## Technologies Used
 
 - Next.js
@@ -45,6 +64,7 @@ The project also includes API routes for various functionalities, such as:
 - Redis
 - Upstash
 - Vercel
+- IndexedDB (Used for local data storage in several features)
 
 ## Installation
 
@@ -73,15 +93,19 @@ The project also includes API routes for various functionalities, such as:
 
 ## Usage
 
-- **Blog:** Browse articles and learn about various topics.
-- **ScaleSmart Academy:** Access courses and learning materials.
+- **Blog:** Browse articles and learn about various topics. Content is managed via MDX files.
+- **ScaleSmart Academy:** Access courses and learning materials and track your progress. Content is managed via MDX files.
 - **Admin Dashboard:** Manage project content and settings.
-- **Amazon Seller Tools:** Utilize tools for Amazon seller activities.
-- **Resume Scan:** Scan and analyze resumes.
-- **Chat Interface:** Communicate with others through the chat feature.
-- **CRM:** Manage customer relationships.
-- **Project Board:** Manage projects and tasks.
-- **Workflow Builder:** Create and manage automated workflows.
+- **Amazon Seller Tools:** Utilize tools for Amazon seller activities, including analytics, data filtering, listing optimization, and report processing. Data is stored locally using IndexedDB.
+- **Resume Scan:** Scan and analyze resumes using the ATS tool.
+- **AI Chat Interface:** Communicate with others through the chat feature. Chat history is stored locally using IndexedDB.
+- **CRM:** Manage customer relationships. Data is stored locally using IndexedDB.
+- **Project Board:** Manage projects and tasks, including adding comments. Data is stored locally using IndexedDB.
+- **Workflow Builder:** Create and manage automated workflows using a visual interface. Data is stored locally using IndexedDB.
+- **Markdown Notepad:** Create and manage your markdown notes, organized by categories. Data is stored locally using IndexedDB.
+- **Privacy Policy:** View the project's privacy policy.
+- **User Profile:** Manage your user profile information.
+- **Prompt Request Generator:** Generate prompt requests for various purposes.
 
 ## Contributing
 

@@ -92,6 +92,7 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
     const loadReports = async () => {
       try {
         const reports = await getAllAmazonReports();
+        console.log('Reports from IndexedDB:', reports);
         const filesFromReports: UploadedFile[] = reports.map((report) => {
           const file = new File([], report.fileName, {
             type: 'text/csv',
@@ -242,6 +243,7 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
         {uploadedFiles.length > 0 && (
           <div className="space-y-4">
             <h3 className="text-xl font-semibold">Uploaded Files</h3>
+            {console.log('Uploaded Files:', uploadedFiles)}
             {uploadedFiles.map((file, index) => (
               <Card key={index}>
                 <CardHeader className="p-4">
