@@ -177,12 +177,7 @@ const AmazonSellerToolsPage: React.FC = () => {
           />
         </TabsContent>
 
-        <TabsContent value="inventory-management" className="space-y-4 mt-4">
-          <h2 className="text-2xl font-semibold mb-4">
-            Automated Inventory & Restock Management
-          </h2>
-          {/* InventoryManagement component will be added here */}
-        </TabsContent>
+
 
         <TabsContent value="inventory-management" className="space-y-4 mt-4">
           <InventoryManagement
@@ -198,11 +193,9 @@ const AmazonSellerToolsPage: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="customer-reviews" className="space-y-4 mt-4">
-          <h2 className="text-2xl font-semibold mb-4">
-            Customer Review & Feedback Analysis
-          </h2>
           <CustomerReviews
             parsedData={
+
               allParsedData.filter(
                 (data) =>
                   data.data.length > 0 &&
