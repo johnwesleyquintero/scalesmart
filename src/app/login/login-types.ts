@@ -1,11 +1,18 @@
-import { UseFormRegister, FieldErrors, FieldValues } from 'react-hook-form';
+import {
+  UseFormRegister,
+  FieldErrors,
+  FieldValues,
+  Path,
+} from 'react-hook-form';
 
 // Define the expected return type for server actions
-export type ServerActionResult = {
-  success?: boolean;
-  error?: string;
-  mfaRequired?: boolean; // Specific to sign-in action
-} | void; // Allow void for actions that don't return a specific result
+export type ServerActionResult =
+  | {
+      success?: boolean;
+      error?: string;
+      mfaRequired?: boolean; // Specific to sign-in action
+    }
+  | { success: true }; // Allow void for actions that don't return a specific result
 
 // Type for managing the currently displayed form state
 export type CurrentFormState =
@@ -14,10 +21,24 @@ export type CurrentFormState =
   | 'forgotPassword'
   | 'forgotPasswordConfirmation';
 
+export interface LoginFormValues {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
+export interface MfaFormValues {
+  mfaCode: string;
+}
+
+export interface ForgotPasswordFormValues {
+  email: string;
+}
+
 // Props interface for the LoginForm component
 export interface LoginFormProps {
   signInAction: (formData: FormData) => Promise<ServerActionResult>;
-  signUpAction: (formData: FormData) => Promise<never>; // Added signUpAction
+  signUpAction: (formData: FormData) => Promise<ServerActionResult>;
   forgotPasswordAction: (formData: FormData) => Promise<ServerActionResult>;
   mfaVerifyAction: (formData: FormData) => Promise<ServerActionResult>;
   privacyPolicyHref: string;
@@ -27,7 +48,7 @@ export interface LoginFormProps {
 // Props interface for a generic form field component
 export interface FormFieldProps<TFieldValues extends FieldValues> {
   id: string;
-  name: keyof TFieldValues;
+  name: Path<TFieldValues>;
   label: string;
   type: string;
   placeholder: string;

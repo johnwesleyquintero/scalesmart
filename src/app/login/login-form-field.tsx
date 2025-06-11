@@ -10,6 +10,13 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react'; // Moved import to top for consistency and to resolve parsing errors
+import {
+  LoginFormValues,
+  MfaFormValues,
+  ForgotPasswordFormValues,
+} from './login-types';
+
+type FormValues = LoginFormValues | MfaFormValues | ForgotPasswordFormValues;
 
 interface FormFieldProps<TFieldValues extends FieldValues> {
   id: string;
@@ -46,7 +53,7 @@ export const FormField = <TFieldValues extends FieldValues>({
   showPassword,
   onTogglePasswordVisibility,
 }: FormFieldProps<TFieldValues>) => {
-  const error = errors[name];
+  const error = errors[name as string];
 
   return (
     <div className="flex flex-col space-y-2">

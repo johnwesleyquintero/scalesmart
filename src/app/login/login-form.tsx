@@ -12,9 +12,9 @@ import { trackEvent } from '@/lib/analytics';
 import Link from 'next/link';
 import {
   useForm,
-  FieldValues,
   UseFormRegister,
   FieldErrors,
+  FieldValues,
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +31,9 @@ import {
   LoginFormProps,
   FormFieldProps,
   SubmitButtonProps,
+  LoginFormValues,
+  MfaFormValues,
+  ForgotPasswordFormValues,
 } from './login-types';
 import {
   SubmitButton,
@@ -47,15 +50,15 @@ const MFA_VERIFY_LABEL = 'MFA Verification';
 const FORGOT_PASSWORD_LABEL = 'Forgot Password Request';
 
 // Form Default Values
-const DEFAULT_LOGIN_VALUES = {
+const DEFAULT_LOGIN_VALUES: LoginFormValues = {
   email: '',
   password: '',
   rememberMe: false,
 };
-const DEFAULT_MFA_VALUES = {
+const DEFAULT_MFA_VALUES: MfaFormValues = {
   mfaCode: '',
 };
-const DEFAULT_FORGOT_PASSWORD_VALUES = {
+const DEFAULT_FORGOT_PASSWORD_VALUES: ForgotPasswordFormValues = {
   email: '',
 };
 
@@ -99,6 +102,7 @@ const FIELD_ERROR_PASSWORD_RESET_FAILED =
  */
 export default function LoginForm({
   signInAction,
+  signUpAction,
   forgotPasswordAction,
   mfaVerifyAction,
   privacyPolicyHref,
@@ -124,20 +128,20 @@ export default function LoginForm({
 
   // --- React Hook Form Hooks ---
   // Setup form instances for different authentication flows
-  const loginForm = useForm<z.infer<typeof formSchema>>({
+  const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(formSchema), // Zod for schema validation
     defaultValues: DEFAULT_LOGIN_VALUES,
     mode: 'onChange', // Validate on change for better UX
     // Consider adding reValidateMode: 'onSubmit' or 'onBlur' if onChange is too aggressive
   });
 
-  const mfaForm = useForm<z.infer<typeof mfaFormSchema>>({
+  const mfaForm = useForm<MfaFormValues>({
     resolver: zodResolver(mfaFormSchema),
     defaultValues: DEFAULT_MFA_VALUES,
     mode: 'onSubmit', // Validate only on submit for MFA
   });
 
-  const forgotPasswordForm = useForm<z.infer<typeof forgotPasswordFormSchema>>({
+  const forgotPasswordForm = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordFormSchema),
     defaultValues: DEFAULT_FORGOT_PASSWORD_VALUES,
     mode: 'onSubmit', // Validate only on submit for forgot password
@@ -481,7 +485,7 @@ export default function LoginForm({
             noValidate
           >
             {/* Email Field */}
-            <FormField<z.infer<typeof formSchema>>
+            <FormField<LoginFormValues>
               id="email-login"
               name="email"
               label="Email"
@@ -495,7 +499,7 @@ export default function LoginForm({
             />
 
             {/* Password Field */}
-            <FormField<z.infer<typeof formSchema>>
+            <FormField<LoginFormValues>
               id="password-login"
               name="password"
               label="Password"
@@ -537,8 +541,8 @@ export default function LoginForm({
 
               {/* Forgot Password link/button */}
               <Button
-                variant="link"
                 type="button"
+                variant="link"
                 className="w-full justify-center px-0 text-sm sm:text-base font-semibold text-primary hover:text-primary/80"
                 onClick={() => {
                   setCurrentForm('forgotPassword');
@@ -582,7 +586,7 @@ export default function LoginForm({
             noValidate
           >
             {/* Assuming FormFieldProps accepts `disabled` and `required` */}
-            <FormField<z.infer<typeof mfaFormSchema>>
+            <FormField<MfaFormValues>
               id="mfaCode"
               name="mfaCode"
               label="MFA Code"
@@ -625,7 +629,7 @@ export default function LoginForm({
             className="flex flex-col gap-4 text-foreground"
             noValidate
           >
-            <FormField<z.infer<typeof forgotPasswordFormSchema>>
+            <FormField<ForgotPasswordFormValues>
               id="email-forgot"
               name="email"
               label="Email"
