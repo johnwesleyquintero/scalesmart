@@ -57,9 +57,24 @@ const AmazonSellerToolsPage: React.FC = () => {
     setError(null);
     setRecommendation(null);
     try {
-      // Example prompt - potentially make this dynamic based on uploaded data
-      const prompt =
-        'Generate a short, catchy product title for a new eco-friendly water bottle.';
+      // Dynamically construct the prompt based on allParsedData
+      let prompt = 'Analyze the following Amazon seller data and provide actionable recommendations:\n\n';
+
+      if (allParsedData.length === 0) {
+        setError('No data uploaded or processed yet. Please upload data first.');
+        setLoading(false);
+        return;
+      }
+
+      allParsedData.forEach(fileData => {
+        prompt += `--- Data from ${fileData.fileName} (${fileData.data.length} entries) ---\n`;
+        fileData.data.forEach((item, index) => {
+          prompt += `Entry ${index + 1}: ${JSON.stringify(item)}\n`;
+        });
+        prompt += '\n';
+      });
+
+      prompt += 'Based on this data, provide a concise summary of key insights and specific, actionable recommendations to improve performance. Focus on areas like product optimization, keyword strategy, sales analytics, inventory management, or customer feedback, depending on the data provided.';
 
       // Call the new server-side API route
       const response = await fetch('/api/amazon-tools/recommendation', {
@@ -222,22 +237,24 @@ const AmazonSellerToolsPage: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      <div className="mt-8 p-4 border rounded">
-        <h2 className="text-2xl font-semibold mb-4">AI Recommendation</h2>
-        <button
-          onClick={handleGetRecommendation}
-          disabled={loading}
-          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-        >
-          {loading ? 'Loading...' : 'Get Product Title Recommendation'}
-        </button>
-        {recommendation && (
-          <p className="mt-4 text-green-600">{recommendation}</p>
-        )}
-        {error && <p className="mt-4 text-red-600">Error: {error}</p>}
-      </div>
-    </div>
-  );
+     <div className="mt-8 p-4 border rounded">
+       <h2 className="text-2xl font-semibold mb-4">AI Recommendation</h2>
+       <button
+         onClick={handleGetRecommendation}
+         disabled={loading || allParsedData.length === 0} // Disable if loading or no data
+         className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+       >
+         {loading ? 'Analyzing Data...' : 'Get AI-Driven Analysis'}
+       </button>
+       {recommendation && (
+         <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-foreground whitespace-pre-wrap">
+           {recommendation}
+         </div>
+       )}
+       {error && <p className="mt-4 text-red-600">Error: {error}</p>}
+     </div>
+   </div>
+ );
 };
 
 export default AmazonSellerToolsPage;

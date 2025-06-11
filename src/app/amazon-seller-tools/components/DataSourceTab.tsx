@@ -124,71 +124,71 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (files) {
-      const newFiles: UploadedFile[] = Array.from(files).map((file) => ({
+      const filesArray = Array.from(files); // Original File objects
+
+      const newUploadedFiles: UploadedFile[] = filesArray.map((file) => ({
         ...file,
         category: PRODUCT_RESEARCH, // Default category
       }));
-      setUploadedFiles((prevFiles) => [...prevFiles, ...newFiles]);
+      setUploadedFiles((prevFiles) => [...prevFiles, ...newUploadedFiles]);
 
-      newFiles.forEach((file) => {
-        console.log('Parsing file:', file.name, file); // Log file object
-        console.log('Parsing file:', file.name, file); // Log file object
+      filesArray.forEach((originalFile, index) => { // Iterate over original files
+        const uploadedFileMeta = newUploadedFiles[index]; // Get the metadata for this file
+        console.log('Parsing file:', originalFile.name, originalFile); // Log original file object
+
         const parseConfig: PapaParse.ParseLocalConfig<
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          Record<string, any>,
+          Record<string, any>, // eslint-disable-line @typescript-eslint/no-explicit-any
           File
         > = {
-          // Explicitly type config
           header: true,
           skipEmptyLines: true,
           complete: async (
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            results: PapaParse.ParseResult<Record<string, any>>,
+            results: PapaParse.ParseResult<Record<string, any>>, // eslint-disable-line @typescript-eslint/no-explicit-any
           ) => {
-            // Add type to results
-            console.log('Parsing complete for', file.name, 'Results:', results); // Log results
+            console.log('Parsing complete for', originalFile.name, 'Results:', results);
 
-            const rawParsedData: Record<string, unknown>[] = results.data; // Explicitly type raw data
+            const rawParsedData: Record<string, unknown>[] = results.data;
 
             const transformedData = transformParsedData(
               rawParsedData,
-              file.category,
-              file.name,
-            ); // Transform data
+              uploadedFileMeta.category, // Use category from metadata
+              originalFile.name,
+            );
 
             const report: AmazonReport = {
-              fileName: file.name,
-              category: file.category,
+              fileName: originalFile.name,
+              category: uploadedFileMeta.category, // Use category from metadata
               uploadDate: Date.now(),
-              parsedData: transformedData as DataType[], // Use transformed data
+              parsedData: transformedData as DataType[],
             };
             try {
               const id = await addAmazonReport(report);
               setUploadedFiles((prevFiles) =>
                 prevFiles.map((f) =>
-                  f === file ? { ...f, id: id as string } : f,
+                  f.name === originalFile.name && f.category === uploadedFileMeta.category // Match by name and category
+                    ? { ...f, id: id as string }
+                    : f,
                 ),
               );
               setParsedData((prevData: ParsedFileData<DataType>[]) => [
                 ...prevData,
                 {
-                  fileName: file.name,
-                  data: transformedData as DataType[], // Use transformed data
+                  fileName: originalFile.name,
+                  data: transformedData as DataType[],
                 },
               ]);
               if (onFileUpload) {
-                onFileUpload([file], transformedData as DataType[]); // Pass transformed data to prop
+                onFileUpload([originalFile], transformedData as DataType[]);
               }
             } catch (dbError) {
               console.error('Error saving report to IndexedDB:', dbError);
             }
           },
           error: (error: Error, file: File) => {
-            // Correct error type to Error
-            console.error('Error parsing file', file.name, error); // Log error
+            console.error('Error parsing file', file.name, error);
           },
         };
-        PapaParse.parse(file, parseConfig); // Pass file and explicitly typed config
+        PapaParse.parse(originalFile, parseConfig); // Pass original file
       });
 
       event.target.value = '';
