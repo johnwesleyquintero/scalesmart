@@ -104,21 +104,23 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
         filteredAnalyticsData.length
       : 0;
 
-  const aggregatedSalesTrend = useMemo(() => { // Use useMemo here
+  const aggregatedSalesTrend = useMemo(() => {
+    // Use useMemo here
     const trendMap = new Map<string, number>(); // Map to store sales by date
 
-    filteredAnalyticsData.forEach((item) => { // Use filtered data
-       // Use the 'date' field from the transformed data
-       if (item.date && item.totalSales !== undefined) {
-         const existingSales = trendMap.get(item.date) || 0;
-         trendMap.set(item.date, existingSales + item.totalSales);
-       }
-       // Also consider the salesTrend array if it exists (for backward compatibility or specific report types)
-       item.salesTrend?.forEach((trend) => {
-         const existingSales = trendMap.get(trend.date) || 0;
-         trendMap.set(trend.date, existingSales + trend.sales);
-       });
-     });
+    filteredAnalyticsData.forEach((item) => {
+      // Use filtered data
+      // Use the 'date' field from the transformed data
+      if (item.date && item.totalSales !== undefined) {
+        const existingSales = trendMap.get(item.date) || 0;
+        trendMap.set(item.date, existingSales + item.totalSales);
+      }
+      // Also consider the salesTrend array if it exists (for backward compatibility or specific report types)
+      item.salesTrend?.forEach((trend) => {
+        const existingSales = trendMap.get(trend.date) || 0;
+        trendMap.set(trend.date, existingSales + trend.sales);
+      });
+    });
 
     // Convert map to array of objects and sort by date
     return Array.from(trendMap.entries())
@@ -126,64 +128,65 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }, [filteredAnalyticsData]); // Depend on filteredAnalyticsData
 
- // Prepare data for the aggregated metrics bar chart
- const aggregatedMetricsData = [
-   { name: 'Total Sales', value: totalSales },
-   { name: 'Units Sold', value: totalUnitsSold },
-   { name: 'Impressions', value: totalImpressions },
-   { name: 'Clicks', value: totalClicks },
-   // ACoS and ROAS might need different visualization or aggregation
-   // { name: 'Total ACoS', value: totalAcos },
-   // { name: 'Total ROAS', value: totalRoas },
-   { name: 'Average CPC', value: averageCpc },
- ];
+  // Prepare data for the aggregated metrics bar chart
+  const aggregatedMetricsData = [
+    { name: 'Total Sales', value: totalSales },
+    { name: 'Units Sold', value: totalUnitsSold },
+    { name: 'Impressions', value: totalImpressions },
+    { name: 'Clicks', value: totalClicks },
+    // ACoS and ROAS might need different visualization or aggregation
+    // { name: 'Total ACoS', value: totalAcos },
+    // { name: 'Total ROAS', value: totalRoas },
+    { name: 'Average CPC', value: averageCpc },
+  ];
 
+  return (
+    <div className="space-y-4 p-4">
+      <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
+      <p className="text-muted-foreground dark:text-gray-400">
+        View your Amazon seller analytics here. Data aggregated from uploaded
+        reports.
+      </p>
 
- return (
-   <div className="space-y-4 p-4">
-     <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-     <p className="text-muted-foreground dark:text-gray-400">
-       View your Amazon seller analytics here. Data aggregated from uploaded
-       reports.
-     </p>
+      {/* Date Range Filter */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div>
+          <Label htmlFor="startDate">Start Date</Label>
+          <Input
+            id="startDate"
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+        </div>
+        <div>
+          <Label htmlFor="endDate">End Date</Label>
+          <Input
+            id="endDate"
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+          />
+        </div>
+      </div>
 
-     {/* Date Range Filter */}
-     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-       <div>
-         <Label htmlFor="startDate">Start Date</Label>
-         <Input
-           id="startDate"
-           type="date"
-           value={startDate}
-           onChange={(e) => setStartDate(e.target.value)}
-         />
-       </div>
-       <div>
-         <Label htmlFor="endDate">End Date</Label>
-         <Input
-           id="endDate"
-           type="date"
-           value={endDate}
-           onChange={(e) => setEndDate(e.target.value)}
-         />
-       </div>
-     </div>
-
-     {/* AI-Powered Insights Section */}
-     <Card>
-       <CardHeader className="p-4">
-         <CardTitle className="text-lg">AI-Powered Insights</CardTitle>
-       </CardHeader>
-       <CardContent className="p-4 pt-0">
-         <Button
-           onClick={async () => {
-             setLoadingInsights(true);
-             setInsightError(null);
-             setAiInsights(null);
-             try {
-               const { getAIDrivenRecommendation } = await import('@/lib/amazon-tools/gemini-api');
-               // Construct a prompt based on the filtered data
-               const prompt = `Analyze the following Amazon seller analytics data for the period ${startDate} to ${endDate} and provide key insights and actionable recommendations.
+      {/* AI-Powered Insights Section */}
+      <Card>
+        <CardHeader className="p-4">
+          <CardTitle className="text-lg">AI-Powered Insights</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <Button
+            onClick={async () => {
+              setLoadingInsights(true);
+              setInsightError(null);
+              setAiInsights(null);
+              try {
+                const { getAIDrivenRecommendation } = await import(
+                  '@/lib/amazon-tools/gemini-api'
+                );
+                // Construct a prompt based on the filtered data
+                const prompt = `Analyze the following Amazon seller analytics data for the period ${startDate} to ${endDate} and provide key insights and actionable recommendations.
 
 Aggregated Metrics:
 Total Sales: ${totalSales.toFixed(2)}
@@ -195,218 +198,238 @@ Total ROAS: ${totalRoas.toFixed(2)}
 Average CPC: ${averageCpc.toFixed(2)}
 
 Sales Trend Data (Date, Sales):
-${aggregatedSalesTrend.map(item => `${item.date}: ${item.sales.toFixed(2)}`).join('\\n')}
+${aggregatedSalesTrend.map((item) => `${item.date}: ${item.sales.toFixed(2)}`).join('\\n')}
 
 Provide insights on performance trends, areas for improvement, and specific actions the seller can take to increase sales and profitability.`;
 
-               const insights = await getAIDrivenRecommendation(prompt);
-               setAiInsights(insights);
-             } catch (error: unknown) { // Replace any with unknown
-               console.error('Error generating AI insights:', error);
-               // Safely access error message
-               setInsightError(error instanceof Error ? error.message : 'Failed to generate AI insights.');
-             } finally {
-               setLoadingInsights(false);
-             }
-           }}
-           disabled={loadingInsights || filteredAnalyticsData.length === 0}
-         >
-           {loadingInsights ? 'Generating Insights...' : 'Generate AI Insights'}
-         </Button>
+                const insights = await getAIDrivenRecommendation(prompt);
+                setAiInsights(insights);
+              } catch (error: unknown) {
+                // Replace any with unknown
+                console.error('Error generating AI insights:', error);
+                // Safely access error message
+                setInsightError(
+                  error instanceof Error
+                    ? error.message
+                    : 'Failed to generate AI insights.',
+                );
+              } finally {
+                setLoadingInsights(false);
+              }
+            }}
+            disabled={loadingInsights || filteredAnalyticsData.length === 0}
+          >
+            {loadingInsights
+              ? 'Generating Insights...'
+              : 'Generate AI Insights'}
+          </Button>
 
-         {insightError && (
-           <p className="text-red-600 dark:text-red-400 mt-2">Error: {insightError}</p>
-         )}
+          {insightError && (
+            <p className="text-red-600 dark:text-red-400 mt-2">
+              Error: {insightError}
+            </p>
+          )}
 
-         {aiInsights && (
-           <div className="mt-4 p-4 bg-gray-200 dark:bg-gray-700 rounded-md whitespace-pre-wrap">
-             <h4 className="text-lg font-semibold mb-2">Insights:</h4>
-             {aiInsights}
-           </div>
-         )}
+          {aiInsights && (
+            <div className="mt-4 p-4 bg-gray-200 dark:bg-gray-700 rounded-md whitespace-pre-wrap">
+              <h4 className="text-lg font-semibold mb-2">Insights:</h4>
+              {aiInsights}
+            </div>
+          )}
 
-         {!loadingInsights && !insightError && !aiInsights && filteredAnalyticsData.length > 0 && (
-            <p className="text-muted-foreground dark:text-gray-400 mt-2">Click "Generate AI Insights" to get insights based on the filtered data.</p>
-         )}
-          {!loadingInsights && !insightError && filteredAnalyticsData.length === 0 && (
-            <p className="text-muted-foreground dark:text-gray-400 mt-2">Upload analytics data and select a date range to generate insights.</p>
-         )}
+          {!loadingInsights &&
+            !insightError &&
+            !aiInsights &&
+            filteredAnalyticsData.length > 0 && (
+              <p className="text-muted-foreground dark:text-gray-400 mt-2">
+                Click "Generate AI Insights" to get insights based on the
+                filtered data.
+              </p>
+            )}
+          {!loadingInsights &&
+            !insightError &&
+            filteredAnalyticsData.length === 0 && (
+              <p className="text-muted-foreground dark:text-gray-400 mt-2">
+                Upload analytics data and select a date range to generate
+                insights.
+              </p>
+            )}
+        </CardContent>
+      </Card>
 
-       </CardContent>
-     </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Card for Aggregated Metrics Bar Chart */}
+        <Card className="lg:col-span-3">
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Key Aggregated Metrics</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="h-64">
+              {aggregatedMetricsData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={aggregatedMetricsData}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#8884d8" />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full bg-gray-200 dark:bg-gray-700 rounded-md flex items-center justify-center text-muted-foreground dark:text-gray-400">
+                  No aggregated metrics data available for the selected date
+                  range.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
-     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-       {/* Card for Aggregated Metrics Bar Chart */}
-       <Card className="lg:col-span-3">
-         <CardHeader className="p-4">
-           <CardTitle className="text-lg">Key Aggregated Metrics</CardTitle>
-         </CardHeader>
-         <CardContent className="p-4 pt-0">
-           <div className="h-64">
-             {aggregatedMetricsData.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%">
-                 <BarChart
-                   data={aggregatedMetricsData}
-                   margin={{
-                     top: 5,
-                     right: 30,
-                     left: 20,
-                     bottom: 5,
-                   }}
-                 >
-                   <CartesianGrid strokeDasharray="3 3" />
-                   <XAxis dataKey="name" />
-                   <YAxis />
-                   <Tooltip />
-                   <Legend />
-                   <Bar dataKey="value" fill="#8884d8" />
-                 </BarChart>
-               </ResponsiveContainer>
-             ) : (
-               <div className="h-full bg-gray-200 dark:bg-gray-700 rounded-md flex items-center justify-center text-muted-foreground dark:text-gray-400">
-                 No aggregated metrics data available for the selected date range.
-               </div>
-             )}
-           </div>
-         </CardContent>
-       </Card>
+        {/* Card for Total Sales */}
+        {/* Keeping individual cards for now, can be removed later if chart is sufficient */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Total Sales</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">${totalSales.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Data from {filteredAnalyticsData.length} entries
+            </p>
+          </CardContent>
+        </Card>
 
-       {/* Card for Total Sales */}
-       {/* Keeping individual cards for now, can be removed later if chart is sufficient */}
-       <Card>
-         <CardHeader className="p-4">
-           <CardTitle className="text-lg">Total Sales</CardTitle>
-         </CardHeader>
-         <CardContent className="p-4 pt-0">
-           <p className="text-2xl font-bold">${totalSales.toFixed(2)}</p>
-           <p className="text-sm text-muted-foreground dark:text-gray-400">
-             Data from {filteredAnalyticsData.length} entries
-           </p>
-         </CardContent>
-       </Card>
+        {/* Card for Units Sold */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Units Sold</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{totalUnitsSold}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Data from {filteredAnalyticsData.length} entries
+            </p>
+          </CardContent>
+        </Card>
 
-       {/* Card for Units Sold */}
-       <Card>
-         <CardHeader className="p-4">
-           <CardTitle className="text-lg">Units Sold</CardTitle>
-         </CardHeader>
-         <CardContent className="p-4 pt-0">
-           <p className="text-2xl font-bold">{totalUnitsSold}</p>
-           <p className="text-sm text-muted-foreground dark:text-gray-400">
-             Data from {filteredAnalyticsData.length} entries
-           </p>
-         </CardContent>
-       </Card>
+        {/* Card for Total Impressions */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Total Impressions</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{totalImpressions}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Data from {filteredAnalyticsData.length} entries
+            </p>
+          </CardContent>
+        </Card>
 
-       {/* Card for Total Impressions */}
-       <Card>
-         <CardHeader className="p-4">
-           <CardTitle className="text-lg">Total Impressions</CardTitle>
-         </CardHeader>
-         <CardContent className="p-4 pt-0">
-           <p className="text-2xl font-bold">{totalImpressions}</p>
-           <p className="text-sm text-muted-foreground dark:text-gray-400">
-             Data from {filteredAnalyticsData.length} entries
-           </p>
-         </CardContent>
-       </Card>
+        {/* Card for Total Clicks */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Total Clicks</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{totalClicks}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Data from {filteredAnalyticsData.length} entries
+            </p>
+          </CardContent>
+        </Card>
 
-       {/* Card for Total Clicks */}
-       <Card>
-         <CardHeader className="p-4">
-           <CardTitle className="text-lg">Total Clicks</CardTitle>
-         </CardHeader>
-         <CardContent className="p-4 pt-0">
-           <p className="text-2xl font-bold">{totalClicks}</p>
-           <p className="text-sm text-muted-foreground dark:text-gray-400">
-             Data from {filteredAnalyticsData.length} entries
-           </p>
-         </CardContent>
-       </Card>
+        {/* Card for Total ACoS (Note: Aggregation might not be ideal) */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Total ACoS</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{totalAcos.toFixed(2)}%</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Sum of ACoS from {filteredAnalyticsData.length} entries
+              (Aggregation may vary)
+            </p>
+          </CardContent>
+        </Card>
 
-       {/* Card for Total ACoS (Note: Aggregation might not be ideal) */}
-       <Card>
-         <CardHeader className="p-4">
-           <CardTitle className="text-lg">Total ACoS</CardTitle>
-         </CardHeader>
-         <CardContent className="p-4 pt-0">
-           <p className="text-2xl font-bold">{totalAcos.toFixed(2)}%</p>
-           <p className="text-sm text-muted-foreground dark:text-gray-400">
-             Sum of ACoS from {filteredAnalyticsData.length} entries (Aggregation
-             may vary)
-           </p>
-         </CardContent>
-       </Card>
+        {/* Card for Total ROAS (Note: Aggregation might not be ideal) */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Total ROAS</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">{totalRoas.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Sum of ROAS from {filteredAnalyticsData.length} entries
+              (Aggregation may vary)
+            </p>
+          </CardContent>
+        </Card>
 
-       {/* Card for Total ROAS (Note: Aggregation might not be ideal) */}
-       <Card>
-         <CardHeader className="p-4">
-           <CardTitle className="text-lg">Total ROAS</CardTitle>
-         </CardHeader>
-         <CardContent className="p-4 pt-0">
-           <p className="text-2xl font-bold">{totalRoas.toFixed(2)}</p>
-           <p className="text-sm text-muted-foreground dark:text-gray-400">
-             Sum of ROAS from {filteredAnalyticsData.length} entries (Aggregation
-             may vary)
-           </p>
-         </CardContent>
-       </Card>
+        {/* Card for Average CPC */}
+        <Card>
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Average CPC</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <p className="text-2xl font-bold">${averageCpc.toFixed(2)}</p>
+            <p className="text-sm text-muted-foreground dark:text-gray-400">
+              Average Cost Per Click from {filteredAnalyticsData.length} entries
+            </p>
+          </CardContent>
+        </Card>
 
-       {/* Card for Average CPC */}
-       <Card>
-         <CardHeader className="p-4">
-           <CardTitle className="text-lg">Average CPC</CardTitle>
-         </CardHeader>
-         <CardContent className="p-4 pt-0">
-           <p className="text-2xl font-bold">${averageCpc.toFixed(2)}</p>
-           <p className="text-sm text-muted-foreground dark:text-gray-400">
-             Average Cost Per Click from {filteredAnalyticsData.length} entries
-           </p>
-         </CardContent>
-       </Card>
-
-       {/* Sales Trend Chart */}
-       <Card className="lg:col-span-3">
-         <CardHeader className="p-4">
-           <CardTitle className="text-lg">Sales Trend</CardTitle>
-         </CardHeader>
-         <CardContent className="p-4 pt-0">
-           <div className="h-64">
-             {aggregatedSalesTrend.length > 0 ? (
-               <ResponsiveContainer width="100%" height="100%">
-                 <LineChart
-                   data={aggregatedSalesTrend}
-                   margin={{
-                     top: 5,
-                     right: 30,
-                     left: 20,
-                     bottom: 5,
-                   }}
-                 >
-                   <CartesianGrid strokeDasharray="3 3" />
-                   <XAxis dataKey="date" />
-                   <YAxis />
-                   <Tooltip />
-                   <Legend />
-                   <Line
-                     type="monotone"
-                     dataKey="sales"
-                     stroke="#8884d8"
-                     activeDot={{ r: 8 }}
-                   />
-                 </LineChart>
-               </ResponsiveContainer>
-             ) : (
-               <div className="h-full bg-gray-200 dark:bg-gray-700 rounded-md flex items-center justify-center text-muted-foreground dark:text-gray-400">
-                 No sales trend data available for the selected date range.
-               </div>
-             )}
-           </div>
-         </CardContent>
-       </Card>
-     </div>
-   </div>
- );
+        {/* Sales Trend Chart */}
+        <Card className="lg:col-span-3">
+          <CardHeader className="p-4">
+            <CardTitle className="text-lg">Sales Trend</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="h-64">
+              {aggregatedSalesTrend.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart
+                    data={aggregatedSalesTrend}
+                    margin={{
+                      top: 5,
+                      right: 30,
+                      left: 20,
+                      bottom: 5,
+                    }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Line
+                      type="monotone"
+                      dataKey="sales"
+                      stroke="#8884d8"
+                      activeDot={{ r: 8 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full bg-gray-200 dark:bg-gray-700 rounded-md flex items-center justify-center text-muted-foreground dark:text-gray-400">
+                  No sales trend data available for the selected date range.
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 };
 
 export default Analytics;

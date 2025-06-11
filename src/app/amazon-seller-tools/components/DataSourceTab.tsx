@@ -86,7 +86,9 @@ const transformParsedData = (
 const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [parsedData, setParsedData] = useState<ParsedFileData<DataType>[]>([]);
-  const [spApiStatus, setSpApiStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+  const [spApiStatus, setSpApiStatus] = useState<
+    'disconnected' | 'connecting' | 'connected' | 'error'
+  >('disconnected');
   const [spApiError, setSpApiError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -291,9 +293,12 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
 
       {/* New section for SP-API Integration */}
       <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md mt-4">
-        <h3 className="text-xl font-semibold mb-4">Amazon SP-API Integration</h3>
+        <h3 className="text-xl font-semibold mb-4">
+          Amazon SP-API Integration
+        </h3>
         <p className="mb-4">
-          Connect your Amazon Seller Central account via SP-API for automated data fetching.
+          Connect your Amazon Seller Central account via SP-API for automated
+          data fetching.
         </p>
         {/* TODO: Implement actual SP-API connection logic */}
         <button
@@ -302,26 +307,48 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
             setSpApiStatus('connecting');
             setSpApiError(null);
             try {
-              // Dynamically import to avoid server-side issues if not configured
-              const { getSpApiClient } = await import('@/lib/amazon-tools/sp-api');
-              getSpApiClient(); // Attempt to initialize the client
-              setSpApiStatus('connected');
-            } catch (error: unknown) { // Replace any with unknown
+              // Call the API route to initialize SP-API client on the server
+              const response = await fetch('/api/amazon-sp-api/connect', {
+                method: 'GET',
+              });
+
+              const data = await response.json();
+
+              if (response.ok) {
+                setSpApiStatus('connected');
+                console.log(data.message);
+              } else {
+                setSpApiStatus('error');
+                setSpApiError(
+                  data.error || 'Failed to connect to SP-API via API route.',
+                );
+                console.error('SP-API Connection Error:', data.error);
+              }
+            } catch (error: unknown) {
               console.error('SP-API Connection Error:', error);
               setSpApiStatus('error');
-              // Safely access error message
-              setSpApiError(error instanceof Error ? error.message : 'Failed to connect to SP-API.');
+              setSpApiError(
+                error instanceof Error
+                  ? error.message
+                  : 'An unexpected error occurred.',
+              );
             }
           }}
           disabled={spApiStatus === 'connecting'}
         >
-          {spApiStatus === 'connecting' ? 'Connecting...' : 'Connect via SP-API'}
+          {spApiStatus === 'connecting'
+            ? 'Connecting...'
+            : 'Connect via SP-API'}
         </button>
         {spApiStatus === 'connected' && (
-          <p className="text-green-600 dark:text-green-400 mt-2">Successfully connected to SP-API.</p>
+          <p className="text-green-600 dark:text-green-400 mt-2">
+            Successfully connected to SP-API.
+          </p>
         )}
         {spApiStatus === 'error' && (
-          <p className="text-red-600 dark:text-red-400 mt-2">Error: {spApiError}</p>
+          <p className="text-red-600 dark:text-red-400 mt-2">
+            Error: {spApiError}
+          </p>
         )}
       </div>
     </div>
