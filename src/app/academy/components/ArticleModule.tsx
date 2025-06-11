@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { components as components } from '../../../components/MdxRenderer';
 import {
@@ -26,12 +26,29 @@ import { useAcademy } from '@/context/AcademyContext';
 
 const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
   const { activeCourse, updateModuleProgress, activeModule } = useAcademy();
+  const articleRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = useCallback(() => {
+    if (!activeCourse || !activeModule || !articleRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = articleRef.current;
+    const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
+    const progress = Math.min(100, Math.max(0, Math.round(scrollPercentage)));
+
+    updateModuleProgress(activeCourse.id, activeModule.id, progress);
+  }, [activeCourse, activeModule, updateModuleProgress]);
 
   useEffect(() => {
-    if (activeCourse && activeModule) {
-      updateModuleProgress(activeCourse.id, activeModule.id, 100);
+    const articleElement = articleRef.current;
+    if (articleElement) {
+      articleElement.addEventListener('scroll', handleScroll);
+      // Initial progress update in case the article is shorter than the viewport
+      handleScroll();
+      return () => {
+        articleElement.removeEventListener('scroll', handleScroll);
+      };
     }
-  }, [activeCourse, activeModule, updateModuleProgress]);
+  }, [handleScroll]);
 
   // Use QueryKey for the parameter and assert type internally
   const fetchArticleContent = useCallback(
@@ -73,7 +90,7 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
   const { source: mdxSource, frontmatter } = data;
 
   return (
-    <div>
+    <div ref={articleRef} className="overflow-y-auto h-full">
       {frontmatter.title && (
         <h2 className="text-gray-900 dark:text-gray-100">
           {frontmatter.title}

@@ -60,13 +60,11 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
 }) => {
   const { activeCourse } = useAcademy();
 
-  // Effect to mark article/video/case study/simulation modules as complete when viewed
+  // Effect to mark article/case study/simulation modules as complete when viewed
   useEffect(() => {
     if (!activeModule) return;
 
     const typesToMarkComplete = [
-      ModuleType.ARTICLE,
-      ModuleType.VIDEO,
       ModuleType.CASE_STUDY,
       ModuleType.SIMULATION,
     ];
@@ -74,8 +72,8 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
     if (!typesToMarkComplete.includes(activeModule.type)) return;
 
     // For simplicity, mark as complete immediately upon viewing.
-    // In a real application, video completion might be based on playback percentage,
-    // and article completion on scroll depth or time spent.
+    // In a real application, video completion is handled by the VideoPlayer component,
+    // and article completion is handled by the ArticleModule component.
     onModuleComplete(activeModule.id);
   }, [activeModule, onModuleComplete]);
 
