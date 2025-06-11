@@ -85,8 +85,9 @@ const transformParsedData = (
 
 const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
-
   const [parsedData, setParsedData] = useState<ParsedFileData<DataType>[]>([]);
+  const [spApiStatus, setSpApiStatus] = useState<'disconnected' | 'connecting' | 'connected' | 'error'>('disconnected');
+  const [spApiError, setSpApiError] = useState<string | null>(null);
 
   useEffect(() => {
     const loadReports = async () => {
@@ -285,6 +286,42 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
               </Card>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* New section for SP-API Integration */}
+      <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-lg shadow-md mt-4">
+        <h3 className="text-xl font-semibold mb-4">Amazon SP-API Integration</h3>
+        <p className="mb-4">
+          Connect your Amazon Seller Central account via SP-API for automated data fetching.
+        </p>
+        {/* TODO: Implement actual SP-API connection logic */}
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={async () => {
+            setSpApiStatus('connecting');
+            setSpApiError(null);
+            try {
+              // Dynamically import to avoid server-side issues if not configured
+              const { getSpApiClient } = await import('@/lib/amazon-tools/sp-api');
+              getSpApiClient(); // Attempt to initialize the client
+              setSpApiStatus('connected');
+            } catch (error: unknown) { // Replace any with unknown
+              console.error('SP-API Connection Error:', error);
+              setSpApiStatus('error');
+              // Safely access error message
+              setSpApiError(error instanceof Error ? error.message : 'Failed to connect to SP-API.');
+            }
+          }}
+          disabled={spApiStatus === 'connecting'}
+        >
+          {spApiStatus === 'connecting' ? 'Connecting...' : 'Connect via SP-API'}
+        </button>
+        {spApiStatus === 'connected' && (
+          <p className="text-green-600 dark:text-green-400 mt-2">Successfully connected to SP-API.</p>
+        )}
+        {spApiStatus === 'error' && (
+          <p className="text-red-600 dark:text-red-400 mt-2">Error: {spApiError}</p>
         )}
       </div>
     </div>

@@ -84,6 +84,7 @@
     "@vercel/analytics": "^1.5.0",
     "@vercel/edge-config": "^1.4.0",
     "@yaireo/tagify": "^4.35.1",
+    "amazon-sp-api": "^1.1.6",
     "bcrypt": "^5.1.1",
     "boxen": "^8.0.1",
     "chart.js": "^3.9.1",
