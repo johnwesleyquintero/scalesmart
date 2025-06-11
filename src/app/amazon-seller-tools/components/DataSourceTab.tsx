@@ -243,7 +243,6 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
         {uploadedFiles.length > 0 && (
           <div className="space-y-4">
             <h3 className="text-xl font-semibold">Uploaded Files</h3>
-            {console.log('Uploaded Files:', uploadedFiles)}
             {uploadedFiles.map((file, index) => (
               <Card key={index}>
                 <CardHeader className="p-4">
