@@ -32,7 +32,7 @@
       "@/hooks/*": ["./hooks/*"]
     }
   },
-  "types": ["@testing-library/jest-dom", "node", "react"],
+  "types": ["@testing-library/jest-dom", "node", "react", "vitest/globals"],
   "include": ["src/**/*", ".next/types/**/*.ts"],
   "typeRoots": ["./src/types", "./node_modules/@types"],
   "exclude": [

@@ -85,10 +85,14 @@ async function runCommand(command, name) {
   console.log(chalk.blue(`\n▶ Starting ${name}...`));
 
   try {
-    const { stdout } = await execPromise(command);
-    if (stdout.trim()) {
-      console.log(chalk.dim(stdout));
+    const { stderr } = await execPromise(command);
+
+    // Only log stderr if it contains warnings, stdout is not an error on success
+    if (stderr.trim()) {
+      console.error(chalk.yellow(`⚠ ${name} warnings:`));
+      console.error(formatErrorOutput(stderr));
     }
+
     console.log(chalk.green(`✓ ${name} passed`));
     return true;
   } catch (error) {
