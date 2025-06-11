@@ -55,8 +55,8 @@ export const AI_FEATURES = {
     model: AI_MODELS.gemini.default,
     config: {
       ...AI_MODELS.gemini.config,
-      temperature: 0.6, // Balanced creativity for listings (override)
-      maxOutputTokens: 1200, // Potentially larger output needed
+      temperature: 0.5, // Slightly lower temperature for more focused suggestions
+      maxOutputTokens: 1000, // Reduced output tokens for efficiency, if 1200 is often not fully utilized
     },
   },
   ppcCampaign: {

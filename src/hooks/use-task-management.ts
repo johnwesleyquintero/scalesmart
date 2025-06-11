@@ -78,7 +78,6 @@ export const useTaskManagement = () => {
     ): Promise<R> => {
       // Apply optimistic update immediately
       setStateFunction(updateLogic);
-      toast.success(successMessage); // Show success toast immediately
 
       try {
         // Attempt to persist the change
@@ -89,6 +88,7 @@ export const useTaskManagement = () => {
             onPersistenceSuccess(persistenceResult, prev as T[]),
           );
         }
+        toast.success(successMessage); // Show success toast only after successful persistence
         return persistenceResult; // Return the result of the persistence logic
       } catch (error) {
         // If persistence fails, revert the state and show an error toast
@@ -118,7 +118,7 @@ export const useTaskManagement = () => {
       const updatedTask: Task = {
         ...taskToMove,
         status: newStatus as TaskStatus, // Cast the new status string to the TaskStatus enum type
-        updatedAt: Date.now(), // Update the timestamp
+        updatedAt: taskToMove.status !== newStatus ? Date.now() : taskToMove.updatedAt, // Update the timestamp only if status changed
         order: 0, // Reset order when changing status, Dnd-kit will re-order within the new column
       };
 
@@ -199,9 +199,12 @@ export const useTaskManagement = () => {
           return [...tasksWithoutCurrentColumn, ...tasksWithNewOrder];
         },
         async () => {
-          // Persistence logic: update all tasks in the column with their new order
-          // Using Promise.all to update all tasks concurrently for efficiency
-          await Promise.all(tasksWithNewOrder.map((task) => updateTask(task)));
+          // Persistence logic: update only tasks whose order has changed
+          const tasksToPersist = tasksWithNewOrder.filter((task, index) => {
+            const originalTask = currentTasksInColumn[index];
+            return !originalTask || originalTask.id !== task.id || originalTask.order !== task.order;
+          });
+          await Promise.all(tasksToPersist.map((task) => updateTask(task)));
         },
         `Task reordered successfully.`, // Success message
         `Failed to reorder task. Please try again.`, // Error message
