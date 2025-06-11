@@ -1,5 +1,7 @@
 import { getAIDrivenRecommendation } from '@/lib/amazon-tools/gemini-api';
 import { ListingOptimizationData } from '@/types/amazon-tools';
+import { generatePrompt } from '@/lib/prompt-generator/promptGenerator';
+import { PromptData } from '@/lib/prompt-generator/types';
 
 /**
  * Generates an AI-driven suggestion for improving a product title.
@@ -9,15 +11,16 @@ import { ListingOptimizationData } from '@/types/amazon-tools';
 export async function suggestOptimizedTitle(
   listingData: ListingOptimizationData,
 ): Promise<string> {
-  const prompt = `Analyze the following product title and suggest an improved version for Amazon. Focus on clarity, keywords, and compelling language to attract customers.
-
-Current Title: "${listingData.title}"
-
-Consider incorporating relevant keywords if available (e.g., from keyword tracking data, though not provided here).
-
-Suggested Optimized Title:`;
+  const promptData: PromptData = {
+    category: 'Optimization',
+    customCategory: '',
+    context: `Current Product Title: "${listingData.title}"`,
+    request: `Analyze the provided product title and suggest an improved version for Amazon. Focus on clarity, incorporating relevant keywords (if available, though not provided here), and using compelling language to attract customers and improve search ranking. Provide only the suggested optimized title in your response.`,
+    codeInput: '', // No code input needed for this task
+  };
 
   try {
+    const prompt = generatePrompt(promptData);
     const recommendation = await getAIDrivenRecommendation(prompt);
     return recommendation.trim();
   } catch (error) {
@@ -34,14 +37,16 @@ Suggested Optimized Title:`;
 export async function suggestOptimizedBulletPoints(
   listingData: ListingOptimizationData,
 ): Promise<string> {
-  const prompt = `Analyze the following product bullet points and suggest improved versions for Amazon. Ensure they highlight key features and benefits, are concise, and use strong action verbs.
-
-Current Bullet Points:
-${listingData.bulletPoints.map((bp) => `- ${bp}`).join('\n')}
-
-Suggested Optimized Bullet Points (as a numbered or bulleted list):`;
+  const promptData: PromptData = {
+    category: 'Optimization',
+    customCategory: '',
+    context: `Current Product Bullet Points:\n${listingData.bulletPoints.map((bp) => `- ${bp}`).join('\n')}`,
+    request: `Analyze the provided product bullet points and suggest improved versions for Amazon. Ensure they highlight key features and benefits, are concise, use strong action verbs, and are formatted as a numbered or bulleted list. Provide only the suggested optimized bullet points in your response.`,
+    codeInput: '', // No code input needed for this task
+  };
 
   try {
+    const prompt = generatePrompt(promptData);
     const recommendation = await getAIDrivenRecommendation(prompt);
     return recommendation.trim();
   } catch (error) {
@@ -58,14 +63,16 @@ Suggested Optimized Bullet Points (as a numbered or bulleted list):`;
 export async function suggestOptimizedDescription(
   listingData: ListingOptimizationData,
 ): Promise<string> {
-  const prompt = `Analyze the following product description and suggest an improved version for Amazon. Focus on storytelling, highlighting benefits, and providing detailed information to inform and persuade customers.
-
-Current Description:
-"${listingData.description}"
-
-Suggested Optimized Description:`;
+  const promptData: PromptData = {
+    category: 'Optimization',
+    customCategory: '',
+    context: `Current Product Description:\n"${listingData.description}"`,
+    request: `Analyze the provided product description and suggest an improved version for Amazon. Focus on storytelling, highlighting benefits, and providing detailed information to inform and persuade customers. Ensure the description is well-structured and easy to read. Provide only the suggested optimized description in your response.`,
+    codeInput: '', // No code input needed for this task
+  };
 
   try {
+    const prompt = generatePrompt(promptData);
     const recommendation = await getAIDrivenRecommendation(prompt);
     return recommendation.trim();
   } catch (error) {

@@ -13,6 +13,7 @@ const CompetitorMonitoring: React.FC<CompetitorMonitoringProps> = ({
   const [monitoredCompetitors, setMonitoredCompetitors] = useState<
     CompetitorMonitoringData[]
   >([]);
+  const [analysisResult, setAnalysisResult] = useState<string | null>(null); // State for AI analysis result
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +58,55 @@ const CompetitorMonitoring: React.FC<CompetitorMonitoringProps> = ({
     } catch (err) {
       setError(
         `Error adding competitor: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAnalyzeCompetitors = async () => {
+    setLoading(true);
+    setError(null);
+    setAnalysisResult(null); // Clear previous analysis
+
+    // Combine data from parsed files and dynamically added competitors
+    const allCompetitorData = [
+      ...parsedData.flatMap((fileData) => fileData.data),
+      ...monitoredCompetitors,
+    ];
+
+    if (allCompetitorData.length === 0) {
+      setError(
+        'No competitor data available for analysis. Please add or upload data first.',
+      );
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        '/api/amazon-tools/competitor-monitoring-analysis',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ competitorData: allCompetitorData }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || 'Failed to get competitor analysis from API.',
+        );
+      }
+
+      const data = await response.json();
+      setAnalysisResult(data.analysis); // Assuming the API returns 'analysis'
+    } catch (err) {
+      setError(
+        `Error getting competitor analysis: ${err instanceof Error ? err.message : String(err)}`,
       );
     } finally {
       setLoading(false);
@@ -138,6 +188,26 @@ const CompetitorMonitoring: React.FC<CompetitorMonitoringProps> = ({
           </div>
         </div>
       )}
+
+      <div className="mt-6">
+        <h4 className="text-lg font-medium mb-2">AI Analysis</h4>
+        <button
+          onClick={handleAnalyzeCompetitors}
+          disabled={
+            loading ||
+            (parsedData.length === 0 && monitoredCompetitors.length === 0)
+          } // Disable if loading or no data
+          className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
+        >
+          {loading ? 'Analyzing...' : 'Get AI Competitor Analysis'}
+        </button>
+        {analysisResult && (
+          <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-foreground whitespace-pre-wrap">
+            {analysisResult}
+          </div>
+        )}
+        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+      </div>
     </div>
   );
 };

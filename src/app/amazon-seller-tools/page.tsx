@@ -57,45 +57,47 @@ const AmazonSellerToolsPage: React.FC = () => {
     setError(null);
     setRecommendation(null);
     try {
-      // Dynamically construct the prompt based on allParsedData
-      let prompt = 'Analyze the following Amazon seller data and provide actionable recommendations:\n\n';
+      // Filter for Product Research data
+      const productResearchData = allParsedData.filter(
+        (data) =>
+          data.data.length > 0 &&
+          'name' in data.data[0] &&
+          'price' in data.data[0],
+      ) as ParsedFileData<ProductResearchData>[];
 
-      if (allParsedData.length === 0) {
-        setError('No data uploaded or processed yet. Please upload data first.');
+      if (productResearchData.length === 0) {
+        setError(
+          'No product research data uploaded or processed yet. Please upload relevant data first.',
+        );
         setLoading(false);
         return;
       }
 
-      allParsedData.forEach(fileData => {
-        prompt += `--- Data from ${fileData.fileName} (${fileData.data.length} entries) ---\n`;
-        fileData.data.forEach((item, index) => {
-          prompt += `Entry ${index + 1}: ${JSON.stringify(item)}\n`;
-        });
-        prompt += '\n';
-      });
-
-      prompt += 'Based on this data, provide a concise summary of key insights and specific, actionable recommendations to improve performance. Focus on areas like product optimization, keyword strategy, sales analytics, inventory management, or customer feedback, depending on the data provided.';
-
-      // Call the new server-side API route
-      const response = await fetch('/api/amazon-tools/recommendation', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // Call the new server-side API route for product opportunity scoring
+      const response = await fetch(
+        '/api/amazon-tools/product-opportunity-scoring',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ productData: productResearchData }),
         },
-        body: JSON.stringify({ prompt }),
-      });
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to fetch recommendation from API');
+        throw new Error(
+          errorData.error ||
+            'Failed to fetch product opportunity analysis from API',
+        );
       }
 
       const data = await response.json();
-      setRecommendation(data.recommendation);
-
+      setRecommendation(data.analysis); // Assuming the API returns 'analysis'
     } catch (err) {
       setError(
-        `Failed to get recommendation: ${err instanceof Error ? err.message : String(err)}`,
+        `Failed to get product opportunity analysis: ${err instanceof Error ? err.message : String(err)}`,
       );
     } finally {
       setLoading(false);
@@ -182,6 +184,14 @@ const AmazonSellerToolsPage: React.FC = () => {
                   'unitsSold' in data.data[0],
               ) as ParsedFileData<AnalyticsData>[]
             }
+            reviewData={
+              allParsedData.filter(
+                (data) =>
+                  data.data.length > 0 &&
+                  'reviewId' in data.data[0] &&
+                  'rating' in data.data[0],
+              ) as ParsedFileData<CustomerReviewData>[]
+            }
           />
         </TabsContent>
 
@@ -207,8 +217,6 @@ const AmazonSellerToolsPage: React.FC = () => {
           />
         </TabsContent>
 
-
-
         <TabsContent value="inventory-management" className="space-y-4 mt-4">
           <InventoryManagement
             parsedData={
@@ -225,7 +233,6 @@ const AmazonSellerToolsPage: React.FC = () => {
         <TabsContent value="customer-reviews" className="space-y-4 mt-4">
           <CustomerReviews
             parsedData={
-
               allParsedData.filter(
                 (data) =>
                   data.data.length > 0 &&
@@ -237,24 +244,24 @@ const AmazonSellerToolsPage: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-     <div className="mt-8 p-4 border rounded">
-       <h2 className="text-2xl font-semibold mb-4">AI Recommendation</h2>
-       <button
-         onClick={handleGetRecommendation}
-         disabled={loading || allParsedData.length === 0} // Disable if loading or no data
-         className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-       >
-         {loading ? 'Analyzing Data...' : 'Get AI-Driven Analysis'}
-       </button>
-       {recommendation && (
-         <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-foreground whitespace-pre-wrap">
-           {recommendation}
-         </div>
-       )}
-       {error && <p className="mt-4 text-red-600">Error: {error}</p>}
-     </div>
-   </div>
- );
+      <div className="mt-8 p-4 border rounded">
+        <h2 className="text-2xl font-semibold mb-4">AI Recommendation</h2>
+        <button
+          onClick={handleGetRecommendation}
+          disabled={loading || allParsedData.length === 0} // Disable if loading or no data
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          {loading ? 'Analyzing Data...' : 'Get AI-Driven Analysis'}
+        </button>
+        {recommendation && (
+          <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-foreground whitespace-pre-wrap">
+            {recommendation}
+          </div>
+        )}
+        {error && <p className="mt-4 text-red-600">Error: {error}</p>}
+      </div>
+    </div>
+  );
 };
 
 export default AmazonSellerToolsPage;

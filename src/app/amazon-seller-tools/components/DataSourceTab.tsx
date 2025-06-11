@@ -132,7 +132,8 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
       }));
       setUploadedFiles((prevFiles) => [...prevFiles, ...newUploadedFiles]);
 
-      filesArray.forEach((originalFile, index) => { // Iterate over original files
+      filesArray.forEach((originalFile, index) => {
+        // Iterate over original files
         const uploadedFileMeta = newUploadedFiles[index]; // Get the metadata for this file
         console.log('Parsing file:', originalFile.name, originalFile); // Log original file object
 
@@ -145,7 +146,12 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
           complete: async (
             results: PapaParse.ParseResult<Record<string, any>>, // eslint-disable-line @typescript-eslint/no-explicit-any
           ) => {
-            console.log('Parsing complete for', originalFile.name, 'Results:', results);
+            console.log(
+              'Parsing complete for',
+              originalFile.name,
+              'Results:',
+              results,
+            );
 
             const rawParsedData: Record<string, unknown>[] = results.data;
 
@@ -165,7 +171,8 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
               const id = await addAmazonReport(report);
               setUploadedFiles((prevFiles) =>
                 prevFiles.map((f) =>
-                  f.name === originalFile.name && f.category === uploadedFileMeta.category // Match by name and category
+                  f.name === originalFile.name &&
+                  f.category === uploadedFileMeta.category // Match by name and category
                     ? { ...f, id: id as string }
                     : f,
                 ),

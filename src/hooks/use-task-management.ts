@@ -118,7 +118,8 @@ export const useTaskManagement = () => {
       const updatedTask: Task = {
         ...taskToMove,
         status: newStatus as TaskStatus, // Cast the new status string to the TaskStatus enum type
-        updatedAt: taskToMove.status !== newStatus ? Date.now() : taskToMove.updatedAt, // Update the timestamp only if status changed
+        updatedAt:
+          taskToMove.status !== newStatus ? Date.now() : taskToMove.updatedAt, // Update the timestamp only if status changed
         order: 0, // Reset order when changing status, Dnd-kit will re-order within the new column
       };
 
@@ -202,7 +203,11 @@ export const useTaskManagement = () => {
           // Persistence logic: update only tasks whose order has changed
           const tasksToPersist = tasksWithNewOrder.filter((task, index) => {
             const originalTask = currentTasksInColumn[index];
-            return !originalTask || originalTask.id !== task.id || originalTask.order !== task.order;
+            return (
+              !originalTask ||
+              originalTask.id !== task.id ||
+              originalTask.order !== task.order
+            );
           });
           await Promise.all(tasksToPersist.map((task) => updateTask(task)));
         },

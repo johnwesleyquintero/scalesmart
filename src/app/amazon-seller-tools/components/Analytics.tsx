@@ -14,13 +14,18 @@ import {
   Bar, // Add Bar import
 } from 'recharts';
 
-import { AnalyticsData, ParsedFileData } from '@/types/amazon-tools'; // Import ParsedFileData
+import {
+  AnalyticsData,
+  ParsedFileData,
+  CustomerReviewData,
+} from '@/types/amazon-tools'; // Import ParsedFileData and CustomerReviewData
 import { filterAnalyticsDataByDateRange } from '@/lib/amazon-tools/analyticsProcessing'; // Import the filtering function
 import { Input } from '@/components/ui/input'; // Import Input for date pickers
 import { Label } from '@/components/ui/label'; // Import Label
 
 interface AnalyticsProps {
   parsedData: ParsedFileData<AnalyticsData>[];
+  reviewData: ParsedFileData<CustomerReviewData>[];
 }
 
 const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {

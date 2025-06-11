@@ -9,9 +9,50 @@ interface InventoryManagementProps {
 const InventoryManagement: React.FC<InventoryManagementProps> = ({
   parsedData,
 }) => {
-  // TODO: Implement state and logic for inventory management
-  // This will involve fetching real-time inventory data via SP-API,
-  // calculating sales velocity, lead times, safety stock, and restock recommendations.
+  const [prediction, setPrediction] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState<boolean>(false);
+  const [error, setError] = React.useState<string | null>(null);
+
+  const handleGetPrediction = async () => {
+    setLoading(true);
+    setError(null);
+    setPrediction(null);
+    try {
+      // Flatten the parsed data array for the API call
+      const inventoryData = parsedData.flatMap((fileData) => fileData.data);
+
+      if (inventoryData.length === 0) {
+        setError('No inventory data available for prediction.');
+        setLoading(false);
+        return;
+      }
+
+      const response = await fetch('/api/amazon-tools/predictive-inventory', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ inventoryData }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error ||
+            'Failed to fetch predictive inventory analysis from API',
+        );
+      }
+
+      const data = await response.json();
+      setPrediction(data.prediction); // Assuming the API returns 'prediction'
+    } catch (err) {
+      setError(
+        `Failed to get predictive inventory analysis: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-4 p-4">
@@ -22,7 +63,6 @@ const InventoryManagement: React.FC<InventoryManagementProps> = ({
         Manage your inventory levels and get automated restock recommendations.
       </p>
 
-      {/* TODO: Add UI elements for displaying inventory data, recommendations, and settings */}
       {parsedData.length > 0 ? (
         <div className="mt-6">
           <h3 className="text-xl font-semibold mb-4">
@@ -62,6 +102,23 @@ const InventoryManagement: React.FC<InventoryManagementProps> = ({
           recommendations.
         </div>
       )}
+
+      <div className="mt-8 p-4 border rounded">
+        <h3 className="text-xl font-semibold mb-4">Predictive Analysis</h3>
+        <button
+          onClick={handleGetPrediction}
+          disabled={loading || parsedData.length === 0} // Disable if loading or no data
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          {loading ? 'Analyzing Inventory...' : 'Get Predictive Analysis'}
+        </button>
+        {prediction && (
+          <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-foreground whitespace-pre-wrap">
+            {prediction}
+          </div>
+        )}
+        {error && <p className="mt-4 text-red-600">Error: {error}</p>}
+      </div>
 
       {/* TODO: Add section for Restock Recommendations */}
       {/* TODO: Add section for Inventory Health Summary */}

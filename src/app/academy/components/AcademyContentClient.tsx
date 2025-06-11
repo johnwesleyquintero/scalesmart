@@ -64,10 +64,7 @@ const ModuleSpecificContent: React.FC<ModuleSpecificContentProps> = ({
   useEffect(() => {
     if (!activeModule) return;
 
-    const typesToMarkComplete = [
-      ModuleType.CASE_STUDY,
-      ModuleType.SIMULATION,
-    ];
+    const typesToMarkComplete = [ModuleType.CASE_STUDY, ModuleType.SIMULATION];
 
     if (!typesToMarkComplete.includes(activeModule.type)) return;
 

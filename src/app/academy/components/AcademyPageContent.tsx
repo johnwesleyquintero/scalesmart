@@ -22,7 +22,6 @@ const sortOptions = ['Title', 'Duration', 'Level', DURATION_DESCENDING_SORT];
 
 // Removed duplicate import: import { fetchAndSyncCourses } from '@/lib/academy-storage-service';
 
-
 /**
  * AcademyPageContent Component
  *

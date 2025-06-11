@@ -5,11 +5,14 @@ import VideoPlayer from './VideoPlayer'; // Import the new VideoPlayer component
 const VideoModule = () => {
   const { activeModule, activeCourse, updateModuleProgress } = useAcademy();
 
-  const handleProgress = useCallback((progress: number) => {
-    if (activeCourse && activeModule) {
-      updateModuleProgress(activeCourse.id, activeModule.id, progress);
-    }
-  }, [activeCourse, activeModule, updateModuleProgress]);
+  const handleProgress = useCallback(
+    (progress: number) => {
+      if (activeCourse && activeModule) {
+        updateModuleProgress(activeCourse.id, activeModule.id, progress);
+      }
+    },
+    [activeCourse, activeModule, updateModuleProgress],
+  );
 
   const handleEnded = useCallback(() => {
     if (activeCourse && activeModule) {

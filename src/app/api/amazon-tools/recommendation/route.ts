@@ -10,15 +10,17 @@ export async function POST(request: NextRequest) {
 
     if (!prompt || typeof prompt !== 'string') {
       return NextResponse.json(
-        createErrorResponse('Invalid request body. "prompt" field is required and must be a string.', 'INVALID_INPUT'),
-        { status: 400 }
+        createErrorResponse(
+          'Invalid request body. "prompt" field is required and must be a string.',
+          'INVALID_INPUT',
+        ),
+        { status: 400 },
       );
     }
 
     const recommendation = await getAIDrivenRecommendation(prompt);
 
     return NextResponse.json({ recommendation });
-
   } catch (error) {
     console.error('Amazon Tools Recommendation API Error:', error);
     // Use the centralized error handler

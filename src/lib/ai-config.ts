@@ -76,6 +76,30 @@ export const AI_FEATURES = {
     },
   },
   // Add configurations for other features here
+  reviewAnalyzer: {
+    model: AI_MODELS.gemini.default, // Use the default Gemini model
+    config: {
+      ...AI_MODELS.gemini.config, // Start with default settings
+      temperature: 0.5, // Balanced temperature for analysis
+      maxOutputTokens: 800, // Sufficient tokens for review analysis
+    },
+  },
+  productOpportunityScoring: {
+    model: AI_MODELS.gemini.default, // Use the default Gemini model
+    config: {
+      ...AI_MODELS.gemini.config, // Start with default settings
+      temperature: 0.6, // Slightly higher temperature for more creative analysis
+      maxOutputTokens: 1000, // Sufficient tokens for a detailed analysis
+    },
+  },
+  competitorMonitoring: {
+    model: AI_MODELS.gemini.default, // Use the default Gemini model
+    config: {
+      ...AI_MODELS.gemini.config, // Start with default settings
+      temperature: 0.6, // Balanced temperature for analysis
+      maxOutputTokens: 1000, // Sufficient tokens for a detailed analysis
+    },
+  },
   wesAIAgent: {
     model: AI_MODELS.gemini.default,
     config: {
@@ -140,6 +164,14 @@ Highlight my experience in increasing Amazon sales and successfully managing PPC
 **Feedback Loop:**
 Provide responses in a format that allows me to easily review and give feedback. This will help us refine and improve the quality of the responses over time.`,
     modes: ['default', 'content', 'code'], // Define available modes, including 'code'
+  },
+  predictiveInventory: {
+    model: AI_MODELS.gemini.default, // Use the default Gemini model
+    config: {
+      ...AI_MODELS.gemini.config, // Start with default settings
+      temperature: 0.7, // Balanced temperature for prediction
+      maxOutputTokens: 1000, // Sufficient tokens for inventory prediction
+    },
   },
 } as const;
 

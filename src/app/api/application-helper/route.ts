@@ -3,7 +3,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
-
 // Define interfaces for the context data structures to avoid 'any'
 interface AmazonCertification {
   name: string;
@@ -132,7 +131,10 @@ interface ChatContextFile {
 export async function POST(request: NextRequest) {
   let body = null;
   console.log('Application Helper API: Start POST request handler');
-  console.log('Application Helper API: process.env.GEMINI_API_KEY at start:', process.env.GEMINI_API_KEY ? 'Defined' : 'Undefined');
+  console.log(
+    'Application Helper API: process.env.GEMINI_API_KEY at start:',
+    process.env.GEMINI_API_KEY ? 'Defined' : 'Undefined',
+  );
   try {
     const identifier = request.headers.get('x-forwarded-for') ?? '127.0.0.1';
     // Consider if you want a separate rate limit bucket for this endpoint
@@ -145,7 +147,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('Application Helper API: process.env.GEMINI_API_KEY before check:', process.env.GEMINI_API_KEY ? 'Defined' : 'Undefined');
+    console.log(
+      'Application Helper API: process.env.GEMINI_API_KEY before check:',
+      process.env.GEMINI_API_KEY ? 'Defined' : 'Undefined',
+    );
     if (!process.env.GEMINI_API_KEY) {
       console.error(
         'Application Helper API Error: Missing GEMINI_API_KEY environment variable',
@@ -279,7 +284,10 @@ ${application_question}
 
 Your Answer:`;
 
-    console.log('Application Helper API: process.env.GEMINI_API_KEY before client init:', process.env.GEMINI_API_KEY ? 'Defined' : 'Undefined');
+    console.log(
+      'Application Helper API: process.env.GEMINI_API_KEY before client init:',
+      process.env.GEMINI_API_KEY ? 'Defined' : 'Undefined',
+    );
     // Initialize Gemini AI client within the request handler
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 

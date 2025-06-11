@@ -8,7 +8,11 @@ interface VideoPlayerProps {
   onEnded: () => void;
 }
 
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onProgress, onEnded }) => {
+const VideoPlayer: React.FC<VideoPlayerProps> = ({
+  src,
+  onProgress,
+  onEnded,
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
 

@@ -23,6 +23,9 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
   const [trackingResults, setTrackingResults] = useState<
     KeywordTrackingResult[]
   >([]);
+  const [recommendation, setRecommendation] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleTrackKeyword = () => {
     if (!keyword) {
@@ -54,6 +57,54 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
     console.log(
       `Keyword tracking complete for "${keyword}". Found ${filteredResults.length} results.`,
     );
+  };
+
+  const handleGetKeywordRecommendations = async () => {
+    setLoading(true);
+    setError(null);
+    setRecommendation(null);
+    try {
+      // Extract all keyword tracking data from all uploaded files
+      const allKeywordData: KeywordTrackingData[] = parsedData.flatMap(
+        (file) => file.data,
+      );
+
+      if (allKeywordData.length === 0) {
+        setError(
+          'No keyword tracking data uploaded or processed yet. Please upload relevant data first.',
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Call the AI recommendation API route
+      const response = await fetch(
+        '/api/amazon-tools/keyword-recommendations',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ keywordData: allKeywordData }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(
+          errorData.error || 'Failed to fetch keyword recommendations from API',
+        );
+      }
+
+      const data = await response.json();
+      setRecommendation(data.recommendation); // Assuming the API returns 'recommendation'
+    } catch (err) {
+      setError(
+        `Failed to get keyword recommendations: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -112,6 +163,26 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
           ))}
         </div>
       )}
+
+      {/* AI Recommendation Section */}
+      <div className="mt-8 p-4 border rounded">
+        <h3 className="text-xl font-semibold mb-4">
+          Intelligent Keyword Recommendations
+        </h3>
+        <Button
+          onClick={handleGetKeywordRecommendations}
+          disabled={loading || parsedData.length === 0} // Disable if loading or no data
+          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
+        >
+          {loading ? 'Generating Recommendations...' : 'Get AI Recommendations'}
+        </Button>
+        {recommendation && (
+          <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-foreground whitespace-pre-wrap">
+            {recommendation}
+          </div>
+        )}
+        {error && <p className="mt-4 text-red-600">Error: {error}</p>}
+      </div>
 
       {/* Optionally display a message if no results */}
       {/* {keyword && trackingResults.length === 0 && (
