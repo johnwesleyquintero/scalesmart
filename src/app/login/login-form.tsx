@@ -225,16 +225,11 @@ export default function LoginForm({
    * Handles different results from the server action (MFA required, success, failure).
    * Includes error handling and analytics tracking.
    */
-  const handleLoginSubmit = loginForm.handleSubmit(async (values, event) => {
-    // react-hook-form's handleSubmit prevents default and stops propagation automatically.
-    // We still check event/target for robustness, though usually not strictly needed with handleSubmit.
-    if (!event || !(event.currentTarget instanceof HTMLFormElement)) {
-      showFormSubmissionErrorToast();
-      console.error('Login form submission event or target is invalid.');
-      logAuthEvent('login_form_error', LOGIN_LABEL);
-      return;
-    }
-    const formData = new FormData(event.currentTarget);
+  const handleLoginSubmit = loginForm.handleSubmit(async (values) => {
+    const formData = new FormData();
+    formData.append('email', values.email);
+    formData.append('password', values.password);
+    formData.append('rememberMe', String(values.rememberMe));
     const startTime = Date.now();
 
     // Clear previous errors before new submission
@@ -295,14 +290,9 @@ export default function LoginForm({
    * Wraps the server action call in startMfaTransition to manage pending state.
    * Includes error handling and analytics tracking.
    */
-  const handleMfaSubmit = mfaForm.handleSubmit(async (values, event) => {
-    if (!event || !(event.currentTarget instanceof HTMLFormElement)) {
-      showFormSubmissionErrorToast();
-      console.error('MFA form submission event or target is invalid.');
-      logAuthEvent('mfa_form_error', MFA_VERIFY_LABEL);
-      return;
-    }
-    const formData = new FormData(event.currentTarget);
+  const handleMfaSubmit = mfaForm.handleSubmit(async (values) => {
+    const formData = new FormData();
+    formData.append('mfaCode', values.mfaCode);
     const startTime = Date.now();
 
     mfaForm.clearErrors();
@@ -361,16 +351,9 @@ export default function LoginForm({
    * Includes error handling and analytics tracking.
    */
   const handleForgotPasswordSubmit = forgotPasswordForm.handleSubmit(
-    async (values, event) => {
-      if (!event || !(event.currentTarget instanceof HTMLFormElement)) {
-        showFormSubmissionErrorToast();
-        console.error(
-          'Forgot password form submission event or target is invalid.',
-        );
-        logAuthEvent('forgot_password_form_error', FORGOT_PASSWORD_LABEL);
-        return;
-      }
-      const formData = new FormData(event.currentTarget);
+    async (values) => {
+      const formData = new FormData();
+      formData.append('email', values.email);
       const startTime = Date.now();
 
       forgotPasswordForm.clearErrors();

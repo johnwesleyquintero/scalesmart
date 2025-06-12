@@ -12,7 +12,9 @@ export default async function handler(
   const { email, password } = req.body;
 
   if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' });
+    return res
+      .status(400)
+      .json({ message: 'Email and password are required.' });
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -58,12 +60,21 @@ export default async function handler(
       console.error('Supabase profile creation error:', profileError.message);
       // If profile creation fails, you might want to delete the user from auth as well
       await supabase.auth.admin.deleteUser(authData.user.id);
-      return res.status(500).json({ message: 'Failed to create user profile.' });
+      return res
+        .status(500)
+        .json({ message: 'Failed to create user profile.' });
     }
 
-    return res.status(200).json({ message: 'Registration successful. Please check your email to verify your account.' });
+    return res
+      .status(200)
+      .json({
+        message:
+          'Registration successful. Please check your email to verify your account.',
+      });
   } catch (error: unknown) {
     console.error('Unexpected registration error:', (error as Error).message);
-    return res.status(500).json({ message: 'An unexpected error occurred during registration.' });
+    return res
+      .status(500)
+      .json({ message: 'An unexpected error occurred during registration.' });
   }
 }

@@ -103,7 +103,7 @@ export async function signUp(formData: FormData) {
 
     if (profileError) {
       // Log the specific profile creation error on the server
-      console.error('Error creating user profile:', profileError);
+      console.error('Error creating user profile:', profileError); // Log the full error object
       // Redirect with an error message specific to profile creation failure
       // Note: User account exists, but profile failed. Application logic needs to handle this state.
       return redirect(

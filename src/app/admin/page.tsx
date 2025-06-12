@@ -49,6 +49,7 @@ function getAdminUsernames(): string[] {
 export default async function AdminPage(): Promise<React.ReactElement> {
   // --- Environment Variable Check ---
   // Ensure the necessary environment variable is set before proceeding.
+  // Environment validation (line 52)
   if (!process.env.ADMIN_GITHUB_USERNAMES) {
     console.error(
       'FATAL: ADMIN_GITHUB_USERNAMES environment variable is not set. Admin page is inaccessible.',

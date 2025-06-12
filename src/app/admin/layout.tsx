@@ -21,11 +21,9 @@ export default async function AdminLayout({
   }
 
   // Check if user exists and has the 'admin' role
+  // Current role check (line 24)
   if (!user || !profile || profile.role !== 'admin') {
-    // Redirect to login or an access denied page
-    redirect(
-      '/login?message=You do not have permission to access the Admin page.',
-    );
+    redirect('/login?message=No admin permission');
   }
 
   // If authorized, render the children
