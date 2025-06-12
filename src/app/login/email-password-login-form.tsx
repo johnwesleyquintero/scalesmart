@@ -17,11 +17,11 @@ import { useState } from 'react';
 
 interface EmailPasswordLoginFormProps {
   loginForm: UseFormReturn<z.infer<typeof formSchema>>;
-  handleLoginSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
+  handleLoginSubmitAction: (e?: React.BaseSyntheticEvent) => Promise<void>;
   isLoginPending: boolean;
   isAnyActionPending: boolean;
-  setCurrentForm: (form: CurrentFormState) => void;
-  clearGeneralMessage: () => void;
+  setCurrentFormAction: (form: CurrentFormState) => void;
+  clearGeneralMessageAction: () => void;
 }
 
 /**
@@ -31,17 +31,17 @@ interface EmailPasswordLoginFormProps {
  */
 export default function EmailPasswordLoginForm({
   loginForm,
-  handleLoginSubmit,
+  handleLoginSubmitAction,
   isLoginPending,
   isAnyActionPending,
-  setCurrentForm,
-  clearGeneralMessage,
+  setCurrentFormAction,
+  clearGeneralMessageAction,
 }: EmailPasswordLoginFormProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <form
-      onSubmit={handleLoginSubmit}
+      onSubmit={handleLoginSubmitAction}
       className="flex flex-col gap-4 text-foreground"
       noValidate
     >
@@ -122,10 +122,10 @@ export default function EmailPasswordLoginForm({
           type="button"
           className="w-full justify-center px-0 mt-2 text-sm sm:text-base font-semibold text-primary hover:text-primary/80"
           onClick={() => {
-            setCurrentForm('forgotPassword');
+            setCurrentFormAction('forgotPassword');
             loginForm.reset();
             loginForm.clearErrors();
-            clearGeneralMessage();
+            clearGeneralMessageAction();
           }}
           disabled={isLoginPending}
         >
