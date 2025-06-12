@@ -201,6 +201,26 @@ export async function deleteItem(
   }
 }
 
+export async function getNoteCountsByCategory(): Promise<Map<string, number>> {
+  try {
+    const notes = await db.tasks.toArray();
+    const counts = new Map<string, number>();
+
+    for (const note of notes) {
+      const category = note.category || 'Uncategorized'; // Assuming 'category' field exists in Task
+      counts.set(category, (counts.get(category) || 0) + 1);
+    }
+    return counts;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting note counts by category`,
+      ERROR_MESSAGE_PREFIX,
+    );
+    throw error; // Re-throw
+  }
+}
+
 /**
  * Fetches courses from the server API.
  * @returns A promise resolving to an array of Course objects from the server.

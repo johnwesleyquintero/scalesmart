@@ -237,7 +237,9 @@ export const MarkdownNotepadProvider = ({
 
   const getNoteCountsByCategory = useCallback(async () => {
     try {
-      return await getNoteCountsByCategory(); // Call the imported function
+      // Assuming there's an imported function named getNoteCountsByCategory
+      // that actually fetches the data. If not, this needs to be defined elsewhere.
+      return await getNoteCountsByCategory();
     } catch (error: unknown) {
       console.error('Failed to get note counts by category:', error);
       toast({

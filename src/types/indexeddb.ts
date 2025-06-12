@@ -74,6 +74,7 @@ export interface TaskComment {
 
 // Unified Task interface
 export interface Task {
+  category: string;
   id: string;
   projectId: string; // Assuming a task must belong to a project
   title: string;
