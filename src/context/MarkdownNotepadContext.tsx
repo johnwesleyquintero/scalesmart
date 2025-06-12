@@ -10,6 +10,7 @@ import {
   updateNote,
   deleteNote,
   getNote, // Import getNote
+  addNote,
   addNoteVersion,
   getNoteVersions,
   cleanOldNoteVersions,
@@ -193,6 +194,29 @@ export const MarkdownNotepadProvider = ({
       throw error; // Re-throw to be handled by the component
     }
   }, [category, searchQuery, toast]);
+
+  const createNewNote = useCallback(async () => {
+    try {
+      const newNoteId = await addNote(
+        'Untitled Note',
+        'Start writing your note here...', // Default content
+        'uncategorized', // Default category
+      );
+      toast({
+        title: 'Success',
+        description: 'New note created.',
+      });
+      return newNoteId;
+    } catch (error: unknown) {
+      console.error('Failed to create new note:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to create new note.',
+        variant: 'destructive',
+      });
+      throw error;
+    }
+  }, [toast]);
 
   return (
     <MarkdownNotepadContext.Provider
