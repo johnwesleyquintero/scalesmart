@@ -4,28 +4,20 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
-import { jsPDF } from 'jspdf';
-import { unified } from 'unified';
-import remarkParse from 'remark-parse';
-import remarkHtml from 'remark-html';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { useMarkdownNotepadContext } from '@/context/MarkdownNotepadContext';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { useMarkdownNotepadContext } from '@/context/MarkdownNotepadContext';
 import { useToast } from '@/hooks/use-toast';
 import useDebounceCallback from '@/hooks/use-debounce-callback';
 import { format } from 'date-fns';
 import { MarkdownNoteVersion } from '@/types/indexeddb';
 import { getNote } from '@/lib/indexeddb/markdown-notepad-db'; // Import getNote
 import VersionHistoryDialog from './VersionHistoryDialog';
+import {
+  copyMarkdownToClipboard,
+  exportToHtml,
+  exportToPdf,
+} from '@/lib/markdown-notepad/export-utils'; // Import export utilities
 
 interface MarkdownEditorProps {
   noteId: string;
@@ -145,130 +137,43 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             setTitle={setTitle}
           />
           <Button
-            onClick={() => {
-              navigator.clipboard.writeText(markdown);
-              toast({
-                title: 'Copied!',
-                description: 'Markdown content copied to clipboard.',
-                duration: 2000, // Short duration for quick feedback
-              });
-            }}
+            onClick={() => copyMarkdownToClipboard(markdown, toast)}
             disabled={isLoading} // Disable when loading
           >
             Copy Markdown
           </Button>
           <Button
-            onClick={async () => {
-              try {
-                const html = String(
-                  await unified()
-                    .use(remarkParse)
-                    .use(remarkHtml)
-                    .process(markdown),
-                );
-                const blob = new Blob([html], { type: 'text/html' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${title}.html`;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-              } catch (error) {
-                toast({
-                  title: 'Error',
-                  description: 'Failed to export to HTML.',
-                  variant: 'destructive',
-                });
-              }
-            }}
+            onClick={() => exportToHtml(markdown, title, toast)}
             disabled={isLoading}
           >
             Export to HTML
           </Button>
           <Button
-            onClick={async () => {
-              try {
-                const html = String(
-                  await unified()
-                    .use(remarkParse)
-                    .use(remarkHtml)
-                    .process(markdown),
-                );
-
-                // Create a temporary element to render the HTML
-                const tempElement = document.createElement('div');
-                tempElement.innerHTML = html;
-                tempElement.style.width = '595px'; // A4 width in pixels
-                tempElement.style.position = 'absolute';
-                tempElement.style.top = '0';
-                tempElement.style.left = '0';
-                tempElement.style.padding = '20px';
-                document.body.appendChild(tempElement);
-
-                // Import html2canvas here to avoid errors if it's not already imported
-                const html2canvas = (await import('html2canvas')).default;
-
-                const pdf = new jsPDF('p', 'mm', 'a4'); // portrait, millimeters, A4
-                const pageWidth = pdf.internal.pageSize.getWidth();
-                const pageHeight = pdf.internal.pageSize.getHeight();
-
-                let currentHeight = 0;
-
-                while (currentHeight < tempElement.scrollHeight) {
-                  // Set the top style to move the content for each page
-                  tempElement.style.top = `-${currentHeight}px`;
-
-                  // Use html2canvas to render the HTML to a canvas
-                  const canvas = await html2canvas(tempElement, {
-                    scale: 2, // Increase scale for better resolution
-                    y: currentHeight,
-                    height: pageHeight * 2, // Double the height for scale
-                  });
-
-                  const imgData = canvas.toDataURL('image/png');
-                  const imgWidth = pageWidth;
-                  const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-                  if (currentHeight > 0) {
-                    pdf.addPage();
-                  }
-
-                  pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-                  currentHeight += pageHeight * 2; // Move to the next page
-                }
-
-                document.body.removeChild(tempElement);
-                pdf.save(`${title}.pdf`);
-              } catch (error) {
-                console.error('Failed to export to PDF:', error);
-                toast({
-                  title: 'Error',
-                  description: 'Failed to export to PDF.',
-                  variant: 'destructive',
-                });
-              }
-            }}
+            onClick={() => exportToPdf(markdown, title, toast)}
+            disabled={isLoading}
           >
             Export to PDF
           </Button>
         </div>
       </div>
-      {viewMode === 'edit' ? (
-        <Textarea
-          value={markdown}
-          onChange={handleChange}
-          placeholder="Write your markdown here..."
-          className="min-h-[300px]"
-          disabled={isLoading} // Disable textarea when loading
-        />
-      ) : (
-        <div className="border rounded-md p-4 overflow-y-auto min-h-[300px] prose dark:prose-invert">
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>
-        </div>
-      )}
+
+      <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-4 h-[600px]">
+        {viewMode === 'edit' ? (
+          <Textarea
+            value={markdown}
+            onChange={handleChange}
+            placeholder="Write your markdown here..."
+            className="min-h-[300px]"
+            disabled={isLoading} // Disable textarea when loading
+          />
+        ) : (
+          <div className="border rounded-md p-4 overflow-y-auto min-h-[300px] prose dark:prose-invert">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {markdown}
+            </ReactMarkdown>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

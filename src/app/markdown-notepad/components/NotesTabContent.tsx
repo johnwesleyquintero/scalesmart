@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Note } from '@/types/indexeddb';
 import { useToast } from '@/hooks/use-toast';
 import NoteActions from './NoteActions';
+import { useNotesData } from '@/hooks/use-notes-data'; // Import the new hook
 
 interface NotesTabContentProps {
   isLoading: boolean;
@@ -31,44 +32,21 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
     fetchCategories,
     handleDeleteNote,
     handleUpdateNote,
-    fetchNotesContent, // Get fetchNotesContent from context
   } = useMarkdownNotepadContext();
-  const [notes, setNotes] = useState<Note[]>([]);
+  const { notes, selectedNoteId, setSelectedNoteId } = useNotesData({
+    setIsLoading,
+  }); // Use the new hook
   const [activeNoteContent, setActiveNoteContent] = useState<string>('');
   const [activeNoteTitle, setActiveNoteTitle] = useState<string>('');
   const { toast } = useToast();
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+  // const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null); // Removed, now from hook
   const [selectedNoteIds, setSelectedNoteIds] = useState<string[]>([]);
   const [bulkCategory, setBulkCategory] = useState<string>('');
   const [openNoteIds, setOpenNoteIds] = useState<string[]>([]);
   const [noteTitles, setNoteTitles] = useState<{ [key: string]: string }>({});
 
   // Effect to trigger note fetching and reset selection when category or search query changes
-  useEffect(() => {
-    const loadNotes = async () => {
-      setIsLoading(true); // Set loading to true before fetching
-      try {
-        const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
-        setNotes(loadedNotes || []);
-      } finally {
-        setIsLoading(false); // Set loading to false after fetching
-      }
-    };
-    loadNotes();
-    // Crucially, reset selectedNoteId when category or search query changes
-    setSelectedNoteId(null);
-  }, [category, searchQuery, fetchNotesContent, setIsLoading]); // Depend on category, searchQuery, and the context's fetcher
-
-  // Effect to handle automatic selection of the first note or clearing selection
-  useEffect(() => {
-    if (notes.length > 0 && !selectedNoteId) {
-      setSelectedNoteId(notes[0].id);
-    } else if (notes.length === 0 && selectedNoteId) {
-      // If no notes are loaded, clear the selected note
-      setSelectedNoteId(null);
-    }
-  }, [notes, selectedNoteId]);
-
+  // This effect is now handled within useNotesData hook
   // Effect to load content of the active note
   useEffect(() => {
     const loadActiveNoteContent = async () => {
@@ -154,8 +132,6 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
         setSelectedNoteId(null);
         setSelectedNoteIds((prev) => prev.filter((id) => id !== noteId));
         handleCloseNoteTab(noteId);
-        const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
-        setNotes(loadedNotes || []);
         await fetchCategories();
         toast({
           title: 'Success',
@@ -207,8 +183,6 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
       });
       setSelectedNoteIds([]);
       setBulkCategory('');
-      const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
-      setNotes(loadedNotes || []);
       await fetchCategories();
     } catch (error: unknown) {
       console.error('Failed to assign bulk category:', error);
@@ -252,8 +226,6 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
         });
         setSelectedNoteId(null);
         setSelectedNoteIds([]);
-        const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
-        setNotes(loadedNotes || []);
         await fetchCategories();
       } catch (error: unknown) {
         console.error('Failed to bulk delete notes:', error);
@@ -296,15 +268,7 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
           noteId={selectedNoteId}
           initialTitle={activeNoteTitle}
           initialMarkdown={activeNoteContent}
-          onSaveSuccess={async () => {
-            setIsLoading(true); // Set loading to true before fetching
-            try {
-              const loadedNotes = await fetchNotesContent(); // Use context's fetchNotesContent
-              setNotes(loadedNotes || []);
-            } finally {
-              setIsLoading(false); // Set loading to false after fetching
-            }
-          }}
+          onSaveSuccess={async () => {}}
           isLoading={isLoading} // Pass isLoading prop
         />
       ) : (

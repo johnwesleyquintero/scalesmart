@@ -3,18 +3,18 @@
 import React, { useEffect } from 'react'; // Removed useMemo
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import MarkdownCategoryManager from './MarkdownCategoryManager';
-import { useMarkdownNotepadContext } from '@/context/MarkdownNotepadContext';
-// Removed Note import and getAllNotes import
+import { useCategoryManagement } from '@/hooks/use-category-management'; // Import the new hook
 
 export const MarkdownCategoryManagementTab: React.FC = () => {
   const {
-    allCategories,
+    categories: allCategories, // Rename categories to allCategories for consistency
     handleAddCategory,
     handleUpdateCategory,
     handleDeleteCategory,
     fetchCategories,
-    getNoteCountsByCategory, // Import the new function
-  } = useMarkdownNotepadContext();
+    getNoteCountsByCategory,
+    noteCounts, // Destructure noteCounts from the hook
+  } = useCategoryManagement();
   // Removed notes state
 
   // This callback is for when a category is renamed.
@@ -40,6 +40,7 @@ export const MarkdownCategoryManagementTab: React.FC = () => {
           onDeleteCategory={handleDeleteCategory}
           onCategoryRenamed={handleCategoryRenamed}
           getNoteCountsByCategory={getNoteCountsByCategory} // Pass the new function
+          noteCounts={noteCounts} // Pass noteCounts to MarkdownCategoryManager
         />
       </CardContent>
     </Card>

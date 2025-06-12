@@ -482,12 +482,12 @@ export async function updateNote(
 // New CRUD operations for categories
 export async function addCategory(
   category: Omit<Category, 'id'>,
-): Promise<string> {
+): Promise<Category> {
   try {
     const db = await getDB();
-    const id = uuidv4();
-    await db.add(CATEGORIES_STORE_NAME, { id, name: category.name });
-    return id;
+    const newCategory: Category = { id: uuidv4(), name: category.name };
+    await db.add(CATEGORIES_STORE_NAME, newCategory);
+    return newCategory;
   } catch (error) {
     console.error('Error adding category:', error);
     throw error;

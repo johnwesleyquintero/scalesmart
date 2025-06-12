@@ -14,8 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Category } from '@/types/indexeddb'; // Removed Note import
-import { useToast } from '@/hooks/use-toast';
-// Removed getAllNotes import
+import { useToast } from '@/hooks/use-toast'; // Re-add useToast
 
 interface MarkdownCategoryManagerProps {
   categories: Category[];
@@ -24,6 +23,7 @@ interface MarkdownCategoryManagerProps {
   onDeleteCategory: (id: string) => Promise<void>;
   onCategoryRenamed: (oldName: string, newName: string) => Promise<void>;
   getNoteCountsByCategory: () => Promise<Map<string, number>>; // Add the new prop
+  noteCounts: Map<string, number>; // Add noteCounts as a prop
 }
 
 const MarkdownCategoryManager = ({
@@ -33,27 +33,11 @@ const MarkdownCategoryManager = ({
   onDeleteCategory,
   onCategoryRenamed,
   getNoteCountsByCategory, // Destructure the new prop
+  noteCounts, // Destructure noteCounts
 }: MarkdownCategoryManagerProps) => {
   const [categoryInputName, setCategoryInputName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const { toast } = useToast();
-  const [noteCounts, setNoteCounts] = useState<Map<string, number>>(new Map()); // State for note counts
-
-  // Fetch note counts on component mount and whenever categories change
-  useEffect(() => {
-    const fetchCounts = async () => {
-      try {
-        const counts = await getNoteCountsByCategory();
-        setNoteCounts(counts);
-      } catch (error: unknown) {
-        console.error(
-          'Failed to fetch note counts for category manager:',
-          error,
-        );
-      }
-    };
-    fetchCounts();
-  }, [categories, getNoteCountsByCategory]); // Depend on categories and the fetch function
+  const { toast } = useToast(); // Re-initialize useToast
 
   useEffect(() => {
     if (editingCategory) {
@@ -198,9 +182,6 @@ const MarkdownCategoryManager = ({
 
     try {
       await onDeleteCategory(id);
-      // After deleting a category, re-fetch note counts to update the display
-      const updatedCounts = await getNoteCountsByCategory();
-      setNoteCounts(updatedCounts);
     } catch (error: unknown) {
       // Error handled by useMarkdownCategories hook
     }

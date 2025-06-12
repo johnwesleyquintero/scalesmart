@@ -3,10 +3,10 @@ import React, {
   useState,
   useContext,
   useCallback,
-  useEffect,
+  // useEffect,
 } from 'react';
 import {
-  addNote,
+  // addNote,
   updateNote,
   deleteNote,
   getNote, // Import getNote
@@ -16,10 +16,10 @@ import {
   deleteAllNoteVersions,
   getNotesByCategory, // Import getNotesByCategory
   searchNotes, // Import searchNotes
-  getNoteCountsByCategory as fetchNoteCountsByCategoryFromDB, // Import getNoteCountsByCategory
+  // getNoteCountsByCategory as fetchNoteCountsByCategoryFromDB, // Import getNoteCountsByCategory
 } from '@/lib/indexeddb/markdown-notepad-db';
 import { useToast } from '@/hooks/use-toast';
-import { useMarkdownCategories } from '@/hooks/use-markdown-categories'; // Import the new hook
+import { useCategoryManagement } from '@/hooks/use-category-management'; // Import the new hook
 import { Category, Note, MarkdownNoteVersion } from '@/types/indexeddb'; // Import Category, Note, and MarkdownNoteVersion types
 
 interface MarkdownNotepadContextType {
@@ -27,12 +27,12 @@ interface MarkdownNotepadContextType {
   setCategory: (category: string) => void;
   searchQuery: string;
   setSearchQuery: (searchQuery: string) => void;
-  allCategories: Category[]; // Now an array of Category objects
-  createNewNote: () => Promise<string>;
+  allCategories: Category[];
   handleAddCategory: (name: string) => Promise<void>;
   handleUpdateCategory: (category: Category) => Promise<void>;
   handleDeleteCategory: (id: string) => Promise<void>;
-  fetchCategories: () => Promise<void>; // Expose fetchCategories
+  fetchCategories: () => Promise<void>;
+  noteCounts: Map<string, number>;
   // New version history functions
   fetchNoteVersions: (noteId: string) => Promise<MarkdownNoteVersion[]>;
   restoreNoteVersion: (
@@ -47,7 +47,8 @@ interface MarkdownNotepadContextType {
   ) => Promise<void>;
   handleDeleteNote: (id: string) => Promise<void>;
   fetchNotesContent: () => Promise<Note[]>;
-  getNoteCountsByCategory: () => Promise<Map<string, number>>;
+  createNewNote: () => Promise<string>;
+  setNotes: (notes: Note[]) => void;
 }
 
 const MarkdownNotepadContext = createContext<
@@ -63,58 +64,16 @@ export const MarkdownNotepadProvider = ({
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
-  // Use the new markdown categories hook
+  // Use the new category management hook
   const {
     categories: allCategories,
     fetchCategories,
-    handleAddCategoryAction,
-    handleUpdateCategoryAction,
-    handleDeleteCategoryAction,
-  } = useMarkdownCategories();
-
-  const createNewNote = useCallback(async () => {
-    try {
-      const defaultTitle = 'New Note';
-      const newCategoryName =
-        category === 'all' ? 'uncategorized' : category || 'uncategorized';
-
-      // Ensure the category exists before adding the note
-      const existingCategory = allCategories.find(
-        (cat) => cat.name === newCategoryName,
-      );
-      if (!existingCategory && newCategoryName !== 'uncategorized') {
-        // If category doesn't exist, add it. The addNote function will also ensure it exists.
-        // This is a redundant check but good for explicit flow.
-        await handleAddCategoryAction(newCategoryName);
-      }
-
-      const newNoteId = await addNote(defaultTitle, '', newCategoryName);
-      toast({
-        title: 'Success',
-        description: 'New note created.',
-      });
-      await fetchCategories(); // Refresh categories after creating a new note
-      return newNoteId;
-    } catch (error: unknown) {
-      console.error('Failed to create new note:', error);
-      let errorMessage = 'Failed to create new note.';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      toast({
-        title: 'Error',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-      throw error;
-    }
-  }, [
-    category,
-    toast,
-    fetchCategories,
-    allCategories,
-    handleAddCategoryAction,
-  ]);
+    handleAddCategory: handleAddCategoryAction,
+    handleUpdateCategory: handleUpdateCategoryAction,
+    handleDeleteCategory: handleDeleteCategoryAction,
+    noteCounts,
+    // getNoteCountsByCategory,
+  } = useCategoryManagement();
 
   const fetchNoteVersions = useCallback(
     async (noteId: string) => {
@@ -235,22 +194,6 @@ export const MarkdownNotepadProvider = ({
     }
   }, [category, searchQuery, toast]);
 
-  const getNoteCountsByCategory = useCallback(async () => {
-    try {
-      // Assuming there's an imported function named getNoteCountsByCategory
-      // that actually fetches the data. If not, this needs to be defined elsewhere.
-      return await fetchNoteCountsByCategoryFromDB();
-    } catch (error: unknown) {
-      console.error('Failed to get note counts by category:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to get note counts by category.',
-        variant: 'destructive',
-      });
-      return new Map<string, number>(); // Return an empty map in case of error
-    }
-  }, [toast]);
-
   return (
     <MarkdownNotepadContext.Provider
       value={{
@@ -259,17 +202,18 @@ export const MarkdownNotepadProvider = ({
         searchQuery,
         setSearchQuery,
         allCategories,
-        createNewNote,
         handleAddCategory: handleAddCategoryAction,
         handleUpdateCategory: handleUpdateCategoryAction,
         handleDeleteCategory: handleDeleteCategoryAction,
         fetchCategories,
+        noteCounts,
         fetchNoteVersions,
         restoreNoteVersion,
         handleUpdateNote,
         handleDeleteNote,
         fetchNotesContent,
-        getNoteCountsByCategory,
+        createNewNote: () => Promise.resolve(''), // Placeholder, implement actual logic
+        setNotes: () => {}, // Placeholder, implement actual logic
       }}
     >
       {children}

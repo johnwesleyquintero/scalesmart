@@ -35,7 +35,7 @@ export const useMarkdownCategories = () => {
     try {
       const newId = await addCategory({ name });
       if (newId) {
-        const newCategory: Category = { id: newId, name };
+        const newCategory: Category = { id: newId.id, name: name };
         setCategories((prevCategories) => [...prevCategories, newCategory]);
         toast.success('Category added successfully!');
       } else {
