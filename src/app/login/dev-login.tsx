@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation'; // Using Next.js 13/14 router
+import Cookies from 'js-cookie'; // Import js-cookie
 
 export function DevLogin() {
   // Check for a client-side accessible environment variable
@@ -19,10 +20,9 @@ export function DevLogin() {
 
   // Use a function component for better structure
   const handleDevLogin = () => {
-    // In a real scenario, you might set a dev cookie or local storage flag
-    // to simulate login state for development purposes without a backend call.
-    // For this simple bypass, we just redirect.
     console.log('Attempting development login bypass...');
+    // Set a dev-bypass cookie that the server-side layout can read
+    Cookies.set('dev-bypass', 'true', { expires: 1 / 24 }); // Cookie expires in 1 hour
 
     // Use Next.js router for navigation
     router.push('/admin');
