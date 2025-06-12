@@ -2,6 +2,7 @@ import { SupabaseAdapter } from '@next-auth/supabase-adapter';
 import { type NextAuthOptions, type Session } from 'next-auth';
 import { type JWT } from 'next-auth/jwt';
 import GithubProvider from 'next-auth/providers/github';
+import { createClient } from '@supabase/supabase-js';
 
 // Ensure environment variables are defined for GitHub OAuth
 const githubId = process.env.GITHUB_ID;
@@ -61,8 +62,41 @@ export const authOptions: NextAuthOptions = {
     error: '/auth/error',
   },
   callbacks: {
-    async signIn({ user }) {
-      // Removed verbose logging for cleaner console output
+    async signIn({ user, account, profile }) {
+      // Initialize Supabase client for server-side operations
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+      if (!supabaseUrl || !supabaseServiceRoleKey) {
+        console.error('Supabase URL or Service Role Key is not defined.');
+        return '/auth/error?message=Configuration Error';
+      }
+
+      const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
+        auth: { persistSession: false },
+        db: { schema: 'public' },
+      });
+
+      // Check if the user has access to Amazon Seller Tools
+      // This assumes a 'profiles' table with a 'has_amazon_access' boolean column
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('has_amazon_access')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError.message);
+        // Redirect to an error page with a specific message
+        return `/login?message=Error checking permissions: ${encodeURIComponent(profileError.message)}&error=PermissionCheckFailed`;
+      }
+
+      if (!profileData || !profileData.has_amazon_access) {
+        // If user does not have Amazon access, prevent sign-in and redirect to login with an error message
+        return `/login?message=You do not have permission to access the Amazon Seller Tools.&error=PermissionDenied`;
+      }
+
+      // If user has access, allow sign-in
       return true;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
