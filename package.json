@@ -87,6 +87,7 @@
     "amazon-sp-api": "^1.1.6",
     "bcrypt": "^5.1.1",
     "boxen": "^8.0.1",
+    "bullmq": "^5.53.2",
     "chart.js": "^3.9.1",
     "class-variance-authority": "^0.7.1",
     "cli-spinner": "^0.2.10",
