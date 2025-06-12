@@ -53,7 +53,10 @@ export default async function handler(
     // to use feature-specific configurations like AI_FEATURES.productOpportunityScoring.config
     // For now, we'll use the existing function which uses the default config.
     // TODO: Refactor getAIDrivenRecommendation to accept a specific feature config.
-    const recommendation = await getAIDrivenRecommendation(prompt);
+    const recommendation = await getAIDrivenRecommendation(
+      prompt,
+      AI_FEATURES.productOpportunityScoring.config, // Pass the specific feature config
+    );
 
     res.status(200).json({ analysis: recommendation });
   } catch (error) {

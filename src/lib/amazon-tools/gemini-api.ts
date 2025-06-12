@@ -1,4 +1,8 @@
-import { GoogleGenerativeAI, GenerativeModel } from '@google/generative-ai';
+import {
+  GoogleGenerativeAI,
+  GenerativeModel,
+  GenerationConfig,
+} from '@google/generative-ai';
 import { initGeminiAI, AI_MODELS } from '@/lib/ai-config';
 
 let geminiClient: GoogleGenerativeAI | null = null;
@@ -40,9 +44,14 @@ const getGenerativeModel = (): GenerativeModel => {
  */
 export const getAIDrivenRecommendation = async (
   prompt: string,
+  generationConfig?: GenerationConfig, // Use GenerationConfig type
 ): Promise<string> => {
   try {
-    const model = getGenerativeModel();
+    const genAI = getGeminiClient();
+    const model = genAI.getGenerativeModel({
+      model: AI_MODELS.gemini.default,
+      generationConfig: generationConfig || AI_MODELS.gemini.config, // Use provided config or default
+    });
     const result = await model.generateContent(prompt);
     const response = result.response;
     const text = response.text();
