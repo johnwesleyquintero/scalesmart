@@ -59,11 +59,6 @@ export default function AboutSection() {
                         className={`${styles.skillBadge} px-3 py-1 text-sm hover:bg-primary/20 transition-colors`}
                       >
                         {skill.name}
-                        {skill.level && (
-                          <span className={styles.skillLevel}>
-                            ({skill.level})
-                          </span>
-                        )}
                       </Badge>
                     ),
                   )}

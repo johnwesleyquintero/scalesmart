@@ -151,7 +151,8 @@ const TaskList = ({
                 className="text-muted-foreground text-center text-sm py-4"
                 role="status"
               >
-                No tasks in this column.
+                No tasks in this column yet. Add a new task using the form
+                below!
               </p>
             ) : (
               tasks.map((task) => (
