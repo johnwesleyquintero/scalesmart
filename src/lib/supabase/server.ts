@@ -31,6 +31,46 @@ export async function getSupabaseSession() {
   return supabase.auth.getSession();
 }
 
+/**
+ * Retrieves the current user session and their profile from Supabase.
+ * This function is intended for server-side usage for authorization checks.
+ * @returns {Promise<{ user: User | null; profile: any | null; error: Error | null }>} An object containing the user data, profile data, or an error.
+ */
+export async function getUserWithProfile() {
+  const {
+    data: { session },
+    error: sessionError,
+  } = await supabase.auth.getSession();
+
+  if (sessionError) {
+    return {
+      user: null,
+      profile: null,
+      error: new Error(sessionError.message),
+    };
+  }
+
+  if (!session?.user) {
+    return { user: null, profile: null, error: null }; // No session or user, not an error
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*') // Select all columns from the profiles table
+    .eq('id', session.user.id)
+    .single(); // Expecting a single profile for the user
+
+  if (profileError) {
+    return {
+      user: session.user,
+      profile: null,
+      error: new Error(profileError.message),
+    };
+  }
+
+  return { user: session.user, profile, error: null };
+}
+
 // You can export the client directly if needed for other server-side operations
 export default supabase;
 
