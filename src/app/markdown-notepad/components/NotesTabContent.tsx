@@ -262,7 +262,11 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
         />
       )}
 
-      {selectedNoteId ? (
+      {notes.length === 0 ? (
+        <div className="p-4 text-center text-muted-foreground">
+          You don't have any notes yet. Click "Create New Note" to get started!
+        </div>
+      ) : selectedNoteId ? (
         <MarkdownEditor
           key={selectedNoteId}
           noteId={selectedNoteId}
@@ -273,7 +277,7 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
         />
       ) : (
         <div className="p-4 text-center text-muted-foreground">
-          Select a note or create a new one.
+          Select a note from the list to view or edit it.
         </div>
       )}
 

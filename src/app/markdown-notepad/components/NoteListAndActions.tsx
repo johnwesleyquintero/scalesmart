@@ -52,7 +52,7 @@ const NoteListAndActions: React.FC<NoteListAndActionsProps> = ({
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-semibold mb-4">All Notes</h2>
-      {notes.length > 0 && (
+      {selectedNoteIds.length > 0 && (
         <BulkActions
           selectedNoteIds={selectedNoteIds}
           setSelectedNoteIds={setSelectedNoteIds}
