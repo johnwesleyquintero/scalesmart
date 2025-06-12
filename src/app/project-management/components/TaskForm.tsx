@@ -81,6 +81,7 @@ const TaskForm = ({
     dependencies: z.array(z.string()).optional(),
     subtaskIds: z.array(z.string()).optional(),
     priority: z.nativeEnum(TaskPriority).optional(), // Use nativeEnum for TypeScript enum
+    category: z.string(),
   });
 
   // Infer the form values type from the schema
@@ -108,6 +109,7 @@ const TaskForm = ({
             : undefined,
           projectId: initialTask.projectId || NO_PROJECT_VALUE, // Default to 'No Project'
           priority: initialTask.priority as TaskPriority | undefined, // Ensure type compatibility
+          category: initialTask.category || '',
         }
       : undefined,
   });
@@ -141,6 +143,7 @@ const TaskForm = ({
         dependencies: data.dependencies,
         subtaskIds: data.subtaskIds,
         priority: data.priority,
+        category: data.category,
       };
 
       try {

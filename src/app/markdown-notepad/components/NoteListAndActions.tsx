@@ -12,6 +12,7 @@ import {
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useToast } from '@/hooks/use-toast';
+import BulkActions from './BulkActions';
 
 interface NoteListAndActionsProps {
   notes: Note[];
@@ -48,79 +49,21 @@ const NoteListAndActions: React.FC<NoteListAndActionsProps> = ({
     );
   };
 
-  const handleExportSelected = () => {
-    if (selectedNoteIds.length === 0) {
-      toast({
-        title: 'Info',
-        description: 'Please select notes to export.',
-        variant: 'default',
-      });
-      return;
-    }
-
-    const selectedNotes = notes.filter((note) =>
-      selectedNoteIds.includes(note.id),
-    );
-    const json = JSON.stringify(selectedNotes, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'markdown_notes.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({
-      title: 'Success',
-      description: 'Selected notes exported as JSON.',
-    });
-  };
-
   return (
     <div className="mt-8">
       <h2 className="text-2xl font-semibold mb-4">All Notes</h2>
       {notes.length > 0 && (
-        <div className="flex items-center space-x-2 mb-4">
-          <Select onValueChange={setBulkCategory} value={bulkCategory}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Bulk assign category" />
-            </SelectTrigger>
-            <SelectContent>
-              {allCategories
-                .filter((cat) => cat.name !== '')
-                .map((cat) => (
-                  <SelectItem key={cat.id} value={cat.name} label={cat.name}>
-                    {cat.name}
-                  </SelectItem>
-                ))}
-              <SelectItem value="uncategorized" label="Uncategorized">
-                Uncategorized
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            onClick={handleBulkCategoryAssign}
-            disabled={
-              selectedNoteIds.length === 0 || !bulkCategory || isLoading
-            } // Disable when loading
-          >
-            Assign to Selected ({selectedNoteIds.length})
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleBulkDelete}
-            disabled={selectedNoteIds.length === 0 || isLoading} // Disable when loading
-          >
-            Delete Selected ({selectedNoteIds.length})
-          </Button>
-          <Button
-            onClick={handleExportSelected}
-            disabled={selectedNoteIds.length === 0 || isLoading} // Disable when loading
-          >
-            Export Selected ({selectedNoteIds.length})
-          </Button>
-        </div>
+        <BulkActions
+          selectedNoteIds={selectedNoteIds}
+          setSelectedNoteIds={setSelectedNoteIds}
+          handleBulkCategoryAssign={handleBulkCategoryAssign}
+          handleBulkDelete={handleBulkDelete}
+          allCategories={allCategories}
+          bulkCategory={bulkCategory}
+          setBulkCategory={setBulkCategory}
+          isLoading={isLoading}
+          notes={notes}
+        />
       )}
       <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {notes.map((note) => (

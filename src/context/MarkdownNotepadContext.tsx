@@ -16,7 +16,7 @@ import {
   deleteAllNoteVersions,
   getNotesByCategory, // Import getNotesByCategory
   searchNotes, // Import searchNotes
-  getNoteCountsByCategory, // Import getNoteCountsByCategory
+  getNoteCountsByCategory as fetchNoteCountsByCategoryFromDB, // Import getNoteCountsByCategory
 } from '@/lib/indexeddb/markdown-notepad-db';
 import { useToast } from '@/hooks/use-toast';
 import { useMarkdownCategories } from '@/hooks/use-markdown-categories'; // Import the new hook
@@ -239,7 +239,7 @@ export const MarkdownNotepadProvider = ({
     try {
       // Assuming there's an imported function named getNoteCountsByCategory
       // that actually fetches the data. If not, this needs to be defined elsewhere.
-      return await getNoteCountsByCategory();
+      return await fetchNoteCountsByCategoryFromDB();
     } catch (error: unknown) {
       console.error('Failed to get note counts by category:', error);
       toast({

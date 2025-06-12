@@ -42,6 +42,7 @@ yarn-error.log*
 *.txt
 lint-output.txt
 typecheck-output.txt
+.task.md
 
 # Note: npm-debug.log* was listed twice, removed duplicate
 

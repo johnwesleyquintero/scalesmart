@@ -12,6 +12,7 @@ import { getNote } from '@/lib/indexeddb/markdown-notepad-db';
 import { Button } from '@/components/ui/button';
 import { Note } from '@/types/indexeddb';
 import { useToast } from '@/hooks/use-toast';
+import NoteActions from './NoteActions';
 
 interface NotesTabContentProps {
   isLoading: boolean;

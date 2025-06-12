@@ -25,6 +25,7 @@ import useDebounceCallback from '@/hooks/use-debounce-callback';
 import { format } from 'date-fns';
 import { MarkdownNoteVersion } from '@/types/indexeddb';
 import { getNote } from '@/lib/indexeddb/markdown-notepad-db'; // Import getNote
+import VersionHistoryDialog from './VersionHistoryDialog';
 
 interface MarkdownEditorProps {
   noteId: string;
@@ -43,7 +44,7 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 }) => {
   const [markdown, setMarkdown] = useState(initialMarkdown);
   const [title, setTitle] = useState(initialTitle); // State for title
-  const [viewMode, setViewMode] = useState<'edit' | 'preview'>('edit');
+  const [viewMode, setViewMode] = useState<'edit' | 'preview'>('preview');
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [noteVersions, setNoteVersions] = useState<MarkdownNoteVersion[]>([]);
   const {
@@ -133,70 +134,16 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
             Save Note
           </Button>{' '}
           {/* Disable when loading */}
-          <Dialog
-            open={showVersionHistory}
-            onOpenChange={setShowVersionHistory}
-          >
-            <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  const versions = await fetchNoteVersions(noteId);
-                  setNoteVersions(versions);
-                }}
-                disabled={isLoading} // Disable when loading
-              >
-                Version History
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px] h-[500px] flex flex-col">
-              <DialogHeader>
-                <DialogTitle>Note Version History</DialogTitle>
-                <DialogDescription>
-                  Select a version to restore your note.
-                </DialogDescription>
-              </DialogHeader>
-              <ScrollArea className="flex-grow pr-4">
-                {noteVersions.length === 0 ? (
-                  <p>No versions available for this note.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {noteVersions.map((version) => (
-                      <div
-                        key={version.id}
-                        className="flex items-center justify-between p-2 border rounded-md"
-                      >
-                        <span>
-                          {format(
-                            new Date(version.timestamp),
-                            'MMM dd, yyyy HH:mm:ss',
-                          )}
-                        </span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={async () => {
-                            await restoreNoteVersion(noteId, version.markdown);
-                            // After restoring, re-fetch the note to get the updated title and content
-                            // This ensures consistency with the context's restore logic
-                            const updatedNote = await getNote(noteId);
-                            if (updatedNote) {
-                              setMarkdown(updatedNote.markdown);
-                              setTitle(updatedNote.title);
-                            }
-                            setShowVersionHistory(false); // Close dialog
-                          }}
-                          disabled={isLoading} // Disable when loading
-                        >
-                          Restore
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </ScrollArea>
-            </DialogContent>
-          </Dialog>
+          <VersionHistoryDialog
+            noteId={noteId}
+            isLoading={isLoading}
+            showVersionHistory={showVersionHistory}
+            setShowVersionHistory={setShowVersionHistory}
+            noteVersions={noteVersions}
+            setNoteVersions={setNoteVersions}
+            setMarkdown={setMarkdown}
+            setTitle={setTitle}
+          />
           <Button
             onClick={() => {
               navigator.clipboard.writeText(markdown);
