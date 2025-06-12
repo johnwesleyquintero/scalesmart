@@ -67,8 +67,9 @@ Files and directories should be organized logically to reflect their domain and 
 - **`supabase/`**: Supabase-related configurations, migrations, and database schema definitions.
 - **`src/actions/`**: Contains server actions for Next.js.
 - **`src/app/`**: Holds Next.js App Router specific pages, layouts, and API routes.
+- **`src/app/layout.tsx`**: The main layout file, serving as the primary navigator and structural component for the application.
 - **`src/app/content/`**: Contains MDX content files specific to different application sections.
-- **`src/components/`**: Reusable UI components. Categorize into subdirectories (e.g., `components/ui/`, `components/shared/`, `components/amazon-seller-tools/`) as complexity grows.
+- **`src/components/`**: Reusable UI components. Categorize into subdirectories (e.g., `components/ui/`, `components/shared/`) as complexity grows.
 - **`src/config/`**: Configuration files (e.g., application settings, API keys).
 - **`src/context/`**: React Context API providers.
 - **`src/data/`**: Static data, JSON files, or mock data.
