@@ -7,12 +7,8 @@ import {
 
 // Define the expected return type for server actions
 export type ServerActionResult =
-  | {
-      success?: boolean;
-      error?: string;
-      mfaRequired?: boolean; // Specific to sign-in action
-    }
-  | { success: true }; // Allow void for actions that don't return a specific result
+  | { success: true }
+  | { success: false; error: string; mfaRequired?: boolean };
 
 // Type for managing the currently displayed form state
 export type CurrentFormState =
