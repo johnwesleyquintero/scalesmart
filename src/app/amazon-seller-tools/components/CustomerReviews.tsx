@@ -33,7 +33,21 @@ const CustomerReviews: React.FC<CustomerReviewsProps> = ({ parsedData }) => {
         performance and customer satisfaction.
       </p>
 
-      {/* TODO: Add UI elements for displaying reviews, sentiment analysis, and common themes */}
+      {/* AI-Powered Analysis Summary Section */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>AI-Powered Analysis Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            Sentiment analysis and common themes extracted from reviews will be
+            displayed here.
+          </p>
+          {/* TODO: Implement AI analysis logic and display summary */}
+        </CardContent>
+      </Card>
+
+      {/* Individual Reviews Section */}
       {parsedData.length > 0 ? (
         <div className="mt-6">
           <h3 className="text-xl font-semibold mb-4">Uploaded Review Data</h3>
@@ -68,8 +82,6 @@ const CustomerReviews: React.FC<CustomerReviewsProps> = ({ parsedData }) => {
           and analysis.
         </div>
       )}
-
-      {/* TODO: Add section for AI-powered sentiment analysis and theme extraction */}
     </div>
   );
 };

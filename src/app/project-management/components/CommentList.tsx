@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { formatDateTime } from '@/lib/utils/date-utils';
+import useUserProfile from '@/hooks/use-user-profile';
 
 /**
  * @interface CommentListProps
@@ -34,6 +35,7 @@ const CommentList: React.FC<CommentListProps> = ({
   comments,
   onAddComment,
 }) => {
+  const { userProfile, isLoading } = useUserProfile();
   const [newCommentText, setNewCommentText] = useState('');
   const [loading, setLoading] = useState(false); // State to manage loading status during comment submission
 
@@ -59,7 +61,7 @@ const CommentList: React.FC<CommentListProps> = ({
       id: crypto.randomUUID(), // Generate a unique ID for the new comment
       taskId: taskId,
       content: newCommentText.trim(), // Trim whitespace from the comment content
-      userId: 'CURRENT_USER_ID', // TODO: Integrate with actual user authentication system
+      userId: userProfile?.id || 'anonymous', // Use actual user ID or 'anonymous' if not logged in
       createdAt: Date.now(), // Timestamp of comment creation
     };
 
@@ -76,7 +78,7 @@ const CommentList: React.FC<CommentListProps> = ({
     } finally {
       setLoading(false); // Reset loading state regardless of success or failure
     }
-  }, [newCommentText, onAddComment, taskId]);
+  }, [newCommentText, onAddComment, taskId, userProfile?.id]);
 
   /**
    * @brief Handles the `Enter` key press event in the comment input field.
@@ -110,7 +112,11 @@ const CommentList: React.FC<CommentListProps> = ({
               className="bg-card p-2 rounded-md shadow-sm border border-border"
             >
               <div className="text-xs text-muted-foreground">
-                {comment.userId} - {formatDateTime(comment.createdAt)}
+                {/* Display username if available, otherwise use user ID */}
+                {userProfile?.id === comment.userId
+                  ? userProfile.name
+                  : comment.userId}{' '}
+                - {formatDateTime(comment.createdAt)}
               </div>
               <p className="text-sm text-foreground">{comment.content}</p>
             </li>

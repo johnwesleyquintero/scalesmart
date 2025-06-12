@@ -120,8 +120,32 @@ const InventoryManagement: React.FC<InventoryManagementProps> = ({
         {error && <p className="mt-4 text-red-600">Error: {error}</p>}
       </div>
 
-      {/* TODO: Add section for Restock Recommendations */}
-      {/* TODO: Add section for Inventory Health Summary */}
+      {/* Restock Recommendations Section */}
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Restock Recommendations</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            Restock recommendations will be displayed here based on inventory
+            levels and sales data.
+          </p>
+          {/* TODO: Implement actual restock recommendation logic and UI */}
+        </CardContent>
+      </Card>
+
+      {/* Inventory Health Summary Section */}
+      <Card className="mt-8">
+        <CardHeader>
+          <CardTitle>Inventory Health Summary</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-muted-foreground">
+            A summary of your inventory health will be displayed here.
+          </p>
+          {/* TODO: Implement actual inventory health summary logic and UI */}
+        </CardContent>
+      </Card>
     </div>
   );
 };
