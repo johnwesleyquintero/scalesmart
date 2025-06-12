@@ -1,6 +1,7 @@
 import { Edge, Node as ReactFlowNode } from 'reactflow';
 import { Node as CustomNode, NodeType } from './types';
 import nodeRegistryInstance from './node-registry'; // Import the NodeRegistry instance and give it a clearer alias
+import { logger } from '../logger';
 
 interface NodeData<T = unknown> {
   [key: string]: T;
@@ -27,7 +28,7 @@ const resolvePlaceholders = (
 
 const nodeHandlers: Record<string, NodeHandler> = {
   start: async (node, edges, allNodes, context) => {
-    console.log('Start node executed. Initial context:', context);
+    logger.debug('Start node executed. Initial context:', context);
     const nextEdge = edges.find((edge: Edge) => edge.source === node.id);
     return { nextNodeId: nextEdge?.target, output: { status: 'started' } };
   },
@@ -35,7 +36,7 @@ const nodeHandlers: Record<string, NodeHandler> = {
     const messageTemplate =
       (node.data.message as string) || 'No message provided.';
     const resolvedMessage = resolvePlaceholders(messageTemplate, context);
-    console.log('Log Node Output:', resolvedMessage);
+    logger.debug('Log Node Output:', resolvedMessage);
     const nextEdge = edges.find((edge: Edge) => edge.source === node.id);
     return {
       nextNodeId: nextEdge?.target,
@@ -43,7 +44,7 @@ const nodeHandlers: Record<string, NodeHandler> = {
     };
   },
   end: async (node, edges, allNodes, context) => {
-    console.log('End node reached. Final context:', context);
+    logger.debug('End node reached. Final context:', context);
     return { nextNodeId: undefined, output: { status: 'completed' } };
   },
   'email-sender': async (node, edges, allNodes, context) => {
@@ -60,11 +61,11 @@ const nodeHandlers: Record<string, NodeHandler> = {
       context,
     );
 
-    console.log('--- Email Sender Node ---');
-    console.log('Recipient:', recipient);
-    console.log('Subject:', subject);
-    console.log('Body:', body);
-    console.log('--- End Email Sender Node ---');
+    logger.debug('--- Email Sender Node ---');
+    logger.debug('Recipient:', recipient);
+    logger.debug('Subject:', subject);
+    logger.debug('Body:', body);
+    logger.debug('--- End Email Sender Node ---');
 
     const nextEdge = edges.find((edge: Edge) => edge.source === node.id);
     return {
@@ -79,10 +80,10 @@ const nodeHandlers: Record<string, NodeHandler> = {
     const outputVarName = (node.data.outputVar as string) || 'aiOutput';
     const resolvedPrompt = resolvePlaceholders(promptTemplate, context);
 
-    console.log('--- AI Agent Node ---');
-    console.log('AI Model:', aiModel);
-    console.log('Prompt:', resolvedPrompt);
-    console.log('--- End AI Agent Node ---');
+    logger.debug('--- AI Agent Node ---');
+    logger.debug('AI Model:', aiModel);
+    logger.debug('Prompt:', resolvedPrompt);
+    logger.debug('--- End AI Agent Node ---');
 
     const mockAiResponse = `Mock AI response for: "${resolvedPrompt.substring(0, Math.min(resolvedPrompt.length, 50))}..."`;
 
@@ -105,16 +106,16 @@ const nodeHandlers: Record<string, NodeHandler> = {
       payload = resolvePlaceholders(payload, context);
       payload = JSON.stringify(JSON.parse(payload));
     } catch (e) {
-      console.error('Failed to parse or resolve payload JSON:', e);
+      logger.error('Failed to parse or resolve payload JSON:', e);
       payload = '{}';
     }
 
-    console.log('--- Web Poster Node ---');
-    console.log('URL:', url);
-    console.log('Method:', method);
-    console.log('Payload:', payload);
-    console.log('Headers:', headers);
-    console.log('--- End Web Poster Node ---');
+    logger.debug('--- Web Poster Node ---');
+    logger.debug('URL:', url);
+    logger.debug('Method:', method);
+    logger.debug('Payload:', payload);
+    logger.debug('Headers:', headers);
+    logger.debug('--- End Web Poster Node ---');
 
     const nextEdge = edges.find((edge: Edge) => edge.source === node.id);
     return {
@@ -129,9 +130,9 @@ export async function executeWorkflow(
   edges: Edge[],
   nodeRegistry: typeof nodeRegistryInstance, // Corrected type here as well
 ): Promise<void> {
-  console.log('Executing workflow...');
-  console.log('Nodes:', nodes);
-  console.log('Edges:', edges);
+  logger.debug('Executing workflow...');
+  logger.debug('Nodes:', nodes);
+  logger.debug('Edges:', edges);
 
   const startNode = nodes.find((node) => node.type === 'start');
 
@@ -143,7 +144,7 @@ export async function executeWorkflow(
   let globalContext: Record<string, unknown> = {};
 
   while (currentNode) {
-    console.log(
+    logger.debug(
       'Executing node:',
       currentNode.id,
       `(Type: ${currentNode.type})`,
@@ -153,6 +154,9 @@ export async function executeWorkflow(
 
     if (!handler) {
       console.warn(
+        `No specific handler for node type: ${currentNode.type}. Skipping execution.`,
+      );
+      logger.warn(
         `No specific handler for node type: ${currentNode.type}. Skipping execution.`,
       );
       const nextEdge = edges.find(
@@ -189,5 +193,5 @@ export async function executeWorkflow(
     }
   }
 
-  console.log('Workflow execution finished. Final Context:', globalContext);
+  logger.debug('Workflow execution finished. Final Context:', globalContext);
 }

@@ -16,12 +16,11 @@ export const analyzeCompetitorDataAI = async (
     const prompt = generatePrompt({
       category: 'Competitor Analysis',
       customCategory: '', // No custom category needed
-      context: `Analyze the following competitor data to identify potential opportunities and threats. Focus on pricing changes, sales rank fluctuations (BSR), review trends, and stock levels. Provide actionable insights for improving our own product strategy.`,
+      context: `Analyze the following competitor data to identify potential opportunities and threats. Focus on pricing strategies, keyword performance, and marketing tactics. Provide actionable insights for improving our own product strategy.`,
       request: `Analyze the provided competitor data and generate a summary of key findings, including:
-- Significant price changes (increases or decreases) and their potential impact.
-- Trends in Best Seller Rank (BSR) and what they might indicate about competitor sales performance.
-- Changes in review counts and ratings, and their implications for customer sentiment.
-- Stock level changes and potential supply chain issues for competitors.
+- Competitor pricing strategies (e.g., discounts, promotions, bundling).
+- Top performing keywords for each competitor and their estimated search volume.
+- Marketing tactics used by competitors (e.g., advertising campaigns, social media presence).
 - Actionable recommendations for our product strategy based on this analysis.
 
 Competitor Data (JSON format):

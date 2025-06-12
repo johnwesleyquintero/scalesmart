@@ -20,6 +20,7 @@ const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const API_KEY_TABLE = 'api_keys'; // Supabase table name for API keys
 
+// Ensure the Supabase service role key is stored securely in an environment variable.
 const KEY_EXPIRATION_MS = 90 * 24 * 60 * 60 * 1000; // 90 days in milliseconds
 
 // Configuration for key generation and hashing

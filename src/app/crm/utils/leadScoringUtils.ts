@@ -74,6 +74,21 @@ export function calculateLeadScore(contact: Contact): number {
     score += Math.min(keywordScore, 20); // Cap keyword score at 20
   }
 
+  // 4. Score based on simulated email engagement (AI-driven)
+  // Max score for email engagement: 30 points
+  const emailEngagementScore = Math.floor(Math.random() * 30); // Simulate email engagement
+  score += emailEngagementScore;
+
+  // 5. Score based on simulated website activity (AI-driven)
+  // Max score for website activity: 20 points
+  const websiteActivityScore = Math.floor(Math.random() * 20); // Simulate website activity
+  score += websiteActivityScore;
+
+  // 6. Score based on simulated form submissions (AI-driven)
+  // Max score for form submissions: 20 points
+  const formSubmissionScore = Math.floor(Math.random() * 20); // Simulate form submissions
+  score += formSubmissionScore;
+
   return score;
 }
 

@@ -84,3 +84,61 @@ export const fetchOrders = async (): Promise<unknown[] | null> => {
 };
 
 // TODO: Add more functions for other SP-API operations (inventory, reports, etc.)
+
+/**
+ * Example function to fetch inventory data.
+ * TODO: Implement actual API call logic based on your needs.
+ * @returns A promise resolving with inventory data or null on error.
+ */
+export const fetchInventory = async (): Promise<unknown[] | null> => {
+  try {
+    const client = getSpApiClient();
+    // Example API call (replace with actual endpoint and parameters)
+    // const inventory = await client.callAPI({
+    //   operation: 'getInventorySummaries',
+    //   query: {
+    //     granularityType: 'MARKETPLACE',
+    //     granularityId: 'ATVPDKIKX0DER', // Replace with actual marketplace ID(s)
+    //   },
+    // });
+    // console.log('Fetched inventory:', inventory);
+    // return inventory.payload.results; // Assuming the response structure has a 'payload.results' array
+
+    console.warn(
+      'fetchInventory function is a placeholder. Implement actual SP-API call.',
+    );
+    return []; // Return empty array for placeholder
+  } catch (error: unknown) {
+    console.error('Error fetching inventory from SP-API:', error);
+    return null;
+  }
+};
+
+/**
+ * Example function to fetch report data.
+ * TODO: Implement actual API call logic based on your needs.
+ * @returns A promise resolving with report data or null on error.
+ */
+export const fetchReports = async (): Promise<unknown[] | null> => {
+  try {
+    const client = getSpApiClient();
+    // Example API call (replace with actual endpoint and parameters)
+    // const reports = await client.callAPI({
+    //   operation: 'getReports',
+    //   query: {
+    //     reportTypes: ['GET_SALES_AND_TRAFFIC_REPORT'], // Replace with actual report type(s)
+    //     marketplaceIds: ['ATVPDKIKX0DER'], // Replace with actual marketplace ID(s)
+    //   },
+    // });
+    // console.log('Fetched reports:', reports);
+    // return reports.reports; // Assuming the response structure has a 'reports' array
+
+    console.warn(
+      'fetchReports function is a placeholder. Implement actual SP-API call.',
+    );
+    return []; // Return empty array for placeholder
+  } catch (error: unknown) {
+    console.error('Error fetching reports from SP-API:', error);
+    return null;
+  }
+};

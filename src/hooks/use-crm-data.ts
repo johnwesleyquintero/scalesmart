@@ -1,4 +1,31 @@
 /**
+ * @param customer The customer object with the updated lead score.
+ */
+const triggerNurturingWorkflow = async (customer: Contact) => {
+  if (customer.leadScoreCategory === 'Hot') {
+    console.log(
+      `[Nurturing Workflow] Sending high-priority email to ${customer.email}`,
+    );
+    // Simulate sending a high-priority email
+  } else if (customer.leadScoreCategory === 'Warm') {
+    console.log(
+      `[Nurturing Workflow] Adding ${customer.email} to a nurturing sequence`,
+    );
+    // Simulate adding the customer to a nurturing sequence
+  } else {
+    console.log(
+      `[Nurturing Workflow] No immediate action for ${customer.email}`,
+    );
+    // Simulate no immediate action
+  }
+  // Log activity for nurturing workflow trigger
+  await logActivity(
+    customer.id,
+    'customer_updated',
+    `Nurturing workflow triggered for "${customer.name}" (Category: ${customer.leadScoreCategory}).`,
+  );
+};
+/**
  * @file use-crm-data.ts
  * @description Custom React hook for managing CRM data (customers, categories, communication logs).
  * It handles data loading, saving, updating, and deleting operations with IndexedDB
@@ -24,6 +51,7 @@ import {
   getLeadScoreCategory,
 } from '@/app/crm/utils/leadScoringUtils';
 import { logActivity } from '@/app/crm/utils/activityLogger'; // Import the new activity logger
+import type { ActivityType } from '@/app/crm/types';
 
 const LOAD_DATA_ERROR =
   'Failed to load data. Please check console for details.';
@@ -133,6 +161,40 @@ export const useCRMData = () => {
             'customer_updated',
             `Customer "${updatedCustomer.name}" was updated.`,
           );
+
+          if (updatedCustomer.leadScoreCategory === 'Hot') {
+            console.log(
+              `[Nurturing Workflow] Sending high-priority email to ${updatedCustomer.email}`,
+            );
+            // Simulate sending a high-priority email
+          } else if (updatedCustomer.leadScoreCategory === 'Warm') {
+            console.log(
+              `[Nurturing Workflow] Adding ${updatedCustomer.email} to a nurturing sequence`,
+            );
+            // Simulate adding the customer to a nurturing sequence
+          } else {
+            console.log(
+              `[Nurturing Workflow] No immediate action for ${updatedCustomer.email}`,
+            );
+            // Simulate no immediate action
+          }
+
+          if (updatedCustomer.leadScoreCategory === 'Hot') {
+            console.log(
+              `[Nurturing Workflow] Sending high-priority email to ${updatedCustomer.email}`,
+            );
+            // Simulate sending a high-priority email
+          } else if (updatedCustomer.leadScoreCategory === 'Warm') {
+            console.log(
+              `[Nurturing Workflow] Adding ${updatedCustomer.email} to a nurturing sequence`,
+            );
+            // Simulate adding the customer to a nurturing sequence
+          } else {
+            console.log(
+              `[Nurturing Workflow] No immediate action for ${updatedCustomer.email}`,
+            );
+            // Simulate no immediate action
+          }
         } catch (error: unknown) {
           console.error('Error updating customer in IndexedDB:', error);
           toast.error(

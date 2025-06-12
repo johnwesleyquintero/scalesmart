@@ -38,7 +38,6 @@ ${JSON.stringify(keywordData, null, 2)}
     // Use the keywordAnalyzer feature configuration
     const recommendation = await getAIDrivenRecommendation(prompt);
 
-    // TODO: Implement parsing of the AI's response if a structured output format is defined.
     // For now, return the raw text response.
 
     return recommendation;

@@ -83,3 +83,29 @@ export async function suggestOptimizedDescription(
 
 // You can add more functions here for other optimization tasks,
 // e.g., suggesting backend keywords, analyzing subject matter, etc.
+
+/**
+ * Generates an AI-driven suggestion for improving backend keywords.
+ * @param listingData The ListingOptimizationData object for the product.
+ * @returns A promise that resolves to the AI's suggestion for the backend keywords.
+ */
+export async function suggestOptimizedBackendKeywords(
+  listingData: ListingOptimizationData,
+): Promise<string> {
+  const promptData: PromptData = {
+    category: 'Optimization',
+    customCategory: '',
+    context: `Current Backend Keywords: "${listingData.backendKeywords}"`,
+    request: `Analyze the provided backend keywords and suggest improved versions for Amazon. Focus on relevance, search volume, and competitiveness. Provide only the suggested optimized backend keywords in your response, separated by commas.`,
+    codeInput: '', // No code input needed for this task
+  };
+
+  try {
+    const prompt = generatePrompt(promptData);
+    const recommendation = await getAIDrivenRecommendation(prompt);
+    return recommendation.trim();
+  } catch (error) {
+    console.error('Error getting AI suggestion for backend keywords:', error);
+    throw new Error('Failed to get AI suggestion for backend keywords.');
+  }
+}
