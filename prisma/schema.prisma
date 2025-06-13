@@ -1,10 +1,13 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
 }
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://postgres.uygpgwfruiqqofyltvuy:YWbyXipk0qAyKMwF@aws-0-us-east-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
+  url      = env("POSTGRES_URL")
+  directUrl = "postgresql://postgres.uygpgwfruiqqofyltvuy:YWbyXipk0qAyKMwF@aws-0-us-east-1.pooler.supabase.com:5432/postgres"
+  schemas = ["public", "auth"]
 }
 
 model Account {
@@ -24,6 +27,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@schema("auth")
 }
 
 model Session {
@@ -32,6 +36,7 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@schema("auth")
 }
 
 model User {
@@ -42,6 +47,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  @@schema("auth")
 }
 
 model VerificationToken {
@@ -50,4 +56,5 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@schema("auth")
 }

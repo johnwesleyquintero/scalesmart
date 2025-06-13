@@ -47,30 +47,34 @@ export default async function handler(
     }
 
     // Create a profile entry for the new user
-    const { error: profileError } = await supabase.from('profiles').insert([
-      {
-        id: authData.user.id,
-        email: authData.user.email,
-        has_amazon_access: false, // Default to false, access granted by admin
-        // Add other default profile fields as necessary
-      },
-    ]);
+    const profileData = {
+      id: authData.user.id,
+      email: authData.user.email,
+      has_amazon_access: false, // Default to false, access granted by admin
+      // Add other default profile fields as necessary
+    };
+    console.log('Creating profile with data:', profileData);
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .insert([profileData]);
 
     if (profileError) {
-      console.error('Supabase profile creation error:', profileError.message);
+      console.error(
+        'Supabase profile creation error:',
+        profileError.message,
+        JSON.stringify(profileError),
+      );
       // If profile creation fails, you might want to delete the user from auth as well
       await supabase.auth.admin.deleteUser(authData.user.id);
-      return res
-        .status(500)
-        .json({ message: 'Failed to create user profile.' });
+      return res.status(500).json({
+        message: 'Failed to create user profile. ' + profileError.message,
+      });
     }
 
-    return res
-      .status(200)
-      .json({
-        message:
-          'Registration successful. Please check your email to verify your account.',
-      });
+    return res.status(200).json({
+      message:
+        'Registration successful. Please check your email to verify your account.',
+    });
   } catch (error: unknown) {
     console.error('Unexpected registration error:', (error as Error).message);
     return res

@@ -332,16 +332,29 @@ export async function getAllItemsFromStore<T>(storeName: string): Promise<T[]> {
 export const getChatMessagesBySession = async (
   chatSessionId: string,
 ): Promise<ChatMessageRecord[]> => {
+  console.log(
+    'indexeddb-service: getChatMessagesBySession called for session:',
+    chatSessionId,
+  );
   try {
-    return await db.chatMessages
+    const messages = await db.chatMessages
       .where('chatSessionId')
       .equals(chatSessionId)
       .sortBy('timestamp');
+    console.log(
+      'indexeddb-service: getChatMessagesBySession result:',
+      messages,
+    );
+    return messages;
   } catch (error) {
     logError(
       error,
       `Failed to get messages for session ${chatSessionId}`,
       ERROR_MESSAGE_PREFIX,
+    );
+    console.error(
+      'indexeddb-service: Error in getChatMessagesBySession:',
+      error,
     );
     return [];
   }

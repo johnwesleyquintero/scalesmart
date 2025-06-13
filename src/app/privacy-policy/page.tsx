@@ -5,12 +5,19 @@ import TimeStamp from '@/components/TimeStamp';
 import type { Metadata } from 'next';
 
 const PAGE_TITLE = 'Privacy Policy - ScaleSmart Platform';
-const PAGE_DESCRIPTION = 'Understand how ScaleSmart Platform collects, uses, and protects your personal data. Our comprehensive privacy policy details our data handling practices.';
+const PAGE_DESCRIPTION =
+  'Understand how ScaleSmart Platform collects, uses, and protects your personal data. Our comprehensive privacy policy details our data handling practices.';
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: PAGE_DESCRIPTION,
-  keywords: ['privacy policy', 'data protection', 'data security', 'ScaleSmart', 'terms'],
+  keywords: [
+    'privacy policy',
+    'data protection',
+    'data security',
+    'ScaleSmart',
+    'terms',
+  ],
   openGraph: {
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
