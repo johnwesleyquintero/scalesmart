@@ -16,22 +16,12 @@ if (!githubSecret) {
 }
 
 export const authOptions: NextAuthOptions = {
-  adapter: SupabaseAdapter(
-    {
-      url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
-      secret: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-    },
-    // The schema option is typically configured directly on the Supabase client,
-    // not directly on the SupabaseAdapter. The error "The schema must be one of
-    // the following: public, graphql_public" (PGRST106) suggests a database-level
-    // schema access issue, or an incompatibility with the adapter's internal
-    // Supabase client initialization.
-    // Assuming the Supabase client in `src/lib/supabase/server.ts` is correctly
-    // configured with `db: { schema: 'public' }`, this adapter might be creating
-    // its own client or the service role key lacks necessary permissions.
-    // No direct fix for PGRST106 within this file without modifying the adapter
-    // or Supabase project settings.
-  ),
+  adapter: SupabaseAdapter({
+    url: process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+    secret: process.env.SUPABASE_SERVICE_ROLE_KEY || '',
+  }, {
+    schema: 'public',
+  }),
   providers: [
     GithubProvider({
       clientId: githubId,
@@ -85,11 +75,7 @@ export const authOptions: NextAuthOptions = {
         .eq('id', user.id)
         .single();
 
-      if (profileError) {
-        console.error('Error fetching user profile:', profileError.message);
-        // Redirect to an error page with a specific message
-        return `/login?message=Error checking permissions: ${encodeURIComponent(profileError.message)}&error=PermissionCheckFailed`;
-      }
+
 
       if (!profileData || !profileData.has_amazon_access) {
         // If user does not have Amazon access, prevent sign-in and redirect to login with an error message
