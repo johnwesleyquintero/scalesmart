@@ -21,10 +21,11 @@ import {
   SearchCatalogItemsResponse,
   ShipmentStatus, // Import ShipmentStatus
 } from '../amazon-types';
+import { GetShipmentsQuery } from 'amazon-sp-api/lib/typings/operations/fulfillmentInbound'; // Removed GetShipmentsQueryType
 import {
-  GetShipmentsQuery,
-} from 'amazon-sp-api/lib/typings/operations/fulfillmentInbound'; // Removed GetShipmentsQueryType
-import { CreateReportBody, ReportType } from 'amazon-sp-api/lib/typings/operations/reports';
+  CreateReportBody,
+  ReportType,
+} from 'amazon-sp-api/lib/typings/operations/reports';
 import { GetInventorySummariesQuery } from 'amazon-sp-api/lib/typings/operations/fbaInventory';
 
 // Define a local interface that extends the imported Config to include client_id and client_secret
@@ -45,10 +46,14 @@ const spApiConfig: SpApiConfig = {
 };
 
 // Validate that essential environment variables are provided
-if (!spApiConfig.refresh_token || !spApiConfig.client_id || !spApiConfig.client_secret) {
+if (
+  !spApiConfig.refresh_token ||
+  !spApiConfig.client_id ||
+  !spApiConfig.client_secret
+) {
   console.error(
     'SP-API Configuration Error: Missing environment variables. ' +
-    'Please set SP_API_REFRESH_TOKEN, SP_API_CLIENT_ID, and SP_API_CLIENT_SECRET.',
+      'Please set SP_API_REFRESH_TOKEN, SP_API_CLIENT_ID, and SP_API_CLIENT_SECRET.',
   );
   // Depending on your application's needs, you might want to throw an error here
   // or handle this more gracefully (e.g., disable SP-API features).
@@ -70,10 +75,13 @@ export const getSpApiClient = (): SellingPartner => {
       spApiClient = new SellingPartner(spApiConfig);
       console.log('Amazon SP-API client initialized.');
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.error('Failed to initialize Amazon SP-API client:', errorMessage);
       // Re-throw the error so consuming code knows initialization failed
-      throw new Error(`Failed to initialize Amazon SP-API client: ${errorMessage}`);
+      throw new Error(
+        `Failed to initialize Amazon SP-API client: ${errorMessage}`,
+      );
     }
   }
   return spApiClient;
@@ -110,13 +118,22 @@ export const fetchOrders = async (
     const typedOrdersResponse = ordersResponse as GetOrdersResponse;
     // Handle potential variations in response structure (payload wrapper)
     if (typedOrdersResponse?.payload?.Orders) {
-      console.log('Fetched orders (payload):', typedOrdersResponse.payload.Orders.length);
+      console.log(
+        'Fetched orders (payload):',
+        typedOrdersResponse.payload.Orders.length,
+      );
       return typedOrdersResponse.payload.Orders;
     } else if (typedOrdersResponse?.Orders) {
-      console.log('Fetched orders (top-level):', typedOrdersResponse.Orders.length);
+      console.log(
+        'Fetched orders (top-level):',
+        typedOrdersResponse.Orders.length,
+      );
       return typedOrdersResponse.Orders;
     } else {
-      console.warn('Unexpected or empty response structure for fetchOrders:', ordersResponse);
+      console.warn(
+        'Unexpected or empty response structure for fetchOrders:',
+        ordersResponse,
+      );
       return []; // Return empty array for success with no data or unexpected structure
     }
   } catch (error: unknown) {
@@ -151,20 +168,33 @@ export const fetchInventory = async (
       query: query,
     });
 
-    const typedInventoryResponse = inventoryResponse as GetInventorySummariesResponse;
+    const typedInventoryResponse =
+      inventoryResponse as GetInventorySummariesResponse;
     if (typedInventoryResponse?.payload?.inventorySummaries) {
-      console.log('Fetched inventory (payload):', typedInventoryResponse.payload.inventorySummaries.length);
+      console.log(
+        'Fetched inventory (payload):',
+        typedInventoryResponse.payload.inventorySummaries.length,
+      );
       return typedInventoryResponse.payload.inventorySummaries;
     } else if (typedInventoryResponse?.inventorySummaries) {
-      console.log('Fetched inventory (top-level):', typedInventoryResponse.inventorySummaries.length);
+      console.log(
+        'Fetched inventory (top-level):',
+        typedInventoryResponse.inventorySummaries.length,
+      );
       return typedInventoryResponse.inventorySummaries;
     } else {
-      console.warn('Unexpected or empty response structure for fetchInventory:', inventoryResponse);
+      console.warn(
+        'Unexpected or empty response structure for fetchInventory:',
+        inventoryResponse,
+      );
       return [];
     }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error fetching inventory from SP-API: ${errorMessage}`, error);
+    console.error(
+      `Error fetching inventory from SP-API: ${errorMessage}`,
+      error,
+    );
     return null;
   }
 };
@@ -199,13 +229,22 @@ export const fetchReports = async (
 
     const typedReportsResponse = reportsResponse as GetReportsResponse;
     if (typedReportsResponse?.payload?.reports) {
-      console.log('Fetched reports (payload):', typedReportsResponse.payload.reports.length);
+      console.log(
+        'Fetched reports (payload):',
+        typedReportsResponse.payload.reports.length,
+      );
       return typedReportsResponse.payload.reports;
     } else if (typedReportsResponse?.reports) {
-      console.log('Fetched reports (top-level):', typedReportsResponse.reports.length);
+      console.log(
+        'Fetched reports (top-level):',
+        typedReportsResponse.reports.length,
+      );
       return typedReportsResponse.reports;
     } else {
-      console.warn('Unexpected or empty response structure for fetchReports:', reportsResponse);
+      console.warn(
+        'Unexpected or empty response structure for fetchReports:',
+        reportsResponse,
+      );
       return [];
     }
   } catch (error: unknown) {
@@ -267,7 +306,10 @@ export const fetchCustomerReviews = async (
     return mockReviews;
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error fetching customer reviews (mock data simulation): ${errorMessage}`, error);
+    console.error(
+      `Error fetching customer reviews (mock data simulation): ${errorMessage}`,
+      error,
+    );
     return []; // Return empty array for mock data fetch error
   }
 };
@@ -298,7 +340,9 @@ export const fetchProductListings = async (
     } else if (params.keywords && params.keywords.length > 0) {
       query.keywords = params.keywords;
     } else {
-      console.warn('No valid identifier (ASIN, SKU, or keywords) provided for fetchProductListings.');
+      console.warn(
+        'No valid identifier (ASIN, SKU, or keywords) provided for fetchProductListings.',
+      );
       return [];
     }
 
@@ -307,20 +351,33 @@ export const fetchProductListings = async (
       query: query,
     });
 
-    const typedListingsResponse = listingsResponse as SearchCatalogItemsResponse;
+    const typedListingsResponse =
+      listingsResponse as SearchCatalogItemsResponse;
     if (typedListingsResponse?.payload?.items) {
-      console.log('Fetched product listings (payload):', typedListingsResponse.payload.items.length);
+      console.log(
+        'Fetched product listings (payload):',
+        typedListingsResponse.payload.items.length,
+      );
       return typedListingsResponse.payload.items as ProductListing[]; // Cast necessary if ProductListing isn't exactly the inferred type
     } else if (typedListingsResponse?.items) {
-      console.log('Fetched product listings (top-level):', typedListingsResponse.items.length);
+      console.log(
+        'Fetched product listings (top-level):',
+        typedListingsResponse.items.length,
+      );
       return typedListingsResponse.items as ProductListing[];
     } else {
-      console.warn('Unexpected or empty response structure for fetchProductListings:', listingsResponse);
+      console.warn(
+        'Unexpected or empty response structure for fetchProductListings:',
+        listingsResponse,
+      );
       return [];
     }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error fetching product listings from SP-API: ${errorMessage}`, error);
+    console.error(
+      `Error fetching product listings from SP-API: ${errorMessage}`,
+      error,
+    );
     return null;
   }
 };
@@ -358,18 +415,30 @@ export const fetchInboundShipments = async (
 
     const typedShipmentsResponse = shipmentsResponse as GetShipmentsResponse;
     if (typedShipmentsResponse?.payload?.ShipmentData) {
-      console.log('Fetched inbound shipments (payload):', typedShipmentsResponse.payload.ShipmentData.length);
+      console.log(
+        'Fetched inbound shipments (payload):',
+        typedShipmentsResponse.payload.ShipmentData.length,
+      );
       return typedShipmentsResponse.payload.ShipmentData;
     } else if (typedShipmentsResponse?.ShipmentData) {
-      console.log('Fetched inbound shipments (top-level):', typedShipmentsResponse.ShipmentData.length);
+      console.log(
+        'Fetched inbound shipments (top-level):',
+        typedShipmentsResponse.ShipmentData.length,
+      );
       return typedShipmentsResponse.ShipmentData;
     } else {
-      console.warn('Unexpected or empty response structure for fetchInboundShipments:', shipmentsResponse);
+      console.warn(
+        'Unexpected or empty response structure for fetchInboundShipments:',
+        shipmentsResponse,
+      );
       return [];
     }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error fetching inbound shipments from SP-API: ${errorMessage}`, error);
+    console.error(
+      `Error fetching inbound shipments from SP-API: ${errorMessage}`,
+      error,
+    );
     return null;
   }
 };
@@ -410,20 +479,33 @@ export const requestReport = async (
       body: body,
     });
 
-    const typedReportRequestResponse = reportRequestResponse as CreateReportResponse;
+    const typedReportRequestResponse =
+      reportRequestResponse as CreateReportResponse;
     if (typedReportRequestResponse?.payload?.reportId) {
-      console.log('Report request initiated (payload):', typedReportRequestResponse.payload.reportId);
+      console.log(
+        'Report request initiated (payload):',
+        typedReportRequestResponse.payload.reportId,
+      );
       return typedReportRequestResponse.payload.reportId;
     } else if (typedReportRequestResponse?.reportId) {
-      console.log('Report request initiated (top-level):', typedReportRequestResponse.reportId);
+      console.log(
+        'Report request initiated (top-level):',
+        typedReportRequestResponse.reportId,
+      );
       return typedReportRequestResponse.reportId;
     } else {
-      console.warn('Unexpected response structure for requestReport:', reportRequestResponse);
+      console.warn(
+        'Unexpected response structure for requestReport:',
+        reportRequestResponse,
+      );
       return null; // Return null for unexpected structure on initiation
     }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error requesting report from SP-API: ${errorMessage}`, error);
+    console.error(
+      `Error requesting report from SP-API: ${errorMessage}`,
+      error,
+    );
     return null;
   }
 };
@@ -448,17 +530,24 @@ export const getReportDocument = async (
       },
     });
 
-    const typedReportDocumentResponse = reportDocumentResponse as GetReportDocumentResponse;
+    const typedReportDocumentResponse =
+      reportDocumentResponse as GetReportDocumentResponse;
     if (typedReportDocumentResponse?.payload) {
       console.log('Fetched report document (payload found).');
       return typedReportDocumentResponse.payload;
     } else {
-      console.warn('Unexpected or empty response structure for getReportDocument:', reportDocumentResponse);
+      console.warn(
+        'Unexpected or empty response structure for getReportDocument:',
+        reportDocumentResponse,
+      );
       return null; // Return null for unexpected structure
     }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error retrieving report document from SP-API: ${errorMessage}`, error);
+    console.error(
+      `Error retrieving report document from SP-API: ${errorMessage}`,
+      error,
+    );
     return null;
   }
 };
@@ -468,15 +557,13 @@ export const getReportDocument = async (
  * @param params Parameters including marketplaceId, date range, and optional order ID.
  * @returns A promise resolving with an array of financial events, an empty array if no data or unexpected structure, or null on API error.
  */
-export const fetchFinancialEvents = async (
-  params: {
-    marketplaceId: string; // Marketplace ID is required by the API
-    postedAfter?: string; // ISO 8601 date
-    postedBefore?: string; // ISO 8601 date
-    amazonOrderId?: string;
-    maxResultsPerPage?: number; // Allow consumer to specify page size
-  },
-): Promise<FinancialEvent[] | null> => {
+export const fetchFinancialEvents = async (params: {
+  marketplaceId: string; // Marketplace ID is required by the API
+  postedAfter?: string; // ISO 8601 date
+  postedBefore?: string; // ISO 8601 date
+  amazonOrderId?: string;
+  maxResultsPerPage?: number; // Allow consumer to specify page size
+}): Promise<FinancialEvent[] | null> => {
   try {
     const client = getSpApiClient();
     // SP-API Finances API query params use PascalCase
@@ -502,20 +589,33 @@ export const fetchFinancialEvents = async (
       query: query,
     });
 
-    const typedFinancialEventsResponse = financialEventsResponse as ListFinancialEventsResponse;
+    const typedFinancialEventsResponse =
+      financialEventsResponse as ListFinancialEventsResponse;
     if (typedFinancialEventsResponse?.payload?.FinancialEvents) {
-      console.log('Fetched financial events (payload):', typedFinancialEventsResponse.payload.FinancialEvents.length);
+      console.log(
+        'Fetched financial events (payload):',
+        typedFinancialEventsResponse.payload.FinancialEvents.length,
+      );
       return typedFinancialEventsResponse.payload.FinancialEvents;
     } else if (typedFinancialEventsResponse?.FinancialEvents) {
-      console.log('Fetched financial events (top-level):', typedFinancialEventsResponse.FinancialEvents.length);
+      console.log(
+        'Fetched financial events (top-level):',
+        typedFinancialEventsResponse.FinancialEvents.length,
+      );
       return typedFinancialEventsResponse.FinancialEvents;
     } else {
-      console.warn('Unexpected or empty response structure for fetchFinancialEvents:', financialEventsResponse);
+      console.warn(
+        'Unexpected or empty response structure for fetchFinancialEvents:',
+        financialEventsResponse,
+      );
       return [];
     }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error fetching financial events from SP-API: ${errorMessage}`, error);
+    console.error(
+      `Error fetching financial events from SP-API: ${errorMessage}`,
+      error,
+    );
     return null;
   }
 };
@@ -546,7 +646,9 @@ export const fetchProductPricing = async (
       query.Skus = skus;
       query.ItemType = 'Sku';
     } else {
-      console.warn('Provide either an array of ASINs or an array of SKUs, but not both, for fetchProductPricing.');
+      console.warn(
+        'Provide either an array of ASINs or an array of SKUs, but not both, for fetchProductPricing.',
+      );
       return [];
     }
 
@@ -558,7 +660,8 @@ export const fetchProductPricing = async (
     // Note: The response structure for getCompetitivePricing might differ slightly
     // based on whether you query by ASIN or SKU and the details requested.
     // The type GetCompetitivePricingResponse should guide the structure.
-    const typedProductPricingResponse = productPricingResponse as GetCompetitivePricingResponse;
+    const typedProductPricingResponse =
+      productPricingResponse as GetCompetitivePricingResponse;
 
     // The competitive pricing response usually has 'Product' elements at the root level,
     // not typically wrapped in 'payload' or a list property named 'ProductPricing'.
@@ -570,26 +673,37 @@ export const fetchProductPricing = async (
     // The original code checked for 'ProductPricing' property. Let's trust the original intent
     // and the imported GetCompetitivePricingResponse type definition, but be aware it might need adjustment.
     if (typedProductPricingResponse?.payload?.ProductPricing) {
-        console.log('Fetched product pricing (payload):', typedProductPricingResponse.payload.ProductPricing.length);
-        // Cast might be needed depending on the exact type definition structure
-        return typedProductPricingResponse.payload.ProductPricing as ProductPricing[];
+      console.log(
+        'Fetched product pricing (payload):',
+        typedProductPricingResponse.payload.ProductPricing.length,
+      );
+      // Cast might be needed depending on the exact type definition structure
+      return typedProductPricingResponse.payload
+        .ProductPricing as ProductPricing[];
     } else if (typedProductPricingResponse?.ProductPricing) {
-        console.log('Fetched product pricing (top-level):', typedProductPricingResponse.ProductPricing.length);
-         return typedProductPricingResponse.ProductPricing as ProductPricing[];
+      console.log(
+        'Fetched product pricing (top-level):',
+        typedProductPricingResponse.ProductPricing.length,
+      );
+      return typedProductPricingResponse.ProductPricing as ProductPricing[];
+    } else {
+      console.warn(
+        'Unexpected or empty response structure for fetchProductPricing:',
+        productPricingResponse,
+      );
+      // Depending on the exact structure, you might need to iterate over results differently
+      // e.g., if the items are directly at the top level or under a different key.
+      // Example: if response was [{ Asin: '...', CompetitivePricing: { ... } }, ...]
+      // you'd extract and map. But based on GetCompetitivePricingResponse name and original code,
+      // assuming the list is directly accessible.
+      return [];
     }
-    else {
-        console.warn('Unexpected or empty response structure for fetchProductPricing:', productPricingResponse);
-        // Depending on the exact structure, you might need to iterate over results differently
-        // e.g., if the items are directly at the top level or under a different key.
-        // Example: if response was [{ Asin: '...', CompetitivePricing: { ... } }, ...]
-        // you'd extract and map. But based on GetCompetitivePricingResponse name and original code,
-        // assuming the list is directly accessible.
-        return [];
-    }
-
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error fetching product pricing from SP-API: ${errorMessage}`, error);
+    console.error(
+      `Error fetching product pricing from SP-API: ${errorMessage}`,
+      error,
+    );
     return null;
   }
 };

@@ -398,7 +398,7 @@ export interface OrderItem {
   CODFeeDiscount?: {
     CurrencyCode: string;
     Amount: string;
-    };
+  };
   IsGift: boolean;
   GiftMessageText?: string;
   GiftWrapPrice?: {
