@@ -135,3 +135,5 @@ __mocks__/
 
 .vercel
 .env*.local
+
+.vercel
