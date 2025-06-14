@@ -1,236 +1,194 @@
-const DB_NAME = 'crmDatabase';
-const DB_VERSION = 2;
-const OBJECT_STORE_NAME = 'customers';
+import { db } from './indexeddb-service';
+import type { Contact } from '@/app/crm/types';
+import type { Category } from '@/types/indexeddb';
 
-interface Category {
+// Original Category interface (compatible with imported Category)
+interface LocalCategory {
   id: string;
   name: string;
 }
 
+// Original Customer interface, will be mapped to Contact
 interface Customer {
   id: string;
   name: string;
   email: string;
   phone: string;
   notes: string;
-  category: string | null;
+  category: string | null; // Mapped to category?: string in Contact
 }
 
-const openDB = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
+// Helper for logging errors consistently
+function logError(error: unknown, message: string, operation: string) {
+  console.error(`IndexedDB Operation Error (${operation}): ${message}`, error);
+}
 
-    request.onerror = (event) => {
-      console.error('IndexedDB error:', event);
-      reject(new Error('Failed to open IndexedDB'));
+export const addCustomer = async (customer: Customer): Promise<void> => {
+  const contactData: Contact = {
+    id: customer.id || crypto.randomUUID(), // Ensure ID exists or generate
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone,
+    notes: customer.notes,
+    category: customer.category === null ? undefined : customer.category,
+    company: '', // Default for missing field in Customer interface
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    lastActivity: Date.now(),
+  };
+  try {
+    await db.crmContacts.add(contactData);
+  } catch (error) {
+    logError(error, `Failed to add customer: ${customer.name}`, 'addCustomer');
+    throw new Error('Failed to add customer');
+  }
+};
+
+export const updateCustomer = async (customer: Customer): Promise<void> => {
+  // Ensure the customer object conforms to Contact for updating
+  // For a 'put' operation, it's best to provide the full object structure expected by the table
+  // or fetch existing, merge, and then put.
+  // This example assumes 'customer' can be safely cast or mapped.
+  const contactData: Contact = {
+    // Map all fields from Customer to Contact, ensuring required Contact fields are present
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    phone: customer.phone,
+    notes: customer.notes,
+    category: customer.category === null ? undefined : customer.category,
+    company: '', // Assuming default or fetch existing if this field should be preserved
+    createdAt: Date.now(), // This should ideally be preserved from original record
+    updatedAt: Date.now(),
+    // lastActivity might also need to be preserved or updated
+  };
+  try {
+    // Fetch existing contact to preserve fields not in Customer interface like createdAt, company
+    const existingContact = await db.crmContacts.get(customer.id);
+    if (!existingContact) {
+      throw new Error(`Customer with id ${customer.id} not found for update.`);
+    }
+    const updatedContactData: Contact = {
+      ...existingContact,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      notes: customer.notes,
+      category: customer.category === null ? undefined : customer.category,
+      updatedAt: Date.now(),
+      lastActivity: Date.now(),
     };
-
-    request.onsuccess = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      console.log('IndexedDB opened successfully:', db.objectStoreNames);
-      resolve(db);
-    };
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-
-      if (!db.objectStoreNames.contains(OBJECT_STORE_NAME)) {
-        const objectStore = db.createObjectStore(OBJECT_STORE_NAME, {
-          keyPath: 'id',
-        });
-        objectStore.createIndex('name', 'name', { unique: false });
-        objectStore.createIndex('email', 'email', { unique: false });
-        objectStore.createIndex('phone', 'phone', { unique: false });
-        objectStore.createIndex('category', 'category', { unique: false });
-      }
-
-      if (!db.objectStoreNames.contains('categories')) {
-        console.log('Creating categories object store');
-        const categoriesObjectStore = db.createObjectStore('categories', {
-          keyPath: 'id',
-        });
-        categoriesObjectStore.createIndex('name', 'name', { unique: false });
-      }
-    };
-  });
+    await db.crmContacts.put(updatedContactData);
+  } catch (error) {
+    logError(
+      error,
+      `Failed to update customer: ${customer.name}`,
+      'updateCustomer',
+    );
+    throw new Error('Failed to update customer');
+  }
 };
 
-const addCustomer = async (customer: Customer): Promise<void> => {
-  const db = await openDB();
-  console.log('Adding customer:', customer);
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-    const objectStore = transaction.objectStore(OBJECT_STORE_NAME);
-    const request = objectStore.add({ ...customer });
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error('Failed to add customer'));
-
-    transaction.oncomplete = () => db.close();
-  });
+export const deleteCustomer = async (id: string): Promise<void> => {
+  try {
+    await db.crmContacts.delete(id);
+  } catch (error) {
+    logError(
+      error,
+      `Failed to delete customer with id: ${id}`,
+      'deleteCustomer',
+    );
+    throw new Error('Failed to delete customer');
+  }
 };
 
-const updateCustomer = async (customer: Customer): Promise<void> => {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-    const objectStore = transaction.objectStore(OBJECT_STORE_NAME);
-    const request = objectStore.put({ ...customer });
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error('Failed to update customer'));
-
-    transaction.oncomplete = () => db.close();
-  });
+export const getCustomer = async (id: string): Promise<Contact | undefined> => {
+  try {
+    return await db.crmContacts.get(id);
+  } catch (error) {
+    logError(error, `Failed to get customer with id: ${id}`, 'getCustomer');
+    throw new Error('Failed to get customer');
+  }
 };
 
-const deleteCustomer = async (id: string): Promise<void> => {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(OBJECT_STORE_NAME, 'readwrite');
-    const objectStore = transaction.objectStore(OBJECT_STORE_NAME);
-    const request = objectStore.delete(id);
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error('Failed to delete customer'));
-
-    transaction.oncomplete = () => db.close();
-  });
+export const getAllCustomers = async (): Promise<Contact[]> => {
+  try {
+    return await db.crmContacts.toArray();
+  } catch (error) {
+    logError(error, 'Failed to get all customers', 'getAllCustomers');
+    throw new Error('Failed to get all customers');
+  }
 };
 
-const getCustomer = async (id: string): Promise<Customer | undefined> => {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(OBJECT_STORE_NAME, 'readonly');
-    const objectStore = transaction.objectStore(OBJECT_STORE_NAME);
-    const request = objectStore.get(id);
-
-    request.onsuccess = (event) => {
-      resolve((event.target as IDBRequest).result as Customer);
-    };
-    request.onerror = () => reject(new Error('Failed to get customer'));
-
-    transaction.oncomplete = () => db.close();
-  });
+export const addCategory = async (category: LocalCategory): Promise<void> => {
+  const categoryData: Category = {
+    // Use the imported Category type
+    id: category.id || crypto.randomUUID(),
+    name: category.name,
+  };
+  try {
+    await db.crmCategories.add(categoryData);
+  } catch (error) {
+    logError(error, `Failed to add category: ${category.name}`, 'addCategory');
+    throw new Error('Failed to add category');
+  }
 };
 
-const getAllCustomers = async (): Promise<Customer[]> => {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(OBJECT_STORE_NAME, 'readonly');
-    const objectStore = transaction.objectStore(OBJECT_STORE_NAME);
-    const request = objectStore.getAll();
-
-    request.onsuccess = (event) => {
-      resolve((event.target as IDBRequest).result as Customer[]);
-    };
-    request.onerror = () => reject(new Error('Failed to get all customers'));
-
-    transaction.oncomplete = () => db.close();
-  });
+export const updateCategory = async (
+  category: LocalCategory,
+): Promise<void> => {
+  const categoryData: Category = {
+    // Use the imported Category type
+    id: category.id,
+    name: category.name,
+  };
+  try {
+    await db.crmCategories.put(categoryData);
+  } catch (error) {
+    logError(
+      error,
+      `Failed to update category: ${category.name}`,
+      'updateCategory',
+    );
+    throw new Error('Failed to update category');
+  }
 };
 
-const addCategory = async (category: Category): Promise<void> => {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('categories', 'readwrite');
-    const objectStore = transaction.objectStore('categories');
-    const request = objectStore.add({ ...category });
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error('Failed to add category'));
-
-    transaction.oncomplete = () => db.close();
-  });
+export const deleteCategory = async (id: string): Promise<void> => {
+  try {
+    await db.crmCategories.delete(id);
+  } catch (error) {
+    logError(
+      error,
+      `Failed to delete category with id: ${id}`,
+      'deleteCategory',
+    );
+    throw new Error('Failed to delete category');
+  }
 };
 
-const updateCategory = async (category: Category): Promise<void> => {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('categories', 'readwrite');
-    const objectStore = transaction.objectStore('categories');
-    const request = objectStore.put({ ...category });
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error('Failed to update category'));
-
-    transaction.oncomplete = () => db.close();
-  });
+export const getCategory = async (
+  id: string,
+): Promise<Category | undefined> => {
+  try {
+    return await db.crmCategories.get(id);
+  } catch (error) {
+    logError(error, `Failed to get category with id: ${id}`, 'getCategory');
+    throw new Error('Failed to get category');
+  }
 };
 
-const deleteCategory = async (id: string): Promise<void> => {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('categories', 'readwrite');
-    const objectStore = transaction.objectStore('categories');
-    const request = objectStore.delete(id);
-
-    request.onsuccess = () => resolve();
-    request.onerror = () => reject(new Error('Failed to delete category'));
-
-    transaction.oncomplete = () => db.close();
-  });
-};
-
-const getCategory = async (id: string): Promise<Category | undefined> => {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('categories', 'readonly');
-    const objectStore = transaction.objectStore('categories');
-    const request = objectStore.get(id);
-
-    request.onsuccess = (event) => {
-      resolve((event.target as IDBRequest).result as Category);
-    };
-    request.onerror = () => reject(new Error('Failed to get category'));
-
-    transaction.oncomplete = () => db.close();
-  });
-};
-
-const getAllCategories = async (): Promise<Category[]> => {
-  const db = await openDB();
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction('categories', 'readonly');
-    const objectStore = transaction.objectStore('categories');
-    const request = objectStore.getAll();
-
-    request.onsuccess = (event) => {
-      resolve((event.target as IDBRequest).result as Category[]);
-    };
-    request.onerror = () => reject(new Error('Failed to get all categories'));
-
-    transaction.oncomplete = () => db.close();
-  });
+export const getAllCategories = async (): Promise<Category[]> => {
+  try {
+    return await db.crmCategories.toArray();
+  } catch (error) {
+    logError(error, 'Failed to get all categories', 'getAllCategories');
+    throw new Error('Failed to get all categories');
+  }
 };
 
 // These functions are not needed anymore, but we need to keep them to avoid errors
-const getItem = (): null => {
-  console.warn('getItem is deprecated');
-  return null;
-};
-
-const setItem = (): void => {
-  console.warn('setItem is deprecated');
-};
-
-const removeItem = (): void => {
-  console.warn('removeItem is deprecated');
-};
-
-export {
-  openDB,
-  addCustomer,
-  updateCustomer,
-  deleteCustomer,
-  getCustomer,
-  getAllCustomers,
-  addCategory,
-  updateCategory,
-  deleteCategory,
-  getCategory,
-  getAllCategories,
-  getItem,
-  setItem,
-  removeItem,
-};
+// Deprecated functions are removed as per refactoring plan.
+// If they were truly needed for some obscure reason, they would be reimplemented
+// using the new db instance or by calling generic helpers from indexeddb-service.ts.
+// For this refactoring, they are considered obsolete.

@@ -1,71 +1,72 @@
 'use client';
 
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { useSearchParams } from 'next/navigation';
-import Logo from '@/components/Logo';
-import LoginForm from './login-form';
-import { signIn, signUp, forgotPassword, mfaVerify } from '../auth/actions'; // Assuming mfaVerify is the action
-import { DevLogin } from './dev-login';
-
-const PRIVACY_POLICY_HREF = '/privacy-policy';
-const TERMS_OF_SERVICE_HREF = '/terms-of-service';
-
-const SEARCH_PARAM_ERROR_KEY = 'error';
-const SEARCH_PARAM_MESSAGE_KEY = 'message';
+import { useState } from 'react';
+import { authenticate } from './actions';
 
 export default function LoginPage() {
-  const searchParams = useSearchParams();
-  const errorMessage = searchParams.get(SEARCH_PARAM_ERROR_KEY);
-  const infoMessage = searchParams.get(SEARCH_PARAM_MESSAGE_KEY);
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+    const formData = new FormData(event.currentTarget);
+    const result = await authenticate(null, formData);
+    if (result && result.message) {
+      setMessage(result.message);
+    }
+    setIsSubmitting(false);
+  };
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 bg-background">
-      <Card className="w-full max-w-md rounded-lg shadow-lg overflow-hidden">
-        <CardHeader className="text-center py-8 px-6">
-          <div className="mb-4 flex flex-col items-center space-y-3">
-            <Logo className="h-16 w-16 text-primary mb-2" />
-            <CardTitle className="text-3xl font-bold tracking-tight">
-              Login to Your Account
-            </CardTitle>
-            <CardDescription className="text-sm text-muted-foreground px-4 leading-relaxed">
-              Begin by entering your email to log in or create a new account.
-            </CardDescription>
-          </div>
-
-          {(errorMessage || infoMessage) && (
-            <div
-              className="my-4 space-y-2 px-4 sm:px-0"
-              role="status"
-              aria-live="polite"
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="px-8 py-6 mx-4 mt-4 text-left bg-white shadow-lg rounded-lg md:w-1/3 lg:w-1/3">
+        <h3 className="text-2xl font-bold text-center">Login</h3>
+        <form onSubmit={handleSubmit} className="mt-4">
+          <div className="mt-4">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="email"
             >
-              {errorMessage && (
-                <p className="rounded-md bg-destructive/15 p-3 text-sm text-destructive border border-destructive/30">
-                  {errorMessage}
-                </p>
-              )}
-              {infoMessage && (
-                <p className="rounded-md bg-muted/50 p-3 text-sm text-foreground border">
-                  {infoMessage}
-                </p>
-              )}
-            </div>
-          )}
-        </CardHeader>
-        <LoginForm
-          signInAction={signIn}
-          signUpAction={signUp}
-          forgotPasswordAction={forgotPassword}
-          mfaVerifyAction={mfaVerify}
-          privacyPolicyHref={PRIVACY_POLICY_HREF}
-          termsOfServiceHref={TERMS_OF_SERVICE_HREF}
-        />
-      </Card>
-      {process.env.NODE_ENV === 'development' && <DevLogin />}
-    </main>
+              Email
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="email"
+              type="email"
+              name="email"
+              placeholder="Email"
+              required
+            />
+          </div>
+          <div className="mt-4">
+            <label
+              className="block text-gray-700 text-sm font-bold mb-2"
+              htmlFor="password"
+            >
+              Password
+            </label>
+            <input
+              className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+              id="password"
+              type="password"
+              name="password"
+              placeholder="Password"
+              required
+            />
+          </div>
+          <div className="mt-6">
+            <button
+              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Logging in...' : 'Login'}
+            </button>
+          </div>
+          {message && <p className="text-red-500 mt-2">{message}</p>}
+        </form>
+      </div>
+    </div>
   );
 }

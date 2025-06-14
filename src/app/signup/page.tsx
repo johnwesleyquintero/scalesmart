@@ -17,7 +17,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
 import { z } from 'zod';
-import { signUp } from '../auth/actions'; // Assuming signUp is the action
+import { signUp } from '@/app/signup/actions';
 import Logo from '@/components/Logo';
 import { PasswordStrengthIndicator } from '../login/login-helper-components'; // Re-use password strength indicator
 import { ServerActionResult } from '../login/login-types'; // Import ServerActionResult

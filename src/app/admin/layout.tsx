@@ -1,4 +1,3 @@
-import { getUserWithProfile } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import React from 'react';
 import { cookies } from 'next/headers'; // Import cookies
@@ -8,24 +7,7 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, profile, error } = await getUserWithProfile();
-
-  // Handle potential errors during fetching
-  if (error) {
-    console.error(
-      'Error fetching user or profile for admin page:',
-      error.message,
-    );
-    // Redirect to an error page or login page
-    redirect('/login?message=Error fetching user data.');
-  }
-
-  // Check if user exists and has the 'admin' role
-  // Current role check (line 24)
-  if (!user || !profile || profile.role !== 'admin') {
-    redirect('/login?message=No admin permission');
-  }
-
-  // If authorized, render the children
+  // Temporarily remove authorization logic as Supabase is being removed.
+  // In a real application, you would replace this with your new authentication/authorization system.
   return <>{children}</>;
 }

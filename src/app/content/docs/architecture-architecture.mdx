@@ -17,7 +17,7 @@ This project is built using the Next.js framework, leveraging its capabilities f
 
 - **Frontend (UI/UX):** Developed with React.js components and Next.js for server-side rendering (SSR) and static site generation (SSG) where appropriate, ensuring a fast and responsive user experience.
 - **Backend (API Routes):** Implemented using Next.js API routes (`src/app/api/**/*.ts`), serving as the interface for client-side requests and handling business logic. These routes interact with external services and the database.
-- **Database:** Supabase serves as the primary data store, offering a PostgreSQL database, authentication services, and real-time capabilities. This choice provides a robust and scalable backend foundation.
+- **Database:** A PostgreSQL database serves as the primary data store, offering a robust and scalable backend foundation.
 - **Authentication:** Managed via NextAuth.js, integrated with GitHub OAuth for secure user registration and sign-in.
 - **Content Management:** Markdown (`.mdx`) files are used for documentation and blog content, providing a flexible and developer-friendly way to manage static content.
 
@@ -40,7 +40,7 @@ This section details the implementation of user registration and sign-in, includ
 3.  **GitHub Authentication**: The user authenticates directly with GitHub, granting permission for the application to access their profile information.
 4.  **Authorization Code Callback**: GitHub redirects the user back to the application's NextAuth.js callback URL (e.g., `/api/auth/callback/github`) with an authorization code.
 5.  **Token Exchange & Profile Retrieval**: NextAuth.js intercepts this callback, exchanges the authorization code for an access token with GitHub, and retrieves the user's profile information (e.g., email, name, image).
-6.  **User Synchronization (Database)**: NextAuth.js interacts with the Supabase adapter (`@next-auth/supabase-adapter`) to check for an existing user. If the user does not exist, a new user record is created in the database.
+6.  **User Synchronization (Database)**: NextAuth.js interacts with its adapter to check for an existing user. If the user does not exist, a new user record is created in the database.
 7.  **Session Creation**: A secure session is established for the authenticated user, typically stored as a cookie.
 8.  **Application Redirection**: The user is finally redirected to the main application, now authenticated and ready to access protected content.
 
@@ -72,7 +72,7 @@ The `User` model is central to authentication and user management:
 
 ### 2.5 Database Schema
 
-Supabase (PostgreSQL) is the chosen database. The `users` table is fundamental for storing user authentication and profile data, seamlessly integrated via the `@next-auth/supabase-adapter`.
+A PostgreSQL database is the chosen database. The `users` table is fundamental for storing user authentication and profile data, seamlessly integrated via the NextAuth.js adapter.
 
 ```sql
 -- Example users table schema

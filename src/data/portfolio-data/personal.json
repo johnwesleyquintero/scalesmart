@@ -20,7 +20,7 @@
   },
   "expertise": {
     "technicalExpert": ["Data Analytics", "Programming", "ML", "DB Management"],
-    "technicalAdvanced": ["Python/R/JS", "AI Automation", "SQL/Supabase"],
+    "technicalAdvanced": ["Python/R/JS", "AI Automation", "SQL"],
     "softSkills": ["Leadership", "Client Relations", "Problem Solving"]
   }
 }

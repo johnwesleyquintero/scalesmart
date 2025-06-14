@@ -24,7 +24,7 @@
       "description": "The Admin Page (src/app/admin/page.tsx) is the main page for the admin section of the application.",
       "category": "admin",
       "order": 0,
-      "tags": ["admin", "page", "authentication", "authorization", "supabase"],
+      "tags": ["admin", "page", "authentication", "authorization"],
       "date": "2025-06-05"
     },
     {
@@ -88,7 +88,7 @@
       "category": "api",
       "order": 2,
       "tags": [],
-      "date": "2025-06-09"
+      "date": "2025-06-14"
     },
     {
       "slug": "api-amazon-competitor-analysis",
@@ -421,7 +421,7 @@
       "category": "getting-started",
       "order": 0,
       "tags": [],
-      "date": "2025-06-09"
+      "date": "2025-06-14"
     },
     {
       "slug": "prerequisites",
@@ -583,15 +583,6 @@
       "category": "Uncategorized",
       "order": 0,
       "tags": ["page", "general", "structure"],
-      "date": "2025-06-01"
-    },
-    {
-      "slug": "supabase",
-      "title": "Supabase Integration Documentation",
-      "description": "Documentation related to Supabase integration, including RLS (Row Level Security) policies.",
-      "category": "Uncategorized",
-      "order": 0,
-      "tags": ["supabase", "database", "authentication", "rls", "postgresql"],
       "date": "2025-06-01"
     },
     {

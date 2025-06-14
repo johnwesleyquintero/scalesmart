@@ -3,7 +3,12 @@ import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
 import { QuizResult, Course } from '@/types'; // Import QuizResult and Course from '@/types'
 import { Contact, CommunicationLog, ActivityLog } from '@/app/crm/types'; // Import CRM types
-import { Category } from '@/types/indexeddb'; // Import Category from '@/types/indexeddb'
+import {
+  Category,
+  Note,
+  MarkdownNoteVersion,
+  AmazonReport,
+} from '@/types/indexeddb'; // Import Category, Note, MarkdownNoteVersion, AmazonReport from '@/types/indexeddb'
 import {
   ChatMessageRecord,
   ModuleProgressRecord,
@@ -29,95 +34,94 @@ export type {
   ModuleProgressRecord,
   QuizResultRecord,
   Course,
+  Note,
+  MarkdownNoteVersion,
+  AmazonReport,
 };
 
 // Define constants for duplicate strings
 const ERROR_MESSAGE_PREFIX = 'IndexedDBService';
-const DB_OPEN_FAILED = 'Failed to open ChatAppDatabase';
-const DB_INITIALIZED = 'ChatAppDatabase initialized and opened successfully';
-const DB_ALREADY_OPEN = 'ChatAppDatabase is already open';
+const DB_OPEN_FAILED = 'Failed to open ScaleSmartDatabase';
+const DB_INITIALIZED = 'ScaleSmartDatabase initialized and opened successfully';
+const DB_ALREADY_OPEN = 'ScaleSmartDatabase is already open';
 const DB_OPERATION_FAILED = 'operation failed';
 
-class ChatDatabase extends Dexie {
+class ScaleSmartDatabase extends Dexie {
+  // Chat Interface
   public chatMessages!: Table<ChatMessageRecord, number>;
   public cache!: Table<{ key: string; value: unknown }, string>;
+
+  // Calendar Events
   public events!: Table<Event, number>;
-  public contacts!: Table<Contact, string>;
+
+  // CRM
+  public crmContacts!: Table<Contact, string>;
+  public crmCategories!: Table<Category, string>;
+  public crmCommunicationLogs!: Table<CommunicationLog, string>;
+  public crmActivityLogs!: Table<ActivityLog, string>;
+  public crmEmailTemplates!: Table<{ id: string; name: string }, string>; // Assuming a simple structure for email templates
+
+  // Project Management
   public tasks!: Table<Task, string>;
   public projects!: Table<Project, string>;
-  public categories!: Table<Category, string>;
-  public communicationLogs!: Table<CommunicationLog, string>;
-  public activityLogs!: Table<ActivityLog, string>; // New table for activity logs
+  public taskComments!: Table<TaskComment, string>;
+
+  // Academy
   public courses!: Table<Course, string>;
   public moduleProgress!: Table<ModuleProgressRecord, [string, string, string]>;
   public quizResults!: Table<QuizResultRecord, [string, string]>;
+
+  // Amazon Seller Tools
   public calculations!: Table<CalculationData, string>;
-  public taskComments!: Table<TaskComment, string>;
+  public amazonReports!: Table<AmazonReport, string>; // New table for Amazon reports
+
+  // Markdown Notepad
+  public markdownNotes!: Table<Note, string>;
+  public markdownNoteVersions!: Table<MarkdownNoteVersion, number>;
 
   constructor() {
-    super('ChatAppDatabase');
-    this.version(1).stores({
+    super('ScaleSmartDatabase');
+    this.version(18).stores({
+      // Chat Interface
       chatMessages: '++id, chatSessionId, timestamp, sender',
-    });
-    this.version(2).stores({
       cache: 'key',
-    });
-    this.version(3).stores({
+
+      // Calendar Events
       events: '++id, date',
-    });
-    this.version(4).stores({
-      contacts:
-        'id, name, email, phone, company, notes, category, createdAt, updatedAt',
-    });
-    this.version(5).stores({
-      tasks:
-        'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority',
-    });
-    this.version(6).stores({
-      projects: 'id, name, description, createdAt, updatedAt',
-    });
-    this.version(7).stores({
-      categories: 'id, name',
-    });
-    this.version(8).stores({
-      courses:
-        'id, title, description, duration, level, metadata.category, metadata.tags, createdAt, updatedAt',
-    });
-    this.version(9).stores({
-      moduleProgress:
-        '[userId+courseId+moduleId], userId, courseId, moduleId, progress, lastUpdated',
-    });
-    this.version(10).stores({
-      communicationLogs: 'id, customerId, type, date, subject, notes',
-    });
-    this.version(11).stores({
-      tasks:
-        'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order',
-    });
-    this.version(12).stores({
-      quizResults: '[userId+moduleId], userId, moduleId, result, lastUpdated',
-    });
-    this.version(13).stores({
-      calculations: 'id, campaignName, date',
-    });
-    this.version(14).stores({});
-    this.version(15).stores({
-      taskComments: 'id, taskId, createdAt, userId', // Changed index to improve query performance
-    });
-    this.version(16).stores({
+
+      // CRM
       'crm-contacts':
-        'id, name, email, phone, company, notes, category, createdAt, updatedAt',
+        'id, name, email, phone, company, notes, category, createdAt, updatedAt, lastActivity', // Added lastActivity
       'crm-categories': 'id, name',
       'crm-communication-logs': 'id, customerId, type, date, subject, notes',
-      'crm-activity-logs': 'id, contactId, type, date, notes', // New store for activity logs
-    });
-    this.version(17).stores({
+      'crm-activity-logs': 'id, contactId, type, date, notes',
       'crm-email-templates': 'id, name',
+
+      // Project Management
+      tasks:
+        'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order',
+      projects: 'id, name, description, createdAt, updatedAt, status', // Added status
+
+      // Academy
+      courses:
+        'id, title, description, duration, level, metadata.category, metadata.tags, createdAt, updatedAt',
+      moduleProgress:
+        '[userId+courseId+moduleId], userId, courseId, moduleId, progress, lastUpdated',
+      quizResults: '[userId+moduleId], userId, moduleId, result, lastUpdated',
+
+      // Amazon Seller Tools
+      calculations: 'id, campaignName, date',
+      amazonReports: 'id, fileName, category, uploadDate', // Schema for Amazon reports
+
+      // Markdown Notepad
+      markdownNotes: 'id, title, category, createdAt, updatedAt', // Added title
+      markdownNoteVersions: '++id, noteId, timestamp', // For version history
+      taskComments: 'id, taskId, createdAt, userId',
     });
   }
 }
 
-export const db = new ChatDatabase();
+export const db = new ScaleSmartDatabase();
 
 export const initializeDB = async (): Promise<void> => {
   try {
@@ -135,7 +139,7 @@ export const initializeDB = async (): Promise<void> => {
   } catch (error) {
     logError(
       error,
-      `Failed to initialize ChatAppDatabase`,
+      `Failed to initialize ScaleSmartDatabase`,
       ERROR_MESSAGE_PREFIX,
     );
     throw error;
@@ -156,7 +160,9 @@ export async function setItem<T>(
   try {
     // Use the correct table based on storeName
     const table = db.table(storeName);
-    await table.put(value, key);
+    // Ensure the value object contains the key, especially for stores with in-line keys
+    const valueWithKey = { ...value, id: key };
+    await table.put(valueWithKey);
   } catch (error) {
     logError(
       error,
@@ -717,7 +723,7 @@ export const getCommunicationLogsByCustomerId = async (
   customerId: string,
 ): Promise<CommunicationLog[]> => {
   try {
-    const logs = await db.communicationLogs
+    const logs = await db.crmCommunicationLogs
       .where('customerId')
       .equals(customerId)
       .sortBy('date');

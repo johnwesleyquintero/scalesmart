@@ -189,7 +189,6 @@ const DOC_CATEGORY_ORDER = [
   'layout',
   'loading',
   'not-found',
-  'supabase',
 ];
 
 export default function DocsSidebar() {

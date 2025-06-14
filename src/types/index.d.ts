@@ -3,7 +3,6 @@ declare module 'src/lib/ai-config';
 declare module 'src/lib/analytics';
 declare module 'src/lib/api-key-management';
 declare module 'src/lib/config';
-declare module 'src/lib/supabase';
 declare module 'src/lib/amazon-tools/api-client';
 declare module 'src/lib/amazon-tools/keyword-trend-service';
 declare module 'src/middleware';

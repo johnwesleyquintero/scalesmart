@@ -64,7 +64,6 @@ Files and directories should be organized logically to reflect their domain and 
 - **`lib/`**: Root-level utility functions or configurations that are not specific to the `src` directory.
 - **`public/`**: Static assets served directly by the web server (e.g., images, fonts, manifest files).
 - **`scripts/`**: Standalone utility scripts for development, build processes, or maintenance tasks.
-- **`supabase/`**: Supabase-related configurations, migrations, and database schema definitions.
 - **`src/actions/`**: Contains server actions for Next.js.
 - **`src/app/`**: Holds Next.js App Router specific pages, layouts, and API routes.
 - **`src/app/layout.tsx`**: The main layout file, serving as the primary navigator and structural component for the application.
