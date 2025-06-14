@@ -48,11 +48,7 @@ export default async function handler(
     });
 
     // Get AI-driven recommendation using the specific feature configuration
-    // Note: The getAIDrivenRecommendation function currently uses the default model config.
-    // We might need to modify getAIDrivenRecommendation or create a new function
-    // to use feature-specific configurations like AI_FEATURES.productOpportunityScoring.config
-    // For now, we'll use the existing function which uses the default config.
-    // TODO: Refactor getAIDrivenRecommendation to accept a specific feature config.
+
     const recommendation = await getAIDrivenRecommendation(
       prompt,
       AI_FEATURES.productOpportunityScoring.config, // Pass the specific feature config

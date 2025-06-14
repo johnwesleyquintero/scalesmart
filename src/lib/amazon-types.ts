@@ -308,9 +308,262 @@ export interface CatalogItem {
 }
 
 export interface SearchCatalogItemsResponse {
-  items?: CatalogItem[];
+  payload?: {
+    items?: CatalogItem[];
+    pagination?: {
+      nextToken?: string;
+    };
+  };
+  items?: CatalogItem[]; // Direct access for backward compatibility or alternative response structure
   pagination?: {
     nextToken?: string;
   };
-  // Add other response properties as needed
+}
+
+export interface Order {
+  AmazonOrderId: string;
+  PurchaseDate: string;
+  LastUpdateDate: string;
+  OrderStatus: string;
+  FulfillmentChannel: string;
+  SalesChannel: string;
+  OrderChannel: string;
+  ShipServiceLevel: string;
+  ShippingAddress?: {
+    Name: string;
+    AddressLine1: string;
+    City: string;
+    StateOrRegion: string;
+    PostalCode: string;
+    CountryCode: string;
+  };
+  OrderTotal?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  NumberOfItemsShipped?: number;
+  NumberOfItemsUnshipped?: number;
+  PaymentMethod: string;
+  MarketplaceId: string;
+  BuyerEmail?: string;
+  BuyerName?: string;
+  ShipmentServiceLevelCategory?: string;
+  EasyShipShipmentStatus?: string;
+  PaymentMethodDetails?: string[];
+  IsBusinessOrder: boolean;
+  PurchaseOrderNumber?: string;
+  IsPrime: boolean;
+  IsPremiumOrder: boolean;
+  PromiseResponseDueDate?: string;
+  IsEstimatedShipDateSet: boolean;
+  EarliestShipDate?: string;
+  LatestShipDate?: string;
+  EarliestDeliveryDate?: string;
+  LatestDeliveryDate?: string;
+}
+
+export interface OrderItem {
+  ASIN: string;
+  SellerSKU: string;
+  OrderItemId: string;
+  Title: string;
+  QuantityOrdered: number;
+  QuantityShipped: number;
+  PointsGranted?: {
+    PointsNumber: number;
+    PointsMonetaryValue: {
+      CurrencyCode: string;
+      Amount: string;
+    };
+  };
+  ProductInfo?: {
+    NumberOfItems: number;
+  };
+  ShippingPrice?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  ItemPrice?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  PromotionDiscount?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  CODFee?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  CODFeeDiscount?: {
+    CurrencyCode: string;
+    Amount: string;
+    };
+  IsGift: boolean;
+  GiftMessageText?: string;
+  GiftWrapPrice?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  ItemTax?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  ShippingTax?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  GiftWrapTax?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  ShippingDiscount?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  ShippingDiscountTax?: {
+    CurrencyCode: string;
+    Amount: string;
+  };
+  PromotionIds?: string[];
+  DeclineReason?: string;
+  IsTransparency?: boolean;
+  SerialNumberRequired?: boolean;
+  IsCustomized?: boolean;
+  CustomizedURL?: string;
+}
+
+export interface InventorySummary {
+  asin: string;
+  fnSku: string;
+  sellerSku: string;
+  condition: string;
+  supplyType: string;
+  totalSupplyQuantity: number;
+  inStockSupplyQuantity: number;
+  earliestAvailability?: {
+    unit: 'Days' | 'Weeks';
+    value: number;
+  };
+}
+
+export interface Report {
+  reportId: string;
+  reportType: string;
+  dataStartTime: string;
+  dataEndTime: string;
+  processingStatus: 'CANCELLED' | 'DONE' | 'FATAL' | 'IN_PROGRESS' | 'IN_QUEUE';
+  processingEndTime?: string;
+  processingStartTime?: string;
+  reportDocumentId?: string;
+}
+
+export interface ReportDocument {
+  reportDocumentId: string;
+  url: string;
+  compressionAlgorithm?: 'GZIP';
+}
+
+export interface ProductListing {
+  asin: string;
+  marketplaceId: string;
+  productType: string;
+  attributes: Record<string, unknown>; // This can be more specific based on actual attributes
+}
+
+export interface Shipment {
+  shipmentId: string;
+  shipmentName: string;
+  destinationFulfillmentCenterId: string;
+  shipmentStatus: string;
+  labelType: string;
+  // Add more properties as needed from the Fulfillment Inbound Shipment API
+}
+
+export interface FinancialEvent {
+  AmazonOrderId?: string;
+  SellerOrderId?: string;
+  MarketplaceName?: string;
+  // This can be expanded with more specific financial event types
+  // e.g., ShipmentEvent, RefundEvent, FeeRefundEvent, AdjustmentEvent, etc.
+  // For simplicity, using a generic structure for now.
+  PostedDate: string;
+  Amount: {
+    CurrencyCode: string;
+    CurrencyAmount: number;
+  };
+  Description: string;
+}
+
+export interface ProductPricing {
+  asin: string;
+  marketplaceId: string;
+  price: {
+    amount: number;
+    currencyCode: string;
+  };
+  // Add more pricing details like Buy Box eligibility, offers, etc.
+}
+
+export interface CustomerReview {
+  reviewId: string;
+  asin: string;
+  rating: number;
+  title: string;
+  body: string;
+  date: string;
+  // Add more properties as needed for customer reviews
+}
+
+export interface GetOrdersResponse {
+  payload?: {
+    Orders?: Order[];
+  };
+  Orders?: Order[];
+}
+
+export interface GetInventorySummariesResponse {
+  payload?: {
+    inventorySummaries?: InventorySummary[];
+  };
+  inventorySummaries?: InventorySummary[];
+}
+
+export interface GetReportsResponse {
+  payload?: {
+    reports?: Report[];
+  };
+  reports?: Report[];
+}
+
+export interface CreateReportResponse {
+  payload?: {
+    reportId?: string;
+  };
+  reportId?: string;
+}
+
+export interface GetReportDocumentResponse {
+  payload?: ReportDocument;
+}
+
+export interface GetShipmentsResponse {
+  payload?: {
+    ShipmentData?: Shipment[];
+  };
+  ShipmentData?: Shipment[];
+}
+
+export interface ListFinancialEventsResponse {
+  payload?: {
+    FinancialEvents?: FinancialEvent[];
+  };
+  FinancialEvents?: FinancialEvent[];
+}
+
+export interface GetCompetitivePricingResponse {
+  payload?: {
+    ProductPricing?: ProductPricing[];
+  };
+  ProductPricing?: ProductPricing[];
 }
