@@ -27,23 +27,17 @@ export interface Contact {
   communicationLogs?: CommunicationLog[]; // Optional: An array of communication log entries associated with this contact.
   highlightedName?: string; // Optional: Highlighted name for search results.
   // Add a new field for the last activity date, useful for CRM dashboards
-  lastActivity?: number; // Optional: Timestamp (milliseconds since epoch) of the last activity (e.g., communication, update).
+  lastActivity?: number; // Timestamp of last interaction
+  salesOpportunities?: SalesOpportunity[]; // Array of sales opportunities associated with this contact
   leadScore?: number; // Optional: The calculated lead score for the contact.
   leadScoreCategory?: 'Hot' | 'Warm' | 'Cold'; // Optional: Categorization of the lead score.
   tags?: string[]; // Optional: Tags for the contact.
 }
 
-/**
- * Defines the possible sales stages for a Contact.
- */
-export type SalesStage =
-  | 'Lead'
-  | 'Prospect'
-  | 'Qualified'
-  | 'Proposal'
-  | 'Negotiation'
-  | 'Closed Won'
-  | 'Closed Lost';
+import { SalesOpportunity, SalesStage } from './types/sales';
+export type { SalesStage }; // Re-export SalesStage as a type
+
+export type CommunicationType = 'call' | 'email' | 'meeting' | 'chat';
 
 /**
  * Defines the possible sales stages for the Contact.
@@ -97,7 +91,10 @@ export type ActivityType =
   | 'customer_deleted' // Added for customer deletion
   | 'communication_logged'
   | 'communication_updated'
-  | 'communication_deleted';
+  | 'communication_deleted'
+  | 'sales_opportunity_created' // Added for sales opportunity creation
+  | 'sales_opportunity_updated' // Added for sales opportunity update
+  | 'sales_opportunity_deleted'; // Added for sales opportunity deletion
 
 /**
  * Defines the structure for an Activity Log entry.

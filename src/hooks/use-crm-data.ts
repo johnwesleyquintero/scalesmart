@@ -42,8 +42,13 @@ import {
   createCommunicationLog,
   updateCommunicationLog,
   deleteCommunicationLog,
+  getAllSalesOpportunities,
+  createSalesOpportunity, // Added import
+  updateSalesOpportunity, // Added import
+  deleteSalesOpportunity, // Added import
 } from '@/lib/indexeddb/crm-db'; // Updated import path to crm-db.ts
 import type { Contact, CommunicationLog } from '@/app/crm/types';
+import type { SalesOpportunity } from '@/app/crm/types/sales';
 import { useCrmCategories } from './use-crm-categories';
 import { produce } from 'immer';
 import {
@@ -67,6 +72,8 @@ const UPDATE_COMM_LOG_ERROR =
   'Failed to update communication log. Please check console for details.';
 const DELETE_COMM_LOG_ERROR =
   'Failed to delete communication log. Please check console for details.';
+const LOAD_SALES_OPPORTUNITIES_ERROR =
+  'Failed to load sales opportunities. Please check console for details.';
 
 /**
  * `useCRMData` is a custom hook that encapsulates the logic for managing CRM data.
@@ -78,6 +85,9 @@ export const useCRMData = () => {
   const [customers, setCustomers] = useState<Contact[]>([]);
   // State to track if the initial data load from IndexedDB has been attempted.
   const [hasAttemptedInitialLoad, setHasAttemptedInitialLoad] = useState(false);
+  const [salesOpportunities, setSalesOpportunities] = useState<
+    SalesOpportunity[]
+  >([]);
 
   const {
     categories,
@@ -85,6 +95,27 @@ export const useCRMData = () => {
     handleUpdateCategoryAction,
     handleDeleteCategoryAction,
   } = useCrmCategories();
+
+  /**
+   * useEffect hook to load initial sales opportunities data from IndexedDB.
+   */
+  useEffect(() => {
+    const loadInitialSalesOpportunities = async () => {
+      try {
+        const allOpportunities = await getAllSalesOpportunities();
+        setSalesOpportunities(allOpportunities);
+      } catch (error: unknown) {
+        console.error(
+          'Error loading sales opportunities from IndexedDB:',
+          error,
+        );
+        toast.error(
+          `${LOAD_SALES_OPPORTUNITIES_ERROR} ${(error as Error).message || error}`,
+        );
+      }
+    };
+    loadInitialSalesOpportunities();
+  }, []);
 
   /**
    * useEffect hook to load initial customer data from IndexedDB
@@ -451,6 +482,79 @@ export const useCRMData = () => {
     [updateCustomerCommunicationLogs],
   );
 
+  const handleAddSalesOpportunityAction = useCallback(
+    async (formData: Omit<SalesOpportunity, 'id'>) => {
+      try {
+        const newOpportunityId = await createSalesOpportunity(formData);
+        const newOpportunity: SalesOpportunity = {
+          ...formData,
+          id: newOpportunityId,
+        };
+        setSalesOpportunities((prev) => [...prev, newOpportunity]);
+        toast.success('Sales opportunity added successfully!');
+        await logActivity(
+          newOpportunity.id,
+          'sales_opportunity_created',
+          `Sales opportunity "${newOpportunity.name}" was created.`,
+        );
+      } catch (error: unknown) {
+        console.error('Error adding sales opportunity:', error);
+        toast.error(
+          `Failed to add sales opportunity. ${(error as Error).message || error}`,
+        );
+      }
+    },
+    [],
+  );
+
+  const handleUpdateSalesOpportunityAction = useCallback(
+    async (updatedOpportunity: SalesOpportunity) => {
+      try {
+        await updateSalesOpportunity(updatedOpportunity);
+        setSalesOpportunities((prev) =>
+          prev.map((opp) =>
+            opp.id === updatedOpportunity.id ? updatedOpportunity : opp,
+          ),
+        );
+        toast.success('Sales opportunity updated successfully!');
+        await logActivity(
+          updatedOpportunity.id,
+          'sales_opportunity_updated',
+          `Sales opportunity "${updatedOpportunity.name}" was updated.`,
+        );
+      } catch (error: unknown) {
+        console.error('Error updating sales opportunity:', error);
+        toast.error(
+          `Failed to update sales opportunity. ${(error as Error).message || error}`,
+        );
+      }
+    },
+    [],
+  );
+
+  const handleDeleteSalesOpportunityAction = useCallback(
+    async (opportunityId: string) => {
+      try {
+        await deleteSalesOpportunity(opportunityId);
+        setSalesOpportunities((prev) =>
+          prev.filter((opp) => opp.id !== opportunityId),
+        );
+        toast.success('Sales opportunity deleted successfully!');
+        await logActivity(
+          opportunityId,
+          'sales_opportunity_deleted',
+          `Sales opportunity with ID ${opportunityId} was deleted.`,
+        );
+      } catch (error: unknown) {
+        console.error('Error deleting sales opportunity:', error);
+        toast.error(
+          `Failed to delete sales opportunity. ${(error as Error).message || error}`,
+        );
+      }
+    },
+    [],
+  );
+
   const handleDeleteCommunicationLogAction = useCallback(
     async (logId: string, customerId: string) => {
       try {
@@ -475,8 +579,6 @@ export const useCRMData = () => {
     [updateCustomerCommunicationLogs],
   );
 
-  const crmCategories = useCrmCategories();
-
   return {
     customers,
     hasAttemptedInitialLoad,
@@ -487,6 +589,13 @@ export const useCRMData = () => {
     handleCreateCommunicationLogAction,
     handleUpdateCommunicationLogAction,
     handleDeleteCommunicationLogAction,
-    ...crmCategories,
+    salesOpportunities,
+    handleAddSalesOpportunityAction,
+    handleUpdateSalesOpportunityAction,
+    handleDeleteSalesOpportunityAction,
+    categories, // Added
+    handleAddCategoryAction, // Added
+    handleUpdateCategoryAction, // Added
+    handleDeleteCategoryAction, // Added
   };
 };

@@ -10,12 +10,14 @@ import type {
   CommunicationLog,
   ActivityLog,
 } from '@/app/crm/types';
+import type { SalesOpportunity } from '@/app/crm/types/sales';
 
 // --- Constants for CRM IndexedDB Store Names ---
 const CRM_CONTACTS_STORE_NAME = 'crm-contacts';
 const CRM_CATEGORIES_STORE_NAME = 'crm-categories';
 const CRM_COMMUNICATION_LOGS_STORE_NAME = 'crm-communication-logs';
 const CRM_ACTIVITY_LOGS_STORE_NAME = 'crm-activity-logs'; // New store for activity logs
+const CRM_SALES_OPPORTUNITIES_STORE_NAME = 'crm-sales-opportunities';
 
 // --- Generic CRUD Service Factory ---
 
@@ -116,3 +118,12 @@ export const createActivityLog = activityLogService.create;
 export const updateActivityLog = activityLogService.update;
 export const deleteActivityLog = activityLogService.delete;
 export const getAllActivityLogs = activityLogService.getAll;
+
+export const salesOpportunityService = createCrudService<SalesOpportunity>(
+  CRM_SALES_OPPORTUNITIES_STORE_NAME,
+);
+
+export const createSalesOpportunity = salesOpportunityService.create;
+export const updateSalesOpportunity = salesOpportunityService.update;
+export const deleteSalesOpportunity = salesOpportunityService.delete;
+export const getAllSalesOpportunities = salesOpportunityService.getAll;

@@ -1,6 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ParsedFileData, InventoryData } from '@/types/amazon-tools';
+import {
+  ParsedFileData,
+  InventoryData,
+  InventoryHealthStatus,
+} from '@/types/amazon-tools';
 
 interface InventoryManagementProps {
   parsedData: ParsedFileData<InventoryData>[];
@@ -12,6 +16,15 @@ const InventoryManagement: React.FC<InventoryManagementProps> = ({
   const [prediction, setPrediction] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [restockRecommendations, setRestockRecommendations] = React.useState<
+    { productId: string; quantityToOrder: number; reason: string }[]
+  >([]);
+  const [inventoryHealthSummary, setInventoryHealthSummary] = React.useState<{
+    totalProducts: number;
+    inStock: number;
+    lowStock: number;
+    outOfStock: number;
+  } | null>(null);
 
   const handleGetPrediction = async () => {
     setLoading(true);
@@ -53,6 +66,70 @@ const InventoryManagement: React.FC<InventoryManagementProps> = ({
       setLoading(false);
     }
   };
+
+  React.useEffect(() => {
+    if (parsedData.length > 0) {
+      const allInventoryItems = parsedData.flatMap((fileData) => fileData.data);
+      const recommendations = allInventoryItems
+        .map((item) => {
+          const daysOfSupply = item.currentInventory / item.averageDailySales;
+          const reorderPoint =
+            item.averageDailySales * (item.leadTime ?? 0) + item.safetyStock;
+          const quantityToOrder = Math.max(
+            0,
+            reorderPoint - item.currentInventory,
+          );
+
+          let reason = '';
+          if (quantityToOrder > 0) {
+            reason = `Below reorder point (${reorderPoint.toFixed(2)} units).`;
+          } else if (daysOfSupply < 7 && item.averageDailySales > 0) {
+            reason = `Low days of supply (${daysOfSupply.toFixed(1)} days).`;
+          } else {
+            reason = 'Inventory levels are healthy.';
+          }
+
+          return {
+            productId: item.productId,
+            quantityToOrder: Math.ceil(quantityToOrder),
+            reason,
+          };
+        })
+        .filter((rec) => rec.quantityToOrder > 0); // Only show items that need restocking
+
+      setRestockRecommendations(recommendations);
+
+      // Calculate Inventory Health Summary
+      const totalProducts = allInventoryItems.length;
+      const inStock = allInventoryItems.filter(
+        (item) =>
+          item.currentInventory > 0 &&
+          (item.status === InventoryHealthStatus.HEALTHY ||
+            item.status === InventoryHealthStatus.LOW),
+      ).length;
+      const outOfStock = allInventoryItems.filter(
+        (item) =>
+          item.currentInventory === 0 ||
+          item.status === InventoryHealthStatus.CRITICAL,
+      ).length;
+      const lowStock = allInventoryItems.filter(
+        (item) =>
+          item.currentInventory > 0 &&
+          item.currentInventory <= item.safetyStock &&
+          item.status === InventoryHealthStatus.LOW,
+      ).length;
+
+      setInventoryHealthSummary({
+        totalProducts,
+        inStock,
+        lowStock,
+        outOfStock,
+      });
+    } else {
+      setRestockRecommendations([]);
+      setInventoryHealthSummary(null);
+    }
+  }, [parsedData]);
 
   return (
     <div className="space-y-4 p-4">
@@ -126,11 +203,31 @@ const InventoryManagement: React.FC<InventoryManagementProps> = ({
           <CardTitle>Restock Recommendations</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            Restock recommendations will be displayed here based on inventory
-            levels and sales data.
-          </p>
-          {/* TODO: Implement actual restock recommendation logic and UI */}
+          {restockRecommendations.length > 0 ? (
+            <div className="space-y-3">
+              {restockRecommendations.map((rec) => (
+                <div
+                  key={rec.productId}
+                  className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-md"
+                >
+                  <div>
+                    <p className="font-semibold">{rec.productId}</p>
+                    <p className="text-sm text-muted-foreground">
+                      Reason: {rec.reason}
+                    </p>
+                  </div>
+                  <span className="text-lg font-bold text-blue-600">
+                    Order: {rec.quantityToOrder} units
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              No restock recommendations at this time. All inventory levels
+              appear healthy based on current data.
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -140,10 +237,38 @@ const InventoryManagement: React.FC<InventoryManagementProps> = ({
           <CardTitle>Inventory Health Summary</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">
-            A summary of your inventory health will be displayed here.
-          </p>
-          {/* TODO: Implement actual inventory health summary logic and UI */}
+          {inventoryHealthSummary ? (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                <p className="text-sm text-muted-foreground">Total Products</p>
+                <p className="text-xl font-bold">
+                  {inventoryHealthSummary.totalProducts}
+                </p>
+              </div>
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                <p className="text-sm text-muted-foreground">In Stock</p>
+                <p className="text-xl font-bold text-green-600">
+                  {inventoryHealthSummary.inStock}
+                </p>
+              </div>
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                <p className="text-sm text-muted-foreground">Low Stock</p>
+                <p className="text-xl font-bold text-yellow-600">
+                  {inventoryHealthSummary.lowStock}
+                </p>
+              </div>
+              <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                <p className="text-sm text-muted-foreground">Out of Stock</p>
+                <p className="text-xl font-bold text-red-600">
+                  {inventoryHealthSummary.outOfStock}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground">
+              Upload inventory data to view a summary of your inventory health.
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

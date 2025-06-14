@@ -90,6 +90,10 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
     'disconnected' | 'connecting' | 'connected' | 'error'
   >('disconnected');
   const [spApiError, setSpApiError] = useState<string | null>(null);
+  const [refreshToken, setRefreshToken] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [region, setRegion] = useState<'na' | 'eu' | 'fe'>('na');
 
   useEffect(() => {
     const loadReports = async () => {
@@ -307,7 +311,51 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
           Connect your Amazon Seller Central account via SP-API for automated
           data fetching.
         </p>
-        {/* TODO: Implement actual SP-API connection logic */}
+        <div className="space-y-4 mb-6">
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label htmlFor="sp-api-refresh-token">Refresh Token</Label>
+            <Input
+              id="sp-api-refresh-token"
+              type="password"
+              value={refreshToken}
+              onChange={(e) => setRefreshToken(e.target.value)}
+              placeholder="Enter your SP-API Refresh Token"
+            />
+          </div>
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label htmlFor="sp-api-client-id">Client ID</Label>
+            <Input
+              id="sp-api-client-id"
+              type="text"
+              value={clientId}
+              onChange={(e) => setClientId(e.target.value)}
+              placeholder="Enter your SP-API Client ID"
+            />
+          </div>
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label htmlFor="sp-api-client-secret">Client Secret</Label>
+            <Input
+              id="sp-api-client-secret"
+              type="password"
+              value={clientSecret}
+              onChange={(e) => setClientSecret(e.target.value)}
+              placeholder="Enter your SP-API Client Secret"
+            />
+          </div>
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <Label htmlFor="sp-api-region">Region</Label>
+            <select
+              id="sp-api-region"
+              value={region}
+              onChange={(e) => setRegion(e.target.value as 'na' | 'eu' | 'fe')}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="na">North America (NA)</option>
+              <option value="eu">Europe (EU)</option>
+              <option value="fe">Far East (FE)</option>
+            </select>
+          </div>
+        </div>
         <button
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={async () => {
@@ -316,7 +364,16 @@ const DataSourceTab = ({ currentTab, onFileUpload }: DataSourceTabProps) => {
             try {
               // Call the API route to initialize SP-API client on the server
               const response = await fetch('/api/amazon-sp-api/connect', {
-                method: 'GET',
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  refreshToken,
+                  clientId,
+                  clientSecret,
+                  region,
+                }),
               });
 
               const data = await response.json();

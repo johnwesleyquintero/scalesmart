@@ -15,6 +15,7 @@ import { ActivityFeed } from './components/ActivityFeed'; // Import the new Acti
 import EmailTemplateManager from './components/EmailTemplateManager'; // Import EmailTemplateManager
 import EmailComposer from './components/EmailComposer'; // Import EmailComposer
 import LiveChatWidget from './components/LiveChatWidget'; // Import LiveChatWidget
+import SalesPipelineBoard from './components/SalesPipelineBoard'; // Import SalesPipelineBoard
 
 /**
  * CRMComponent is the main page component for the CRM dashboard.
@@ -38,6 +39,10 @@ export default function CRMComponent() {
     handleAddCategoryAction,
     handleUpdateCategoryAction,
     handleDeleteCategoryAction,
+    salesOpportunities,
+    handleAddSalesOpportunityAction,
+    handleUpdateSalesOpportunityAction,
+    handleDeleteSalesOpportunityAction,
   } = useCRMData();
 
   // State to manage which customer is currently being edited.
@@ -108,6 +113,9 @@ export default function CRMComponent() {
               Email Composer
             </CRMTabsTrigger>
             <CRMTabsTrigger value="live-chat">Live Chat</CRMTabsTrigger>
+            <CRMTabsTrigger value="sales-pipeline">
+              Sales Pipeline
+            </CRMTabsTrigger>
           </TabsList>
 
           {/* Tab Content for Adding a Customer */}
@@ -195,13 +203,11 @@ export default function CRMComponent() {
             )}
           </TabsContent>
 
-          {/* Tab Content for Sales Pipeline */}
+          {/* Tab Content for Sales Pipeline Board */}
           <TabsContent value="sales-pipeline" className="space-y-4 mt-4">
             <SalesPipelineBoard
-              customers={customers}
-              onUpdateCustomer={(customer: Contact) =>
-                handleSaveCustomerAction(customer, customer)
-              }
+              opportunities={salesOpportunities}
+              onUpdateOpportunity={handleUpdateSalesOpportunityAction}
             />
           </TabsContent>
 
@@ -229,5 +235,3 @@ export default function CRMComponent() {
     </>
   );
 }
-
-import SalesPipelineBoard from './components/SalesPipelineBoard';

@@ -20,39 +20,33 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Contact, SalesStage } from '../types';
+import {
+  SalesOpportunity,
+  SALES_STAGES_ORDER,
+  SalesStage,
+} from '../types/sales';
 
 interface SalesPipelineBoardProps {
-  customers: Contact[];
-  onUpdateCustomer: (customer: Contact) => void;
+  opportunities: SalesOpportunity[];
+  onUpdateOpportunity: (opportunity: SalesOpportunity) => void;
 }
 
-const SALES_STAGES: SalesStage[] = [
-  'Lead',
-  'Prospect',
-  'Qualified',
-  'Proposal',
-  'Negotiation',
-  'Closed Won',
-  'Closed Lost',
-];
-
 const SalesPipelineBoard: React.FC<SalesPipelineBoardProps> = ({
-  customers,
-  onUpdateCustomer,
+  opportunities,
+  onUpdateOpportunity,
 }) => {
-  const [customerMap, setCustomerMap] = useState<Map<SalesStage, Contact[]>>(
-    () => {
-      const map = new Map<SalesStage, Contact[]>();
-      SALES_STAGES.forEach((stage) => {
-        map.set(
-          stage,
-          customers.filter((customer) => customer.salesStage === stage),
-        );
-      });
-      return map;
-    },
-  );
+  const [opportunityMap, setOpportunityMap] = useState<
+    Map<string, SalesOpportunity[]>
+  >(() => {
+    const map = new Map<string, SalesOpportunity[]>();
+    SALES_STAGES_ORDER.forEach((stage) => {
+      map.set(
+        stage,
+        opportunities.filter((opportunity) => opportunity.stage === stage),
+      );
+    });
+    return map;
+  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -72,43 +66,62 @@ const SalesPipelineBoard: React.FC<SalesPipelineBoardProps> = ({
       const activeId = active.id as string;
       const overId = over.id as string;
 
-      const activeStage = activeId.split('-')[0] as SalesStage;
-      const overStage = overId.split('-')[0] as SalesStage;
+      const activeStage = active.data.current?.sortable.containerId as string;
+      const overStage = over.id as string;
 
       if (activeStage === overStage) {
-        if (activeId !== overId) {
-          const activeIndex = Number(activeId.split('-')[1]);
-          const overIndex = Number(overId.split('-')[1]);
+        const activeIndex = opportunityMap
+          .get(activeStage)
+          ?.findIndex((item) => item.id === activeId);
+        const overIndex = opportunityMap
+          .get(overStage)
+          ?.findIndex((item) => item.id === overId);
 
-          setCustomerMap((prevCustomerMap) => {
-            const activeItems = [...(prevCustomerMap.get(activeStage) || [])];
-            const newItems = arrayMove(activeItems, activeIndex, overIndex);
-            const newMap = new Map(prevCustomerMap);
-            newMap.set(activeStage, newItems);
+        if (activeIndex !== undefined && overIndex !== undefined) {
+          setOpportunityMap((prevMap) => {
+            const newOpportunities = arrayMove(
+              prevMap.get(activeStage) || [],
+              activeIndex,
+              overIndex,
+            );
+            const newMap = new Map(prevMap);
+            newMap.set(activeStage, newOpportunities);
             return newMap;
           });
         }
       } else {
-        setCustomerMap((prevCustomerMap) => {
-          const activeIndex = Number(activeId.split('-')[1]);
-          const overIndex = Number(overId.split('-')[1]);
+        setOpportunityMap((prevMap) => {
+          const activeOpportunities = [...(prevMap.get(activeStage) || [])];
+          const overOpportunities = [...(prevMap.get(overStage) || [])];
 
-          const activeItems = [...(prevCustomerMap.get(activeStage) || [])];
-          const overItems = [...(prevCustomerMap.get(overStage) || [])];
+          const movedOpportunity = activeOpportunities.find(
+            (item) => item.id === activeId,
+          );
+          if (!movedOpportunity) return prevMap;
 
-          const [movedItem] = activeItems.splice(activeIndex, 1);
-          movedItem.salesStage = overStage;
-          overItems.splice(overIndex, 0, movedItem);
+          const newActiveOpportunities = activeOpportunities.filter(
+            (item) => item.id !== activeId,
+          );
+          const newMovedOpportunity = {
+            ...movedOpportunity,
+            stage: overStage as SalesStage,
+          };
 
-          const newMap = new Map(prevCustomerMap);
-          newMap.set(activeStage, activeItems);
-          newMap.set(overStage, overItems);
-          onUpdateCustomer(movedItem);
+          const newOverOpportunities = [
+            ...overOpportunities,
+            newMovedOpportunity,
+          ];
+
+          const newMap = new Map(prevMap);
+          newMap.set(activeStage, newActiveOpportunities);
+          newMap.set(overStage, newOverOpportunities);
+
+          onUpdateOpportunity(newMovedOpportunity);
           return newMap;
         });
       }
     },
-    [onUpdateCustomer],
+    [onUpdateOpportunity, opportunityMap],
   );
 
   const getItemStyle = (isDragging: boolean) => ({
@@ -122,7 +135,7 @@ const SalesPipelineBoard: React.FC<SalesPipelineBoardProps> = ({
       onDragEnd={handleDragEnd}
     >
       <div className="flex">
-        {SALES_STAGES.map((stage) => (
+        {SALES_STAGES_ORDER.map((stage) => (
           <Card key={stage} className="w-64 m-2">
             <CardHeader>
               <CardTitle>{stage}</CardTitle>
@@ -130,14 +143,19 @@ const SalesPipelineBoard: React.FC<SalesPipelineBoardProps> = ({
             <CardContent>
               <SortableContext
                 items={
-                  customerMap.get(stage)?.map((customer) => customer.id) || []
+                  opportunityMap
+                    .get(stage)
+                    ?.map((opportunity) => opportunity.id) || []
                 }
                 strategy={verticalListSortingStrategy}
               >
-                {customerMap
+                {opportunityMap
                   .get(stage)
-                  ?.map((customer) => (
-                    <SortableItem key={customer.id} customer={customer} />
+                  ?.map((opportunity) => (
+                    <SortableItem
+                      key={opportunity.id}
+                      opportunity={opportunity}
+                    />
                   )) || []}
               </SortableContext>
             </CardContent>
@@ -149,10 +167,10 @@ const SalesPipelineBoard: React.FC<SalesPipelineBoardProps> = ({
 };
 
 interface SortableItemProps {
-  customer: Contact;
+  opportunity: SalesOpportunity;
 }
 
-const SortableItem: React.FC<SortableItemProps> = ({ customer }) => {
+const SortableItem: React.FC<SortableItemProps> = ({ opportunity }) => {
   const {
     attributes,
     listeners,
@@ -160,7 +178,7 @@ const SortableItem: React.FC<SortableItemProps> = ({ customer }) => {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: customer.id });
+  } = useSortable({ id: opportunity.id });
 
   const getItemStyle = (isDragging: boolean) => ({
     opacity: isDragging ? 0.5 : 1,
@@ -182,7 +200,7 @@ const SortableItem: React.FC<SortableItemProps> = ({ customer }) => {
       {...listeners}
       className="border p-2 mb-2 rounded-md cursor-grab"
     >
-      {customer.name}
+      {opportunity.name}
     </div>
   );
 };

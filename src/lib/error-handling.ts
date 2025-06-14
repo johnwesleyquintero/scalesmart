@@ -3,32 +3,20 @@ import * as Sentry from '@sentry/react';
 
 type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 
-type ErrorContext = {
-  message: string;
-  component: string;
-  severity: ErrorSeverity;
-  error?: Error;
-  context?: Record<string, unknown>;
+const mapSeverityToSentry = (severity: ErrorSeverity): Sentry.SeverityLevel => {
+  switch (severity) {
+    case 'critical':
+      return 'fatal';
+    case 'high':
+      return 'error';
+    case 'medium':
+      return 'warning';
+    case 'low':
+      return 'info';
+    default:
+      return 'error';
+  }
 };
-
-export abstract class ErrorReportingService {
-  static captureError(errorContext: ErrorContext) {
-    this.report(errorContext);
-  }
-
-  // Remove duplicate ErrorSeverity type (lines 3 & 18)
-  // Update error reporting service implementation
-  private static report(errorContext: ErrorContext) {
-    if (process.env.NODE_ENV === 'production') {
-      // Add actual error reporting service integration
-      // TODO: Replace with your error reporting service (e.g., Sentry, LogRocket)
-      Sentry?.captureException(errorContext.error, {
-        contexts: { error: errorContext },
-      });
-    }
-    console.error('[Error Reporting Service]', errorContext);
-  }
-}
 
 interface ErrorLogEntry {
   message: string;
@@ -77,17 +65,19 @@ export const logError = ({
     variant: 'destructive',
   });
 
-  // In production, could send to error tracking service
+  // In production, send to error tracking service (Sentry)
   if (process.env.NODE_ENV === 'production') {
-    // Error reporting service integration
-    ErrorReportingService.captureError({
-      message,
-      component,
-      severity,
-      error,
-      context,
+    Sentry.captureException(error, {
+      contexts: {
+        error: {
+          message,
+          component,
+          severity,
+          context,
+        },
+      },
+      level: mapSeverityToSentry(severity),
     });
-    // e.g., Sentry, LogRocket, etc.
   }
 };
 
