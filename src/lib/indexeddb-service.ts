@@ -152,17 +152,18 @@ function logError(error: unknown, message: string, component: string) {
 
 // --- Generic CRUD Operations ---
 
-export async function setItem<T>(
-  storeName: string,
-  key: string,
-  value: T,
-): Promise<void> {
+export async function setItem<T>(storeName: string, key: string, value: T): Promise<void> {
   try {
-    // Use the correct table based on storeName
     const table = db.table(storeName);
-    // Ensure the value object contains the key, especially for stores with in-line keys
-    const valueWithKey = { ...value, id: key };
-    await table.put(valueWithKey);
+    // For chatMessages, the primary key is 'id' within the object itself.
+    // For other stores, 'key' might be used as the primary key.
+    if (storeName === 'chatMessages') {
+      await table.put(value);
+    } else {
+      // Ensure the value object contains the key, especially for stores with in-line keys
+      const valueWithKey = { ...value, id: key };
+      await table.put(valueWithKey);
+    }
   } catch (error) {
     logError(
       error,
