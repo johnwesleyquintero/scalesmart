@@ -58,3 +58,16 @@ model VerificationToken {
   @@unique([identifier, token])
   @@schema("auth")
 }
+
+model CrmSalesOpportunity {
+  id             String    @id @default(cuid())
+  opportunityName String
+  status         String
+  amount         Float
+  closeDate      DateTime
+  userId         String
+  user           User      @relation(fields: [userId], references: [id])
+
+  @@map("crm-sales-opportunities")
+  @@schema("public")
+}
