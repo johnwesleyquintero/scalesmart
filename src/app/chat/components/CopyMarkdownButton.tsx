@@ -4,15 +4,18 @@ import React from 'react';
 interface CopyMarkdownButtonProps {
   content: string;
   type?: 'markdown' | 'code';
+  language?: string; // Add language prop
 }
 
 const CopyMarkdownButton: React.FC<CopyMarkdownButtonProps> = ({
   content,
   type = 'markdown',
+  language, // Destructure language
 }) => {
   const [copied, setCopied] = React.useState(false);
 
-  const DEFAULT_LABEL = type === 'code' ? 'Copy code' : 'Copy as Markdown';
+  const DEFAULT_LABEL =
+    type === 'code' ? `Copy ${language || 'code'}` : 'Copy as Markdown';
   const COPIED_LABEL = 'Copied!';
 
   const handleCopy = async () => {

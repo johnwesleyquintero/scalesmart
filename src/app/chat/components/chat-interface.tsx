@@ -72,7 +72,8 @@ export default function ChatInterface() {
     isChatOpen,
     isFullScreen,
     editingMessage,
-    mode, // Destructure mode from state
+    mode,
+    isSidebarOpen, // Destructure isSidebarOpen from state
   } = state;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -505,7 +506,13 @@ export default function ChatInterface() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-background">
+      <div
+        className={cn(
+          'flex h-full flex-col overflow-hidden rounded-lg border bg-background shadow-xl',
+          isSidebarOpen ? 'w-[calc(100vw-280px)]' : 'w-[calc(100vw-80px)]',
+          'mx-auto max-w-4xl', // Added for centering and max-width
+        )}
+      >
         {/* Chat Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold text-foreground">Chat</h2>

@@ -61,26 +61,39 @@ export function processSingleContentBlock(block: ContentBlock): string {
   // Process based on the 'type' field
   switch (block.type) {
     case 'code': // Generic code block, use provided language or default
-      return `\`\`\`${block.language || 'plaintext'}\n${block.content}\n\`\`\`;`;
+      return `\`\`\`${block.language || 'plaintext'}\n${block.content}\n\`\`\``;
+    case 'mermaid': // Mermaid diagram block
+      console.log('Processing mermaid block content:', block.content);
+      console.log('Mermaid block:', block);
+      return `\`\`\`mermaid\n${block.content}\n\`\`\``;
     default:
       // Fallback: if type is unknown, represent the block as a JSON code block
       console.warn(
         `Unknown content block type: ${block.type}. Rendering as JSON.`,
       );
-      return `\`\`\`JSON\n${JSON.stringify(block, null, 2)}\n\`\`\`;`;
+      console.log('Unknown block:', block);
+      return `\`\`\`json\n${JSON.stringify(block, null, 2)}\n\`\`\``;
   }
 }
 
 // Helper for OtherObjectContent
 export function processOtherObjectContent(obj: OtherObjectContent): string {
   // Prioritize known code-like structures
-  if (typeof obj.code === 'string')
-    return `\`\`\`${obj.language || 'plaintext'}\n${obj.code}\n\`\`\`;`;
+  console.log('Processing OtherObjectContent code:', obj.code);
+  console.log('OtherObjectContent object:', obj);
+  if (typeof obj.code === 'string') {
+    return `\`\`\`${obj.language || 'plaintext'}\n${obj.code}\n\`\`\``;
+  }
+  console.log('Processing OtherObjectContent mermaid:', obj.mermaid);
+  if (typeof obj.mermaid === 'string') {
+    return `\`\`\`mermaid\n${obj.mermaid}\n\`\`\``;
+  }
   // Fallback for any other object structure, treat as JSON
   console.warn(
     `Processing unknown object content structure. Rendering as JSON.`,
   );
-  return `\`\`\`JSON\n${JSON.stringify(obj, null, 2)}\n\`\`\`;`;
+  console.log('Unknown object content:', obj);
+  return `\`\`\`json\n${JSON.stringify(obj, null, 2)}\n\`\`\``;
 }
 
 // Processes the raw AI content received from the API into a single Markdown string.

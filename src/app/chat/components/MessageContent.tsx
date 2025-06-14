@@ -40,12 +40,21 @@ function CodeBlock({
     : String(children);
   const cleanedCodeContent = codeContent.replace(/\n$/, '');
 
+  // Check if the language is 'mermaid' and render MermaidDiagram
+  if (lang === 'mermaid') {
+    return <MermaidDiagram chart={cleanedCodeContent} />;
+  }
+
   return (
     <div className="relative group code-block-wrapper" {...htmlProps}>
       <pre className={className}>
         <code className={className}>{cleanedCodeContent}</code>
       </pre>
-      <CopyMarkdownButton content={cleanedCodeContent} type="code" />
+      <CopyMarkdownButton
+        content={cleanedCodeContent}
+        type="code"
+        language={lang}
+      />
     </div>
   );
 }
@@ -110,12 +119,6 @@ interface MessageContentProps {
 
 const MessageContent: React.FC<MessageContentProps> = ({ content }) => {
   const renderedContent = useMemo(() => {
-    // Check for Mermaid diagram
-    const mermaidMatch = content.match(/^```mermaid\n([\s\S]*?)\n```$/);
-    if (mermaidMatch) {
-      return <MermaidDiagram chart={mermaidMatch[1]} />;
-    }
-
     // Default rendering: Use ReactMarkdown for all other content.
     return (
       <ReactMarkdown

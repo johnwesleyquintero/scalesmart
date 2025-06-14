@@ -540,7 +540,6 @@ export default function ChatInterface() {
             className="text-white hover:bg-gray-700"
           >
             {mode === 'default' && 'D'}
-            {mode === 'content' && 'C'}
             {mode === 'code' && 'X'}
           </Button>
           <Button
