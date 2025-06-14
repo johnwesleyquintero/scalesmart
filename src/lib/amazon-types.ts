@@ -567,3 +567,19 @@ export interface GetCompetitivePricingResponse {
   };
   ProductPricing?: ProductPricing[];
 }
+
+/**
+ * Enum for defining Amazon FBA shipment statuses.
+ */
+export enum ShipmentStatus {
+  WORKING = 'WORKING',
+  SHIPPED = 'SHIPPED',
+  IN_TRANSIT = 'IN_TRANSIT',
+  DELIVERED = 'DELIVERED',
+  CHECKED_IN = 'CHECKED_IN',
+  RECEIVING = 'RECEIVING',
+  CLOSED = 'CLOSED',
+  CANCELLED = 'CANCELLED',
+  DELETED = 'DELETED',
+  ERROR = 'ERROR',
+}
