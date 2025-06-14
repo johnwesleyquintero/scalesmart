@@ -7,7 +7,8 @@ export default async function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Temporarily remove authorization logic as Supabase is being removed.
-  // In a real application, you would replace this with your new authentication/authorization system.
+  // TODO: Re-implement robust authentication and authorization for the admin section.
+  // This is crucial for securing the admin functionalities and data.
+  // Consider integrating with a new authentication system or re-enabling a secure Supabase setup.
   return <>{children}</>;
 }
