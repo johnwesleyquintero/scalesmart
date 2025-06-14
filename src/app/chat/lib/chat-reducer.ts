@@ -1,4 +1,4 @@
-import { Message } from './chat-message-utils'; // Assuming Message interface remains in chat-interface.tsx for now
+import { Message } from '@/lib/chat-message-utils'; // Assuming Message interface remains in chat-interface.tsx for now
 
 export type ChatState = {
   messages: Message[];

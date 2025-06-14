@@ -9,7 +9,7 @@ import rehypeRaw from 'rehype-raw';
 import rehypeSanitize from 'rehype-sanitize';
 import type { Element as HastElement } from 'hast';
 import CopyMarkdownButton from './CopyMarkdownButton';
-import MermaidDiagram from './MermaidDiagram';
+import MermaidDiagram from '@/components/ui/MermaidDiagram';
 
 interface CodeBlockProps extends React.HTMLAttributes<HTMLElement> {
   node?: HastElement;

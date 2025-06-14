@@ -1,5 +1,6 @@
 'use client';
 import MessageBubble from './MessageBubble';
+import MessageContent from './MessageContent'; // Import MessageContent
 import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config';
 import DOMPurify from 'dompurify';
 import React, { useCallback, useEffect, useReducer, useRef } from 'react';
@@ -234,17 +235,19 @@ export default function ChatInterface() {
         content: '...', // Placeholder content
         timestamp: Date.now(),
         status: 'pending',
+        metadata: { originalUserMessageId: userMessage.id }, // Link to the user message
       };
       dispatch({ type: 'ADD_MESSAGE', payload: assistantPlaceholder });
 
       try {
+        // Correct arguments for fetchAndProcessChatApi
         await fetchAndProcessChatApi(
-          messageContent,
-          dispatch,
-          chatSessionIdRef.current,
-          userMessage.id,
-          assistantPlaceholder.id,
-          isRetry,
+          userMessage, // Pass the user message object
+          assistantPlaceholder, // Pass the assistant placeholder message object
+          ConfigRetryLimit || DEFAULT_RETRY_LIMIT, // Pass the effective retry limit
+          dispatch, // Pass the dispatch function
+          scrollToBottom, // Pass the scrollToBottom function
+          mode, // Pass the current mode
         );
       } catch (error) {
         console.error('API call failed:', error);
@@ -252,15 +255,17 @@ export default function ChatInterface() {
           type: 'UPDATE_MESSAGE',
           payload: {
             id: assistantPlaceholder.id,
-            status: 'failed',
-            error: 'Failed to get a response. Please try again.',
+            updates: {
+              status: 'failed',
+              error: 'Failed to get a response. Please try again.',
+            },
           },
         });
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     },
-    [dispatch],
+    [dispatch, scrollToBottom, mode], // Add dependencies
   );
 
   // Function to handle retrying a message
@@ -274,17 +279,23 @@ export default function ChatInterface() {
         error: undefined, // Clear previous error
       };
 
-      dispatch({ type: 'UPDATE_MESSAGE', payload: updatedMessage });
+      dispatch({
+        type: 'UPDATE_MESSAGE',
+        payload: { id: updatedMessage.id, updates: updatedMessage },
+      });
 
       // If retry limit is reached, display an error and do not send
-      const currentRetryLimit = messageToRetry.retryLimit || DEFAULT_RETRY_LIMIT;
-      if (updatedMessage.retryCount > currentRetryLimit) {
+      const currentRetryLimit =
+        messageToRetry.retryLimit || DEFAULT_RETRY_LIMIT;
+      if ((updatedMessage.retryCount ?? 0) > currentRetryLimit) {
         dispatch({
           type: 'UPDATE_MESSAGE',
           payload: {
-            id: updatedMessage.id,
-            status: 'failed',
-            error: `Retry limit (${currentRetryLimit}) exceeded. Please try a different prompt.`, // More specific error
+            id: updatedMessage.id, // Use id
+            updates: {
+              status: 'failed',
+              error: `Retry limit (${currentRetryLimit}) exceeded. Please try a different prompt.`, // More specific error
+            },
           },
         });
         dispatch({ type: 'SET_LOADING', payload: false });
@@ -309,7 +320,7 @@ export default function ChatInterface() {
   // Function to handle deleting a message
   const handleDelete = useCallback(
     async (timestamp: number) => {
-      dispatch({ type: 'DELETE_MESSAGE', payload: timestamp });
+      dispatch({ type: 'REMOVE_MESSAGE', payload: timestamp });
       // Optionally, delete from IndexedDB here as well
     },
     [dispatch],
@@ -331,26 +342,24 @@ export default function ChatInterface() {
       dispatch({
         type: 'UPDATE_MESSAGE',
         payload: {
-          ...editingMessage,
-          content: input.trim(),
-          isEdited: true,
-          editedAt: Date.now(),
+          id: editingMessage.id, // Use id
+          updates: {
+            content: input.trim(),
+            isEdited: true,
+            editedAt: Date.now(),
+          },
         },
       });
       dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
       dispatch({ type: 'SET_INPUT', payload: '' });
     }
-  },
-    [editingMessage, input, dispatch],
-  );
+  }, [editingMessage, input, dispatch]);
 
   // Function to cancel editing
   const cancelEdit = useCallback(() => {
     dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
     dispatch({ type: 'SET_INPUT', payload: '' });
-  },
-    [dispatch],
-  );
+  }, [dispatch]);
 
   // Function to handle prompt clicks (for "Prompts to Try")
   const handlePromptClick = useCallback(
@@ -361,50 +370,7 @@ export default function ChatInterface() {
     [dispatch],
   );
 
-  // Markdown rendering options
-  const components = {
-    code({ node, inline, className, children, ...props }: any) {
-      const match = /language-(\w+)/.exec(className || '');
-      const codeContent = String(children).replace(/\n$/, '');
-
-      // Sanitize the code content to prevent XSS
-      const sanitizedCode = DOMPurify.sanitize(codeContent);
-
-      return !inline && match ? (
-        <div className="relative">
-          <CopyMarkdownButton text={sanitizedCode} />
-          <pre className={className} {...props}>
-            <code className={className} {...props}>
-              {sanitizedCode}
-            </code>
-          </pre>
-        </div>
-      ) : (
-        <code className={className} {...props}>
-          {sanitizedCode}
-        </code>
-      );
-    },
-    // Add a custom component for headings to ensure they have IDs for accessibility/navigation
-    h1: ({ node, ...props }: any) => (
-      <h1 id={hastToString(node)} {...props} />
-    ),
-    h2: ({ node, ...props }: any) => (
-      <h2 id={hastToString(node)} {...props} />
-    ),
-    h3: ({ node, ...props }: any) => (
-      <h3 id={hastToString(node)} {...props} />
-    ),
-    h4: ({ node, ...props }: any) => (
-      <h4 id={hastToString(node)} {...props} />
-    ),
-    h5: ({ node, ...props }: any) => (
-      <h5 id={hastToString(node)} {...props} />
-    ),
-    h6: ({ node, ...props }: any) => (
-      <h6 id={hastToString(node)} {...props} />
-    ),
-  };
+  // Remove custom markdown rendering components defined here
 
   return (
     <div className="flex h-full">
@@ -412,30 +378,127 @@ export default function ChatInterface() {
       <div className="w-64 bg-gray-100 dark:bg-gray-800 p-4 border-r border-border flex flex-col">
         <div className="text-lg font-bold mb-4 text-foreground">WesAI</div>
         <nav className="space-y-2">
-          <a href="#" className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-message-square"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <a
+            href="#"
+            className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-message-square"
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
             <span>Chat</span>
           </a>
-          <a href="#" className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-users"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87 4 4 0 0 0-7-1.13"/><circle cx="16" cy="7" r="4"/></svg>
+          <a
+            href="#"
+            className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-users"
+            >
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+              <circle cx="9" cy="7" r="4" />
+              <path d="M22 21v-2a4 4 0 0 0-3-3.87 4 4 0 0 0-7-1.13" />
+              <circle cx="16" cy="7" r="4" />
+            </svg>
             <span>Agents</span>
-            <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">Beta</span>
+            <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
+              Beta
+            </span>
           </a>
-          <a href="#" className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-book"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+          <a
+            href="#"
+            className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-book"
+            >
+              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+            </svg>
             <span>Libraries</span>
-            <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">Beta</span>
+            <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
+              Beta
+            </span>
           </a>
-          <a href="#" className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plug-zap"><path d="M12 22v-5"/><path d="M9 18v-3"/><path d="M15 18v-3"/><path d="M12 12V2"/><path d="M4 9h16"/><path d="M12 2a7 7 0 1 0 7 7Z"/><path d="m13 10-1 3-3-1"/></svg>
+          <a
+            href="#"
+            className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-plug-zap"
+            >
+              <path d="M12 22v-5" />
+              <path d="M9 18v-3" />
+              <path d="M15 18v-3" />
+              <path d="M12 12V2" />
+              <path d="M4 9h16" />
+              <path d="M12 2a7 7 0 1 0 7 7Z" />
+              <path d="m13 10-1 3-3-1" />
+            </svg>
             <span>Connections</span>
-            <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">Beta</span>
+            <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
+              Beta
+            </span>
           </a>
         </nav>
         <div className="mt-auto space-y-2">
           <div className="relative">
-            <input type="text" placeholder="Search" className="w-full p-2 pl-10 rounded-md bg-gray-200 dark:bg-gray-700 text-foreground placeholder-gray-500" />
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <input
+              type="text"
+              placeholder="Search"
+              className="w-full p-2 pl-10 rounded-md bg-gray-200 dark:bg-gray-700 text-foreground placeholder-gray-500"
+            />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
           </div>
           <div className="text-sm text-gray-500 dark:text-gray-400">Ctrl-K</div>
         </div>
@@ -481,17 +544,8 @@ export default function ChatInterface() {
               onPromptClick={handlePromptClick}
               onEdit={handleEdit}
             >
-              <ReactMarkdown
-                remarkPlugins={[remarkGfm, remarkMath]}
-                rehypePlugins={[
-                  rehypeKatex,
-                  [rehypePrismPlus, { defaultLanguage: 'plaintext' }],
-                ]}
-                components={components}
-                className="markdown-body"
-              >
-                {message.content}
-              </ReactMarkdown>
+              {/* Use MessageContent component for markdown rendering */}
+              <MessageContent content={message.content} />
             </MessageBubble>
           ))}
           <div ref={messagesEndRef} />
@@ -516,7 +570,9 @@ export default function ChatInterface() {
                   }
                 }
               }}
-              placeholder={isLoading ? 'Generating response...' : 'Ask WesAI...'}
+              placeholder={
+                isLoading ? 'Generating response...' : 'Ask WesAI...'
+              }
               className="w-full resize-none overflow-hidden rounded-lg border border-input bg-background p-3 pr-12 text-sm shadow-sm focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
               rows={1}
               disabled={isLoading}

@@ -32,6 +32,8 @@ interface NavItem {
   auth?: 'loggedIn' | 'loggedOut' | 'always';
   hideOnMobile?: boolean;
   children?: NavItemChild[];
+  category?: string;
+  description?: string;
 }
 
 interface NavItemChild {
@@ -61,6 +63,7 @@ export default function Header() {
     'Business & E-commerce',
     'Productivity & Automation',
     'Career & Personal Growth',
+    'AI & Automation',
   ];
 
   const navItems: NavItem[] = [
@@ -113,6 +116,14 @@ export default function Header() {
           description: 'Generate structured prompts for AI code assistance.',
         },
       ],
+    },
+    {
+      name: 'AI Chat',
+      href: '/chat',
+      external: false,
+      category: productsCategories[3], // AI & Automation
+      description:
+        'Engage with our AI assistant for quick answers and support.',
     },
     {
       name: 'Solutions',

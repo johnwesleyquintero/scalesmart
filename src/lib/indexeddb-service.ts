@@ -152,7 +152,11 @@ function logError(error: unknown, message: string, component: string) {
 
 // --- Generic CRUD Operations ---
 
-export async function setItem<T>(storeName: string, key: string, value: T): Promise<void> {
+export async function setItem<T>(
+  storeName: string,
+  key: string,
+  value: T,
+): Promise<void> {
   try {
     const table = db.table(storeName);
     // For chatMessages, the primary key is 'id' within the object itself.

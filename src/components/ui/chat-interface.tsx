@@ -286,8 +286,7 @@ export default function ChatInterface() {
       dispatch({
         type: 'UPDATE_MESSAGE',
         payload: {
-          timestamp: timestamp,
-          role: originalMessage.role, // Use the original role
+          id: originalMessage.id,
           updates: {
             content: newContent.trim(),
             isEdited: true,
@@ -322,8 +321,7 @@ export default function ChatInterface() {
         dispatch({
           type: 'UPDATE_MESSAGE',
           payload: {
-            timestamp: editedUserMessage.timestamp,
-            role: editedUserMessage.role,
+            id: editedUserMessage.id,
             updates: {
               status: editedUserMessage.status,
               error: editedUserMessage.error,

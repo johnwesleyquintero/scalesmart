@@ -1,9 +1,9 @@
 'use client';
 
-import ChatInterface from './components/chat-interface'; // Import the ChatInterface component
+import ClientChatInterface from './components/client-chat-interface'; // Import the ClientChatInterface component
 
 export default function ChatPage() {
   return (
-    <ChatInterface /> // Use the imported ChatInterface component
+    <ClientChatInterface /> // Use the imported ClientChatInterface component
   );
 }

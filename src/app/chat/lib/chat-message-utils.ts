@@ -4,7 +4,14 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: number; // Unique identifier for the message
-  status?: 'sending' | 'sent' | 'error' | 'responding' | 'pending' | 'retrying'; // Status of the message
+  status?:
+    | 'sending'
+    | 'sent'
+    | 'error'
+    | 'responding'
+    | 'pending'
+    | 'retrying'
+    | 'failed'; // Status of the message
   error?: string; // Error message if status is 'error'
   retryCount?: number; // How many times retry has been attempted (starts at 0 for first send)
   retryLimit?: number; // Maximum number of retries allowed for this specific message
@@ -12,6 +19,11 @@ export interface Message {
   isGreeting?: boolean; // Flag for the initial greeting message
   isEdited?: boolean; // Flag if the message has been edited
   editedAt?: number; // Timestamp of when the message was last edited
+  metadata?: {
+    originalUserMessageId?: string;
+    aiRespondingMessageId?: string;
+    [key: string]: unknown;
+  }; // Add metadata property with specific fields and use unknown instead of any
 }
 
 // Maps a ChatMessageRecord from the DB to the Message interface used in the UI

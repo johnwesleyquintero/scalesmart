@@ -1,7 +1,7 @@
 import React from 'react';
-import { Button } from './button';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Spinner } from './Spinner';
+import { Spinner } from '@/components/ui/Spinner';
 
 interface ChatInputProps {
   value: string;

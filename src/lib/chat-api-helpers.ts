@@ -211,8 +211,7 @@ export async function fetchAndProcessChatApi(
     dispatch({
       type: 'UPDATE_MESSAGE',
       payload: {
-        timestamp: userMessage.timestamp,
-        role: 'user',
+        id: userMessage.id,
         updates: {
           status: 'error',
           error:
@@ -231,8 +230,7 @@ export async function fetchAndProcessChatApi(
   dispatch({
     type: 'UPDATE_MESSAGE',
     payload: {
-      timestamp: userMessage.timestamp,
-      role: 'user',
+      id: userMessage.id,
       updates: {
         status: 'sending',
         error: undefined,
@@ -266,8 +264,7 @@ export async function fetchAndProcessChatApi(
       dispatch({
         type: 'UPDATE_MESSAGE',
         payload: {
-          timestamp: userMessage.timestamp,
-          role: 'user',
+          id: userMessage.id,
           updates: {
             status: 'error',
             error: errorMessage,
@@ -287,8 +284,7 @@ export async function fetchAndProcessChatApi(
       dispatch({
         type: 'UPDATE_MESSAGE',
         payload: {
-          timestamp: userMessage.timestamp,
-          role: 'user',
+          id: userMessage.id,
           updates: {
             status: 'error',
             error: 'Invalid JSON response from API.',
@@ -307,8 +303,7 @@ export async function fetchAndProcessChatApi(
     dispatch({
       type: 'UPDATE_MESSAGE',
       payload: {
-        timestamp: aiRespondingMessage.timestamp,
-        role: 'assistant',
+        id: aiRespondingMessage.id,
         updates: {
           content:
             aiContent.trim() !== ''
@@ -323,8 +318,7 @@ export async function fetchAndProcessChatApi(
     dispatch({
       type: 'UPDATE_MESSAGE',
       payload: {
-        timestamp: userMessage.timestamp,
-        role: 'user',
+        id: userMessage.id,
         updates: {
           status: 'sent',
           error: undefined,
@@ -347,8 +341,7 @@ export async function fetchAndProcessChatApi(
     dispatch({
       type: 'UPDATE_MESSAGE',
       payload: {
-        timestamp: userMessage.timestamp,
-        role: 'user',
+        id: userMessage.id,
         updates: {
           status: 'error',
           error: `Network error: ${message}`,

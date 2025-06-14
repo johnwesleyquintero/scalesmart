@@ -184,8 +184,8 @@ export async function parseApiErrorResponse(
   return errorResponseMessage;
 }
 
-import { Message } from './chat-message-utils'; // Assuming Message interface is in chat-message-utils.ts
-import { ChatState, ChatAction } from './chat-reducer'; // Assuming ChatState and ChatAction are in chat-reducer.ts
+import { Message } from '@/lib/chat-message-utils'; // Assuming Message interface is in chat-message-utils.ts
+import { ChatState, ChatAction } from '@/lib/chat-reducer'; // Assuming ChatState and ChatAction are in chat-reducer.ts
 import DOMPurify from 'dompurify'; // Assuming DOMPurify is used for sanitization
 
 // Fetches chat response and processes it into a success or error object
@@ -211,8 +211,7 @@ export async function fetchAndProcessChatApi(
     dispatch({
       type: 'UPDATE_MESSAGE',
       payload: {
-        timestamp: userMessage.timestamp,
-        role: 'user',
+        id: userMessage.id, // Use id
         updates: {
           status: 'error',
           error:
@@ -231,8 +230,7 @@ export async function fetchAndProcessChatApi(
   dispatch({
     type: 'UPDATE_MESSAGE',
     payload: {
-      timestamp: userMessage.timestamp,
-      role: 'user',
+      id: userMessage.id, // Use id
       updates: {
         status: 'sending',
         error: undefined,
@@ -266,8 +264,7 @@ export async function fetchAndProcessChatApi(
       dispatch({
         type: 'UPDATE_MESSAGE',
         payload: {
-          timestamp: userMessage.timestamp,
-          role: 'user',
+          id: userMessage.id, // Use id
           updates: {
             status: 'error',
             error: errorMessage,
@@ -287,8 +284,7 @@ export async function fetchAndProcessChatApi(
       dispatch({
         type: 'UPDATE_MESSAGE',
         payload: {
-          timestamp: userMessage.timestamp,
-          role: 'user',
+          id: userMessage.id, // Use id
           updates: {
             status: 'error',
             error: 'Invalid JSON response from API.',
@@ -307,8 +303,7 @@ export async function fetchAndProcessChatApi(
     dispatch({
       type: 'UPDATE_MESSAGE',
       payload: {
-        timestamp: aiRespondingMessage.timestamp,
-        role: 'assistant',
+        id: aiRespondingMessage.id, // Use id
         updates: {
           content:
             aiContent.trim() !== ''
@@ -323,8 +318,7 @@ export async function fetchAndProcessChatApi(
     dispatch({
       type: 'UPDATE_MESSAGE',
       payload: {
-        timestamp: userMessage.timestamp,
-        role: 'user',
+        id: userMessage.id, // Use id
         updates: {
           status: 'sent',
           error: undefined,
@@ -347,8 +341,7 @@ export async function fetchAndProcessChatApi(
     dispatch({
       type: 'UPDATE_MESSAGE',
       payload: {
-        timestamp: userMessage.timestamp,
-        role: 'user',
+        id: userMessage.id, // Use id
         updates: {
           status: 'error',
           error: `Network error: ${message}`,

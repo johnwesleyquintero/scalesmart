@@ -7,12 +7,12 @@ import type { HTMLAttributes } from 'react';
 import { RotateCcw, Trash2, Edit } from 'lucide-react'; // Import Edit icon
 
 // Local Utilities and Components
-import { cn } from '../../lib/utils';
-import { Button } from './button'; // Assuming this is a local Button component
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button'; // Assuming this is a local Button component
 import MessageContent from './MessageContent'; // Import the new MessageContent component
 
 // Types
-import { Message } from '../../lib/chat-message-utils';
+import { Message } from '@/lib/chat-message-utils';
 
 interface MessageBubbleProps extends HTMLAttributes<HTMLDivElement> {
   message: Message;

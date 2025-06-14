@@ -21,8 +21,7 @@ export type ChatAction =
   | {
       type: 'UPDATE_MESSAGE';
       payload: {
-        timestamp: number;
-        role: 'user' | 'assistant'; // Include role for robustness if multiple messages could have same timestamp (though unlikely)
+        id: string; // Use message id for updates
         updates: Partial<Message>; // Use Partial<Message> for updates
       };
     }
@@ -32,15 +31,14 @@ export type ChatAction =
 
 // --- Helper Functions for Reducer ---
 
-// Updates a specific message in the state array based on timestamp and role
+// Updates a specific message in the state array based on id
 const updateMessageInState = (
   messages: Message[],
-  timestamp: number,
-  role: 'user' | 'assistant', // Include role in update logic
+  id: string, // Use message id for update logic
   updates: Partial<Message>,
 ): Message[] => {
   return messages.map((msg) =>
-    msg.timestamp === timestamp && msg.role === role // Match by timestamp and role
+    msg.id === id // Match by id
       ? { ...msg, ...updates }
       : msg,
   );
@@ -98,8 +96,7 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
         ...state,
         messages: updateMessageInState(
           state.messages,
-          action.payload.timestamp,
-          action.payload.role,
+          action.payload.id, // Use id from payload
           action.payload.updates,
         ),
       };
