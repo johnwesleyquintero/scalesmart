@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "generate-docs-json": "node scripts/generate-docs-json.mjs",
-    "build": "npm run generate-docs-json && npx prisma generate && cross-env NODE_ENV=production next build",
+    "build": "npm run generate-docs-json && npx prisma generate && npx cross-env NODE_ENV=production next build",
     "start": "cross-env NODE_ENV=production next start",
     "format": "prettier --write . --log-level warn",
     "typecheck": "tsc --noEmit",
