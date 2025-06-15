@@ -45,7 +45,9 @@ interface NavItemChild {
 }
 
 export default function Header() {
+  console.log('Header component rendering, calling useSession...');
   const { data: session } = useSession();
+  console.log('useSession returned session:', session);
   const scrolled = useScroll(50);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);

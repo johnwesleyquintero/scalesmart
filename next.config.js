@@ -330,7 +330,7 @@ const nextConfig = {
         {
           key: 'Content-Security-Policy',
           value:
-            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self';",
+            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com;",
         },
         {
           key: 'Cross-Origin-Opener-Policy',
@@ -343,7 +343,7 @@ const nextConfig = {
       ],
     },
     {
-      source: '/(.*)\\.(?:css|js|webp|gif|png|jpg|jpeg|svg|woff2)$',
+      source: '/(.*).(css|js|webp|gif|png|jpg|jpeg|svg|woff2)$',
       headers: [
         {
           key: 'Cache-Control',

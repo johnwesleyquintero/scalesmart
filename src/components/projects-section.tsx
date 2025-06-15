@@ -39,17 +39,31 @@ interface RawGitHubRepoFromAPI {
 }
 
 async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
+  if (!username) {
+    console.error('GitHub username is empty. Cannot fetch projects.');
+    return [];
+  }
   try {
-    const response = await fetch(
-      `https://api.github.com/users/${username}/repos?sort=pushed&direction=desc&per_page=100`, // Fetch more and sort by last push
-    );
+    const url = `https://api.github.com/users/${username}/repos?sort=pushed&direction=desc&per_page=100`; // Fetch more and sort by last push
+    console.log('Fetching GitHub projects from URL:', url); // Log the URL
+    const response = await fetch(url);
     if (!response.ok) {
+      const errorText = await response.text();
       console.error(
-        'Failed to fetch GitHub projects:',
-        response.status,
-        await response.text(),
+        `Failed to fetch GitHub projects for user ${username}:`,
+        `Status: ${response.status}`,
+        `Error: ${errorText}`,
       );
-      return [];
+      // If the user is not found, return an empty array without throwing an error
+      if (response.status === 404) {
+        console.warn(
+          `GitHub user '${username}' not found. Returning empty projects list.`,
+        );
+        return [];
+      }
+      throw new Error(
+        `GitHub API responded with status ${response.status}: ${errorText}`,
+      );
     }
     const data: RawGitHubRepoFromAPI[] = await response.json();
     if (!Array.isArray(data)) {
@@ -67,7 +81,7 @@ async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
       fork: repo.fork,
     }));
   } catch (error) {
-    console.error('Error in getGitHubProjects:', error);
+    console.error('Error in getGitHubProjects:', error); // Keep existing error logging
     return [];
   }
 }
@@ -99,6 +113,7 @@ export default function ProjectsSection() {
   const [activeTab, setActiveTab] = useState('all');
   const [projects, setProjects] = useState<GitHubRepo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchProjects() {
@@ -128,12 +143,14 @@ export default function ProjectsSection() {
 
         console.log('fetchProjects: curatedProjects =', curatedProjects);
         setProjects(curatedProjects);
-      } catch (error) {
+        setError(null); // Clear any previous errors
+      } catch (err) {
         console.error(
           'fetchProjects: Error fetching or processing projects:',
-          error,
+          err,
         );
         setProjects([]); // Set to empty array on error
+        setError('Failed to load projects. Please try again later.'); // Set user-friendly error message
       } finally {
         console.log('fetchProjects: setIsLoading(false)');
         setIsLoading(false);
@@ -191,6 +208,11 @@ export default function ProjectsSection() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            ) : error ? (
+              <div className="text-center text-red-500 text-lg mt-8">
+                <p>{error}</p>
+                <p>Please check your internet connection or try again later.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

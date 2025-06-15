@@ -9,12 +9,8 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { metadata as metadataConfig } from './metadata';
-import dynamic from 'next/dynamic';
-import { Suspense } from 'react';
-
-const ChatInterface = dynamic(() => import('@/components/ui/chat-interface'), {
-  ssr: false, // Ensure this component is not server-rendered
-});
+import { getServerSession } from 'next-auth'; // Import getServerSession
+import { authOptions } from '@/lib/auth'; // Import your authOptions
 
 const inter = Inter({
   subsets: ['latin'],
@@ -36,11 +32,13 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await getServerSession(authOptions); // Fetch session data
+
   return (
     <html
       lang="en"
@@ -70,7 +68,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
-          name="apple-mobile-web-app-status-bar-style"
+          name="apple-mobile-app-status-bar-style"
           content="black-translucent"
         />
         <link
@@ -86,15 +84,12 @@ export default function RootLayout({
         <div className="relative flex min-h-screen flex-col">
           {/* Wrap children with ErrorBoundary to catch rendering errors within the page content */}
           <ErrorBoundary>
-            <ClientProviders>
+            <ClientProviders session={session}> {/* Pass session to ClientProviders */}
               <Header />
               <main className="flex-1 w-full px-4 sm:px-6 md:px-8">
                 {children}
               </main>
               <Footer />
-              <Suspense fallback={null}>
-                <ChatInterface /> {/* Render ChatInterface here */}
-              </Suspense>
             </ClientProviders>
           </ErrorBoundary>
           <Toaster />
