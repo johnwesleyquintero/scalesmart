@@ -14,7 +14,7 @@ const CategorySelector = () => {
   return (
     <div className="flex items-center space-x-2">
       <Select onValueChange={setCategory} value={category}>
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger className="w-[180px]" aria-label="Select category">
           <SelectValue placeholder="Select a category" />
         </SelectTrigger>
         <SelectContent>

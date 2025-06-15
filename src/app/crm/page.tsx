@@ -1,7 +1,7 @@
 'use client';
 
 import { Toaster } from 'sonner';
-import { useState, useCallback } from 'react';
+import { useState, useCallback, lazy, Suspense } from 'react'; // Import lazy and Suspense
 import type { Contact } from './types';
 import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { useCRMData } from '@/hooks/use-crm-data';
@@ -12,10 +12,16 @@ import { CategoryManagementTab } from './components/CategoryManagementTab';
 import { CommunicationLogsTab } from './components/CommunicationLogsTab';
 import { CRMTabsTrigger } from './components/CRMTabsTrigger';
 import { ActivityFeed } from './components/ActivityFeed'; // Import the new ActivityFeed component
-import EmailTemplateManager from './components/EmailTemplateManager'; // Import EmailTemplateManager
-import EmailComposer from './components/EmailComposer'; // Import EmailComposer
-import LiveChatWidget from './components/LiveChatWidget'; // Import LiveChatWidget
-import SalesPipelineBoard from './components/SalesPipelineBoard'; // Import SalesPipelineBoard
+
+// Dynamically import components that are not needed on initial load
+const EmailTemplateManager = lazy(
+  () => import('./components/EmailTemplateManager'),
+);
+const EmailComposer = lazy(() => import('./components/EmailComposer'));
+const LiveChatWidget = lazy(() => import('./components/LiveChatWidget'));
+const SalesPipelineBoard = lazy(
+  () => import('./components/SalesPipelineBoard'),
+);
 
 /**
  * CRMComponent is the main page component for the CRM dashboard.
@@ -188,39 +194,47 @@ export default function CRMComponent() {
 
           {/* Tab Content for Email Template Manager */}
           <TabsContent value="email-templates" className="space-y-4 mt-4">
-            <EmailTemplateManager />
+            <Suspense fallback={<div>Loading Email Template Manager...</div>}>
+              <EmailTemplateManager />
+            </Suspense>
           </TabsContent>
 
           {/* Tab Content for Email Composer */}
           <TabsContent value="email-composer" className="space-y-4 mt-4">
-            {editingCustomer ? (
-              <EmailComposer customerId={editingCustomer.id} />
-            ) : (
-              <div className="text-muted-foreground">
-                Select a customer from the "Customer List" tab to compose an
-                email.
-              </div>
-            )}
+            <Suspense fallback={<div>Loading Email Composer...</div>}>
+              {editingCustomer ? (
+                <EmailComposer customerId={editingCustomer.id} />
+              ) : (
+                <div className="text-muted-foreground">
+                  Select a customer from the "Customer List" tab to compose an
+                  email.
+                </div>
+              )}
+            </Suspense>
           </TabsContent>
 
           {/* Tab Content for Sales Pipeline Board */}
           <TabsContent value="sales-pipeline" className="space-y-4 mt-4">
-            <SalesPipelineBoard
-              opportunities={salesOpportunities}
-              onUpdateOpportunity={handleUpdateSalesOpportunityAction}
-            />
+            <Suspense fallback={<div>Loading Sales Pipeline Board...</div>}>
+              <SalesPipelineBoard
+                opportunities={salesOpportunities}
+                onUpdateOpportunity={handleUpdateSalesOpportunityAction}
+              />
+            </Suspense>
           </TabsContent>
 
           {/* Tab Content for Live Chat Widget */}
           <TabsContent value="live-chat" className="space-y-4 mt-4">
-            {editingCustomer ? (
-              <LiveChatWidget customerId={editingCustomer.id} />
-            ) : (
-              <div className="text-muted-foreground">
-                Select a customer from the "Customer List" tab to initiate a
-                live chat.
-              </div>
-            )}
+            <Suspense fallback={<div>Loading Live Chat Widget...</div>}>
+              {editingCustomer ? (
+                <LiveChatWidget customerId={editingCustomer.id} />
+              ) : (
+                <div className="text-muted-foreground">
+                  Select a customer from the "Customer List" tab to initiate a
+                  live chat.
+                </div>
+              )}
+            </Suspense>
           </TabsContent>
         </Tabs>
 

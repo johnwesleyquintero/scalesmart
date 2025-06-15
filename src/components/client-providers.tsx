@@ -25,7 +25,9 @@ export default function ClientProviders({
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SessionProvider session={session}> {/* Pass session prop */}
+      <SessionProvider session={session}>
+        {' '}
+        {/* Pass session prop */}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
           {pathname === '/chat' && (

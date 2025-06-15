@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 
 const PAGE_TITLE = 'WesAI Chat';
-const PAGE_DESCRIPTION = 'Engage with WesAI, your AI assistant for data insights and support.';
+const PAGE_DESCRIPTION =
+  'Engage with WesAI, your AI assistant for data insights and support.';
 const PAGE_URL = 'https://wescode.vercel.app/chat'; // Correct canonical URL for the chat page
 
 export const metadata: Metadata = {

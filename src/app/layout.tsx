@@ -84,7 +84,9 @@ export default async function RootLayout({
         <div className="relative flex min-h-screen flex-col">
           {/* Wrap children with ErrorBoundary to catch rendering errors within the page content */}
           <ErrorBoundary>
-            <ClientProviders session={session}> {/* Pass session to ClientProviders */}
+            <ClientProviders session={session}>
+              {' '}
+              {/* Pass session to ClientProviders */}
               <Header />
               <main className="flex-1 w-full px-4 sm:px-6 md:px-8">
                 {children}

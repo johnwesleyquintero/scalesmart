@@ -42,11 +42,15 @@ const NotepadContent = () => {
 
       <div className="bg-card p-6 rounded-lg shadow-md">
         <Tabs defaultValue="notes" className="w-full">
-          <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-muted">
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-            <TabsTrigger value="category-management">
-              Category Management
-            </TabsTrigger>
+          <div className="flex flex-wrap items-center mb-4">
+            <TabsList className="h-auto justify-start bg-muted mr-2">
+              {' '}
+              {/* Added mr-2 for spacing */}
+              <TabsTrigger value="notes">Notes</TabsTrigger>
+              <TabsTrigger value="category-management">
+                Category Management
+              </TabsTrigger>
+            </TabsList>
             <Button
               onClick={async () => {
                 setIsLoading(true);
@@ -57,20 +61,19 @@ const NotepadContent = () => {
                   setIsLoading(false);
                 }
               }}
-              className="ml-2"
+              className=""
               disabled={isLoading} // Disable when loading
             >
               Create New Note
             </Button>
-          </TabsList>
-
+          </div>{' '}
+          {/* Wrapped TabsList and Button in a flex div */}
           <TabsContent value="notes" className="space-y-4 mt-4">
             <NotesTabContent
               isLoading={isLoading}
               setIsLoading={setIsLoading}
             />
           </TabsContent>
-
           <TabsContent value="category-management" className="space-y-4 mt-4">
             <MarkdownCategoryManagementTab />
           </TabsContent>

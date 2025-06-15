@@ -355,6 +355,7 @@ const TagsInput: React.FC<TagsInputProps> = ({ initialTags, onChange }) => {
       defaultValue={initialTags.join(',')}
       name="tags"
       placeholder="Enter tags"
+      aria-labelledby="tags" // Added aria-labelledby to link to the label
     />
   );
 };
