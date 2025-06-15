@@ -96,7 +96,7 @@ export default async function RootLayout({
           </ErrorBoundary>
           <Toaster />
         </div>
-        <Analytics />
+        {/* <Analytics /> */}
         {/* Accessibility Enhancement Reminder:
           1. Conduct regular accessibility audits using tools like Axe or Lighthouse.
           2. Track the impact of these changes using the following metrics:

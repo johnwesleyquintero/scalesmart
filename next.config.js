@@ -330,7 +330,7 @@ const nextConfig = {
         {
           key: 'Content-Security-Policy',
           value:
-            "default-src 'self'; script-src 'self' https://va.vercel-scripts.com 'sha256-LcsuUMiDkprrt6ZKeiLP4iYNhWo8NqaSbAgtoZxVK3s=' 'sha256-9yVlO/tBzastQfwXQDfK8cFyjKo0dqym2vFLkU6p2O4=' 'sha256-TWKJpBGCg6787YVT32Nt9d/fVvIV5WlSXgLIeubmK6s=' 'sha256-p7GE78bbMHDrE4IWzpiMSttAsTpUu7wwi5/wvnH54Os=' 'sha256-OBTN3RiyCV4Bq7dFqZ5a2pAXjnCcCYeTJMO2I/LYKeo=' 'sha256-T8v4yMg0APiz3Y/Iv+KSQzCIySpGQ8SFLuzj3934VNY=' 'sha256-wLf9nnvcnAiwBYBLu0TyfVEW3uFdx/P9TVljlBqqLLA=' 'sha256-EkaqNkrrNiAfC8ZHp/5zxQGai0jcOtHntx3QOhRpXgQ=' 'sha256-0FDQRS7rU8XfoJH8Qn+FBl32RtxweHUhxB+uqzyhjyk=' 'sha256-7SGV5fskQM4fYlEjbSGlTorl6oWwPEfs/3Zaepda7wk=' 'sha256-jRF22REt8XOvcD+tIBFfj8FhRU5nIluh5KYrKkxZXVM=' 'sha256-0hPNmgGgz04W4+LlY8WsQJzGozb1g9TtUUBw4cVBcMI='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com;", // Added hashes for inline scripts
+            "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com;",
         },
         {
           key: 'Cross-Origin-Opener-Policy',
