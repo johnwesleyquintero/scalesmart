@@ -563,10 +563,17 @@ const _formatWebAppInformation = (webappContext?: WebAppContext): string[] => {
     Object.entries(webappContext.tools).forEach(([key, tool]) => {
       parts.push(
         `\nTool: ${tool.name || key}`,
+        formatSection('Category', tool.category),
         formatSection('Description', tool.description),
+        formatSection('Version', tool.version), // Tool-specific version
         formatSection('Status', tool.status),
+        formatSection('Keywords', tool.keywords),
         formatSection('Features', tool.features),
+        formatSection('Key Enhancements', tool.keyEnhancements),
+        formatSection('Impact', tool.impact),
+        formatSection('Known Issues', tool.knownIssues),
         formatSection('Roadmap', tool.roadmap),
+        formatSection('Sub-Tools Examples (if applicable)', tool.subToolsExamples)
       );
     });
   }
