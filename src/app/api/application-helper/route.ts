@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
 
     // Import chat context data with type assertion
     const portfolioContextImport = (await import(
-      '@/data/chat-context.json'
+      '@/app/chat/data/chat-context.json'
     )) as unknown as ChatContextFile;
     const portfolioContextArray = portfolioContextImport.default;
 

@@ -115,16 +115,17 @@ export default function Header() {
           category: productsCategories[1], // Productivity & Automation
           description: 'Generate structured prompts for AI code assistance.',
         },
+        {
+          name: 'WesAI',
+          href: '/chat',
+          external: false,
+          category: productsCategories[3], // AI & Automation
+          description:
+            'Engage with our AI assistant for quick answers and support.',
+        },
       ],
     },
-    {
-      name: 'AI Chat',
-      href: '/chat',
-      external: false,
-      category: productsCategories[3], // AI & Automation
-      description:
-        'Engage with our AI assistant for quick answers and support.',
-    },
+
     {
       name: 'Solutions',
       children: [

@@ -55,7 +55,10 @@ const initialGreeting: Message = {
   role: 'assistant',
   content:
     "Hey there! I'm WesAI.\n\n" +
-    'I can turn your raw data into insights! or try one of these prompts:',
+    'I can help you with app building, data analysis, and general assistance.\n\n' +
+    'To get started, type your request in the chat box and press Enter. You can also click the "Prompts to Try" button to see examples of what I can do.\n\n' +
+    'For more information about my capabilities, click the "?" button in the top right corner of the chat box.\n\n' +
+    'Have fun!',
   timestamp: Date.now(),
   status: 'sent',
   isGreeting: true, // Mark this as the greeting message
@@ -347,6 +350,7 @@ export default function ChatInterface() {
           dispatch,
           scrollToBottom,
           mode,
+          messages, // Pass the current messages as history
         );
       }
     },
@@ -409,6 +413,7 @@ export default function ChatInterface() {
       dispatch,
       scrollToBottom,
       mode,
+      messages, // Pass the current messages as history
     );
   }, [
     input,
@@ -419,6 +424,7 @@ export default function ChatInterface() {
     scrollToBottom,
     determineEffectiveRetryLimit,
     mode,
+    messages, // Added messages dependency
   ]);
 
   // Function to handle retrying a message
@@ -447,9 +453,10 @@ export default function ChatInterface() {
         dispatch,
         scrollToBottom,
         mode,
+        messages, // Pass the current messages as history
       );
     },
-    [dispatch, scrollToBottom, determineEffectiveRetryLimit, mode],
+    [dispatch, scrollToBottom, determineEffectiveRetryLimit, mode, messages], // Added messages dependency
   );
 
   // Function to handle deleting a message

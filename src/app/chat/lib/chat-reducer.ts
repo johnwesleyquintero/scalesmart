@@ -8,6 +8,8 @@ export type ChatState = {
   isFullScreen: boolean; // New state for fullscreen mode
   editingMessage: Message | null; // New state to hold the message being edited
   mode: 'default' | 'content' | 'code'; // New state for the agent mode, including 'code'
+  isSidebarOpen: boolean; // New state for sidebar visibility
+  lastModifiedMessageId: string | null; // Track the ID of the last message added or updated
 };
 
 export type ChatAction =
@@ -16,13 +18,14 @@ export type ChatAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'TOGGLE_CHAT' }
   | { type: 'TOGGLE_FULLSCREEN' }
-  | { type: 'TOGGLE_MODE' } // New action to toggle the mode
+  | { type: 'TOGGLE_MODE'; payload: 'default' | 'content' | 'code' } // Action to set the mode with a payload
+  | { type: 'TOGGLE_SIDEBAR' } // New action to toggle sidebar visibility
   | { type: 'ADD_MESSAGE'; payload: Message }
   | {
       type: 'UPDATE_MESSAGE';
       payload: {
-        timestamp: number;
-        role: 'user' | 'assistant'; // Include role for robustness if multiple messages could have same timestamp (though unlikely)
+        // Changed to identify by id
+        id: string;
         updates: Partial<Message>; // Use Partial<Message> for updates
       };
     }
@@ -33,14 +36,13 @@ export type ChatAction =
 // --- Helper Functions for Reducer ---
 
 // Updates a specific message in the state array based on timestamp and role
-const updateMessageInState = (
+const updateMessageInStateById = (
   messages: Message[],
-  timestamp: number,
-  role: 'user' | 'assistant', // Include role in update logic
+  id: string,
   updates: Partial<Message>,
 ): Message[] => {
   return messages.map((msg) =>
-    msg.timestamp === timestamp && msg.role === role // Match by timestamp and role
+    msg.id === id // Match by id
       ? { ...msg, ...updates }
       : msg,
   );
@@ -62,23 +64,18 @@ export const initialState: ChatState = {
   isFullScreen: false, // Initialize to false
   editingMessage: null, // Initialize to null
   mode: 'default', // Initialize mode to 'default'
+  isSidebarOpen: true, // Initialize sidebar to be open by default
+  lastModifiedMessageId: null, // Initialize to null
 };
 
 export function chatReducer(state: ChatState, action: ChatAction): ChatState {
   switch (action.type) {
+    case 'TOGGLE_SIDEBAR':
+      return { ...state, isSidebarOpen: !state.isSidebarOpen };
     case 'TOGGLE_MODE': {
-      // Cycle through 'default', 'content', 'code'
-      let nextMode: 'default' | 'content' | 'code';
-      if (state.mode === 'default') {
-        nextMode = 'content';
-      } else if (state.mode === 'content') {
-        nextMode = 'code';
-      } else {
-        nextMode = 'default';
-      }
       return {
         ...state,
-        mode: nextMode,
+        mode: action.payload, // Set mode directly from payload
       };
     }
     case 'SET_MESSAGES':
@@ -91,25 +88,30 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       if (state.messages.some((m) => m.id === newMessage.id)) {
         return state;
       }
-      return { ...state, messages: [...state.messages, newMessage] };
+      return {
+        ...state,
+        messages: [...state.messages, newMessage],
+        lastModifiedMessageId: newMessage.id, // Set last modified ID
+      };
     }
     case 'UPDATE_MESSAGE':
       return {
         ...state,
-        messages: updateMessageInState(
+        messages: updateMessageInStateById(
           state.messages,
-          action.payload.timestamp,
-          action.payload.role,
+          action.payload.id,
           action.payload.updates,
         ),
+        lastModifiedMessageId: action.payload.id, // Set last modified ID
       };
     case 'REMOVE_MESSAGE':
       return {
         ...state,
         messages: removeMessageFromState(state.messages, action.payload),
+        lastModifiedMessageId: null, // No specific message was updated/added
       };
     case 'CLEAR_MESSAGES':
-      return { ...state, messages: [] };
+      return { ...state, messages: [], lastModifiedMessageId: null }; // Clear last modified ID
     case 'SET_INPUT':
       return { ...state, input: action.payload };
     case 'SET_LOADING':

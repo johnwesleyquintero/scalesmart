@@ -7,7 +7,7 @@ export type ChatState = {
   isChatOpen: boolean; // Controls visibility of the chat window
   isFullScreen: boolean; // New state for fullscreen mode
   editingMessage: Message | null; // New state to hold the message being edited
-  mode: 'default' | 'code'; // New state for the agent mode, including 'code'
+  mode: 'default' | 'code' | 'content'; // New state for the agent mode, including 'code' and 'content'
   isSidebarOpen: boolean; // New state for sidebar visibility
 };
 
@@ -18,6 +18,7 @@ export type ChatAction =
   | { type: 'TOGGLE_CHAT' }
   | { type: 'TOGGLE_FULLSCREEN' }
   | { type: 'TOGGLE_MODE' } // New action to toggle the mode
+  | { type: 'SET_MODE'; payload: 'default' | 'code' | 'content' } // New action to set the mode directly
   | { type: 'TOGGLE_SIDEBAR' } // New action to toggle sidebar
   | { type: 'ADD_MESSAGE'; payload: Message }
   | {
@@ -70,10 +71,12 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
     case 'TOGGLE_SIDEBAR':
       return { ...state, isSidebarOpen: !state.isSidebarOpen };
     case 'TOGGLE_MODE': {
-      // Cycle through 'default', 'code'
-      let nextMode: 'default' | 'code';
+      // Cycle through 'default', 'code', 'content'
+      let nextMode: 'default' | 'code' | 'content';
       if (state.mode === 'default') {
         nextMode = 'code';
+      } else if (state.mode === 'code') {
+        nextMode = 'content';
       } else {
         nextMode = 'default';
       }
@@ -82,6 +85,8 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
         mode: nextMode,
       };
     }
+    case 'SET_MODE':
+      return { ...state, mode: action.payload };
     case 'SET_MESSAGES':
       return { ...state, messages: action.payload };
     case 'ADD_MESSAGE': {

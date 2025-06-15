@@ -1,6 +1,7 @@
 'use client';
 import MessageBubble from './MessageBubble';
 import MessageContent from './MessageContent'; // Import MessageContent
+import ChatInput from './ChatInput'; // Import ChatInput component
 import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config';
 import DOMPurify from 'dompurify';
 import React, { useCallback, useEffect, useReducer, useRef } from 'react';
@@ -33,11 +34,20 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 // --- Component Imports ---
-import { RotateCcw, Trash2, Maximize, Minimize } from 'lucide-react';
+import suggestedPrompts from '@/app/chat/data/suggested-prompts.json'; // Import suggested prompts
+import {
+  RotateCcw,
+  Trash2,
+  Maximize,
+  Minimize,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react';
 import CopyMarkdownButton from './CopyMarkdownButton';
 import { toString as hastToString } from 'hast-util-to-string'; // For extracting raw code
 import { Button } from '@/components/ui/button'; // Assuming this is a local Button component
 import { cn } from '@/lib/utils'; // For conditional class names
+import { useToast } from '@/components/ui/use-toast'; // Import useToast hook
 
 // --- Interfaces ---
 interface MessageBubbleProps {
@@ -65,6 +75,7 @@ const initialGreeting: Message = {
 // --- Main Chat Component ---
 export default function ChatInterface() {
   const [state, dispatch] = useReducer(chatReducer, initialState);
+  const { toast } = useToast(); // Initialize useToast hook
   const {
     messages,
     input,
@@ -77,6 +88,15 @@ export default function ChatInterface() {
   } = state;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Load and shuffle prompts on component mount or when prompts change (though they are static here)
+  const [displayedPrompts, setDisplayedPrompts] = React.useState<string[]>([]);
+
+  useEffect(() => {
+    // Shuffle and select a subset (e.g., 4 prompts)
+    const shuffledPrompts = suggestedPrompts.sort(() => 0.5 - Math.random());
+    setDisplayedPrompts(shuffledPrompts.slice(0, 4)); // Display up to 4 random prompts
+  }, []); // Empty dependency array means this runs once on mount
 
   // --- Helper Functions ---
 
@@ -144,11 +164,16 @@ export default function ChatInterface() {
         }
       } catch (error) {
         console.error('ChatInterface: Error in loadMessages:', error);
+        toast({
+          title: 'Error loading chat history',
+          description: 'Could not load messages from local storage.',
+          variant: 'destructive',
+        });
       }
     };
     // Effect should only run once on mount. New sessions handled by resetChat.
     loadMessages();
-  }, []); // Empty dependency array means run once on mount
+  }, [toast]); // Add toast to dependencies
 
   // Save messages to IndexedDB when they change
   useEffect(() => {
@@ -195,6 +220,11 @@ export default function ChatInterface() {
                 `ChatInterface: Failed to save message ${messageDataPayload.id} to IndexedDB:`,
                 error,
               );
+              toast({
+                title: 'Error saving message',
+                description: `Failed to save message ${messageDataPayload.id} to local storage.`,
+                variant: 'destructive',
+              });
             }
           }
           console.log(
@@ -209,7 +239,7 @@ export default function ChatInterface() {
     if (messages.length > 0) {
       saveMessages();
     }
-  }, [messages]);
+  }, [messages, toast]);
 
   // Function to handle sending a message
   const sendMessage = useCallback(
@@ -249,6 +279,7 @@ export default function ChatInterface() {
           dispatch, // Pass the dispatch function
           scrollToBottom, // Pass the scrollToBottom function
           mode, // Pass the current mode
+          messages, // Pass the current messages as history
         );
       } catch (error) {
         console.error('API call failed:', error);
@@ -262,11 +293,17 @@ export default function ChatInterface() {
             },
           },
         });
+        toast({
+          title: 'Message failed',
+          description:
+            'Failed to get a response from the AI. Please try again.',
+          variant: 'destructive',
+        });
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     },
-    [dispatch, scrollToBottom, mode], // Add dependencies
+    [dispatch, scrollToBottom, mode, messages, toast], // Add messages and toast to dependencies
   );
 
   // Function to handle retrying a message
@@ -299,6 +336,11 @@ export default function ChatInterface() {
             },
           },
         });
+        toast({
+          title: 'Retry limit exceeded',
+          description: `Failed to get a response after ${currentRetryLimit} retries. Please try a different prompt.`,
+          variant: 'destructive',
+        });
         dispatch({ type: 'SET_LOADING', payload: false });
         return;
       }
@@ -315,7 +357,7 @@ export default function ChatInterface() {
         sendMessage(content, true);
       }
     },
-    [sendMessage, messages, dispatch],
+    [sendMessage, messages, dispatch, toast],
   );
 
   // Function to handle deleting a message
@@ -374,9 +416,16 @@ export default function ChatInterface() {
   // Remove custom markdown rendering components defined here
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full pt-24 pb-24">
+      {' '}
+      {/* Adjusted padding-top and added padding-bottom */}
       {/* Left Sidebar */}
-      <div className="w-64 bg-gray-100 dark:bg-gray-800 p-4 border-r border-border flex flex-col">
+      <div
+        className={cn(
+          'bg-gray-100 dark:bg-gray-800 p-4 border-r border-border flex flex-col transition-all duration-300 ease-in-out',
+          isSidebarOpen ? 'w-64' : 'w-16 overflow-hidden', // Adjust width based on state
+        )}
+      >
         <div className="text-lg font-bold mb-4 text-foreground">WesAI</div>
         <nav className="space-y-2">
           <a
@@ -397,7 +446,7 @@ export default function ChatInterface() {
             >
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
-            <span>Chat</span>
+            {isSidebarOpen && <span>Chat</span>}
           </a>
           <a
             href="#"
@@ -420,10 +469,12 @@ export default function ChatInterface() {
               <path d="M22 21v-2a4 4 0 0 0-3-3.87 4 4 0 0 0-7-1.13" />
               <circle cx="16" cy="7" r="4" />
             </svg>
-            <span>Agents</span>
-            <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
-              Beta
-            </span>
+            {isSidebarOpen && <span>Agents</span>}
+            {isSidebarOpen && (
+              <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
+                Beta
+              </span>
+            )}
           </a>
           <a
             href="#"
@@ -441,12 +492,14 @@ export default function ChatInterface() {
               strokeLinejoin="round"
               className="lucide lucide-book"
             >
-              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+              <path d="M4 19.5v-15A2.5 2 0 0 1 6.5 2H20v20H6.5a2.5 2 0 0 1 0-5H20" />
             </svg>
-            <span>Libraries</span>
-            <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
-              Beta
-            </span>
+            {isSidebarOpen && <span>Libraries</span>}
+            {isSidebarOpen && (
+              <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
+                Beta
+              </span>
+            )}
           </a>
           <a
             href="#"
@@ -472,10 +525,12 @@ export default function ChatInterface() {
               <path d="M12 2a7 7 0 1 0 7 7Z" />
               <path d="m13 10-1 3-3-1" />
             </svg>
-            <span>Connections</span>
-            <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
-              Beta
-            </span>
+            {isSidebarOpen && <span>Connections</span>}
+            {isSidebarOpen && (
+              <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
+                Beta
+              </span>
+            )}
           </a>
         </nav>
         <div className="mt-auto space-y-2">
@@ -501,14 +556,17 @@ export default function ChatInterface() {
               <path d="m21 21-4.3-4.3" />
             </svg>
           </div>
-          <div className="text-sm text-gray-500 dark:text-gray-400">Ctrl-K</div>
+          {isSidebarOpen && (
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Ctrl-K
+            </div>
+          )}
         </div>
       </div>
-
       {/* Main Chat Area */}
       <div
         className={cn(
-          'flex h-full flex-col overflow-hidden rounded-lg border bg-background shadow-xl',
+          'flex h-full flex-col overflow-hidden rounded-lg border bg-background shadow-xl transition-all duration-300 ease-in-out', // Added transition
           isSidebarOpen ? 'w-[calc(100vw-280px)]' : 'w-[calc(100vw-80px)]',
           'mx-auto max-w-4xl', // Added for centering and max-width
         )}
@@ -516,7 +574,56 @@ export default function ChatInterface() {
         {/* Chat Header */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-semibold text-foreground">Chat</h2>
-          <div className="flex space-x-2">
+          {/* Session indicator */}
+          <div className="text-sm text-muted-foreground ml-4">
+            Session saved
+          </div>
+          {/* Mode Selector */}
+          <div className="flex items-center space-x-2 ml-auto">
+            {' '}
+            {/* Added ml-auto to push to the right */}
+            <span className="text-sm text-muted-foreground">
+              Mode: {mode.charAt(0).toUpperCase() + mode.slice(1)}
+            </span>{' '}
+            {/* Display current mode */}
+            <Button
+              variant={mode === 'default' ? 'secondary' : 'ghost'} // Highlight active mode
+              size="sm" // Smaller size for mode buttons
+              onClick={() => dispatch({ type: 'SET_MODE', payload: 'default' })}
+            >
+              Default
+            </Button>
+            <Button
+              variant={mode === 'content' ? 'secondary' : 'ghost'} // Highlight active mode
+              size="sm" // Smaller size for mode buttons
+              onClick={() => dispatch({ type: 'SET_MODE', payload: 'content' })}
+            >
+              Content
+            </Button>
+            <Button
+              variant={mode === 'code' ? 'secondary' : 'ghost'} // Highlight active mode
+              size="sm" // Smaller size for mode buttons
+              onClick={() => dispatch({ type: 'SET_MODE', payload: 'code' })}
+            >
+              Code
+            </Button>
+          </div>
+          <div className="flex space-x-2 ml-4">
+            {' '}
+            {/* Added ml-4 for spacing */}
+            {/* Sidebar Toggle Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
+              title={isSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+            >
+              {isSidebarOpen ? (
+                <PanelLeftClose className="h-5 w-5" />
+              ) : (
+                <PanelLeftOpen className="h-5 w-5" />
+              )}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -559,103 +666,23 @@ export default function ChatInterface() {
         </div>
 
         {/* Chat Input Area */}
-        <div className="border-t border-border p-4 bg-background">
-          <div className="relative flex items-center">
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) =>
-                dispatch({ type: 'SET_INPUT', payload: e.target.value })
-              }
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey && !isLoading) {
-                  e.preventDefault();
-                  if (editingMessage) {
-                    submitEdit();
-                  } else {
-                    sendMessage(input);
-                  }
-                }
-              }}
-              placeholder={
-                isLoading ? 'Generating response...' : 'Ask WesAI...'
-              }
-              className="w-full resize-none overflow-hidden rounded-lg border border-input bg-background p-3 pr-12 text-sm shadow-sm focus:border-primary focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
-              rows={1}
-              disabled={isLoading}
-              aria-label="Chat input"
-            />
-            {editingMessage ? (
-              <div className="absolute right-3 bottom-3 flex space-x-2">
-                <Button
-                  size="sm"
-                  onClick={cancelEdit}
-                  variant="outline"
-                  className="h-8"
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={submitEdit}
-                  disabled={!input.trim() || isLoading}
-                  className="h-8"
-                >
-                  Save
-                </Button>
-              </div>
-            ) : (
-              <Button
-                type="submit"
-                size="icon"
-                className="absolute right-3 bottom-3 h-8 w-8"
-                onClick={() => sendMessage(input)}
-                disabled={!input.trim() || isLoading}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-send h-4 w-4"
-                >
-                  <path d="m22 2-7 7m-4 4-7 7L2 12l7-7 7 7 7-7Z" />
-                </svg>
-                <span className="sr-only">Send message</span>
-              </Button>
-            )}
-          </div>
-          {messages.length === 1 && messages[0].isGreeting && (
-            <div className="mt-2 text-sm text-muted-foreground">
-              <p>Try these prompts:</p>
-              <div className="flex flex-wrap gap-2 mt-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handlePromptClick('What is the capital of France?')
-                  }
-                >
-                  What is the capital of France?
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() =>
-                    handlePromptClick('Explain quantum computing simply.')
-                  }
-                >
-                  Explain quantum computing simply.
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
+        <ChatInput
+          input={input}
+          setInput={(input: string) =>
+            dispatch({ type: 'SET_INPUT', payload: input })
+          }
+          sendMessage={sendMessage}
+          isLoading={isLoading}
+          editingMessage={editingMessage}
+          submitEdit={submitEdit}
+          cancelEdit={cancelEdit}
+          displayedPrompts={displayedPrompts}
+          handlePromptClick={handlePromptClick}
+          messagesLength={messages.length}
+          isGreetingMessage={
+            messages.length === 1 && Boolean(messages[0].isGreeting)
+          }
+        />
       </div>
     </div>
   );

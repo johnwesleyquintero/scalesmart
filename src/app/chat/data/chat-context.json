@@ -407,7 +407,7 @@
       "documentation": "Internal documentation and user guides available for platform modules."
     },
     "tools": {
-      "amazonSellerToolsFeature": { 
+      "amazonSellerToolsFeature": {
         "name": "ScaleSmart Amazon Seller Tools",
         "description": "A comprehensive automation and analytics suite I'm developing for Amazon sellers, serving as a central hub for various custom tools leveraging SP-API (sandbox) for data aggregation and AI-driven insights.",
         "version": "Core System v1.0",
@@ -443,17 +443,34 @@
           "Production SP-API integration"
         ],
         "subToolsExamples": [
-            "FBA Calculator", "Keyword Analyzer", "Listing Quality Checker", "PPC Campaign Auditor",
-            "Description Editor", "Keyword Deduplicator", "ACoS Calculator", "Sales Estimator",
-            "Competitor Analyzer (basic)", "Keyword Trend Analyzer", "Profit Margin Calculator",
-            "Product Score Calculator", "Optimal Price Calculation (basic)"
+          "FBA Calculator",
+          "Keyword Analyzer",
+          "Listing Quality Checker",
+          "PPC Campaign Auditor",
+          "Description Editor",
+          "Keyword Deduplicator",
+          "ACoS Calculator",
+          "Sales Estimator",
+          "Competitor Analyzer (basic)",
+          "Keyword Trend Analyzer",
+          "Profit Margin Calculator",
+          "Product Score Calculator",
+          "Optimal Price Calculation (basic)"
         ]
       },
       "academyFeature": {
         "name": "ScaleSmart Academy",
         "description": "The Academy feature provides a comprehensive learning experience within the ScaleSmart Platform, inspired by leading educational platforms. It aims to enhance learning and user engagement through course management, interactive modules, progress tracking, and certifications.",
         "category": "Learning & Education Platform",
-        "keywords": ["academy", "learning", "courses", "education", "e-learning", "certification", "progress tracking"],
+        "keywords": [
+          "academy",
+          "learning",
+          "courses",
+          "education",
+          "e-learning",
+          "certification",
+          "progress tracking"
+        ],
         "version": "1.0.0",
         "status": "Active Development",
         "features": [
@@ -469,7 +486,14 @@
         "name": "ScaleSmart Project Management",
         "description": "The Project Management feature offers comprehensive tools inspired by platforms like Asana, designed to enhance task assignments, project timelines, team collaboration, and progress tracking for project managers.",
         "category": "Project Management & Collaboration",
-        "keywords": ["project management", "task management", "timelines", "collaboration", "progress tracking", "asana"],
+        "keywords": [
+          "project management",
+          "task management",
+          "timelines",
+          "collaboration",
+          "progress tracking",
+          "asana"
+        ],
         "version": "1.0.0",
         "status": "Active Development / Refined",
         "features": [
@@ -490,7 +514,15 @@
         "name": "ScaleSmart CRM",
         "description": "The CRM feature provides comprehensive customer relationship management tools inspired by platforms like HubSpot. It integrates contact management, sales pipeline tracking (Kanban), marketing automation, and customer interaction logging.",
         "category": "Customer Relationship Management (CRM)",
-        "keywords": ["crm", "customer management", "sales pipeline", "marketing automation", "contact management", "hubspot", "dnd-kit"],
+        "keywords": [
+          "crm",
+          "customer management",
+          "sales pipeline",
+          "marketing automation",
+          "contact management",
+          "hubspot",
+          "dnd-kit"
+        ],
         "version": "1.0.0",
         "status": "Active Development / Enhanced",
         "features": [
@@ -524,7 +556,15 @@
         "name": "ScaleSmart Markdown Notepad",
         "description": "A simple yet powerful tool for creating, editing, and managing markdown notes within the ScaleSmart Platform. It offers a user-friendly interface for quick note-taking, organization, bulk operations, tabbed interface, persistence via IndexedDB, and version history.",
         "category": "Productivity & Note-Taking",
-        "keywords": ["markdown", "notepad", "notes", "editor", "indexeddb", "version history", "organization"],
+        "keywords": [
+          "markdown",
+          "notepad",
+          "notes",
+          "editor",
+          "indexeddb",
+          "version history",
+          "organization"
+        ],
         "version": "1.0.0",
         "status": "Active Development",
         "features": [
@@ -536,7 +576,9 @@
           "Version History: View and restore previous versions of notes."
         ],
         "knownIssues": [],
-        "roadmap": ["Continued feature enhancements for usability and advanced editing options."]
+        "roadmap": [
+          "Continued feature enhancements for usability and advanced editing options."
+        ]
       },
       "aiChatFeature": {
         "name": "ScaleSmart AI Chat Assistant",
@@ -557,7 +599,12 @@
         "name": "ScaleSmart Prompt Request Generator",
         "description": "A utility tool designed to assist users in creating structured prompt requests, potentially for interaction with AI models or other services, by providing a user-friendly interface for generating and formatting prompts.",
         "category": "AI & Developer Utility",
-        "keywords": ["prompt engineering", "ai prompt", "generator", "developer tool"],
+        "keywords": [
+          "prompt engineering",
+          "ai prompt",
+          "generator",
+          "developer tool"
+        ],
         "version": "1.0.0",
         "status": "Available",
         "features": [

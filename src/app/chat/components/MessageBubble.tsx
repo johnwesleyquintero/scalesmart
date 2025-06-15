@@ -32,6 +32,23 @@ interface MessageStatusIndicatorProps {
  * Renders message status indicators (Typing, Error).
  * Handles retry logic for failed user messages.
  */
+/**
+ * Simple component for the typing animation.
+ */
+function TypingIndicator() {
+  return (
+    <div className="typing-indicator ml-2 text-xs opacity-70 flex items-center space-x-0.5">
+      <span>•</span>
+      <span>•</span>
+      <span>•</span>
+    </div>
+  );
+}
+
+/**
+ * Renders message status indicators (Typing, Error).
+ * Handles retry logic for failed user messages.
+ */
 function MessageStatusIndicator({
   message,
   isUser,
@@ -39,7 +56,7 @@ function MessageStatusIndicator({
 }: MessageStatusIndicatorProps) {
   // Typing indicator for non-user messages that are sending
   if (message.status === 'sending' && !isUser) {
-    return <span className="ml-2 text-xs opacity-70">Typing...</span>;
+    return <TypingIndicator />;
   }
 
   // Error indicator for user messages that failed
@@ -123,7 +140,8 @@ function MessageActions({
         onClick={() => onDelete(message.timestamp)}
         aria-label="Delete message"
         title="Delete"
-        className="text-red-400 hover:text-red-500 dark:text-red-500 dark:hover:text-red-400" // Added text color classes
+        // Added text color classes
+        className="text-red-400 hover:text-red-500 dark:text-red-500 dark:hover:text-red-400"
       >
         <Trash2 className="w-3 h-3" />
       </Button>
@@ -192,7 +210,7 @@ export default function MessageBubble({
         className={cn(
           'relative p-3 rounded-lg max-w-[80%] break-words', // Added break-words for long words
           isUser
-            ? 'bg-primary text-primary-foreground' // User bubble styling
+            ? 'bg-blue-600 text-white dark:bg-blue-700' // User bubble styling with improved contrast
             : 'bg-muted text-muted-foreground', // Bot bubble styling
           // If status is error, add a visual indicator (e.g., border or background slight change)
           message.status === 'error'

@@ -196,6 +196,7 @@ export async function fetchAndProcessChatApi(
   dispatch: React.Dispatch<ChatAction>, // Accept dispatch
   scrollToBottom: () => void, // Accept scrollToBottom
   currentMode: ChatState['mode'], // Accept currentMode
+  chatHistory: Message[], // Add chatHistory parameter
 ): Promise<void> {
   // Change return type to void as it dispatches actions
   console.log('Calling /api/chat with message:', userMessage.content);
@@ -245,8 +246,15 @@ export async function fetchAndProcessChatApi(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: sanitizedContent.trim(),
-        // Filter history to include only 'sent' messages for context
-        history: [], // History should be managed by the component, not passed here
+        // Pass the relevant chat history
+        history: chatHistory
+          .filter(
+            (msg) =>
+              msg.status === 'sent' &&
+              msg.id !== aiRespondingMessage.id &&
+              !msg.isGreeting,
+          ) // Filter out non-sent, the current AI placeholder, and greeting
+          .map(({ role, content }) => ({ role, content })), // Send only role and content
         mode: currentMode,
       }),
       cache: 'no-store',

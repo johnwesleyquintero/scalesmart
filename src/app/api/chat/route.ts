@@ -305,7 +305,9 @@ async function getPortfolioContext(): Promise<PortfolioContext> {
   }
   portfolioContextPromise = (async () => {
     try {
-      const portfolioContextModule = await import('@/data/chat-context.json');
+      const portfolioContextModule = await import(
+        '@/app/chat/data/chat-context.json'
+      );
       // FIX: Load the default export, which is now the single context object
       const context = portfolioContextModule.default;
 
@@ -573,7 +575,10 @@ const _formatWebAppInformation = (webappContext?: WebAppContext): string[] => {
         formatSection('Impact', tool.impact),
         formatSection('Known Issues', tool.knownIssues),
         formatSection('Roadmap', tool.roadmap),
-        formatSection('Sub-Tools Examples (if applicable)', tool.subToolsExamples)
+        formatSection(
+          'Sub-Tools Examples (if applicable)',
+          tool.subToolsExamples,
+        ),
       );
     });
   }
