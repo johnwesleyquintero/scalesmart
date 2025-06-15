@@ -38,6 +38,7 @@ export async function updateModuleProgress(
   moduleId: string,
   progress: number,
 ): Promise<void> {
+  console.log('DEBUG: updateModuleProgress called with:', { userId, courseId, moduleId, progress });
   const record: ModuleProgressRecord = {
     userId,
     courseId,
@@ -45,6 +46,7 @@ export async function updateModuleProgress(
     progress,
     lastUpdated: Date.now(),
   };
+  console.log('DEBUG: Attempting to put moduleProgress record:', record);
   // Use db object directly, assuming 'moduleProgress' store exists and handles key from object
   await db.moduleProgress.put(record);
 }
@@ -103,12 +105,14 @@ export async function updateQuizResult(
   moduleId: string,
   result: QuizResult,
 ): Promise<void> {
+  console.log('DEBUG: updateQuizResult called with:', { userId, moduleId, result });
   const record: QuizResultRecord = {
     userId,
     moduleId,
     result,
     lastUpdated: Date.now(),
   };
+  console.log('DEBUG: Attempting to put quizResults record:', record);
   // Use db object directly, assuming 'quizResults' store exists and handles key from object
   await db.quizResults.put(record);
 }

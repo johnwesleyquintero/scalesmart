@@ -836,7 +836,7 @@ export const updateModuleProgress = async (
       progress,
       lastUpdated: Date.now(),
     };
-    console.log('Attempting to put moduleProgress record:', record);
+    console.log('DEBUG: Attempting to put moduleProgress record:', record);
     await db.moduleProgress.put(record);
   } catch (error) {
     logError(
@@ -877,7 +877,7 @@ export const updateQuizResult = async (
       result,
       lastUpdated: Date.now(),
     };
-    console.log('Attempting to put quizResults record:', record);
+    console.log('DEBUG: Attempting to put quizResults record:', record);
     await db.quizResults.put(record);
   } catch (error) {
     logError(
