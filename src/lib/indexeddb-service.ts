@@ -910,11 +910,12 @@ export const getCourseModuleProgress = async (
   courseId: string,
 ): Promise<ModuleProgressRecord[]> => {
   try {
-    if (courseId) {
+    if (courseId) { // Check if courseId is provided (not an empty string)
       return await db.moduleProgress
         .where({ userId: userId, courseId: courseId })
         .toArray();
     } else {
+      // If courseId is not provided, get all module progress for the user
       return await db.moduleProgress.where('userId').equals(userId).toArray();
     }
   } catch (error) {
