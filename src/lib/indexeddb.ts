@@ -133,6 +133,11 @@ export const addCategory = async (category: LocalCategory): Promise<void> => {
 export const updateCategory = async (
   category: LocalCategory,
 ): Promise<void> => {
+  // Validate the incoming category ID
+  if (!category.id || typeof category.id !== 'string') {
+    throw new Error('Invalid or missing category ID provided for update.');
+  }
+
   const categoryData: Category = {
     // Use the imported Category type
     id: category.id,

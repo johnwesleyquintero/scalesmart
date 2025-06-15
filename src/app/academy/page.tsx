@@ -1,6 +1,14 @@
 import DashboardHeader from './components/DashboardHeader';
 import ErrorBoundary from '@/components/ui/error-boundary'; // Assuming this path is correct
 import { AcademyPageContent } from './components/AcademyPageContent';
+import type { Metadata } from 'next'; // Import Metadata type
+
+// Define metadata for the Academy page
+export const metadata: Metadata = {
+  alternates: {
+    canonical: 'https://wescode.vercel.app/academy',
+  },
+};
 
 /**
  * The main page component for the Academy section.
