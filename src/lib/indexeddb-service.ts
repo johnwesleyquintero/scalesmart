@@ -2,7 +2,7 @@ import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
 import { QuizResult, Course } from '@/types'; // Import QuizResult and Course from '@/types'
-import { Contact, CommunicationLog, ActivityLog } from '@/app/crm/types'; // Import CRM types
+import { Contact, CommunicationLog, ActivityLog, SalesOpportunity } from '@/app/crm/types'; // Import CRM types
 import {
   Category,
   Note,
@@ -60,6 +60,7 @@ class ScaleSmartDatabase extends Dexie {
   public crmCommunicationLogs!: Table<CommunicationLog, string>;
   public crmActivityLogs!: Table<ActivityLog, string>;
   public crmEmailTemplates!: Table<{ id: string; name: string }, string>; // Assuming a simple structure for email templates
+  public crmSalesOpportunities!: Table<SalesOpportunity, string>;
 
   // Project Management
   public tasks!: Table<Task, string>;
@@ -96,6 +97,7 @@ class ScaleSmartDatabase extends Dexie {
       'crm-communication-logs': 'id, customerId, type, date, subject, notes',
       'crm-activity-logs': 'id, contactId, type, date, notes',
       'crm-email-templates': 'id, name',
+      'crm-sales-opportunities': 'id, name, status, amount, closeDate, contactId, createdAt, updatedAt',
 
       // Project Management
       tasks:

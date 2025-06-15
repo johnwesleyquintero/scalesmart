@@ -35,7 +35,7 @@ export interface Contact {
 }
 
 import { SalesOpportunity, SalesStage } from './types/sales';
-export type { SalesStage }; // Re-export SalesStage as a type
+export type { SalesOpportunity, SalesStage }; // Re-export SalesOpportunity and SalesStage as types
 
 export type CommunicationType = 'call' | 'email' | 'meeting' | 'chat';
 
