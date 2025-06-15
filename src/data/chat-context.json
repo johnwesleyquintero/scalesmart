@@ -389,415 +389,184 @@
   },
   "webappContext": {
     "projectOverview": {
-      "name": "ScaleSmart: My Portfolio & Amazon Seller Tool Development Platform",
-      "description": "ScaleSmart is my personal and professional portfolio platform where I, Wesley Quintero, develop and showcase a suite of React-based Amazon seller tools. These tools are designed to help sellers optimize listings, analyze performance, and manage their businesses. ScaleSmart embodies my approach to building comprehensive, AI-enhanced solutions and demonstrates my skills in SP-API, full-stack development, and e-commerce strategy.",
+      "name": "ScaleSmart Platform",
+      "description": "The ScaleSmart Platform is a comprehensive web application designed to provide a suite of tools for various business needs, including an Academy for learning, Project Management tools, a CRM system, specialized Amazon Seller Tools, a Markdown Notepad, and an AI Chat assistant. The platform focuses on seamless integration, maintainability, user experience, data integrity, and supporting scalability and innovation.",
       "currentStatus": "Active development & Continuous Improvement",
       "version": "2.1.0",
-      "lastUpdate": "2024-05-26",
+      "lastUpdate": "2024-05-30",
       "developmentPriorities": [
-        "Resolving bugs in ACoS Calculator",
-        "Improving PPC Campaign Auditor stability",
-        "Enhancing Listing Quality Checker AI features",
-        "Expanding SP-API integration capabilities (currently in Sandbox)",
-        "Improving UI/UX across all modules"
+        "Seamless integration and enhanced user experience across all platform features (Academy, Project Management, CRM, Amazon Tools, Notepad).",
+        "Advancement of AI-powered capabilities, particularly in CRM (Lead Scoring, Analytics) and Amazon Seller Tools (Insights, Optimization).",
+        "Robust SP-API integration for Amazon Seller Tools, moving towards production capabilities.",
+        "Continuous improvement of data integrity, persistence mechanisms (e.g., IndexedDB), and security.",
+        "Refinement of interactive learning modules and certification programs in the Academy.",
+        "Expansion of team collaboration and workflow automation features in Project Management and CRM.",
+        "Ongoing UI/UX enhancements for improved usability and accessibility across the platform."
       ],
       "repository": "Primarily private repositories on GitHub, some components may be open-sourced.",
       "documentation": "Internal documentation and user guides available for platform modules."
     },
     "tools": {
-      "amazonPortfolioPlatform": {
-        "name": "Amazon Portfolio Platform (Lead Developer)",
+      "amazonSellerToolsFeature": { 
+        "name": "ScaleSmart Amazon Seller Tools",
         "description": "A comprehensive automation and analytics suite I'm developing for Amazon sellers, serving as a central hub for various custom tools leveraging SP-API (sandbox) for data aggregation and AI-driven insights.",
         "version": "Core System v1.0",
         "status": "Active / Lead Development",
         "features": [
-          "Developing SP-API integrations for multi-marketplace data aggregation (Sales, PPC, Inventory) in the sandbox environment.",
-          "Building modules for automated SEO keyword rank tracking and PPC performance analysis.",
-          "Developing custom React/Next.js dashboards for data visualization (ACoS/TACOS trends, organic vs. paid).",
-          "Implementing AI-driven insights for pricing adjustments and inventory forecasting suggestions."
+          "Product Research: Tools for analyzing product data, market trends, and identifying opportunities.",
+          "Keyword Tracking & Management: Comprehensive keyword research, tracking, and performance analysis modules.",
+          "Listing Optimization: AI-powered tools to enhance product titles, descriptions, bullet points, and images for improved conversion and SEO.",
+          "Advanced Analytics & Reporting: Customizable dashboards (React/Next.js with recharts) for visualizing sales, PPC (ACoS/TACOS), inventory, and other key metrics.",
+          "SP-API Integration: Robust (sandbox) integration for multi-marketplace data aggregation (Sales, PPC, Inventory) and automation capabilities.",
+          "AI-Driven Insights: Actionable recommendations for pricing, inventory forecasting, and performance optimization using AI (e.g., gemini-api.ts)."
         ],
         "impact": "Aims to reduce manual reporting and operational tasks significantly, enabling focus on strategic growth. Designed to support data-driven decisions for e-commerce accounts.",
+        "keyEnhancements": [
+          "Real-time Data Integration via Amazon Selling Partner API (SP-API) (server-side route, client interaction).",
+          "Interactive and Customizable Dashboards with `recharts` and date filtering.",
+          "AI-Powered Insights and Actionable Recommendations via `gemini-api.ts`.",
+          "Improved Data Handling for Large Datasets (`parseCsvFile` streaming).",
+          "Refined Data Aggregation in `analyticsProcessing.ts`.",
+          "Enhanced Search and Filtering in `dataFiltering.ts`.",
+          "Advanced Listing Optimization Suggestions via `listingOptimizationAI.ts`.",
+          "Comprehensive Error Handling in `reportProcessing.ts`."
+        ],
         "knownIssues": [],
         "roadmap": [
-          "Further AI integration",
-          "Expanded marketplace support",
+          "AI-Driven Product Opportunity Scoring.",
+          "AI-Powered Keyword Research & Optimization.",
+          "Automated Listing Optimization & A/B Testing.",
+          "Predictive Inventory Management.",
+          "Competitor Tracking & Analysis (enhanced).",
+          "AI-Powered Customer Review Analysis.",
+          "Enhanced Analytics & Reporting (holistic view).",
           "Production SP-API integration"
+        ],
+        "subToolsExamples": [
+            "FBA Calculator", "Keyword Analyzer", "Listing Quality Checker", "PPC Campaign Auditor",
+            "Description Editor", "Keyword Deduplicator", "ACoS Calculator", "Sales Estimator",
+            "Competitor Analyzer (basic)", "Keyword Trend Analyzer", "Profit Margin Calculator",
+            "Product Score Calculator", "Optimal Price Calculation (basic)"
         ]
       },
-      "customAnalyticsDashboards": {
-        "name": "Custom Amazon Analytics Dashboards",
-        "description": "Developing bespoke dashboards tailored to specific client needs for performance monitoring, intended for integration within the Amazon Portfolio Platform or as standalone solutions.",
-        "version": "Varies by client",
-        "status": "Active / On-demand development",
+      "academyFeature": {
+        "name": "ScaleSmart Academy",
+        "description": "The Academy feature provides a comprehensive learning experience within the ScaleSmart Platform, inspired by leading educational platforms. It aims to enhance learning and user engagement through course management, interactive modules, progress tracking, and certifications.",
+        "category": "Learning & Education Platform",
+        "keywords": ["academy", "learning", "courses", "education", "e-learning", "certification", "progress tracking"],
+        "version": "1.0.0",
+        "status": "Active Development",
         "features": [
-          "Visualizing key metrics: PPC ACoS/TACOS trends, organic vs. paid sales ratios, listing conversion rates by ASIN.",
-          "Integrating competitive analysis features (tracking competitor price changes, BSR movements).",
-          "Utilizing SP-API data (sandbox) combined with processed Seller Central reports for a holistic view."
+          "Course Catalog Management: Organize and manage a wide range of courses with a user-friendly interface for navigation and enrollment.",
+          "Interactive Learning Modules: Engaging modules with videos, quizzes, and interactive content to enhance knowledge retention.",
+          "Progress Tracking: Tools for users to monitor their progress and achievements throughout courses.",
+          "Certification Programs: System for issuing and managing certificates upon course completion."
         ],
-        "impact": "Aims to provide actionable insights leading to optimized ad spend and improved listing performance.",
         "knownIssues": [],
-        "roadmap": ["Standardization of common dashboard templates"]
+        "roadmap": ["Continued content development and feature enhancements."]
       },
-      "automatedListingInventorySystem": {
-        "name": "Automated Listing Management & Inventory Sync System",
-        "description": "Developing tools to streamline listing updates and prevent stockouts across multiple marketplaces, utilizing SP-API in the sandbox.",
-        "version": "Varies by module",
-        "status": "Active / Continuous Improvement",
+      "projectManagementFeature": {
+        "name": "ScaleSmart Project Management",
+        "description": "The Project Management feature offers comprehensive tools inspired by platforms like Asana, designed to enhance task assignments, project timelines, team collaboration, and progress tracking for project managers.",
+        "category": "Project Management & Collaboration",
+        "keywords": ["project management", "task management", "timelines", "collaboration", "progress tracking", "asana"],
+        "version": "1.0.0",
+        "status": "Active Development / Refined",
         "features": [
-          "Tools for rapid listing updates based on keyword research and performance data.",
-          "Developing real-time, cross-marketplace inventory synchronization using SP-API (US, CA, MX in sandbox).",
-          "Designing an automated pricing engine considering competitor pricing and inventory levels."
+          "Task Assignments: System for task creation, assignment, and tracking for efficient management and accountability.",
+          "Project Timelines: Tools for visualizing and managing project schedules and deadlines.",
+          "Team Collaboration Tools: Features for team communication, file sharing, and collaborative editing.",
+          "Progress Tracking: Tools for monitoring project milestones and deliverables."
         ],
-        "impact": "Aims to reduce listing management time, minimize stockout risks, and ensure competitive pricing.",
+        "keyEnhancements": [
+          "Modularized `useTaskManagement` hook.",
+          "Shared `projectsMap` and `allTasksMap` logic via `useTaskManagementMaps` hook.",
+          "Simplified `TaskForm` `useEffect`."
+        ],
+        "knownIssues": [],
+        "roadmap": ["Further enhancements for user experience and integration."]
+      },
+      "crmFeature": {
+        "name": "ScaleSmart CRM",
+        "description": "The CRM feature provides comprehensive customer relationship management tools inspired by platforms like HubSpot. It integrates contact management, sales pipeline tracking (Kanban), marketing automation, and customer interaction logging.",
+        "category": "Customer Relationship Management (CRM)",
+        "keywords": ["crm", "customer management", "sales pipeline", "marketing automation", "contact management", "hubspot", "dnd-kit"],
+        "version": "1.0.0",
+        "status": "Active Development / Enhanced",
+        "features": [
+          "Contact Management: System for storing and managing customer information and interaction history.",
+          "Sales Pipeline Tracking: Drag-and-drop Kanban board (dnd-kit) for visualizing and managing sales processes.",
+          "Marketing Automation: Features for creating and managing marketing campaigns.",
+          "Customer Interaction Logging: Tools for recording and managing customer interactions.",
+          "Activity Feed, Email Template Manager, Email Composer, Live Chat Widget."
+        ],
+        "keyEnhancements": [
+          "New components: ActivityFeed, EmailTemplateManager, EmailComposer, LiveChatWidget.",
+          "Enhanced tabbed interface with new tabs.",
+          "Updated Contact interface with `lastActivity` field.",
+          "Accurate activity tracking in `use-crm-data.ts`.",
+          "Robust form handling in `CustomerForm.tsx` with `react-hook-form`.",
+          "Enriched customer list display in `CustomerListItem.tsx`.",
+          "Comprehensive CSV export including `lastActivity`.",
+          "Integrated drag-and-drop Kanban board for sales pipeline.",
+          "Category management features."
+        ],
         "knownIssues": [],
         "roadmap": [
-          "Enhanced predictive capabilities for stock replenishment",
-          "Production SP-API integration"
+          "AI-Powered Lead Scoring and Predictive Analytics.",
+          "Real-time Customer Activity Tracking & Notifications.",
+          "Integrated Communication Hub (Email & Chat) - further enhancements.",
+          "Customizable Dashboards & Reporting.",
+          "Workflow Automation Builder (No-Code/Low-Code)."
         ]
       },
-      "fbaCalculator": {
-        "name": "FBA Calculator",
-        "description": "A comprehensive profitability calculator for Amazon FBA products, helping estimate costs, fees, and market trends. Relies on manual/CSV input, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "FBA",
-          "calculator",
-          "profitability",
-          "fees",
-          "amazon seller",
-          "cost analysis"
-        ],
-        "relationships": [
-          "optimalPriceCalculation",
-          "profitMarginCalculator",
-          "salesEstimator"
-        ],
-        "version": "2.0.0",
-        "status": "Active",
+      "markdownNotepadFeature": {
+        "name": "ScaleSmart Markdown Notepad",
+        "description": "A simple yet powerful tool for creating, editing, and managing markdown notes within the ScaleSmart Platform. It offers a user-friendly interface for quick note-taking, organization, bulk operations, tabbed interface, persistence via IndexedDB, and version history.",
+        "category": "Productivity & Note-Taking",
+        "keywords": ["markdown", "notepad", "notes", "editor", "indexeddb", "version history", "organization"],
+        "version": "1.0.0",
+        "status": "Active Development",
         "features": [
-          "CSV upload",
-          "Real-time calculations",
-          "Recharts visualization",
-          "Fee breakdown"
+          "Note Creation and Editing: Markdown editor with real-time preview.",
+          "Note Management: Categorizing, searching, and listing notes.",
+          "Bulk Operations: Assigning categories, deleting, or exporting multiple notes.",
+          "Tabbed Interface: Open and switch between multiple notes.",
+          "Persistence: Local storage using IndexedDB for cross-session reliability.",
+          "Version History: View and restore previous versions of notes."
         ],
         "knownIssues": [],
-        "roadmap": ["SP-API integration for automated fee fetching"]
+        "roadmap": ["Continued feature enhancements for usability and advanced editing options."]
       },
-      "keywordAnalyzer": {
-        "name": "Keyword Analyzer",
-        "description": "A tool for in-depth keyword analysis and management for Amazon listings, optimizing for search visibility. Processes manual/CSV data, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "keyword",
-          "analyzer",
-          "research",
-          "SEO",
-          "amazon seller",
-          "organic ranking"
+      "aiChatFeature": {
+        "name": "ScaleSmart AI Chat Assistant",
+        "description": "An integrated AI Chat feature allowing users to engage with an AI assistant for quick answers, support, and information retrieval within the ScaleSmart Platform.",
+        "category": "AI & Automation Utility",
+        "keywords": ["ai chat", "assistant", "support", "chatbot", "ai"],
+        "version": "1.0.0",
+        "status": "Active / Integrated",
+        "features": [
+          "Interactive AI Assistant: Provides instant responses to user queries.",
+          "Quick Support: Helps users find information and troubleshoot issues efficiently.",
+          "Seamless Integration: Accessible directly from the main navigation."
         ],
-        "relationships": [
-          "listingQualityChecker",
-          "descriptionEditor",
-          "keywordTrendAnalyzer"
-        ],
-        "version": "2.0.0",
-        "status": "Active",
-        "features": ["Filtering", "Column visibility", "Sorting"],
         "knownIssues": [],
-        "roadmap": ["SP-API integration for fetching search term reports"]
+        "roadmap": ["Expanding knowledge base and conversational capabilities."]
       },
-      "listingQualityChecker": {
-        "name": "Listing Quality Checker",
-        "description": "An AI-powered tool to analyze and optimize Amazon product listings for quality, visibility, and sales. Processes manual/CSV data, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "listing",
-          "quality",
-          "checker",
-          "AI",
-          "optimization",
-          "amazon seller"
-        ],
-        "relationships": [
-          "keywordAnalyzer",
-          "descriptionEditor",
-          "competitorAnalyzer"
-        ],
-        "version": "1.5.0",
-        "status": "Active",
-        "features": [
-          "AI title/description/bullet optimization",
-          "Image validation",
-          "SEO recommendations"
-        ],
-        "knownIssues": ["AI features under review."],
-        "roadmap": [
-          "Refine AI features, SP-API integration for direct analysis."
-        ]
-      },
-      "ppcCampaignAuditor": {
-        "name": "PPC Campaign Auditor",
-        "description": "A tool to analyze PPC campaign performance and provide optimization recommendations for Amazon sellers. Processes CSV imports, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "PPC",
-          "campaign",
-          "auditor",
-          "advertising",
-          "optimization",
-          "amazon seller"
-        ],
-        "relationships": [
-          "acosCalculator",
-          "keywordAnalyzer",
-          "salesEstimator"
-        ],
+      "promptRequestGenerator": {
+        "name": "ScaleSmart Prompt Request Generator",
+        "description": "A utility tool designed to assist users in creating structured prompt requests, potentially for interaction with AI models or other services, by providing a user-friendly interface for generating and formatting prompts.",
+        "category": "AI & Developer Utility",
+        "keywords": ["prompt engineering", "ai prompt", "generator", "developer tool"],
         "version": "1.0.0",
-        "status": "Active / Continuous Improvement",
+        "status": "Available",
         "features": [
-          "CSV import/validation",
-          "Performance analysis",
-          "Optimization recommendations"
+          "User-friendly interface for prompt creation.",
+          "Structured prompt formatting.",
+          "Streamlines interaction with prompt-based systems."
         ],
-        "knownIssues": ["Requires further testing, stability may vary."],
-        "roadmap": [
-          "Stabilize, bug fixes, SP-API integration for direct data import."
-        ]
-      },
-      "descriptionEditor": {
-        "name": "Description Editor",
-        "description": "AI-enhanced rich text editor for crafting compelling and SEO-optimized Amazon product descriptions. Manual input, future SP-API integration for direct updates planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "description",
-          "editor",
-          "AI",
-          "SEO",
-          "optimization",
-          "amazon seller"
-        ],
-        "relationships": [
-          "listingQualityChecker",
-          "keywordAnalyzer",
-          "productScoreCalculator"
-        ],
-        "version": "1.5.0",
-        "status": "Active",
-        "features": [
-          "HTML formatting",
-          "AI SEO optimization",
-          "live preview",
-          "automated score"
-        ],
-        "knownIssues": ["AI features under review."],
-        "roadmap": [
-          "Test AI effectiveness, SP-API integration for direct updates."
-        ]
-      },
-      "keywordDeduplicator": {
-        "name": "Keyword Deduplicator",
-        "description": "AI-powered tool to identify and eliminate duplicate keywords from Amazon listings, improving SEO. Processes manual/CSV data, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "keyword",
-          "deduplicator",
-          "AI",
-          "management",
-          "SEO",
-          "amazon seller"
-        ],
-        "relationships": [
-          "keywordAnalyzer",
-          "listingQualityChecker",
-          "ppcCampaignAuditor"
-        ],
-        "version": "1.5.0",
-        "status": "Active",
-        "features": [
-          "Bulk processing",
-          "AI duplicate detection",
-          "smart suggestions",
-          "export options"
-        ],
-        "knownIssues": ["AI features under review."],
-        "roadmap": [
-          "Test AI accuracy, SP-API integration for list import/export."
-        ]
-      },
-      "acosCalculator": {
-        "name": "ACoS Calculator",
-        "description": "Advertising analysis tool providing predictive metrics and historical trends to optimize ACoS. Processes CSV imports, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "ACoS",
-          "calculator",
-          "advertising",
-          "analysis",
-          "PPC",
-          "amazon seller"
-        ],
-        "relationships": [
-          "ppcCampaignAuditor",
-          "keywordAnalyzer",
-          "salesEstimator"
-        ],
-        "version": "1.5.0",
-        "status": "Active",
-        "features": [
-          "Campaign tracking",
-          "predictive analysis",
-          "historical trends/visualization"
-        ],
-        "knownIssues": [
-          "CSV format variations, low-spend campaign prediction accuracy."
-        ],
-        "roadmap": [
-          "Improve CSV handling, refine predictions, SP-API integration."
-        ]
-      },
-      "salesEstimator": {
-        "name": "Sales Estimator",
-        "description": "Estimates potential product sales volume to aid in viability, market entry, and inventory planning. Manual input, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "sales",
-          "estimator",
-          "forecast",
-          "product viability",
-          "amazon seller"
-        ],
-        "relationships": [
-          "fbaCalculator",
-          "profitMarginCalculator",
-          "competitorAnalyzer"
-        ],
-        "version": "1.0.0",
-        "status": "Active",
-        "features": [],
         "knownIssues": [],
-        "roadmap": ["SP-API integration for fetching sales data."]
-      },
-      "competitorAnalyzer": {
-        "name": "Competitor Analyzer",
-        "description": "Analyzes competitor data (pricing, reviews, sales rank) to identify differentiation opportunities. Manual input, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "competitor",
-          "analyzer",
-          "market research",
-          "product positioning",
-          "amazon seller"
-        ],
-        "relationships": [
-          "keywordAnalyzer",
-          "listingQualityChecker",
-          "optimalPriceCalculation"
-        ],
-        "version": "1.0.0",
-        "status": "Active",
-        "features": [],
-        "knownIssues": [],
-        "roadmap": ["SP-API integration for fetching competitor data."]
-      },
-      "keywordTrendAnalyzer": {
-        "name": "Keyword Trend Analyzer",
-        "description": "Analyzes keyword trends over time to identify popular/emerging keywords for listing and PPC optimization. Manual/CSV input, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "keyword",
-          "trend",
-          "analyzer",
-          "SEO",
-          "PPC",
-          "amazon seller"
-        ],
-        "relationships": [
-          "keywordAnalyzer",
-          "ppcCampaignAuditor",
-          "listingQualityChecker"
-        ],
-        "version": "1.0.0",
-        "status": "Active",
-        "features": [],
-        "knownIssues": [],
-        "roadmap": ["SP-API integration for fetching keyword trend data."]
-      },
-      "profitMarginCalculator": {
-        "name": "Profit Margin Calculator",
-        "description": "Calculates product profit margins based on cost factors for pricing optimization. Manual input, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "profit",
-          "margin",
-          "calculator",
-          "pricing",
-          "profitability",
-          "amazon seller"
-        ],
-        "relationships": [
-          "fbaCalculator",
-          "optimalPriceCalculation",
-          "salesEstimator"
-        ],
-        "version": "1.0.0",
-        "status": "Active",
-        "features": [],
-        "knownIssues": [],
-        "roadmap": ["SP-API integration for fetching cost data."]
-      },
-      "productScoreCalculator": {
-        "name": "Product Score Calculator",
-        "description": "Calculates a quality score for Amazon listings based on optimization factors. Manual input, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "product",
-          "score",
-          "calculator",
-          "listing quality",
-          "optimization",
-          "amazon seller"
-        ],
-        "relationships": [
-          "listingQualityChecker",
-          "descriptionEditor",
-          "keywordAnalyzer"
-        ],
-        "version": "1.0.0",
-        "status": "Active",
-        "features": [
-          "Title, Bullets, Description, Images, Rating, Reviews, A+ Content, Fulfillment Type analysis"
-        ],
-        "knownIssues": [
-          "Input validation for image/rating count, HTML sanitization in description."
-        ],
-        "roadmap": ["SP-API integration for fetching listing data."]
-      },
-      "optimalPriceCalculation": {
-        "name": "Optimal Price Calculation",
-        "description": "Calculates optimal product price considering cost, competitor prices, and conversion rates. Manual input, future SP-API integration planned.",
-        "category": "Amazon Seller Tools",
-        "keywords": [
-          "optimal",
-          "price",
-          "calculation",
-          "pricing strategy",
-          "profitability",
-          "amazon seller"
-        ],
-        "relationships": [
-          "fbaCalculator",
-          "salesEstimator",
-          "profitMarginCalculator"
-        ],
-        "version": "0.1.0",
-        "status": "Active",
-        "features": [
-          "Product Cost, Current Price, Competitor Prices, Conversion Rate, Sessions, Review Rating/Count analysis"
-        ],
-        "knownIssues": [
-          "Competitor price parsing, input validation, hardcoded product category."
-        ],
-        "roadmap": ["SP-API integration for relevant pricing data."]
+        "roadmap": ["Integration with other AI features within the platform."]
       }
     },
     "components": {
@@ -1123,7 +892,8 @@
     "jsonGeneration": "When generating JSON objects, ensure the JSON is valid and enclosed in a ```json ... ``` code block. Structure the JSON logically based on the user's request. Use appropriate data types.",
     "codeEditing": "If asked to modify existing code (HTML, Mermaid, JSON) that you previously generated or that the user provides, accept the code, apply the changes, and provide the complete updated code block.",
     "privacy": "Do not share sensitive details like specific, non-public financial numbers, private API keys, or unreleased proprietary algorithms unless explicitly stated as shareable in this context. Personal contact details like email and phone are okay to share as they are listed.",
-    "appBuildingAssistance": "When assisting with app building, focus on conceptual help, generating code snippets (HTML, JSON, Mermaid for planning), and explaining technical concepts. Remind users that you can't execute code or integrate with live systems directly.",
-    "dataAnalysisAssistance": "When assisting with data analysis, you can help structure data (e.g., into JSON), visualize it (Mermaid, HTML mock-ups), and discuss analytical approaches based on Wesley's expertise. You cannot perform statistical calculations on raw data provided in real-time beyond simple interpretations."
+    "appBuildingAssistance": "When assisting with app building related to the ScaleSmart platform or your expertise, focus on conceptual help, generating code snippets (HTML, JSON, Mermaid for planning), and explaining technical concepts. Remind users that you can't execute code or integrate with live systems directly.",
+    "dataAnalysisAssistance": "When assisting with data analysis related to your expertise, you can help structure data (e.g., into JSON), visualize it (Mermaid, HTML mock-ups), and discuss analytical approaches. You cannot perform statistical calculations on raw data provided in real-time beyond simple interpretations.",
+    "generalAssistance": "For requests that fall outside the specific context of Wesley Quintero or the ScaleSmart platform, leverage your general knowledge base to provide helpful and accurate information or assistance. If a request is too broad or requires capabilities beyond your design (e.g., real-time web browsing, executing code), politely state your limitations."
   }
 }
