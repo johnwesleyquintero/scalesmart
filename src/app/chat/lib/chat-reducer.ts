@@ -17,7 +17,6 @@ export type ChatAction =
   | { type: 'SET_INPUT'; payload: string }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'TOGGLE_CHAT' }
-
   | { type: 'TOGGLE_MODE'; payload: 'default' | 'content' | 'code' } // Action to set the mode with a payload
   | { type: 'TOGGLE_SIDEBAR' } // New action to toggle sidebar visibility
   | { type: 'ADD_MESSAGE'; payload: Message }
@@ -120,7 +119,6 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         isChatOpen: !state.isChatOpen,
-
       };
 
     case 'SET_EDITING_MESSAGE':

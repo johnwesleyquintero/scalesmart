@@ -245,8 +245,10 @@ export async function fetchAndProcessChatApi(
         type: 'UPDATE_MESSAGE',
         payload: {
           id: aiRespondingMessage.id,
-          content: DOMPurify.sanitize(accumulatedContent),
-          status: 'receiving',
+          updates: {
+            content: DOMPurify.sanitize(accumulatedContent),
+            status: 'receiving',
+          },
         },
       });
       scrollToBottom();
@@ -257,181 +259,22 @@ export async function fetchAndProcessChatApi(
       type: 'UPDATE_MESSAGE',
       payload: {
         id: aiRespondingMessage.id,
-        content: DOMPurify.sanitize(accumulatedContent),
-        status: 'sent',
+        updates: {
+          content: DOMPurify.sanitize(accumulatedContent),
+          status: 'sent',
+        },
       },
     });
-
-  } catch (error: any) {
+  } catch (error: Error | unknown) {
     console.error('API call failed:', error);
     dispatch({
       type: 'UPDATE_MESSAGE',
       payload: {
         id: aiRespondingMessage.id,
-        content: aiRespondingMessage.content, // Keep existing content or clear if preferred
-        status: 'error',
-        error: error.message || 'An unknown error occurred.',
-      },
-    });
-  }
-}
-
-  // Change return type to void as it dispatches actions
-  console.log('Calling /api/chat with message:', userMessage.content);
-  console.time('Fetch /api/chat');
-
-  const currentRetryCount = userMessage.retryCount || 0;
-
-  // Check if retries are exhausted *before* attempting the send
-  if (currentRetryCount >= effectiveRetryLimit + 1) {
-    console.warn(
-      `Max retries (${effectiveRetryLimit}) reached for message ID ${userMessage.id}. Aborting send attempt ${currentRetryCount}.`,
-    );
-    dispatch({
-      type: 'UPDATE_MESSAGE',
-      payload: {
-        id: userMessage.id, // Use id
         updates: {
+          content: aiRespondingMessage.content, // Keep existing content or clear if preferred
           status: 'error',
-          error:
-            userMessage.error ||
-            `Aborted: Exceeded retry limit (${effectiveRetryLimit}) after ${currentRetryCount} attempts.`,
-        },
-      },
-    });
-    return;
-  }
-
-  // Sanitize the message content before sending
-  const sanitizedContent = DOMPurify.sanitize(userMessage.content);
-
-  // Update UI to show sending status for this attempt
-  dispatch({
-    type: 'UPDATE_MESSAGE',
-    payload: {
-      id: userMessage.id, // Use id
-      updates: {
-        status: 'sending',
-        error: undefined,
-        retryCount: currentRetryCount,
-      },
-    },
-  });
-
-  try {
-    const apiResponse = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: sanitizedContent.trim(),
-        // Pass the relevant chat history
-        history: chatHistory
-          .filter(
-            (msg) =>
-              msg.status === 'sent' &&
-              msg.id !== aiRespondingMessage.id &&
-              !msg.isGreeting,
-          ) // Filter out non-sent, the current AI placeholder, and greeting
-          .map(({ role, content }) => ({ role, content })), // Send only role and content
-        mode: currentMode,
-      }),
-      cache: 'no-store',
-    });
-    console.timeEnd('Fetch /api/chat');
-    console.log('API Response Status:', apiResponse.status);
-
-    if (!apiResponse.ok) {
-      const errorMessage = await parseApiErrorResponse(apiResponse);
-      console.error(
-        `API attempt failed for message ID ${userMessage.id} (Attempt ${currentRetryCount}): ${errorMessage}`,
-      );
-      const nextRetryCount = currentRetryCount + 1;
-
-      dispatch({
-        type: 'UPDATE_MESSAGE',
-        payload: {
-          id: userMessage.id, // Use id
-          updates: {
-            status: 'error',
-            error: errorMessage,
-            retryCount: nextRetryCount,
-          },
-        },
-      });
-      return;
-    }
-
-    let data: ChatApiResponse;
-    try {
-      data = (await apiResponse.json()) as ChatApiResponse;
-      console.log('API Data:', data);
-    } catch (jsonError) {
-      console.error('Failed to parse API response as JSON:', jsonError);
-      dispatch({
-        type: 'UPDATE_MESSAGE',
-        payload: {
-          id: userMessage.id, // Use id
-          updates: {
-            status: 'error',
-            error: 'Invalid JSON response from API.',
-            retryCount: currentRetryCount + 1,
-          },
-        },
-      });
-      return;
-    }
-
-    const aiContentRaw = data?.response;
-    const aiContent = processAiContentRaw(aiContentRaw);
-    console.log('Processed aiContent before sending to UI:', aiContent);
-
-    // Update the AI responding message with the actual content
-    dispatch({
-      type: 'UPDATE_MESSAGE',
-      payload: {
-        id: aiRespondingMessage.id, // Use id
-        updates: {
-          content:
-            aiContent.trim() !== ''
-              ? aiContent
-              : "Sorry, I couldn't fetch a valid response content. Please try again.",
-          status: 'sent', // AI message is 'sent' once received
-        },
-      },
-    });
-
-    // Update the user message status to 'sent' after successful AI response
-    dispatch({
-      type: 'UPDATE_MESSAGE',
-      payload: {
-        id: userMessage.id, // Use id
-        updates: {
-          status: 'sent',
-          error: undefined,
-        },
-      },
-    });
-
-    scrollToBottom(); // Scroll after messages are updated
-  } catch (error) {
-    console.error(
-      `Network/Fetch error for message ID ${userMessage.id} (Attempt ${currentRetryCount}):`,
-      error,
-    );
-    const message =
-      error instanceof Error
-        ? error.message
-        : 'An unknown network error occurred during fetch.';
-    const nextRetryCount = currentRetryCount + 1;
-
-    dispatch({
-      type: 'UPDATE_MESSAGE',
-      payload: {
-        id: userMessage.id, // Use id
-        updates: {
-          status: 'error',
-          error: `Network error: ${message}`,
-          retryCount: nextRetryCount,
+          error: error instanceof Error ? error.message : 'An unknown error occurred.',
         },
       },
     });

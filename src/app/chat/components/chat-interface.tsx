@@ -35,12 +35,7 @@ import remarkMath from 'remark-math';
 
 // --- Component Imports ---
 import suggestedPrompts from '@/app/chat/data/suggested-prompts.json'; // Import suggested prompts
-import {
-  RotateCcw,
-  Trash2,
-  PanelLeftClose,
-  PanelLeftOpen,
-} from 'lucide-react';
+import { RotateCcw, Trash2, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import CopyMarkdownButton from './CopyMarkdownButton';
 import { toString as hastToString } from 'hast-util-to-string'; // For extracting raw code
 import { Button } from '@/components/ui/button'; // Assuming this is a local Button component
@@ -60,12 +55,22 @@ interface MessageBubbleProps {
 // const DEFAULT_RETRY_LIMIT = 3; // This line is now replaced by the import
 import { DEFAULT_RETRY_LIMIT } from '@/lib/chat-constants';
 
+const greetings = [
+  "Hey there! I'm WesAI. I can turn your raw data into insights!",
+  'Hello! WesAI here, ready to help you analyze your data.',
+  "Hi! I'm WesAI, your AI assistant for data insights.",
+  "Greetings! WesAI at your service, let's explore your data.",
+];
+
+const getRandomGreeting = () => {
+  const randomIndex = Math.floor(Math.random() * greetings.length);
+  return greetings[randomIndex];
+};
+
 const initialGreeting: Message = {
   id: crypto.randomUUID(), // Give the greeting a stable ID
   role: 'assistant',
-  content:
-    "Hey there! I'm WesAI.\n\n" +
-    'I can turn your raw data into insights! or try one of these prompts:',
+  content: getRandomGreeting() + ' or try one of these prompts:',
   timestamp: Date.now(),
   status: 'sent',
   isGreeting: true, // Mark this as the greeting message
@@ -426,7 +431,7 @@ export default function ChatInterface() {
           modeOverride || mode,
           [...messages, userMessage], // Pass current messages + new user message
         );
-      } catch (error: any) {
+      } catch (error: Error | unknown) {
         console.error('Error during API call:', error);
         dispatch({
           type: 'UPDATE_MESSAGE',
@@ -434,7 +439,10 @@ export default function ChatInterface() {
             id: aiRespondingMessage.id,
             updates: {
               status: 'error',
-              error: error.message || 'An unknown error occurred.',
+              error:
+                error instanceof Error
+                  ? error.message
+                  : 'An unknown error occurred.',
             },
           },
         });
@@ -771,7 +779,6 @@ export default function ChatInterface() {
             >
               <RotateCcw className="h-5 w-5" />
             </Button>
-
           </div>
         </div>
 
