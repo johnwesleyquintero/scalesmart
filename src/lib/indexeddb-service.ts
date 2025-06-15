@@ -828,6 +828,10 @@ export const updateModuleProgress = async (
   moduleId: string,
   progress: number,
 ): Promise<void> => {
+  if (!userId) {
+    logError(new Error('User ID is undefined or null'), 'updateModuleProgress: userId is required', ERROR_MESSAGE_PREFIX);
+    return;
+  }
   try {
     const record: ModuleProgressRecord = {
       userId,
@@ -870,6 +874,10 @@ export const updateQuizResult = async (
   moduleId: string,
   result: QuizResult,
 ): Promise<void> => {
+  if (!userId) {
+    logError(new Error('User ID is undefined or null'), 'updateQuizResult: userId is required', ERROR_MESSAGE_PREFIX);
+    return;
+  }
   try {
     const record: QuizResultRecord = {
       userId,
