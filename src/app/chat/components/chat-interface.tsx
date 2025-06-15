@@ -38,8 +38,6 @@ import suggestedPrompts from '@/app/chat/data/suggested-prompts.json'; // Import
 import {
   RotateCcw,
   Trash2,
-  Maximize,
-  Minimize,
   PanelLeftClose,
   PanelLeftOpen,
 } from 'lucide-react';
@@ -81,7 +79,7 @@ export default function ChatInterface() {
     input,
     isLoading,
     isChatOpen,
-    isFullScreen,
+
     editingMessage,
     mode,
     isSidebarOpen, // Destructure isSidebarOpen from state
@@ -632,18 +630,7 @@ export default function ChatInterface() {
             >
               <RotateCcw className="h-5 w-5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => dispatch({ type: 'TOGGLE_FULLSCREEN' })}
-              title={isFullScreen ? 'Exit Fullscreen' : 'Fullscreen'}
-            >
-              {isFullScreen ? (
-                <Minimize className="h-5 w-5" />
-              ) : (
-                <Maximize className="h-5 w-5" />
-              )}
-            </Button>
+
           </div>
         </div>
 

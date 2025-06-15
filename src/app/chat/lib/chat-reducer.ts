@@ -5,7 +5,7 @@ export type ChatState = {
   input: string;
   isLoading: boolean; // True when waiting for AI response (any pending 'sending' message)
   isChatOpen: boolean; // Controls visibility of the chat window
-  isFullScreen: boolean; // New state for fullscreen mode
+
   editingMessage: Message | null; // New state to hold the message being edited
   mode: 'default' | 'content' | 'code'; // New state for the agent mode, including 'code'
   isSidebarOpen: boolean; // New state for sidebar visibility
@@ -17,7 +17,7 @@ export type ChatAction =
   | { type: 'SET_INPUT'; payload: string }
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'TOGGLE_CHAT' }
-  | { type: 'TOGGLE_FULLSCREEN' }
+
   | { type: 'TOGGLE_MODE'; payload: 'default' | 'content' | 'code' } // Action to set the mode with a payload
   | { type: 'TOGGLE_SIDEBAR' } // New action to toggle sidebar visibility
   | { type: 'ADD_MESSAGE'; payload: Message }
@@ -61,7 +61,7 @@ export const initialState: ChatState = {
   input: '',
   isLoading: false,
   isChatOpen: false,
-  isFullScreen: false, // Initialize to false
+
   editingMessage: null, // Initialize to null
   mode: 'default', // Initialize mode to 'default'
   isSidebarOpen: true, // Initialize sidebar to be open by default
@@ -120,10 +120,9 @@ export function chatReducer(state: ChatState, action: ChatAction): ChatState {
       return {
         ...state,
         isChatOpen: !state.isChatOpen,
-        isFullScreen: !state.isChatOpen ? false : state.isFullScreen,
+
       };
-    case 'TOGGLE_FULLSCREEN':
-      return { ...state, isFullScreen: !state.isFullScreen };
+
     case 'SET_EDITING_MESSAGE':
       return {
         ...state,
