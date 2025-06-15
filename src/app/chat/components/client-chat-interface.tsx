@@ -1,10 +1,6 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-
-const ChatInterface = dynamic(() => import('./chat-interface'), {
-  ssr: false,
-});
+import ChatInterface from './chat-interface'; // Import the ChatInterface component directly
 
 export default function ClientChatInterface() {
   return <ChatInterface />;

@@ -302,17 +302,17 @@ export default function Header() {
               >
                 Log Out
               </Button>
-            ) : (
-              <Link href="/login" passHref>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hidden md:inline-flex"
-                >
-                  Login
-                </Button>
-              </Link>
-            )}
+              ) : (
+                <Link href="/login" passHref aria-label="Login">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hidden md:inline-flex"
+                  >
+                    Login
+                  </Button>
+                </Link>
+              )}
 
             {mounted && (
               <Button
@@ -420,10 +420,9 @@ export default function Header() {
                     Log Out
                   </Button>
                 ) : (
-                  <Link href="/login" className="w-full">
+                  <Link href="/login" className="w-full" onClick={toggleMenu} aria-label="Login">
                     <Button
                       variant="outline"
-                      onClick={toggleMenu}
                       className="w-full"
                     >
                       Login
