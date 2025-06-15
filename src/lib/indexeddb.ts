@@ -45,31 +45,24 @@ export const addCustomer = async (customer: Customer): Promise<void> => {
 };
 
 export const updateCustomer = async (customer: Customer): Promise<void> => {
-  // Ensure the customer object conforms to Contact for updating
-  // For a 'put' operation, it's best to provide the full object structure expected by the table
-  // or fetch existing, merge, and then put.
-  // This example assumes 'customer' can be safely cast or mapped.
-  const contactData: Contact = {
-    // Map all fields from Customer to Contact, ensuring required Contact fields are present
-    id: customer.id,
-    name: customer.name,
-    email: customer.email,
-    phone: customer.phone,
-    notes: customer.notes,
-    category: customer.category === null ? undefined : customer.category,
-    company: '', // Assuming default or fetch existing if this field should be preserved
-    createdAt: Date.now(), // This should ideally be preserved from original record
-    updatedAt: Date.now(),
-    // lastActivity might also need to be preserved or updated
-  };
   try {
-    // Fetch existing contact to preserve fields not in Customer interface like createdAt, company
-    const existingContact = await db.crmContacts.get(customer.id);
-    if (!existingContact) {
-      throw new Error(`Customer with id ${customer.id} not found for update.`);
+    // Validate the incoming customer ID
+    if (!customer.id || typeof customer.id !== 'string') {
+      throw new Error('Invalid or missing customer ID provided for update.');
     }
+
+    const existingContact = await db.crmContacts.get(customer.id);
+
+    // Ensure existingContact is found and has a valid ID
+    if (!existingContact || !existingContact.id) {
+      throw new Error(
+        `Customer with id ${customer.id} not found or has invalid ID for update.`,
+      );
+    }
+
     const updatedContactData: Contact = {
-      ...existingContact,
+      ...existingContact, // Spread existing data to preserve all fields
+      // Override with new values from the 'customer' object
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
@@ -77,12 +70,15 @@ export const updateCustomer = async (customer: Customer): Promise<void> => {
       category: customer.category === null ? undefined : customer.category,
       updatedAt: Date.now(),
       lastActivity: Date.now(),
+      // Explicitly ensure the ID is carried over, though ...existingContact should handle it
+      id: existingContact.id,
     };
+
     await db.crmContacts.put(updatedContactData);
   } catch (error) {
     logError(
       error,
-      `Failed to update customer: ${customer.name}`,
+      `Failed to update customer: ${customer.name || 'unknown'}`,
       'updateCustomer',
     );
     throw new Error('Failed to update customer');

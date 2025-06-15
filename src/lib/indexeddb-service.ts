@@ -2,7 +2,12 @@ import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
 import { QuizResult, Course } from '@/types'; // Import QuizResult and Course from '@/types'
-import { Contact, CommunicationLog, ActivityLog, SalesOpportunity } from '@/app/crm/types'; // Import CRM types
+import {
+  Contact,
+  CommunicationLog,
+  ActivityLog,
+  SalesOpportunity,
+} from '@/app/crm/types'; // Import CRM types
 import {
   Category,
   Note,
@@ -97,7 +102,8 @@ class ScaleSmartDatabase extends Dexie {
       'crm-communication-logs': 'id, customerId, type, date, subject, notes',
       'crm-activity-logs': 'id, contactId, type, date, notes',
       'crm-email-templates': 'id, name',
-      'crm-sales-opportunities': 'id, name, status, amount, closeDate, contactId, createdAt, updatedAt',
+      'crm-sales-opportunities':
+        'id, name, status, amount, closeDate, contactId, createdAt, updatedAt',
 
       // Project Management
       tasks:
@@ -194,6 +200,23 @@ export async function getItem<T>(
       ERROR_MESSAGE_PREFIX,
     );
     throw error; // Re-throw
+  }
+}
+
+export async function bulkSetItems<T>(
+  storeName: string,
+  items: T[],
+): Promise<void> {
+  try {
+    const table = db.table(storeName);
+    await table.bulkPut(items);
+  } catch (error) {
+    logError(
+      error,
+      `Error bulk setting items in store "${storeName}"`,
+      ERROR_MESSAGE_PREFIX,
+    );
+    throw error;
   }
 }
 
@@ -813,6 +836,7 @@ export const updateModuleProgress = async (
       progress,
       lastUpdated: Date.now(),
     };
+    console.log('Attempting to put moduleProgress record:', record);
     await db.moduleProgress.put(record);
   } catch (error) {
     logError(
@@ -853,6 +877,7 @@ export const updateQuizResult = async (
       result,
       lastUpdated: Date.now(),
     };
+    console.log('Attempting to put quizResults record:', record);
     await db.quizResults.put(record);
   } catch (error) {
     logError(
@@ -1002,7 +1027,7 @@ export const addCategory = async (
 
 export const getAllCategories = async (): Promise<Category[]> => {
   try {
-    const categories = await getAllItemsFromStore<Category>('categories');
+    const categories = await getAllItemsFromStore<Category>('crm-categories');
     return categories;
   } catch (error) {
     logError(

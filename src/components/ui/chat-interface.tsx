@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useReducer, useRef } from 'react';
 import {
   initializeDB,
   setItem,
+  bulkSetItems,
   getChatMessagesBySession, // Keep getChatMessagesBySession
   ChatMessageRecord,
 } from '@/lib/indexeddb-service';
@@ -163,11 +164,11 @@ export default function ChatInterface() {
           // Iterate over current messages in state and save/update them
           // Consider optimizing this to only save messages that have changed.
           // For simplicity now, rewrite all current messages for the session.
-          // In a real app with many messages, a more granular approach might be needed.
           const messagesToSave = messages.map((message) => ({
-            id: message.id!, // Assuming ID is always set by ADD_MESSAGE
-            role: message.role, // Use role instead of sender
-            content: message.content, // Use content instead of text
+            id: message.id!,
+            chatSessionId: chatSessionIdRef.current,
+            role: message.role,
+            content: message.content,
             timestamp: message.timestamp,
             metadata: {
               status: message.status,
@@ -180,22 +181,13 @@ export default function ChatInterface() {
             },
           }));
 
-          // Simple approach: save all current messages for the session ID.
-          // Use a transaction for robustness if clearing/replacing per session
-          // but iterating and putting items by ID is usually safer and updates in place.
-          for (const messageDataPayload of messagesToSave) {
-            try {
-              await setItem(
-                'chatMessages',
-                messageDataPayload.id,
-                messageDataPayload,
-              );
-            } catch (error) {
-              console.error(
-                `ChatInterface: Failed to save message ${messageDataPayload.id} to IndexedDB:`,
-                error,
-              );
-            }
+          try {
+            await bulkSetItems('chatMessages', messagesToSave);
+          } catch (error) {
+            console.error(
+              'ChatInterface: Failed to save messages to IndexedDB:',
+              error,
+            );
           }
           console.log(
             `ChatInterface: ${messages.length} messages saved to IndexedDB for session ${chatSessionIdRef.current}.`,
@@ -621,7 +613,8 @@ export default function ChatInterface() {
             value={input}
             onChange={handleInputChange}
             onKeyPress={handleKeyPress}
-            rows={1} // Start with 1 row, auto-resize will adjust
+            // Start with 1 row, auto-resize will adjust
+            rows={1}
             disabled={isLoading} // Disable input while loading
           />
           <Button

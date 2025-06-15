@@ -274,7 +274,10 @@ export async function fetchAndProcessChatApi(
         updates: {
           content: aiRespondingMessage.content, // Keep existing content or clear if preferred
           status: 'error',
-          error: error instanceof Error ? error.message : 'An unknown error occurred.',
+          error:
+            error instanceof Error
+              ? error.message
+              : 'An unknown error occurred.',
         },
       },
     });
