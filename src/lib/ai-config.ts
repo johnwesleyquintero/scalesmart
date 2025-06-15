@@ -2,9 +2,6 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 
 /**
  * Initializes the Google Generative AI client.
- * Retrieves the API key from environment variables and throws an error if it's not found.
- * @returns An instance of GoogleGenerativeAI.
- * @throws {Error} If GEMINI_API_KEY is not defined.
  */
 export const initGeminiAI = (): GoogleGenerativeAI => {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -27,16 +24,16 @@ export const initGeminiAI = (): GoogleGenerativeAI => {
  */
 export const AI_MODELS = {
   gemini: {
-    default: 'gemini-1.5-flash-latest', // Using a potentially more up-to-date model identifier if available and suitable
+    default: 'gemini-1.5-flash-latest', // Default Gemini model
     config: {
-      maxOutputTokens: 1000,
-      temperature: 0.7,
-      topP: 0.8,
-      topK: 40,
+      // Default configuration for Gemini models
+      temperature: 0.5, // Controls the randomness of the output. Lower values are less random.
+      topK: 0, // Top-k sampling. 0 means no top-k sampling.
+      topP: 0.95, // Top-p sampling. Controls diversity of the output.
     },
   },
-  // Add configurations for other models here if needed
-} as const;
+  // Add configurations for other AI models here if needed
+};
 
 /**
  * AI feature-specific configurations.
@@ -105,6 +102,7 @@ export const AI_FEATURES = {
     config: {
       ...AI_MODELS.gemini.config,
       temperature: 0.7, // Default temperature for the agent
+      maxOutputTokens: 4000, // Increased for longer content generation
     },
     systemPrompt: `**Prompt for WesAI Agent:**
 
