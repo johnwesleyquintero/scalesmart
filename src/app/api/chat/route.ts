@@ -153,13 +153,14 @@ interface WebAppTool {
   description: string;
   category?: string;
   keywords?: string[];
-  relationships?: string[];
   version?: string;
   status?: string;
   features?: string[];
   knownIssues?: string[];
   roadmap?: string[];
   impact?: string; // Added from amazonPortfolioPlatform example
+  keyEnhancements?: string[]; // Added to match CRMFeature, ProjectManagementFeature, AmazonSellerToolsFeature
+  subToolsExamples?: string[]; // Added to match AmazonSellerToolsFeature
 }
 interface WebAppComponents {
   [key: string]: {
@@ -243,6 +244,7 @@ interface SystemDirectives {
   privacy?: string;
   appBuildingAssistance?: string;
   dataAnalysisAssistance?: string;
+  generalAssistance?: string; // Added to match updated chat-context.json
 }
 
 // Root Portfolio Context type matching the single JSON object
