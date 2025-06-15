@@ -30,7 +30,9 @@ export default function FeatureHighlightsSection() {
               analysis, PPC management, profit calculation, and more.
             </CardDescription>
             <Button asChild className="w-full">
-              <Link href="/amazon-seller-tools">Learn More</Link>
+              <Link href="/amazon-seller-tools">
+                Learn More about Amazon Seller Tools
+              </Link>
             </Button>
           </CardContent>
         </Card>
@@ -49,7 +51,7 @@ export default function FeatureHighlightsSection() {
               CRM system. Track leads, interactions, and sales pipelines.
             </CardDescription>
             <Button asChild className="w-full">
-              <Link href="/crm">Learn More</Link>
+              <Link href="/crm">Learn More about CRM</Link>
             </Button>
           </CardContent>
         </Card>
@@ -68,7 +70,9 @@ export default function FeatureHighlightsSection() {
               place. Streamline your workflow and boost productivity.
             </CardDescription>
             <Button asChild className="w-full">
-              <Link href="/project-management">Learn More</Link>
+              <Link href="/project-management">
+                Learn More about Project Management
+              </Link>
             </Button>
           </CardContent>
         </Card>

@@ -155,7 +155,6 @@ export default function Header() {
         },
       ],
     },
-    { name: 'Pricing', href: '/pricing' }, // Example: if you have a pricing page
   ];
 
   // ListItem component for NavigationMenu

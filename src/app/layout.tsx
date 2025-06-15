@@ -3,13 +3,18 @@ import { Analytics } from '@vercel/analytics/next';
 import Footer from '@/components/footer'; // /* IMPORT THE FOOTER */
 import Header from '@/components/header'; // /* IMPORT THE HEADER */
 import { ErrorBoundary } from '@/components/error-boundary'; // Import ErrorBoundary for catching rendering errors
-import ChatInterface from '@/components/ui/chat-interface'; // Import ChatInterface
 import { Toaster } from '@/components/ui/toaster'; // Import Toaster
 import { cn } from '@/lib/utils';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { metadata as metadataConfig } from './metadata';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
+
+const ChatInterface = dynamic(() => import('@/components/ui/chat-interface'), {
+  ssr: false, // Ensure this component is not server-rendered
+});
 
 const inter = Inter({
   subsets: ['latin'],
@@ -87,7 +92,9 @@ export default function RootLayout({
                 {children}
               </main>
               <Footer />
-              <ChatInterface /> {/* Render ChatInterface here */}
+              <Suspense fallback={null}>
+                <ChatInterface /> {/* Render ChatInterface here */}
+              </Suspense>
             </ClientProviders>
           </ErrorBoundary>
           <Toaster />

@@ -572,7 +572,11 @@ export default function ChatInterface() {
       </div>
 
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4" ref={messagesEndRef}>
+      <div
+        className="flex-1 overflow-y-auto p-4"
+        ref={messagesEndRef}
+        role="list"
+      >
         {messages.map((message, index) => (
           <MessageBubble
             key={message.id || message.timestamp} // Use ID if available, fallback to timestamp

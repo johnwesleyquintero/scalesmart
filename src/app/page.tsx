@@ -1,37 +1,62 @@
 import {
   CardLoadingClient,
   ErrorBoundaryClient,
-  ClientChatInterfaceClient,
   HeroSectionClient,
-  ProjectsSectionClient,
-  AboutSectionClient,
-  CertificationsSectionClient,
-  BlogSectionClient,
-  ContactSectionClient,
-  InAppProjectsClient,
 } from '../components/client-components';
 import FeatureHighlightsSection from '../components/feature-highlights-section';
+import dynamic from 'next/dynamic';
+import { Suspense } from 'react';
 
 // Only disable SSR for components that truly need client-side features
 const CardLoading = CardLoadingClient;
 
 const ErrorBoundary = ErrorBoundaryClient;
 
-const ClientChatInterface = ClientChatInterfaceClient;
-
 const HeroSection = HeroSectionClient;
 
-const ProjectsSection = ProjectsSectionClient;
-
-const AboutSection = AboutSectionClient;
-
-const CertificationsSection = CertificationsSectionClient;
-
-const BlogSection = BlogSectionClient;
-
-const ContactSection = ContactSectionClient;
-
-const InAppProjects = InAppProjectsClient;
+// Dynamically import components that are likely below the fold
+const InAppProjects = dynamic(
+  () =>
+    import('../components/client-components').then(
+      (mod) => mod.InAppProjectsClient,
+    ),
+  { ssr: false },
+);
+const ProjectsSection = dynamic(
+  () =>
+    import('../components/client-components').then(
+      (mod) => mod.ProjectsSectionClient,
+    ),
+  { ssr: false },
+);
+const AboutSection = dynamic(
+  () =>
+    import('../components/client-components').then(
+      (mod) => mod.AboutSectionClient,
+    ),
+  { ssr: false },
+);
+const CertificationsSection = dynamic(
+  () =>
+    import('../components/client-components').then(
+      (mod) => mod.CertificationsSectionClient,
+    ),
+  { ssr: false },
+);
+const BlogSection = dynamic(
+  () =>
+    import('../components/client-components').then(
+      (mod) => mod.BlogSectionClient,
+    ),
+  { ssr: false },
+);
+const ContactSection = dynamic(
+  () =>
+    import('../components/client-components').then(
+      (mod) => mod.ContactSectionClient,
+    ),
+  { ssr: false },
+);
 
 export default function Home() {
   return (
@@ -41,16 +66,27 @@ export default function Home() {
         <ErrorBoundary>
           <HeroSection />
           <FeatureHighlightsSection />
-          <InAppProjects />
-          <ProjectsSection />
-          <AboutSection />
-          <CertificationsSection />
-          <BlogSection />
-          <ContactSection />
+          <Suspense fallback={null}>
+            <InAppProjects />
+          </Suspense>
+          <Suspense fallback={null}>
+            <ProjectsSection />
+          </Suspense>
+          <Suspense fallback={null}>
+            <AboutSection />
+          </Suspense>
+          <Suspense fallback={null}>
+            <CertificationsSection />
+          </Suspense>
+          <Suspense fallback={null}>
+            <BlogSection />
+          </Suspense>
+          <Suspense fallback={null}>
+            <ContactSection />
+          </Suspense>
         </ErrorBoundary>
       </div>
-      {/* Add the client-side chat interface */}
-      <ClientChatInterface />
+      {/* The main ChatInterface is now handled in the layout */}
     </div>
   );
 }
