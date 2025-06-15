@@ -2,7 +2,7 @@
 import MessageBubble from './MessageBubble';
 import MessageContent from './MessageContent'; // Import MessageContent
 import ChatInput from './ChatInput'; // Import ChatInput component
-import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config';
+// import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config'; // Remove this line
 import DOMPurify from 'dompurify';
 import React, { useCallback, useEffect, useReducer, useRef } from 'react';
 import {
@@ -57,7 +57,8 @@ interface MessageBubbleProps {
 }
 
 // --- Constants ---
-const DEFAULT_RETRY_LIMIT = 3;
+// const DEFAULT_RETRY_LIMIT = 3; // This line is now replaced by the import
+import { DEFAULT_RETRY_LIMIT } from '@/lib/chat-constants';
 
 const initialGreeting: Message = {
   id: crypto.randomUUID(), // Give the greeting a stable ID
@@ -273,7 +274,7 @@ export default function ChatInterface() {
         await fetchAndProcessChatApi(
           userMessage, // Pass the user message object
           assistantPlaceholder, // Pass the assistant placeholder message object
-          ConfigRetryLimit || DEFAULT_RETRY_LIMIT, // Pass the effective retry limit
+          DEFAULT_RETRY_LIMIT, // Pass the effective retry limit
           dispatch, // Pass the dispatch function
           scrollToBottom, // Pass the scrollToBottom function
           mode, // Pass the current mode
@@ -376,6 +377,146 @@ export default function ChatInterface() {
     },
     [dispatch],
   );
+
+  // Function to submit edited message
+  const handleSubmit = useCallback(
+    async (overrideInput?: string, modeOverride?: ChatState['mode']) => {
+      const messageContent = overrideInput ?? input.trim();
+      if (!messageContent && !editingMessage) return;
+
+      const userMessage: Message = {
+        id: editingMessage?.id || crypto.randomUUID(),
+        role: 'user',
+        content: DOMPurify.sanitize(messageContent),
+        timestamp: Date.now(),
+        status: 'sent',
+      };
+
+      // If editing, update the existing message; otherwise, add as new
+      if (editingMessage) {
+        dispatch({
+          type: 'UPDATE_MESSAGE',
+          payload: { id: userMessage.id, updates: userMessage },
+        });
+        dispatch({ type: 'SET_EDITING_MESSAGE', payload: null }); // Clear editing state
+      } else {
+        dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
+      }
+
+      dispatch({ type: 'SET_INPUT', payload: '' }); // Clear input after sending
+      dispatch({ type: 'SET_LOADING', payload: true });
+
+      // Create a placeholder for the AI's response
+      const aiRespondingMessage: Message = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: '...', // Initial content, will be updated by streaming
+        timestamp: Date.now(),
+        status: 'receiving', // Indicate that content is being received
+      };
+      dispatch({ type: 'ADD_MESSAGE', payload: aiRespondingMessage });
+
+      try {
+        await fetchAndProcessChatApi(
+          userMessage,
+          aiRespondingMessage,
+          DEFAULT_RETRY_LIMIT, // Use DEFAULT_RETRY_LIMIT from constants
+          dispatch,
+          scrollToBottom,
+          modeOverride || mode,
+          [...messages, userMessage], // Pass current messages + new user message
+        );
+      } catch (error: any) {
+        console.error('Error during API call:', error);
+        dispatch({
+          type: 'UPDATE_MESSAGE',
+          payload: {
+            id: aiRespondingMessage.id,
+            updates: {
+              status: 'error',
+              error: error.message || 'An unknown error occurred.',
+            },
+          },
+        });
+      } finally {
+        dispatch({ type: 'SET_LOADING', payload: false });
+      }
+    },
+    [input, editingMessage, dispatch, scrollToBottom, mode, messages],
+  );
+
+  // Function to handle retrying a message
+  // const handleRetry = useCallback(
+  //   (content: string, messageToRetry: Message) => {
+  //     // Increment retry count and update status
+  //     const updatedMessage: Message = {
+  //       ...messageToRetry,
+  //       retryCount: (messageToRetry.retryCount || 0) + 1,
+  //       status: 'retrying',
+  //       error: undefined, // Clear previous error
+  //     };
+
+  //     dispatch({
+  //       type: 'UPDATE_MESSAGE',
+  //       payload: { id: updatedMessage.id, updates: updatedMessage },
+  //     });
+
+  //     // If retry limit is reached, display an error and do not send
+  //     const currentRetryLimit =
+  //       messageToRetry.retryLimit || DEFAULT_RETRY_LIMIT;
+  //     if ((updatedMessage.retryCount ?? 0) > currentRetryLimit) {
+  //       dispatch({
+  //         type: 'UPDATE_MESSAGE',
+  //         payload: {
+  //           id: updatedMessage.id, // Use id
+  //           updates: {
+  //             status: 'failed',
+  //             error: `Retry limit (${currentRetryLimit}) exceeded. Please try a different prompt.`,
+  //           },
+  //         },
+  //       });
+  //       toast({
+  //         title: 'Retry limit exceeded',
+  //         description: `Failed to get a response after ${currentRetryLimit} retries. Please try a different prompt.`,
+  //         variant: 'destructive',
+  //       });
+  //       dispatch({ type: 'SET_LOADING', payload: false });
+  //       return;
+  //     }
+
+  //     // Find the original user message that triggered the failed assistant message
+  //     const originalUserMessage = messages.find(
+  //       (msg) => msg.id === messageToRetry.metadata?.originalUserMessageId,
+  //     );
+
+  //     if (originalUserMessage) {
+  //       sendMessage(originalUserMessage.content, true); // Re-send the original user message
+  //     } else {
+  //       // Fallback: if original user message not found, retry with the assistant's content (shouldn't happen if logic is correct)
+  //       sendMessage(content, true);
+  //     }
+  //   },
+  //   [sendMessage, messages, dispatch, toast],
+  // );
+
+  // Function to handle deleting a message
+  // const handleDelete = useCallback(
+  //   async (timestamp: number) => {
+  //     dispatch({ type: 'REMOVE_MESSAGE', payload: timestamp });
+  //     // Optionally, delete from IndexedDB here as well
+  //   },
+  //   [dispatch],
+  // );
+
+  // Function to handle editing a message
+  // const handleEdit = useCallback(
+  //   (message: Message) => {
+  //     dispatch({ type: 'SET_EDITING_MESSAGE', payload: message });
+  //     dispatch({ type: 'SET_INPUT', payload: message.content });
+  //     textareaRef.current?.focus();
+  //   },
+  //   [dispatch],
+  // );
 
   // Function to submit edited message
   const submitEdit = useCallback(() => {

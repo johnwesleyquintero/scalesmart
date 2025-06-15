@@ -16,7 +16,8 @@ export interface Message {
     | 'responding'
     | 'pending'
     | 'retrying'
-    | 'failed'; // Status of the message
+    | 'failed'
+    | 'receiving'; // Status of the message
   error?: string; // Error message if status is 'error'
   retryCount?: number; // How many times retry has been attempted (starts at 0 for first send)
   retryLimit?: number; // Maximum number of retries allowed for this specific message

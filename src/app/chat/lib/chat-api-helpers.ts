@@ -187,6 +187,7 @@ export async function parseApiErrorResponse(
 import { Message } from '@/lib/chat-message-utils'; // Assuming Message interface is in chat-message-utils.ts
 import { ChatState, ChatAction } from '@/lib/chat-reducer'; // Assuming ChatState and ChatAction are in chat-reducer.ts
 import DOMPurify from 'dompurify'; // Assuming DOMPurify is used for sanitization
+import { DEFAULT_RETRY_LIMIT } from '@/lib/chat-constants';
 
 // Fetches chat response and processes it into a success or error object
 export async function fetchAndProcessChatApi(
@@ -198,6 +199,83 @@ export async function fetchAndProcessChatApi(
   currentMode: ChatState['mode'], // Accept currentMode
   chatHistory: Message[], // Add chatHistory parameter
 ): Promise<void> {
+  const API_URL = '/api/chat'; // Your API endpoint
+  let accumulatedContent = ''; // Accumulate content for streaming
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: chatHistory.map((msg) => ({
+          role: msg.role,
+          content: msg.content,
+        })),
+        currentMessage: userMessage.content, // Send the current user message
+        mode: currentMode, // Send the current mode
+      }),
+    });
+
+    if (!response.ok) {
+      const errorResponseMessage = await parseApiErrorResponse(response);
+      throw new Error(errorResponseMessage);
+    }
+
+    // Handle streaming response
+    const reader = response.body?.getReader();
+    if (!reader) {
+      throw new Error('Failed to get readable stream from response.');
+    }
+
+    const decoder = new TextDecoder();
+    let done = false;
+
+    while (!done) {
+      const { value, done: readerDone } = await reader.read();
+      done = readerDone;
+      const chunk = decoder.decode(value, { stream: true });
+
+      // Append chunk to accumulated content
+      accumulatedContent += chunk;
+
+      // Dispatch an action to update the message with the accumulated content
+      dispatch({
+        type: 'UPDATE_MESSAGE',
+        payload: {
+          id: aiRespondingMessage.id,
+          content: DOMPurify.sanitize(accumulatedContent),
+          status: 'receiving',
+        },
+      });
+      scrollToBottom();
+    }
+
+    // After stream is complete, set status to 'sent'
+    dispatch({
+      type: 'UPDATE_MESSAGE',
+      payload: {
+        id: aiRespondingMessage.id,
+        content: DOMPurify.sanitize(accumulatedContent),
+        status: 'sent',
+      },
+    });
+
+  } catch (error: any) {
+    console.error('API call failed:', error);
+    dispatch({
+      type: 'UPDATE_MESSAGE',
+      payload: {
+        id: aiRespondingMessage.id,
+        content: aiRespondingMessage.content, // Keep existing content or clear if preferred
+        status: 'error',
+        error: error.message || 'An unknown error occurred.',
+      },
+    });
+  }
+}
+
   // Change return type to void as it dispatches actions
   console.log('Calling /api/chat with message:', userMessage.content);
   console.time('Fetch /api/chat');
