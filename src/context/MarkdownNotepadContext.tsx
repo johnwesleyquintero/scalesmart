@@ -236,7 +236,7 @@ export const MarkdownNotepadProvider = ({
         handleUpdateNote,
         handleDeleteNote,
         fetchNotesContent,
-        createNewNote: () => Promise.resolve(''), // Placeholder, implement actual logic
+        createNewNote,
         setNotes: () => {}, // Placeholder, implement actual logic
       }}
     >
