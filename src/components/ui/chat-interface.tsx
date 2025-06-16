@@ -38,6 +38,8 @@ import CopyMarkdownButton from './CopyMarkdownButton';
 import { toString as hastToString } from 'hast-util-to-string'; // For extracting raw code
 import { Button } from '@/components/ui/button'; // Assuming this is a local Button component
 import { cn } from '@/lib/utils'; // For conditional class names
+import { copyToClipboard } from '@/lib/utils/clipboard'; // Import copyToClipboard
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 // --- Interfaces ---
 interface MessageBubbleProps {
@@ -79,6 +81,7 @@ export default function ChatInterface() {
   } = state;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { toast } = useToast(); // Initialize useToast hook
 
   // --- Helper Functions ---
 
@@ -518,6 +521,32 @@ export default function ChatInterface() {
     dispatch({ type: 'TOGGLE_MODE' });
   }, [dispatch]);
 
+  // Function to handle copying chat content as markdown
+  const handleCopyChat = useCallback(async () => {
+    const chatContent = messages
+      .map((message) => {
+        const sender = message.role === 'user' ? 'You' : 'WesAI';
+        return `**${sender}:**\n${message.content}\n`;
+      })
+      .join('\n---\n\n'); // Separator between messages
+
+    try {
+      await copyToClipboard(chatContent);
+      toast({
+        title: 'Copied!',
+        description: 'Chat content copied to clipboard as Markdown.',
+        duration: 2000,
+      });
+    } catch (error) {
+      console.error('Failed to copy chat content:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to copy chat content.',
+        variant: 'destructive',
+      });
+    }
+  }, [messages, toast]); // Depend on messages and toast
+
   // Render logic
   return (
     <div
@@ -558,6 +587,30 @@ export default function ChatInterface() {
             className="text-white hover:bg-gray-700"
           >
             <RotateCcw size={20} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCopyChat}
+            title="Copy Chat as Markdown"
+            className="text-white hover:bg-gray-700"
+          >
+            {/* Icon for copy - using a simple clipboard icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.5c0-.621.504-1.125 1.125-1.125H6.75m6 0v-3.375c0-.621.504-1.125 1.125-1.125H20.25a1.125 1.125 0 011.125 1.125v9.75a1.125 1.125 0 01-1.125 1.125h-3.375m-6 0l-3.5-3.5m0 0l3.5-3.5m-3.5 3.5H9.75" />
+            </svg>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCopyChat}
+            title="Copy Chat as Markdown"
+            className="text-white hover:bg-gray-700"
+          >
+            {/* Icon for copy - using a simple clipboard icon */}
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.5c0-.621.504-1.125 1.125-1.125H6.75m6 0v-3.375c0-.621.504-1.125 1.125-1.125H20.25a1.125 1.125 0 011.125 1.125v9.75a1.125 1.125 0 01-1.125 1.125h-3.375m-6 0l-3.5-3.5m0 0l3.5-3.5m-3.5 3.5H9.75" />
+            </svg>
           </Button>
           <Button
             variant="ghost"
