@@ -22,10 +22,12 @@ import { CustomerReviewData } from '@/types/amazon-tools'; // Add this import
 
 // Define a type guard for AnalyticsData[]
 // Checks if the data array conforms to the basic structure expected for AnalyticsData.
-const isAnalyticsDataArray = (data: any[]): data is AnalyticsData[] => {
+const isAnalyticsDataArray = (data: unknown[]): data is AnalyticsData[] => {
   return (
     data.length === 0 ||
     (data.length > 0 &&
+      typeof data[0] === 'object' &&
+      data[0] !== null &&
       'totalSales' in data[0] &&
       'unitsSold' in data[0] &&
       'date' in data[0])
