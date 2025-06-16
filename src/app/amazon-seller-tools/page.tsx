@@ -33,21 +33,21 @@ const AmazonSellerToolsPage: React.FC = () => {
 
   // Callback function to receive parsed data from DataSourceTab.
   // Assuming DataSourceTab calls this with a single file's name and its parsed data.
-  const handleFileUpload = (files: File[], parsedData: DataType[]) => {
+  const handleFileUpload = (file: File, parsedData: DataType[]) => {
     setAllParsedData((prevData) => {
       // Check if data for this file already exists
       const existingIndex = prevData.findIndex(
-        (item) => item.fileName === files[0].name,
+        (item) => item.fileName === file.name,
       );
 
       if (existingIndex > -1) {
         // If exists, replace the data for that file
         const newData = [...prevData];
-        newData[existingIndex] = { fileName: files[0].name, data: parsedData };
+        newData[existingIndex] = { fileName: file.name, data: parsedData };
         return newData;
       } else {
         // If new file, add it to the list
-        return [...prevData, { fileName: files[0].name, data: parsedData }];
+        return [...prevData, { fileName: file.name, data: parsedData }];
       }
     });
   };
@@ -61,6 +61,7 @@ const AmazonSellerToolsPage: React.FC = () => {
       const productResearchData = allParsedData.filter(
         (data) =>
           data.data.length > 0 &&
+          data.data[0] !== undefined && // Add this check
           'name' in data.data[0] &&
           'price' in data.data[0],
       ) as ParsedFileData<ProductResearchData>[];

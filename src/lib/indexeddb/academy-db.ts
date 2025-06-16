@@ -38,7 +38,12 @@ export async function updateModuleProgress(
   moduleId: string,
   progress: number,
 ): Promise<void> {
-  console.log('DEBUG: updateModuleProgress called with:', { userId, courseId, moduleId, progress });
+  console.log('DEBUG: updateModuleProgress called with:', {
+    userId,
+    courseId,
+    moduleId,
+    progress,
+  });
   const record: ModuleProgressRecord = {
     userId,
     courseId,
@@ -105,7 +110,11 @@ export async function updateQuizResult(
   moduleId: string,
   result: QuizResult,
 ): Promise<void> {
-  console.log('DEBUG: updateQuizResult called with:', { userId, moduleId, result });
+  console.log('DEBUG: updateQuizResult called with:', {
+    userId,
+    moduleId,
+    result,
+  });
   const record: QuizResultRecord = {
     userId,
     moduleId,

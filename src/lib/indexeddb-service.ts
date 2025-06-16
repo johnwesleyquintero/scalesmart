@@ -829,7 +829,11 @@ export const updateModuleProgress = async (
   progress: number,
 ): Promise<void> => {
   if (!userId) {
-    logError(new Error('User ID is undefined or null'), 'updateModuleProgress: userId is required', ERROR_MESSAGE_PREFIX);
+    logError(
+      new Error('User ID is undefined or null'),
+      'updateModuleProgress: userId is required',
+      ERROR_MESSAGE_PREFIX,
+    );
     return;
   }
   try {
@@ -875,7 +879,11 @@ export const updateQuizResult = async (
   result: QuizResult,
 ): Promise<void> => {
   if (!userId) {
-    logError(new Error('User ID is undefined or null'), 'updateQuizResult: userId is required', ERROR_MESSAGE_PREFIX);
+    logError(
+      new Error('User ID is undefined or null'),
+      'updateQuizResult: userId is required',
+      ERROR_MESSAGE_PREFIX,
+    );
     return;
   }
   try {
@@ -918,7 +926,8 @@ export const getCourseModuleProgress = async (
   courseId: string,
 ): Promise<ModuleProgressRecord[]> => {
   try {
-    if (courseId) { // Check if courseId is provided (not an empty string)
+    if (courseId) {
+      // Check if courseId is provided (not an empty string)
       return await db.moduleProgress
         .where({ userId: userId, courseId: courseId })
         .toArray();

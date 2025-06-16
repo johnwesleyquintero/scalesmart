@@ -4,6 +4,9 @@ import {
   KeywordTrackingData,
   ListingOptimizationData,
   AnalyticsData,
+  CompetitorMonitoringData, // Added
+  InventoryData, // Added
+  CustomerReviewData, // Added
 } from './amazon-tools';
 import { QuizResult, Course } from './index';
 
@@ -149,5 +152,8 @@ export interface AmazonReport {
     | KeywordTrackingData
     | ListingOptimizationData
     | AnalyticsData
+    | CompetitorMonitoringData // Added
+    | InventoryData // Added
+    | CustomerReviewData // Added
   )[]; // Array of parsed rows
 }

@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react'; // Import useState and useMemo
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button'; // Import Button component
+import { Button } from '@/components/ui/button';
 import {
   LineChart,
   Line,
@@ -10,22 +10,33 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  BarChart, // Add BarChart import
-  Bar, // Add Bar import
+  BarChart,
+  Bar,
 } from 'recharts';
 
-import {
-  AnalyticsData,
-  ParsedFileData,
-  CustomerReviewData,
-} from '@/types/amazon-tools'; // Import ParsedFileData and CustomerReviewData
-import { filterAnalyticsDataByDateRange } from '@/lib/amazon-tools/analyticsProcessing'; // Import the filtering function
-import { Input } from '@/components/ui/input'; // Import Input for date pickers
-import { Label } from '@/components/ui/label'; // Import Label
+import { AnalyticsData, ParsedFileData } from '@/types/amazon-tools';
+import { filterAnalyticsDataByDateRange } from '@/lib/amazon-tools/analyticsProcessing';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { CustomerReviewData } from '@/types/amazon-tools'; // Add this import
+
+// Define a type guard for AnalyticsData[]
+// Checks if the data array conforms to the basic structure expected for AnalyticsData.
+const isAnalyticsDataArray = (data: any[]): data is AnalyticsData[] => {
+  return (
+    data.length === 0 ||
+    (data.length > 0 &&
+      'totalSales' in data[0] &&
+      'unitsSold' in data[0] &&
+      'date' in data[0])
+  );
+};
 
 interface AnalyticsProps {
+  // Accepts an array of ParsedFileData where the data payload can be any type.
+  // The component will filter for data payloads that match the AnalyticsData[] structure.
   parsedData: ParsedFileData<AnalyticsData>[];
-  reviewData: ParsedFileData<CustomerReviewData>[];
+  reviewData: ParsedFileData<CustomerReviewData>[]; // Add this line
 }
 
 const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
@@ -33,239 +44,383 @@ const Analytics: React.FC<AnalyticsProps> = ({ parsedData }) => {
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
 
-  // State for AI insights
-  const [aiInsights, setAiInsights] = useState<string | null>(null);
-  const [loadingInsights, setLoadingInsights] = useState<boolean>(false);
-  const [insightError, setInsightError] = useState<string | null>(null);
-
-  // Filter for Analytics data and flatten it
-  const analyticsReports = parsedData.filter(
-    (report): report is ParsedFileData<AnalyticsData> => {
-      // Assuming there's a way to identify analytics data, e.g., by file name pattern or a category property if added to ParsedFileData
-      // For now, we'll assume any data passed here is intended for analytics or check structure
-      // A more robust solution would involve categorizing data in DataSourceTab and passing categorized data
-      // Let's assume for now that parsedData contains only AnalyticsData or we can filter based on data structure
-      // A simple check: does the first item (if exists) have 'totalSales' and 'unitsSold'?
-      return (
-        report.data.length > 0 &&
-        'totalSales' in report.data[0] &&
-        'unitsSold' in report.data[0]
-      );
-    },
+  // State for General AI insights
+  const [generalAiInsights, setGeneralAiInsights] = useState<string | null>(
+    null,
+  );
+  const [loadingGeneralInsights, setLoadingGeneralInsights] =
+    useState<boolean>(false);
+  const [generalInsightError, setGeneralInsightError] = useState<string | null>(
+    null,
   );
 
-  const allAnalyticsData = analyticsReports.flatMap((report) => report.data);
+  // State for PPC Optimization AI insights
+  const [ppcAiInsights, setPpcAiInsights] = useState<string | null>(null);
+  const [loadingPpcInsights, setLoadingPpcInsights] = useState<boolean>(false);
+  const [ppcInsightError, setPpcInsightError] = useState<string | null>(null);
 
-  // Filter data based on date range whenever parsedData, startDate, or endDate changes
+  // Filter for Analytics data using the type guard and flatten it
+  // This runs only when parsedData changes.
+  const allAnalyticsData = useMemo(() => {
+    const analyticsReports = parsedData.filter((report) =>
+      // Use the type guard to identify reports containing AnalyticsData[]
+      isAnalyticsDataArray(report.data),
+    );
+    // Flatten the data from the identified analytics reports
+    // We can safely cast to AnalyticsData[] here because of the filter
+    return analyticsReports.flatMap((report) => report.data as AnalyticsData[]);
+  }, [parsedData]);
+
+  // Filter data based on date range whenever allAnalyticsData, startDate, or endDate changes
   const filteredAnalyticsData = useMemo(() => {
-    if (!startDate || !endDate) {
-      return allAnalyticsData; // Return all data if no date range is set
+    // Return all data if date range is not fully specified or if no initial data
+    if (!startDate || !endDate || allAnalyticsData.length === 0) {
+      return allAnalyticsData;
     }
+
     try {
       const start = new Date(startDate);
       const end = new Date(endDate);
+
       // Ensure valid dates before filtering
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        console.error('Invalid date format for filtering.');
-        return allAnalyticsData; // Return all data if dates are invalid
+        console.error('Invalid date format provided.');
+        // Return all data or empty array based on desired behavior for invalid input
+        return allAnalyticsData; // Or [] if invalid dates should result in no data
       }
-      return filterAnalyticsDataByDateRange(allAnalyticsData, start, end);
+
+      // Add one day to the end date to include the entire end day in the range
+      const endPlusOneDay = new Date(end);
+      endPlusOneDay.setDate(endPlusOneDay.getDate() + 1);
+
+      return filterAnalyticsDataByDateRange(
+        allAnalyticsData,
+        start,
+        endPlusOneDay,
+      );
     } catch (error) {
       console.error('Error applying date range filter:', error);
-      return allAnalyticsData; // Return all data in case of error
+      // Return all data or empty array in case of an unexpected filtering error
+      return allAnalyticsData; // Or []
     }
-  }, [allAnalyticsData, startDate, endDate]); // Depend on allAnalyticsData, startDate, and endDate
+  }, [allAnalyticsData, startDate, endDate]);
 
-  // Calculate total sales, units sold, and aggregate other metrics from filtered data
-  const totalSales = filteredAnalyticsData.reduce(
-    (sum, item) => sum + (item.totalSales || 0),
-    0,
-  );
-  const totalUnitsSold = filteredAnalyticsData.reduce(
-    (sum, item) => sum + (item.unitsSold || 0),
-    0,
-  );
-  const totalImpressions = filteredAnalyticsData.reduce(
-    (sum, item) => sum + (item.impressions || 0),
-    0,
-  );
-  const totalClicks = filteredAnalyticsData.reduce(
-    (sum, item) => sum + (item.clicks || 0),
-    0,
-  );
-  // ACoS and ROAS are typically calculated per campaign/period, averaging might not be meaningful without more context.
-  // For simplicity, we'll just display the sum of available values, but a real-world scenario would need more complex aggregation.
-  const totalAcos = filteredAnalyticsData.reduce(
-    (sum, item) => sum + (item.acos || 0),
-    0,
-  );
-  const totalRoas = filteredAnalyticsData.reduce(
-    (sum, item) => sum + (item.roas || 0),
-    0,
-  );
+  // Calculate all aggregated metrics in a single pass
+  // This runs only when filteredAnalyticsData changes.
+  const aggregatedMetrics = useMemo(() => {
+    return filteredAnalyticsData.reduce(
+      (acc, item) => {
+        acc.totalSales += item.totalSales || 0;
+        acc.unitsSold += item.unitsSold || 0;
+        // Use optional chaining and nullish coalescing for properties that might be missing
+        acc.impressions += item.impressions ?? 0;
+        acc.clicks += item.clicks ?? 0;
+        acc.totalAcos += item.acos ?? 0;
+        acc.totalRoas += item.roas ?? 0;
+        acc.totalCpcValue += item.cpc ?? 0;
+        return acc;
+      },
+      {
+        totalSales: 0,
+        unitsSold: 0,
+        impressions: 0,
+        clicks: 0,
+        totalAcos: 0,
+        totalRoas: 0,
+        totalCpcValue: 0,
+      },
+    );
+  }, [filteredAnalyticsData]);
+
+  // Calculate average CPC based on aggregated value and count
   const averageCpc =
     filteredAnalyticsData.length > 0
-      ? filteredAnalyticsData.reduce((sum, item) => sum + (item.cpc || 0), 0) /
-        filteredAnalyticsData.length
+      ? aggregatedMetrics.totalCpcValue / filteredAnalyticsData.length
       : 0;
 
+  // Aggregate sales trend data by date
+  // This runs only when filteredAnalyticsData changes.
   const aggregatedSalesTrend = useMemo(() => {
-    // Use useMemo here
-    const trendMap = new Map<string, number>(); // Map to store sales by date
+    const trendMap = new Map<string, number>();
 
     filteredAnalyticsData.forEach((item) => {
-      // Use filtered data
-      // Use the 'date' field from the transformed data
+      // Prioritize 'date' and 'totalSales' from the primary data structure
       if (item.date && item.totalSales !== undefined) {
-        const existingSales = trendMap.get(item.date) || 0;
-        trendMap.set(item.date, existingSales + item.totalSales);
+        const dateKey = item.date; // Assuming item.date is already in a consistent format
+        const existingSales = trendMap.get(dateKey) || 0;
+        trendMap.set(dateKey, existingSales + item.totalSales);
       }
-      // Also consider the salesTrend array if it exists (for backward compatibility or specific report types)
+      // Also consider the salesTrend array if it exists (e.g., for specific report types)
+      // This part might need adjustment based on actual data structure vs ideal AnalyticsData
       item.salesTrend?.forEach((trend) => {
-        const existingSales = trendMap.get(trend.date) || 0;
-        trendMap.set(trend.date, existingSales + trend.sales);
+        const dateKey = trend.date; // Assuming trend.date is in a consistent format
+        const existingSales = trendMap.get(dateKey) || 0;
+        trendMap.set(dateKey, existingSales + trend.sales);
       });
     });
 
     // Convert map to array of objects and sort by date
+    // Ensure date keys are sortable strings or convert to Date objects for sorting
     return Array.from(trendMap.entries())
       .map(([date, sales]) => ({ date, sales }))
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  }, [filteredAnalyticsData]); // Depend on filteredAnalyticsData
+  }, [filteredAnalyticsData]);
 
   // Prepare data for the aggregated metrics bar chart
-  const aggregatedMetricsData = [
-    { name: 'Total Sales', value: totalSales },
-    { name: 'Units Sold', value: totalUnitsSold },
-    { name: 'Impressions', value: totalImpressions },
-    { name: 'Clicks', value: totalClicks },
-    // ACoS and ROAS might need different visualization or aggregation
-    // { name: 'Total ACoS', value: totalAcos },
-    // { name: 'Total ROAS', value: totalRoas },
-    { name: 'Average CPC', value: averageCpc },
-  ];
+  // This runs only when aggregatedMetrics or averageCpc change.
+  const aggregatedMetricsChartData = useMemo(() => {
+    // Only include metrics if they are relevant to display on a bar chart as sums/averages
+    return [
+      {
+        name: 'Total Sales',
+        value: parseFloat(aggregatedMetrics.totalSales.toFixed(2)),
+      },
+      { name: 'Units Sold', value: aggregatedMetrics.unitsSold },
+      { name: 'Impressions', value: aggregatedMetrics.impressions },
+      { name: 'Clicks', value: aggregatedMetrics.clicks },
+      // ACoS and ROAS are typically averages or calculated ratios, summing them isn't standard
+      // { name: 'Total ACoS', value: parseFloat(aggregatedMetrics.totalAcos.toFixed(2)) },
+      // { name: 'Total ROAS', value: parseFloat(aggregatedMetrics.totalRoas.toFixed(2)) },
+      { name: 'Average CPC', value: parseFloat(averageCpc.toFixed(2)) },
+    ].filter((item) => !isNaN(item.value)); // Filter out potential NaN values
+  }, [aggregatedMetrics, averageCpc]);
+
+  // Generate prompt for AI based on aggregated data and date range
+  // Memoized with useCallback as it's used in async handlers.
+  const generatePrompt = useCallback(
+    (
+      type: 'general' | 'ppc',
+      salesTrendData: { date: string; sales: number }[],
+      metrics: typeof aggregatedMetrics,
+      avgCpc: number,
+      start: string,
+      end: string,
+    ) => {
+      const basePrompt = `Analyze the following Amazon seller analytics data for the period ${start || 'start date'} to ${end || 'end date'} and provide actionable insights and recommendations.
+
+Aggregated Metrics:
+Total Sales: ${metrics.totalSales.toFixed(2)}
+Units Sold: ${metrics.unitsSold}
+Impressions: ${metrics.impressions}
+Clicks: ${metrics.clicks}
+Total ACoS: ${metrics.totalAcos.toFixed(2)}%
+Total ROAS: ${metrics.totalRoas.toFixed(2)}
+Average CPC: ${avgCpc.toFixed(2)}
+
+Sales Trend Data (Date, Sales):
+${salesTrendData.map((item) => `${item.date}: ${item.sales.toFixed(2)}`).join('\n')}
+`;
+
+      if (type === 'general') {
+        return `${basePrompt}\nProvide general insights on performance trends, areas for improvement, and specific actions the seller can take to increase sales and profitability.`;
+      } else {
+        // type === 'ppc'
+        return `${basePrompt}\nFocus specifically on PPC performance metrics (Impressions, Clicks, ACoS, ROAS, CPC) and provide actionable recommendations to optimize PPC campaigns, including suggestions for keyword targeting, bid adjustments, and budget allocation.`;
+      }
+    },
+    [],
+  ); // Dependencies: none needed as it relies only on arguments and constants
+
+  // Handler for generating general AI insights
+  const handleGenerateGeneralInsights = useCallback(async () => {
+    setLoadingGeneralInsights(true);
+    setGeneralInsightError(null);
+    setGeneralAiInsights(null);
+    // Keep other insights state separate unless explicitly requested to clear
+
+    try {
+      // Dynamic import for potential code splitting
+      const { getAIDrivenRecommendation } = await import(
+        '@/lib/amazon-tools/gemini-api'
+      );
+      const prompt = generatePrompt(
+        'general',
+        aggregatedSalesTrend,
+        aggregatedMetrics,
+        averageCpc,
+        startDate,
+        endDate,
+      );
+      const insights = await getAIDrivenRecommendation(prompt);
+      setGeneralAiInsights(insights);
+    } catch (error: unknown) {
+      console.error('Error generating AI insights:', error);
+      setGeneralInsightError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate AI insights.',
+      );
+    } finally {
+      setLoadingGeneralInsights(false);
+    }
+  }, [
+    aggregatedSalesTrend,
+    aggregatedMetrics,
+    averageCpc,
+    startDate,
+    endDate,
+    generatePrompt,
+  ]); // Dependencies: data used to generate prompt
+
+  // Handler for generating PPC optimization AI insights
+  const handleGeneratePpcInsights = useCallback(async () => {
+    setLoadingPpcInsights(true);
+    setPpcInsightError(null);
+    setPpcAiInsights(null);
+    // Keep other insights state separate unless explicitly requested to clear
+
+    try {
+      // Dynamic import
+      const { getAIDrivenRecommendation } = await import(
+        '@/lib/amazon-tools/gemini-api'
+      );
+      const prompt = generatePrompt(
+        'ppc',
+        aggregatedSalesTrend,
+        aggregatedMetrics,
+        averageCpc,
+        startDate,
+        endDate,
+      );
+      const insights = await getAIDrivenRecommendation(prompt);
+      setPpcAiInsights(insights);
+    } catch (error: unknown) {
+      console.error('Error generating AI PPC optimization insights:', error);
+      setPpcInsightError(
+        error instanceof Error
+          ? error.message
+          : 'Failed to generate AI PPC optimization insights.',
+      );
+    } finally {
+      setLoadingPpcInsights(false);
+    }
+  }, [
+    aggregatedSalesTrend,
+    aggregatedMetrics,
+    averageCpc,
+    startDate,
+    endDate,
+    generatePrompt,
+  ]); // Dependencies: data used to generate prompt
+
+  // Determine if there's enough data to enable AI insight generation buttons
+  const canGenerateInsights = filteredAnalyticsData.length > 0;
+
+  // Determine state for displaying AI insights status/results
+  const showGeneralAiResult = generalAiInsights !== null;
+  const showGeneralAiError = generalInsightError !== null;
+  const showPpcAiResult = ppcAiInsights !== null;
+  const showPpcAiError = ppcInsightError !== null;
 
   return (
-    <div className="space-y-4 p-4">
-      <h2 className="text-2xl font-bold">Analytics Dashboard</h2>
-      <p className="text-muted-foreground dark:text-gray-400">
+    <div className="space-y-6 p-6">
+      <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
+      <p className="text-lg text-muted-foreground dark:text-gray-400">
         View your Amazon seller analytics here. Data aggregated from uploaded
         reports.
       </p>
 
       {/* Date Range Filter */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <Label htmlFor="startDate">Start Date</Label>
-          <Input
-            id="startDate"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-        </div>
-        <div>
-          <Label htmlFor="endDate">End Date</Label>
-          <Input
-            id="endDate"
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-        </div>
-      </div>
+      <Card>
+        <CardHeader className="p-4">
+          <CardTitle className="text-xl">Date Range Filter</CardTitle>
+        </CardHeader>
+        <CardContent className="p-4 pt-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="startDate">Start Date</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="endDate">End Date</Label>
+              <Input
+                id="endDate"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => {
+              setStartDate('');
+              setEndDate('');
+            }}
+            disabled={!startDate && !endDate} // Disable if already clear
+          >
+            Clear Filter
+          </Button>
+        </CardContent>
+      </Card>
 
       {/* AI-Powered Insights Section */}
       <Card>
         <CardHeader className="p-4">
-          <CardTitle className="text-lg">AI-Powered Insights</CardTitle>
+          <CardTitle className="text-xl">AI-Powered Insights</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-0">
+          <p className="text-muted-foreground dark:text-gray-400 mb-4">
+            Get AI-driven insights based on your filtered analytics data.
+          </p>
           <Button
-            onClick={async () => {
-              setLoadingInsights(true);
-              setInsightError(null);
-              setAiInsights(null);
-              try {
-                const { getAIDrivenRecommendation } = await import(
-                  '@/lib/amazon-tools/gemini-api'
-                );
-                // Construct a prompt based on the filtered data
-                const prompt = `Analyze the following Amazon seller analytics data for the period ${startDate} to ${endDate} and provide key insights and actionable recommendations.
-
-Aggregated Metrics:
-Total Sales: ${totalSales.toFixed(2)}
-Units Sold: ${totalUnitsSold}
-Impressions: ${totalImpressions}
-Clicks: ${totalClicks}
-Total ACoS: ${totalAcos.toFixed(2)}%
-Total ROAS: ${totalRoas.toFixed(2)}
-Average CPC: ${averageCpc.toFixed(2)}
-
-Sales Trend Data (Date, Sales):
-${aggregatedSalesTrend.map((item) => `${item.date}: ${item.sales.toFixed(2)}`).join('\\n')}
-
-Provide insights on performance trends, areas for improvement, and specific actions the seller can take to increase sales and profitability.`;
-
-                const insights = await getAIDrivenRecommendation(prompt);
-                setAiInsights(insights);
-              } catch (error: unknown) {
-                // Replace any with unknown
-                console.error('Error generating AI insights:', error);
-                // Safely access error message
-                setInsightError(
-                  error instanceof Error
-                    ? error.message
-                    : 'Failed to generate AI insights.',
-                );
-              } finally {
-                setLoadingInsights(false);
-              }
-            }}
-            disabled={loadingInsights || filteredAnalyticsData.length === 0}
+            onClick={handleGenerateGeneralInsights}
+            disabled={loadingGeneralInsights || !canGenerateInsights}
           >
-            {loadingInsights
+            {loadingGeneralInsights
               ? 'Generating Insights...'
-              : 'Generate AI Insights'}
+              : 'Generate General AI Insights'}
           </Button>
 
-          {insightError && (
-            <p className="text-red-600 dark:text-red-400 mt-2">
-              Error: {insightError}
-            </p>
-          )}
-
-          {aiInsights && (
-            <div className="mt-4 p-4 bg-gray-200 dark:bg-gray-700 rounded-md whitespace-pre-wrap">
-              <h4 className="text-lg font-semibold mb-2">Insights:</h4>
-              {aiInsights}
-            </div>
-          )}
-
-          {!loadingInsights &&
-            !insightError &&
-            !aiInsights &&
-            filteredAnalyticsData.length > 0 && (
-              <p className="text-muted-foreground dark:text-gray-400 mt-2">
-                Click "Generate AI Insights" to get insights based on the
-                filtered data.
+          <div className="mt-4">
+            {loadingGeneralInsights && (
+              <p className="text-blue-600 dark:text-blue-400">
+                Generating insights...
               </p>
             )}
-          {!loadingInsights &&
-            !insightError &&
-            filteredAnalyticsData.length === 0 && (
-              <p className="text-muted-foreground dark:text-gray-400 mt-2">
-                Upload analytics data and select a date range to generate
-                insights.
+            {showGeneralAiError && (
+              <p className="text-red-600 dark:text-red-400">
+                Error: {generalInsightError}
               </p>
             )}
+            {showGeneralAiResult && (
+              <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-md whitespace-pre-wrap">
+                <h4 className="text-lg font-semibold mb-2">Insights:</h4>
+                {generalAiInsights}
+              </div>
+            )}
+            {!loadingGeneralInsights &&
+              !showGeneralAiResult &&
+              !showGeneralAiError &&
+              canGenerateInsights && (
+                <p className="text-muted-foreground dark:text-gray-400">
+                  Click "Generate General AI Insights" to get insights based on
+                  the filtered data.
+                </p>
+              )}
+            {!loadingGeneralInsights &&
+              !showGeneralAiResult &&
+              !showGeneralAiError &&
+              !canGenerateInsights && (
+                <p className="text-muted-foreground dark:text-gray-400">
+                  Upload analytics data and select a date range to generate
+                  insights.
+                </p>
+              )}
+          </div>
         </CardContent>
       </Card>
 
       {/* AI-Powered PPC Optimization Section */}
       <Card>
         <CardHeader className="p-4">
-          <CardTitle className="text-lg">AI-Powered PPC Optimization</CardTitle>
+          <CardTitle className="text-xl">AI-Powered PPC Optimization</CardTitle>
         </CardHeader>
         <CardContent className="p-4 pt-0">
           <p className="text-muted-foreground dark:text-gray-400 mb-4">
@@ -273,100 +428,70 @@ Provide insights on performance trends, areas for improvement, and specific acti
             on your analytics data.
           </p>
           <Button
-            onClick={async () => {
-              setLoadingInsights(true); // Reuse loading state for simplicity
-              setInsightError(null); // Reuse error state
-              setAiInsights(null); // Clear previous insights
-              try {
-                const { getAIDrivenRecommendation } = await import(
-                  '@/lib/amazon-tools/gemini-api'
-                );
-                // Construct a prompt specifically for PPC optimization
-                const prompt = `Analyze the following Amazon seller analytics data for the period ${startDate} to ${endDate} focusing on PPC performance. Provide actionable recommendations to optimize PPC campaigns, including suggestions for keyword targeting, bid adjustments, and budget allocation.
- 
- Aggregated PPC Metrics:
- Impressions: ${totalImpressions}
- Clicks: ${totalClicks}
- Total ACoS: ${totalAcos.toFixed(2)}%
- Total ROAS: ${totalRoas.toFixed(2)}
- Average CPC: ${averageCpc.toFixed(2)}
- 
- Sales Trend Data (Date, Sales - for context):
- ${aggregatedSalesTrend.map((item) => `${item.date}: ${item.sales.toFixed(2)}`).join('\\n')}
- 
- Provide specific, actionable steps to improve PPC performance.`;
-
-                const insights = await getAIDrivenRecommendation(prompt);
-                setAiInsights(insights); // Display insights in the same section for now
-              } catch (error: unknown) {
-                console.error(
-                  'Error generating AI PPC optimization insights:',
-                  error,
-                );
-                setInsightError(
-                  error instanceof Error
-                    ? error.message
-                    : 'Failed to generate AI PPC optimization insights.',
-                );
-              } finally {
-                setLoadingInsights(false);
-              }
-            }}
-            disabled={loadingInsights || filteredAnalyticsData.length === 0}
+            onClick={handleGeneratePpcInsights}
+            disabled={loadingPpcInsights || !canGenerateInsights}
           >
-            {loadingInsights
+            {loadingPpcInsights
               ? 'Generating PPC Recommendations...'
               : 'Generate PPC Optimization Recommendations'}
           </Button>
 
-          {/* Display insights and errors in the same area for now */}
-          {insightError && (
-            <p className="text-red-600 dark:text-red-400 mt-2">
-              Error: {insightError}
-            </p>
-          )}
-
-          {aiInsights && (
-            <div className="mt-4 p-4 bg-gray-200 dark:bg-gray-700 rounded-md whitespace-pre-wrap">
-              <h4 className="text-lg font-semibold mb-2">
-                PPC Optimization Recommendations:
-              </h4>
-              {aiInsights}
-            </div>
-          )}
-
-          {!loadingInsights &&
-            !insightError &&
-            !aiInsights &&
-            filteredAnalyticsData.length > 0 && (
-              <p className="text-muted-foreground dark:text-gray-400 mt-2">
-                Click "Generate PPC Optimization Recommendations" to get
-                AI-driven suggestions.
+          <div className="mt-4">
+            {loadingPpcInsights && (
+              <p className="text-blue-600 dark:text-blue-400">
+                Generating recommendations...
               </p>
             )}
-          {!loadingInsights &&
-            !insightError &&
-            filteredAnalyticsData.length === 0 && (
-              <p className="text-muted-foreground dark:text-gray-400 mt-2">
-                Upload analytics data and select a date range to generate PPC
-                optimization recommendations.
+            {showPpcAiError && (
+              <p className="text-red-600 dark:text-red-400">
+                Error: {ppcInsightError}
               </p>
             )}
+            {showPpcAiResult && (
+              <div className="p-4 bg-gray-100 dark:bg-gray-700 rounded-md whitespace-pre-wrap">
+                <h4 className="text-lg font-semibold mb-2">
+                  PPC Optimization Recommendations:
+                </h4>
+                {ppcAiInsights}
+              </div>
+            )}
+            {!loadingPpcInsights &&
+              !showPpcAiResult &&
+              !showPpcAiError &&
+              canGenerateInsights && (
+                <p className="text-muted-foreground dark:text-gray-400">
+                  Click "Generate PPC Optimization Recommendations" to get
+                  AI-driven suggestions.
+                </p>
+              )}
+            {!loadingPpcInsights &&
+              !showPpcAiResult &&
+              !showPpcAiError &&
+              !canGenerateInsights && (
+                <p className="text-muted-foreground dark:text-gray-400">
+                  Upload analytics data and select a date range to generate PPC
+                  optimization recommendations.
+                </p>
+              )}
+          </div>
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Card for Aggregated Metrics Bar Chart */}
         <Card className="lg:col-span-3">
           <CardHeader className="p-4">
-            <CardTitle className="text-lg">Key Aggregated Metrics</CardTitle>
+            <CardTitle className="text-xl">Key Aggregated Metrics</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="h-64">
-              {aggregatedMetricsData.length > 0 ? (
+            <div className="h-64 w-full">
+              {' '}
+              {/* Added w-full */}
+              {aggregatedMetricsChartData.length > 0 &&
+              aggregatedMetricsChartData.some((d) => d.value > 0) ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={aggregatedMetricsData}
+                    data={aggregatedMetricsChartData}
                     margin={{
                       top: 5,
                       right: 30,
@@ -383,62 +508,65 @@ Provide insights on performance trends, areas for improvement, and specific acti
                   </BarChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-full bg-gray-200 dark:bg-gray-700 rounded-md flex items-center justify-center text-muted-foreground dark:text-gray-400">
+                <div className="h-full bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center text-muted-foreground dark:text-gray-400 p-4 text-center">
+                  {' '}
+                  {/* Added p-4 text-center */}
                   No aggregated metrics data available for the selected date
-                  range.
+                  range or metrics are zero.
                 </div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Card for Total Sales */}
-        {/* Keeping individual cards for now, can be removed later if chart is sufficient */}
+        {/* Individual Metric Cards */}
+        {/* These cards can be kept or removed depending on whether the chart is sufficient */}
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-lg">Total Sales</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">${totalSales.toFixed(2)}</p>
+            <p className="text-2xl font-bold">
+              ${aggregatedMetrics.totalSales.toFixed(2)}
+            </p>
             <p className="text-sm text-muted-foreground dark:text-gray-400">
               Data from {filteredAnalyticsData.length} entries
             </p>
           </CardContent>
         </Card>
 
-        {/* Card for Units Sold */}
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-lg">Units Sold</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{totalUnitsSold}</p>
+            <p className="text-2xl font-bold">{aggregatedMetrics.unitsSold}</p>
             <p className="text-sm text-muted-foreground dark:text-gray-400">
               Data from {filteredAnalyticsData.length} entries
             </p>
           </CardContent>
         </Card>
 
-        {/* Card for Total Impressions */}
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-lg">Total Impressions</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{totalImpressions}</p>
+            <p className="text-2xl font-bold">
+              {aggregatedMetrics.impressions}
+            </p>
             <p className="text-sm text-muted-foreground dark:text-gray-400">
               Data from {filteredAnalyticsData.length} entries
             </p>
           </CardContent>
         </Card>
 
-        {/* Card for Total Clicks */}
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-lg">Total Clicks</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{totalClicks}</p>
+            <p className="text-2xl font-bold">{aggregatedMetrics.clicks}</p>
             <p className="text-sm text-muted-foreground dark:text-gray-400">
               Data from {filteredAnalyticsData.length} entries
             </p>
@@ -450,7 +578,9 @@ Provide insights on performance trends, areas for improvement, and specific acti
             <CardTitle className="text-lg">Total ACoS</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{totalAcos.toFixed(2)}%</p>
+            <p className="text-2xl font-bold">
+              {aggregatedMetrics.totalAcos.toFixed(2)}%
+            </p>
             <p className="text-sm text-muted-foreground dark:text-gray-400">
               Sum of ACoS from {filteredAnalyticsData.length} entries
               (Aggregation may vary)
@@ -458,13 +588,14 @@ Provide insights on performance trends, areas for improvement, and specific acti
           </CardContent>
         </Card>
 
-        {/* Card for Total ROAS (Note: Aggregation might not be ideal) */}
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-lg">Total ROAS</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <p className="text-2xl font-bold">{totalRoas.toFixed(2)}</p>
+            <p className="text-2xl font-bold">
+              {aggregatedMetrics.totalRoas.toFixed(2)}
+            </p>
             <p className="text-sm text-muted-foreground dark:text-gray-400">
               Sum of ROAS from {filteredAnalyticsData.length} entries
               (Aggregation may vary)
@@ -472,7 +603,6 @@ Provide insights on performance trends, areas for improvement, and specific acti
           </CardContent>
         </Card>
 
-        {/* Card for Average CPC */}
         <Card>
           <CardHeader className="p-4">
             <CardTitle className="text-lg">Average CPC</CardTitle>
@@ -488,10 +618,12 @@ Provide insights on performance trends, areas for improvement, and specific acti
         {/* Sales Trend Chart */}
         <Card className="lg:col-span-3">
           <CardHeader className="p-4">
-            <CardTitle className="text-lg">Sales Trend</CardTitle>
+            <CardTitle className="text-xl">Sales Trend</CardTitle>
           </CardHeader>
           <CardContent className="p-4 pt-0">
-            <div className="h-64">
+            <div className="h-64 w-full">
+              {' '}
+              {/* Added w-full */}
               {aggregatedSalesTrend.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
@@ -504,7 +636,8 @@ Provide insights on performance trends, areas for improvement, and specific acti
                     }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
+                    <XAxis dataKey="date" />{' '}
+                    {/* Ensure date format is suitable for display */}
                     <YAxis />
                     <Tooltip />
                     <Legend />
@@ -517,7 +650,9 @@ Provide insights on performance trends, areas for improvement, and specific acti
                   </LineChart>
                 </ResponsiveContainer>
               ) : (
-                <div className="h-full bg-gray-200 dark:bg-gray-700 rounded-md flex items-center justify-center text-muted-foreground dark:text-gray-400">
+                <div className="h-full bg-gray-100 dark:bg-gray-700 rounded-md flex items-center justify-center text-muted-foreground dark:text-gray-400 p-4 text-center">
+                  {' '}
+                  {/* Added p-4 text-center */}
                   No sales trend data available for the selected date range.
                 </div>
               )}
