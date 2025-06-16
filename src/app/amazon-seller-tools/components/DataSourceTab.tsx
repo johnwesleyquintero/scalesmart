@@ -10,6 +10,7 @@ import * as PapaParse from 'papaparse';
 import {
   addAmazonReport,
   getAllAmazonReports,
+  deleteAmazonReport, // Added import for delete function
   // updateAmazonReport, // Removed unused import
 } from '@/lib/indexeddb/amazon-tools-db';
 import { AmazonReport } from '@/types/indexeddb';
@@ -181,10 +182,40 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
   onFileUpload,
   onFileParsedAndSaved,
 }) => {
+  // Handler to delete a report by its ID
+  const handleDeleteReport = async (reportId: string) => {
+    try {
+      await deleteAmazonReport(reportId);
+      console.log(`Report with ID ${reportId} deleted from IndexedDB.`);
+      // Update state to remove the deleted report
+      setUploadedFilesMetadata((prevMetadata) =>
+        prevMetadata.filter((metadata) => metadata.id !== reportId),
+      );
+      setAllParsedData((prevData) =>
+        prevData.filter((data) => {
+          // Find the metadata for the deleted report to get its file name
+          const deletedMetadata = uploadedFilesMetadata.find(
+            (metadata) => metadata.id === reportId,
+          );
+          // Only keep data entries whose file name does NOT match the deleted report's file name
+          // This assumes file names are unique identifiers for data entries in allParsedData
+          return data.fileName !== deletedMetadata?.name;
+        }),
+      );
+      // TODO: Optionally show a success message to the user
+    } catch (error) {
+      console.error(`Error deleting report with ID ${reportId}:`, error);
+      // TODO: Optionally show an error message to the user
+    }
+  };
+
   // State to hold metadata of uploaded files (persisted in IndexedDB)
   const [uploadedFilesMetadata, setUploadedFilesMetadata] = useState<
     UploadedFileMetadata[]
   >([]);
+
+  // State to hold the currently selected category for file uploads
+  const [selectedCategory, setSelectedCategory] = useState<string>('analytics'); // Default to analytics
 
   // State to hold all parsed data - potentially redundant if data is always read from DB when needed elsewhere
   // Keeping it for now as it was in the original code, assuming it's consumed by parent/other components
@@ -265,8 +296,8 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
     // Process files sequentially using async/await
     for (let i = 0; i < filesArray.length; i++) {
       const originalFile = filesArray[i];
-      // TODO: Implement logic to determine category, perhaps based on file name pattern or user selection
-      const fileCategory = 'product-research'; // Default or inferred category for demo
+      // Use the selected category from state
+      const fileCategory = selectedCategory;
 
       // Update parsing state for the current file being processed
       setParsingState((prevState) => ({
@@ -489,6 +520,29 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
               multiple
               disabled={parsingState.isParsing} // Disable input during parsing
             />
+            {/* Category Selection */}
+            <div className="grid w-full max-w-sm items-center gap-1.5 mt-4">
+              <Label htmlFor="report-category">Report Category</Label>
+              <select
+                id="report-category"
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                disabled={parsingState.isParsing}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <option value="analytics">Analytics</option>
+                <option value="product-research">Product Research</option>
+                <option value="keyword-tracking">Keyword Tracking</option>
+                <option value="listing-optimization">
+                  Listing Optimization
+                </option>
+                <option value="competitor-monitoring">
+                  Competitor Monitoring
+                </option>
+                <option value="inventory">Inventory Management</option>
+                <option value="customer-review">Customer Reviews</option>
+              </select>
+            </div>
             {/* Parsing Progress Display */}
             {parsingState.isParsing && (
               <div className="mt-4 space-y-2">
@@ -530,10 +584,14 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
                 >
                   <CardContent className="p-4">
                     <p className="font-medium">{fileMetadata.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Category:{' '}
-                      <Badge variant="secondary">{fileMetadata.category}</Badge>
-                    </p>
+                    <div>
+                      <p className="text-sm text-muted-foreground">
+                        Category:{' '}
+                        <Badge variant="secondary">
+                          {fileMetadata.category}
+                        </Badge>
+                      </p>
+                    </div>
                     <p className="text-sm text-muted-foreground">
                       Uploaded:{' '}
                       {new Date(fileMetadata.uploadDate).toLocaleDateString()}
@@ -549,10 +607,18 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
                         Size: {(fileMetadata.size / 1024).toFixed(2)} KB
                       </p>
                     )}
-                    {/* TODO: Add actions like View, Delete, Edit Category for saved reports */}
+                    {/* TODO: Add actions like View, Edit Category for saved reports */}
                     <div className="mt-3 flex space-x-2">
                       {/* <button className="text-xs text-blue-600 hover:underline">View</button> */}
-                      {/* <button className="text-xs text-red-600 hover:underline">Delete</button> */}
+                      {/* Add Delete button */}
+                      {fileMetadata.id && ( // Only show delete button if ID is available
+                        <button
+                          className="text-xs text-red-600 hover:underline"
+                          onClick={() => handleDeleteReport(fileMetadata.id!)}
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
