@@ -60,7 +60,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.CHART:
         newWidget = {
           id: uuidv4(),
-          type,
+          type: WIDGET_TYPES.CHART,
           title: 'New Chart Widget',
           x: 0,
           y: 0,
@@ -76,7 +76,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.TABLE:
         newWidget = {
           id: uuidv4(),
-          type,
+          type: WIDGET_TYPES.TABLE,
           title: 'New Table Widget',
           x: 0,
           y: 0,
@@ -91,7 +91,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.KPI:
         newWidget = {
           id: uuidv4(),
-          type,
+          type: WIDGET_TYPES.KPI,
           title: 'New KPI Widget',
           x: 0,
           y: 0,
@@ -103,7 +103,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.TEXT: // Add default config for TextWidget
         newWidget = {
           id: uuidv4(),
-          type,
+          type: WIDGET_TYPES.TEXT,
           title: 'New Text Widget',
           x: 0,
           y: 0,
@@ -115,7 +115,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.IMAGE: // Add default config for ImageWidget
         newWidget = {
           id: uuidv4(),
-          type,
+          type: WIDGET_TYPES.IMAGE,
           title: 'New Image Widget',
           x: 0,
           y: 0,
@@ -127,7 +127,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.FILTER:
         newWidget = {
           id: uuidv4(),
-          type,
+          type: WIDGET_TYPES.FILTER,
           title: 'New Filter Widget',
           x: 0,
           y: 0,
