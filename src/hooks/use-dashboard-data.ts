@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { WidgetConfig } from '../app/dashboard-studio/widget-types';
-import { Layout } from 'react-grid-layout';
 
 interface DashboardData {
-  widgets: WidgetConfig[];
-  layout: Layout[] | null;
+  // Define your dashboard data structure here
+  widgets: any[];
+  layout: any;
 }
 
 export const useDashboardData = (dashboardId: string) => {
@@ -23,38 +22,23 @@ export const useDashboardData = (dashboardId: string) => {
               widgets: [
                 {
                   id: 'chart1',
-                  type: 'CHART',
+                  type: 'chart',
                   title: 'Sales by Month',
-                  data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                    datasets: [
-                      { label: 'Sales', data: [10, 20, 15, 25, 22, 30] },
-                    ],
-                  },
-                  chartType: 'bar', // Added missing property
-                  x: 0, // Added missing property
-                  y: 0, // Added missing property
-                  w: 6, // Added missing property
-                  h: 4, // Added missing property
+                  data: [10, 20, 15, 25, 22, 30],
+                  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
                 },
                 {
                   id: 'table1',
-                  type: 'TABLE',
+                  type: 'table',
                   title: 'Top Products',
-                  data: {
-                    headers: ['Product', 'Sales', 'Units'],
-                    rows: [
-                      ['A', '1000', '100'],
-                      ['B', '800', '80'],
-                    ],
-                  },
-                  x: 0, // Added missing property
-                  y: 4, // Added missing property (adjusting y to avoid overlap)
-                  w: 6, // Added missing property
-                  h: 4, // Added missing property
+                  headers: ['Product', 'Sales', 'Units'],
+                  rows: [
+                    ['A', '1000', '100'],
+                    ['B', '800', '80'],
+                  ],
                 },
               ],
-              layout: [],
+              layout: {},
             });
           }, 1000),
         );

@@ -56,6 +56,7 @@ export const DashboardViewer: React.FC<DashboardViewerProps> = ({
       <h2 className="text-2xl font-semibold mb-4">
         Viewing Dashboard: {dashboardId}
       </h2>
+<<<<<<< HEAD
       <div
         style={{ height: '400px', overflowY: 'auto' }}
         className="border rounded-md p-2 mb-4"
@@ -85,6 +86,10 @@ export const DashboardViewer: React.FC<DashboardViewerProps> = ({
           Next
         </button>
       </div>
+=======
+      <p>This is a placeholder for the dashboard content.</p>
+      {/* Render actual dashboard widgets here based on fetched data */}
+>>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
     </div>
   );
 };

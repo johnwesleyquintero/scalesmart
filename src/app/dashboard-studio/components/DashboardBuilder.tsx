@@ -1,33 +1,10 @@
 'use client';
 import React, { useState } from 'react';
-import { WidgetLibrary } from './WidgetLibrary';
-import {
-  WidgetConfig,
-  WidgetType,
-  WIDGET_TYPES,
-  ChartWidgetConfig,
-  TableWidgetConfig,
-  KpiWidgetConfig,
-  TextWidgetConfig,
-  ImageWidgetConfig,
-  FilterWidgetConfig, // Import FilterWidgetConfig
-} from '../widget-types'; // Added TextWidgetConfig and ImageWidgetConfig
-import { ChartWidget } from './ChartWidget';
-import { TableWidget } from './TableWidget';
-import { KpiWidget } from './KpiWidget';
-import TextWidget from './TextWidget'; // Import TextWidget
-import ImageWidget from './ImageWidget'; // Import ImageWidget
-import { FilterWidget } from './FilterWidget';
-import { v4 as uuidv4 } from 'uuid'; // Using uuid for unique IDs
-import { Responsive, WidthProvider, Layout } from 'react-grid-layout'; // Import react-grid-layout components
-import '/node_modules/react-grid-layout/css/styles.css'; // Import default styles
-import '/node_modules/react-resizable/css/styles.css'; // Import default styles
 
-interface DashboardBuilderProps {
-  initialWidgets?: WidgetConfig[];
-  initialLayout?: Layout[] | null; // Define a more specific type if available
-}
+export const DashboardBuilder = () => {
+  const [widgets, setWidgets] = useState<string[]>([]);
 
+<<<<<<< HEAD
 export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
   initialWidgets,
   initialLayout,
@@ -256,6 +233,36 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
           ))}
         </ResponsiveGridLayout>
       </div>
+=======
+  const addWidget = (type: string) => {
+    setWidgets([...widgets, type]);
+  };
+
+  return (
+    <div className="border p-4 rounded-lg">
+      <h2 className="text-2xl font-semibold mb-4">Build Your Dashboard</h2>
+      <div className="mb-4">
+        <button
+          onClick={() => addWidget('Chart')}
+          className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
+        >
+          Add Chart Widget
+        </button>
+        <button
+          onClick={() => addWidget('Table')}
+          className="bg-green-500 text-white px-4 py-2 rounded"
+        >
+          Add Table Widget
+        </button>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {widgets.map((widget, index) => (
+          <div key={index} className="border p-4 rounded shadow">
+            {widget} Widget Placeholder
+          </div>
+        ))}
+      </div>
+>>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
     </div>
   );
 };

@@ -1,17 +1,19 @@
 import React from 'react';
-import { TableWidgetConfig } from '../widget-types';
 
 interface TableWidgetProps {
-  config: TableWidgetConfig;
+  title: string;
+  headers: string[];
+  rows: string[][];
 }
 
-export const TableWidget: React.FC<TableWidgetProps> = ({ config }) => {
-  const { title, data } = config;
-  const { headers, rows } = data;
-
+export const TableWidget: React.FC<TableWidgetProps> = ({
+  title,
+  headers,
+  rows,
+}) => {
   return (
     <div className="border p-4 rounded-lg shadow-md">
-      {title && <h3 className="text-xl font-semibold mb-2">{title}</h3>}
+      <h3 className="text-xl font-semibold mb-2">{title}</h3>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -43,12 +45,6 @@ export const TableWidget: React.FC<TableWidgetProps> = ({ config }) => {
           </tbody>
         </table>
       </div>
-      {config.conditionalFormattingRules &&
-        config.conditionalFormattingRules.length > 0 && (
-          <div className="mt-2 text-sm text-gray-600">
-            Conditional Formatting Rules Applied (Placeholder)
-          </div>
-        )}
     </div>
   );
 };

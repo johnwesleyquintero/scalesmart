@@ -10,8 +10,11 @@ export const ReportEditor = () => {
     alert('Report Saved (check console)');
   };
 
+<<<<<<< HEAD
   const widgetTypes = ['Chart', 'Table', 'KPI', 'Text', 'Image', 'Filter'];
 
+=======
+>>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
   return (
     <div className="border p-4 rounded-lg">
       <h2 className="text-2xl font-semibold mb-4">Report Editor</h2>

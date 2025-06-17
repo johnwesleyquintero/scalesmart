@@ -1,25 +1,12 @@
 import React from 'react';
-import {
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Cell,
-} from 'recharts';
-import { ChartWidgetConfig } from '../widget-types';
 
 interface ChartWidgetProps {
-  config: ChartWidgetConfig;
+  title: string;
+  data: number[];
+  labels: string[];
 }
 
+<<<<<<< HEAD
 export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
   const { title, data, chartType, conditionalFormattingRules } = config;
 
@@ -281,21 +268,23 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
     }
   };
 
+=======
+export const ChartWidget: React.FC<ChartWidgetProps> = ({
+  title,
+  data,
+  labels,
+}) => {
+  // This is a placeholder. In a real app, you'd use a charting library like Chart.js or Recharts.
+>>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
   return (
-    <div className="border p-4 rounded-lg shadow-md h-full flex flex-col">
-      {title && <h3 className="text-xl font-semibold mb-2">{title}</h3>}
-      <div className="flex-grow flex items-center justify-center">
-        {renderChart()}
+    <div className="border p-4 rounded-lg shadow-md">
+      <h3 className="text-xl font-semibold mb-2">{title}</h3>
+      <div className="bg-gray-100 h-32 flex items-center justify-center text-gray-500">
+        [Chart Visualization Placeholder]
       </div>
-      {/* Displaying raw data for now */}
-      {/* <div className="mt-2 text-sm text-gray-600">
-        Data: {JSON.stringify(data)}
-      </div> */}
-      {conditionalFormattingRules && conditionalFormattingRules.length > 0 && (
-        <div className="mt-2 text-sm text-gray-600">
-          Conditional Formatting Rules Applied (Placeholder)
-        </div>
-      )}
+      <div className="mt-2 text-sm text-gray-600">
+        Data: {data.join(', ')} | Labels: {labels.join(', ')}
+      </div>
     </div>
   );
 };

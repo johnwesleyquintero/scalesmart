@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
   DataQuery,
   QueryResult,
@@ -8,15 +9,20 @@ import { WidgetConfig } from '../app/dashboard-studio/widget-types';
 import { evaluateFormula } from './formula-evaluator'; // Import the formula evaluator
 
 export interface Dashboard {
+=======
+interface Dashboard {
+>>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
   id: string;
   name: string;
-  widgets: WidgetConfig[]; // Define a more specific type for widgets
-  layout: Layout; // Define a more specific type for layout
-  refreshInterval?: number; // Refresh interval in seconds (optional)
+  widgets: any[]; // Define a more specific type for widgets
+  layout: any; // Define a more specific type for layout
 }
 
+<<<<<<< HEAD
 const EXAMPLE_DASHBOARD_ID = 'example-dashboard-id';
 
+=======
+>>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
 export const DashboardService = {
   // This might involve modifying data fetching or processing functions
   // to apply user-defined formulas using the logic in src/lib/formula-evaluator.ts.
@@ -74,12 +80,12 @@ export const DashboardService = {
     // Simulate API call to fetch a dashboard
     return new Promise((resolve) => {
       setTimeout(() => {
-        if (id === EXAMPLE_DASHBOARD_ID) {
+        if (id === 'example-dashboard-id') {
           resolve({
-            id: EXAMPLE_DASHBOARD_ID,
+            id: 'example-dashboard-id',
             name: 'My Example Dashboard',
             widgets: [],
-            layout: { i: EXAMPLE_DASHBOARD_ID, x: 0, y: 0, w: 12, h: 8 }, // Example layout
+            layout: {},
           });
         } else {
           resolve(null);
@@ -101,19 +107,19 @@ export const DashboardService = {
   async createDashboard(name: string): Promise<Dashboard> {
     // Simulate API call to create a new dashboard
     return new Promise((resolve) => {
-      const newDashboardId = `dashboard-${Date.now()}`;
-      const newDashboard: Dashboard = {
-        id: newDashboardId,
-        name,
-        widgets: [],
-        layout: { i: newDashboardId, x: 0, y: 0, w: 12, h: 8 }, // Example layout
-      };
       setTimeout(() => {
+        const newDashboard: Dashboard = {
+          id: `dashboard-${Date.now()}`,
+          name,
+          widgets: [],
+          layout: {},
+        };
         console.log('Creating new dashboard:', newDashboard);
         resolve(newDashboard);
       }, 500);
     });
   },
+<<<<<<< HEAD
 
   async saveDashboardAsTemplate(
     dashboard: Dashboard,
@@ -360,4 +366,6 @@ export const DataRefreshService = {
     console.log('Stopping real-time data stream.');
     unsubscribe();
   },
+=======
+>>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
 };

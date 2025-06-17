@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // src/lib/data-connector-service.ts
 
 import {
@@ -256,164 +257,45 @@ const dataTransformer = {
   },
 };
 
+=======
+interface DataSourceConfig {
+  type: string;
+  connectionString: string;
+}
+
+>>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
 export const DataConnectorService = {
-  async connect(connection: DataSourceConnection): Promise<void> {
-    if (activeConnections.has(connection.id)) {
-      console.log(`Connection ${connection.id} already active.`);
-      return;
-    }
-
-    let connector: BaseConnector;
-    // Retrieve credentials securely
-    const credentials = secureCredentialManager.getCredentials(connection.id);
-
-    if (!credentials) {
-      throw new Error(
-        `Credentials not found for connection ID: ${connection.id}`,
-      );
-    }
-
-    switch (connection.type) {
-      case DataSourceType.Snowflake:
-        connector = new SnowflakeConnector();
-        break;
-      case DataSourceType.Kafka:
-        connector = new KafkaConnector();
-        break;
-      case DataSourceType.Kinesis:
-        connector = new KinesisConnector();
-        break;
-      // Add cases for other data source types
-      // case DataSourceType.GoogleBigQuery:
-      //   connector = new GoogleBigQueryConnector();
-      //   break;
-      case DataSourceType.Custom:
-        // Handle custom connectors - potentially load dynamically or use a registry
-        throw new Error('Custom connectors not yet fully implemented.');
-      default:
-        throw new Error(`Unsupported data source type: ${connection.type}`);
-    }
-
-    try {
-      // Pass connection details and credentials to the connector
-      await connector.connect({
-        ...connection.connectionDetails,
-        ...credentials,
-      });
-      activeConnections.set(connection.id, connector);
-      console.log(
-        `Successfully established connection for ${connection.name} (${connection.type})`,
-      );
-    } catch (error) {
-      console.error(
-        `Failed to connect to ${connection.name} (${connection.type}):`,
-        error,
-      );
-      throw error;
-    }
-  },
-
-  async disconnect(connectionId: string): Promise<void> {
-    const connector = activeConnections.get(connectionId);
-    if (connector) {
-      await connector.disconnect();
-      activeConnections.delete(connectionId);
-      console.log(`Disconnected from ${connectionId}`);
-    } else {
-      console.warn(`No active connection found for ID: ${connectionId}`);
-    }
-  },
-
-  async executeQuery(query: DataQuery): Promise<QueryResult> {
-    const connector = activeConnections.get(query.connectionId);
-    if (!connector) {
-      throw new Error(
-        `No active connection found for ID: ${query.connectionId}`,
-      );
-    }
-
-    try {
-      const rawResult = await connector.executeQuery(query);
-      // Apply transformations if any
-      if (query.transformations && query.transformations.length > 0) {
-        return dataTransformer.applyTransformations(
-          rawResult,
-          query.transformations,
-        );
-      }
-      return rawResult;
-    } catch (error) {
-      console.error(
-        `Failed to execute query for connection ID ${query.connectionId}:`,
-        error,
-      );
-      throw error;
-    }
-  },
-
-  subscribeToData(
-    query: DataQuery,
-    onData: (data: QueryResult) => void,
-    onError: (error: unknown) => void,
-  ): () => void {
-    const connector = activeConnections.get(query.connectionId);
-    if (!connector) {
-      onError(
-        new Error(`No active connection found for ID: ${query.connectionId}`),
-      );
-      return () => {}; // Return a no-op unsubscribe function
-    }
-
-    if (typeof connector.subscribe !== 'function') {
-      onError(
-        new Error(
-          `Connector for ID ${query.connectionId} does not support streaming.`,
-        ),
-      );
-      return () => {}; // Return a no-op unsubscribe function
-    }
-
-    try {
-      // Apply transformations before sending data to the subscriber
-      const transformedOnData = (rawData: QueryResult) => {
-        if (query.transformations && query.transformations.length > 0) {
-          const transformedData = dataTransformer.applyTransformations(
-            rawData,
-            query.transformations,
-          );
-          onData(transformedData);
+  async connect(config: DataSourceConfig): Promise<any> {
+    // Simulate connection to a data source
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (config.connectionString.includes('error')) {
+          reject(new Error('Failed to connect to data source.'));
         } else {
-          onData(rawData);
+          console.log(
+            `Successfully connected to ${config.type} using ${config.connectionString}`,
+          );
+          resolve({ status: 'connected', message: 'Connection successful' });
         }
-      };
-      return connector.subscribe(query, transformedOnData, onError);
-    } catch (error) {
-      console.error(
-        `Failed to subscribe to data for connection ID ${query.connectionId}:`,
-        error,
-      );
-      onError(error);
-      return () => {}; // Return a no-op unsubscribe function
-    }
+      }, 700);
+    });
   },
 
-  // Add methods for listing available data sources, managing connections, etc.
-  listAvailableDataSources(): DataSourceType[] {
-    // Return the list of supported data source types
-    return Object.values(DataSourceType);
-  },
-
-  listActiveConnections(): DataSourceConnection[] {
-    // This would require storing more than just the connector instance
-    // For now, return a simplified list based on active connection IDs
-    console.warn(
-      "listActiveConnections is a placeholder and doesn't return full connection details.",
-    );
-    return Array.from(activeConnections.keys()).map((id) => ({
-      id,
-      name: `Connection ${id}`, // Placeholder name
-      type: DataSourceType.Custom, // Placeholder type - ideally fetch actual type
-      connectionDetails: {}, // Placeholder details
-    }));
+  async fetchData(config: DataSourceConfig, query: string): Promise<any[]> {
+    // Simulate fetching data from a connected source
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        if (query.includes('fail')) {
+          reject(new Error('Failed to fetch data.'));
+        } else {
+          console.log(`Fetching data from ${config.type} with query: ${query}`);
+          resolve([
+            { id: 1, value: Math.random() * 100 },
+            { id: 2, value: Math.random() * 100 },
+            { id: 3, value: Math.random() * 100 },
+          ]);
+        }
+      }, 1000);
+    });
   },
 };
