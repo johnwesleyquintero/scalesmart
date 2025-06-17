@@ -1,3 +1,4 @@
+@import '../styles/modal.css';
 /*
   ScaleSmart Platform CSS Refinement
 
@@ -122,7 +123,6 @@
 @tailwind components;
 @tailwind utilities;
 
-@import '../styles/modal.css';
 
 /* --- Base Styles using @layer base ---
   Styles within @layer base are typically applied before component and utility
