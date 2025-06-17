@@ -93,6 +93,12 @@ export default function Header() {
           description: 'Manage customer relationships and sales pipelines.',
         },
         {
+          name: 'Dashboard Studio',
+          href: '/dashboard-studio',
+          category: productsCategories[0], // Business & E-commerce
+          description: 'Create and manage interactive data dashboards.',
+        },
+        {
           name: 'Project Management',
           href: '/project-management',
           category: productsCategories[1], // Productivity & Automation
