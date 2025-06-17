@@ -20,6 +20,8 @@ This project is a comprehensive portfolio platform, the "ScaleSmart" (AKA WesVer
 
 The platform is designed to be an ever-expanding ecosystem, with potential for more "WesIntegrations" in the future.
 
+This project is part of a general improvements plan focused on enhancing documentation for easier onboarding and maintenance.
+
 ## Project Structure
 
 Key directories and their purposes:
@@ -83,7 +85,7 @@ Detailed API documentation can be found in the `src/app/content/docs/api-*.mdx` 
 3.  Configure environment variables:
 
     - Create a `.env.local` file based on `.env.example`.
-    - Set the necessary environment variables, such as database connection strings and API keys.
+    - Set the necessary environment variables, such as database connection strings and API keys. Note that Supabase setup is required; refer to the Supabase documentation for details on setting up your database and obtaining connection strings.
 
 4.  Run the development server:
 
@@ -114,7 +116,8 @@ Contributions are welcome! Please follow these guidelines:
 1.  Fork the repository.
 2.  Create a new branch for your feature or bug fix.
 3.  Make your changes and commit them with clear messages.
-4.  Submit a pull request.
+4.  Ensure your code adheres to the project's code style and documentation standards as outlined in the [Developer Guide](src/developer-guide.md).
+5.  Submit a pull request.
 
 ## License
 

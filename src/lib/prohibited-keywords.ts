@@ -20,7 +20,7 @@ export function isProhibited(keyword: string): boolean {
 
 export async function add(): Promise<void> {}
 
-export const ProhibitedKeywords = {
+export const ProhibitedKeywordsUtil = {
   getAll,
   add,
   isProhibited,

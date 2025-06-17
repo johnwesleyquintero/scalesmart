@@ -90,3 +90,37 @@ Examples:
 - `fix: correct typo in documentation`
 - `docs: update developer guide`
 - `refactor: improve MdxRenderer performance`
+
+## 5. Architectural Patterns
+
+The project leverages several architectural patterns facilitated by the Next.js framework:
+
+- **App Router:** Utilizes the latest Next.js App Router for routing, server components, and co-location of components, tests, and styles.
+- **Component-Based Architecture:** Follows a component-based approach using React, with reusable UI components located in `src/components/`.
+- **API Routes:** Implements API endpoints within `src/app/api/` for server-side logic and data fetching.
+- **Data Fetching:** Employs a mix of server-side data fetching (in Server Components) and client-side fetching (using React Query or similar patterns) depending on the data's nature and where it's needed.
+- **Local State Management:** Utilizes React Context API (`src/context/`) and custom hooks (`src/hooks/`) for managing local state within features.
+- **IndexedDB for Local Data:** Several features (Amazon Seller Tools, AI Chat, CRM, Project Board, Workflow Builder, Markdown Notepad) use IndexedDB (`src/lib/indexeddb/`) for persistent local data storage, reducing reliance on the backend for certain operations.
+
+## 6. Common Utilities and Helper Functions
+
+The `src/lib/` directory is a central place for reusable logic that is not tied to specific React components or hooks. Key utility files include:
+
+- [`src/lib/utils.ts`](src/lib/utils.ts): Contains general-purpose helper functions.
+- [`src/lib/api-error-handler.ts`](src/lib/api-error-handler.ts): Provides standardized error handling for API routes.
+- [`src/lib/logger.ts`](src/lib/logger.ts): A utility for logging messages across the application.
+- [`src/lib/core-utils.ts`](src/lib/core-utils.ts): Core utility functions.
+- [`src/lib/constants.ts`](src/lib/constants.ts): Defines application-wide constants.
+- [`src/lib/types.ts`](src/lib/types.ts): Contains shared TypeScript type definitions.
+
+Developers are encouraged to explore this directory before writing new utility functions to avoid duplication.
+
+## 7. Feature/Module Development Notes
+
+This section provides brief notes on developing specific modules within the platform. For detailed implementation, refer to the respective directories in `src/app/`.
+
+- **ScaleSmart Academy:** Content is managed via MDX files in `src/app/content/academy/`. Progress tracking logic is handled in `src/hooks/use-academy-storage.ts` and interacts with IndexedDB via `src/lib/indexeddb/academy-db.ts`.
+- **Project Management:** Components are in `src/app/project-management/components/`. Data management uses custom hooks like `src/hooks/use-task-management.ts` and IndexedDB via `src/lib/indexeddb/project-management-db.ts`.
+- **CRM:** Components are in relevant `src/app/` subdirectories (e.g., potentially within a `crm` directory if it existed, or integrated into other sections). Data is managed via hooks like `src/hooks/use-crm-data.ts` and IndexedDB via `src/lib/indexeddb/crm-db.ts`.
+- **Markdown Notepad:** Components are in `src/app/markdown-notepad/components/`. Data handling is managed by hooks like `src/hooks/use-notes-data.ts` and `src/hooks/use-markdown-categories.ts`, interacting with IndexedDB via `src/lib/indexeddb/markdown-notepad-db.ts`.
+- **Workflow Builder:** Components are in `src/app/workflow-builder/components/`. The core logic for the workflow engine and node registry is located in `src/lib/workflow/`. Data is stored locally using IndexedDB via `src/lib/indexeddb/`.

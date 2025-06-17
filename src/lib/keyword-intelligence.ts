@@ -1,4 +1,4 @@
-import { ProhibitedKeywords } from './prohibited-keywords';
+import { ProhibitedKeywordsUtil } from './prohibited-keywords';
 
 export interface KeywordAnalysis {
   keyword: string;
@@ -19,7 +19,7 @@ interface KeywordMetrics {
 export const KeywordIntelligence = {
   async analyze(keywords: string[]): Promise<KeywordAnalysis[]> {
     console.log('analyze called');
-    const prohibitedKeywords = await ProhibitedKeywords.getAll();
+    const prohibitedKeywords = await ProhibitedKeywordsUtil.getAll();
     return Promise.all(
       keywords.map(async (keyword) =>
         this.analyzeKeyword(keyword, prohibitedKeywords),

@@ -303,7 +303,7 @@
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
     "jsdom": "^26.1.0",
-    "lint-staged": "^15.5.0",
+    "lint-staged": "^15.5.2",
     "node-loader": "^2.1.0",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
@@ -319,5 +319,20 @@
     "vercel": "^43.1.0",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^3.2.3"
-  }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
+  },
+  "prepare": "husky install"
 }

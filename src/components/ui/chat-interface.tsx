@@ -596,8 +596,19 @@ export default function ChatInterface() {
             className="text-white hover:bg-gray-700"
           >
             {/* Icon for copy - using a simple clipboard icon */}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.5c0-.621.504-1.125 1.125-1.125H6.75m6 0v-3.375c0-.621.504-1.125 1.125-1.125H20.25a1.125 1.125 0 011.125 1.125v9.75a1.125 1.125 0 01-1.125 1.125h-3.375m-6 0l-3.5-3.5m0 0l3.5-3.5m-3.5 3.5H9.75" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.5c0-.621.504-1.125 1.125-1.125H6.75m6 0v-3.375c0-.621.504-1.125 1.125-1.125H20.25a1.125 1.125 0 011.125 1.125v9.75a1.125 1.125 0 01-1.125 1.125h-3.375m-6 0l-3.5-3.5m0 0l3.5-3.5m-3.5 3.5H9.75"
+              />
             </svg>
           </Button>
           <Button
@@ -608,8 +619,19 @@ export default function ChatInterface() {
             className="text-white hover:bg-gray-700"
           >
             {/* Icon for copy - using a simple clipboard icon */}
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.5c0-.621.504-1.125 1.125-1.125H6.75m6 0v-3.375c0-.621.504-1.125 1.125-1.125H20.25a1.125 1.125 0 011.125 1.125v9.75a1.125 1.125 0 01-1.125 1.125h-3.375m-6 0l-3.5-3.5m0 0l3.5-3.5m-3.5 3.5H9.75" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.5c0-.621.504-1.125 1.125-1.125H6.75m6 0v-3.375c0-.621.504-1.125 1.125-1.125H20.25a1.125 1.125 0 011.125 1.125v9.75a1.125 1.125 0 01-1.125 1.125h-3.375m-6 0l-3.5-3.5m0 0l3.5-3.5m-3.5 3.5H9.75"
+              />
             </svg>
           </Button>
           <Button
