@@ -38,6 +38,44 @@ interface RawGitHubRepoFromAPI {
   fork: boolean;
 }
 
+// Helper function for exponential backoff retry
+async function fetchWithRetry(
+  url: string,
+  options: RequestInit = {},
+  retries = 3,
+  delay = 1000,
+): Promise<Response> {
+  try {
+    const response = await fetch(url, options);
+    if (response.ok) {
+      return response;
+    }
+
+    // Retry on specific status codes or network errors
+    if (retries > 0 && (response.status >= 500 || response.status === 429)) {
+      console.warn(
+        `Fetch failed with status ${response.status}. Retrying in ${delay}ms...`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return fetchWithRetry(url, options, retries - 1, delay * 2); // Exponential backoff
+    }
+
+    // For other non-OK responses, throw an error
+    const errorText = await response.text();
+    throw new Error(
+      `Fetch failed with status ${response.status}: ${errorText}`,
+    );
+  } catch (error: unknown) {
+    if (retries > 0) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.warn(`Fetch failed: ${errorMessage}. Retrying in ${delay}ms...`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return fetchWithRetry(url, options, retries - 1, delay * 2); // Exponential backoff
+    }
+    throw error; // Re-throw if retries are exhausted
+  }
+}
+
 async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
   if (!username) {
     console.error('GitHub username is empty. Cannot fetch projects.');
@@ -46,25 +84,10 @@ async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
   try {
     const url = `https://api.github.com/users/${username}/repos?sort=pushed&direction=desc&per_page=100`; // Fetch more and sort by last push
     console.log('Fetching GitHub projects from URL:', url); // Log the URL
-    const response = await fetch(url);
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        `Failed to fetch GitHub projects for user ${username}:`,
-        `Status: ${response.status}`,
-        `Error: ${errorText}`,
-      );
-      // If the user is not found, return an empty array without throwing an error
-      if (response.status === 404) {
-        console.warn(
-          `GitHub user '${username}' not found. Returning empty projects list.`,
-        );
-        return [];
-      }
-      throw new Error(
-        `GitHub API responded with status ${response.status}: ${errorText}`,
-      );
-    }
+
+    // Use the fetchWithRetry helper
+    const response = await fetchWithRetry(url);
+
     const data: RawGitHubRepoFromAPI[] = await response.json();
     if (!Array.isArray(data)) {
       console.error('GitHub API did not return an array:', data);
@@ -80,8 +103,14 @@ async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
       forks_count: repo.forks_count || 0,
       fork: repo.fork,
     }));
-  } catch (error) {
-    console.error('Error in getGitHubProjects:', error); // Keep existing error logging
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error('Error in getGitHubProjects:', errorMessage); // Log the error message
+    // If the user is not found (handled by fetchWithRetry throwing an error with status 404),
+    // or any other error occurs after retries, return an empty array.
+    if (errorMessage.includes('status 404')) {
+      console.warn(`GitHub user '${username}' not found. Returning empty projects list.`);
+    }
     return [];
   }
 }
