@@ -142,6 +142,16 @@ const nextConfig = {
       use: ['csv-loader'],
     });
 
+    // Rule to handle import.meta in mermaid-isomorphic
+    config.module.rules.push({
+      test: /mermaid-isomorphic\/dist\/mermaid-isomorphic\.js$/,
+      parser: {
+        javascript: {
+          importMeta: false,
+        },
+      },
+    });
+
     // Optimize chunk loading
     if (!dev && !isServer) {
       config.optimization.splitChunks = {
