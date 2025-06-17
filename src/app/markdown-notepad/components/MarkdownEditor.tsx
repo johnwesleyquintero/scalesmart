@@ -33,10 +33,13 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onSaveSuccess,
   isLoading, // Destructure isLoading prop
 }) => {
-  const DynamicMarkdownRenderer = dynamic(() => import('./DynamicMarkdownRenderer'), {
-    ssr: false,
-    loading: () => <p>Loading preview...</p>, // Optional loading component
-  });
+  const DynamicMarkdownRenderer = dynamic(
+    () => import('./DynamicMarkdownRenderer'),
+    {
+      ssr: false,
+      loading: () => <p>Loading preview...</p>, // Optional loading component
+    },
+  );
 
   const [markdown, setMarkdown] = useState(initialMarkdown);
   const [title, setTitle] = useState(initialTitle); // State for title

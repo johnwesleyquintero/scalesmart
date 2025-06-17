@@ -10,7 +10,9 @@ interface DynamicMarkdownRendererProps {
   markdown: string;
 }
 
-const DynamicMarkdownRenderer: React.FC<DynamicMarkdownRendererProps> = ({ markdown }) => {
+const DynamicMarkdownRenderer: React.FC<DynamicMarkdownRendererProps> = ({
+  markdown,
+}) => {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm, remarkMermaid]}

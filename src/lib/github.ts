@@ -58,8 +58,9 @@ export async function getGitHubProjects(): Promise<
         updatedAt: repo.pushed_at,
         stars: repo.stargazers_count,
       }));
-  } catch (error) {
-    console.error('Failed to fetch GitHub projects:', error);
+  } catch (error: any) {
+    console.error('Failed to fetch GitHub projects:', error.message || error);
+    // Re-throw the error to be handled by the caller
     throw error;
   }
 }
