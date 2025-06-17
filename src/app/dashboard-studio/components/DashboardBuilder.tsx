@@ -20,8 +20,8 @@ import ImageWidget from './ImageWidget'; // Import ImageWidget
 import { FilterWidget } from './FilterWidget';
 import { v4 as uuidv4 } from 'uuid'; // Using uuid for unique IDs
 import { Responsive, WidthProvider, Layout } from 'react-grid-layout'; // Import react-grid-layout components
-import '/node_modules/react-grid-layout/css/styles.css'; // Import default styles
-import '/node_modules/react-resizable/css/styles.css'; // Import default styles
+import 'react-grid-layout/css/styles.css'; // Import default styles
+import 'react-resizable/css/styles.css'; // Import default styles
 
 interface DashboardBuilderProps {
   initialWidgets?: WidgetConfig[];
