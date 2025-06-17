@@ -1,3 +1,16 @@
+:root {
+  --warning: 38 92% 50%; /* Placeholder HSL for warning */
+  --warning-foreground: 48 96% 89%; /* Placeholder HSL for warning foreground */
+  --info: 210 40% 98%; /* Placeholder HSL for info */
+  --info-foreground: 220 13% 46%; /* Placeholder HSL for info foreground */
+}
+
+.dark {
+  --warning: 48 96% 89%; /* Placeholder HSL for dark warning */
+  --warning-foreground: 38 92% 50%; /* Placeholder HSL for dark warning foreground */
+  --info: 220 13% 46%; /* Placeholder HSL for dark info */
+  --info-foreground: 210 40% 98%; /* Placeholder HSL for dark info foreground */
+}
 /*
   Overall Refinements:
   - Removed CSS rules that directly override Tailwind utility classes (like md:grid-cols-2, text-4xl)

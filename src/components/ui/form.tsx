@@ -14,8 +14,16 @@ import {
 import { cn } from '../../lib/utils';
 import { Label } from './label';
 
+/**
+ * A flexible form component built using react-hook-form.
+ * Provides context for form fields and handles form state.
+ * @see https://react-hook-form.com/
+ */
 const Form = FormProvider;
 
+/**
+ * Context value for FormField.
+ */
 type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -27,6 +35,9 @@ const FormFieldContext = React.createContext<FormFieldContextValue>(
   {} as FormFieldContextValue,
 );
 
+/**
+ * A component that connects a form field to the form context.
+ */
 const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
@@ -40,6 +51,9 @@ const FormField = <
   );
 };
 
+/**
+ * Hook to access form field state and utilities.
+ */
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
@@ -63,6 +77,9 @@ const useFormField = () => {
   };
 };
 
+/**
+ * Context value for FormItem.
+ */
 type FormItemContextValue = {
   id: string;
 };
@@ -71,6 +88,9 @@ const FormItemContext = React.createContext<FormItemContextValue>(
   {} as FormItemContextValue,
 );
 
+/**
+ * A container for a single form item, including label, control, description, and message.
+ */
 const FormItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
@@ -85,6 +105,9 @@ const FormItem = React.forwardRef<
 });
 FormItem.displayName = 'FormItem';
 
+/**
+ * The label for a form field.
+ */
 const FormLabel = React.forwardRef<
   React.ElementRef<typeof LabelPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof LabelPrimitive.Root>
@@ -102,6 +125,9 @@ const FormLabel = React.forwardRef<
 });
 FormLabel.displayName = 'FormLabel';
 
+/**
+ * The control element for a form field.
+ */
 const FormControl = React.forwardRef<
   React.ElementRef<typeof Slot>,
   React.ComponentPropsWithoutRef<typeof Slot>
@@ -123,6 +149,9 @@ const FormControl = React.forwardRef<
 });
 FormControl.displayName = 'FormControl';
 
+/**
+ * A description or helper text for a form field.
+ */
 const FormDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
@@ -140,6 +169,9 @@ const FormDescription = React.forwardRef<
 });
 FormDescription.displayName = 'FormDescription';
 
+/**
+ * A message displaying validation errors for a form field.
+ */
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>

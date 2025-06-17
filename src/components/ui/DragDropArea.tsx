@@ -1,10 +1,18 @@
 import React from 'react';
 
+/**
+ * Props for the DragDropArea component.
+ */
 interface DragDropAreaProps {
+  /** Indicates if a drag operation is currently active over the area. */
   isDragActive: boolean;
+  /** The content to be displayed within the drag and drop area. */
   children: React.ReactNode;
 }
 
+/**
+ * A visual area that indicates where files or draggable items can be dropped.
+ */
 const DragDropArea: React.FC<DragDropAreaProps> = ({
   isDragActive,
   children,

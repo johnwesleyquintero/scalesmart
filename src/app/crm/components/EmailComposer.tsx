@@ -2,6 +2,11 @@ import React, { useState, useCallback } from 'react';
 import { toast } from 'sonner';
 import { useCRMData } from '../../../hooks/use-crm-data';
 import { EmailTemplate } from '../../crm/types';
+import { cn } from '@/lib/utils'; // Import cn utility
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'; // Import Card components
+import { Label } from '@/components/ui/label'; // Import Label component
+import { Input } from '@/components/ui/input'; // Import Input component
+import { Button } from '@/components/ui/button'; // Import Button component
 
 interface EmailComposerProps {
   customerId: string;
@@ -66,69 +71,54 @@ const EmailComposer: React.FC<EmailComposerProps> = ({
   // yarn add react-quill quill
 
   return (
-    <div className="p-4 border rounded-lg shadow-sm bg-white">
-      <h2 className="text-2xl font-bold mb-4">Compose Email</h2>
-
+    <Card className="p-4">
+      {' '}
+      {/* Replaced div with Card */}
+      <CardHeader>
+        {' '}
+        {/* Replaced h2 with CardHeader and CardTitle */}
+        <CardTitle>Compose Email</CardTitle>
+      </CardHeader>
       <div className="mb-3">
-        <label
-          htmlFor="toEmail"
-          className="block text-sm font-medium text-gray-700"
-        >
-          To
-        </label>
-        <input
+        <Label htmlFor="toEmail">To</Label>{' '}
+        {/* Replaced label with Label component */}
+        <Input
           type="email"
           id="toEmail"
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
           value={toEmail}
           onChange={(e) => setToEmail(e.target.value)}
           placeholder="recipient@example.com"
         />
       </div>
-
       <div className="mb-3">
-        <label
-          htmlFor="subject"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Subject
-        </label>
-        <input
+        <Label htmlFor="subject">Subject</Label>{' '}
+        {/* Replaced label with Label component */}
+        <Input
           type="text"
           id="subject"
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
           placeholder="Email Subject"
         />
       </div>
-
       <div className="mb-3">
-        <label
-          htmlFor="emailBody"
-          className="block text-sm font-medium text-gray-700"
-        >
-          Body
-        </label>
+        <Label htmlFor="emailBody">Body</Label>{' '}
+        {/* Replaced label with Label component */}
         <textarea
           id="emailBody"
-          className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-primary focus-visible:border-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 h-[200px]" // Applied Tailwind classes and custom height
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write your email here..."
-          style={{ height: '200px' }}
         />
       </div>
-
       <div className="mt-12 flex space-x-2">
-        <button
-          onClick={handleSendEmail}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-        >
+        <Button onClick={handleSendEmail}>
+          {' '}
+          {/* Replaced button with Button component */}
           Send Email
-        </button>
+        </Button>
       </div>
-
       {/* Integration with EmailTemplateManager for selecting templates */}
       <div className="mt-8">
         <h3 className="text-xl font-semibold mb-3">Load from Templates</h3>
@@ -140,7 +130,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({
           can manually copy-paste template content.
         </p>
       </div>
-    </div>
+    </Card>
   );
 };
 

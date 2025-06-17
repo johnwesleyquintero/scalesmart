@@ -14,6 +14,11 @@ interface CustomComponentsWithIcons extends CustomComponents {
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
+/**
+ * A date picker component.
+ * Built using react-day-picker.
+ * @see https://react-day-picker.js.org/
+ */
 function Calendar({
   className,
   classNames,

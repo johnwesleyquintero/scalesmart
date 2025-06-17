@@ -25,11 +25,21 @@ import {
 } from '@tanstack/react-table';
 import { ArrowDownUp, Columns } from 'lucide-react';
 
+/**
+ * Props for the DataTable component.
+ */
 interface DataTableProps<TData, TValue> {
+  /** The column definitions for the table. */
   columns: ColumnDef<TData, TValue>[];
+  /** The data to display in the table. */
   data: TData[];
 }
 
+/**
+ * A generic data table component with filtering, sorting, and pagination.
+ * Built using TanStack Table.
+ * @see https://tanstack.com/table/v8
+ */
 export function DataTable<TData, TValue>({
   columns,
   data,

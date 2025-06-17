@@ -6,10 +6,18 @@ import { Button } from '@/components/ui/button';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+/**
+ * Props for the ErrorBoundary component.
+ */
 interface ErrorBoundaryProps {
+  /** The child components to be rendered within the error boundary. */
   children: React.ReactNode;
 }
 
+/**
+ * A React Error Boundary component to catch and display UI errors.
+ * It provides a fallback UI and options to reload the page.
+ */
 export default function ErrorBoundary({
   children,
 }: Readonly<ErrorBoundaryProps>) {

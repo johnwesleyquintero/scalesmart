@@ -6,8 +6,16 @@ import * as React from 'react';
 
 import { cn } from '@/lib/core-utils';
 
+/**
+ * A vertically stacked set of interactive headings that each reveal a section of content.
+ * Built using Radix UI Accordion.
+ * @see https://www.radix-ui.com/primitives/docs/components/accordion
+ */
 const Accordion = AccordionPrimitive.Root;
 
+/**
+ * An item within the Accordion.
+ */
 const AccordionItem = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item>
@@ -20,6 +28,9 @@ const AccordionItem = React.forwardRef<
 ));
 AccordionItem.displayName = 'AccordionItem';
 
+/**
+ * The trigger for an Accordion item. Clicking this reveals or hides the content.
+ */
 const AccordionTrigger = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Trigger>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger>
@@ -40,6 +51,9 @@ const AccordionTrigger = React.forwardRef<
 ));
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 
+/**
+ * The collapsible content area for an Accordion item.
+ */
 const AccordionContent = React.forwardRef<
   React.ComponentRef<typeof AccordionPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content>

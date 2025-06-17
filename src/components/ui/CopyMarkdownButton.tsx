@@ -1,11 +1,19 @@
 import { Clipboard, ClipboardCheck } from 'lucide-react';
 import React from 'react';
 
+/**
+ * Props for the CopyMarkdownButton component.
+ */
 interface CopyMarkdownButtonProps {
+  /** The content to be copied to the clipboard. */
   content: string;
+  /** The type of content being copied, affects the default label. */
   type?: 'markdown' | 'code';
 }
 
+/**
+ * A button component to copy content (markdown or code) to the clipboard.
+ */
 const CopyMarkdownButton: React.FC<CopyMarkdownButtonProps> = ({
   content,
   type = 'markdown',

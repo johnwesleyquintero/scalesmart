@@ -5,6 +5,11 @@ import { Drawer as DrawerPrimitive } from 'vaul';
 
 import { cn } from '@/lib/core-utils';
 
+/**
+ * A drawer component that slides in from the edge of the screen.
+ * Built using Vaul.
+ * @see https://vaul.emilkowalski.pl/
+ */
 const Drawer = ({
   shouldScaleBackground = true,
   ...props
@@ -16,12 +21,24 @@ const Drawer = ({
 );
 Drawer.displayName = 'Drawer';
 
+/**
+ * The trigger button for the Drawer.
+ */
 const DrawerTrigger = DrawerPrimitive.Trigger;
 
+/**
+ * A portal for the Drawer content to render outside the normal DOM hierarchy.
+ */
 const DrawerPortal = DrawerPrimitive.Portal;
 
+/**
+ * The button that closes the Drawer.
+ */
 const DrawerClose = DrawerPrimitive.Close;
 
+/**
+ * The overlay that covers the background when the Drawer is open.
+ */
 const DrawerOverlay = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
@@ -34,6 +51,9 @@ const DrawerOverlay = React.forwardRef<
 ));
 DrawerOverlay.displayName = DrawerPrimitive.Overlay.displayName;
 
+/**
+ * The main content area of the Drawer.
+ */
 const DrawerContent = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Content>
@@ -55,6 +75,9 @@ const DrawerContent = React.forwardRef<
 ));
 DrawerContent.displayName = 'DrawerContent';
 
+/**
+ * The header section of the Drawer, typically containing the title and description.
+ */
 const DrawerHeader = ({
   className,
   ...props
@@ -66,6 +89,9 @@ const DrawerHeader = ({
 );
 DrawerHeader.displayName = 'DrawerHeader';
 
+/**
+ * The footer section of the Drawer, typically containing action buttons.
+ */
 const DrawerFooter = ({
   className,
   ...props
@@ -77,6 +103,9 @@ const DrawerFooter = ({
 );
 DrawerFooter.displayName = 'DrawerFooter';
 
+/**
+ * The title of the Drawer.
+ */
 const DrawerTitle = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Title>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Title>
@@ -92,6 +121,9 @@ const DrawerTitle = React.forwardRef<
 ));
 DrawerTitle.displayName = DrawerPrimitive.Title.displayName;
 
+/**
+ * The description or explanatory text of the Drawer.
+ */
 const DrawerDescription = React.forwardRef<
   React.ElementRef<typeof DrawerPrimitive.Description>,
   React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Description>

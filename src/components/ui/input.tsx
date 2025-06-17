@@ -2,6 +2,10 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * Props for the Input component.
+ * Extends standard HTML input attributes.
+ */
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   value?: string | number;
@@ -15,6 +19,9 @@ export interface InputProps
   disabled?: boolean;
 }
 
+/**
+ * A styled input component.
+ */
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
     {

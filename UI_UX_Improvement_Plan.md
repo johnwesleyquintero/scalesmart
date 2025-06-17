@@ -1,6 +1,7 @@
 # UI/UX General Improvements Plan
 
 ## Introduction
+
 This document outlines a plan for general UI/UX improvements across the ScaleSmart Platform. The goal is to enhance user experience, improve usability, and ensure a consistent and intuitive interface.
 
 ## Core Principles for UI/UX Improvements
@@ -16,49 +17,49 @@ This document outlines a plan for general UI/UX improvements across the ScaleSma
 
 ### 1. Navigation and Information Architecture
 
-*   **Objective**: Make it easier for users to find what they need and understand where they are within the application.
-*   **Proposed Changes**:
-    *   **Streamline Main Navigation**: Review and simplify the main navigation menu. Group related features logically.
-    *   **Clear Breadcrumbs**: Implement consistent and clear breadcrumbs on all relevant pages to show the user's current location.
-    *   **Search Functionality**: Enhance global search capabilities to include all relevant content and features.
-    *   **Consistent Naming Conventions**: Ensure consistent terminology for features, modules, and actions across the platform.
+- **Objective**: Make it easier for users to find what they need and understand where they are within the application.
+- **Proposed Changes**:
+  - **Streamline Main Navigation**: Review and simplify the main navigation menu. Group related features logically.
+  - **Clear Breadcrumbs**: Implement consistent and clear breadcrumbs on all relevant pages to show the user's current location.
+  - **Search Functionality**: Enhance global search capabilities to include all relevant content and features.
+  - **Consistent Naming Conventions**: Ensure consistent terminology for features, modules, and actions across the platform.
 
 ### 2. Visual Design and Aesthetics
 
-*   **Objective**: Improve the overall visual appeal and modern feel of the platform.
-*   **Proposed Changes**:
-    *   **Design System Audit**: Conduct an audit of existing UI components and identify inconsistencies. Develop or refine a comprehensive design system.
-    *   **Typography**: Standardize typography (fonts, sizes, weights) for better readability and visual hierarchy.
-    *   **Color Palette**: Review and refine the color palette for better contrast, accessibility, and brand consistency.
-    *   **Iconography**: Ensure a consistent and modern icon set is used throughout the application.
-    *   **Whitespace and Layout**: Optimize spacing and layout to reduce clutter and improve readability.
+- **Objective**: Improve the overall visual appeal and modern feel of the platform.
+- **Proposed Changes**:
+  - **Design System Audit**: Conduct an audit of existing UI components and identify inconsistencies. Develop or refine a comprehensive design system.
+  - **Typography**: Standardize typography (fonts, sizes, weights) for better readability and visual hierarchy.
+  - **Color Palette**: Review and refine the color palette for better contrast, accessibility, and brand consistency.
+  - **Iconography**: Ensure a consistent and modern icon set is used throughout the application.
+  - **Whitespace and Layout**: Optimize spacing and layout to reduce clutter and improve readability.
 
 ### 3. Interaction Design and Usability
 
-*   **Objective**: Enhance the ease of use and efficiency of user interactions.
-*   **Proposed Changes**:
-    *   **Form Design**: Improve form layouts, input validation, error messaging, and clear labeling.
-    *   **Feedback Mechanisms**: Implement consistent and clear feedback for user actions (e.g., success messages, error alerts, loading indicators).
-    *   **Hover States and Micro-interactions**: Add subtle hover states and micro-interactions to provide visual cues and enhance engagement.
-    *   **Drag-and-Drop**: Where applicable (e.g., Kanban boards, reordering lists), ensure intuitive and responsive drag-and-drop functionality.
-    *   **Keyboard Navigation**: Improve keyboard navigation support for better accessibility and efficiency.
+- **Objective**: Enhance the ease of use and efficiency of user interactions.
+- **Proposed Changes**:
+  - **Form Design**: Improve form layouts, input validation, error messaging, and clear labeling.
+  - **Feedback Mechanisms**: Implement consistent and clear feedback for user actions (e.g., success messages, error alerts, loading indicators).
+  - **Hover States and Micro-interactions**: Add subtle hover states and micro-interactions to provide visual cues and enhance engagement.
+  - **Drag-and-Drop**: Where applicable (e.g., Kanban boards, reordering lists), ensure intuitive and responsive drag-and-drop functionality.
+  - **Keyboard Navigation**: Improve keyboard navigation support for better accessibility and efficiency.
 
 ### 4. Performance and Responsiveness
 
-*   **Objective**: Ensure a fast, smooth, and adaptable user experience across all devices.
-*   **Proposed Changes**:
-    *   **Loading States**: Implement effective skeleton screens or loading indicators for data-intensive sections.
-    *   **Image Optimization**: Ensure all images are optimized for web and responsive display.
-    *   **Lazy Loading**: Implement lazy loading for components and data where appropriate to improve initial page load times.
-    *   **Mobile Responsiveness**: Conduct a thorough review of all pages and components on various mobile devices and screen sizes to ensure optimal display and functionality.
+- **Objective**: Ensure a fast, smooth, and adaptable user experience across all devices.
+- **Proposed Changes**:
+  - **Loading States**: Implement effective skeleton screens or loading indicators for data-intensive sections.
+  - **Image Optimization**: Ensure all images are optimized for web and responsive display.
+  - **Lazy Loading**: Implement lazy loading for components and data where appropriate to improve initial page load times.
+  - **Mobile Responsiveness**: Conduct a thorough review of all pages and components on various mobile devices and screen sizes to ensure optimal display and functionality.
 
 ### 5. Error Handling and Empty States
 
-*   **Objective**: Provide helpful and clear guidance when errors occur or content is unavailable.
-*   **Proposed Changes**:
-    *   **User-Friendly Error Messages**: Replace generic error messages with clear, actionable, and user-friendly explanations.
-    *   **Guidance for Empty States**: Design informative and engaging empty states for lists, tables, or sections with no content, often including calls to action.
-    *   **Recovery Options**: Where possible, provide clear paths for users to recover from errors.
+- **Objective**: Provide helpful and clear guidance when errors occur or content is unavailable.
+- **Proposed Changes**:
+  - **User-Friendly Error Messages**: Replace generic error messages with clear, actionable, and user-friendly explanations.
+  - **Guidance for Empty States**: Design informative and engaging empty states for lists, tables, or sections with no content, often including calls to action.
+  - **Recovery Options**: Where possible, provide clear paths for users to recover from errors.
 
 ## Implementation Strategy
 

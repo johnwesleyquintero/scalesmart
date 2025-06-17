@@ -7,6 +7,19 @@ import {
   deleteEmailTemplate,
 } from '../utils/emailTemplateUtils';
 import MDEditor from '@uiw/react-md-editor';
+import { cn } from '@/lib/utils'; // Import cn utility
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'; // Import Card components
+import { Label } from '@/components/ui/label'; // Import Label component
+import { Input } from '@/components/ui/input'; // Import Input component
+import { Button } from '@/components/ui/button'; // Import Button component
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from '@/components/ui/table'; // Import Table components
 
 interface EmailTemplateManagerProps {
   onSelectTemplate?: (template: EmailTemplate) => void;
@@ -85,136 +98,138 @@ const EmailTemplateManager: React.FC<EmailTemplateManagerProps> = ({
   };
 
   return (
-    <div className="p-4">
-      {/*
-        Note: For Quill, you would typically install it via npm/yarn:
-        npm install react-quill quill
-        or
-        yarn add react-quill quill
-      */}
-      <h2 className="text-2xl font-bold mb-4">Email Template Manager</h2>
-
-      <div className="mb-6 p-4 border rounded-lg shadow-sm">
-        <h3 className="text-xl font-semibold mb-3">
-          {editingTemplate ? 'Edit Template' : 'Create New Template'}
-        </h3>
-        <div className="mb-3">
-          <label
-            htmlFor="templateName"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Template Name
-          </label>
-          <input
-            type="text"
-            id="templateName"
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-            value={newTemplateName}
-            onChange={(e) => setNewTemplateName(e.target.value)}
-            placeholder="e.g., Welcome Email"
-          />
-        </div>
-        <div className="mb-3">
-          <label
-            htmlFor="templateSubject"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Subject
-          </label>
-          <input
-            type="text"
-            id="templateSubject"
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
-            value={newTemplateSubject}
-            onChange={(e) => setNewTemplateSubject(e.target.value)}
-            placeholder="e.g., Welcome to Our Service!"
-          />
-        </div>
-        <div className="mb-3">
-          <label
-            htmlFor="templateBody"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Body
-          </label>
-          <MDEditor
-            value={newTemplateBody}
-            onChange={(value) => setNewTemplateBody(value || '')}
-            style={{ height: '200px' }}
-          />
-        </div>
-        <div className="mt-12 flex space-x-2">
-          {editingTemplate ? (
-            <>
-              <button
-                onClick={handleUpdate}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Update Template
-              </button>
-              <button
-                onClick={handleCancelEdit}
-                className="px-4 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400"
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={handleCreate}
-              className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-              Create Template
-            </button>
-          )}
-        </div>
-      </div>
-
-      <div>
+    <Card className="p-4">
+      {' '}
+      {/* Replaced div with Card */}
+      <CardHeader>
+        <CardTitle>Email Template Manager</CardTitle>{' '}
+        {/* Replaced h2 with CardTitle */}
+      </CardHeader>
+      <Card className="mb-6 p-4">
+        {' '}
+        {/* Replaced div with Card */}
+        <CardHeader>
+          <CardTitle>
+            {editingTemplate ? 'Edit Template' : 'Create New Template'}
+          </CardTitle>{' '}
+          {/* Replaced h3 with CardTitle */}
+        </CardHeader>
+        <CardContent>
+          <div className="mb-3">
+            <Label htmlFor="templateName">Template Name</Label>{' '}
+            {/* Replaced label with Label component */}
+            <Input
+              type="text"
+              id="templateName"
+              value={newTemplateName}
+              onChange={(e) => setNewTemplateName(e.target.value)}
+              placeholder="e.g., Welcome Email"
+            />
+          </div>
+          <div className="mb-3">
+            <Label htmlFor="templateSubject">Subject</Label>{' '}
+            {/* Replaced label with Label component */}
+            <Input
+              type="text"
+              id="templateSubject"
+              value={newTemplateSubject}
+              onChange={(e) => setNewTemplateSubject(e.target.value)}
+              placeholder="e.g., Welcome to Our Service!"
+            />
+          </div>
+          <div className="mb-3">
+            <Label htmlFor="templateBody">Body</Label>{' '}
+            {/* Replaced label with Label component */}
+            <MDEditor
+              value={newTemplateBody}
+              onChange={(value) => setNewTemplateBody(value || '')}
+              style={{ height: '200px' }}
+            />
+          </div>
+          <div className="mt-12 flex space-x-2">
+            {editingTemplate ? (
+              <>
+                <Button onClick={handleUpdate}>
+                  {' '}
+                  {/* Replaced button with Button component */}
+                  Update Template
+                </Button>
+                <Button variant="outline" onClick={handleCancelEdit}>
+                  {' '}
+                  {/* Replaced button with Button component and added variant */}
+                  Cancel
+                </Button>
+              </>
+            ) : (
+              <Button onClick={handleCreate}>
+                {' '}
+                {/* Replaced button with Button component */}
+                Create Template
+              </Button>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      <div className="mt-8">
         <h3 className="text-xl font-semibold mb-3">Existing Templates</h3>
         {templates.length === 0 ? (
           <p>No email templates found. Create one above!</p>
         ) : (
-          <ul className="space-y-3">
-            {templates.map((template) => (
-              <li
-                key={template.id}
-                className="p-4 border rounded-lg shadow-sm bg-white flex justify-between items-center"
-              >
-                <div>
-                  <p className="font-semibold text-lg">{template.name}</p>
-                  <p className="text-gray-600 text-sm">
-                    Subject: {template.subject}
-                  </p>
-                </div>
-                <div className="flex space-x-2">
-                  {onSelectTemplate && (
-                    <button
-                      onClick={() => onSelectTemplate(template)}
-                      className="px-3 py-1 bg-purple-600 text-white rounded-md hover:bg-purple-700 text-sm"
-                    >
-                      Select
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleEdit(template)}
-                    className="px-3 py-1 bg-yellow-500 text-white rounded-md hover:bg-yellow-600 text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(template.id)}
-                    className="px-3 py-1 bg-red-600 text-white rounded-md hover:bg-red-700 text-sm"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
+          <Table>
+            {' '}
+            {/* Replaced ul with Table */}
+            <TableHeader>
+              <TableRow>
+                <TableHead>Template Name</TableHead>
+                <TableHead>Subject</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {templates.map((template) => (
+                <TableRow key={template.id}>
+                  {' '}
+                  {/* Replaced li with TableRow */}
+                  <TableCell className="font-semibold">
+                    {template.name}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {template.subject}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end space-x-2">
+                      {onSelectTemplate && (
+                        <Button
+                          variant="secondary" // Added variant
+                          size="sm"
+                          onClick={() => onSelectTemplate(template)}
+                        >
+                          Select
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline" // Added variant
+                        size="sm"
+                        onClick={() => handleEdit(template)}
+                      >
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive" // Added variant
+                        size="sm"
+                        onClick={() => handleDelete(template.id)}
+                      >
+                        Delete
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         )}
       </div>
-    </div>
+    </Card>
   );
 };
 

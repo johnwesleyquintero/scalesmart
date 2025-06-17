@@ -14,10 +14,17 @@ import { Menu } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
+/**
+ * Props for the DashboardSidebar component.
+ */
 interface DashboardSidebarProps {
+  /** Indicates if the current page is the dashboard page. */
   isDashboardPage?: boolean;
 }
 
+/**
+ * A sidebar component for the dashboard, providing navigation and context.
+ */
 export function DashboardSidebar({
   isDashboardPage,
 }: Readonly<DashboardSidebarProps>) {

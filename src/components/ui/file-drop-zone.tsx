@@ -5,17 +5,32 @@ import { AlertCircle, Upload } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
+/**
+ * Props for the FileDropZone component.
+ */
 interface FileDropZoneProps {
-  onFileAccepted: (file: File) => void;
+  /** Callback function to be called when a file is successfully accepted. */
+  onFileAcceptedAction: (file: File) => void;
+  /** An array of accepted file types (e.g., ['.csv', '.xlsx']). */
   acceptedFileTypes?: string[];
+  /** The maximum allowed file size in bytes. */
   maxFileSize?: number;
+  /** Additional CSS classes for the component. */
   className?: string;
+  /** The label text displayed in the drop zone. */
   label?: string;
+  /** The error message to display for invalid files. */
   errorMessage?: string;
 }
 
+/**
+ * A component that provides a drag-and-drop area for file uploads.
+ * It supports file type and size validation.
+ * Built using react-dropzone.
+ * @see https://react-dropzone.js.org/
+ */
 export function FileDropZone({
-  onFileAccepted,
+  onFileAcceptedAction,
   acceptedFileTypes = ['.csv', '.xlsx', '.xls'],
   maxFileSize = 5 * 1024 * 1024, // 5MB default
   className,
@@ -45,9 +60,9 @@ export function FileDropZone({
         return;
       }
 
-      onFileAccepted(file);
+      onFileAcceptedAction(file);
     },
-    [acceptedFileTypes, maxFileSize, onFileAccepted],
+    [acceptedFileTypes, maxFileSize, onFileAcceptedAction],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -72,7 +87,6 @@ export function FileDropZone({
           'hover:border-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
           isDragActive && 'border-primary bg-primary/5',
           error && 'border-destructive',
-          className,
         )}
       >
         <input {...getInputProps()} />

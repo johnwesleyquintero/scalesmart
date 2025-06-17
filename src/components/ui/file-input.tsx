@@ -2,10 +2,18 @@ import { cn } from '@/lib/utils';
 import * as React from 'react';
 import { Input, InputProps } from './input';
 
+/**
+ * Props for the FileInput component.
+ * Extends InputProps but omits 'type' and 'value' as they are controlled internally.
+ */
 export interface FileInputProps extends Omit<InputProps, 'type' | 'value'> {
+  /** The `accept` attribute for the file input, specifying allowed file types. */
   accept?: string;
 }
 
+/**
+ * A styled file input component.
+ */
 const FileInput = React.forwardRef<HTMLInputElement, FileInputProps>(
   ({ className, accept, ...props }, ref) => {
     return (

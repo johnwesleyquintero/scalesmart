@@ -11,6 +11,10 @@ import {
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
+/**
+ * A breadcrumb component specifically for the dashboard,
+ * automatically generating links based on the current route.
+ */
 export function DashboardBreadcrumb() {
   const pathname = usePathname();
   if (!pathname) return undefined;

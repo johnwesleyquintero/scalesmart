@@ -1,3 +1,7 @@
+/**
+ * This index file re-exports all public UI components from the './ui' directory.
+ * It serves as a convenient entry point for importing components.
+ */
 export * from './accordion';
 export * from './alert';
 export * from './avatar';

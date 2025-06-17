@@ -4,6 +4,9 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * A breadcrumb navigation component.
+ */
 const Breadcrumb = React.forwardRef<
   HTMLElement,
   React.ComponentPropsWithoutRef<'nav'> & {
@@ -12,6 +15,9 @@ const Breadcrumb = React.forwardRef<
 >(({ ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" {...props} />);
 Breadcrumb.displayName = 'Breadcrumb';
 
+/**
+ * The list container for breadcrumb items.
+ */
 const BreadcrumbList = React.forwardRef<
   HTMLOListElement,
   React.ComponentPropsWithoutRef<'ol'>
@@ -27,6 +33,9 @@ const BreadcrumbList = React.forwardRef<
 ));
 BreadcrumbList.displayName = 'BreadcrumbList';
 
+/**
+ * An individual item within the breadcrumb list.
+ */
 const BreadcrumbItem = React.forwardRef<
   HTMLLIElement,
   React.ComponentPropsWithoutRef<'li'>
@@ -39,6 +48,9 @@ const BreadcrumbItem = React.forwardRef<
 ));
 BreadcrumbItem.displayName = 'BreadcrumbItem';
 
+/**
+ * A link within a breadcrumb item.
+ */
 const BreadcrumbLink = React.forwardRef<
   HTMLAnchorElement,
   React.ComponentPropsWithoutRef<'a'> & {
@@ -58,6 +70,9 @@ const BreadcrumbLink = React.forwardRef<
 });
 BreadcrumbLink.displayName = 'BreadcrumbLink';
 
+/**
+ * Represents the current page in the breadcrumb navigation.
+ */
 const BreadcrumbPage = React.forwardRef<
   HTMLSpanElement,
   React.ComponentPropsWithoutRef<'span'>
@@ -73,6 +88,9 @@ const BreadcrumbPage = React.forwardRef<
 ));
 BreadcrumbPage.displayName = 'BreadcrumbPage';
 
+/**
+ * The separator between breadcrumb items.
+ */
 const BreadcrumbSeparator = ({
   children,
   className,
@@ -89,6 +107,9 @@ const BreadcrumbSeparator = ({
 );
 BreadcrumbSeparator.displayName = 'BreadcrumbSeparator';
 
+/**
+ * Represents truncated breadcrumb items.
+ */
 const BreadcrumbEllipsis = ({
   className,
   ...props

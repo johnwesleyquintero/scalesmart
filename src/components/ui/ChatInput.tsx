@@ -3,13 +3,23 @@ import { Button } from './button';
 import { cn } from '@/lib/utils';
 import { Spinner } from './Spinner';
 
+/**
+ * Props for the ChatInput component.
+ */
 interface ChatInputProps {
+  /** The current value of the input field. */
   value: string;
+  /** Callback function to handle input value changes. */
   onChange: (value: string) => void;
+  /** Callback function to handle form submission. */
   onSubmit: (value: string) => void;
+  /** Boolean indicating if the input and button should be disabled. */
   disabled: boolean;
 }
 
+/**
+ * A component for user input in a chat interface.
+ */
 export default function ChatInput({
   value,
   onChange,

@@ -8,6 +8,9 @@ import { cn } from '@/lib/core-utils';
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: '', dark: '.dark' } as const;
 
+/**
+ * Configuration for chart data points.
+ */
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode;
@@ -18,6 +21,9 @@ export type ChartConfig = {
   );
 };
 
+/**
+ * Context for chart components.
+ */
 type ChartContextProps = {
   config: ChartConfig;
 };
@@ -26,6 +32,9 @@ const ChartContext = React.createContext<ChartContextProps | undefined>(
   undefined,
 );
 
+/**
+ * Hook to access the Chart context.
+ */
 function useChart() {
   const context = React.useContext(ChartContext);
 
@@ -36,6 +45,11 @@ function useChart() {
   return context;
 }
 
+/**
+ * A container for chart components, providing context and styling.
+ * Built using Recharts.
+ * @see https://recharts.org/
+ */
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<'div'> & {
@@ -69,6 +83,9 @@ const ChartContainer = React.forwardRef<
 });
 ChartContainer.displayName = 'Chart';
 
+/**
+ * Component to apply chart-specific CSS variables based on the theme and config.
+ */
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   if (!config) return undefined;
 
@@ -104,8 +121,14 @@ ${colorConfig
   );
 };
 
+/**
+ * Tooltip component for displaying data on hover.
+ */
 const ChartTooltip = RechartsPrimitive.Tooltip;
 
+/**
+ * Content for the chart tooltip.
+ */
 const ChartTooltipContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<typeof RechartsPrimitive.Tooltip> &
@@ -260,8 +283,14 @@ const ChartTooltipContent = React.forwardRef<
 );
 ChartTooltipContent.displayName = 'ChartTooltip';
 
+/**
+ * Legend component for charts.
+ */
 const ChartLegend = RechartsPrimitive.Legend;
 
+/**
+ * Content for the chart legend.
+ */
 const ChartLegendContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<'div'> &

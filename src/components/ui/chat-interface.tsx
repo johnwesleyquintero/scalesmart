@@ -729,12 +729,16 @@ export default function ChatInterface() {
   );
 }
 
-// Floating Chat Button
+/**
+ * A floating button to toggle the visibility of the chat interface.
+ */
 export function FloatingChatButton({
   toggleChatAction,
   isChatOpen,
 }: {
+  /** Function to call when the button is clicked to toggle chat visibility. */
   toggleChatAction: () => void;
+  /** Boolean indicating whether the chat is currently open. */
   isChatOpen: boolean;
 }) {
   return (

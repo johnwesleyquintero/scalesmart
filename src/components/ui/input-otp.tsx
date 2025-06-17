@@ -6,6 +6,11 @@ import { Dot } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * A component for entering one-time passwords (OTP).
+ * Built using input-otp.
+ * @see https://github.com/guilhermerodz/input-otp
+ */
 const InputOTP = React.forwardRef<
   React.ElementRef<typeof OTPInput>,
   React.ComponentPropsWithoutRef<typeof OTPInput>
@@ -22,6 +27,9 @@ const InputOTP = React.forwardRef<
 ));
 InputOTP.displayName = 'InputOTP';
 
+/**
+ * A container for grouping OTP input slots.
+ */
 const InputOTPGroup = React.forwardRef<
   React.ElementRef<'div'>,
   React.ComponentPropsWithoutRef<'div'>
@@ -30,6 +38,9 @@ const InputOTPGroup = React.forwardRef<
 ));
 InputOTPGroup.displayName = 'InputOTPGroup';
 
+/**
+ * An individual slot for entering a single character of the OTP.
+ */
 const InputOTPSlot = React.forwardRef<
   React.ElementRef<'div'>,
   React.ComponentPropsWithoutRef<'div'> & { index: number }
@@ -58,6 +69,9 @@ const InputOTPSlot = React.forwardRef<
 });
 InputOTPSlot.displayName = 'InputOTPSlot';
 
+/**
+ * A separator between OTP input groups.
+ */
 const InputOTPSeparator = React.forwardRef<
   React.ElementRef<'div'>,
   React.ComponentPropsWithoutRef<'div'>

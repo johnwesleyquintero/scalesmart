@@ -6,6 +6,11 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+/**
+ * A control that allows the user to toggle between checked and unchecked states.
+ * Built using Radix UI Checkbox.
+ * @see https://www.radix-ui.com/primitives/docs/components/checkbox
+ */
 const Checkbox = React.forwardRef<
   React.ComponentRef<typeof CheckboxPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof CheckboxPrimitive.Root>
