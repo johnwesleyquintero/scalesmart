@@ -5,8 +5,14 @@ interface DataSourceConfig {
   connectionString: string;
 }
 
+interface SampleData {
+  id: number;
+  name: string;
+  value: number;
+}
+
 export const useDataSource = (config: DataSourceConfig) => {
-  const [data, setData] = useState<any[] | null>(null);
+  const [data, setData] = useState<SampleData[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +27,7 @@ export const useDataSource = (config: DataSourceConfig) => {
       setError(null);
       try {
         // Simulate data fetching based on source type
-        const result = await new Promise<any[]>((resolve, reject) => {
+        const result = await new Promise<SampleData[]>((resolve, reject) => {
           setTimeout(() => {
             if (config.connectionString.includes('error')) {
               reject('Simulated connection error');
@@ -34,8 +40,14 @@ export const useDataSource = (config: DataSourceConfig) => {
           }, 500);
         });
         setData(result);
-      } catch (err: any) {
-        setError(err.toString());
+      } catch (err: unknown) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : typeof err === 'string'
+              ? err
+              : 'An unknown error occurred',
+        );
       } finally {
         setLoading(false);
       }

@@ -16,6 +16,7 @@ export const DashboardViewer: React.FC<DashboardViewerProps> = ({
       </h2>
       <p>This is a placeholder for the dashboard content.</p>
       {/* Render actual dashboard widgets here based on fetched data */}
+      {/* TODO: Implement performance optimization strategies for rendering large datasets (e.g., virtualization, data aggregation) */}
     </div>
   );
 };

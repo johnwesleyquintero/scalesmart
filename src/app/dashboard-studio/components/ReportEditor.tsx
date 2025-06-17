@@ -9,6 +9,21 @@ export const ReportEditor = () => {
     alert('Report Saved (check console)');
   };
 
+  // TODO: The task mentions improving the drag-and-drop interface in ReportEditor.tsx or related components.
+  // The core drag-and-drop layout is handled in DashboardBuilder.tsx using react-grid-layout.
+  // Further drag-and-drop enhancements (smart suggestions, live preview, layering, grouping)
+  // would likely involve interactions between ReportEditor (for data/configuration) and
+  // DashboardBuilder (for layout and rendering).
+  // - Smart Suggestions: Requires analyzing selected data (from a data source, not yet integrated)
+  //   and suggesting relevant chart types. This logic would likely live outside of these components
+  //   or involve a shared service.
+  // - Live Preview: Requires updating the widget's visualization in real-time as configuration
+  //   options are changed. This would involve passing configuration updates from a configuration panel
+  //   (not yet implemented) to the individual widget components.
+  // - Layering and Grouping: Requires managing the z-index of widgets and potentially grouping
+  //   multiple widgets together for combined operations. This would involve enhancements to the
+  //   widget state and rendering logic, possibly within DashboardBuilder.tsx.
+
   return (
     <div className="border p-4 rounded-lg">
       <h2 className="text-2xl font-semibold mb-4">Report Editor</h2>
