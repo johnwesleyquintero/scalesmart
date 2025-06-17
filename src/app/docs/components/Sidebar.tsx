@@ -100,7 +100,7 @@ function DocLink({
         href={`/docs/${doc.slug}`}
         className={`relative block py-1.5 transition-colors duration-200 ${
           isActive
-            ? 'text-primary font-semibold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-full before:w-[3px] before:bg-primary'
+            ? 'text-primary font-semibold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-full before:w-[4px] before:bg-primary'
             : 'text-muted-foreground hover:text-foreground'
         }`}
       >

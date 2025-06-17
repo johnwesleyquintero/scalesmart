@@ -21,6 +21,7 @@ import {
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  getFilteredRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 import { ArrowDownUp, Columns } from 'lucide-react';
@@ -33,6 +34,8 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   /** The data to display in the table. */
   data: TData[];
+  /** Indicates if the data is currently loading. */
+  loading?: boolean;
 }
 
 /**
@@ -43,6 +46,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   columns,
   data,
+  loading = false,
 }: Readonly<DataTableProps<TData, TValue>>) {
   const table = useReactTable({
     data,
@@ -50,20 +54,17 @@ export function DataTable<TData, TValue>({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
   });
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <Input
-          placeholder="Filter products..."
-          value={
-            (table.getColumn('productName')?.getFilterValue() as string) ?? ''
-          }
+          placeholder="Filter all columns..."
+          value={(table.getState().globalFilter as string) ?? ''}
           onChange={(event) =>
-            table
-              .getColumn('productName')
-              ?.setFilterValue((event.target as HTMLInputElement).value)
+            table.setGlobalFilter((event.target as HTMLInputElement).value)
           }
           className="max-w-sm"
         />
@@ -113,20 +114,24 @@ export function DataTable<TData, TValue>({
                       {header.column.getCanSort() ? (
                         <button
                           className="ml-2"
-                          onClick={() => {
-                            table.setSorting(
-                              header.column.getSortIndex() === 0
-                                ? [
-                                    {
-                                      id: header.column.id,
-                                      desc: false,
-                                    },
-                                  ]
-                                : [],
-                            );
-                          }}
+                          onClick={() => header.column.toggleSorting()}
+                          aria-label={`Sort ${header.column.id} ${
+                            header.column.getIsSorted() === 'asc'
+                              ? 'descending'
+                              : header.column.getIsSorted() === 'desc'
+                                ? 'ascending'
+                                : 'ascending'
+                          }`}
                         >
-                          <ArrowDownUp className="h-4 w-4" />
+                          <ArrowDownUp
+                            className={`h-4 w-4 transition-transform ${
+                              header.column.getIsSorted() === 'asc'
+                                ? 'rotate-180'
+                                : header.column.getIsSorted() === 'desc'
+                                  ? 'rotate-0'
+                                  : 'opacity-50'
+                            }`}
+                          />
                         </button>
                       ) : undefined}
                     </TableHead>
@@ -136,15 +141,38 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  Loading...
+                </TableCell>
               </TableRow>
-            ))}
+            ) : table.getRowModel().rows.length > 0 ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
@@ -154,6 +182,7 @@ export function DataTable<TData, TValue>({
             table.previousPage();
           }}
           disabled={!table.getCanPreviousPage()}
+          aria-label="Previous page"
         >
           Previous
         </button>
@@ -162,6 +191,7 @@ export function DataTable<TData, TValue>({
             table.nextPage();
           }}
           disabled={!table.getCanNextPage()}
+          aria-label="Next page"
         >
           Next
         </button>

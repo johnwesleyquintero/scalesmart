@@ -171,10 +171,15 @@ export async function setItem<T>(
     // For other stores, 'key' might be used as the primary key.
     if (storeName === 'chatMessages') {
       await table.put(value);
-    } else {
-      // Ensure the value object contains the key, especially for stores with in-line keys
-      const valueWithKey = { ...value, id: key };
+    } else if (storeName === 'cache') {
+      // Add condition for 'cache'
+      // For the 'cache' store, the primary key is 'key'
+      const valueWithKey = { ...value, key: key };
       await table.put(valueWithKey);
+    } else {
+      // For other stores, assume the primary key is 'id'
+      const valueWithId = { ...value, id: key };
+      await table.put(valueWithId);
     }
   } catch (error) {
     logError(

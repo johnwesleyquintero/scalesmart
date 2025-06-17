@@ -60,9 +60,9 @@ export interface FormFieldProps<TFieldValues extends FieldValues> {
 }
 
 // Props interface for the SubmitButton component
-export interface SubmitButtonProps {
+import { ButtonProps } from '@/components/ui/button';
+
+export interface SubmitButtonProps extends Omit<ButtonProps, 'asChild'> {
   label: string;
-  variant?: 'default' | 'outline';
   pending: boolean;
-  disabled: boolean; // Added disabled prop
 }

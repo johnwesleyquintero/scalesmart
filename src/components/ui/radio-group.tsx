@@ -6,29 +6,47 @@ import * as React from 'react';
 
 import { cn } from '@/lib/utils';
 
+interface RadioGroupProps
+  extends React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root> {
+  /** Indicates if the radio group is in an invalid state. */
+  isInvalid?: boolean;
+  /** The error message to display when the radio group is invalid. */
+  errorMessage?: string;
+}
+
 const RadioGroup = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Root>
->(({ className, ...props }, ref) => {
+  RadioGroupProps // Use the extended props interface
+>(({ className, isInvalid, errorMessage, ...props }, ref) => {
   return (
-    <RadioGroupPrimitive.Root
-      className={cn('grid gap-2', className)}
-      {...props}
-      ref={ref}
-    />
+    <>
+      <RadioGroupPrimitive.Root
+        className={cn('grid gap-2', className)}
+        {...props}
+        ref={ref}
+      />
+      {isInvalid && errorMessage && (
+        <p className="text-sm font-medium text-destructive mt-1">
+          {errorMessage}
+        </p>
+      )}
+    </>
   );
 });
 RadioGroup.displayName = RadioGroupPrimitive.Root.displayName;
 
 const RadioGroupItem = React.forwardRef<
   React.ElementRef<typeof RadioGroupPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item>
->(({ className, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<typeof RadioGroupPrimitive.Item> & {
+    isInvalid?: boolean;
+  } // Add isInvalid prop for styling
+>(({ className, isInvalid, ...props }, ref) => {
   return (
     <RadioGroupPrimitive.Item
       ref={ref}
       className={cn(
         'aspect-square h-4 w-4 rounded-full border border-primary text-primary ring-offset-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+        isInvalid && 'border-destructive focus-visible:ring-destructive', // Apply error styling
         className,
       )}
       {...props}

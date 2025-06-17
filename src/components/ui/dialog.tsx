@@ -92,6 +92,7 @@ DialogHeader.displayName = 'DialogHeader';
 
 /**
  * The footer section of the Dialog, typically containing action buttons.
+ * Use this for primary and secondary actions. Primary actions should generally be placed on the right.
  */
 const DialogFooter = ({
   className,

@@ -49,11 +49,7 @@ export default function CustomError({ error, reset }: CustomErrorProps) {
         {/* Action buttons */}
         <div className="flex flex-col gap-4 sm:flex-row">
           {/* Button to trigger the reset function (e.g., retry rendering) */}
-          <Button
-            onClick={reset}
-            variant="default"
-            className="flex items-center gap-2"
-          >
+          <Button onClick={() => reset()} variant="primary">
             <RefreshCw className="h-4 w-4" />
             Try Again
           </Button>

@@ -5,14 +5,14 @@ import { SubmitButtonProps } from './login-types'; // Import type from new types
 // Generic Submit Button Component
 export function SubmitButton({
   label,
-  variant = 'default',
+  variant = 'primary',
   pending,
 }: SubmitButtonProps) {
   return (
     <Button
       type="submit" // This button triggers the form's onSubmit handler
       disabled={pending} // Disable button while the action is pending
-      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+      className="w-full"
       variant={variant}
     >
       {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

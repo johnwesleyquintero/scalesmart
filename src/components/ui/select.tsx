@@ -13,7 +13,31 @@ interface SelectItemProps
   label: string; // Explicitly require label for accessibility and display
 }
 
-const Select = SelectPrimitive.Root;
+interface SelectProps
+  extends React.ComponentPropsWithoutRef<typeof SelectPrimitive.Root> {
+  /** Indicates if the select is in an invalid state. */
+  isInvalid?: boolean;
+  /** The error message to display when the select is invalid. */
+  errorMessage?: string;
+}
+
+const Select = ({
+  isInvalid,
+  errorMessage,
+  children,
+  ...props
+}: SelectProps) => {
+  return (
+    <SelectPrimitive.Root {...props}>
+      {children}
+      {isInvalid && errorMessage && (
+        <p className="text-sm font-medium text-destructive mt-1">
+          {errorMessage}
+        </p>
+      )}
+    </SelectPrimitive.Root>
+  );
+};
 
 const SelectGroup = SelectPrimitive.Group;
 
@@ -26,7 +50,10 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+      'flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+      // Apply error styling to the trigger based on aria-invalid
+      props['aria-invalid'] &&
+        'border-destructive focus-visible:border-destructive',
       className,
     )}
     {...props}
