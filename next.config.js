@@ -145,9 +145,10 @@ const nextConfig = {
     // Rule to handle import.meta in mermaid-isomorphic
     config.module.rules.push({
       test: /mermaid-isomorphic\/dist\/mermaid-isomorphic\.js$/,
-      parser: {
-        javascript: {
-          importMeta: false,
+      use: {
+        loader: 'babel-loader',
+        options: {
+          presets: [['@babel/preset-env', { modules: 'auto' }]],
         },
       },
     });
