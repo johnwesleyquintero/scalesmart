@@ -11,8 +11,6 @@
   - Enhancing performance and accessibility practices.
 */
 
-@import '../styles/modal.css';
-
 /* --- CSS Variables: Light Theme Defaults --- */
 :root {
   /* Base Colors */
@@ -116,9 +114,15 @@
   --input: 217.2 32.6% 17.5%; /* Darker gray input border */
 }
 
+/*
+  Note: Using @import can sometimes cause performance issues in older setups.
+  Modern build tools typically handle these efficiently during compilation.
+*/
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@import '../styles/modal.css';
 
 /* --- Base Styles using @layer base ---
   Styles within @layer base are typically applied before component and utility

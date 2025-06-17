@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
-import dynamic from 'next/dynamic';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useMarkdownNotepadContext } from '@/context/MarkdownNotepadContext';
 import { useToast } from '@/hooks/use-toast';
 import useDebounceCallback from '@/hooks/use-debounce-callback';
@@ -33,14 +34,6 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onSaveSuccess,
   isLoading, // Destructure isLoading prop
 }) => {
-  const DynamicMarkdownRenderer = dynamic(
-    () => import('./DynamicMarkdownRenderer'),
-    {
-      ssr: false,
-      loading: () => <p>Loading preview...</p>, // Optional loading component
-    },
-  );
-
   const [markdown, setMarkdown] = useState(initialMarkdown);
   const [title, setTitle] = useState(initialTitle); // State for title
   const [viewMode, setViewMode] = useState<'edit' | 'preview'>('preview');
@@ -175,7 +168,9 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           />
         ) : (
           <div className="border rounded-md p-4 overflow-y-auto min-h-[300px] prose dark:prose-invert">
-            <DynamicMarkdownRenderer markdown={markdown} />
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              {markdown}
+            </ReactMarkdown>
           </div>
         )}
       </div>

@@ -1,10 +1,33 @@
 'use client';
 import React, { useState } from 'react';
+import { WidgetLibrary } from './WidgetLibrary';
+import {
+  WidgetConfig,
+  WidgetType,
+  WIDGET_TYPES,
+  ChartWidgetConfig,
+  TableWidgetConfig,
+  KpiWidgetConfig,
+  TextWidgetConfig,
+  ImageWidgetConfig,
+  FilterWidgetConfig, // Import FilterWidgetConfig
+} from '../widget-types'; // Added TextWidgetConfig and ImageWidgetConfig
+import { ChartWidget } from './ChartWidget';
+import { TableWidget } from './TableWidget';
+import { KpiWidget } from './KpiWidget';
+import TextWidget from './TextWidget'; // Import TextWidget
+import ImageWidget from './ImageWidget'; // Import ImageWidget
+import { FilterWidget } from './FilterWidget';
+import { v4 as uuidv4 } from 'uuid'; // Using uuid for unique IDs
+import { Responsive, WidthProvider, Layout } from 'react-grid-layout'; // Import react-grid-layout components
+import '/node_modules/react-grid-layout/css/styles.css'; // Import default styles
+import '/node_modules/react-resizable/css/styles.css'; // Import default styles
 
-export const DashboardBuilder = () => {
-  const [widgets, setWidgets] = useState<string[]>([]);
+interface DashboardBuilderProps {
+  initialWidgets?: WidgetConfig[];
+  initialLayout?: Layout[] | null; // Define a more specific type if available
+}
 
-<<<<<<< HEAD
 export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
   initialWidgets,
   initialLayout,
@@ -37,7 +60,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.CHART:
         newWidget = {
           id: uuidv4(),
-          type: WIDGET_TYPES.CHART,
+          type,
           title: 'New Chart Widget',
           x: 0,
           y: 0,
@@ -53,7 +76,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.TABLE:
         newWidget = {
           id: uuidv4(),
-          type: WIDGET_TYPES.TABLE,
+          type,
           title: 'New Table Widget',
           x: 0,
           y: 0,
@@ -68,7 +91,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.KPI:
         newWidget = {
           id: uuidv4(),
-          type: WIDGET_TYPES.KPI,
+          type,
           title: 'New KPI Widget',
           x: 0,
           y: 0,
@@ -80,7 +103,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.TEXT: // Add default config for TextWidget
         newWidget = {
           id: uuidv4(),
-          type: WIDGET_TYPES.TEXT,
+          type,
           title: 'New Text Widget',
           x: 0,
           y: 0,
@@ -92,7 +115,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.IMAGE: // Add default config for ImageWidget
         newWidget = {
           id: uuidv4(),
-          type: WIDGET_TYPES.IMAGE,
+          type,
           title: 'New Image Widget',
           x: 0,
           y: 0,
@@ -104,7 +127,7 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       case WIDGET_TYPES.FILTER:
         newWidget = {
           id: uuidv4(),
-          type: WIDGET_TYPES.FILTER,
+          type,
           title: 'New Filter Widget',
           x: 0,
           y: 0,
@@ -175,94 +198,57 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
     // Update widget positions and sizes based on the new layout
     const updatedWidgets = widgets.map((widget) => {
       const layoutItem = layout.find((item: Layout) => item.i === widget.id);
-      if (!layoutItem) return widget; // Should not happen
-      return {
-        ...widget,
-        x: layoutItem.x,
-        y: layoutItem.y,
-        w: layoutItem.w,
-        h: layoutItem.h,
-      };
+      if (layoutItem) {
+        return {
+          ...widget,
+          x: layoutItem.x,
+          y: layoutItem.y,
+          w: layoutItem.w,
+          h: layoutItem.h,
+        };
+      }
+      return widget;
     });
     setWidgets(updatedWidgets);
-  };
-
-  const removeWidget = (id: string) => {
-    setWidgets(widgets.filter((widget) => widget.id !== id));
   };
 
   const ResponsiveGridLayout = WidthProvider(Responsive);
 
   return (
-    <div className="dashboard-builder p-4">
-      <h2 className="text-2xl font-bold mb-4">Dashboard Builder</h2>
-      <WidgetLibrary onSelectWidget={addWidget} />
-      <div className="mt-4 border p-4 rounded-lg bg-gray-50 min-h-[500px]">
-        <ResponsiveGridLayout
-          className="layout"
-          layouts={{ lg: initialGridLayout }}
-          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-          rowHeight={30}
-          onLayoutChange={onLayoutChange}
-          draggableHandle=".drag-handle"
-        >
-          {widgets.map((widget) => (
-            <div
-              key={widget.id}
-              data-grid={{ x: widget.x, y: widget.y, w: widget.w, h: widget.h }}
-            >
-              <div className="widget-container border rounded-lg shadow-md bg-white h-full flex flex-col">
-                <div className="drag-handle bg-gray-200 p-2 cursor-grab flex justify-between items-center rounded-t-lg">
-                  <span className="font-semibold">
-                    {widget.title || 'Widget'}
-                  </span>
-                  <button
-                    onClick={() => removeWidget(widget.id)}
-                    className="text-red-500 hover:text-red-700 focus:outline-none"
-                    aria-label="Remove widget"
-                  >
-                    &times;
-                  </button>
-                </div>
-                <div className="flex-grow p-2 overflow-auto">
-                  {renderWidget(widget)}
-                </div>
-              </div>
-            </div>
-          ))}
-        </ResponsiveGridLayout>
-      </div>
-=======
-  const addWidget = (type: string) => {
-    setWidgets([...widgets, type]);
-  };
-
-  return (
     <div className="border p-4 rounded-lg">
       <h2 className="text-2xl font-semibold mb-4">Build Your Dashboard</h2>
       <div className="mb-4">
-        <button
-          onClick={() => addWidget('Chart')}
-          className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-        >
-          Add Chart Widget
-        </button>
-        <button
-          onClick={() => addWidget('Table')}
-          className="bg-green-500 text-white px-4 py-2 rounded"
-        >
-          Add Table Widget
-        </button>
+        <WidgetLibrary onSelectWidget={addWidget} />
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {widgets.map((widget, index) => (
-          <div key={index} className="border p-4 rounded shadow">
-            {widget} Widget Placeholder
+      {/*
+        {/*
+        TODO: Implement Enhanced Drag-and-Drop Interface:
+        - Improve responsiveness and intuitiveness (react-grid-layout provides basic drag-and-drop,
+          further enhancements might involve custom drag previews, snapping, etc.)
+        - Smart Suggestions for chart types based on selected data (Requires data source integration and analysis)
+        - Live Preview as users configure charts and tables (Requires data binding and rendering updates during configuration)
+        - Layering and Grouping of data series and visualizations (Requires significant logic for managing widget relationships and rendering order)
+      */}
+      <ResponsiveGridLayout
+        className="layout"
+        // Add drag and drop specific props here if needed for further customization
+        // onDragStart, onDrag, onDragStop, onResizeStart, onResize, onResizeStop
+        layouts={{ lg: initialGridLayout }} // Use initialGridLayout for the initial layout
+        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 2 }}
+        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+        rowHeight={30} // Example row height, adjust as needed
+        onLayoutChange={onLayoutChange}
+        // Provide a default layout if none is provided
+        // This might be redundant with initialGridLayout but good for clarity
+        // layout={initialGridLayout} // react-grid-layout manages internal state, no need for this prop after initial render
+      >
+        {widgets.map((widget) => (
+          // react-grid-layout uses the 'key' prop for the item's ID
+          <div key={widget.id} className="border p-4 rounded shadow">
+            {renderWidget(widget)}
           </div>
         ))}
-      </div>
->>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
+      </ResponsiveGridLayout>
     </div>
   );
 };

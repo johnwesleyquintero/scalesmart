@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
+import { WidgetConfig } from '../app/dashboard-studio/widget-types';
+import { Layout } from 'react-grid-layout';
 
 interface DashboardData {
-  // Define your dashboard data structure here
-  widgets: any[];
-  layout: any;
+  widgets: WidgetConfig[];
+  layout: Layout[] | null;
 }
 
 export const useDashboardData = (dashboardId: string) => {
@@ -22,23 +23,38 @@ export const useDashboardData = (dashboardId: string) => {
               widgets: [
                 {
                   id: 'chart1',
-                  type: 'chart',
+                  type: 'CHART',
                   title: 'Sales by Month',
-                  data: [10, 20, 15, 25, 22, 30],
-                  labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                  data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                      { label: 'Sales', data: [10, 20, 15, 25, 22, 30] },
+                    ],
+                  },
+                  chartType: 'bar', // Added missing property
+                  x: 0, // Added missing property
+                  y: 0, // Added missing property
+                  w: 6, // Added missing property
+                  h: 4, // Added missing property
                 },
                 {
                   id: 'table1',
-                  type: 'table',
+                  type: 'TABLE',
                   title: 'Top Products',
-                  headers: ['Product', 'Sales', 'Units'],
-                  rows: [
-                    ['A', '1000', '100'],
-                    ['B', '800', '80'],
-                  ],
+                  data: {
+                    headers: ['Product', 'Sales', 'Units'],
+                    rows: [
+                      ['A', '1000', '100'],
+                      ['B', '800', '80'],
+                    ],
+                  },
+                  x: 0, // Added missing property
+                  y: 4, // Added missing property (adjusting y to avoid overlap)
+                  w: 6, // Added missing property
+                  h: 4, // Added missing property
                 },
               ],
-              layout: {},
+              layout: [],
             });
           }, 1000),
         );

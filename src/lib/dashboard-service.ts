@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   DataQuery,
   QueryResult,
@@ -6,86 +5,32 @@ import {
 import { DataConnectorService } from './data-connector-service';
 import { Layout } from 'react-grid-layout';
 import { WidgetConfig } from '../app/dashboard-studio/widget-types';
-import { evaluateFormula } from './formula-evaluator'; // Import the formula evaluator
 
 export interface Dashboard {
-=======
-interface Dashboard {
->>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
   id: string;
   name: string;
-  widgets: any[]; // Define a more specific type for widgets
-  layout: any; // Define a more specific type for layout
+  widgets: WidgetConfig[]; // Define a more specific type for widgets
+  layout: Layout; // Define a more specific type for layout
+  refreshInterval?: number; // Refresh interval in seconds (optional)
 }
 
-<<<<<<< HEAD
+// TODO: Integrate custom calculation and formula evaluation logic.
+// This might involve modifying data fetching or processing functions
+// to apply user-defined formulas using the logic in src/lib/formula-evaluator.ts.
+
 const EXAMPLE_DASHBOARD_ID = 'example-dashboard-id';
 
-=======
->>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
 export const DashboardService = {
-  // This might involve modifying data fetching or processing functions
-  // to apply user-defined formulas using the logic in src/lib/formula-evaluator.ts.
-
-  // Function to apply formulas to a dataset
-  applyFormulasToData(
-    data: QueryResult,
-    formulas: { [key: string]: string },
-  ): QueryResult {
-    if (!formulas || Object.keys(formulas).length === 0) {
-      return data; // No formulas to apply
-    }
-
-    const processedData: QueryResult = { ...data, rows: [] };
-
-    data.rows.forEach((row) => {
-      const newRow: Record<string, string | number | null> = { ...row };
-      for (const formulaKey in formulas) {
-        const formulaExpression = formulas[formulaKey];
-        try {
-          // Create a context for formula evaluation using existing row values
-          const context: Record<string, string | number> = {};
-          for (const key in row) {
-            if (typeof row[key] === 'string' || typeof row[key] === 'number') {
-              context[key] = row[key];
-            }
-          }
-          newRow[formulaKey] = evaluateFormula(formulaExpression, context) as
-            | string
-            | number
-            | null;
-        } catch (error) {
-          console.error(
-            `Error evaluating formula '${formulaExpression}' for key '${formulaKey}':`,
-            error,
-          );
-          newRow[formulaKey] = null; // Or some other error indicator
-        }
-      }
-      processedData.rows.push(newRow);
-    });
-
-    // Add new formula keys to headers if they don't exist
-    const newHeaders = [...data.headers];
-    for (const formulaKey in formulas) {
-      if (!newHeaders.includes(formulaKey)) {
-        newHeaders.push(formulaKey);
-      }
-    }
-    processedData.headers = newHeaders;
-
-    return processedData;
-  },
   async getDashboard(id: string): Promise<Dashboard | null> {
     // Simulate API call to fetch a dashboard
     return new Promise((resolve) => {
       setTimeout(() => {
-        if (id === 'example-dashboard-id') {
+        if (id === EXAMPLE_DASHBOARD_ID) {
           resolve({
-            id: 'example-dashboard-id',
+            id: EXAMPLE_DASHBOARD_ID,
             name: 'My Example Dashboard',
             widgets: [],
-            layout: {},
+            layout: { i: EXAMPLE_DASHBOARD_ID, x: 0, y: 0, w: 12, h: 8 }, // Example layout
           });
         } else {
           resolve(null);
@@ -107,19 +52,19 @@ export const DashboardService = {
   async createDashboard(name: string): Promise<Dashboard> {
     // Simulate API call to create a new dashboard
     return new Promise((resolve) => {
+      const newDashboardId = `dashboard-${Date.now()}`;
+      const newDashboard: Dashboard = {
+        id: newDashboardId,
+        name,
+        widgets: [],
+        layout: { i: newDashboardId, x: 0, y: 0, w: 12, h: 8 }, // Example layout
+      };
       setTimeout(() => {
-        const newDashboard: Dashboard = {
-          id: `dashboard-${Date.now()}`,
-          name,
-          widgets: [],
-          layout: {},
-        };
         console.log('Creating new dashboard:', newDashboard);
         resolve(newDashboard);
       }, 500);
     });
   },
-<<<<<<< HEAD
 
   async saveDashboardAsTemplate(
     dashboard: Dashboard,
@@ -274,9 +219,8 @@ export const DashboardService = {
             key as keyof (typeof simulatedHistoricalData)[0]
           ],
         }));
-        const headers = Object.keys(simulatedHistoricalData[0]); // Extract headers
-        const rows = simulatedHistoricalData.map((item) => item); // Keep rows as objects
-        resolve({ columns, headers, rows }); // Include headers in the result
+        const rows = simulatedHistoricalData.map((item) => Object.values(item));
+        resolve({ columns, rows });
       }, 1000);
     });
   },
@@ -291,21 +235,8 @@ const fetchDashboardData = async (dashboardId: string): Promise<void> => {
   console.log(`Fetching data for dashboard: ${dashboardId}`);
   // Simulate data fetching delay
   await new Promise((resolve) => setTimeout(resolve, 1000));
-
-  // TODO: Integrate formula evaluation here.
-  // This would involve:
-  // 1. Getting the dashboard configuration (including widgets and their data queries/formulas).
-  // 2. Iterating through each widget.
-  // 3. For widgets with custom formulas or calculated dimensions:
-  //    a. Fetch the necessary base data using DataConnectorService based on the widget's data query.
-  //    b. Apply the formula evaluation using the evaluateFormula function from formula-evaluator.ts
-  //       to calculate custom metrics or dimensions based on the fetched data.
-  //    c. Update the widget's data with the calculated results.
-  // 4. For widgets without custom formulas, fetch data directly using DataConnectorService.
-  // 5. Update the relevant parts of the application state with the processed data for all widgets.
-
-  console.log(`Data fetched and processed for dashboard: ${dashboardId}`);
-  // In a real application, you would update the relevant parts of the application state with the processed data
+  console.log(`Data fetched for dashboard: ${dashboardId}`);
+  // In a real application, you would process the fetched data and update the relevant parts of the application state
 };
 
 export const DataRefreshService = {
@@ -366,6 +297,4 @@ export const DataRefreshService = {
     console.log('Stopping real-time data stream.');
     unsubscribe();
   },
-=======
->>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
 };

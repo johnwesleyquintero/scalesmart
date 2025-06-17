@@ -1,17 +1,30 @@
 import React from 'react';
+import {
+  BarChart,
+  Bar,
+  LineChart,
+  Line,
+  PieChart,
+  Pie,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts';
+import { ChartWidgetConfig } from '../widget-types';
 
 interface ChartWidgetProps {
-  title: string;
-  data: number[];
-  labels: string[];
+  config: ChartWidgetConfig;
 }
 
-<<<<<<< HEAD
 export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
   const { title, data, chartType, conditionalFormattingRules } = config;
 
-  // TODO: The basic logic for applying conditional formatting based on config.conditionalFormattingRules is implemented for Bar and Pie charts by styling individual cells.
-  // Consider enhancing this for more complex scenarios and implementing specific conditional formatting logic for Line charts (e.g., styling points or segments).
+  // TODO: Implement logic to apply conditional formatting based on config.conditionalFormattingRules.
+  // This might involve inspecting the data and applying styles to chart elements.
 
   const renderChart = () => {
     if (
@@ -111,8 +124,11 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
                   {transformedData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      style={entry.style}
-                      fill={dataset.backgroundColor || '#8884d8'} // Keep original fill as a fallback if style doesn't provide one
+                      fill={
+                        entry.style?.fill ||
+                        dataset.backgroundColor ||
+                        '#8884d8'
+                      }
                     />
                   ))}
                 </Bar>
@@ -135,36 +151,8 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
                   type="monotone"
                   dataKey={dataset.label}
                   stroke={dataset.borderColor || '#8884d8'}
-                  dot={(props: {
-                    cx?: number;
-                    cy?: number;
-                    stroke?: string;
-                    key?: string;
-                    payload?: {
-                      name: string;
-                      style?: React.CSSProperties;
-                      [key: string]:
-                        | string
-                        | number
-                        | React.CSSProperties
-                        | undefined;
-                    };
-                  }) => {
-                    const { cx, cy, stroke, key, payload } = props;
-                    const dotStyle = payload?.style || {};
-                    return (
-                      <circle
-                        key={key}
-                        cx={cx}
-                        cy={cy}
-                        r={3} // Default radius
-                        stroke={stroke}
-                        fill={dotStyle.fill || stroke} // Use fill from style if available, otherwise use stroke
-                        style={dotStyle}
-                      />
-                    );
-                  }}
-                />
+                  style={{ ...transformedData[0]?.style }}
+                /> // Line chart conditional formatting is more complex, applying style to the line itself for now
               ))}
             </LineChart>
           </ResponsiveContainer>
@@ -240,10 +228,10 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
                 {pieData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    style={entry.style}
                     fill={
+                      entry.style?.fill ||
                       data.datasets[0]?.backgroundColor?.[index] ||
-                      '#8884d8' /* Keep original fill as a fallback */
+                      '#8884d8'
                     }
                   />
                 ))}
@@ -253,12 +241,7 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
           </ResponsiveContainer>
         );
       } // Close curly braces
-      case 'geospatial-map':
-        return (
-          <div className="text-gray-500">
-            Geospatial map chart type is not yet implemented.
-          </div>
-        );
+      // TODO: Add cases for other chart types like 'geospatial-map' if needed
       default:
         return (
           <div className="text-gray-500">
@@ -268,23 +251,21 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
     }
   };
 
-=======
-export const ChartWidget: React.FC<ChartWidgetProps> = ({
-  title,
-  data,
-  labels,
-}) => {
-  // This is a placeholder. In a real app, you'd use a charting library like Chart.js or Recharts.
->>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
   return (
-    <div className="border p-4 rounded-lg shadow-md">
-      <h3 className="text-xl font-semibold mb-2">{title}</h3>
-      <div className="bg-gray-100 h-32 flex items-center justify-center text-gray-500">
-        [Chart Visualization Placeholder]
+    <div className="border p-4 rounded-lg shadow-md h-full flex flex-col">
+      {title && <h3 className="text-xl font-semibold mb-2">{title}</h3>}
+      <div className="flex-grow flex items-center justify-center">
+        {renderChart()}
       </div>
-      <div className="mt-2 text-sm text-gray-600">
-        Data: {data.join(', ')} | Labels: {labels.join(', ')}
-      </div>
+      {/* Displaying raw data for now */}
+      {/* <div className="mt-2 text-sm text-gray-600">
+        Data: {JSON.stringify(data)}
+      </div> */}
+      {conditionalFormattingRules && conditionalFormattingRules.length > 0 && (
+        <div className="mt-2 text-sm text-gray-600">
+          Conditional Formatting Rules Applied (Placeholder)
+        </div>
+      )}
     </div>
   );
 };

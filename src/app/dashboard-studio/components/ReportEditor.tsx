@@ -3,18 +3,27 @@ import React, { useState } from 'react';
 export const ReportEditor = () => {
   const [reportTitle, setReportTitle] = useState('');
   const [reportContent, setReportContent] = useState('');
-  const [selectedWidgetType, setSelectedWidgetType] = useState('Chart'); // Default selected widget type
 
   const handleSaveReport = () => {
     console.log('Saving Report:', { reportTitle, reportContent });
     alert('Report Saved (check console)');
   };
 
-<<<<<<< HEAD
-  const widgetTypes = ['Chart', 'Table', 'KPI', 'Text', 'Image', 'Filter'];
+  // TODO: The task mentions improving the drag-and-drop interface in ReportEditor.tsx or related components.
+  // The core drag-and-drop layout is handled in DashboardBuilder.tsx using react-grid-layout.
+  // Further drag-and-drop enhancements (smart suggestions, live preview, layering, grouping)
+  // would likely involve interactions between ReportEditor (for data/configuration) and
+  // DashboardBuilder (for layout and rendering).
+  // - Smart Suggestions: Requires analyzing selected data (from a data source, not yet integrated)
+  //   and suggesting relevant chart types. This logic would likely live outside of these components
+  //   or involve a shared service.
+  // - Live Preview: Requires updating the widget's visualization in real-time as configuration
+  //   options are changed. This would involve passing configuration updates from a configuration panel
+  //   (not yet implemented) to the individual widget components.
+  // - Layering and Grouping: Requires managing the z-index of widgets and potentially grouping
+  //   multiple widgets together for combined operations. This would involve enhancements to the
+  //   widget state and rendering logic, possibly within DashboardBuilder.tsx.
 
-=======
->>>>>>> parent of 8577dfa (feat(dashboard): implement widget library and responsive grid layout)
   return (
     <div className="border p-4 rounded-lg">
       <h2 className="text-2xl font-semibold mb-4">Report Editor</h2>
@@ -49,39 +58,6 @@ export const ReportEditor = () => {
           onChange={(e) => setReportContent(e.target.value)}
           placeholder="Write your report content here..."
         ></textarea>
-      </div>
-      <div className="mb-4">
-        <h3 className="text-xl font-semibold mb-2">Draggable Widgets</h3>
-        <div className="mb-2">
-          <label
-            htmlFor="widgetType"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Select Widget Type:
-          </label>
-          <select
-            id="widgetType"
-            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            value={selectedWidgetType}
-            onChange={(e) => setSelectedWidgetType(e.target.value)}
-          >
-            {widgetTypes.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div
-          draggable="true"
-          onDragStart={(e) => {
-            e.dataTransfer.setData('widgetType', selectedWidgetType);
-            console.log(`Drag started for ${selectedWidgetType} widget`);
-          }}
-          className="p-4 border border-dashed border-gray-400 rounded-md cursor-move bg-gray-100 text-center"
-        >
-          Drag me ({selectedWidgetType} Widget)
-        </div>
       </div>
       <button
         onClick={handleSaveReport}
