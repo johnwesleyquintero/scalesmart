@@ -67,7 +67,8 @@ async function fetchWithRetry(
     );
   } catch (error: unknown) {
     if (retries > 0) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       console.warn(`Fetch failed: ${errorMessage}. Retrying in ${delay}ms...`);
       await new Promise((resolve) => setTimeout(resolve, delay));
       return fetchWithRetry(url, options, retries - 1, delay * 2); // Exponential backoff
@@ -109,7 +110,9 @@ async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
     // If the user is not found (handled by fetchWithRetry throwing an error with status 404),
     // or any other error occurs after retries, return an empty array.
     if (errorMessage.includes('status 404')) {
-      console.warn(`GitHub user '${username}' not found. Returning empty projects list.`);
+      console.warn(
+        `GitHub user '${username}' not found. Returning empty projects list.`,
+      );
     }
     return [];
   }

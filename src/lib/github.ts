@@ -59,7 +59,10 @@ export async function getGitHubProjects(): Promise<
         stars: repo.stargazers_count,
       }));
   } catch (error: Error | unknown) {
-    console.error('Failed to fetch GitHub projects:', error instanceof Error ? error.message : error);
+    console.error(
+      'Failed to fetch GitHub projects:',
+      error instanceof Error ? error.message : error,
+    );
     // Re-throw the error to be handled by the caller
     throw error;
   }

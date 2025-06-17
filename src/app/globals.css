@@ -116,8 +116,6 @@
   --input: 217.2 32.6% 17.5%; /* Darker gray input border */
 }
 
-
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
