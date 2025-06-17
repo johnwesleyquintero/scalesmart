@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import remarkMermaid from 'remark-mermaid';
+import rehypeMermaid from 'rehype-mermaid';
 import { useMarkdownNotepadContext } from '@/context/MarkdownNotepadContext';
 import { useToast } from '@/hooks/use-toast';
 import useDebounceCallback from '@/hooks/use-debounce-callback';
@@ -168,7 +170,10 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           />
         ) : (
           <div className="border rounded-md p-4 overflow-y-auto min-h-[300px] prose dark:prose-invert">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkMermaid]}
+              rehypePlugins={[rehypeMermaid]}
+            >
               {markdown}
             </ReactMarkdown>
           </div>

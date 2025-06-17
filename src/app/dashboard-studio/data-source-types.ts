@@ -42,7 +42,8 @@ export interface DataQuery {
 
 export interface QueryResult {
   columns: { name: string; type: string }[];
-  rows: unknown[][];
+  headers: string[]; // Added headers property
+  rows: Record<string, string | number | null>[]; // Changed rows type to be more flexible
 }
 
 // Interface for the base connector structure

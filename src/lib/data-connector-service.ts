@@ -42,8 +42,17 @@ class SnowflakeConnector implements BaseConnector {
       name: key,
       type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
     }));
-    const rows = simulatedData.map((item) => Object.values(item));
-    return Promise.resolve({ columns, rows });
+    const rows = simulatedData.map((item) => {
+      const rowObject: Record<string, string | number | null> = {};
+      columns.forEach((col) => {
+        rowObject[col.name] = item[
+          col.name as keyof (typeof simulatedData)[0]
+        ] as string | number | null;
+      });
+      return rowObject;
+    });
+    const headers = columns.map((col) => col.name); // Assuming headers are column names
+    return Promise.resolve({ headers, rows, columns });
   }
 }
 
@@ -78,8 +87,17 @@ class KafkaConnector implements BaseConnector {
       name: key,
       type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
     }));
-    const rows = simulatedData.map((item) => Object.values(item));
-    return Promise.resolve({ columns, rows });
+    const rows = simulatedData.map((item) => {
+      const rowObject: Record<string, string | number | null> = {};
+      columns.forEach((col) => {
+        rowObject[col.name] = item[
+          col.name as keyof (typeof simulatedData)[0]
+        ] as string | number | null;
+      });
+      return rowObject;
+    });
+    const headers = columns.map((col) => col.name); // Assuming headers are column names
+    return Promise.resolve({ headers, rows, columns });
   }
 
   subscribe(
@@ -101,8 +119,17 @@ class KafkaConnector implements BaseConnector {
         name: key,
         type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
       }));
-      const rows = simulatedData.map((item) => Object.values(item));
-      onData({ columns, rows });
+      const rows = simulatedData.map((item) => {
+        const rowObject: Record<string, string | number | null> = {};
+        columns.forEach((col) => {
+          rowObject[col.name] = item[
+            col.name as keyof (typeof simulatedData)[0]
+          ] as string | number | null;
+        });
+        return rowObject;
+      });
+      const headers = columns.map((col) => col.name); // Assuming headers are column names
+      onData({ headers, rows, columns });
     }, 1000); // Simulate data every 1 second
 
     return () => {
@@ -137,8 +164,17 @@ class KinesisConnector implements BaseConnector {
       name: key,
       type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
     }));
-    const rows = simulatedData.map((item) => Object.values(item));
-    return Promise.resolve({ columns, rows });
+    const rows = simulatedData.map((item) => {
+      const rowObject: Record<string, string | number | null> = {};
+      columns.forEach((col) => {
+        rowObject[col.name] = item[
+          col.name as keyof (typeof simulatedData)[0]
+        ] as string | number | null;
+      });
+      return rowObject;
+    });
+    const headers = columns.map((col) => col.name); // Assuming headers are column names
+    return Promise.resolve({ headers, rows, columns });
   }
 
   subscribe(
@@ -160,8 +196,17 @@ class KinesisConnector implements BaseConnector {
         name: key,
         type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
       }));
-      const rows = simulatedData.map((item) => Object.values(item));
-      onData({ columns, rows });
+      const rows = simulatedData.map((item) => {
+        const rowObject: Record<string, string | number | null> = {};
+        columns.forEach((col) => {
+          rowObject[col.name] = item[
+            col.name as keyof (typeof simulatedData)[0]
+          ] as string | number | null;
+        });
+        return rowObject;
+      });
+      const headers = columns.map((col) => col.name); // Assuming headers are column names
+      onData({ headers, rows, columns });
     }, 1500); // Simulate data every 1.5 seconds
 
     return () => {

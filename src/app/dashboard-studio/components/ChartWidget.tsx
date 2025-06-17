@@ -23,8 +23,8 @@ interface ChartWidgetProps {
 export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
   const { title, data, chartType, conditionalFormattingRules } = config;
 
-  // TODO: Implement logic to apply conditional formatting based on config.conditionalFormattingRules.
-  // This might involve inspecting the data and applying styles to chart elements.
+  // TODO: The basic logic for applying conditional formatting based on config.conditionalFormattingRules is implemented for Bar and Pie charts by styling individual cells.
+  // Consider enhancing this for more complex scenarios and implementing specific conditional formatting logic for Line charts (e.g., styling points or segments).
 
   const renderChart = () => {
     if (
@@ -124,11 +124,8 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
                   {transformedData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
-                      fill={
-                        entry.style?.fill ||
-                        dataset.backgroundColor ||
-                        '#8884d8'
-                      }
+                      style={entry.style}
+                      fill={dataset.backgroundColor || '#8884d8'} // Keep original fill as a fallback if style doesn't provide one
                     />
                   ))}
                 </Bar>
@@ -151,8 +148,36 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
                   type="monotone"
                   dataKey={dataset.label}
                   stroke={dataset.borderColor || '#8884d8'}
-                  style={{ ...transformedData[0]?.style }}
-                /> // Line chart conditional formatting is more complex, applying style to the line itself for now
+                  dot={(props: {
+                    cx?: number;
+                    cy?: number;
+                    stroke?: string;
+                    key?: string;
+                    payload?: {
+                      name: string;
+                      style?: React.CSSProperties;
+                      [key: string]:
+                        | string
+                        | number
+                        | React.CSSProperties
+                        | undefined;
+                    };
+                  }) => {
+                    const { cx, cy, stroke, key, payload } = props;
+                    const dotStyle = payload?.style || {};
+                    return (
+                      <circle
+                        key={key}
+                        cx={cx}
+                        cy={cy}
+                        r={3} // Default radius
+                        stroke={stroke}
+                        fill={dotStyle.fill || stroke} // Use fill from style if available, otherwise use stroke
+                        style={dotStyle}
+                      />
+                    );
+                  }}
+                />
               ))}
             </LineChart>
           </ResponsiveContainer>
@@ -228,10 +253,10 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
                 {pieData.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
+                    style={entry.style}
                     fill={
-                      entry.style?.fill ||
                       data.datasets[0]?.backgroundColor?.[index] ||
-                      '#8884d8'
+                      '#8884d8' /* Keep original fill as a fallback */
                     }
                   />
                 ))}
@@ -241,7 +266,12 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
           </ResponsiveContainer>
         );
       } // Close curly braces
-      // TODO: Add cases for other chart types like 'geospatial-map' if needed
+      case 'geospatial-map':
+        return (
+          <div className="text-gray-500">
+            Geospatial map chart type is not yet implemented.
+          </div>
+        );
       default:
         return (
           <div className="text-gray-500">

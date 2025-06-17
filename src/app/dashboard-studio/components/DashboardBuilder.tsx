@@ -198,57 +198,64 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
     // Update widget positions and sizes based on the new layout
     const updatedWidgets = widgets.map((widget) => {
       const layoutItem = layout.find((item: Layout) => item.i === widget.id);
-      if (layoutItem) {
-        return {
-          ...widget,
-          x: layoutItem.x,
-          y: layoutItem.y,
-          w: layoutItem.w,
-          h: layoutItem.h,
-        };
-      }
-      return widget;
+      if (!layoutItem) return widget; // Should not happen
+      return {
+        ...widget,
+        x: layoutItem.x,
+        y: layoutItem.y,
+        w: layoutItem.w,
+        h: layoutItem.h,
+      };
     });
     setWidgets(updatedWidgets);
+  };
+
+  const removeWidget = (id: string) => {
+    setWidgets(widgets.filter((widget) => widget.id !== id));
   };
 
   const ResponsiveGridLayout = WidthProvider(Responsive);
 
   return (
-    <div className="border p-4 rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4">Build Your Dashboard</h2>
-      <div className="mb-4">
-        <WidgetLibrary onSelectWidget={addWidget} />
+    <div className="dashboard-builder p-4">
+      <h2 className="text-2xl font-bold mb-4">Dashboard Builder</h2>
+      <WidgetLibrary onSelectWidget={addWidget} />
+      <div className="mt-4 border p-4 rounded-lg bg-gray-50 min-h-[500px]">
+        <ResponsiveGridLayout
+          className="layout"
+          layouts={{ lg: initialGridLayout }}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+          cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+          rowHeight={30}
+          onLayoutChange={onLayoutChange}
+          draggableHandle=".drag-handle"
+        >
+          {widgets.map((widget) => (
+            <div
+              key={widget.id}
+              data-grid={{ x: widget.x, y: widget.y, w: widget.w, h: widget.h }}
+            >
+              <div className="widget-container border rounded-lg shadow-md bg-white h-full flex flex-col">
+                <div className="drag-handle bg-gray-200 p-2 cursor-grab flex justify-between items-center rounded-t-lg">
+                  <span className="font-semibold">
+                    {widget.title || 'Widget'}
+                  </span>
+                  <button
+                    onClick={() => removeWidget(widget.id)}
+                    className="text-red-500 hover:text-red-700 focus:outline-none"
+                    aria-label="Remove widget"
+                  >
+                    &times;
+                  </button>
+                </div>
+                <div className="flex-grow p-2 overflow-auto">
+                  {renderWidget(widget)}
+                </div>
+              </div>
+            </div>
+          ))}
+        </ResponsiveGridLayout>
       </div>
-      {/*
-        {/*
-        TODO: Implement Enhanced Drag-and-Drop Interface:
-        - Improve responsiveness and intuitiveness (react-grid-layout provides basic drag-and-drop,
-          further enhancements might involve custom drag previews, snapping, etc.)
-        - Smart Suggestions for chart types based on selected data (Requires data source integration and analysis)
-        - Live Preview as users configure charts and tables (Requires data binding and rendering updates during configuration)
-        - Layering and Grouping of data series and visualizations (Requires significant logic for managing widget relationships and rendering order)
-      */}
-      <ResponsiveGridLayout
-        className="layout"
-        // Add drag and drop specific props here if needed for further customization
-        // onDragStart, onDrag, onDragStop, onResizeStart, onResize, onResizeStop
-        layouts={{ lg: initialGridLayout }} // Use initialGridLayout for the initial layout
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 2 }}
-        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        rowHeight={30} // Example row height, adjust as needed
-        onLayoutChange={onLayoutChange}
-        // Provide a default layout if none is provided
-        // This might be redundant with initialGridLayout but good for clarity
-        // layout={initialGridLayout} // react-grid-layout manages internal state, no need for this prop after initial render
-      >
-        {widgets.map((widget) => (
-          // react-grid-layout uses the 'key' prop for the item's ID
-          <div key={widget.id} className="border p-4 rounded shadow">
-            {renderWidget(widget)}
-          </div>
-        ))}
-      </ResponsiveGridLayout>
     </div>
   );
 };
