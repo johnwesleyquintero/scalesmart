@@ -123,7 +123,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 /* --- Base Styles using @layer base ---
   Styles within @layer base are typically applied before component and utility
   layers, allowing utilities to override them.

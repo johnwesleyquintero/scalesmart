@@ -23,7 +23,7 @@ export const useDashboardData = (dashboardId: string) => {
               widgets: [
                 {
                   id: 'chart1',
-                  type: 'CHART',
+                  type: 'chart',
                   title: 'Sales by Month',
                   data: {
                     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
@@ -39,7 +39,7 @@ export const useDashboardData = (dashboardId: string) => {
                 },
                 {
                   id: 'table1',
-                  type: 'TABLE',
+                  type: 'table',
                   title: 'Top Products',
                   data: {
                     headers: ['Product', 'Sales', 'Units'],

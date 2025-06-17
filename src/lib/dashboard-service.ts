@@ -97,7 +97,7 @@ export const DashboardService = {
               // Example widgets for a sales template
               {
                 id: 'chart-1',
-                type: 'CHART',
+                type: 'chart',
                 title: 'Monthly Sales',
                 x: 0,
                 y: 0,
@@ -111,7 +111,7 @@ export const DashboardService = {
               },
               {
                 id: 'kpi-1',
-                type: 'KPI',
+                type: 'kpi',
                 title: 'Total Revenue',
                 x: 6,
                 y: 0,
@@ -121,7 +121,7 @@ export const DashboardService = {
               },
               {
                 id: 'table-1',
-                type: 'TABLE',
+                type: 'table',
                 title: 'Sales Data',
                 x: 0,
                 y: 4,
@@ -145,7 +145,7 @@ export const DashboardService = {
               // Example widgets for a marketing template
               {
                 id: 'chart-2',
-                type: 'CHART',
+                type: 'chart',
                 title: 'Website Traffic',
                 x: 0,
                 y: 0,
@@ -159,7 +159,7 @@ export const DashboardService = {
               },
               {
                 id: 'kpi-2',
-                type: 'KPI',
+                type: 'kpi',
                 title: 'New Leads',
                 x: 6,
                 y: 0,

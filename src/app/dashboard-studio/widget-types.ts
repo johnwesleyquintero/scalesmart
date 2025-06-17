@@ -7,7 +7,7 @@ export const WIDGET_TYPES = {
   FILTER: 'filter',
 };
 
-export type WidgetType = keyof typeof WIDGET_TYPES;
+export type WidgetType = (typeof WIDGET_TYPES)[keyof typeof WIDGET_TYPES];
 
 // Define a type for conditional formatting rules
 export interface ConditionalFormattingRule {
@@ -38,7 +38,7 @@ export interface BaseWidgetConfig {
 }
 
 export interface ChartWidgetConfig extends BaseWidgetConfig {
-  type: 'CHART';
+  type: 'chart';
   data: {
     labels: string[];
     datasets: {
@@ -60,7 +60,7 @@ export interface ChartWidgetConfig extends BaseWidgetConfig {
 }
 
 export interface TableWidgetConfig extends BaseWidgetConfig {
-  type: 'TABLE';
+  type: 'table';
   data: {
     headers: string[];
     rows: string[][];
@@ -68,7 +68,7 @@ export interface TableWidgetConfig extends BaseWidgetConfig {
 }
 
 export interface KpiWidgetConfig extends BaseWidgetConfig {
-  type: 'KPI';
+  type: 'kpi';
   data: {
     value: string | number;
     label: string;
@@ -77,14 +77,14 @@ export interface KpiWidgetConfig extends BaseWidgetConfig {
 }
 
 export interface TextWidgetConfig extends BaseWidgetConfig {
-  type: 'TEXT';
+  type: 'text';
   data: {
     content: string; // Supports Markdown
   };
 }
 
 export interface ImageWidgetConfig extends BaseWidgetConfig {
-  type: 'IMAGE';
+  type: 'image';
   data: {
     url: string;
     altText?: string;
@@ -92,7 +92,7 @@ export interface ImageWidgetConfig extends BaseWidgetConfig {
 }
 
 export interface FilterWidgetConfig extends BaseWidgetConfig {
-  type: 'FILTER';
+  type: 'filter';
   data: {
     dataSourceId: string; // ID of the data source to filter
     field: string; // Field to filter on
