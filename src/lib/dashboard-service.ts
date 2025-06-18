@@ -2,6 +2,7 @@ import {
   DataQuery,
   QueryResult,
 } from '../app/dashboard-studio/data-source-types';
+import { validateFormula, evaluateFormula } from './formula-evaluator';
 import { DataConnectorService } from './data-connector-service';
 import { Layout } from 'react-grid-layout';
 import { WidgetConfig } from '../app/dashboard-studio/widget-types';
@@ -21,6 +22,19 @@ export interface Dashboard {
 const EXAMPLE_DASHBOARD_ID = 'example-dashboard-id';
 
 export const DashboardService = {
+  /**
+   * Evaluates a given formula against a single data record.
+   * @param formula The formula string to evaluate.
+   * @param record The data record to use as context for evaluation.
+   * @returns The result of the formula evaluation, or an error string.
+   */
+  evaluateFormulaOnRecord(
+    formula: string,
+    record: Record<string, unknown>,
+  ): unknown {
+    return evaluateFormula(formula, record);
+  },
+
   async getDashboard(id: string): Promise<Dashboard | null> {
     // Simulate API call to fetch a dashboard
     return new Promise((resolve) => {
@@ -224,6 +238,74 @@ export const DashboardService = {
       }, 1000);
     });
   },
+};
+
+/**
+ * Processes a QueryResult by applying a formula to each row.
+ * @param data The QueryResult containing the data to process.
+ * @param formula The formula string to apply.
+ * @param newColumnName The name for the new column containing the formula results.
+ * @returns A new QueryResult with the formula results added as a new column.
+ */
+export const processDataWithFormula = (
+  data: QueryResult,
+  formula: string,
+  newColumnName: string = 'CalculatedValue',
+): QueryResult => {
+  if (!data || !data.rows || data.rows.length === 0) {
+    console.warn('No data available to process formula.');
+    return data; // Return original data if no rows
+  }
+
+  // Validate the formula once before processing rows
+  const columns = data.columns.map((col) => col.name);
+  const validationError = validateFormula(formula, columns);
+  if (validationError) {
+    console.error(
+      'Formula validation failed:',
+      formula,
+      'Error:',
+      validationError,
+    );
+    // Return original data with an error indicator or throw an error
+    // For now, we'll return original data and log the error.
+    // A more robust implementation might add an error column or throw.
+    return {
+      ...data,
+      columns: [...data.columns, { name: newColumnName, type: 'string' }],
+      rows: data.rows.map((row) => [...row, `Error: ${validationError}`]),
+    };
+  }
+
+  const processedRows = data.rows.map((row, rowIndex) => {
+    const record: Record<string, unknown> = {};
+    columns.forEach((colName, colIndex) => {
+      record[colName] = row[colIndex];
+    });
+
+    // Evaluate the formula for the current row
+    const evaluationResult = DashboardService.evaluateFormulaOnRecord(
+      formula,
+      record,
+    );
+
+    // Return the original row plus the evaluation result
+    return [...row, evaluationResult];
+  });
+
+  // Add the new column definition
+  const processedColumns = [
+    ...data.columns,
+    {
+      name: newColumnName,
+      type: typeof processedRows[0][processedRows[0].length - 1],
+    }, // Infer type from first result
+  ];
+
+  return {
+    columns: processedColumns,
+    rows: processedRows,
+  };
 };
 
 // In-memory storage for refresh intervals and timers

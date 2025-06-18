@@ -1,3 +1,7 @@
+declare module '*.png' {
+  const value: string;
+  export default value;
+}
 // c:/Users/johnw/portfolio/src/types/custom.d.ts
 declare module '*.csv' {
   const content: string;

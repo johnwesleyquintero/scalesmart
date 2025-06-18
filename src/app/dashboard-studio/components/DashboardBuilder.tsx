@@ -231,8 +231,15 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       */}
       <ResponsiveGridLayout
         className="layout"
-        // Add drag and drop specific props here if needed for further customization
-        // onDragStart, onDrag, onDragStop, onResizeStart, onResize, onResizeStop
+        // Add drag and drop specific props here for further customization
+        onDragStop={(layout, oldItem, newItem, placeholder, e, element) => {
+          console.log('Drag stopped:', { layout, oldItem, newItem });
+          // Additional logic for snapping, custom previews, etc. can be added here
+        }}
+        onResizeStop={(layout, oldItem, newItem, placeholder, e, element) => {
+          console.log('Resize stopped:', { layout, oldItem, newItem });
+          // Additional logic for snapping, custom previews, etc. can be added here
+        }}
         layouts={{ lg: initialGridLayout }} // Use initialGridLayout for the initial layout
         breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 2 }}
         cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
