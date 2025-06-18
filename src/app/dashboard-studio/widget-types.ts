@@ -73,6 +73,8 @@ export interface KpiWidgetConfig extends BaseWidgetConfig {
     value: string | number;
     label: string;
     description?: string;
+    trendValue?: number;
+    trendDirection?: 'up' | 'down' | 'neutral';
   };
 }
 

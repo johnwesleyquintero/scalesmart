@@ -1,3 +1,4 @@
+'use client';
 import { useState, useEffect } from 'react';
 
 interface DataSourceConfig {
@@ -11,7 +12,10 @@ interface SampleData {
   value: number;
 }
 
-export const useDataSource = (config: DataSourceConfig) => {
+export const useDataSource = (
+  config: DataSourceConfig,
+  refreshInterval?: number,
+) => {
   const [data, setData] = useState<SampleData[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +57,22 @@ export const useDataSource = (config: DataSourceConfig) => {
       }
     };
 
+    // Initial fetch
     fetchData();
-  }, [config]);
+
+    // Set up interval for refreshing data if refreshInterval is provided
+    let intervalId: ReturnType<typeof setTimeout> | undefined;
+    if (refreshInterval && refreshInterval > 0) {
+      intervalId = setInterval(fetchData, refreshInterval);
+    }
+
+    // Clean up interval on unmount or when config/refreshInterval changes
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [config, refreshInterval]); // Add refreshInterval to dependencies
 
   return { data, loading, error };
 };

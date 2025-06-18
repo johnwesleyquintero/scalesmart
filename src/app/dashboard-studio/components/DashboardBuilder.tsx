@@ -14,7 +14,7 @@ import {
 } from '../widget-types'; // Added TextWidgetConfig and ImageWidgetConfig
 import { ChartWidget } from './ChartWidget';
 import { TableWidget } from './TableWidget';
-import { KpiWidget } from './KpiWidget';
+import KpiWidget from './KpiWidget';
 import TextWidget from './TextWidget'; // Import TextWidget
 import ImageWidget from './ImageWidget'; // Import ImageWidget
 import { FilterWidget } from './FilterWidget';

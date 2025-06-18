@@ -5,17 +5,42 @@ interface KpiWidgetProps {
   config: KpiWidgetConfig;
 }
 
-export const KpiWidget: React.FC<KpiWidgetProps> = ({ config }) => {
-  const { title, data } = config;
+const KpiWidget: React.FC<KpiWidgetProps> = ({ config }) => {
+  const { data, title } = config;
+  const { value, label, description, trendValue, trendDirection } = data;
+
+  const getTrendIndicator = (direction?: 'up' | 'down' | 'neutral') => {
+    switch (direction) {
+      case 'up':
+        return '▲'; // Up arrow
+      case 'down':
+        return '▼'; // Down arrow
+      case 'neutral':
+        return '—'; // Dash
+      default:
+        return null;
+    }
+  };
+
+  const trendIndicator = getTrendIndicator(trendDirection);
 
   return (
-    <div className="border p-4 rounded-lg shadow-md flex flex-col items-center justify-center">
-      {title && <h3 className="text-xl font-semibold mb-2">{title}</h3>}
-      <div className="text-4xl font-bold text-blue-600">{data.value}</div>
-      <div className="text-sm text-gray-600">{data.label}</div>
-      {data.description && (
-        <div className="text-xs text-gray-500 mt-1">{data.description}</div>
+    <div className="p-4 border rounded shadow">
+      {title && <h3 className="text-lg font-semibold mb-2">{title}</h3>}
+      <div className="text-3xl font-bold">{value}</div>
+      <div className="text-sm text-gray-500">{label}</div>
+      {description && (
+        <div className="text-xs text-gray-400 mt-1">{description}</div>
+      )}
+      {(trendValue !== undefined || trendIndicator) && (
+        <div
+          className={`text-sm mt-2 ${trendDirection === 'up' ? 'text-green-500' : trendDirection === 'down' ? 'text-red-500' : 'text-gray-500'}`}
+        >
+          {trendIndicator} {trendValue !== undefined ? trendValue : ''}
+        </div>
       )}
     </div>
   );
 };
+
+export default KpiWidget;

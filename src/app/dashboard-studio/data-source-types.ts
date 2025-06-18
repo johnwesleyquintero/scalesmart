@@ -38,6 +38,7 @@ export interface DataQuery {
   connectionId: string;
   query: string; // Or a more structured query definition
   transformations?: DataTransformation[];
+  refreshInterval?: number; // Optional refresh interval in milliseconds for streaming sources
 }
 
 export interface QueryResult {

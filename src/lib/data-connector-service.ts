@@ -89,6 +89,10 @@ class KafkaConnector implements BaseConnector {
   ): () => void {
     console.log('Subscribing to Kafka topic:', query);
     // Simulate real-time data streaming
+    const intervalMs =
+      query.refreshInterval && query.refreshInterval > 0
+        ? query.refreshInterval
+        : 1000; // Default to 1000ms
     const interval = setInterval(() => {
       const simulatedData = [
         {
@@ -103,7 +107,7 @@ class KafkaConnector implements BaseConnector {
       }));
       const rows = simulatedData.map((item) => Object.values(item));
       onData({ columns, rows });
-    }, 1000); // Simulate data every 1 second
+    }, intervalMs);
 
     return () => {
       console.log('Unsubscribing from Kafka topic:', query);
@@ -148,6 +152,10 @@ class KinesisConnector implements BaseConnector {
   ): () => void {
     console.log('Subscribing to Kinesis stream:', query);
     // Simulate real-time data streaming
+    const intervalMs =
+      query.refreshInterval && query.refreshInterval > 0
+        ? query.refreshInterval
+        : 1500; // Default to 1500ms
     const interval = setInterval(() => {
       const simulatedData = [
         {
@@ -162,7 +170,7 @@ class KinesisConnector implements BaseConnector {
       }));
       const rows = simulatedData.map((item) => Object.values(item));
       onData({ columns, rows });
-    }, 1500); // Simulate data every 1.5 seconds
+    }, intervalMs);
 
     return () => {
       console.log('Unsubscribing from Kinesis stream:', query);

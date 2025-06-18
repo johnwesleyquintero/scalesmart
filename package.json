@@ -17,7 +17,6 @@
     "x": "bash .cli.sh",
     "deploy": "npx vercel deploy",
     "deploy:prod": "npx vercel --prod",
-
     "lint": "eslint --config eslint.config.mjs .",
     "lint:npx": "npx eslint .",
     "lint:fix": "npm run lint -- --fix",
