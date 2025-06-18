@@ -3,6 +3,7 @@ import { Task, Project } from '@/lib/indexeddb-service';
 import { TaskPriority } from '@/types/indexeddb';
 import { Button } from '@/components/ui/button';
 import { formatDate } from '@/lib/utils/date-utils';
+import { Card, CardContent } from '@/components/ui/card';
 import { useTaskManagementMaps } from '@/hooks/use-task-management-maps';
 import { CalendarIcon, UserRound, Tag, Flag } from 'lucide-react';
 import {
@@ -123,7 +124,7 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
         const errorMessage =
           error instanceof Error ? (error as Error).message : String(error);
         toast.error(
-          `Failed to delete task "${task.title}": ${errorMessage}. Please try again.`,
+          `Failed to delete task "${task.title}". ${errorMessage}. Please try again.`,
         );
         logger.error('Failed to delete task:', error); // Log the error
         setIsDeleteConfirmModalOpen(false); // Ensure modal closes even on error
@@ -132,8 +133,8 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
 
     return (
       <>
-        <div
-          className="bg-card p-3 rounded-md shadow-sm border border-border cursor-pointer hover:bg-accent/50 transition-colors duration-200"
+        <Card
+          className="bg-card rounded-md shadow-sm border border-border cursor-pointer hover:bg-accent/50 transition-colors duration-200"
           onClick={() => {
             // console.log('Task item clicked:', task.id); // Removed for cleaner console output
             onViewTaskDetails(task); // Trigger the details modal
@@ -147,87 +148,89 @@ const TaskItem: React.FC<TaskItemProps> = React.memo(
             }
           }}
         >
-          <h3 className="font-semibold text-base mb-1 text-foreground">
-            {task.title}
-          </h3>
-          {task.description && (
-            <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-              {task.description}
-            </p>
-          )}
-          <div className="flex flex-wrap items-center text-xs text-muted-foreground gap-y-1">
-            {task.assigneeId && (
-              <div className="flex items-center mr-3">
-                <UserRound className="h-3 w-3 mr-1" aria-hidden="true" />
-                <span>{task.assigneeId}</span>
-              </div>
+          <CardContent className="p-3">
+            <h3 className="font-semibold text-base mb-1 text-foreground">
+              {task.title}
+            </h3>
+            {task.description && (
+              <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                {task.description}
+              </p>
             )}
-            {task.dueDate && (
-              <div className="flex items-center mr-3">
-                <CalendarIcon className="h-3 w-3 mr-1" aria-hidden="true" />
-                <span>{formatDate(task.dueDate)}</span>
-              </div>
-            )}
-            {task.projectId && (
-              <div className="flex items-center mr-3">
-                <Tag className="h-3 w-3 mr-1" aria-hidden="true" />
-                <span>Project: {getProjectName(task.projectId)}</span>
-              </div>
-            )}
-            {task.priority && (
-              <div className="flex items-center mr-3">
-                <Flag
-                  className={`h-3 w-3 mr-1 ${priorityClass}`}
-                  aria-hidden="true"
-                />
-                <span>
-                  Priority:{' '}
-                  {task.priority.charAt(0).toUpperCase() +
-                    task.priority.slice(1)}
-                </span>
-              </div>
-            )}
-          </div>
-
-          {task.dependencies && task.dependencies.length > 0 && (
-            <div className="text-xs text-muted-foreground mt-2">
-              <span className="font-medium">Dependencies: </span>
-              {task.dependencies
-                .map((dependencyId: string) => {
-                  const dependency = allTasksMap.get(dependencyId); // Use memoized map for lookup
-                  return dependency ? dependency.title : 'Unknown Task';
-                })
-                .join(', ')}
+            <div className="flex flex-wrap items-center text-xs text-muted-foreground gap-y-1">
+              {task.assigneeId && (
+                <div className="flex items-center mr-3">
+                  <UserRound className="h-3 w-3 mr-1" aria-hidden="true" />
+                  <span>{task.assigneeId}</span>
+                </div>
+              )}
+              {task.dueDate && (
+                <div className="flex items-center mr-3">
+                  <CalendarIcon className="h-3 w-3 mr-1" aria-hidden="true" />
+                  <span>{formatDate(task.dueDate)}</span>
+                </div>
+              )}
+              {task.projectId && (
+                <div className="flex items-center mr-3">
+                  <Tag className="h-3 w-3 mr-1" aria-hidden="true" />
+                  <span>Project: {getProjectName(task.projectId)}</span>
+                </div>
+              )}
+              {task.priority && (
+                <div className="flex items-center mr-3">
+                  <Flag
+                    className={`h-3 w-3 mr-1 ${priorityClass}`}
+                    aria-hidden="true"
+                  />
+                  <span>
+                    Priority:{' '}
+                    {task.priority.charAt(0).toUpperCase() +
+                      task.priority.slice(1)}
+                  </span>
+                </div>
+              )}
             </div>
-          )}
-          {task.subtaskIds && task.subtaskIds.length > 0 && (
-            <div className="text-xs text-muted-foreground mt-1">
-              <span className="font-medium">Subtasks: </span>
-              {task.subtaskIds
-                .map((subtaskId: string) => {
-                  const subtask = allTasksMap.get(subtaskId); // Use memoized map for lookup
-                  return subtask ? subtask.title : 'Unknown Task';
-                })
-                .join(', ')}
-            </div>
-          )}
 
-          <div className="flex space-x-2 mt-3">
-            <Button
-              onClick={(e) => {
-                e.stopPropagation(); // Prevent the parent div's onClick from firing
-                // console.log('Delete button clicked for task:', task.id); // Removed for cleaner console output
-                setIsDeleteConfirmModalOpen(true); // Open the delete confirmation modal
-              }}
-              variant="destructive"
-              size="sm"
-              className="text-xs"
-              aria-label={`Delete task ${task.title}`}
-            >
-              Delete
-            </Button>
-          </div>
-        </div>
+            {task.dependencies && task.dependencies.length > 0 && (
+              <div className="text-xs text-muted-foreground mt-2">
+                <span className="font-medium">Dependencies: </span>
+                {task.dependencies
+                  .map((dependencyId: string) => {
+                    const dependency = allTasksMap.get(dependencyId); // Use memoized map for lookup
+                    return dependency ? dependency.title : 'Unknown Task';
+                  })
+                  .join(', ')}
+              </div>
+            )}
+            {task.subtaskIds && task.subtaskIds.length > 0 && (
+              <div className="text-xs text-muted-foreground mt-1">
+                <span className="font-medium">Subtasks: </span>
+                {task.subtaskIds
+                  .map((subtaskId: string) => {
+                    const subtask = allTasksMap.get(subtaskId); // Use memoized map for lookup
+                    return subtask ? subtask.title : 'Unknown Task';
+                  })
+                  .join(', ')}
+              </div>
+            )}
+
+            <div className="flex space-x-2 mt-3">
+              <Button
+                onClick={(e) => {
+                  e.stopPropagation(); // Prevent the parent div's onClick from firing
+                  // console.log('Delete button clicked for task:', task.id); // Removed for cleaner console output
+                  setIsDeleteConfirmModalOpen(true); // Open the delete confirmation modal
+                }}
+                variant="destructive"
+                size="sm"
+                className="text-xs"
+                aria-label={`Delete task ${task.title}`}
+              >
+                Delete
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Delete Confirmation Modal */}
         <Dialog

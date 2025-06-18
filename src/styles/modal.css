@@ -14,14 +14,11 @@
   --modal-padding: 20px;
   --modal-border-radius: 8px;
   --modal-box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Using rgba for shadow color */
-  --modal-bg: white;
   --modal-max-width: 500px;
   --modal-backdrop-color: rgba(0, 0, 0, 0.5);
   --modal-header-margin-bottom: 15px;
   --modal-title-font-size: 1.5em;
   --modal-close-font-size: 1.5em;
-  --modal-close-color: #333; /* Dark grey */
-  --modal-close-color-hover: #000; /* Black */
   --modal-transition-speed: 0.2s;
   --modal-transition-timing: ease-in-out;
 }
@@ -33,7 +30,7 @@
   padding: var(--modal-padding);
   border-radius: var(--modal-border-radius);
   box-shadow: var(--modal-box-shadow);
-  background-color: var(--modal-bg);
+  background-color: hsl(var(--background));
   max-width: var(--modal-max-width);
   width: 90%; /* Responsive width */
   /* Note: Centering the modal is often handled by the display mechanism (e.g., flex/grid on a container, or browser default for <dialog>) */
@@ -79,7 +76,7 @@
   padding: 0; /* Remove default button padding */
   font-size: var(--modal-close-font-size);
   cursor: pointer;
-  color: var(--modal-close-color);
+  color: hsl(var(--foreground));
   /* Optional: Add transition for smoother hover effect */
   transition: color var(--modal-transition-speed) var(--modal-transition-timing);
   /* Add accessibility focus styles if needed */
@@ -88,7 +85,7 @@
 
 /* Hover state for the close button */
 .modal-close-button:hover {
-  color: var(--modal-close-color-hover);
+  color: hsl(var(--foreground));
 }
 
 /* Body section styles where main content goes */

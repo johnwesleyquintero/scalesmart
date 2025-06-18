@@ -1,15 +1,9 @@
 :root {
-  --warning: 38 92% 50%; /* Placeholder HSL for warning */
-  --warning-foreground: 48 96% 89%; /* Placeholder HSL for warning foreground */
-  --info: 210 40% 98%; /* Placeholder HSL for info */
-  --info-foreground: 220 13% 46%; /* Placeholder HSL for info foreground */
+  /* Define main theme colors here */
 }
 
 .dark {
-  --warning: 48 96% 89%; /* Placeholder HSL for dark warning */
-  --warning-foreground: 38 92% 50%; /* Placeholder HSL for dark warning foreground */
-  --info: 220 13% 46%; /* Placeholder HSL for dark info */
-  --info-foreground: 210 40% 98%; /* Placeholder HSL for dark info foreground */
+  /* Define dark mode theme colors here */
 }
 /*
   Overall Refinements:

@@ -134,9 +134,9 @@ const ProjectList = ({
         );
       } catch (error: unknown) {
         toast.error(
-          `Failed to delete project "${projectToDelete.name}": ${(error as Error).message}.`,
+          `Failed to delete project "${projectToDelete.name}". ${(error as Error).message}.`,
         );
-        logger.error('Failed to delete project:', error);
+        logger.error('Failed to delete project:', error); // Keep internal logging detailed
       } finally {
         setIsDeleteConfirmModalOpen(false);
         setProjectToDelete(null);
@@ -224,9 +224,13 @@ const ProjectList = ({
 
       {/* Conditional rendering based on whether projects are found */}
       {filteredAndSortedProjects.length === 0 ? (
-        <p className="text-muted-foreground text-center" role="status">
-          No projects found.
-        </p>
+        <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+          <p className="text-sm mb-2" role="status">
+            No projects found matching your criteria.
+          </p>
+          {/* Optional: Add a call to action button if applicable */}
+          {/* <Button variant="outline" size="sm">Create New Project</Button> */}
+        </div>
       ) : (
         // Display the list of projects in a responsive grid
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -14,8 +14,17 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
-import { HeatmapGrid } from 'react-heatmap-grid'; // Assuming react-heatmap-grid is installed
-declare module 'react-heatmap-grid';
+import dynamic from 'next/dynamic';
+const HeatmapGrid = dynamic(
+  () =>
+    import('react-heatmap-grid').then(
+      (mod) => mod.HeatmapGrid as React.ComponentType<HeatmapChartProps>,
+    ),
+  {
+    ssr: false,
+    loading: () => <p>Loading Heatmap...</p>,
+  },
+);
 import { ChartWidgetConfig } from '../widget-types';
 import GeospatialMapChart from './GeospatialMapChart';
 import { applyConditionalFormatting } from '../../../lib/conditional-formatting';
@@ -87,6 +96,13 @@ interface HeatmapChartProps {
   xLabels: string[];
   yLabels: string[];
   data: number[][];
+  cellRender?: (
+    x: number,
+    y: number,
+    value: number | null | undefined,
+  ) => React.ReactNode;
+  xLabelWidth?: number;
+  yLabelWidth?: number;
 }
 
 const HeatmapChart: React.FC<HeatmapChartProps> = ({

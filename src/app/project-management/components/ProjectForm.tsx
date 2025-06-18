@@ -137,9 +137,9 @@ const ProjectForm = ({
       } catch (error: unknown) {
         // Generic error message for persistence failures
         toast.error(
-          `Failed to ${initialProject ? 'update' : 'add'} project "${data.name}": ${(error as Error).message}. Please try again.`,
+          `Failed to ${initialProject ? 'update' : 'add'} project "${data.name}". ${(error as Error).message}. Please try again.`,
         );
-        console.error('Project persistence failed:', error); // Log the error for debugging
+        console.error('Project persistence failed:', error); // Keep internal logging detailed
       }
     },
     [initialProject, onCreateProject, onUpdateProject, onProjectUpdated],

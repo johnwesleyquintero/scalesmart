@@ -173,9 +173,9 @@ const TaskForm = ({
         const errorMessage =
           error instanceof Error ? error.message : String(error);
         toast.error(
-          `Failed to ${initialTask ? 'update' : 'add'} task: ${errorMessage}. Please try again.`,
+          `Failed to ${initialTask ? 'update' : 'add'} task. ${errorMessage}. Please try again.`,
         );
-        logger.error('Task persistence failed:', error); // Log the error for debugging
+        logger.error('Task persistence failed:', error); // Keep internal logging detailed
       }
     },
     [initialTask, onCreateTask, onUpdateTask, onTaskSaved], // Dependencies for useCallback

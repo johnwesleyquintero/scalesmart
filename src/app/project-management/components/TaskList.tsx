@@ -147,13 +147,13 @@ const TaskList = ({
           >
             {/* Conditional rendering: display message if no tasks, otherwise map tasks */}
             {tasks.length === 0 ? (
-              <p
-                className="text-muted-foreground text-center text-sm py-4"
-                role="status"
-              >
-                No tasks in this column yet. Add a new task using the form
-                below!
-              </p>
+              <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                <p className="text-sm mb-2" role="status">
+                  No tasks in this column yet.
+                </p>
+                {/* Optional: Add a call to action button if applicable */}
+                {/* <Button variant="outline" size="sm">Add Task</Button> */}
+              </div>
             ) : (
               tasks.map((task) => (
                 <SortableTaskItem
