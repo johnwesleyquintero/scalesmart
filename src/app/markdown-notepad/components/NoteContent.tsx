@@ -72,19 +72,19 @@ const NoteContent: React.FC<NoteContentProps> = ({ markdown }) => {
                 {' '}
                 {/* Added group class for potential future styling */}
                 <pre className={className}>
-                 <code
-                   className={className} // Keep the language class on the code tag
-                   dangerouslySetInnerHTML={{
-                     __html: Prism.highlight(
-                       codeContent,
-                       Prism.languages[match[1]] || Prism.languages.markup, // Fallback to markup if language not found
-                       match[1]
-                     ),
-                   }}
-                 />
-               </pre>
-               {/* Top copy button */}
-               <Button
+                  <code
+                    className={className} // Keep the language class on the code tag
+                    dangerouslySetInnerHTML={{
+                      __html: Prism.highlight(
+                        codeContent,
+                        Prism.languages[match[1]] || Prism.languages.markup, // Fallback to markup if language not found
+                        match[1],
+                      ),
+                    }}
+                  />
+                </pre>
+                {/* Top copy button */}
+                <Button
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" // Added opacity for hover effect
