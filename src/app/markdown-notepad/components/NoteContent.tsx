@@ -3,12 +3,17 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import Prism from 'prismjs';
+import 'prismjs/components/prism-javascript';
+import 'prismjs/components/prism-typescript';
+import 'prismjs/components/prism-css';
+import 'prismjs/components/prism-json';
+import 'prismjs/components/prism-markdown';
+import 'prismjs/components/prism-bash';
+import 'prismjs/themes/prism-atom-dark.css'; // Import the theme CSS
 import { Element } from 'hast';
 import { CSSProperties, useState } from 'react';
 
-const codeStyle = atomDark;
 import { Button } from '@/components/ui/button';
 import { Copy, Check } from 'lucide-react'; // Import Check icon
 import { useToast } from '@/hooks/use-toast';
@@ -66,16 +71,20 @@ const NoteContent: React.FC<NoteContentProps> = ({ markdown }) => {
               <div className="relative group">
                 {' '}
                 {/* Added group class for potential future styling */}
-                <SyntaxHighlighter
-                  style={codeStyle}
-                  language={match[1]}
-                  PreTag="div"
-                  className={className}
-                >
-                  {codeContent}
-                </SyntaxHighlighter>
-                {/* Top copy button */}
-                <Button
+                <pre className={className}>
+                 <code
+                   className={className} // Keep the language class on the code tag
+                   dangerouslySetInnerHTML={{
+                     __html: Prism.highlight(
+                       codeContent,
+                       Prism.languages[match[1]] || Prism.languages.markup, // Fallback to markup if language not found
+                       match[1]
+                     ),
+                   }}
+                 />
+               </pre>
+               {/* Top copy button */}
+               <Button
                   variant="ghost"
                   size="sm"
                   className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity" // Added opacity for hover effect
