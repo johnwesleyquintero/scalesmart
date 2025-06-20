@@ -88,6 +88,28 @@ export const getSpApiClient = (): SellingPartner => {
 };
 
 /**
+ * Centralized error handling for SP-API calls.
+ * Logs the error and returns a default value.
+ * @param operationName The name of the SP-API operation that failed.
+ * @param error The caught error object.
+ * @param defaultValue The value to return in case of an error (e.g., null or []).
+ * @returns The default value.
+ */
+const handleSpApiError = <T>(
+  operationName: string,
+  error: unknown,
+  defaultValue: T,
+): T => {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  console.error(
+    `Error during SP-API operation "${operationName}": ${errorMessage}`,
+    error,
+  );
+  // In a real application, you might want more sophisticated error reporting or alerting here.
+  return defaultValue;
+};
+
+/**
  * Fetches a list of orders based on specified criteria.
  * @param marketplaceIds An array of marketplace IDs to fetch orders from.
  * @param createdAfter Optional: The earliest date (ISO 8601) when the order was created.
@@ -137,9 +159,7 @@ export const fetchOrders = async (
       return []; // Return empty array for success with no data or unexpected structure
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error fetching orders from SP-API: ${errorMessage}`, error);
-    return null; // Return null only on API error
+    return handleSpApiError('getOrders', error, null);
   }
 };
 
@@ -190,12 +210,7 @@ export const fetchInventory = async (
       return [];
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Error fetching inventory from SP-API: ${errorMessage}`,
-      error,
-    );
-    return null;
+    return handleSpApiError('getInventorySummaries', error, null);
   }
 };
 
@@ -248,9 +263,7 @@ export const fetchReports = async (
       return [];
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(`Error fetching reports from SP-API: ${errorMessage}`, error);
-    return null;
+    return handleSpApiError('getReports', error, null);
   }
 };
 
@@ -305,9 +318,10 @@ export const fetchCustomerReviews = async (
 
     return mockReviews;
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    // Note: This is mock data, so API errors are not expected.
+    // We still log the error for consistency but return an empty array as per original logic.
     console.error(
-      `Error fetching customer reviews (mock data simulation): ${errorMessage}`,
+      `Error fetching customer reviews (mock data simulation): ${error instanceof Error ? error.message : String(error)}`,
       error,
     );
     return []; // Return empty array for mock data fetch error
@@ -373,12 +387,7 @@ export const fetchProductListings = async (
       return [];
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Error fetching product listings from SP-API: ${errorMessage}`,
-      error,
-    );
-    return null;
+    return handleSpApiError('searchCatalogItems', error, null);
   }
 };
 
@@ -434,12 +443,7 @@ export const fetchInboundShipments = async (
       return [];
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Error fetching inbound shipments from SP-API: ${errorMessage}`,
-      error,
-    );
-    return null;
+    return handleSpApiError('getShipments', error, null);
   }
 };
 
@@ -501,12 +505,7 @@ export const requestReport = async (
       return null; // Return null for unexpected structure on initiation
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Error requesting report from SP-API: ${errorMessage}`,
-      error,
-    );
-    return null;
+    return handleSpApiError('createReport', error, null);
   }
 };
 
@@ -543,12 +542,7 @@ export const getReportDocument = async (
       return null; // Return null for unexpected structure
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Error retrieving report document from SP-API: ${errorMessage}`,
-      error,
-    );
-    return null;
+    return handleSpApiError('getReportDocument', error, null);
   }
 };
 
@@ -611,12 +605,7 @@ export const fetchFinancialEvents = async (params: {
       return [];
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Error fetching financial events from SP-API: ${errorMessage}`,
-      error,
-    );
-    return null;
+    return handleSpApiError('listFinancialEvents', error, null);
   }
 };
 
@@ -699,11 +688,6 @@ export const fetchProductPricing = async (
       return [];
     }
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    console.error(
-      `Error fetching product pricing from SP-API: ${errorMessage}`,
-      error,
-    );
-    return null;
+    return handleSpApiError('getCompetitivePricing', error, null);
   }
 };

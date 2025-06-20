@@ -76,6 +76,24 @@ const LOAD_SALES_OPPORTUNITIES_ERROR =
   'Failed to load sales opportunities. Please check console for details.';
 
 /**
+ * Centralized error handling function.
+ * Logs the error to the console and displays a toast message.
+ * @param operationName A string describing the operation that failed (e.g., "loading customers").
+ * @param error The error object caught in the catch block.
+ * @param userMessage A user-friendly message to display in the toast.
+ */
+const handleOperationError = (
+  operationName: string,
+  error: unknown,
+  userMessage: string,
+) => {
+  console.error(`Error during ${operationName}:`, error);
+  toast.error(`${userMessage} ${(error as Error).message || error}`);
+  // Optionally log activity for failed operations
+  // logActivity('system', 'error', `Operation "${operationName}" failed: ${(error as Error).message || error}`);
+};
+
+/**
  * `useCRMData` is a custom hook that encapsulates the logic for managing CRM data.
  * It provides state variables for customers and categories, along with memoized
  * callback functions for performing CRUD operations and updating the state.
@@ -105,12 +123,10 @@ export const useCRMData = () => {
         const allOpportunities = await getAllSalesOpportunities();
         setSalesOpportunities(allOpportunities);
       } catch (error: unknown) {
-        console.error(
-          'Error loading sales opportunities from IndexedDB:',
+        handleOperationError(
+          'loading sales opportunities',
           error,
-        );
-        toast.error(
-          `${LOAD_SALES_OPPORTUNITIES_ERROR} ${(error as Error).message || error}`,
+          LOAD_SALES_OPPORTUNITIES_ERROR,
         );
       }
     };
@@ -137,8 +153,7 @@ export const useCRMData = () => {
         );
         setCustomers(allCustomers);
       } catch (error: unknown) {
-        console.error('Error loading data from IndexedDB:', error);
-        toast.error(`${LOAD_DATA_ERROR} ${(error as Error).message || error}`);
+        handleOperationError('loading customer data', error, LOAD_DATA_ERROR);
       } finally {
         setHasAttemptedInitialLoad(true); // Mark initial load as attempted regardless of success.
       }
@@ -227,9 +242,10 @@ export const useCRMData = () => {
             // Simulate no immediate action
           }
         } catch (error: unknown) {
-          console.error('Error updating customer in IndexedDB:', error);
-          toast.error(
-            `${UPDATE_CUSTOMER_ERROR} ${(error as Error).message || error}`,
+          handleOperationError(
+            'updating customer',
+            error,
+            UPDATE_CUSTOMER_ERROR,
           );
         }
       } else {
@@ -290,10 +306,7 @@ export const useCRMData = () => {
             `New customer "${completeNewCustomer.name}" was created.`,
           );
         } catch (error: unknown) {
-          console.error('Error adding customer to IndexedDB:', error);
-          toast.error(
-            `${ADD_CUSTOMER_ERROR} ${(error as Error).message || error}`,
-          );
+          handleOperationError('adding customer', error, ADD_CUSTOMER_ERROR);
         }
       }
     },
@@ -318,10 +331,7 @@ export const useCRMData = () => {
         `Customer with ID "${id}" was deleted.`,
       );
     } catch (error: unknown) {
-      console.error('Error deleting customer from IndexedDB:', error);
-      toast.error(
-        `${DELETE_CUSTOMER_ERROR} ${(error as Error).message || error}`,
-      );
+      handleOperationError('deleting customer', error, DELETE_CUSTOMER_ERROR);
     }
   }, []);
 
@@ -420,9 +430,10 @@ export const useCRMData = () => {
           );
         }
       } catch (error: unknown) {
-        console.error('Error creating communication log:', error);
-        toast.error(
-          `${CREATE_COMM_LOG_ERROR} ${(error as Error).message || error}`,
+        handleOperationError(
+          'creating communication log',
+          error,
+          CREATE_COMM_LOG_ERROR,
         );
       }
     },
@@ -473,9 +484,10 @@ export const useCRMData = () => {
           `Communication log for "${log.customerId}" (ID: ${log.id}) was updated.`,
         );
       } catch (error: unknown) {
-        console.error('Error updating communication log:', error);
-        toast.error(
-          `${UPDATE_COMM_LOG_ERROR} ${(error as Error).message || error}`,
+        handleOperationError(
+          'updating communication log',
+          error,
+          UPDATE_COMM_LOG_ERROR,
         );
       }
     },
@@ -498,9 +510,10 @@ export const useCRMData = () => {
           `Sales opportunity "${newOpportunity.name}" was created.`,
         );
       } catch (error: unknown) {
-        console.error('Error adding sales opportunity:', error);
-        toast.error(
-          `Failed to add sales opportunity. ${(error as Error).message || error}`,
+        handleOperationError(
+          'adding sales opportunity',
+          error,
+          `Failed to add sales opportunity.`,
         );
       }
     },
@@ -523,9 +536,10 @@ export const useCRMData = () => {
           `Sales opportunity "${updatedOpportunity.name}" was updated.`,
         );
       } catch (error: unknown) {
-        console.error('Error updating sales opportunity:', error);
-        toast.error(
-          `Failed to update sales opportunity. ${(error as Error).message || error}`,
+        handleOperationError(
+          'updating sales opportunity',
+          error,
+          `Failed to update sales opportunity.`,
         );
       }
     },
@@ -546,9 +560,10 @@ export const useCRMData = () => {
           `Sales opportunity with ID ${opportunityId} was deleted.`,
         );
       } catch (error: unknown) {
-        console.error('Error deleting sales opportunity:', error);
-        toast.error(
-          `Failed to delete sales opportunity. ${(error as Error).message || error}`,
+        handleOperationError(
+          'deleting sales opportunity',
+          error,
+          `Failed to delete sales opportunity.`,
         );
       }
     },
@@ -570,9 +585,10 @@ export const useCRMData = () => {
           `Communication log with ID "${logId}" for customer "${customerId}" was deleted.`,
         );
       } catch (error: unknown) {
-        console.error('Error deleting communication log:', error);
-        toast.error(
-          `${DELETE_COMM_LOG_ERROR} ${(error as Error).message || error}`,
+        handleOperationError(
+          'deleting communication log',
+          error,
+          DELETE_COMM_LOG_ERROR,
         );
       }
     },

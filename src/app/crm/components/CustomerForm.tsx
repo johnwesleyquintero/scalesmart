@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { sanitizeHtml } from '@/lib/sanitize'; // Import sanitizeHtml
 
 /**
  * Props for the CustomerForm component.
@@ -140,16 +141,19 @@ export function CustomerForm({
    * Transforms form data to match `Contact` type and calls the `onSubmitSuccessAction`.
    */
   const onSubmit = (data: CustomerFormValues) => {
-    onSubmitSuccessAction({
-      name: data.name,
-      email: data.email ?? '', // Coalesce null/undefined to empty string.
-      phone: data.phone ?? '', // Coalesce null/undefined to empty string.
-      company: data.company || '', // Coalesce null/undefined to empty string.
-      notes: data.notes || '', // Coalesce null/undefined to empty string.
-      salesStage: data.salesStage || null, // Coalesce null/undefined to null.
-      category: data.category || '', // Coalesce null/undefined to empty string.
-      tags: data.tags || [],
-    });
+    // Sanitize potentially unsafe fields before submitting
+    const sanitizedData = {
+      name: sanitizeHtml(data.name),
+      email: data.email ?? '', // Email format is validated by Zod, no HTML expected
+      phone: data.phone ?? '', // Phone format is validated by Zod, no HTML expected
+      company: data.company ? sanitizeHtml(data.company) : '',
+      notes: data.notes ? sanitizeHtml(data.notes) : '',
+      salesStage: data.salesStage || null,
+      category: data.category || '',
+      tags: data.tags || [], // Tags are typically simple strings, sanitization might be overkill but can be added if needed
+    };
+
+    onSubmitSuccessAction(sanitizedData);
     // Reset form only if not in editing mode (i.e., adding a new customer).
     if (!isEditing) {
       reset(defaultFormData);
