@@ -35,8 +35,16 @@ const KpiWidget: React.FC<KpiWidgetProps> = ({ config }) => {
       {(trendValue !== undefined || trendIndicator) && (
         <div
           className={`text-sm mt-2 ${trendDirection === 'up' ? 'text-green-500' : trendDirection === 'down' ? 'text-red-500' : 'text-gray-500'}`}
+          data-testid="kpi-trend"
         >
-          {trendIndicator} {trendValue !== undefined ? trendValue : ''}
+          {trendIndicator && (
+            <span data-testid={`trend-icon-${trendDirection}`}>
+              {trendIndicator}
+            </span>
+          )}
+          {trendValue !== undefined && (
+            <span data-testid="trend-value">{trendValue}</span>
+          )}
         </div>
       )}
     </div>

@@ -22,23 +22,11 @@ const nextConfig = {
 
   // Image Optimization (Looks good, keep as is unless specific needs arise)
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'wescode.vercel.app',
-        pathname: '/**',
-      },
-      {
-        protocol: 'https',
-        hostname: 'avatars.githubusercontent.com',
-        pathname: '/**',
-      },
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '3000',
-        pathname: '/**',
-      },
+    domains: [
+      'wescode.vercel.app',
+      'avatars.githubusercontent.com',
+      'localhost',
+      'via.placeholder.com',
     ],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

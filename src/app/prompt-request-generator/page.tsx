@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { getAIDrivenRecommendation } from '@/lib/amazon-tools/gemini-api';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -38,6 +39,11 @@ import { generatePrompt } from '@/lib/prompt-generator/utils';
 // Define a constant for the error border class to avoid duplication
 const ERROR_BORDER_CLASS = 'border-red-500';
 
+const REQUIRED_CATEGORY_MESSAGE = "Please select a 'Category'.";
+const REQUIRED_REQUEST_MESSAGE = "The 'Request' field is required.";
+const REQUIRED_CUSTOM_CATEGORY_MESSAGE =
+  "Please enter a value for the 'Custom Category'.";
+
 /**
  * A component for generating structured prompts based on user input for code assistance.
  * Allows selecting a category, providing context, describing the request, and including code snippets.
@@ -49,12 +55,16 @@ export default function PromptRequestGenerator() {
     customCategory: '',
     context: '',
     request: '',
+    parentTask: '', // Initialize new field
+    subtask: '', // Initialize new field
     codeInput: '',
   });
 
   // Local state for input fields to ensure smooth typing experience.
   const [contextInput, setContextInput] = useState('');
   const [requestInput, setRequestInput] = useState('');
+  const [parentTaskInput, setParentTaskInput] = useState(''); // New state for parent task
+  const [subtaskInput, setSubtaskInput] = useState(''); // New state for subtask
   const [codeInput, setCodeInput] = useState('');
 
   // State for the generated output prompt string.
@@ -71,7 +81,13 @@ export default function PromptRequestGenerator() {
     Partial<Record<keyof PromptData, string>>
   >({});
 
-  type PromptDataKey = 'customCategory' | 'context' | 'request' | 'codeInput';
+  type PromptDataKey =
+    | 'customCategory'
+    | 'context'
+    | 'request'
+    | 'parentTask'
+    | 'subtask'
+    | 'codeInput';
 
   // Debounced handler to update promptData state and perform validation based on local input state.
   const debouncedUpdatePromptData = useDebounceCallback<
@@ -89,14 +105,13 @@ export default function PromptRequestGenerator() {
         // Use the trimmed value for validation checks
         const trimmedValue = String(value).trim();
         if (field === 'request' && !trimmedValue) {
-          newErrors.request = "The 'Request' field is required.";
+          newErrors.request = REQUIRED_REQUEST_MESSAGE;
         } else if (
           field === 'customCategory' &&
           promptData.category === CUSTOM_CATEGORY_VALUE &&
           !trimmedValue
         ) {
-          newErrors.customCategory =
-            "Please enter a value for the 'Custom Category'.";
+          newErrors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
         } else {
           // Clear validation error for this field
           newErrors[field as PromptDataKey] = undefined;
@@ -145,24 +160,80 @@ export default function PromptRequestGenerator() {
     );
   }, [promptData]); // Dependency: Re-create if promptData changes.
 
+  // Handler for generating prompt with AI.
+  const generatePromptWithAIHandler = useCallback(async () => {
+    setLoading(true); // Start loading
+    setOutput(''); // Clear previous output
+
+    const {
+      category,
+      customCategory,
+      request,
+      context,
+      parentTask,
+      subtask,
+      codeInput,
+    } = promptData;
+    const errors: Partial<Record<keyof PromptData, string>> = {};
+
+    if (!category) {
+      errors.category = REQUIRED_CATEGORY_MESSAGE;
+    }
+    if (!request.trim()) {
+      errors.request = REQUIRED_REQUEST_MESSAGE;
+    }
+    if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
+      errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
+    }
+
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      setLoading(false);
+      toast.warning(
+        'Please fix the errors in the form before generating with AI.',
+      );
+      return;
+    }
+
+    try {
+      const prompt = generatePrompt(promptData);
+      const aiGeneratedText = await getAIDrivenRecommendation(prompt);
+      setOutput(aiGeneratedText);
+      toast.success('AI-generated prompt successfully!');
+    } catch (error) {
+      console.error('Error generating prompt with AI:', error);
+      toast.error('Failed to generate prompt with AI. Please try again.');
+    } finally {
+      setLoading(false); // Stop loading
+    }
+  }, [promptData]);
+
   // Handler function to generate the prompt string.
   const generatePromptHandler = useCallback(() => {
     setLoading(true); // Start loading
     setOutput(''); // Clear previous output
 
     // --- Client-side Validation ---
-    const { category, customCategory, request, context, codeInput } =
-      promptData;
+    const {
+      category,
+      customCategory,
+      request,
+      context,
+      parentTask,
+      subtask,
+      codeInput,
+    } = promptData;
     const errors: Partial<Record<keyof PromptData, string>> = {};
 
     if (!category) {
-      errors.category = "Please select a 'Category'.";
+      errors.category = REQUIRED_CATEGORY_MESSAGE;
     }
     if (!request.trim()) {
-      errors.request = "The 'Request' field is required.";
+      errors.request = REQUIRED_REQUEST_MESSAGE;
     }
     if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
-      errors.customCategory = "Please enter a value for the 'Custom Category'.";
+      errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
     }
 
     setValidationErrors(errors); // Update validation errors state
@@ -191,6 +262,8 @@ export default function PromptRequestGenerator() {
         // Note: Due to UI validation, request should not be empty here, but fallback is safe.
         request:
           request.trim() === '' ? defaults.defaultRequest : request.trim(),
+        parentTask: parentTask.trim(), // Pass parent task as-is (trimming handled by utility)
+        subtask: subtask.trim(), // Pass subtask as-is (trimming handled by utility)
         codeInput: codeInput, // Code input is passed as-is (trimming handled by utility)
       };
 
@@ -248,7 +321,19 @@ export default function PromptRequestGenerator() {
             Prompt Request Generator
           </h1>
           <p className="text-muted-foreground mt-2">
-            Create structured prompts for code assistance requests
+            Create structured prompts for any assistance requests
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Check our new AI assistant:
+            <Link
+              href="https://wesai-pa.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1 text-blue-500 hover:underline inline-flex items-center"
+            >
+              WesAI Personal Assistant
+              <ExternalLink className="ml-1 h-3 w-3" />
+            </Link>
           </p>
         </div>
         <div className="space-y-6">
@@ -367,7 +452,7 @@ export default function PromptRequestGenerator() {
                     debouncedUpdatePromptData('context', e.target.value);
                   }}
                   rows={3}
-                  className="bg-background border-border"
+                  className="bg-background border-border font-mono"
                   aria-label="Context for the request (optional)"
                 />
               </div>
@@ -387,7 +472,7 @@ export default function PromptRequestGenerator() {
                     debouncedUpdatePromptData('request', e.target.value);
                   }}
                   rows={3}
-                  className={`bg-background border-border ${validationErrors.request ? ERROR_BORDER_CLASS : ''}`}
+                  className={`bg-background border-border font-mono ${validationErrors.request ? ERROR_BORDER_CLASS : ''}`}
                   aria-required="true" // Indicate required state for screen readers
                   aria-invalid={!!validationErrors.request} // Indicate invalid state for screen readers
                   aria-describedby={
@@ -401,12 +486,44 @@ export default function PromptRequestGenerator() {
                 )}
               </div>
 
+              {/* Parent Task Input */}
+              <div className="space-y-2">
+                <Label htmlFor="parentTask">Parent Task (optional)</Label>
+                <Input
+                  id="parentTask"
+                  placeholder="e.g., Implement user authentication"
+                  value={parentTaskInput}
+                  onChange={(e) => {
+                    setParentTaskInput(e.target.value);
+                    debouncedUpdatePromptData('parentTask', e.target.value);
+                  }}
+                  className="bg-background border-border font-mono"
+                  aria-label="Parent task for the request (optional)"
+                />
+              </div>
+
+              {/* Subtask Input */}
+              <div className="space-y-2">
+                <Label htmlFor="subtask">Subtask (optional)</Label>
+                <Input
+                  id="subtask"
+                  placeholder="e.g., Create login form UI"
+                  value={subtaskInput}
+                  onChange={(e) => {
+                    setSubtaskInput(e.target.value);
+                    debouncedUpdatePromptData('subtask', e.target.value);
+                  }}
+                  className="bg-background border-border font-mono"
+                  aria-label="Subtask for the request (optional)"
+                />
+              </div>
+
               {/* Code Input Textarea */}
               <div className="space-y-2">
-                <Label htmlFor="codeInput">Relevant Code (optional)</Label>
+                <Label htmlFor="codeInput">Relevant Data (optional)</Label>
                 <Textarea
                   id="codeInput"
-                  placeholder="Paste any relevant code snippets..."
+                  placeholder="Paste any relevant data (code, CSV, JSON, logs, markdown, etc.)..."
                   value={codeInput}
                   onChange={(e) => {
                     setCodeInput(e.target.value);
@@ -415,6 +532,40 @@ export default function PromptRequestGenerator() {
                   rows={5}
                   className="bg-background border-border font-mono"
                   aria-label="Relevant code snippet (optional)"
+                />
+              </div>
+
+              {/* Parent Task Input */}
+              <div className="space-y-2">
+                <Label htmlFor="parentTask">Parent Task (optional)</Label>
+                <Textarea
+                  id="parentTask"
+                  placeholder="e.g., Implement user authentication module"
+                  value={parentTaskInput}
+                  onChange={(e) => {
+                    setParentTaskInput(e.target.value);
+                    debouncedUpdatePromptData('parentTask', e.target.value);
+                  }}
+                  rows={2}
+                  className="bg-background border-border"
+                  aria-label="Parent task for the request (optional)"
+                />
+              </div>
+
+              {/* Subtask Input */}
+              <div className="space-y-2">
+                <Label htmlFor="subtask">Subtask (optional)</Label>
+                <Textarea
+                  id="subtask"
+                  placeholder="e.g., Create login form, integrate with OAuth"
+                  value={subtaskInput}
+                  onChange={(e) => {
+                    setSubtaskInput(e.target.value);
+                    debouncedUpdatePromptData('subtask', e.target.value);
+                  }}
+                  rows={2}
+                  className="bg-background border-border"
+                  aria-label="Subtask for the request (optional)"
                 />
               </div>
 
@@ -437,6 +588,23 @@ export default function PromptRequestGenerator() {
                   )}
                 </Button>
 
+                {/* Generate Prompt with AI Button */}
+                <Button
+                  onClick={generatePromptWithAIHandler} // New handler for AI generation
+                  className="w-full md:w-auto"
+                  aria-label="Generate prompt with AI"
+                  disabled={isGenerateDisabled || loading} // Disable based on validation state or loading
+                >
+                  {loading ? (
+                    'Generating with AI...'
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      Generate Prompt with AI
+                    </>
+                  )}
+                </Button>
+
                 {/* Clear Form Button */}
                 <Button
                   variant="outline"
@@ -446,10 +614,14 @@ export default function PromptRequestGenerator() {
                       customCategory: '',
                       context: '',
                       request: '',
+                      parentTask: '', // Clear new field
+                      subtask: '', // Clear new field
                       codeInput: '',
                     });
                     setContextInput(''); // Clear local state
                     setRequestInput(''); // Clear local state
+                    setParentTaskInput(''); // Clear new local state
+                    setSubtaskInput(''); // Clear new local state
                     setCodeInput(''); // Clear local state
                     setOutput(''); // Clear output as well
                     setValidationErrors({}); // Clear validation errors

@@ -8,7 +8,7 @@ interface WidgetLibraryProps {
 export const WidgetLibrary: React.FC<WidgetLibraryProps> = ({
   onSelectWidget,
 }) => {
-  const widgetTypes = Object.keys(WIDGET_TYPES) as WidgetType[];
+  const widgetTypes = Object.values(WIDGET_TYPES);
 
   return (
     <div className="border p-4 rounded-lg shadow-md">
@@ -20,8 +20,8 @@ export const WidgetLibrary: React.FC<WidgetLibraryProps> = ({
             onClick={() => onSelectWidget(type)}
             className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded text-sm"
           >
-            {type.replace(/([A-Z])/g, ' $1').trim()}{' '}
-            {/* Convert camelCase to spaced words */}
+            {type.charAt(0).toUpperCase() + type.slice(1)}{' '}
+            {/* Capitalize first letter for display */}
           </button>
         ))}
       </div>

@@ -18,6 +18,7 @@ const ImageWidget: React.FC<ImageWidgetProps> = ({
       {/* Added relative, w-full, h-full, overflow-hidden for responsive image */}
       {imageUrl ? (
         <Image
+          data-testid="next-image"
           src={imageUrl}
           alt={altText}
           fill // Use fill instead of fixed width/height for responsiveness

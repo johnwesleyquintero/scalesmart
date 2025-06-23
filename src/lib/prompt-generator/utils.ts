@@ -5,6 +5,8 @@ import {
   TASK_CATEGORY_HEADING,
   CONTEXT_HEADING,
   REQUEST_HEADING,
+  PARENT_TASK_HEADING,
+  SUBTASK_HEADING,
   CODE_HEADING,
   INTRODUCTION_PHRASES,
 } from './constants';
@@ -117,7 +119,15 @@ function detectLanguage(codeInput: string): string {
 export function generatePrompt(data: PromptData): string {
   // Destructure the relevant data from the input object.
   // This ensures we are only using the data provided by the component's state.
-  const { category, customCategory, context, request, codeInput } = data;
+  const {
+    category,
+    customCategory,
+    context,
+    request,
+    parentTask,
+    subtask,
+    codeInput,
+  } = data;
   let prompt = '';
 
   // Determine the category name for the heading based on the selected category value.
@@ -133,25 +143,35 @@ export function generatePrompt(data: PromptData): string {
   // Add category heading and an introductory phrase if a category name is determined.
   // The introduction phrase is based on the selected category value.
   if (categoryName) {
-    prompt += `${TASK_CATEGORY_HEADING} ${categoryName}\n\n${getIntroductionPhrase(category, customCategory)}`;
+    prompt += `${TASK_CATEGORY_HEADING} ${categoryName}\n${getIntroductionPhrase(category, customCategory)}\n\n`;
   }
 
   // Add context section if provided and not just whitespace.
   // Explicitly use the 'context' from the input data.
   if (context && context.trim()) {
-    prompt += `${CONTEXT_HEADING}\n\n${context.trim()}\n\n`;
+    prompt += `${CONTEXT_HEADING}\n${context.trim()}\n\n`;
   }
 
   // Add request section. This is assumed mandatory and non-empty based on UI validation in the component.
   // Explicitly use the 'request' from the input data.
-  prompt += `${REQUEST_HEADING}\n\n${request.trim()}\n\n`;
+  prompt += `${REQUEST_HEADING}\n${request.trim()}\n\n`;
+
+  // Add parent task section if provided and not just whitespace.
+  if (parentTask && parentTask.trim()) {
+    prompt += `${PARENT_TASK_HEADING}\n${parentTask.trim()}\n\n`;
+  }
+
+  // Add subtask section if provided and not just whitespace.
+  if (subtask && subtask.trim()) {
+    prompt += `${SUBTASK_HEADING}\n${subtask.trim()}\n\n`;
+  }
 
   // Add code input section if provided and not just whitespace.
   // Detect the programming language for syntax highlighting in the Markdown code block.
   // Explicitly use the 'codeInput' from the input data.
   if (codeInput && codeInput.trim()) {
     const language = detectLanguage(codeInput);
-    prompt += `${CODE_HEADING}\n\n\`\`\`${language}\n${codeInput.trim()}\n\`\`\`\n`;
+    prompt += `${CODE_HEADING}\n\`\`\`${language}\n${codeInput.trim()}\n\`\`\`\n\n`;
   }
 
   // Add a polite closing statement to the prompt.

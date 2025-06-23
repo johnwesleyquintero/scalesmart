@@ -8,6 +8,8 @@ const TASK_CATEGORY_HEADING = '### Task Category:';
 const CONTEXT_HEADING = '#### Context';
 const REQUEST_HEADING = '#### Request';
 const CODE_HEADING = '#### Code';
+const PARENT_TASK_HEADING = '#### Parent Task';
+const SUBTASK_HEADING = '#### Subtask';
 
 // Map for introduction phrases based on category
 const INTRODUCTION_PHRASES: Map<string, string> = new Map([
@@ -41,6 +43,8 @@ interface PromptData {
   context: string;
   request: string;
   codeInput: string;
+  parentTask?: string;
+  subtask?: string;
 }
 
 /**
@@ -184,7 +188,15 @@ export function generatePrompt(data: PromptData): string {
     throw new Error(validationError);
   }
 
-  const { category, customCategory, context, request, codeInput } = data;
+  const {
+    category,
+    customCategory,
+    context,
+    request,
+    codeInput,
+    parentTask,
+    subtask,
+  } = data;
   const promptParts: string[] = [];
 
   // Determine the category name to display (use custom if provided, otherwise standard, default to 'General')
@@ -203,6 +215,16 @@ export function generatePrompt(data: PromptData): string {
   const trimmedContext = context?.trim();
   if (trimmedContext) {
     promptParts.push(`${CONTEXT_HEADING}\n\n${trimmedContext}`);
+  }
+
+  const trimmedParentTask = parentTask?.trim();
+  if (trimmedParentTask) {
+    promptParts.push(`${PARENT_TASK_HEADING}\n\n${trimmedParentTask}`);
+  }
+
+  const trimmedSubtask = subtask?.trim();
+  if (trimmedSubtask) {
+    promptParts.push(`${SUBTASK_HEADING}\n\n${trimmedSubtask}`);
   }
 
   // Add request section - mandatory, validated earlier

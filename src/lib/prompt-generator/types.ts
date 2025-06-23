@@ -13,5 +13,7 @@ export interface PromptData {
   customCategory: string; // Holds the user-defined custom category text (only relevant if category is 'custom')
   context: string; // Background information
   request: string; // The core request description (required)
+  parentTask: string; // Optional parent task for task-related prompts
+  subtask: string; // Optional subtask for task-related prompts
   codeInput: string; // Relevant code snippet (optional)
 }

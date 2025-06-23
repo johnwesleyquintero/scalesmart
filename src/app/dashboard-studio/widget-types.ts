@@ -5,7 +5,8 @@ export const WIDGET_TYPES = {
   TEXT: 'text',
   IMAGE: 'image',
   FILTER: 'filter',
-};
+  GEOSPATIAL_MAP: 'geospatial-map',
+} as const;
 
 export type WidgetType = (typeof WIDGET_TYPES)[keyof typeof WIDGET_TYPES];
 
@@ -57,6 +58,8 @@ export interface ChartWidgetConfig extends BaseWidgetConfig {
     | 'network-graph'
     | 'heatmap'
     | 'funnel-chart'; // Added advanced chart types
+  initialPosition?: [number, number];
+  initialZoom?: number;
 }
 
 export interface TableWidgetConfig extends BaseWidgetConfig {

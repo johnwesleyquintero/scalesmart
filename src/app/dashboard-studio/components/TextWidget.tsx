@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactMarkdown from 'react-markdown';
 
 interface TextWidgetProps {
   id: string;
@@ -6,11 +7,16 @@ interface TextWidgetProps {
 }
 
 const TextWidget: React.FC<TextWidgetProps> = ({ id, content }) => {
-  // Basic implementation for now, can integrate a markdown renderer later
   return (
     <div className="p-4 border rounded shadow">
       <h3>Text Widget</h3>
-      <p>{content}</p>
+      {content ? (
+        <ReactMarkdown data-testid="text-widget-content">
+          {content}
+        </ReactMarkdown>
+      ) : (
+        <p data-testid="text-widget-content">No content</p>
+      )}
     </div>
   );
 };

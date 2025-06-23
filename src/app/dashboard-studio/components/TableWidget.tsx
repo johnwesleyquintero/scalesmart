@@ -62,6 +62,14 @@ export const TableWidget: React.FC<TableWidgetProps> = ({ config }) => {
             ))}
           </tbody>
         </table>
+        {rows.length === 0 && (
+          <div
+            className="text-center py-4 text-gray-500"
+            data-testid="no-data-message"
+          >
+            No data available
+          </div>
+        )}
       </div>
       {/* Pagination Controls */}
       {rows.length > itemsPerPage && (
