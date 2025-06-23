@@ -39,42 +39,42 @@ export const DEFAULT_PROMPT_TEXTS = {
       'Provide general AI assistance based on the input provided below.',
   },
   'Code Refinement': {
-    defaultContext: 'Consider the context of a code refinement task.',
+    defaultContext: 'Consider the context of a code/codebase refinement task.',
     defaultRequest:
-      'Refine the provided code snippet for better readability, performance, or maintainability based on standard best practices.',
+      'Refine the provided code/codebase snippet for better readability, performance, or maintainability based on standard best practices.',
   },
   'Error Fixing': {
     defaultContext:
-      'Consider the context of debugging and fixing a specific code error.',
+      'Consider the context of debugging and fixing a specific code/codebase error.',
     defaultRequest:
-      'Analyze the provided code and error message to identify and fix the issue.',
+      'Analyze the provided code/codebase and error message to identify and fix the issue.',
   },
   'Code Generation': {
     defaultContext:
-      'Consider the context of generating new code based on a specific requirement.',
-    defaultRequest: 'Generate code based on the requirements described below.',
+      'Consider the context of generating new code/codebase based on a specific requirement.',
+    defaultRequest: 'Generate code/codebase based on the requirements described below.',
   },
   'Code Review': {
     defaultContext:
-      'Consider the context of reviewing a code snippet for potential issues, improvements, and adherence to standards.',
+      'Consider the context of reviewing a code/codebase snippet for potential issues, improvements, and adherence to standards.',
     defaultRequest:
-      'Perform a code review on the provided code snippet, identifying potential bugs, suggesting improvements, and ensuring best practices are followed.',
+      'Perform a code/codebase review on the provided code/codebase snippet, identifying potential bugs, suggesting improvements, and ensuring best practices are followed.',
   },
   Documentation: {
     defaultContext:
-      'Consider the context of generating or improving documentation for code or a technical concept.',
+      'Consider the context of generating or improving documentation for code/codebase or a technical concept.',
     defaultRequest:
-      'Generate or improve documentation for the provided code or topic.',
+      'Generate or improve documentation for the provided code/codebase or topic.',
   },
   Optimization: {
     defaultContext:
-      'Consider the context of optimizing code for performance, resource usage, or efficiency.',
+      'Consider the context of optimizing code/codebase for performance, resource usage, or efficiency.',
     defaultRequest:
-      'Optimize the provided code snippet for performance and efficiency.',
+      'Optimize the provided code/codebase snippet for performance and efficiency.',
   },
   Debugging: {
     defaultContext: 'Consider the context of debugging a software issue.',
-    defaultRequest: 'Help debug the described problem and provided code.',
+    defaultRequest: 'Help debug the described problem and provided code/codebase.',
   },
   'Feature Implementation': {
     defaultContext:
@@ -139,20 +139,20 @@ export const CONTEXT_HEADING = '### Context:';
 export const REQUEST_HEADING = '### Request:';
 export const PARENT_TASK_HEADING = '### Parent Task:';
 export const SUBTASK_HEADING = '### Subtask:';
-export const CODE_HEADING = '### Relevant Data/Code:';
+export const CODE_HEADING = '### Relevant Data/code:';
 
 // Object for introduction phrases based on standard category values.
 // The 'custom' category value is handled separately in the getIntroductionPhrase function in utils.ts.
 export const INTRODUCTION_PHRASES = {
-  '': 'I need general code assistance. ',
-  'Code Refinement': 'I need assistance with refining existing code. ',
+  '': 'I need general code/codebase assistance. ',
+    'Code Refinement': 'I need assistance with refining existing code/codebase. ',
   'Error Fixing':
-    'I am encountering an error in my code and require help with debugging. ',
+    'I am encountering an error in my code/codebase and require help with debugging. ',
   'Code Generation': 'I need help generating new code. ',
-  'Code Review': 'I am requesting a review of the following code. ',
-  Documentation: 'I require documentation for the following code or concept. ',
+  'Code Review': 'I am requesting a review of the following code/codebase. ',
+  Documentation: 'I require documentation for the following code/codebase or concept. ',
   Optimization:
-    'I am looking for ways to optimize the provided code for performance or efficiency. ',
+    'I am looking for ways to optimize the provided code/codebase for performance or efficiency. ',
   Debugging: 'I need help debugging an issue. ',
   'Feature Implementation':
     'I am planning to implement a new feature and need guidance. ',
