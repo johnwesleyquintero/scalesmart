@@ -52,7 +52,8 @@ export const DEFAULT_PROMPT_TEXTS = {
   'Code Generation': {
     defaultContext:
       'Consider the context of generating new code/codebase based on a specific requirement.',
-    defaultRequest: 'Generate code/codebase based on the requirements described below.',
+    defaultRequest:
+      'Generate code/codebase based on the requirements described below.',
   },
   'Code Review': {
     defaultContext:
@@ -74,7 +75,8 @@ export const DEFAULT_PROMPT_TEXTS = {
   },
   Debugging: {
     defaultContext: 'Consider the context of debugging a software issue.',
-    defaultRequest: 'Help debug the described problem and provided code/codebase.',
+    defaultRequest:
+      'Help debug the described problem and provided code/codebase.',
   },
   'Feature Implementation': {
     defaultContext:
@@ -145,12 +147,13 @@ export const CODE_HEADING = '### Relevant Data/code:';
 // The 'custom' category value is handled separately in the getIntroductionPhrase function in utils.ts.
 export const INTRODUCTION_PHRASES = {
   '': 'I need general code/codebase assistance. ',
-    'Code Refinement': 'I need assistance with refining existing code/codebase. ',
+  'Code Refinement': 'I need assistance with refining existing code/codebase. ',
   'Error Fixing':
     'I am encountering an error in my code/codebase and require help with debugging. ',
   'Code Generation': 'I need help generating new code. ',
   'Code Review': 'I am requesting a review of the following code/codebase. ',
-  Documentation: 'I require documentation for the following code/codebase or concept. ',
+  Documentation:
+    'I require documentation for the following code/codebase or concept. ',
   Optimization:
     'I am looking for ways to optimize the provided code/codebase for performance or efficiency. ',
   Debugging: 'I need help debugging an issue. ',
