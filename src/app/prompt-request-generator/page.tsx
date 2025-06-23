@@ -535,40 +535,6 @@ export default function PromptRequestGenerator() {
                 />
               </div>
 
-              {/* Parent Task Input */}
-              <div className="space-y-2">
-                <Label htmlFor="parentTask">Parent Task (optional)</Label>
-                <Textarea
-                  id="parentTask"
-                  placeholder="e.g., Implement user authentication module"
-                  value={parentTaskInput}
-                  onChange={(e) => {
-                    setParentTaskInput(e.target.value);
-                    debouncedUpdatePromptData('parentTask', e.target.value);
-                  }}
-                  rows={2}
-                  className="bg-background border-border"
-                  aria-label="Parent task for the request (optional)"
-                />
-              </div>
-
-              {/* Subtask Input */}
-              <div className="space-y-2">
-                <Label htmlFor="subtask">Subtask (optional)</Label>
-                <Textarea
-                  id="subtask"
-                  placeholder="e.g., Create login form, integrate with OAuth"
-                  value={subtaskInput}
-                  onChange={(e) => {
-                    setSubtaskInput(e.target.value);
-                    debouncedUpdatePromptData('subtask', e.target.value);
-                  }}
-                  rows={2}
-                  className="bg-background border-border"
-                  aria-label="Subtask for the request (optional)"
-                />
-              </div>
-
               {/* Action Buttons */}
               <div className="flex flex-col md:flex-row gap-4">
                 {/* Generate Prompt Button */}

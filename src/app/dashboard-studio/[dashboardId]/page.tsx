@@ -1,5 +1,7 @@
+'use client';
+
 import React from 'react';
-import { useRouter } from 'next/router';
+import { useParams } from 'next/navigation'; // Use useParams from next/navigation
 import { DashboardViewer } from '../components/DashboardViewer';
 
 const IndividualDashboardPage = () => {
@@ -7,7 +9,9 @@ const IndividualDashboardPage = () => {
   // This is a placeholder for how you might access the dashboardId
   // For actual implementation, you'd receive `params` as a prop to the component
   // For example: `const IndividualDashboardPage = ({ params }: { params: { dashboardId: string } }) => {`
-  const dashboardId = 'example-dashboard-id'; // Replace with actual dynamic segment access
+  // const dashboardId = 'example-dashboard-id'; // Replace with actual dynamic segment access
+  const params = useParams();
+  const dashboardId = params.dashboardId as string;
 
   return (
     <div className="container mx-auto p-4">

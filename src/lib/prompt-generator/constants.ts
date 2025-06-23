@@ -139,7 +139,7 @@ export const CONTEXT_HEADING = '### Context:';
 export const REQUEST_HEADING = '### Request:';
 export const PARENT_TASK_HEADING = '### Parent Task:';
 export const SUBTASK_HEADING = '### Subtask:';
-export const CODE_HEADING = '### Code:';
+export const CODE_HEADING = '### Relevant Data/Code:';
 
 // Object for introduction phrases based on standard category values.
 // The 'custom' category value is handled separately in the getIntroductionPhrase function in utils.ts.
