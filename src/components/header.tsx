@@ -113,7 +113,7 @@ export default function Header() {
         },
         {
           name: 'Workflow Builder',
-          href: '/workflow-builder',
+
           category: productsCategories[1], // Productivity & Automation
           description: 'Automate tasks with custom workflows.',
         },

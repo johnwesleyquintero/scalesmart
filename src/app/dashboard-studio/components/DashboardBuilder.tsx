@@ -18,13 +18,26 @@ import TextWidget from './TextWidget';
 import ImageWidget from './ImageWidget';
 import { FilterWidget } from './FilterWidget';
 import { v4 as uuidv4 } from 'uuid';
-import { Responsive, WidthProvider, Layout } from 'react-grid-layout';
-import 'react-grid-layout/css/styles.css';
-import 'react-resizable/css/styles.css';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface DashboardBuilderProps {
   initialWidgets?: WidgetConfig[];
-  initialLayout?: Layout[] | null;
 }
 
 export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
@@ -194,27 +207,24 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
     }
   };
 
-  const onLayoutChange = (newLayout: Layout[]) => {
-    setWidgets((prevWidgets) =>
-      prevWidgets.map((widget) => {
-        const layoutItem = newLayout.find(
-          (item: Layout) => item.i === widget.id,
-        );
-        if (layoutItem) {
-          return {
-            ...widget,
-            x: layoutItem.x,
-            y: layoutItem.y,
-            w: layoutItem.w,
-            h: layoutItem.h,
-          };
-        }
-        return widget;
-      }),
-    );
-  };
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
 
-  const ResponsiveGridLayout = WidthProvider(Responsive);
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setWidgets((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
 
   return (
     <div className="border p-4 rounded-lg">
@@ -222,34 +232,47 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
       <div className="mb-4">
         <WidgetLibrary onSelectWidget={addWidget} />
       </div>
-      <ResponsiveGridLayout
-        className="layout"
-        onDragStop={(layout, oldItem, newItem, placeholder, e, element) => {
-          console.log('Drag stopped:', { layout, oldItem, newItem });
-        }}
-        onResizeStop={(layout, oldItem, newItem, placeholder, e, element) => {
-          console.log('Resize stopped:', { layout, oldItem, newItem });
-        }}
-        layouts={{
-          lg: widgets.map((widget) => ({
-            i: widget.id,
-            x: widget.x,
-            y: widget.y,
-            w: widget.w,
-            h: widget.h,
-          })),
-        }}
-        breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 2 }}
-        cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-        rowHeight={30}
-        onLayoutChange={onLayoutChange}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
       >
-        {widgets.map((widget) => (
-          <div key={widget.id} className="border p-4 rounded shadow">
-            {renderWidget(widget)}
-          </div>
-        ))}
-      </ResponsiveGridLayout>
+        <SortableContext items={widgets} strategy={verticalListSortingStrategy}>
+          {widgets.map((widget) => (
+            <SortableWidget key={widget.id} id={widget.id}>
+              {renderWidget(widget)}
+            </SortableWidget>
+          ))}
+        </SortableContext>
+      </DndContext>
     </div>
   );
 };
+
+function SortableWidget({
+  id,
+  children,
+}: {
+  id: string;
+  children: React.ReactNode;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className="border p-4 rounded shadow mb-4"
+    >
+      {children}
+    </div>
+  );
+}

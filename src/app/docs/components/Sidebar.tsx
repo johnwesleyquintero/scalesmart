@@ -180,7 +180,6 @@ const DOC_CATEGORY_ORDER = [
   'academy',
   'admin',
   'ats',
-  'workflow-builder',
   'privacy-policy',
   'metadata',
   'page',

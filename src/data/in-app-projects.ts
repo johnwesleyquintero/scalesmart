@@ -66,13 +66,4 @@ export const projects: Project[] = [
     auth: 'always',
     status: 'beta', // Assuming courses are also part of the beta platform features
   },
-  {
-    name: 'Workflow Builder',
-    description:
-      'Automate repetitive tasks and design custom workflows to boost productivity and efficiency.',
-    href: '/workflow-builder',
-    icon: WorkflowIcon,
-    auth: 'always',
-    status: 'beta',
-  },
 ];
