@@ -5,7 +5,8 @@ import {
   Users,
   KanbanSquare,
   GraduationCap,
-  Workflow as WorkflowIcon,
+  FileText,
+  MessageSquare,
 } from 'lucide-react';
 
 interface Project {
@@ -26,6 +27,24 @@ export const projects: Project[] = [
     href: '/amazon-seller-tools',
     icon: Store,
     external: true,
+    auth: 'always',
+    status: 'beta',
+  },
+  {
+    name: 'Markdown Notepad',
+    description:
+      'Create and manage markdown notes with categories, search, and real-time preview.',
+    href: '/markdown-notepad',
+    icon: FileText,
+    auth: 'always',
+    status: 'beta',
+  },
+  {
+    name: 'WesAI',
+    description:
+      'Engage with our AI assistant for quick answers, code assistance, and support.',
+    href: '/chat',
+    icon: MessageSquare,
     auth: 'always',
     status: 'beta',
   },

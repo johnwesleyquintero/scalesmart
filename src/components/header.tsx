@@ -111,12 +111,7 @@ export default function Header() {
           description:
             'Create and manage markdown notes with categories and search.',
         },
-        {
-          name: 'Workflow Builder',
 
-          category: productsCategories[1], // Productivity & Automation
-          description: 'Automate tasks with custom workflows.',
-        },
         {
           name: 'Prompt Request Generator',
           href: '/prompt-request-generator',
