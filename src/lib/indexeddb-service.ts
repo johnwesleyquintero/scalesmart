@@ -1,7 +1,26 @@
 import Dexie, { Table } from 'dexie';
 import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
 import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
-import { QuizResult, Course } from '@/types'; // Import QuizResult and Course from '@/types'
+
+// Define constants for schema strings
+const SCHEMA_ID_DATE = 'id, date';
+const SCHEMA_CRM_CONTACTS =
+  'id, name, email, phone, company, notes, category, createdAt, updatedAt, lastActivity';
+const SCHEMA_CRM_COMMUNICATION_LOGS =
+  'id, customerId, type, date, subject, notes';
+const SCHEMA_CRM_ACTIVITY_LOGS = 'id, contactId, type, date, notes';
+const SCHEMA_CRM_EMAIL_TEMPLATES = 'id, name';
+const SCHEMA_CRM_SALES_OPPORTUNITIES =
+  'id, name, status, amount, closeDate, contactId, createdAt, updatedAt';
+const SCHEMA_TASKS =
+  'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order';
+const SCHEMA_PROJECTS = 'id, name, description, createdAt, updatedAt, status';
+const SCHEMA_CALCULATIONS = 'id, campaignName, date';
+const SCHEMA_AMAZON_REPORTS = 'id, fileName, category, uploadDate';
+const SCHEMA_MARKDOWN_NOTES = 'id, title, category, createdAt, updatedAt';
+const SCHEMA_MARKDOWN_NOTE_VERSIONS = '++id, noteId, timestamp';
+const SCHEMA_TASK_COMMENTS = 'id, taskId, createdAt, userId';
+
 import {
   Contact,
   CommunicationLog,
@@ -36,9 +55,6 @@ export type {
   ActivityLog,
   Event,
   ChatMessageRecord,
-  ModuleProgressRecord,
-  QuizResultRecord,
-  Course,
   Note,
   MarkdownNoteVersion,
   AmazonReport,
@@ -54,6 +70,8 @@ const DB_OPERATION_FAILED = 'operation failed';
 class ScaleSmartDatabase extends Dexie {
   // Chat Interface
   public chatMessages!: Table<ChatMessageRecord, number>;
+  public moduleProgress!: Table<ModuleProgressRecord, [string, string, string]>;
+  public quizResults!: Table<QuizResultRecord, [string, string]>;
   public cache!: Table<{ key: string; value: unknown }, string>;
 
   // Calendar Events
@@ -72,11 +90,6 @@ class ScaleSmartDatabase extends Dexie {
   public projects!: Table<Project, string>;
   public taskComments!: Table<TaskComment, string>;
 
-  // Academy
-  public courses!: Table<Course, string>;
-  public moduleProgress!: Table<ModuleProgressRecord, [string, string, string]>;
-  public quizResults!: Table<QuizResultRecord, [string, string]>;
-
   // Amazon Seller Tools
   public calculations!: Table<CalculationData, string>;
   public amazonReports!: Table<AmazonReport, string>; // New table for Amazon reports
@@ -93,38 +106,130 @@ class ScaleSmartDatabase extends Dexie {
       cache: 'key',
 
       // Calendar Events
-      events: '++id, date',
+      events: SCHEMA_ID_DATE,
 
       // CRM
-      'crm-contacts':
-        'id, name, email, phone, company, notes, category, createdAt, updatedAt, lastActivity', // Added lastActivity
+      'crm-contacts': SCHEMA_CRM_CONTACTS,
       'crm-categories': 'id, name',
-      'crm-communication-logs': 'id, customerId, type, date, subject, notes',
-      'crm-activity-logs': 'id, contactId, type, date, notes',
+      'crm-communication-logs': SCHEMA_CRM_COMMUNICATION_LOGS,
+      'crm-activity-logs': SCHEMA_CRM_ACTIVITY_LOGS,
       'crm-email-templates': 'id, name',
-      'crm-sales-opportunities':
-        'id, name, status, amount, closeDate, contactId, createdAt, updatedAt',
+      'crm-sales-opportunities': SCHEMA_CRM_SALES_OPPORTUNITIES,
 
       // Project Management
-      tasks:
-        'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order',
-      projects: 'id, name, description, createdAt, updatedAt, status', // Added status
-
-      // Academy
-      courses:
-        'id, title, description, duration, level, metadata.category, metadata.tags, createdAt, updatedAt',
-      moduleProgress:
-        '[userId+courseId+moduleId], userId, courseId, moduleId, progress, lastUpdated',
-      quizResults: '[userId+moduleId], userId, moduleId, result, lastUpdated',
+      tasks: SCHEMA_TASKS,
+      projects: SCHEMA_PROJECTS,
 
       // Amazon Seller Tools
-      calculations: 'id, campaignName, date',
-      amazonReports: 'id, fileName, category, uploadDate', // Schema for Amazon reports
+      calculations: SCHEMA_CALCULATIONS,
+      amazonReports: SCHEMA_AMAZON_REPORTS,
 
       // Markdown Notepad
-      markdownNotes: 'id, title, category, createdAt, updatedAt', // Added title
-      markdownNoteVersions: '++id, noteId, timestamp', // For version history
-      taskComments: 'id, taskId, createdAt, userId',
+      markdownNotes: SCHEMA_MARKDOWN_NOTES,
+      markdownNoteVersions: SCHEMA_MARKDOWN_NOTE_VERSIONS,
+      taskComments: SCHEMA_TASK_COMMENTS,
+    });
+    this.version(19)
+      .stores({
+        // Chat Interface
+        chatMessages: '++id, chatSessionId, timestamp, sender',
+        quizResults: '[userId+moduleId]',
+        cache: 'key',
+
+        // Define schema for version 19 (e.g., new tables or indexes)
+        // newTable: '++id, name'
+
+        // Calendar Events
+        events: SCHEMA_ID_DATE,
+
+        // CRM
+        'crm-contacts': SCHEMA_CRM_CONTACTS,
+        'crm-categories': 'id, name',
+        'crm-communication-logs': SCHEMA_CRM_COMMUNICATION_LOGS,
+        'crm-activity-logs': SCHEMA_CRM_ACTIVITY_LOGS,
+        'crm-email-templates': 'id, name',
+        'crm-sales-opportunities': SCHEMA_CRM_SALES_OPPORTUNITIES,
+
+        // Project Management
+        tasks: SCHEMA_TASKS,
+        projects: SCHEMA_PROJECTS,
+
+        // Amazon Seller Tools
+        calculations: SCHEMA_CALCULATIONS,
+        amazonReports: SCHEMA_AMAZON_REPORTS,
+
+        // Markdown Notepad
+        markdownNotes: SCHEMA_MARKDOWN_NOTES,
+        markdownNoteVersions: SCHEMA_MARKDOWN_NOTE_VERSIONS,
+        taskComments: SCHEMA_TASK_COMMENTS,
+      })
+      .upgrade(async (trans) => {
+        console.log('Upgrading to database version 19');
+
+        // Example migration for version 18:
+        // If 'lastActivity' was added to 'crm-contacts' in this version:
+        // await trans.table('crm-contacts').toCollection().modify(contact => {
+        //   if (contact.lastActivity === undefined) {
+        //     contact.lastActivity = new Date(); // Set a default value
+        //   }
+        // });
+
+        // If 'status' was added to 'projects' in this version:
+        // await trans.table('projects').toCollection().modify(project => {
+        //   if (project.status === undefined) {
+        //     project.status = 'active'; // Set a default value
+        //   }
+        // });
+
+        // If 'title' was added to 'markdownNotes' in this version:
+        // await trans.table('markdownNotes').toCollection().modify(note => {
+        //   if (note.title === undefined) {
+        //     note.title = 'Untitled Note'; // Set a default value
+        //   }
+        // });
+
+        // If 'amazonReports' table was added in this version:
+        // No direct migration needed for new tables, just ensure schema is defined.
+      });
+
+    // Placeholder for future versions
+    this.version(19)
+      .stores({
+        // Define schema for version 19 (e.g., new tables or indexes)
+        // newTable: '++id, name'
+      })
+      .upgrade((tx) => {
+        // Upgrade logic from version 18 to version 19
+        console.log('Upgrading to database version 19');
+        // Example: tx.oldTable.toCollection().modify(item => { item.newField = 'defaultValue'; });
+      });
+    this.version(19).stores({
+      // Define schema for version 19 (e.g., new tables or indexes)
+      // newTable: '++id, name'
+
+      // Calendar Events
+      events: SCHEMA_ID_DATE,
+
+      // CRM
+      'crm-contacts': SCHEMA_CRM_CONTACTS, // Added lastActivity
+      'crm-categories': SCHEMA_CRM_EMAIL_TEMPLATES,
+      'crm-communication-logs': SCHEMA_CRM_COMMUNICATION_LOGS,
+      'crm-activity-logs': SCHEMA_CRM_ACTIVITY_LOGS,
+      'crm-email-templates': SCHEMA_CRM_EMAIL_TEMPLATES,
+      'crm-sales-opportunities': SCHEMA_CRM_SALES_OPPORTUNITIES,
+
+      // Project Management
+      tasks: SCHEMA_TASKS,
+      projects: SCHEMA_PROJECTS, // Added status
+
+      // Amazon Seller Tools
+      calculations: SCHEMA_CALCULATIONS,
+      amazonReports: SCHEMA_AMAZON_REPORTS, // Schema for Amazon reports
+
+      // Markdown Notepad
+      markdownNotes: SCHEMA_MARKDOWN_NOTES, // Added title
+      markdownNoteVersions: SCHEMA_MARKDOWN_NOTE_VERSIONS, // For version history
+      taskComments: SCHEMA_TASK_COMMENTS,
     });
   }
 }
@@ -261,93 +366,6 @@ export async function getNoteCountsByCategory(): Promise<Map<string, number>> {
     throw error; // Re-throw
   }
 }
-
-/**
- * Fetches courses from the server API.
- * @returns A promise resolving to an array of Course objects from the server.
- * @throws Error if the network request fails or the server responds with an error status.
- */
-export const fetchServerCourses = async (): Promise<Course[]> => {
-  const serverResponse = await fetch('/api/academy/courses');
-  if (!serverResponse.ok) {
-    const errorText = await serverResponse
-      .text()
-      .catch(() => 'Unknown error body');
-    throw new Error(
-      `HTTP error! status: ${serverResponse.status} from /api/academy/courses. Details: ${errorText}`,
-    );
-  }
-  return serverResponse.json();
-};
-
-/**
- * Syncs local IndexedDB courses with server courses.
- * Deletes courses present locally but not on the server, and updates/adds courses from the server.
- * @param indexedDBCourses - Courses currently stored in IndexedDB.
- * @param serverCourses - Courses fetched from the server.
- */
-export const syncLocalCourses = async (
-  indexedDBCourses: Course[],
-  serverCourses: Course[],
-): Promise<void> => {
-  const serverCourseIds = new Set(serverCourses.map((c) => c.id));
-  const coursesToDelete = indexedDBCourses.filter(
-    (c) => !serverCourseIds.has(c.id),
-  );
-
-  if (coursesToDelete.length > 0) {
-    await deleteCoursesByIds(coursesToDelete.map((c) => c.id));
-  }
-
-  const updatePromises = serverCourses.map(async (serverCourse) => {
-    const existingCourse = indexedDBCourses.find(
-      (c) => c.id === serverCourse.id,
-    );
-    const serverTimestamp = serverCourse.updatedAt
-      ? new Date(serverCourse.updatedAt).getTime()
-      : 0;
-    const existingTimestamp = existingCourse?.updatedAt
-      ? new Date(existingCourse.updatedAt).getTime()
-      : 0;
-
-    if (!existingCourse || serverTimestamp > existingTimestamp) {
-      await updateCourse(serverCourse);
-    }
-  });
-
-  await Promise.all(updatePromises);
-};
-
-/**
- * Fetches courses from the server and syncs them with IndexedDB.
- * Handles updates and deletions to keep local data consistent with the server.
- * @returns A promise resolving to an array of Course objects from IndexedDB.
- * @throws Error if fetching or syncing fails.
- */
-export const fetchAndSyncCourses = async (): Promise<Course[]> => {
-  try {
-    const [indexedDBCourses, serverCourses] = await Promise.all([
-      getAllCourses(),
-      fetchServerCourses(),
-    ]);
-
-    await syncLocalCourses(indexedDBCourses, serverCourses);
-
-    // Re-fetch from local DB to ensure data is current after sync operations
-    return await getAllCourses();
-  } catch (error: unknown) {
-    console.error('Error fetching and syncing courses:', error);
-    if (error instanceof Error) {
-      console.error('Error details:', error.message, error.stack);
-      throw error;
-    } else {
-      console.error('Unknown error:', error);
-      throw new Error(
-        `An unknown error occurred during course sync: ${String(error)}`,
-      );
-    }
-  }
-};
 
 export async function getAllItemsFromStore<T>(storeName: string): Promise<T[]> {
   try {
@@ -798,233 +816,6 @@ export const deleteCommunicationLog = async (
     logError(
       error,
       `Error deleting communication log from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const createCourse = async (
-  courseData: Omit<Course, 'id' | 'createdAt' | 'updatedAt'>,
-): Promise<string | undefined> => {
-  try {
-    const id = crypto.randomUUID();
-    const now = Date.now();
-    const courseToStore: Course = {
-      ...courseData,
-      id,
-      createdAt: now,
-      updatedAt: now,
-    };
-    await setItem('courses', id, courseToStore);
-    return id;
-  } catch (error) {
-    logError(
-      error,
-      `Error adding course to IndexedDB: ${courseData.title}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const updateModuleProgress = async (
-  userId: string,
-  courseId: string,
-  moduleId: string,
-  progress: number,
-): Promise<void> => {
-  if (!userId) {
-    logError(
-      new Error('User ID is undefined or null'),
-      'updateModuleProgress: userId is required',
-      ERROR_MESSAGE_PREFIX,
-    );
-    return;
-  }
-  try {
-    const record: ModuleProgressRecord = {
-      userId,
-      courseId,
-      moduleId,
-      progress,
-      lastUpdated: Date.now(),
-    };
-    console.log('DEBUG: Attempting to put moduleProgress record:', record);
-    await db.moduleProgress.put(record);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating module progress for user ${userId}, course ${courseId}, module ${moduleId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const getModuleProgress = async (
-  userId: string,
-  courseId: string,
-  moduleId: string,
-): Promise<number> => {
-  try {
-    const record = await db.moduleProgress.get([userId, courseId, moduleId]);
-    return record?.progress || 0;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting module progress for user ${userId}, course ${courseId}, module ${moduleId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return 0;
-  }
-};
-
-export const updateQuizResult = async (
-  userId: string,
-  moduleId: string,
-  result: QuizResult,
-): Promise<void> => {
-  if (!userId) {
-    logError(
-      new Error('User ID is undefined or null'),
-      'updateQuizResult: userId is required',
-      ERROR_MESSAGE_PREFIX,
-    );
-    return;
-  }
-  try {
-    const record: QuizResultRecord = {
-      userId,
-      moduleId,
-      result,
-      lastUpdated: Date.now(),
-    };
-    console.log('DEBUG: Attempting to put quizResults record:', record);
-    await db.quizResults.put(record);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating quiz result for user ${userId}, module ${moduleId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const getQuizResult = async (
-  userId: string,
-  moduleId: string,
-): Promise<QuizResultRecord | undefined> => {
-  try {
-    const record = await db.quizResults.get([userId, moduleId]);
-    return record;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting quiz result for user ${userId}, module ${moduleId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const getCourseModuleProgress = async (
-  userId: string,
-  courseId: string,
-): Promise<ModuleProgressRecord[]> => {
-  try {
-    if (courseId) {
-      // Check if courseId is provided (not an empty string)
-      return await db.moduleProgress
-        .where({ userId: userId, courseId: courseId })
-        .toArray();
-    } else {
-      // If courseId is not provided, get all module progress for the user
-      return await db.moduleProgress.where('userId').equals(userId).toArray();
-    }
-  } catch (error) {
-    logError(
-      error,
-      `Error getting course module progress for user ${userId}, course ${courseId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
-
-export const getAllQuizResultsForUser = async (
-  userId: string,
-): Promise<QuizResultRecord[]> => {
-  try {
-    return await db.quizResults.where('userId').equals(userId).toArray();
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all quiz results for user ${userId}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
-
-export const getCourse = async (id: string): Promise<Course | undefined> => {
-  try {
-    const course = await getItem<Course>('courses', id);
-    return course;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting course from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
-};
-
-export const getAllCourses = async (): Promise<Course[]> => {
-  try {
-    const courses = await getAllItemsFromStore<Course>('courses');
-    return courses;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all courses from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
-
-export const updateCourse = async (course: Course): Promise<void> => {
-  try {
-    const courseToStore = { ...course, updatedAt: Date.now() };
-    await setItem('courses', courseToStore.id, courseToStore);
-  } catch (error) {
-    logError(
-      error,
-      `Error updating course in IndexedDB: ${course.title}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const deleteCourse = async (id: string): Promise<void> => {
-  try {
-    await deleteItem('courses', id);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting course from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
-};
-
-export const deleteCoursesByIds = async (ids: string[]): Promise<void> => {
-  try {
-    await db.courses.bulkDelete(ids);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting multiple courses from IndexedDB: ${ids.join(', ')}`,
       ERROR_MESSAGE_PREFIX,
     );
   }

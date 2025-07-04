@@ -1,6 +1,6 @@
 import { getItem, setItem } from './indexeddb-service';
 
-import { Course } from '@/types';
+import { Course } from '@/lib/types';
 
 interface CachedResponse {
   url: string;

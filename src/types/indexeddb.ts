@@ -8,7 +8,7 @@ import {
   InventoryData, // Added
   CustomerReviewData, // Added
 } from './amazon-tools';
-import { QuizResult, Course } from './index';
+import { QuizResult } from '../lib/types';
 
 // Define Category interface
 export interface Category {

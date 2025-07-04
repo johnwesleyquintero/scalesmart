@@ -23,3 +23,13 @@ export interface QuizResult {
   totalQuestions: number;
   timestamp: string;
 }
+
+export interface Course {
+  id: string;
+  title: string;
+  description: string;
+  modules: Module[];
+  duration: string;
+  progress: number;
+  isCompleted: boolean;
+}

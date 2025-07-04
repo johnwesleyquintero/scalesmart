@@ -1,17 +1,11 @@
 import { useEffect } from 'react';
-import { Module } from '@/types';
-import { Course } from '@/types';
 
 export const useKeyboardNavigation = (
-  activeModule: Module | null,
-  activeCourse: Course | null,
   handleNextModule: () => void,
   handlePreviousModule: () => void,
 ) => {
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      if (!activeModule || !activeCourse) return;
-
       if (
         event.target instanceof HTMLInputElement ||
         event.target instanceof HTMLTextAreaElement ||
@@ -40,5 +34,5 @@ export const useKeyboardNavigation = (
     return () => {
       window.removeEventListener('keydown', handleKeyPress);
     };
-  }, [activeModule, activeCourse, handleNextModule, handlePreviousModule]);
+  }, [handleNextModule, handlePreviousModule]);
 };

@@ -5,21 +5,21 @@
       "degree": "Bachelor's degree, Elementary Education and Teaching (Licensed Professional Teacher)",
       "period": "2015 - 2019",
       "description": "Relevant coursework in education and teaching methodologies.",
-      "skills": ["Data Entry"]
+      "skills": ["Teaching", "Curriculum Development", "Classroom Management"]
     },
     {
       "institution": "Iowa State University",
       "degree": "Educational Technology",
       "period": "May 2018",
       "description": "Relevant coursework in educational technology.",
-      "skills": ["Data Entry"]
+      "skills": ["Educational Software", "E-learning", "Instructional Design"]
     },
     {
       "institution": "Magugpo Institute of Technology",
       "degree": "Information Technology",
       "period": "2014",
       "description": "Relevant coursework in information technology.",
-      "skills": ["Data Entry"]
+      "skills": ["Programming Fundamentals", "Network Basics", "Database Management"]
     }
   ],
   "certifications": [
