@@ -39,16 +39,16 @@ export default function HeroSection() {
 
           <div className="flex flex-col gap-4 sm:flex-row">
             <Button asChild size="lg">
-              <Link href="/login">
-                Get Started Free
+              <Link href="">
+                View My Portfolio
                 <span className="ml-2 group-hover:translate-x-1 duration-500">
                   →
                 </span>
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <Link href="/amazon-seller-tools">
-                Explore Our Tools
+              <Link href="">
+                Learn About My Experience
                 <span className="ml-2 group-hover:translate-x-1 duration-500">
                   →
                 </span>

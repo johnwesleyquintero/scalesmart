@@ -1,29 +1,99 @@
 {
   "skills": [
     {
-      "name": "Data Analytics",
+      "name": "Amazon & E-commerce",
+      "level": 95,
+      "icon": "ShoppingBag"
+    },
+    {
+      "name": "Marketplace Management & SEO",
+      "level": 90,
+      "icon": "Search"
+    },
+    {
+      "name": "PPC & Advertising (Amazon Ads)",
+      "level": 85,
+      "icon": "DollarSign"
+    },
+    {
+      "name": "FBA Inventory & Logistics",
+      "level": 90,
+      "icon": "Truck"
+    },
+    {
+      "name": "Competitor & Market Analysis",
+      "level": 90,
+      "icon": "BarChart2"
+    },
+    {
+      "name": "Data & Analytics",
       "level": 95,
       "icon": "LineChart"
     },
     {
-      "name": "Python/R Programming",
+      "name": "Data Visualization (Tableau, Power BI)",
+      "level": 85,
+      "icon": "PieChart"
+    },
+    {
+      "name": "Seller Central Reporting",
+      "level": 90,
+      "icon": "FileText"
+    },
+    {
+      "name": "Business Intelligence & Insights",
+      "level": 90,
+      "icon": "Lightbulb"
+    },
+    {
+      "name": "Advanced Excel (VLOOKUP, Pivots)",
+      "level": 95,
+      "icon": "Table"
+    },
+    {
+      "name": "Automation & Development",
       "level": 90,
       "icon": "Code"
     },
     {
-      "name": "Machine Learning",
+      "name": "SP-API Development & Integration",
       "level": 85,
+      "icon": "Share2"
+    },
+    {
+      "name": "Custom E-commerce Tooling (Node.js)",
+      "level": 80,
+      "icon": "Tool"
+    },
+    {
+      "name": "AI/ML Implementation Concepts",
+      "level": 75,
       "icon": "Brain"
     },
     {
-      "name": "SQL/Database Management",
+      "name": "Workflow Automation",
+      "level": 85,
+      "icon": "Workflow"
+    },
+    {
+      "name": "Node.js, React, Next.js",
       "level": 90,
+      "icon": "Code"
+    },
+    {
+      "name": "MongoDB, PostgreSQL, SQL",
+      "level": 85,
       "icon": "Database"
     },
     {
-      "name": "Process Automation",
-      "level": 95,
-      "icon": "Workflow"
+      "name": "AWS (Lambda, S3, API Gateway)",
+      "level": 80,
+      "icon": "Cloud"
+    },
+    {
+      "name": "Git, Docker, CI/CD",
+      "level": 85,
+      "icon": "GitBranch"
     }
   ]
 }

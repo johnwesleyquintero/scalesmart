@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Quiz from '../app/academy/components/Quiz';
+
 import { clsx } from 'clsx'; // Import clsx
 
 // Utility function to slugify text for IDs
@@ -134,7 +134,6 @@ export const components = {
     <kbd {...props}>{children}</kbd>
   ),
   hr: () => <hr />,
-  Quiz: Quiz,
   // Add any other custom components you want to use in your MDX files
 };
 

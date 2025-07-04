@@ -22,7 +22,7 @@ const InAppProjects = () => {
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
           <Badge variant="secondary" className="mb-4 text-sm">
-            Platform Features
+            Free Mini App Tools
           </Badge>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-3">
             Explore Our Core Capabilities

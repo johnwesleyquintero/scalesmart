@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 import { Menu, Moon, Sun, X } from 'lucide-react'; // Removed FileText, Loader2
-import { signIn, signOut, useSession } from 'next-auth/react'; // Added signOut for potential future use or logout
+import { signOut, useSession } from 'next-auth/react'; // Added signOut for potential future use or logout
 import { useScroll } from '@/hooks/use-scroll';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
@@ -45,9 +45,7 @@ interface NavItemChild {
 }
 
 export default function Header() {
-  console.log('Header component rendering, calling useSession...');
   const { data: session } = useSession();
-  console.log('useSession returned session:', session);
   const scrolled = useScroll(50);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -70,7 +68,7 @@ export default function Header() {
 
   const navItems: NavItem[] = [
     {
-      name: 'Products',
+      name: 'Free Tools',
       children: [
         {
           name: 'Amazon Seller Tools',
@@ -129,18 +127,6 @@ export default function Header() {
       ],
     },
 
-    {
-      name: 'Solutions',
-      children: [
-        {
-          name: 'ScaleSmart Academy',
-          href: '/academy',
-          external: false, // Assuming internal
-          description: 'Enhance skills with free courses in e-commerce & data.',
-        },
-        // Add other solutions if any
-      ],
-    },
     {
       name: 'Docs',
       children: [
@@ -217,7 +203,7 @@ export default function Header() {
                           {item.name}
                         </NavigationMenuTrigger>
                         <NavigationMenuContent>
-                          {item.name === 'Products' ? (
+                          {item.name === 'Free Tools' ? (
                             <div className="grid w-[600px] gap-3 p-4 md:grid-cols-2 lg:w-[700px] lg:grid-cols-3">
                               {productsCategories.map((category) => (
                                 <div
@@ -294,29 +280,6 @@ export default function Header() {
           </div>
 
           <div className="flex items-center gap-4 min-w-[150px]">
-            {session ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => signOut()}
-                className="hidden text-sm font-medium md:inline-flex"
-              >
-                Log Out
-              </Button>
-            ) : (
-              <Link href="/login" passHref aria-label="Login">
-                {' '}
-                {/* Added aria-label */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="hidden md:inline-flex"
-                >
-                  Login
-                </Button>
-              </Link>
-            )}
-
             {mounted && (
               <Button
                 variant="ghost"
@@ -410,32 +373,6 @@ export default function Header() {
                     </Link>
                   );
                 })}
-                <hr className="my-4" />
-                {session ? (
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      signOut();
-                      toggleMenu();
-                    }}
-                    className="w-full"
-                  >
-                    Log Out
-                  </Button>
-                ) : (
-                  <Link
-                    href="/login"
-                    className="w-full"
-                    onClick={toggleMenu}
-                    aria-label="Login"
-                  >
-                    {' '}
-                    {/* Added aria-label */}
-                    <Button variant="outline" className="w-full">
-                      Login
-                    </Button>
-                  </Link>
-                )}
               </nav>
             </div>
           )}

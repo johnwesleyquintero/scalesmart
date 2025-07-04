@@ -75,14 +75,4 @@ export const projects: Project[] = [
     auth: 'always',
     status: 'beta',
   },
-  {
-    name: 'ScaleSmart Academy',
-    description:
-      'Enhance your skills with free courses in e-commerce, data analytics, and digital marketing.',
-    href: '/academy',
-    icon: GraduationCap,
-    external: true,
-    auth: 'always',
-    status: 'beta', // Assuming courses are also part of the beta platform features
-  },
 ];
