@@ -305,33 +305,8 @@ interface ContentData {
 export async function getBlogPostBySlug(
   slug: string,
 ): Promise<BlogPost | undefined> {
-  if (!fs.existsSync(blogPostsDirectory)) {
-    const blogData = await import('@/data/portfolio-data/blog.json');
-    const post = blogData.posts.find((post: ContentData) => post.id === slug);
-
-    if (!post) return undefined;
-
-    const allPosts = blogData.posts;
-    const relatedPosts = allPosts
-      .filter(
-        (p: ContentData) =>
-          p.id !== slug &&
-          p.tags?.some((tag: string) => post.tags?.includes(tag) ?? false),
-      )
-      .slice(0, 2)
-      .map((p: ContentData) => ({
-        id: p.id,
-        slug: p.id,
-        title: p.title,
-        description: p.description,
-        date: p.date, // Added date property
-      }));
-
-    return {
-      ...post,
-      relatedPosts,
-    };
-  }
+  // If blogPostsDirectory does not exist, this function will return undefined, which is handled by notFound() in page.tsx
+  // The fallback to blog.json is removed as it's not the primary content source and causes module not found errors.
 
   try {
     const fullPath = path.join(blogPostsDirectory, `${slug}.mdx`);

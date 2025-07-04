@@ -1,4 +1,5 @@
 import { generateSampleCsv } from './generate-sample-csv';
+import { getAllBlogPosts } from './mdx';
 import {
   BlogPost,
   CaseStudy,
@@ -6,8 +7,6 @@ import {
   Project,
   StaticDataTypes,
 } from './static-data-types';
-
-// Ensure 'acos' is a valid key in StaticDataTypes
 
 export async function loadStaticData<T extends keyof StaticDataTypes>(
   file: T,
@@ -50,36 +49,8 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
     ) as StaticDataTypes[T];
   }
   if (file === 'blog') {
-    const data = await import('../data/portfolio-data/blog.json');
-    return data.default.posts.map((post: BlogPost) => {
-      const {
-        id,
-        slug,
-        title,
-        description,
-        date,
-        image,
-        tags,
-        readingTime,
-        author,
-        content,
-        relatedPosts,
-      } = post;
-      const mappedPost: BlogPost = {
-        id,
-        slug,
-        title,
-        description,
-        date,
-        image: image || undefined,
-        tags,
-        readingTime: readingTime || undefined,
-        author: author || undefined,
-        content: content || '',
-        relatedPosts: relatedPosts || [],
-      };
-      return mappedPost;
-    }) as StaticDataTypes[T];
+    const posts = await getAllBlogPosts();
+    return posts as unknown as StaticDataTypes[T];
   }
   if (file === 'case-studies') {
     const data = await import('../data/portfolio-data/case-studies.json');

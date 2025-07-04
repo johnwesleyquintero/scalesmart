@@ -36,9 +36,10 @@ const CertificationsSectionClient = dynamic(
   { loading: () => <CardLoading /> },
 );
 
-const BlogSectionClient = dynamic(() => import('@/components/blog-section'), {
-  loading: () => <CardLoading />,
-});
+const BlogSectionClient = dynamic(
+  () => import('@/components/blog-section').then((mod) => mod.BlogSection),
+  { ssr: false },
+);
 
 const ContactSectionClient = dynamic(
   () => import('@/components/contact-section'),

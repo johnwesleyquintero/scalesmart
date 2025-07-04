@@ -1,4 +1,4 @@
-import BlogSection from '@/components/blog-section';
+import { BlogSection } from '@/components/blog-section';
 import { getAllBlogPosts } from '@/lib/mdx';
 import type { BlogPost } from '@/types';
 import type { Metadata } from 'next';
@@ -10,7 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default async function BlogPage() {
-  const posts = await getAllBlogPosts();
+  const blogPosts = await getAllBlogPosts();
 
-  return <BlogSection />;
+  return (
+    <section className="container py-8">
+      <BlogSection blogPosts={blogPosts} />
+    </section>
+  );
 }

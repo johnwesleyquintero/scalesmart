@@ -149,6 +149,7 @@
     "react-day-picker": "^9.7.0",
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.3.8",
+    "react-error-boundary": "^6.0.0",
     "react-grid-layout": "^1.5.1",
     "react-heatmap-grid": "^0.9.1",
     "react-hook-form": "^7.56.4",

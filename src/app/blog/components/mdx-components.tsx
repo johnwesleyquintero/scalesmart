@@ -103,6 +103,27 @@ export const MDXComponents = {
       {...props}
     />
   ),
+  code: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
+    <code
+      className={cn(
+        'relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm',
+        className,
+      )}
+      {...props}
+    />
+  ),
+  pre: ({ className, ...props }: React.HTMLAttributes<HTMLPreElement>) => (
+    <pre
+      className={cn(
+        'mb-4 mt-6 overflow-x-auto rounded-lg border bg-black py-4',
+        className,
+      )}
+      {...props}
+    />
+  ),
+  strong: ({ className, ...props }: React.HTMLAttributes<HTMLElement>) => (
+    <strong className={cn('font-bold', className)} {...props} />
+  ),
   a: ({
     className,
     href = '#',
