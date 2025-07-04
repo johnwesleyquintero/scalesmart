@@ -19,7 +19,11 @@
       "degree": "Information Technology",
       "period": "2014",
       "description": "Relevant coursework in information technology.",
-      "skills": ["Programming Fundamentals", "Network Basics", "Database Management"]
+      "skills": [
+        "Programming Fundamentals",
+        "Network Basics",
+        "Database Management"
+      ]
     }
   ],
   "certifications": [
