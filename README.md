@@ -2,21 +2,20 @@
 
 ## Description
 
-This project is a comprehensive portfolio platform, the "ScaleSmart" (AKA WesVerse) built with Next.js, TypeScript, and Tailwind CSS. It showcases an integrated suite of custom-built applications and tools, demonstrating a wide range of skills. The current "WesApps" include:
+This project is a comprehensive portfolio platform, the "ScaleSmart" (AKA WesVerse) built with Next.js, TypeScript, and Tailwind CSS. It showcases an integrated suite of custom-built applications and tools, demonstrating a wide range of skills. ## Features
 
-- Blog (Content managed via MDX files in `src/app/content/blog/`)
-
-- **Admin Dashboard:** For managing project content and settings.
-- **Amazon Seller Tools:** A suite of tools for Amazon sellers, including Analytics Processing, Data Filtering, Listing Optimization AI, and Report Processing.
-- **Resume Scan:** A Resume Scanner/ATS tool.
-- **AI Chat Interface:**
-- **CRM:** A Customer Relationship Management tool.
-- **Project Board:** A project management tool with task and comment management.
-- **Workflow Builder:** A workflow automation builder with a visual interface for creating and managing workflows using a node registry and engine.
-- **Markdown Notepad:** A tool for creating and managing markdown notes with category support.
-- **Privacy Policy:** A dedicated page for the project's privacy policy.
-- **User Profile:** A page for managing user profile information.
-- **Prompt Request Generator:** A tool for generating prompt requests.
+- **Amazon Seller Tools**: Comprehensive suite for Amazon sellers, including product research, keyword tracking, listing optimization, and analytics, with SP-API integration and IndexedDB for local data persistence.
+- **ATS (Applicant Tracking System) Optimizer**: Helps users optimize resumes for ATS scans by analyzing content, providing compatibility scores, and suggesting improvements.
+- **Blog**: A platform for publishing articles and updates, supporting MDX for rich content creation and dynamic rendering.
+- **Content Management**: Leverages MDX files for dynamic rendering of blog posts and documentation, allowing for rich, interactive content with embedded React components.
+- **CRM (Customer Relationship Management)**: Comprehensive tools for managing customer interactions, tracking sales opportunities, and organizing contact information, with functionalities for customer listing, adding new customers, managing categories, communication logs, and email templates.
+- **Dashboard Studio**: A powerful, interactive tool for creating, customizing, and managing dynamic dashboards with various widget types (KPIs, charts, tables, text, images) and data source integration.
+- **Error Guide**: Provides a dedicated page to display comprehensive error documentation, dynamically loading and rendering MDX content for troubleshooting and solutions.
+- **Markdown Notepad**: A robust and intuitive note-taking application supporting real-time Markdown editing, note management, category systems, search functionality, and persistent local storage via IndexedDB.
+- **Privacy Policy Page**: Outlines how user data is collected, used, protected, and managed, dynamically loading content from an MDX file for easy updates.
+- **Project Management**: A comprehensive dashboard for organizing and tracking projects and tasks, including task creation, assignment, status updates, project creation, Gantt chart visualization, and local persistence via IndexedDB.
+- **Prompt Request Generator**: A specialized tool designed to help users construct well-structured and effective prompts for AI models, guiding them through selecting categories, providing context, detailing requests, and including code snippets.
+- **WesAI Chat Feature**: An interactive chat interface powered by AI, allowing users to generate content, get assistance, or interact with an AI model, supporting streaming responses and markdown rendering.
 
 The platform is designed to be an ever-expanding ecosystem, with potential for more "WesIntegrations" in the future.
 
@@ -93,19 +92,18 @@ Detailed API documentation can be found in the `src/app/content/docs/api-*.mdx` 
 
 ## Usage
 
-- **Blog:** Browse articles and learn about various topics. Content is managed via MDX files.
-
-- **Admin Dashboard:** Manage project content and settings.
-- **Amazon Seller Tools:** Utilize tools for Amazon seller activities, including analytics, data filtering, listing optimization, and report processing. Data is stored locally using IndexedDB.
-- **Resume Scan:** Scan and analyze resumes using the ATS tool.
-- **AI Chat Interface:** Communicate with others through the chat feature. Chat history is stored locally using IndexedDB.
-- **CRM:** Manage customer relationships. Data is stored locally using IndexedDB.
-- **Project Board:** Manage projects and tasks, including adding comments. Data is stored locally using IndexedDB.
-- **Workflow Builder:** Create and manage automated workflows using a visual interface. Data is stored locally using IndexedDB.
-- **Markdown Notepad:** Create and manage your markdown notes, organized by categories. Data is stored locally using IndexedDB.
-- **Privacy Policy:** View the project's privacy policy.
-- **User Profile:** Manage your user profile information.
-- **Prompt Request Generator:** Generate prompt requests for various purposes.
+- **Amazon Seller Tools**: Utilize tools for Amazon seller activities, including product research, keyword tracking, listing optimization, and analytics, with SP-API integration and IndexedDB for local data persistence.
+- **ATS (Applicant Tracking System) Optimizer**: Scan and analyze resumes using the ATS tool, providing compatibility scores and suggestions for improvement.
+- **Blog**: Browse articles and learn about various topics. Content is managed via MDX files, supporting rich content creation and dynamic rendering.
+- **Content Management**: Manage various types of content (blog posts, documentation, static pages) using MDX files, leveraging MDX for dynamic rendering and embedded React components.
+- **CRM (Customer Relationship Management)**: Manage customer relationships, categories, communication logs, and sales pipelines, with functionalities for customer listing, adding new customers, managing categories, communication logs, and email templates.
+- **Dashboard Studio**: Build custom dashboards with drag-and-drop functionality, various widget types (KPIs, charts, tables, text, images), and data source integration.
+- **Error Guide**: Access a dynamic guide for common errors, providing comprehensive error documentation dynamically loaded from MDX files.
+- **Markdown Notepad**: Create and manage your markdown notes, organized by categories, with real-time Markdown editing, search functionality, and persistent local storage via IndexedDB.
+- **Privacy Policy Page**: View the project's privacy policy, which outlines how user data is collected, used, protected, and managed, with dynamic content loading from an MDX file.
+- **Project Management**: Manage projects and tasks, including task creation, assignment, status updates, project creation, Gantt chart visualization, and local persistence via IndexedDB.
+- **Prompt Request Generator**: Generate structured prompt requests for various purposes, guiding users through selecting categories, providing context, detailing requests, and including code snippets.
+- **WesAI Chat Feature**: Communicate with AI through the chat feature, supporting streaming responses and markdown rendering.
 
 ## Contributing
 
