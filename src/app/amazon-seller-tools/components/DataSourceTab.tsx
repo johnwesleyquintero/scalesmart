@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import * as PapaParse from 'papaparse';
 import {
   addAmazonReport,
@@ -184,6 +185,7 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
   onFileParsedAndSaved,
 }) => {
   const { toast } = useToast();
+  const [savedReports, setSavedReports] = useState<AmazonReport[]>([]);
 
   // Define constants for duplicated strings
   const TOAST_TITLE_REPORT_DELETED = 'Report Deleted';
@@ -198,6 +200,26 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
   const TOAST_TITLE_SP_API_ERROR = 'SP-API Connection Error';
   const TOAST_DESCRIPTION_SP_API_FAILED =
     'Failed to connect to Amazon SP-API. Please check your credentials.';
+
+  // Placeholder for viewing report details
+  const handleViewReportDetails = (report: AmazonReport) => {
+    toast({
+      title: 'View Report Details',
+      description: `Viewing details for report: ${report.fileName} (ID: ${report.id})`,
+    });
+
+    console.log('View Report Details:', report);
+  };
+
+  // Placeholder for re-processing a report
+  const handleReprocessReport = (report: AmazonReport) => {
+    toast({
+      title: 'Re-process Report',
+      description: `Re-processing report: ${report.fileName} (ID: ${report.id})`,
+    });
+
+    console.log('Re-process Report:', report);
+  };
   const TOAST_TITLE_FILE_PROCESSING_ERROR = 'File Processing Error';
   const TOAST_DESCRIPTION_FILE_PROCESSING_FAILED =
     'There was an error processing your file. Please ensure it is a valid CSV.';
@@ -281,26 +303,9 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
     const loadReports = async () => {
       try {
         const reports = await getAllAmazonReports();
-        console.log(`Loaded ${reports.length} reports from IndexedDB.`);
-        const metadataFromReports: UploadedFileMetadata[] = reports.map(
-          (report) => ({
-            id: report.id,
-            name: report.fileName,
-            category: report.category,
-            uploadDate: report.uploadDate,
-            size: 0, // Size is not stored in DB report, using 0 as placeholder
-          }),
-        );
-        setUploadedFilesMetadata(metadataFromReports);
-        // Populate allParsedData state from DB reports
-        setAllParsedData(
-          reports.map((report) => ({
-            fileName: report.fileName,
-            data: report.parsedData as DataType[],
-          })),
-        );
+        setSavedReports(reports);
       } catch (error) {
-        console.error('Failed to load Amazon reports from IndexedDB:', error);
+        console.error('Failed to load saved reports:', error);
         toast({
           title: TOAST_TITLE_LOAD_ERROR,
           description: TOAST_DESCRIPTION_LOAD_FAILED,
@@ -309,7 +314,7 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
       }
     };
     loadReports();
-  }, []); // Empty dependency array ensures this runs only once on mount
+  }, [toast]);
 
   // Handler for file input change event
   const handleFileChange = async (
@@ -656,17 +661,45 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
                         Size: {(fileMetadata.size / 1024).toFixed(2)} KB
                       </p>
                     )}
-                    {/* TODO: Implement actions like View, Edit Category for saved reports */}
                     <div className="mt-3 flex space-x-2">
-                      {/* <button className="text-xs text-blue-600 hover:underline">View</button> */}
-                      {/* Add Delete button */}
-                      {fileMetadata.id && ( // Only show delete button if ID is available
-                        <button
-                          className="text-xs text-red-600 hover:underline"
-                          onClick={() => handleDeleteReport(fileMetadata.id!)}
-                        >
-                          Delete
-                        </button>
+                      {fileMetadata.id && (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const report = savedReports.find(
+                                (r) => r.id === fileMetadata.id,
+                              );
+                              if (report) {
+                                handleViewReportDetails(report);
+                              }
+                            }}
+                          >
+                            View Details
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const report = savedReports.find(
+                                (r) => r.id === fileMetadata.id,
+                              );
+                              if (report) {
+                                handleReprocessReport(report);
+                              }
+                            }}
+                          >
+                            Re-process
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDeleteReport(fileMetadata.id!)}
+                          >
+                            Delete
+                          </Button>
+                        </>
                       )}
                     </div>
                   </CardContent>

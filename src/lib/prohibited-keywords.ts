@@ -1,24 +1,26 @@
 import { loadStaticData } from './load-static-data';
 
-let prohibitedKeywords: string[] = [];
+let prohibitedKeywords: Set<string> = new Set();
 
 async function initialize() {
-  prohibitedKeywords = (await loadStaticData(
-    'prohibited-keywords',
-  )) as string[];
+  const data = (await loadStaticData('prohibited-keywords')) as string[];
+  prohibitedKeywords = new Set(data);
 }
 
 initialize();
 
 export async function getAll(): Promise<string[]> {
-  return prohibitedKeywords;
+  return Array.from(prohibitedKeywords);
 }
 
 export function isProhibited(keyword: string): boolean {
-  return prohibitedKeywords.includes(keyword.toLowerCase());
+  return prohibitedKeywords.has(keyword.toLowerCase());
 }
 
-export async function add(): Promise<void> {}
+export function add(keyword: string) {
+  prohibitedKeywords.add(keyword.toLowerCase());
+  return prohibitedKeywords;
+}
 
 export const ProhibitedKeywordsUtil = {
   getAll,
