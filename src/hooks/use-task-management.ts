@@ -1,4 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { getSocket } from '@/lib/socket';
+import { SOCKET_EVENTS } from '@/lib/constants/socket-events';
 import {
   Task,
   Project,
@@ -47,6 +49,38 @@ export const useTaskManagement = () => {
   const { tasks, setTasks, projects, setProjects, isLoading, error } =
     useTaskManagementData();
 
+  useEffect(() => {
+    const socket = getSocket();
+
+    const onTaskUpdate = (updatedTask: Task) => {
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === updatedTask.id ? updatedTask : task,
+        ),
+      );
+    };
+
+    const onTaskCreate = (newTask: Task) => {
+      setTasks((prevTasks) => [...prevTasks, newTask]);
+    };
+
+    const onTaskDelete = (deletedTaskId: string) => {
+      setTasks((prevTasks) =>
+        prevTasks.filter((task) => task.id !== deletedTaskId),
+      );
+    };
+
+    socket.on(SOCKET_EVENTS.TASK_UPDATE, onTaskUpdate);
+    socket.on(SOCKET_EVENTS.TASK_CREATE, onTaskCreate);
+    socket.on(SOCKET_EVENTS.TASK_DELETE, onTaskDelete);
+
+    return () => {
+      socket.off(SOCKET_EVENTS.TASK_UPDATE, onTaskUpdate);
+      socket.off(SOCKET_EVENTS.TASK_CREATE, onTaskCreate);
+      socket.off(SOCKET_EVENTS.TASK_DELETE, onTaskDelete);
+    };
+  }, [setTasks]);
+
   /**
    * @brief A generic helper function to perform optimistic updates and handle persistence.
    *
@@ -74,6 +108,11 @@ export const useTaskManagement = () => {
       originalState: T[],
       setStateFunction: React.Dispatch<React.SetStateAction<T[]>>,
       onPersistenceSuccess?: (result: R, optimisticState: T[]) => T[],
+      eventName?:
+        | typeof SOCKET_EVENTS.TASK_UPDATE
+        | typeof SOCKET_EVENTS.TASK_CREATE
+        | typeof SOCKET_EVENTS.TASK_DELETE,
+      getEventPayload?: (result: R) => Task | string,
     ): Promise<R> => {
       // Apply optimistic update immediately
       setStateFunction(updateLogic);
@@ -87,6 +126,12 @@ export const useTaskManagement = () => {
             onPersistenceSuccess(persistenceResult, prev as T[]),
           );
         }
+
+        if (eventName && getEventPayload) {
+          const socket = getSocket();
+          socket.emit(eventName, getEventPayload(persistenceResult));
+        }
+
         toast.success(successMessage); // Show success toast only after successful persistence
         return persistenceResult; // Return the result of the persistence logic
       } catch (error) {
@@ -130,6 +175,9 @@ export const useTaskManagement = () => {
         `Failed to update task "${updatedTask.title}". Please try again.`, // Error message
         originalTasks, // Original state for revert
         setTasks, // State setter function
+        undefined,
+        SOCKET_EVENTS.TASK_UPDATE,
+        () => updatedTask,
       );
     },
     [tasks, performOptimisticUpdate, setTasks],
@@ -154,7 +202,7 @@ export const useTaskManagement = () => {
       let finalCreatedTask: Task | undefined; // Variable to store the final created task
 
       try {
-        await performOptimisticUpdate(
+        const createdTask = await performOptimisticUpdate(
           (prevTasks) => {
             // Create an optimistic task object with the temporary ID and current timestamps
             const optimisticTask: Task = {
@@ -188,8 +236,10 @@ export const useTaskManagement = () => {
               (task) => (task.id === tempId ? newTaskFromDb : task), // Replace the task with the temporary ID
             );
           },
+          SOCKET_EVENTS.TASK_CREATE,
+          (newTask) => newTask,
         );
-        return finalCreatedTask; // Return the final created task on success
+        return createdTask; // Return the final created task on success
       } catch (error) {
         // Error is already handled and logged by performOptimisticUpdate
         return undefined; // Return undefined on failure
@@ -217,6 +267,9 @@ export const useTaskManagement = () => {
         'Failed to delete task. Please try again.', // Error message
         originalTasks, // Original state for revert
         setTasks, // State setter function
+        undefined,
+        SOCKET_EVENTS.TASK_DELETE,
+        () => id,
       );
     },
     [tasks, performOptimisticUpdate, setTasks],

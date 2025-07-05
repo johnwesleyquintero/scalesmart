@@ -73,6 +73,7 @@ const ProjectManagementPage = () => {
   // Initialized to NO_PROJECT_VALUE to show all tasks by default
   const [selectedProject, setSelectedProject] =
     useState<string>(NO_PROJECT_VALUE);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // State to manage the visibility and content of the Task Details modal
   const [isTaskDetailsModalOpen, setIsTaskDetailsModalOpen] = useState(false);
@@ -89,11 +90,24 @@ const ProjectManagementPage = () => {
    * @returns {Task[]} The array of tasks filtered by the currently selected project.
    */
   const filteredTasks = useMemo(() => {
-    if (selectedProject === NO_PROJECT_VALUE) {
-      return tasks;
+    let tasksToFilter = tasks;
+
+    if (selectedProject !== NO_PROJECT_VALUE) {
+      tasksToFilter = tasksToFilter.filter(
+        (task) => task.projectId === selectedProject,
+      );
     }
-    return tasks.filter((task) => task.projectId === selectedProject);
-  }, [tasks, selectedProject]);
+
+    if (searchQuery) {
+      tasksToFilter = tasksToFilter.filter(
+        (task) =>
+          task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          task.description?.toLowerCase().includes(searchQuery.toLowerCase()),
+      );
+    }
+
+    return tasksToFilter;
+  }, [tasks, selectedProject, searchQuery]);
 
   /**
    * @brief Callback to open the Task Details modal and set the selected task.
@@ -181,6 +195,8 @@ const ProjectManagementPage = () => {
               selectedProject={selectedProject}
               setSelectedProject={setSelectedProject}
               NO_PROJECT_VALUE={NO_PROJECT_VALUE}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
               handleUpdateTask={memoizedHandleUpdateTask}
               handleDeleteTask={memoizedHandleDeleteTask}
               handleViewTaskDetails={handleViewTaskDetails}

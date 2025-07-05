@@ -17,6 +17,7 @@ import { EmailTemplate } from './types'; // Import EmailTemplate type
 import { DashboardBuilder } from '../dashboard-studio/components/DashboardBuilder'; // Import DashboardBuilder
 import { WidgetConfig } from '../dashboard-studio/widget-types'; // Import WidgetConfig
 import WorkflowBuilderSection from './components/WorkflowBuilderSection'; // Import WorkflowBuilderSection
+import { DEFAULT_CHART_COLORS, DEFAULT_CRM_TAB } from '@/lib/constants/crm';
 
 // Dynamically import components that are not needed on initial load
 const EmailTemplateManager = lazy(
@@ -139,16 +140,6 @@ export default function CRMComponent() {
 
         const labels = Object.keys(distribution);
         const data = Object.values(distribution);
-        const backgroundColors = [
-          '#8884d8',
-          '#82ca9d',
-          '#ffc658',
-          '#ff7300',
-          '#0088FE',
-          '#00C49F',
-          '#FFBB28',
-          '#FF8042',
-        ]; // Example colors
 
         return {
           labels: labels,
@@ -156,7 +147,9 @@ export default function CRMComponent() {
             {
               label: 'Number of Customers',
               data: data,
-              // backgroundColor: labels.map((_, i) => backgroundColors[i % backgroundColors.length]), // Removed to fix TypeScript error
+              backgroundColor: labels.map(
+                (_, i) => DEFAULT_CHART_COLORS[i % DEFAULT_CHART_COLORS.length],
+              ), // Restored to fix TypeScript error
             },
           ],
         };
@@ -206,7 +199,7 @@ export default function CRMComponent() {
 
         {/* Main Tabs Navigation */}
         {/* Provides navigation between different sections of the CRM dashboard. */}
-        <Tabs defaultValue="add-customer" className="w-full">
+        <Tabs defaultValue={DEFAULT_CRM_TAB} className="w-full">
           <TabsList className="mb-4 flex flex-wrap h-auto justify-start bg-muted">
             <CRMTabsTrigger value="add-customer">Add Customer</CRMTabsTrigger>
             <CRMTabsTrigger value="customer-list">Customer List</CRMTabsTrigger>

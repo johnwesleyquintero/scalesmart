@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'; // Import Select components for project filter
+import { Input } from '@/components/ui/input'; // Import Input for search
 
 /**
  * @interface TaskManagementSectionProps
@@ -34,6 +35,8 @@ import {
  * @property {string} selectedProject - The ID of the currently selected project for filtering tasks.
  * @property {(projectId: string) => void} setSelectedProject - Callback to update the selected project filter.
  * @property {string} NO_PROJECT_VALUE - A constant representing the "All Projects" filter value.
+ * @property {string} searchQuery - The current search query.
+ * @property {(query: string) => void} setSearchQuery - Callback to update the search query.
  * @property {(task: Task) => Promise<void>} handleUpdateTask - Callback to update an existing task.
  * @property {(taskId: string) => Promise<void>} handleDeleteTask - Callback to delete a task.
  * @property {(task: Task) => void} handleViewTaskDetails - Callback to open the task details modal.
@@ -47,6 +50,8 @@ interface TaskManagementSectionProps {
   selectedProject: string;
   setSelectedProject: (projectId: string) => void;
   NO_PROJECT_VALUE: string;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
   handleUpdateTask: (task: Task) => Promise<void>;
   handleDeleteTask: (taskId: string) => Promise<void>;
   handleViewTaskDetails: (task: Task) => void;
@@ -76,6 +81,8 @@ const TaskManagementSection: React.FC<TaskManagementSectionProps> = ({
   selectedProject,
   setSelectedProject,
   NO_PROJECT_VALUE,
+  searchQuery,
+  setSearchQuery,
   handleUpdateTask,
   handleDeleteTask,
   handleViewTaskDetails,
@@ -93,37 +100,52 @@ const TaskManagementSection: React.FC<TaskManagementSectionProps> = ({
   return (
     <div className="space-y-4 mt-4">
       {/* Project Filter Section */}
-      <div className="mb-4 flex items-center gap-2">
-        <Label htmlFor="project-filter" className="text-foreground">
-          Filter by Project:
-        </Label>
-        <Select
-          value={selectedProject}
-          onValueChange={setSelectedProject} // Update selected project state
-        >
-          <SelectTrigger
-            id="project-filter"
-            className="w-full md:w-1/3 lg:w-1/4"
-            aria-label="Filter tasks by project"
+      <div className="mb-4 flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Label htmlFor="project-filter" className="text-foreground">
+            Filter by Project:
+          </Label>
+          <Select
+            value={selectedProject}
+            onValueChange={setSelectedProject} // Update selected project state
           >
-            <SelectValue placeholder="All Projects" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={NO_PROJECT_VALUE} label="All Projects">
-              All Projects
-            </SelectItem>
-            {/* Map through available projects to create filter options */}
-            {projects.map((project: Project) => (
-              <SelectItem
-                key={project.id}
-                value={project.id}
-                label={project.name}
-              >
-                {project.name}
+            <SelectTrigger
+              id="project-filter"
+              className="w-full md:w-auto"
+              aria-label="Filter tasks by project"
+            >
+              <SelectValue placeholder="All Projects" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={NO_PROJECT_VALUE} label="All Projects">
+                All Projects
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              {/* Map through available projects to create filter options */}
+              {projects.map((project: Project) => (
+                <SelectItem
+                  key={project.id}
+                  value={project.id}
+                  label={project.name}
+                >
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center gap-2">
+          <Label htmlFor="task-search" className="text-foreground">
+            Search Tasks:
+          </Label>
+          <Input
+            id="task-search"
+            type="search"
+            placeholder="Search by title or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full md:w-auto"
+          />
+        </div>
       </div>
 
       {/* DndContext provides the drag-and-drop context for all children */}

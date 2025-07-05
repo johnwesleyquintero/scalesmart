@@ -296,14 +296,20 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
                 <Bar
                   key={`bar-${datasetIndex}`}
                   dataKey={dataset.label}
-                  fill={dataset.backgroundColor || '#8884d8'}
+                  fill={
+                    Array.isArray(dataset.backgroundColor)
+                      ? dataset.backgroundColor[0]
+                      : dataset.backgroundColor || '#8884d8'
+                  }
                 >
                   {transformedData.map((entry, index) => (
                     <Cell
                       key={`cell-${index}`}
                       fill={
                         entry.style?.fill ||
-                        dataset.backgroundColor ||
+                        (Array.isArray(dataset.backgroundColor)
+                          ? dataset.backgroundColor[0]
+                          : dataset.backgroundColor) ||
                         '#8884d8'
                       }
                     />
@@ -396,7 +402,9 @@ export const ChartWidget: React.FC<ChartWidgetProps> = ({ config }) => {
                     key={`cell-${index}`}
                     fill={
                       entry.style?.fill ||
-                      data.datasets[0]?.backgroundColor?.[index] ||
+                      (Array.isArray(data.datasets[0]?.backgroundColor)
+                        ? data.datasets[0]?.backgroundColor[index]
+                        : data.datasets[0]?.backgroundColor) ||
                       '#8884d8'
                     }
                   />

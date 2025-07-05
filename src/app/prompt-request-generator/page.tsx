@@ -74,6 +74,7 @@ export default function PromptRequestGenerator() {
 
   // State for loading indicator during prompt generation.
   const [loading, setLoading] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
 
   // State for validation errors.
   const [validationErrors, setValidationErrors] = useState<
@@ -234,6 +235,75 @@ export default function PromptRequestGenerator() {
       setLoading(false); // Stop loading regardless of success or failure
     }
   }, [promptData]); // Dependency: Re-create if promptData changes.
+
+  const generateAiPromptHandler = useCallback(async () => {
+    setAiLoading(true);
+    setOutput('');
+
+    const {
+      category,
+      customCategory,
+      request,
+      context,
+      parentTask,
+      subtask,
+      codeInput,
+    } = promptData;
+    const errors: Partial<Record<keyof PromptData, string>> = {};
+
+    if (!category) {
+      errors.category = REQUIRED_CATEGORY_MESSAGE;
+    }
+    if (!request.trim()) {
+      errors.request = REQUIRED_REQUEST_MESSAGE;
+    }
+    if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
+      errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
+    }
+
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      setAiLoading(false);
+      toast.warning('Please fix the errors in the form.');
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/generate-ai-prompt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(promptData),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.generatedPrompt) {
+        setOutput(result.generatedPrompt);
+        toast.success('AI-powered prompt generated successfully!');
+      } else {
+        setOutput('');
+        toast.warning(
+          'AI did not return a prompt. Please try again or refine your request.',
+        );
+      }
+    } catch (error) {
+      console.error('Error generating AI prompt:', error);
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'An unexpected error occurred.';
+      toast.error(`Error generating AI prompt: ${errorMessage}`);
+      setOutput('');
+    } finally {
+      setAiLoading(false);
+    }
+  }, [promptData]);
 
   // Handler function to copy the generated output to the clipboard.
   const copyToClipboard = useCallback(async () => {
@@ -492,7 +562,7 @@ export default function PromptRequestGenerator() {
                   onClick={generatePromptHandler} // Use the renamed handler
                   className="w-full md:w-auto"
                   aria-label="Generate prompt based on details"
-                  disabled={isGenerateDisabled || loading} // Disable based on validation state or loading
+                  disabled={isGenerateDisabled || loading || aiLoading} // Disable based on validation state or loading
                 >
                   {loading ? (
                     'Generating...'
@@ -502,6 +572,16 @@ export default function PromptRequestGenerator() {
                       Generate Prompt
                     </>
                   )}
+                </Button>
+                <Button
+                  onClick={generateAiPromptHandler}
+                  disabled={isGenerateDisabled || aiLoading || loading}
+                  className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+                  aria-label="Generate prompt using AI (Gemini)"
+                >
+                  {aiLoading
+                    ? 'Generating with AI...'
+                    : 'Generate with AI (Gemini)'}
                 </Button>
 
                 {/* Clear Form Button */}

@@ -1,5 +1,5 @@
 'use client';
-import type { Row, Cell } from '@tanstack/react-table';
+import type { Row, Cell, SortingState } from '@tanstack/react-table';
 import React, { useState, useCallback, useMemo } from 'react';
 import {
   useReactTable,
@@ -148,6 +148,14 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
   const [selectedSalesStage, setSelectedSalesStage] =
     useState<SalesStage | null>(null);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      await handleDeleteCustomerAction(id);
+    },
+    [handleDeleteCustomerAction],
+  );
 
   const columns = useMemo(
     () => [
@@ -176,6 +184,14 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
         accessorKey: 'salesStage',
       },
       {
+        header: 'Last Activity',
+        accessorKey: 'lastActivity',
+        cell: ({ row }: { row: Row<Contact> }) =>
+          row.original.lastActivity
+            ? new Date(row.original.lastActivity).toLocaleDateString()
+            : 'N/A',
+      },
+      {
         header: 'Tags',
         accessorKey: 'tags',
         cell: ({ row }: { row: Row<Contact> }) => (
@@ -191,25 +207,30 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
           </div>
         ),
       },
+      {
+        header: 'Actions',
+        cell: ({ row }: { row: Row<Contact> }) => (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onEditCustomerAction(row.original)}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => handleDelete(row.original.id)}
+            >
+              Delete
+            </Button>
+          </div>
+        ),
+      },
     ],
-    [],
+    [onEditCustomerAction, handleDelete],
   );
-
-  const table = useReactTable({
-    data: customers,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-  });
-
-  const handlePageClick = (selectedObject: { selected: number }) => {
-    setCurrentPage(selectedObject.selected);
-  };
-
-  const handleDelete = async (id: string) => {
-    await handleDeleteCustomerAction(id);
-  };
 
   const handleCopyToClipboard = async (text: string) => {
     if (!navigator.clipboard) {
@@ -223,6 +244,22 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
       console.error('Failed to copy text: ', err);
       toast.error('Failed to copy notes. See console for details.');
     }
+  };
+
+  const table = useReactTable({
+    data: customers,
+    columns,
+    state: {
+      sorting,
+    },
+    onSortingChange: setSorting,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
+  const handlePageClick = (selectedObject: { selected: number }) => {
+    setCurrentPage(selectedObject.selected);
   };
 
   const exportTasksToCSV = () => {
@@ -308,51 +345,74 @@ export const CustomerListTab: React.FC<CustomerListTabProps> = ({
         />
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse">
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => (
-                    <th key={header.id} className="border p-2 text-left">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </th>
+        {filteredCustomers.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-lg font-semibold text-muted-foreground">
+              No customers found
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Add a new customer or adjust your filters.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse">
+                <thead>
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <th
+                          key={header.id}
+                          className="border p-2 text-left cursor-pointer"
+                          onClick={header.column.getToggleSortingHandler()}
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                          {{
+                            asc: ' 🔼',
+                            desc: ' 🔽',
+                          }[header.column.getIsSorted() as string] ?? null}
+                        </th>
+                      ))}
+                    </tr>
                   ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row: Row<Contact>) => (
-                <tr key={row.id}>
-                  {row.getVisibleCells().map((cell: Cell<Contact, unknown>) => (
-                    <td key={cell.id} className="border p-2">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </td>
+                </thead>
+                <tbody>
+                  {table.getRowModel().rows.map((row: Row<Contact>) => (
+                    <tr key={row.id}>
+                      {row
+                        .getVisibleCells()
+                        .map((cell: Cell<Contact, unknown>) => (
+                          <td key={cell.id} className="border p-2">
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext(),
+                            )}
+                          </td>
+                        ))}
+                    </tr>
                   ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-        <ReactPaginate
-          previousLabel={'Previous'}
-          nextLabel={'Next'}
-          pageCount={pageCount}
-          onPageChange={handlePageClick}
-          containerClassName="pagination hubspot-pagination"
-          previousLinkClassName="hubspot-pagination__link"
-          nextLinkClassName="hubspot-pagination__link"
-          disabledClassName="hubspot-pagination__link--disabled"
-          activeClassName="hubspot-pagination__link--active"
-        />
+                </tbody>
+              </table>
+            </div>
+            <ReactPaginate
+              previousLabel={'Previous'}
+              nextLabel={'Next'}
+              pageCount={pageCount}
+              onPageChange={handlePageClick}
+              containerClassName="pagination hubspot-pagination"
+              previousLinkClassName="hubspot-pagination__link"
+              nextLinkClassName="hubspot-pagination__link"
+              disabledClassName="hubspot-pagination__link--disabled"
+              activeClassName="hubspot-pagination__link--active"
+            />
+          </>
+        )}
       </CardContent>
     </Card>
   );
