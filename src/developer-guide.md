@@ -109,7 +109,7 @@ The `src/lib/` directory is a central place for reusable logic that is not tied 
 - [`src/lib/utils.ts`](src/lib/utils.ts): Contains general-purpose helper functions.
 - [`src/lib/api-error-handler.ts`](src/lib/api-error-handler.ts): Provides standardized error handling for API routes.
 - [`src/lib/logger.ts`](src/lib/logger.ts): A utility for logging messages across the application.
-- [`src/lib/core-utils.ts`](src/lib/core-utils.ts): Core utility functions.
+- [`src/lib/utils.ts`](src/lib/utils.ts): Core utility functions.
 - [`src/lib/constants.ts`](src/lib/constants.ts): Defines application-wide constants.
 - [`src/lib/types.ts`](src/lib/types.ts): Contains shared TypeScript type definitions.
 

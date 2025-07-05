@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Drawer as DrawerPrimitive } from 'vaul';
 
-import { cn } from '@/lib/core-utils';
+import { cn } from '@/lib/utils';
 
 /**
  * A drawer component that slides in from the edge of the screen.

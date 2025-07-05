@@ -4,7 +4,7 @@ import * as React from 'react';
 import * as ContextMenuPrimitive from '@radix-ui/react-context-menu';
 import { Check, ChevronRight, Circle } from 'lucide-react';
 
-import { cn } from '@/lib/core-utils';
+import { cn } from '@/lib/utils';
 
 /**
  * A menu that appears upon right-clicking or long-pressing an element.

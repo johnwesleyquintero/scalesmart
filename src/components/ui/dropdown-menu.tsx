@@ -4,7 +4,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import { Check, ChevronRight, Circle } from 'lucide-react';
 import * as React from 'react';
 
-import { cn } from '@/lib/core-utils';
+import { cn } from '@/lib/utils';
 
 /**
  * A menu that appears upon clicking a button or other trigger.

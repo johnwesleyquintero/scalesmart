@@ -4,7 +4,7 @@ import * as AccordionPrimitive from '@radix-ui/react-accordion';
 import { ChevronDown } from 'lucide-react';
 import * as React from 'react';
 
-import { cn } from '@/lib/core-utils';
+import { cn } from '@/lib/utils';
 
 /**
  * A vertically stacked set of interactive headings that each reveal a section of content.
