@@ -15,13 +15,28 @@ export interface Dashboard {
   refreshInterval?: number; // Refresh interval in seconds (optional)
 }
 
-// TODO: Integrate custom calculation and formula evaluation logic.
-// This might involve modifying data fetching or processing functions
-// to apply user-defined formulas using the logic in src/lib/formula-evaluator.ts.
+/**
+ * Applies a formula to each record in a dataset.
+ * @param data The dataset to process.
+ * @param formula The formula string to apply.
+ * @returns A new array with the formula applied to each record.
+ */
 
 const EXAMPLE_DASHBOARD_ID = 'example-dashboard-id';
 
 export const DashboardService = {
+  /**
+   * Applies a formula to each record in a dataset.
+   * @param data The dataset to process.
+   * @param formula The formula string to apply.
+   * @returns A new array with the formula applied to each record.
+   */
+  applyFormulaToDataset(
+    data: Record<string, unknown>[],
+    formula: string,
+  ): unknown[] {
+    return data.map((record) => this.evaluateFormulaOnRecord(formula, record));
+  },
   /**
    * Evaluates a given formula against a single data record.
    * @param formula The formula string to evaluate.

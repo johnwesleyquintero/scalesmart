@@ -16,8 +16,6 @@ export async function POST(request: Request) {
     // The actual response structure from amazon-sp-api for getCatalogItem can vary.
     // For 'getCatalogItem' operation with path `/catalog/2022-04-01/items/{asin}`,
     // the response typically contains the item details directly or within a 'payload' object.
-    // We'll cast to 'any' for flexibility and add a TODO to refine the type.
-    // The response structure from amazon-sp-api can vary.
     const productDetailsResponse: SearchCatalogItemsResponse =
       await client.callAPI({
         operation: 'searchCatalogItems', // Changed operation to searchCatalogItems

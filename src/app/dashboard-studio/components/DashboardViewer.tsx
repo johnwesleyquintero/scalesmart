@@ -209,7 +209,7 @@ export const DashboardViewer: React.FC<DashboardViewerProps> = ({
           </FixedSizeList>
         </div>
       )}
-      {/* TODO: Implement performance optimization strategies for rendering large datasets (e.g., virtualization, data aggregation) */}
+      {/* IMPORTANT: For large datasets, consider implementing virtualization (e.g., with react-window or react-virtualized) or data aggregation on the backend to improve rendering performance. */}
     </div>
   );
 };

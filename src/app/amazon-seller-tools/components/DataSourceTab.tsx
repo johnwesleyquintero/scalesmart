@@ -31,6 +31,7 @@ import { CsvColumnMapping } from '@/types/data-mapping';
 import { getReportConfig } from '@/lib/amazon-tools/reportProcessing';
 
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 
 type DataType =
   | ProductResearchData
@@ -182,6 +183,25 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
   onFileUpload,
   onFileParsedAndSaved,
 }) => {
+  const { toast } = useToast();
+
+  // Define constants for duplicated strings
+  const TOAST_TITLE_REPORT_DELETED = 'Report Deleted';
+  const TOAST_DESCRIPTION_REPORT_DELETED = (reportName: string) =>
+    `Report ${reportName} has been successfully deleted.`;
+  const TOAST_TITLE_ERROR = 'Error';
+  const TOAST_DESCRIPTION_DELETE_FAILED = (error: unknown) =>
+    `Failed to delete report: ${error instanceof Error ? error.message : 'Unknown error'}`;
+  const TOAST_TITLE_LOAD_ERROR = 'Error Loading Reports';
+  const TOAST_DESCRIPTION_LOAD_FAILED =
+    'Failed to load your saved reports. Please try again.';
+  const TOAST_TITLE_SP_API_ERROR = 'SP-API Connection Error';
+  const TOAST_DESCRIPTION_SP_API_FAILED =
+    'Failed to connect to Amazon SP-API. Please check your credentials.';
+  const TOAST_TITLE_FILE_PROCESSING_ERROR = 'File Processing Error';
+  const TOAST_DESCRIPTION_FILE_PROCESSING_FAILED =
+    'There was an error processing your file. Please ensure it is a valid CSV.';
+
   // Handler to delete a report by its ID
   const handleDeleteReport = async (reportId: string) => {
     try {
@@ -202,12 +222,26 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
           return data.fileName !== deletedMetadata?.name;
         }),
       );
-      // TODO: Optionally show a success message to the user
+      // After successful deletion from IndexedDB, update UI state
+      toast({
+        title: 'Report Deleted',
+        description: `Report with ID ${reportId} has been successfully deleted.`, // Simplified message as deletedMetadata is not directly available here
+      });
     } catch (error) {
       console.error(`Error deleting report with ID ${reportId}:`, error);
-      // TODO: Optionally show an error message to the user
+      toast({
+        title: TOAST_TITLE_ERROR,
+        description: TOAST_DESCRIPTION_DELETE_FAILED(error),
+      });
+    } finally {
+      // Ensure the UI reflects the latest state after deletion attempt
+      // This might involve re-fetching reports or simply removing from local state
+      // For now, we'll just log that the report was deleted from the local state.
+      // The onReportDeleted callback (if implemented) would be called here.
     }
   };
+
+  // Define constants for duplicated strings
 
   // State to hold metadata of uploaded files (persisted in IndexedDB)
   const [uploadedFilesMetadata, setUploadedFilesMetadata] = useState<
@@ -267,7 +301,11 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
         );
       } catch (error) {
         console.error('Failed to load Amazon reports from IndexedDB:', error);
-        // TODO: Optionally show a user-friendly error message in the UI
+        toast({
+          title: TOAST_TITLE_LOAD_ERROR,
+          description: TOAST_DESCRIPTION_LOAD_FAILED,
+          variant: 'destructive',
+        });
       }
     };
     loadReports();
@@ -351,7 +389,11 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
                   `Parsing errors for ${originalFile.name}:`,
                   results.errors,
                 );
-                // TODO: Handle parsing errors, potentially show a warning to the user about this file
+                toast({
+                  title: 'Parsing Warnings',
+                  description: `Some errors occurred while parsing ${originalFile.name}. Data might be incomplete.`,
+                  variant: 'warning',
+                });
               }
 
               // Transform the parsed data based on the determined category
@@ -438,8 +480,11 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
       } catch (error) {
         // This catch block handles errors from PapaParse error callback OR the DB save error rejection
         console.error(`Processing file ${originalFile.name} failed:`, error);
-        // TODO: Optionally update state to show an error for this specific file or the batch
-        // The loop will continue to the next file unless 'break' is added here
+        toast({
+          title: TOAST_TITLE_FILE_PROCESSING_ERROR,
+          description: TOAST_DESCRIPTION_FILE_PROCESSING_FAILED,
+          variant: 'destructive',
+        });
       }
       // Optional: Add a small delay before processing the next file to make progress updates more discernible
       // await new Promise(resolve => setTimeout(resolve, 100));
@@ -497,7 +542,11 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
           error: errorMessage,
         }));
         console.error('SP-API Connection Failed:', errorMessage);
-        // TODO: Display spApiState.error to the user in the UI
+        toast({
+          title: TOAST_TITLE_SP_API_ERROR,
+          description: TOAST_DESCRIPTION_SP_API_FAILED,
+          variant: 'destructive',
+        });
       }
     }, 1500); // Simulate network delay
   };
@@ -607,7 +656,7 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
                         Size: {(fileMetadata.size / 1024).toFixed(2)} KB
                       </p>
                     )}
-                    {/* TODO: Add actions like View, Edit Category for saved reports */}
+                    {/* TODO: Implement actions like View, Edit Category for saved reports */}
                     <div className="mt-3 flex space-x-2">
                       {/* <button className="text-xs text-blue-600 hover:underline">View</button> */}
                       {/* Add Delete button */}
