@@ -52,7 +52,7 @@ export function useLocalStorage<T>(
             setStoredValue(initialValue);
             // And persist it to IndexedDB for future loads
             if (initialValue !== undefined) {
-              await setItem('cache', key, initialValue);
+              await setItem('cache', { key, value: initialValue });
             }
           }
         }
@@ -77,7 +77,7 @@ export function useLocalStorage<T>(
           if (typeof window !== 'undefined') {
             try {
               // Persist to IndexedDB
-              setItem('cache', key, valueToStore);
+              setItem('cache', { key, value: valueToStore });
               // Also update localStorage for synchronous reads on next component mount
               localStorage.setItem(key, JSON.stringify(valueToStore));
             } catch (error) {

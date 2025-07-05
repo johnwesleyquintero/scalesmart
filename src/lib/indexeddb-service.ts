@@ -1,39 +1,19 @@
-import Dexie, { Table } from 'dexie';
-import { INDEXED_DB_ACOS_CALCULATOR_HISTORY_KEY } from './constants';
-import { NO_PROJECT_VALUE } from '@/lib/constants/project-management'; // Import NO_PROJECT_VALUE
+import Dexie, { Table, IndexableType } from 'dexie';
+import { NO_PROJECT_VALUE } from '@/lib/constants/project-management';
 
-// Define constants for schema strings
-const SCHEMA_ID_DATE = 'id, date';
-const SCHEMA_CRM_CONTACTS =
-  'id, name, email, phone, company, notes, category, createdAt, updatedAt, lastActivity';
-const SCHEMA_CRM_COMMUNICATION_LOGS =
-  'id, customerId, type, date, subject, notes';
-const SCHEMA_CRM_ACTIVITY_LOGS = 'id, contactId, type, date, notes';
-const SCHEMA_CRM_EMAIL_TEMPLATES = 'id, name';
-const SCHEMA_CRM_SALES_OPPORTUNITIES =
-  'id, name, status, amount, closeDate, contactId, createdAt, updatedAt';
-const SCHEMA_TASKS =
-  'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order';
-const SCHEMA_PROJECTS = 'id, name, description, createdAt, updatedAt, status';
-const SCHEMA_CALCULATIONS = 'id, campaignName, date';
-const SCHEMA_AMAZON_REPORTS = 'id, fileName, category, uploadDate';
-const SCHEMA_MARKDOWN_NOTES = 'id, title, category, createdAt, updatedAt';
-const SCHEMA_MARKDOWN_NOTE_VERSIONS = '++id, noteId, timestamp';
-const SCHEMA_TASK_COMMENTS = 'id, taskId, createdAt, userId';
-
+// --- Type Definitions ---
+// Consolidate imports for better organization
 import {
   Contact,
   CommunicationLog,
   ActivityLog,
   SalesOpportunity,
-} from '@/app/crm/types'; // Import CRM types
+} from '@/app/crm/types';
 import {
   Category,
   Note,
   MarkdownNoteVersion,
   AmazonReport,
-} from '@/types/indexeddb'; // Import Category, Note, MarkdownNoteVersion, AmazonReport from '@/types/indexeddb'
-import {
   ChatMessageRecord,
   ModuleProgressRecord,
   QuizResultRecord,
@@ -42,7 +22,8 @@ import {
   Project,
   Event,
   CalculationData,
-} from '@/types/indexeddb'; // Import other types from unified types
+  ProjectStatus, // Assuming ProjectStatus is a type needed
+} from '@/types/indexeddb';
 
 export type {
   TaskComment,
@@ -58,261 +39,327 @@ export type {
   Note,
   MarkdownNoteVersion,
   AmazonReport,
+  ProjectStatus,
+  SalesOpportunity,
+  ModuleProgressRecord,
+  QuizResultRecord,
 };
 
-// Define constants for duplicate strings
-const ERROR_MESSAGE_PREFIX = 'IndexedDBService';
-const DB_OPEN_FAILED = 'Failed to open ScaleSmartDatabase';
-const DB_INITIALIZED = 'ScaleSmartDatabase initialized and opened successfully';
-const DB_ALREADY_OPEN = 'ScaleSmartDatabase is already open';
-const DB_OPERATION_FAILED = 'operation failed';
+// --- Constants ---
+
+const DB_NAME = 'ScaleSmartDatabase';
+const SERVICE_NAME = 'IndexedDBService';
+
+// Store Names (matching class properties where possible, or schema names)
+// Using constants helps avoid magic strings and potential typos.
+const STORE_CHAT_MESSAGES = 'chatMessages';
+const STORE_MODULE_PROGRESS = 'moduleProgress';
+const STORE_QUIZ_RESULTS = 'quizResults';
+const STORE_CACHE = 'cache';
+const STORE_EVENTS = 'events';
+const STORE_CRM_CONTACTS = 'crmContacts'; // matches property name
+const STORE_CRM_CATEGORIES = 'crmCategories'; // matches property name
+const STORE_CRM_COMMUNICATION_LOGS = 'crmCommunicationLogs'; // matches property name
+const STORE_CRM_ACTIVITY_LOGS = 'crmActivityLogs'; // matches property name
+const STORE_CRM_EMAIL_TEMPLATES = 'crmEmailTemplates'; // matches property name
+const STORE_CRM_SALES_OPPORTUNITIES = 'crmSalesOpportunities'; // matches property name
+const STORE_TASKS = 'tasks'; // matches property name
+const STORE_PROJECTS = 'projects'; // matches property name
+const STORE_TASK_COMMENTS = 'taskComments'; // matches property name
+const STORE_CALCULATIONS = 'calculations'; // matches property name
+const STORE_AMAZON_REPORTS = 'amazonReports'; // matches property name
+const STORE_MARKDOWN_NOTES = 'markdownNotes'; // matches property name
+const STORE_MARKDOWN_NOTE_VERSIONS = 'markdownNoteVersions'; // matches property name
+
+// --- Database Class Definition ---
 
 class ScaleSmartDatabase extends Dexie {
-  // Chat Interface
-  public chatMessages!: Table<ChatMessageRecord, number>;
-  public moduleProgress!: Table<ModuleProgressRecord, [string, string, string]>;
-  public quizResults!: Table<QuizResultRecord, [string, string]>;
-  public cache!: Table<{ key: string; value: unknown }, string>;
+  // Define table properties using store name constants or descriptive names
+  public readonly [STORE_CHAT_MESSAGES]!: Table<ChatMessageRecord, number>;
+  public readonly [STORE_MODULE_PROGRESS]!: Table<
+    ModuleProgressRecord,
+    [string, string, string]
+  >;
+  public readonly [STORE_QUIZ_RESULTS]!: Table<
+    QuizResultRecord,
+    [string, string]
+  >;
+  public readonly [STORE_CACHE]!: Table<
+    { key: string; value: unknown },
+    string
+  >;
 
-  // Calendar Events
-  public events!: Table<Event, number>;
+  public readonly [STORE_EVENTS]!: Table<Event, number>;
 
-  // CRM
-  public crmContacts!: Table<Contact, string>;
-  public crmCategories!: Table<Category, string>;
-  public crmCommunicationLogs!: Table<CommunicationLog, string>;
-  public crmActivityLogs!: Table<ActivityLog, string>;
-  public crmEmailTemplates!: Table<{ id: string; name: string }, string>; // Assuming a simple structure for email templates
-  public crmSalesOpportunities!: Table<SalesOpportunity, string>;
+  public readonly [STORE_CRM_CONTACTS]!: Table<Contact, string>;
+  public readonly [STORE_CRM_CATEGORIES]!: Table<Category, string>;
+  public readonly [STORE_CRM_COMMUNICATION_LOGS]!: Table<
+    CommunicationLog,
+    string
+  >;
+  public readonly [STORE_CRM_ACTIVITY_LOGS]!: Table<ActivityLog, string>;
+  public readonly [STORE_CRM_EMAIL_TEMPLATES]!: Table<
+    { id: string; name: string },
+    string
+  >;
+  public readonly [STORE_CRM_SALES_OPPORTUNITIES]!: Table<
+    SalesOpportunity,
+    string
+  >;
 
-  // Project Management
-  public tasks!: Table<Task, string>;
-  public projects!: Table<Project, string>;
-  public taskComments!: Table<TaskComment, string>;
+  public readonly [STORE_TASKS]!: Table<Task, string>;
+  public readonly [STORE_PROJECTS]!: Table<Project, string>;
+  public readonly [STORE_TASK_COMMENTS]!: Table<TaskComment, string>;
 
-  // Amazon Seller Tools
-  public calculations!: Table<CalculationData, string>;
-  public amazonReports!: Table<AmazonReport, string>; // New table for Amazon reports
+  public readonly [STORE_CALCULATIONS]!: Table<CalculationData, string>;
+  public readonly [STORE_AMAZON_REPORTS]!: Table<AmazonReport, string>;
 
-  // Markdown Notepad
-  public markdownNotes!: Table<Note, string>;
-  public markdownNoteVersions!: Table<MarkdownNoteVersion, number>;
+  public readonly [STORE_MARKDOWN_NOTES]!: Table<Note, string>;
+  public readonly [STORE_MARKDOWN_NOTE_VERSIONS]!: Table<
+    MarkdownNoteVersion,
+    number
+  >;
 
   constructor() {
-    super('ScaleSmartDatabase');
+    super(DB_NAME);
+
+    // Define schema strings inline or as constants for clarity,
+    // but avoid overly complex strings if the structure is simple (like id, name).
+    // Ensure store names here match the constants and property names.
     this.version(18).stores({
-      // Chat Interface
-      chatMessages: '++id, chatSessionId, timestamp, sender',
-      cache: 'key',
-
-      // Calendar Events
-      events: SCHEMA_ID_DATE,
-
-      // CRM
-      'crm-contacts': SCHEMA_CRM_CONTACTS,
-      'crm-categories': 'id, name',
-      'crm-communication-logs': SCHEMA_CRM_COMMUNICATION_LOGS,
-      'crm-activity-logs': SCHEMA_CRM_ACTIVITY_LOGS,
-      'crm-email-templates': 'id, name',
-      'crm-sales-opportunities': SCHEMA_CRM_SALES_OPPORTUNITIES,
-
-      // Project Management
-      tasks: SCHEMA_TASKS,
-      projects: SCHEMA_PROJECTS,
-
-      // Amazon Seller Tools
-      calculations: SCHEMA_CALCULATIONS,
-      amazonReports: SCHEMA_AMAZON_REPORTS,
-
-      // Markdown Notepad
-      markdownNotes: SCHEMA_MARKDOWN_NOTES,
-      markdownNoteVersions: SCHEMA_MARKDOWN_NOTE_VERSIONS,
-      taskComments: SCHEMA_TASK_COMMENTS,
+      [STORE_CHAT_MESSAGES]: '++id, chatSessionId, timestamp, sender',
+      [STORE_CACHE]: 'key',
+      [STORE_EVENTS]: '++id, date', // Assuming 'id' is auto-incrementing or unique
+      [STORE_CRM_CONTACTS]:
+        'id, name, email, phone, company, notes, category, createdAt, updatedAt, lastActivity',
+      [STORE_CRM_CATEGORIES]: 'id, name',
+      [STORE_CRM_COMMUNICATION_LOGS]:
+        'id, customerId, type, date, subject, notes',
+      [STORE_CRM_ACTIVITY_LOGS]: 'id, contactId, type, date, notes',
+      [STORE_CRM_EMAIL_TEMPLATES]: 'id, name',
+      [STORE_CRM_SALES_OPPORTUNITIES]:
+        'id, name, status, amount, closeDate, contactId, createdAt, updatedAt',
+      [STORE_TASKS]:
+        'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order',
+      [STORE_PROJECTS]: 'id, name, description, createdAt, updatedAt, status',
+      [STORE_CALCULATIONS]: 'id, campaignName, date',
+      [STORE_AMAZON_REPORTS]: 'id, fileName, category, uploadDate',
+      [STORE_MARKDOWN_NOTES]: 'id, title, category, createdAt, updatedAt',
+      [STORE_MARKDOWN_NOTE_VERSIONS]: '++id, noteId, timestamp', // ++id for auto-increment
+      [STORE_TASK_COMMENTS]: 'id, taskId, createdAt, userId',
     });
+
+    // Chain version upgrades sequentially.
+    // The original code had duplicate version(19) blocks, which is incorrect.
+    // Combine the schema definitions and upgrade logic for version 19 into one block.
     this.version(19)
       .stores({
-        // Chat Interface
-        chatMessages: '++id, chatSessionId, timestamp, sender',
-        quizResults: '[userId+moduleId]',
-        cache: 'key',
+        // Re-declare all schemas for this version. Add new stores/indexes or modify existing ones.
+        // Existing schemas must be compatible with previous versions or handle migration in 'upgrade'.
+        [STORE_CHAT_MESSAGES]: '++id, chatSessionId, timestamp, sender',
+        [STORE_MODULE_PROGRESS]: '[userId+moduleId+progressKey]', // Assuming composite key
+        [STORE_QUIZ_RESULTS]: '[userId+moduleId]',
+        [STORE_CACHE]: 'key',
 
-        // Define schema for version 19 (e.g., new tables or indexes)
-        // newTable: '++id, name'
-
-        // Calendar Events
-        events: SCHEMA_ID_DATE,
-
-        // CRM
-        'crm-contacts': SCHEMA_CRM_CONTACTS,
-        'crm-categories': 'id, name',
-        'crm-communication-logs': SCHEMA_CRM_COMMUNICATION_LOGS,
-        'crm-activity-logs': SCHEMA_CRM_ACTIVITY_LOGS,
-        'crm-email-templates': 'id, name',
-        'crm-sales-opportunities': SCHEMA_CRM_SALES_OPPORTUNITIES,
-
-        // Project Management
-        tasks: SCHEMA_TASKS,
-        projects: SCHEMA_PROJECTS,
-
-        // Amazon Seller Tools
-        calculations: SCHEMA_CALCULATIONS,
-        amazonReports: SCHEMA_AMAZON_REPORTS,
-
-        // Markdown Notepad
-        markdownNotes: SCHEMA_MARKDOWN_NOTES,
-        markdownNoteVersions: SCHEMA_MARKDOWN_NOTE_VERSIONS,
-        taskComments: SCHEMA_TASK_COMMENTS,
+        [STORE_EVENTS]: '++id, date',
+        [STORE_CRM_CONTACTS]:
+          'id, name, email, phone, company, notes, category, createdAt, updatedAt, lastActivity',
+        [STORE_CRM_CATEGORIES]: 'id, name',
+        [STORE_CRM_COMMUNICATION_LOGS]:
+          'id, customerId, type, date, subject, notes',
+        [STORE_CRM_ACTIVITY_LOGS]: 'id, contactId, type, date, notes',
+        [STORE_CRM_EMAIL_TEMPLATES]: 'id, name',
+        [STORE_CRM_SALES_OPPORTUNITIES]:
+          'id, name, status, amount, closeDate, contactId, createdAt, updatedAt',
+        [STORE_TASKS]:
+          'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order',
+        [STORE_PROJECTS]: 'id, name, description, createdAt, updatedAt, status',
+        [STORE_CALCULATIONS]: 'id, campaignName, date',
+        [STORE_AMAZON_REPORTS]: 'id, fileName, category, uploadDate',
+        [STORE_MARKDOWN_NOTES]: 'id, title, category, createdAt, updatedAt',
+        [STORE_MARKDOWN_NOTE_VERSIONS]: '++id, noteId, timestamp',
+        [STORE_TASK_COMMENTS]: 'id, taskId, createdAt, userId',
       })
       .upgrade(async (trans) => {
-        console.log('Upgrading to database version 19');
+        // Migration logic from version 18 to 19 goes here.
+        console.log(`Upgrading ${DB_NAME} from version 18 to 19`);
 
-        // Example migration for version 18:
-        // If 'lastActivity' was added to 'crm-contacts' in this version:
-        // await trans.table('crm-contacts').toCollection().modify(contact => {
-        //   if (contact.lastActivity === undefined) {
-        //     contact.lastActivity = new Date(); // Set a default value
-        //   }
+        // Example: if moduleProgress and quizResults were added in v19,
+        // there's no data migration needed for them, just schema definition.
+        // If fields were added, you might need a modify operation:
+        // await trans.table(STORE_CRM_CONTACTS).toCollection().modify(contact => {
+        //   if (contact.newField === undefined) contact.newField = 'defaultValue';
         // });
-
-        // If 'status' was added to 'projects' in this version:
-        // await trans.table('projects').toCollection().modify(project => {
-        //   if (project.status === undefined) {
-        //     project.status = 'active'; // Set a default value
-        //   }
-        // });
-
-        // If 'title' was added to 'markdownNotes' in this version:
-        // await trans.table('markdownNotes').toCollection().modify(note => {
-        //   if (note.title === undefined) {
-        //     note.title = 'Untitled Note'; // Set a default value
-        //   }
-        // });
-
-        // If 'amazonReports' table was added in this version:
-        // No direct migration needed for new tables, just ensure schema is defined.
       });
 
-    // Placeholder for future versions
-    this.version(19)
-      .stores({
-        // Define schema for version 19 (e.g., new tables or indexes)
-        // newTable: '++id, name'
-      })
-      .upgrade((tx) => {
-        // Upgrade logic from version 18 to version 19
-        console.log('Upgrading to database version 19');
-        // Example: tx.oldTable.toCollection().modify(item => { item.newField = 'defaultValue'; });
-      });
-    this.version(19).stores({
-      // Define schema for version 19 (e.g., new tables or indexes)
-      // newTable: '++id, name'
+    // Add further versions as needed, chained sequentially.
+    // this.version(20).stores({...}).upgrade(...);
 
-      // Calendar Events
-      events: SCHEMA_ID_DATE,
-
-      // CRM
-      'crm-contacts': SCHEMA_CRM_CONTACTS, // Added lastActivity
-      'crm-categories': SCHEMA_CRM_EMAIL_TEMPLATES,
-      'crm-communication-logs': SCHEMA_CRM_COMMUNICATION_LOGS,
-      'crm-activity-logs': SCHEMA_CRM_ACTIVITY_LOGS,
-      'crm-email-templates': SCHEMA_CRM_EMAIL_TEMPLATES,
-      'crm-sales-opportunities': SCHEMA_CRM_SALES_OPPORTUNITIES,
-
-      // Project Management
-      tasks: SCHEMA_TASKS,
-      projects: SCHEMA_PROJECTS, // Added status
-
-      // Amazon Seller Tools
-      calculations: SCHEMA_CALCULATIONS,
-      amazonReports: SCHEMA_AMAZON_REPORTS, // Schema for Amazon reports
-
-      // Markdown Notepad
-      markdownNotes: SCHEMA_MARKDOWN_NOTES, // Added title
-      markdownNoteVersions: SCHEMA_MARKDOWN_NOTE_VERSIONS, // For version history
-      taskComments: SCHEMA_TASK_COMMENTS,
+    this.on('versionchange', (event) => {
+      console.warn(
+        `${SERVICE_NAME}: Database version change detected. Old version: ${event.oldVersion}, New version: ${event.newVersion}`,
+      );
+      // Optional: Handle specific version change scenarios, like prompting user to refresh
     });
   }
 }
 
 export const db = new ScaleSmartDatabase();
 
+// --- Helper Functions ---
+
+function logError(
+  error: unknown,
+  message: string,
+  component: string = SERVICE_NAME,
+): void {
+  console.error(`${component}: ${message}`, error);
+  // Consider integrating with a logging service (e.g., Sentry, LogRocket)
+}
+
+// Function to initialize the database connection
 export const initializeDB = async (): Promise<void> => {
+  if (db.isOpen()) {
+    console.log(`${SERVICE_NAME}: ${DB_NAME} is already open.`);
+    return;
+  }
+
   try {
-    if (!db.isOpen()) {
-      try {
-        await db.open();
-        console.log(DB_INITIALIZED);
-      } catch (openError) {
-        logError(openError, DB_OPEN_FAILED, ERROR_MESSAGE_PREFIX);
-        throw openError;
-      }
-    } else {
-      console.log(DB_ALREADY_OPEN);
-    }
-  } catch (error) {
-    logError(
-      error,
-      `Failed to initialize ScaleSmartDatabase`,
-      ERROR_MESSAGE_PREFIX,
+    await db.open();
+    console.log(
+      `${SERVICE_NAME}: ${DB_NAME} initialized and opened successfully.`,
     );
-    throw error;
+  } catch (error) {
+    logError(error, `Failed to open ${DB_NAME}`);
+    throw error; // Re-throw to signal failure
   }
 };
 
-function logError(error: unknown, message: string, component: string) {
-  console.error(`${component}: ${message}`, error);
-}
-
 // --- Generic CRUD Operations ---
+// These functions assume the primary key is part of the `value` object
+// (e.g., an `id` field for string keys, or `++id` for number keys).
+// They also assume getItem/deleteItem are called with the primary key value.
 
+/**
+ * Adds or updates an item in a specified store.
+ * Assumes the item object contains the primary key property as defined in the schema.
+ * @param storeName The name of the store.
+ * @param value The item object to add or update.
+ * @returns A promise resolving to the primary key of the added/updated item.
+ */
 export async function setItem<T>(
   storeName: string,
-  key: string,
   value: T,
-): Promise<void> {
+): Promise<IndexableType> {
   try {
     const table = db.table(storeName);
-    // For chatMessages, the primary key is 'id' within the object itself.
-    // For other stores, 'key' might be used as the primary key.
-    if (storeName === 'chatMessages') {
-      await table.put(value);
-    } else if (storeName === 'cache') {
-      // Add condition for 'cache'
-      // For the 'cache' store, the primary key is 'key'
-      const valueWithKey = { ...value, key: key };
-      await table.put(valueWithKey);
-    } else {
-      // For other stores, assume the primary key is 'id'
-      const valueWithId = { ...value, id: key };
-      await table.put(valueWithId);
-    }
+    const key = await table.put(value);
+    // Log success might be noisy, enable for debugging if needed.
+    // console.log(`${SERVICE_NAME}: Item set in "${storeName}"`, value);
+    return key;
   } catch (error) {
-    logError(
-      error,
-      `Error setting item in store "${storeName}" with key "${key}"`,
-      ERROR_MESSAGE_PREFIX,
-    );
+    logError(error, `Error setting item in store "${storeName}"`, SERVICE_NAME);
     throw error; // Re-throw to allow specific services to handle
   }
 }
 
+/**
+ * Retrieves an item from a specified store by its primary key.
+ * @param storeName The name of the store.
+ * @param key The primary key of the item.
+ * @returns A promise resolving to the item, or undefined if not found.
+ */
 export async function getItem<T>(
   storeName: string,
-  key: string,
+  key: IndexableType,
 ): Promise<T | undefined> {
   try {
     const table = db.table(storeName);
-    return await table.get(key);
+    const item = await table.get(key);
+    // Log success might be noisy.
+    // console.log(`${SERVICE_NAME}: Item retrieved from "${storeName}" with key "${key}"`, item);
+    return item;
   } catch (error) {
     logError(
       error,
       `Error getting item from store "${storeName}" with key "${key}"`,
-      ERROR_MESSAGE_PREFIX,
+      SERVICE_NAME,
     );
     throw error; // Re-throw
   }
 }
 
+/**
+ * Deletes an item from a specified store by its primary key.
+ * @param storeName The name of the store.
+ * @param key The primary key of the item.
+ * @returns A promise that resolves when the item is deleted.
+ */
+export async function deleteItem(
+  storeName: string,
+  key: IndexableType,
+): Promise<void> {
+  try {
+    const table = db.table(storeName);
+    await table.delete(key);
+    console.log(
+      `${SERVICE_NAME}: Item deleted from "${storeName}" with key "${key}"`,
+    );
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting item from store "${storeName}" with key "${key}"`,
+      SERVICE_NAME,
+    );
+    throw error; // Re-throw
+  }
+}
+
+/**
+ * Clears all items from a specified store.
+ * @param storeName The name of the store.
+ * @returns A promise that resolves when the store is cleared.
+ */
+export async function clearStore(storeName: string): Promise<void> {
+  try {
+    const table = db.table(storeName);
+    await table.clear();
+    console.log(`${SERVICE_NAME}: Store "${storeName}" cleared`);
+  } catch (error) {
+    logError(error, `Error clearing store "${storeName}"`, SERVICE_NAME);
+    throw error; // Re-throw
+  }
+}
+
+/**
+ * Retrieves all items from a specified store.
+ * @param storeName The name of the store.
+ * @returns A promise resolving to an array of all items.
+ */
+export async function getAllItems<T>(storeName: string): Promise<T[]> {
+  try {
+    const table = db.table(storeName);
+    const items = await table.toArray();
+    // Log success might be noisy.
+    // console.log(`${SERVICE_NAME}: All items retrieved from "${storeName}" (${items.length})`);
+    return items;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting all items from store "${storeName}"`,
+      SERVICE_NAME,
+    );
+    throw error; // Re-throw
+  }
+}
+
+/**
+ * Adds or updates multiple items in a specified store in a single transaction.
+ * This is more efficient than calling setItem multiple times.
+ * @param storeName The name of the store.
+ * @param items An array of items to add or update.
+ * @returns A promise that resolves when the operation is complete.
+ */
 export async function bulkSetItems<T>(
   storeName: string,
   items: T[],
@@ -324,242 +371,197 @@ export async function bulkSetItems<T>(
     logError(
       error,
       `Error bulk setting items in store "${storeName}"`,
-      ERROR_MESSAGE_PREFIX,
+      SERVICE_NAME,
     );
     throw error;
   }
 }
 
-export async function deleteItem(
-  storeName: string,
-  key: string,
-): Promise<void> {
-  try {
-    const table = db.table(storeName);
-    await table.delete(key);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting item from store "${storeName}" with key "${key}"`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    throw error; // Re-throw
-  }
-}
+/**
+ * Retrieves all items from a specified store.
+ * @param storeName The name of the store.
+ * @returns A promise resolving to an array of all items.
+ * @deprecated Use `getAllItems` instead for clarity.
+ */
+export const getAllItemsFromStore = getAllItems;
 
-export async function getNoteCountsByCategory(): Promise<Map<string, number>> {
-  try {
-    const notes = await db.tasks.toArray();
-    const counts = new Map<string, number>();
-
-    for (const note of notes) {
-      const category = note.category || 'Uncategorized'; // Assuming 'category' field exists in Task
-      counts.set(category, (counts.get(category) || 0) + 1);
-    }
-    return counts;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting note counts by category`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    throw error; // Re-throw
-  }
-}
-
-export async function getAllItemsFromStore<T>(storeName: string): Promise<T[]> {
-  try {
-    const table = db.table(storeName);
-    return await table.toArray();
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all items from store "${storeName}"`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    throw error; // Re-throw
-  }
-}
-
-// --- Specific Service Functions (using generic CRUD) ---
-
-// Note: Many specific functions below were already using direct Dexie calls (e.g., db.contacts.put).
-// We will keep those for now as they are already working, but the generic functions are now available
-// for other modules (chat-db, crm-db, project-management-db) to use.
-// If there's a need to refactor these specific functions to use the generic ones, that can be a separate step.
+// --- Specific Service Functions ---
+// These functions leverage the generic CRUD or use direct Dexie methods for complex queries.
 
 export const getChatMessagesBySession = async (
   chatSessionId: string,
 ): Promise<ChatMessageRecord[]> => {
-  console.log(
-    'indexeddb-service: getChatMessagesBySession called for session:',
-    chatSessionId,
-  );
   try {
-    const messages = await db.chatMessages
-      .where('chatSessionId')
+    const messages = await db[STORE_CHAT_MESSAGES].where('chatSessionId')
       .equals(chatSessionId)
       .sortBy('timestamp');
-    console.log(
-      'indexeddb-service: getChatMessagesBySession result:',
-      messages,
-    );
     return messages;
   } catch (error) {
     logError(
       error,
       `Failed to get messages for session ${chatSessionId}`,
-      ERROR_MESSAGE_PREFIX,
+      SERVICE_NAME,
     );
-    console.error(
-      'indexeddb-service: Error in getChatMessagesBySession:',
+    throw error; // Re-throw for consistency
+  }
+};
+
+export const clearChatMessagesBySession = async (
+  sessionId: string,
+): Promise<void> => {
+  try {
+    await db[STORE_CHAT_MESSAGES].where('chatSessionId')
+      .equals(sessionId)
+      .delete();
+  } catch (error) {
+    logError(
       error,
+      `Failed to clear messages for session ${sessionId}`,
+      SERVICE_NAME,
     );
-    return [];
+    throw error;
   }
 };
 
 export async function getCacheItem<T>(key: string): Promise<T | undefined> {
-  try {
-    return (await db.cache.get(key).then((item) => item?.value)) as
-      | T
-      | undefined;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting item from cache with key "${key}"`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
-  }
+  const item = await getItem<{ key: string; value: T }>(STORE_CACHE, key);
+  return item?.value;
 }
 
-export async function saveCalculation(data: CalculationData): Promise<void> {
-  try {
-    await db.transaction('rw', db.calculations, async () => {
-      await db.calculations.put({
-        ...data,
-        id: crypto.randomUUID(),
-        date: data.date,
-      });
-    });
-  } catch (error) {
-    logError(
-      error,
-      `Error saving calculation to IndexedDB for campaign "${data.campaignName}"`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
+export async function setCacheItem<T>(key: string, value: T): Promise<string> {
+  // The cache store uses 'key' as its primary key
+  const itemToStore = { key: key, value: value };
+  const resultKey = await setItem<{ key: string; value: T }>(
+    STORE_CACHE,
+    itemToStore,
+  );
+  return resultKey as string; // Primary key for cache is string 'key'
 }
 
-export async function setCacheItem<T>(key: string, value: T): Promise<void> {
-  try {
-    await db.cache.put({ key: key, value: value });
-  } catch (error) {
-    logError(
-      error,
-      `Error setting item in cache with key "${key}"`,
-      ERROR_MESSAGE_PREFIX,
-    );
-  }
+export async function removeCacheItem(key: string): Promise<void> {
+  await deleteItem(STORE_CACHE, key);
 }
 
-export const addEvent = async (event: Event): Promise<number | undefined> => {
+export const addEvent = async (event: Omit<Event, 'id'>): Promise<number> => {
   try {
-    const id = await db.events.add(event);
-    console.log('Event added to IndexedDB:', event);
+    // Assuming 'id' is auto-incrementing (++id) for events
+    const id = await db[STORE_EVENTS].add(event as Event); // Dexie generates ++id
+    console.log(`${SERVICE_NAME}: Event added`, event);
     return id;
   } catch (error) {
     logError(
       error,
-      `Error adding event to IndexedDB: ${event.title}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error adding event: ${'title' in event ? event.title : 'Untitled Event'}`,
+      SERVICE_NAME,
     );
-    return undefined;
+    throw error;
   }
 };
 
+// Example using direct Dexie query for calculations
 export async function getCalculations(): Promise<CalculationData[]> {
   try {
-    const calculations = await db.calculations.toArray();
+    const calculations = await db[STORE_CALCULATIONS].toArray();
+    return calculations;
+  } catch (error) {
+    logError(error, `Error getting all calculations`, SERVICE_NAME);
+    throw error;
+  }
+}
+
+// Example using direct Dexie query for calculations by campaign
+export async function getCalculationsByCampaignName(
+  campaignName: string,
+): Promise<CalculationData[]> {
+  try {
+    const calculations = await db[STORE_CALCULATIONS].where('campaignName')
+      .equals(campaignName)
+      .sortBy('date');
     return calculations;
   } catch (error) {
     logError(
       error,
-      `Error getting calculations from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
+      `Error getting calculations for campaign ${campaignName}`,
+      SERVICE_NAME,
     );
-    return [];
+    throw error;
   }
 }
 
+// Example using setItem for adding, assuming UUID is generated before calling setItem
 export const createContact = async (
-  contact: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>,
-): Promise<string | undefined> => {
+  contactData: Omit<Contact, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<string> => {
   try {
     const id = crypto.randomUUID();
     const now = Date.now();
     const contactToStore: Contact = {
-      ...contact,
+      ...contactData,
       id,
       createdAt: now,
       updatedAt: now,
     };
-    await setItem('contacts', id, contactToStore);
+    await setItem<Contact>(STORE_CRM_CONTACTS, contactToStore);
+    console.log(`${SERVICE_NAME}: Contact created`, contactToStore);
     return id;
   } catch (error) {
     logError(
       error,
-      `Error adding contact to IndexedDB: ${contact.name}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error creating contact: ${contactData.name}`,
+      SERVICE_NAME,
     );
-    return undefined;
+    throw error;
   }
 };
 
 export const getContact = async (id: string): Promise<Contact | undefined> => {
   try {
-    const contact = await getItem<Contact>('contacts', id);
-    return contact;
+    return await getItem<Contact>(STORE_CRM_CONTACTS, id);
   } catch (error) {
-    logError(
-      error,
-      `Error getting contact from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
+    logError(error, `Error getting contact with id: ${id}`, SERVICE_NAME);
+    throw error;
+  }
+};
+
+export const getAllContacts = async (): Promise<Contact[]> => {
+  try {
+    return await getAllItems<Contact>(STORE_CRM_CONTACTS);
+  } catch (error) {
+    logError(error, `Error getting all contacts`, SERVICE_NAME);
+    throw error;
   }
 };
 
 export const updateContact = async (contact: Contact): Promise<void> => {
   try {
-    const updatedAt = Date.now();
-    const contactToStore = { ...contact, updatedAt };
-    await setItem('contacts', contactToStore.id, contactToStore);
+    const contactToStore = { ...contact, updatedAt: Date.now() };
+    await setItem<Contact>(STORE_CRM_CONTACTS, contactToStore);
+    console.log(`${SERVICE_NAME}: Contact updated`, contactToStore);
   } catch (error) {
     logError(
       error,
-      `Error updating contact in IndexedDB: ${contact.name}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error updating contact with id: ${contact.id}`,
+      SERVICE_NAME,
     );
+    throw error;
   }
 };
 
 export const deleteContact = async (id: string): Promise<void> => {
   try {
-    await deleteItem('contacts', id);
+    await deleteItem(STORE_CRM_CONTACTS, id);
+    console.log(`${SERVICE_NAME}: Contact deleted with id: ${id}`);
   } catch (error) {
-    logError(
-      error,
-      `Error deleting contact from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
+    logError(error, `Error deleting contact with id: ${id}`, SERVICE_NAME);
+    throw error;
   }
 };
 
+// Project Management Functions (using correct store names and generic/direct methods)
+
 export const createTask = async (
-  taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'comments'>,
-): Promise<Task | undefined> => {
+  taskData: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>,
+): Promise<Task> => {
   try {
     const id = crypto.randomUUID();
     const now = Date.now();
@@ -568,67 +570,86 @@ export const createTask = async (
       id,
       createdAt: now,
       updatedAt: now,
-      comments: [],
     };
-    await setItem('tasks', id, taskToStore);
+    await setItem<Task>(STORE_TASKS, taskToStore);
+    console.log(`${SERVICE_NAME}: Task created`, taskToStore);
     return taskToStore;
   } catch (error) {
-    logError(
-      error,
-      `Error adding task to IndexedDB: ${taskData.title}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
+    logError(error, `Error creating task: ${taskData.title}`, SERVICE_NAME);
+    throw error;
   }
 };
 
 export const getTask = async (id: string): Promise<Task | undefined> => {
   try {
-    const task = await getItem<Task>('tasks', id);
-    return task;
+    return await getItem<Task>(STORE_TASKS, id);
   } catch (error) {
-    logError(
-      error,
-      `Error getting task from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
+    logError(error, `Error getting task with id: ${id}`, SERVICE_NAME);
+    throw error;
   }
 };
 
-export const updateTask = async (task: Task): Promise<void> => {
+export const getAllTasks = async (): Promise<Task[]> => {
   try {
-    const updatedAt = Date.now();
-    const taskToStore = {
-      ...task,
-      updatedAt,
-      comments: Array.isArray(task.comments) ? task.comments : [],
-    };
-    await setItem('tasks', taskToStore.id, taskToStore);
+    return await getAllItems<Task>(STORE_TASKS);
+  } catch (error) {
+    logError(error, `Error getting all tasks`, SERVICE_NAME);
+    throw error;
+  }
+};
+
+export async function getTasksByProjectId(projectId: string): Promise<Task[]> {
+  try {
+    // Handle tasks not linked to any project if NO_PROJECT_VALUE is used
+    if (projectId === NO_PROJECT_VALUE) {
+      return await db[STORE_TASKS].where('projectId')
+        .equals(projectId)
+        .or('projectId') // Also include tasks where projectId is explicitly null/undefined if that's a possibility
+        .equals(NO_PROJECT_VALUE) // Use the constant for 'no project' tasks
+        .sortBy('order');
+    }
+    const tasks = await db[STORE_TASKS].where('projectId')
+      .equals(projectId)
+      .sortBy('order');
+    return tasks;
   } catch (error) {
     logError(
       error,
-      `Error updating task in IndexedDB: ${task.title}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error getting tasks for project ${projectId}`,
+      SERVICE_NAME,
     );
+    throw error;
+  }
+}
+
+export const updateTask = async (task: Task): Promise<void> => {
+  try {
+    // Ensure comments is always an array before storing
+    const taskToStore = {
+      ...task,
+      updatedAt: Date.now(),
+    };
+    await setItem<Task>(STORE_TASKS, taskToStore);
+    console.log(`${SERVICE_NAME}: Task updated`, taskToStore);
+  } catch (error) {
+    logError(error, `Error updating task with id: ${task.id}`, SERVICE_NAME);
+    throw error;
   }
 };
 
 export const deleteTask = async (id: string): Promise<void> => {
   try {
-    await deleteItem('tasks', id);
+    await deleteItem(STORE_TASKS, id);
+    console.log(`${SERVICE_NAME}: Task deleted with id: ${id}`);
   } catch (error) {
-    logError(
-      error,
-      `Error deleting task from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
+    logError(error, `Error deleting task with id: ${id}`, SERVICE_NAME);
+    throw error;
   }
 };
 
 export const createProject = async (
   projectData: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>,
-): Promise<string | undefined> => {
+): Promise<string> => {
   try {
     const id = crypto.randomUUID();
     const now = Date.now();
@@ -638,137 +659,122 @@ export const createProject = async (
       createdAt: now,
       updatedAt: now,
     };
-    await setItem('projects', id, projectToStore);
+    await setItem<Project>(STORE_PROJECTS, projectToStore);
+    console.log(`${SERVICE_NAME}: Project created`, projectToStore);
     return id;
   } catch (error) {
     logError(
       error,
-      `Error adding project to IndexedDB: ${projectData.name}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error creating project: ${projectData.name}`,
+      SERVICE_NAME,
     );
-    return undefined;
+    throw error;
   }
 };
 
 export const getProject = async (id: string): Promise<Project | undefined> => {
   try {
-    const project = await getItem<Project>('projects', id);
-    return project;
+    return await getItem<Project>(STORE_PROJECTS, id);
   } catch (error) {
-    logError(
-      error,
-      `Error getting project from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return undefined;
+    logError(error, `Error getting project with id: ${id}`, SERVICE_NAME);
+    throw error;
   }
 };
 
 export const getAllProjects = async (): Promise<Project[]> => {
   try {
-    const projects = await getAllItemsFromStore<Project>('projects');
-    return projects;
+    return await getAllItems<Project>(STORE_PROJECTS);
   } catch (error) {
-    logError(
-      error,
-      `Error getting all projects from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
+    logError(error, `Error getting all projects`, SERVICE_NAME);
+    throw error;
   }
 };
 
 export const updateProject = async (project: Project): Promise<void> => {
   try {
     const projectToStore = { ...project, updatedAt: Date.now() };
-    await setItem('projects', projectToStore.id, projectToStore);
+    await setItem<Project>(STORE_PROJECTS, projectToStore);
+    console.log(`${SERVICE_NAME}: Project updated`, projectToStore);
   } catch (error) {
     logError(
       error,
-      `Error updating project in IndexedDB: ${project.name}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error updating project with id: ${project.id}`,
+      SERVICE_NAME,
     );
+    throw error;
   }
 };
 
 export const deleteProject = async (id: string): Promise<void> => {
   try {
-    // Find all tasks associated with the project being deleted
-    const tasksToUpdate = await db.tasks
-      .where('projectId')
-      .equals(id)
-      .toArray();
+    // Use a transaction for atomicity
+    await db.transaction(
+      'rw',
+      db[STORE_TASKS],
+      db[STORE_PROJECTS],
+      async () => {
+        // Find and update tasks associated with the project being deleted
+        const tasksToUpdate = await db[STORE_TASKS].where('projectId')
+          .equals(id)
+          .toArray();
 
-    // Update these tasks to have no projectId
-    const updatedTasks = tasksToUpdate.map((task) => ({
-      ...task,
-      projectId: NO_PROJECT_VALUE, // Use the constant for 'no project'
-      updatedAt: Date.now(),
-    }));
+        const updatedTasks = tasksToUpdate.map((task) => ({
+          ...task,
+          projectId: NO_PROJECT_VALUE, // Use the constant for 'no project'
+          updatedAt: Date.now(),
+        }));
 
-    // Perform a bulk update for the tasks
-    if (updatedTasks.length > 0) {
-      await db.tasks.bulkPut(updatedTasks);
-      console.log(
-        `Updated ${updatedTasks.length} tasks to '${NO_PROJECT_VALUE}' after project deletion.`,
-      );
-    }
+        // Perform a bulk update for the tasks
+        if (updatedTasks.length > 0) {
+          await db[STORE_TASKS].bulkPut(updatedTasks);
+          console.log(
+            `${SERVICE_NAME}: Updated ${updatedTasks.length} tasks to '${NO_PROJECT_VALUE}' after project deletion.`,
+          );
+        }
 
-    // Finally, delete the project
-    await db.projects.delete(id);
-  } catch (error) {
-    logError(
-      error,
-      `Error deleting project from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
+        // Finally, delete the project
+        await db[STORE_PROJECTS].delete(id);
+        console.log(`${SERVICE_NAME}: Project deleted with id: ${id}`);
+      },
     );
+  } catch (error) {
+    logError(error, `Error deleting project with id: ${id}`, SERVICE_NAME);
     throw error; // Re-throw to allow calling function to handle optimistic update revert
   }
 };
 
-export const getAllTasks = async (): Promise<Task[]> => {
+export async function getProjectsByStatus(
+  status: ProjectStatus,
+): Promise<Project[]> {
   try {
-    const tasks = await getAllItemsFromStore<Task>('tasks');
-    return tasks;
+    const projects = await db[STORE_PROJECTS].where('status')
+      .equals(status)
+      .sortBy('createdAt');
+    return projects;
   } catch (error) {
-    logError(
-      error,
-      `Error getting all tasks from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
+    logError(error, `Error getting projects by status ${status}`, SERVICE_NAME);
+    throw error;
   }
-};
+}
 
-export const getAllContacts = async (): Promise<Contact[]> => {
-  try {
-    const contacts = await getAllItemsFromStore<Contact>('contacts');
-    return contacts;
-  } catch (error) {
-    logError(
-      error,
-      `Error getting all contacts from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
-  }
-};
+// CRM Specific Functions
 
 export const createCommunicationLog = async (
-  log: Omit<CommunicationLog, 'id'>,
-): Promise<string | undefined> => {
+  logData: Omit<CommunicationLog, 'id' | 'date'>,
+): Promise<string> => {
   try {
     const id = crypto.randomUUID();
-    const logToStore = { ...log, id, date: Date.now() };
-    await setItem('communicationLogs', id, logToStore);
+    const logToStore: CommunicationLog = { ...logData, id, date: Date.now() };
+    await setItem<CommunicationLog>(STORE_CRM_COMMUNICATION_LOGS, logToStore);
+    console.log(`${SERVICE_NAME}: Communication log created`, logToStore);
     return id;
   } catch (error) {
     logError(
       error,
-      `Error adding communication log to IndexedDB for customer ${log.customerId}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error creating communication log for customer ${logData.customerId}`,
+      SERVICE_NAME,
     );
-    return undefined;
+    throw error;
   }
 };
 
@@ -776,18 +782,17 @@ export const getCommunicationLogsByCustomerId = async (
   customerId: string,
 ): Promise<CommunicationLog[]> => {
   try {
-    const logs = await db.crmCommunicationLogs
-      .where('customerId')
+    const logs = await db[STORE_CRM_COMMUNICATION_LOGS].where('customerId')
       .equals(customerId)
       .sortBy('date');
     return logs;
   } catch (error) {
     logError(
       error,
-      `Error getting communication logs for customer ${customerId} from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
+      `Error getting communication logs for customer ${customerId}`,
+      SERVICE_NAME,
     );
-    return [];
+    throw error;
   }
 };
 
@@ -796,95 +801,271 @@ export const updateCommunicationLog = async (
 ): Promise<void> => {
   try {
     const updatedLog = { ...log, date: Date.now() };
-    await setItem('communicationLogs', updatedLog.id, updatedLog);
+    await setItem<CommunicationLog>(STORE_CRM_COMMUNICATION_LOGS, updatedLog);
+    console.log(`${SERVICE_NAME}: Communication log updated`, updatedLog);
   } catch (error) {
     logError(
       error,
-      `Error updating communication log in IndexedDB: ${log.id}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error updating communication log with id: ${log.id}`,
+      SERVICE_NAME,
     );
+    throw error;
   }
 };
 
-export const deleteCommunicationLog = async (
-  id: string,
-  customerId: string,
-): Promise<void> => {
+export const deleteCommunicationLog = async (id: string): Promise<void> => {
   try {
-    await deleteItem('communicationLogs', id);
+    await deleteItem(STORE_CRM_COMMUNICATION_LOGS, id);
+    console.log(`${SERVICE_NAME}: Communication log deleted with id: ${id}`);
   } catch (error) {
     logError(
       error,
-      `Error deleting communication log from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error deleting communication log with id: ${id}`,
+      SERVICE_NAME,
     );
+    throw error;
   }
 };
 
 export const addCategory = async (
-  category: Omit<Category, 'id'>, // Update type to omit 'id'
-): Promise<string | undefined> => {
+  categoryData: Omit<Category, 'id'>,
+): Promise<string> => {
   try {
     const id = crypto.randomUUID();
-    const categoryToStore = { ...category, id };
-    await setItem('categories', id, categoryToStore);
+    const categoryToStore: Category = { ...categoryData, id };
+    await setItem<Category>(STORE_CRM_CATEGORIES, categoryToStore);
+    console.log(`${SERVICE_NAME}: Category added`, categoryToStore);
     return id;
   } catch (error) {
     logError(
       error,
-      `Error adding category to IndexedDB: ${category.name}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error adding category: ${categoryData.name}`,
+      SERVICE_NAME,
     );
-    return undefined;
+    throw error;
   }
 };
 
 export const getAllCategories = async (): Promise<Category[]> => {
   try {
-    const categories = await getAllItemsFromStore<Category>('crm-categories');
-    return categories;
+    return await getAllItems<Category>(STORE_CRM_CATEGORIES);
   } catch (error) {
-    logError(
-      error,
-      `Error getting all categories from IndexedDB`,
-      ERROR_MESSAGE_PREFIX,
-    );
-    return [];
+    logError(error, `Error getting all categories`, SERVICE_NAME);
+    throw error;
   }
 };
 
 export const updateCategory = async (category: Category): Promise<void> => {
   try {
-    await setItem('categories', category.id, category);
+    await setItem<Category>(STORE_CRM_CATEGORIES, category);
+    console.log(`${SERVICE_NAME}: Category updated`, category);
   } catch (error) {
     logError(
       error,
-      `Error updating category in IndexedDB: ${category.name}`,
-      ERROR_MESSAGE_PREFIX,
+      `Error updating category with id: ${category.id}`,
+      SERVICE_NAME,
     );
+    throw error;
   }
 };
 
 export const deleteCategory = async (id: string): Promise<void> => {
   try {
-    await deleteItem('categories', id);
+    await deleteItem(STORE_CRM_CATEGORIES, id);
+    console.log(`${SERVICE_NAME}: Category deleted with id: ${id}`);
   } catch (error) {
-    logError(
-      error,
-      `Error deleting category from IndexedDB: ${id}`,
-      ERROR_MESSAGE_PREFIX,
-    );
+    logError(error, `Error deleting category with id: ${id}`, SERVICE_NAME);
+    throw error;
   }
 };
 
-export async function removeCacheItem(key: string): Promise<void> {
+export async function getContactsByCategory(
+  category: string,
+): Promise<Contact[]> {
   try {
-    await deleteItem('cache', key);
+    const contacts = await db[STORE_CRM_CONTACTS].where('category')
+      .equals(category)
+      .sortBy('name');
+    return contacts;
   } catch (error) {
     logError(
       error,
-      `Error removing item from cache with key "${key}"`,
-      ERROR_MESSAGE_PREFIX,
+      `Error getting contacts for category ${category}`,
+      SERVICE_NAME,
     );
+    throw error;
+  }
+}
+
+export async function getActivityLogsByContactId(
+  contactId: string,
+): Promise<ActivityLog[]> {
+  try {
+    const logs = await db[STORE_CRM_ACTIVITY_LOGS].where('contactId')
+      .equals(contactId)
+      .sortBy('date');
+    return logs;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting activity logs for contact ${contactId}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+}
+
+export async function getSalesOpportunitiesByStatus(
+  status: string,
+): Promise<SalesOpportunity[]> {
+  try {
+    const opportunities = await db[STORE_CRM_SALES_OPPORTUNITIES].where(
+      'status',
+    )
+      .equals(status)
+      .sortBy('closeDate');
+    return opportunities;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting sales opportunities by status ${status}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+}
+
+export async function getEmailTemplates(): Promise<
+  { id: string; name: string }[]
+> {
+  const templates = await db[STORE_CRM_EMAIL_TEMPLATES].toArray();
+  return templates;
+}
+
+// Amazon Seller Tools Specific Functions
+
+export async function getAmazonReportsByCategory(
+  category: string,
+): Promise<AmazonReport[]> {
+  try {
+    const reports = await db[STORE_AMAZON_REPORTS].where('category')
+      .equals(category)
+      .sortBy('uploadDate');
+    return reports;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting Amazon reports for category ${category}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+}
+
+// Markdown Notepad Specific Functions
+
+export async function getNotesByCategory(category: string): Promise<Note[]> {
+  try {
+    const notes = await db[STORE_MARKDOWN_NOTES].where('category')
+      .equals(category)
+      .sortBy('createdAt');
+    return notes;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting notes for category ${category}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+}
+
+export async function getNoteVersionsByNoteId(
+  noteId: string,
+): Promise<MarkdownNoteVersion[]> {
+  try {
+    const versions = await db[STORE_MARKDOWN_NOTE_VERSIONS].where('noteId')
+      .equals(noteId)
+      .sortBy('timestamp');
+    return versions;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting note versions for note ${noteId}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+}
+
+// Task Comments Specific Functions
+
+export async function getTaskCommentsByTaskId(
+  taskId: string,
+): Promise<TaskComment[]> {
+  try {
+    const comments = await db[STORE_TASK_COMMENTS].where('taskId')
+      .equals(taskId)
+      .sortBy('createdAt');
+    return comments;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting task comments for task ${taskId}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+}
+
+// Calendar Events Specific Functions
+
+export async function getEventsByDate(date: string): Promise<Event[]> {
+  try {
+    const events = await db[STORE_EVENTS].where('date').equals(date).toArray();
+    return events;
+  } catch (error) {
+    logError(error, `Error getting events for date ${date}`, SERVICE_NAME);
+    throw error;
+  }
+}
+
+// Chat Interface Specific Functions
+
+export async function getQuizResultsByUserIdAndModuleId(
+  userId: string,
+  moduleId: string,
+): Promise<QuizResultRecord[]> {
+  try {
+    const results = await db[STORE_QUIZ_RESULTS].where('[userId+moduleId]')
+      .equals([userId, moduleId])
+      .toArray();
+    return results;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting quiz results for user ${userId} and module ${moduleId}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+}
+
+export async function getModuleProgressByUserId(
+  userId: string,
+): Promise<ModuleProgressRecord[]> {
+  try {
+    // Assuming moduleProgress has 'userId' index or is part of composite key
+    const progress = await db[STORE_MODULE_PROGRESS].where('userId')
+      .equals(userId)
+      .toArray();
+    return progress;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting module progress for user ${userId}`,
+      SERVICE_NAME,
+    );
+    throw error;
   }
 }

@@ -1,7 +1,7 @@
-import { setItem, getItem, getAllItemsFromStore } from '../indexeddb-service';
+import { setItem, getAllItems } from '../indexeddb-service';
 
 // --- Constants for Chat IndexedDB Store Names ---
-const CHAT_MESSAGES_STORE_NAME = 'chat-messages';
+const CHAT_MESSAGES_STORE_NAME = 'chatMessages';
 
 // --- Types ---
 export interface ChatMessageRecord {
@@ -27,10 +27,8 @@ export async function saveChatMessage(
   message: ChatMessageRecord,
 ): Promise<void> {
   console.log('chat-db: saveChatMessage called with message:', message);
-  // The key for a chat message will be a combination of sessionId and messageId
-  const key = `${message.sessionId}-${message.id}`;
-  await setItem(CHAT_MESSAGES_STORE_NAME, key, message);
-  console.log('chat-db: saveChatMessage finished for key:', key);
+  await setItem(CHAT_MESSAGES_STORE_NAME, message);
+  console.log('chat-db: saveChatMessage finished for message:', message.id);
 }
 
 export async function getChatMessagesBySession(
@@ -40,12 +38,12 @@ export async function getChatMessagesBySession(
     'chat-db: getChatMessagesBySession called for session:',
     sessionId,
   );
-  const allMessages = await getAllItemsFromStore<ChatMessageRecord>(
+  const allMessages = await getAllItems<ChatMessageRecord>(
     CHAT_MESSAGES_STORE_NAME,
   );
   // Filter messages by session ID
   const sessionMessages = allMessages.filter(
-    (msg) => msg.sessionId === sessionId,
+    (msg: ChatMessageRecord) => msg.sessionId === sessionId,
   );
   console.log(
     'chat-db: getChatMessagesBySession found messages:',

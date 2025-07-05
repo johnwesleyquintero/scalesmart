@@ -44,7 +44,7 @@ export enum TaskPriority {
 // --- Shared IndexedDB Types ---
 
 export interface ChatMessageRecord {
-  id?: number;
+  id?: number | string;
   chatSessionId: string;
   sender: 'user' | 'ai' | 'system';
   text: string;

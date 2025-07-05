@@ -363,7 +363,7 @@ export const useTaskManagement = () => {
           },
           async () => {
             // Persistence logic: create the task in IndexedDB
-            const newTask = await createTask(taskData);
+            const newTask = await createTask({ ...taskData, comments: [] });
             if (!newTask) {
               throw new Error('Failed to create task in database.');
             }

@@ -2,7 +2,7 @@ import {
   setItem,
   getItem, // Although not used in the original code, including it for completeness if needed by derived services.
   deleteItem,
-  getAllItemsFromStore,
+  getAllItems,
 } from '../indexeddb-service'; // Assuming this service exists and works as intended.
 import type {
   Category,
@@ -36,7 +36,7 @@ export function createCrudService<T extends { id: string }>(storeName: string) {
     create: async (item: Omit<T, 'id'>): Promise<string> => {
       const id = crypto.randomUUID(); // Generate a unique ID
       const newItem: T = { ...item, id } as T; // Add the generated ID
-      await setItem(storeName, id, newItem);
+      await setItem(storeName, newItem);
       return id;
     },
 
@@ -52,7 +52,7 @@ export function createCrudService<T extends { id: string }>(storeName: string) {
           `ID is required for updating an item in store "${storeName}".`,
         );
       }
-      await setItem(storeName, item.id, item);
+      await setItem(storeName, item);
     },
 
     /**
@@ -69,7 +69,7 @@ export function createCrudService<T extends { id: string }>(storeName: string) {
      * @returns A promise resolving with an array of all items in the store.
      */
     getAll: async (): Promise<T[]> => {
-      return getAllItemsFromStore<T>(storeName);
+      return getAllItems<T>(storeName);
     },
 
     // Optional: Add a getItemById function if needed

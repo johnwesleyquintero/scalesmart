@@ -2,7 +2,7 @@ import {
   setItem,
   getItem,
   deleteItem,
-  getAllItemsFromStore,
+  getAllItems,
   db,
 } from 'lib/indexeddb-service.ts';
 
@@ -187,7 +187,8 @@ export async function createTaskComment(comment: TaskComment): Promise<void> {
 export async function getTaskCommentsByTaskId(
   taskId: string,
 ): Promise<TaskComment[]> {
-  const allComments =
-    await getAllItemsFromStore<TaskComment>(TASK_COMMENT_STORE);
-  return allComments.filter((comment) => comment.taskId === taskId);
+  const allComments = await getAllItems<TaskComment>(TASK_COMMENT_STORE);
+  return allComments.filter(
+    (comment: TaskComment) => comment.taskId === taskId,
+  );
 }

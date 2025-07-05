@@ -57,7 +57,7 @@ async function cachedFetch(
     const data = await responseClone.json(); // Read the body from the clone
     const expiry = Date.now() + ttl * 1000; // Calculate expiry time
     console.time(`Save ${url} to cache`);
-    await setItem('apiCache', url, { url: url, data: data, expiry: expiry });
+    await setItem('apiCache', { url: url, data: data, expiry: expiry });
     console.timeEnd(`Save ${url} to cache`);
     console.log(`Caching response for ${url}`);
     return response; // Return the original response

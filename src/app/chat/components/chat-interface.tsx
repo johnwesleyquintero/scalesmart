@@ -5,12 +5,7 @@ import ChatInput from './ChatInput'; // Import ChatInput component
 // import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config'; // Remove this line
 import DOMPurify from 'dompurify';
 import React, { useCallback, useEffect, useReducer, useRef } from 'react';
-import {
-  initializeDB,
-  setItem,
-  getChatMessagesBySession, // Keep getChatMessagesBySession
-  ChatMessageRecord,
-} from '@/lib/indexeddb-service';
+import { ChatMessageRecord } from '@/lib/indexeddb-service';
 import { Message, mapMessageRoleToSender } from '@/lib/chat-message-utils';
 import {
   ChatState,
@@ -54,6 +49,7 @@ interface MessageBubbleProps {
 // --- Constants ---
 // const DEFAULT_RETRY_LIMIT = 3; // This line is now replaced by the import
 import { DEFAULT_RETRY_LIMIT } from '@/lib/chat-constants';
+import { useChatHistory } from '@/hooks/use-chat-history';
 
 const greetings = [
   "Hey there! I'm WesAI. I can turn your raw data into insights!",
@@ -133,6 +129,29 @@ export default function ChatInterface() {
   // Generate a unique session ID for this chat session, persistent across renders but reset on explicit chat reset.
   const chatSessionIdRef = useRef<string>(crypto.randomUUID());
 
+  const handleMessagesLoaded = useCallback(
+    (loadedMessages: Message[]) => {
+      if (loadedMessages.length > 0) {
+        dispatch({ type: 'SET_MESSAGES', payload: loadedMessages });
+      } else {
+        dispatch({ type: 'ADD_MESSAGE', payload: initialGreeting });
+      }
+    },
+    [dispatch],
+  );
+
+  const handleSaveComplete = useCallback(() => {
+    // Optional: Add a toast or log when save is complete
+    console.log('Messages saved to IndexedDB.');
+  }, []);
+
+  const { clearSessionHistory } = useChatHistory({
+    sessionId: chatSessionIdRef.current,
+    messages: messages,
+    onLoad: handleMessagesLoaded,
+    onSaveComplete: handleSaveComplete,
+  });
+
   // Function to reset chat (clear messages and generate new session ID)
   const resetChat = useCallback(() => {
     dispatch({ type: 'CLEAR_MESSAGES' });
@@ -141,109 +160,8 @@ export default function ChatInterface() {
     // Clear editing state and input on reset
     dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
     dispatch({ type: 'SET_INPUT', payload: '' });
-  }, [dispatch]);
-
-  // Load messages from IndexedDB when the component mounts or session ID changes
-  useEffect(() => {
-    const loadMessages = async () => {
-      console.log('ChatInterface: Attempting to load messages from IndexedDB.');
-      try {
-        await initializeDB(); // Ensure the Dexie db instance is open and ready
-        console.log('ChatInterface: initializeDB completed.');
-
-        // Use the current value of the ref
-        const dbMessages = await getChatMessagesBySession(
-          chatSessionIdRef.current,
-        );
-        if (dbMessages.length > 0) {
-          const { mapDbRecordToMessage } = await import(
-            '@/lib/chat-message-utils'
-          );
-          const mappedMessages = dbMessages.map(mapDbRecordToMessage);
-          dispatch({ type: 'SET_MESSAGES', payload: mappedMessages });
-          console.log('ChatInterface: Messages loaded from IndexedDB.');
-        } else {
-          // If no messages, add the initial greeting
-          dispatch({ type: 'ADD_MESSAGE', payload: initialGreeting });
-        }
-      } catch (error) {
-        console.error('ChatInterface: Error in loadMessages:', error);
-        toast({
-          title: 'Error loading chat history',
-          description: 'Could not load messages from local storage.',
-          variant: 'destructive',
-        });
-      }
-    };
-    // Effect should only run once on mount. New sessions handled by resetChat.
-    loadMessages();
-  }, [toast]); // Add toast to dependencies
-
-  // Save messages to IndexedDB when they change
-  useEffect(() => {
-    const saveMessages = async () => {
-      // Add a small debounce/delay to avoid writing too frequently during fast updates
-      const handler = setTimeout(async () => {
-        if (typeof window !== 'undefined') {
-          console.log(
-            'ChatInterface: Attempting to save messages to IndexedDB.',
-          );
-          // Iterate over current messages in state and save/update them
-          // Consider optimizing this to only save messages that have changed.
-          // For simplicity now, rewrite all current messages for the session.
-          // In a real app with many messages, a more granular approach might be needed.
-          const messagesToSave = messages.map((message) => ({
-            id: message.id!, // Assuming ID is always set by ADD_MESSAGE
-            sessionId: chatSessionIdRef.current, // Add sessionId
-            sender: mapMessageRoleToSender(message.role), // Map Message.role to ChatMessageRecord.sender
-            text: message.content, // Map Message.content to ChatMessageRecord.text
-            timestamp: message.timestamp,
-            metadata: {
-              status: message.status,
-              error: message.error,
-              retryCount: message.retryCount,
-              retryLimit: message.retryLimit,
-              isGreeting: message.isGreeting,
-              isEdited: message.isEdited,
-              editedAt: message.editedAt,
-            },
-          }));
-
-          // Simple approach: save all current messages for the session ID.
-          // Use a transaction for robustness if clearing/replacing per session
-          // but iterating and putting items by ID is usually safer and updates in place.
-          for (const messageDataPayload of messagesToSave) {
-            try {
-              await setItem(
-                'chatMessages',
-                messageDataPayload.id,
-                messageDataPayload,
-              );
-            } catch (error) {
-              console.error(
-                `ChatInterface: Failed to save message ${messageDataPayload.id} to IndexedDB:`,
-                error,
-              );
-              toast({
-                title: 'Error saving message',
-                description: `Failed to save message ${messageDataPayload.id} to local storage.`,
-                variant: 'destructive',
-              });
-            }
-          }
-          console.log(
-            `ChatInterface: ${messages.length} messages saved to IndexedDB for session ${chatSessionIdRef.current}.`,
-          );
-        }
-      }, 500); // Debounce for 500ms
-
-      return () => clearTimeout(handler);
-    };
-
-    if (messages.length > 0) {
-      saveMessages();
-    }
-  }, [messages, toast]);
+    clearSessionHistory(); // Clear history for the old session ID
+  }, [dispatch, clearSessionHistory]);
 
   // Function to handle sending a message
   const sendMessage = useCallback(
