@@ -7,7 +7,7 @@
     <style>
       <![CDATA[
         @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;700&display=swap');
-        .academy-title {
+        
           font-family: 'Open Sans', sans-serif;
           font-weight: 700;
           font-size: 72px;
@@ -15,7 +15,7 @@
           text-anchor: middle;
           letter-spacing: 1px;
         }
-        .academy-subtitle {
+        
           font-family: 'Open Sans', sans-serif;
           font-weight: 400;
           font-size: 36px;
@@ -46,6 +46,6 @@
   </g>
 
   <!-- Text Elements -->
-  <text x="50%" y="50%" dy=".1em" class="academy-title">ScaleSmart</text>
-  <text x="50%" y="66%" dy=".1em" class="academy-subtitle">Academy</text>
+  
+  
 </svg>

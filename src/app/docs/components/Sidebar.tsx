@@ -177,7 +177,7 @@ const DOC_CATEGORY_ORDER = [
   'crm',
   'project-management',
   'amazon-seller-tools',
-  'academy',
+
   'admin',
   'ats',
   'privacy-policy',

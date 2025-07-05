@@ -119,7 +119,6 @@ Developers are encouraged to explore this directory before writing new utility f
 
 This section provides brief notes on developing specific modules within the platform. For detailed implementation, refer to the respective directories in `src/app/`.
 
-- **ScaleSmart Academy:** Content is managed via MDX files in `src/app/content/academy/`. Progress tracking logic is handled in `src/hooks/use-academy-storage.ts` and interacts with IndexedDB via `src/lib/indexeddb/academy-db.ts`.
 - **Project Management:** Components are in `src/app/project-management/components/`. Data management uses custom hooks like `src/hooks/use-task-management.ts` and IndexedDB via `src/lib/indexeddb/project-management-db.ts`.
 - **CRM:** Components are in relevant `src/app/` subdirectories (e.g., potentially within a `crm` directory if it existed, or integrated into other sections). Data is managed via hooks like `src/hooks/use-crm-data.ts` and IndexedDB via `src/lib/indexeddb/crm-db.ts`.
 - **Markdown Notepad:** Components are in `src/app/markdown-notepad/components/`. Data handling is managed by hooks like `src/hooks/use-notes-data.ts` and `src/hooks/use-markdown-categories.ts`, interacting with IndexedDB via `src/lib/indexeddb/markdown-notepad-db.ts`.

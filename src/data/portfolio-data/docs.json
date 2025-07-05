@@ -1,21 +1,16 @@
 {
   "docs": [
     {
-      "slug": "academy-course-list-server",
       "title": "CourseListServer Documentation",
       "description": "Documentation for the CourseListServer component.",
-      "category": "academy",
+
       "order": 1,
-      "tags": ["academy", "course-list-server"],
+
       "date": "2025-06-05"
     },
     {
-      "slug": "academy",
-      "title": "Academy Content Update Process",
-      "description": "This document outlines the process for updating content in the ScaleSmart Academy.",
-      "category": "academy",
       "order": 2,
-      "tags": ["academy", "content", "indexeddb"],
+
       "date": "2025-06-05"
     },
     {
@@ -46,12 +41,9 @@
       "date": "2025-06-05"
     },
     {
-      "slug": "api-academy-article-slug",
-      "title": "Academy Article API Endpoint Documentation",
-      "description": "Documentation for the Academy Article API endpoint.",
       "category": "api",
       "order": 0,
-      "tags": ["api", "academy", "article", "slug"],
+
       "date": "2025-06-05"
     },
     {
@@ -64,21 +56,15 @@
       "date": "2025-06-01"
     },
     {
-      "slug": "api-academy-article",
-      "title": "Academy Article API Documentation",
-      "description": "Documentation for the Academy Article API.",
       "category": "api",
       "order": 1,
-      "tags": ["academy", "article", "api"],
+
       "date": "2025-06-05"
     },
     {
-      "slug": "api-academy-courses",
-      "title": "Academy Courses API Documentation",
-      "description": "Documentation for the Academy Courses API endpoint.",
       "category": "api",
       "order": 2,
-      "tags": ["academy", "courses", "api"],
+
       "date": "2025-06-05"
     },
     {

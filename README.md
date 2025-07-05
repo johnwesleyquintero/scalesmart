@@ -5,7 +5,7 @@
 This project is a comprehensive portfolio platform, the "ScaleSmart" (AKA WesVerse) built with Next.js, TypeScript, and Tailwind CSS. It showcases an integrated suite of custom-built applications and tools, demonstrating a wide range of skills. The current "WesApps" include:
 
 - Blog (Content managed via MDX files in `src/app/content/blog/`)
-- **ScaleSmart Academy:** An online learning platform with course progress tracking. (Content managed via MDX files in `src/app/content/academy/`)
+
 - **Admin Dashboard:** For managing project content and settings.
 - **Amazon Seller Tools:** A suite of tools for Amazon sellers, including Analytics Processing, Data Filtering, Listing Optimization AI, and Report Processing.
 - **Resume Scan:** A Resume Scanner/ATS tool.
@@ -27,7 +27,7 @@ This project is part of a general improvements plan focused on enhancing documen
 Key directories and their purposes:
 
 - `src/app/`: Contains Next.js app router pages and components.
-- `src/app/content/`: Houses MDX files for various content sections like blog posts, academy articles, and documentation.
+- `src/app/content/`: Houses MDX files for various content sections like blog posts and documentation.
 - `src/lib/`: Contains utility functions, services, and libraries used across the project.
 - `src/hooks/`: Custom React hooks.
 - `src/data/`: Static data files (JSON, etc.).
@@ -37,8 +37,6 @@ Key directories and their purposes:
 
 The project includes API routes for various functionalities, such as:
 
-- Academy Articles
-- Academy Courses
 - ATS (Resume Processing)
 - Amazon Competitor Analysis
 - Amazon Inventory
@@ -96,7 +94,7 @@ Detailed API documentation can be found in the `src/app/content/docs/api-*.mdx` 
 ## Usage
 
 - **Blog:** Browse articles and learn about various topics. Content is managed via MDX files.
-- **ScaleSmart Academy:** Access courses and learning materials and track your progress. Content is managed via MDX files.
+
 - **Admin Dashboard:** Manage project content and settings.
 - **Amazon Seller Tools:** Utilize tools for Amazon seller activities, including analytics, data filtering, listing optimization, and report processing. Data is stored locally using IndexedDB.
 - **Resume Scan:** Scan and analyze resumes using the ATS tool.

@@ -65,12 +65,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${baseUrl}/academy`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
       url: `${baseUrl}/admin`,
       lastModified: new Date(),
       changeFrequency: 'monthly',
@@ -157,11 +151,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   const blogUrls = await getMdxContentUrls('src/app/content/blog', '/blog');
-  const academyUrls = await getMdxContentUrls(
-    'src/app/content/academy',
-    '/academy',
-  );
   const docUrls = await getMdxContentUrls('src/app/content/docs', '/docs');
 
-  return [...staticUrls, ...blogUrls, ...academyUrls, ...docUrls];
+  return [...staticUrls, ...blogUrls, ...docUrls];
 }

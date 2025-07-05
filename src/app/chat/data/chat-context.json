@@ -390,16 +390,16 @@
   "webappContext": {
     "projectOverview": {
       "name": "ScaleSmart Platform",
-      "description": "The ScaleSmart Platform is a comprehensive web application designed to provide a suite of tools for various business needs, including an Academy for learning, Project Management tools, a CRM system, specialized Amazon Seller Tools, a Markdown Notepad, and an AI Chat assistant. The platform focuses on seamless integration, maintainability, user experience, data integrity, and supporting scalability and innovation.",
+      "description": "The ScaleSmart Platform is a comprehensive web application designed to provide a suite of tools for various business needs, including Project Management tools, a CRM system, specialized Amazon Seller Tools, a Markdown Notepad, and an AI Chat assistant. The platform focuses on seamless integration, maintainability, user experience, data integrity, and supporting scalability and innovation.",
       "currentStatus": "Active development & Continuous Improvement",
       "version": "2.1.0",
       "lastUpdate": "2024-05-30",
       "developmentPriorities": [
-        "Seamless integration and enhanced user experience across all platform features (Academy, Project Management, CRM, Amazon Tools, Notepad).",
+        "Seamless integration and enhanced user experience across all platform features (Project Management, CRM, Amazon Tools, Notepad).",
         "Advancement of AI-powered capabilities, particularly in CRM (Lead Scoring, Analytics) and Amazon Seller Tools (Insights, Optimization).",
         "Robust SP-API integration for Amazon Seller Tools, moving towards production capabilities.",
         "Continuous improvement of data integrity, persistence mechanisms (e.g., IndexedDB), and security.",
-        "Refinement of interactive learning modules and certification programs in the Academy.",
+
         "Expansion of team collaboration and workflow automation features in Project Management and CRM.",
         "Ongoing UI/UX enhancements for improved usability and accessibility across the platform."
       ],
@@ -458,12 +458,11 @@
           "Optimal Price Calculation (basic)"
         ]
       },
-      "academyFeature": {
-        "name": "ScaleSmart Academy",
-        "description": "The Academy feature provides a comprehensive learning experience within the ScaleSmart Platform, inspired by leading educational platforms. It aims to enhance learning and user engagement through course management, interactive modules, progress tracking, and certifications.",
+      "learningEducationPlatformFeature": {
+        "name": "ScaleSmart Learning & Education Platform",
+        "description": "A platform designed to provide educational content and courses, with features for course management, interactive learning, and progress tracking.",
         "category": "Learning & Education Platform",
         "keywords": [
-          "academy",
           "learning",
           "courses",
           "education",

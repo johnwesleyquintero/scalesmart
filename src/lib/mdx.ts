@@ -2,7 +2,7 @@ import fs, { existsSync } from 'fs'; // Add existsSync
 import matter from 'gray-matter';
 import path from 'path';
 import { z } from 'zod';
-import { BlogPost, DocPost, AcademyJsonData } from '@/types'; // Add AcademyJsonData
+import { BlogPost, DocPost } from '@/types';
 import {
   DEFAULT_DOC_TITLE,
   INTRODUCTION_SLUG,
@@ -11,17 +11,9 @@ import {
   DEFAULT_DOC_VERSION,
 } from '@/config/docs';
 
-// IMPORTANT: This import assumes an academy.json file will be generated at build time
-// containing all academy content. This file is crucial for production deployments
-// where direct file system access to MDX files might not be available.
-// The structure of academy.json should be { "academy": DocPost[] }.
-import rawAcademyData from '@/data/portfolio-data/academy.json';
-const academyData: AcademyJsonData = rawAcademyData as AcademyJsonData;
-
 const EMPTY_STRING = '';
 const DEFAULT_READING_TIME = '5 min read';
 const DEFAULT_AUTHOR = 'Wesley Quintero';
-const DEFAULT_ACADEMY_ARTICLE_TITLE = 'Untitled Academy Article';
 
 const STR_MDX = 'mdx';
 const STR_MD = 'md';
@@ -48,7 +40,7 @@ const docMatterDataSchema = z.object({
   tags: z.array(z.string()).optional(),
   readingTime: z.string().optional(),
   author: z.string().optional(),
-  type: z.enum(['doc', 'academy']).optional().default('doc'),
+  type: z.enum(['doc']).optional().default('doc'),
   last_updated: z.string().optional(),
   version: z.string().optional(),
 });
@@ -60,10 +52,6 @@ function normalizeDate(date: string | Date) {
 
 const blogPostsDirectory = path.join(process.cwd(), 'src/app/content/blog');
 const docsDirectory = path.join(process.cwd(), 'src/app/content/docs');
-const academyArticlesDirectory = path.join(
-  process.cwd(),
-  'src/app/content/academy',
-);
 
 const MARKDOWN_FILE_EXTENSIONS = [EXT_MDX, EXT_MD];
 const MARKDOWN_FILE_REGEX = new RegExp(`\\.(${STR_MDX}|${STR_MD})$`);
@@ -144,43 +132,10 @@ export async function getAllDocPosts(): Promise<DocPost[]> {
     );
 }
 
-export async function getAllAcademyArticles(): Promise<DocPost[]> {
-  // In production, direct file system access to content files might fail.
-  // We check if the directory exists. If not, we fall back to pre-generated JSON data.
-  if (!existsSync(academyArticlesDirectory)) {
-    console.log(
-      '[Academy Data] Falling back to JSON data for academy articles.',
-    );
-    return academyData.academy.map((article: DocPost) => ({
-      ...article,
-      // Ensure required fields are present, provide fallbacks if necessary
-      title: article.title || DEFAULT_ACADEMY_ARTICLE_TITLE,
-      description: article.description || '',
-      date: article.date || new Date().toISOString().split('T')[0],
-      content: article.content || '',
-      slug: article.slug,
-      id: article.id,
-    }));
-  }
-
-  const academyFiles: string[] = [];
-  readFilesFlat(academyArticlesDirectory, academyFiles); // Use readFilesFlat for academy
-
-  const allAcademyArticlesData = await Promise.all(
-    academyFiles.map((fullPath) => processContentFile(fullPath, 'academy')),
-  );
-
-  return allAcademyArticlesData
-    .filter((article): article is DocPost => article !== undefined)
-    .sort((a: DocPost, b: DocPost) =>
-      normalizeDate(b.date).localeCompare(normalizeDate(a.date)),
-    );
-}
-
 function deriveContentSlug(
   fullPath: string,
   baseDir: string,
-  fileType: 'doc' | 'academy',
+  fileType: 'doc',
 ): string {
   let relativePath = path.relative(baseDir, fullPath).replace(/\\/g, '/');
   let slug = relativePath.replace(MARKDOWN_FILE_REGEX, '');
@@ -196,7 +151,7 @@ function deriveContentSlug(
 function deriveContentTitle(
   slug: string,
   frontmatterTitle?: string,
-  fileType: 'doc' | 'academy' = 'doc',
+  fileType: 'doc' = 'doc',
 ): string {
   if (frontmatterTitle) {
     return frontmatterTitle;
@@ -208,8 +163,7 @@ function deriveContentTitle(
     return DEFAULT_DOC_TITLE;
   }
 
-  const defaultTitle =
-    fileType === 'academy' ? DEFAULT_ACADEMY_ARTICLE_TITLE : DEFAULT_DOC_TITLE;
+  const defaultTitle = DEFAULT_DOC_TITLE;
 
   const titleFromSlug =
     slug
@@ -223,7 +177,7 @@ function deriveContentTitle(
 
 async function processContentFile(
   fullPath: string,
-  fileType: 'doc' | 'academy',
+  fileType: 'doc',
 ): Promise<DocPost | undefined> {
   let fileContents: string;
   try {
@@ -264,7 +218,7 @@ async function processContentFile(
     };
   }
 
-  const baseDir = fileType === 'doc' ? docsDirectory : academyArticlesDirectory;
+  const baseDir = docsDirectory;
   const currentSlug = deriveContentSlug(fullPath, baseDir, fileType);
 
   const currentTitle = deriveContentTitle(
@@ -366,7 +320,7 @@ export async function getBlogPostBySlug(
 function findContentFile(
   slug: string,
   baseDir: string,
-  fileType: 'doc' | 'academy',
+  fileType: 'doc',
 ): string | undefined {
   for (const ext of MARKDOWN_FILE_EXTENSIONS) {
     const filePath = path.join(baseDir, `${slug}${ext}`);
@@ -392,70 +346,6 @@ export async function getDocPostBySlug(
     return processContentFile(fullPath, 'doc');
   } catch (e) {
     console.error('Error in getDocPostBySlug', e);
-    return undefined;
-  }
-}
-
-export async function getAcademyArticleBySlug(
-  slug: string,
-): Promise<DocPost | undefined> {
-  // In production, direct file system access to content files might fail.
-  // We check if the directory exists. If not, we fall back to pre-generated JSON data.
-  if (!existsSync(academyArticlesDirectory)) {
-    console.log(
-      `[Academy Data] Falling back to JSON data for academy slug: ${slug}`,
-    );
-    const article = academyData.academy.find((a: DocPost) => a.slug === slug);
-    if (article) {
-      return {
-        ...article,
-        // Ensure required fields are present, provide fallbacks if necessary
-        title: article.title || DEFAULT_ACADEMY_ARTICLE_TITLE,
-        description: article.description || '',
-        date: article.date || new Date().toISOString().split('T')[0],
-        content: article.content || '',
-        slug: article.slug,
-        id: article.id,
-      };
-    } else {
-      console.warn(`Academy article with slug ${slug} not found in JSON data.`);
-      return undefined;
-    }
-  }
-
-  const fullPath = findContentFile(slug, academyArticlesDirectory, 'academy');
-
-  if (!fullPath) {
-    return undefined;
-  }
-
-  try {
-    const article = await processContentFile(fullPath, 'academy');
-
-    if (article) {
-      const allAcademyArticles = await getAllAcademyArticles();
-      const relatedArticles = allAcademyArticles
-        .filter(
-          (art: DocPost): boolean =>
-            art.slug !== slug &&
-            (art.tags ?? []).some(
-              (tag: string): boolean => article.tags?.includes(tag) ?? false,
-            ),
-        )
-        .slice(0, RELATED_DOCS_COUNT)
-        .map((a: DocPost) => ({
-          id: a.id,
-          slug: a.slug,
-          title: a.title,
-          description: a.description,
-        }));
-
-      article.relatedArticles = relatedArticles;
-    }
-
-    return article;
-  } catch (e) {
-    console.error('Error in getAcademyArticleBySlug', e);
     return undefined;
   }
 }

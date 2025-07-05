@@ -60,43 +60,40 @@ export type BlogPost = {
 
 /**
  * @typedef {object} DocPost
- * @property {string} id - Unique identifier for the documentation or academy post.
- * @property {string} slug - Slug for the documentation or academy post, used in URLs.
- * @property {string} title - Title of the documentation or academy post.
- * @property {string} description - A brief description or excerpt of the documentation or academy post.
- * @property {string} date - Publication date of the documentation or academy post.
- * @property {string} [image] - Optional URL for the documentation or academy post's featured image.
- * @property {string[]} [tags] - Optional array of tags associated with the documentation or academy post.
- * @property {string} [readingTime] - Optional estimated reading time of the documentation or academy post.
- * @property {string} [author] - Optional author of the documentation or academy post.
- * @property {string} [content] - Optional full content of the documentation or academy post.
+ * @property {string} id - Unique identifier for the documentation post.
+ * @property {string} slug - Slug for the documentation post, used in URLs.
+ * @property {string} title - Title of the documentation post.
+ * @property {string} description - A brief description or excerpt of the documentation post.
+ * @property {string} date - Publication date of the documentation post.
+ * @property {string} [image] - Optional URL for the documentation post's featured image.
+ * @property {string[]} [tags] - Optional array of tags associated with the documentation post.
+ * @property {string} [readingTime] - Optional estimated reading time of the documentation post.
+ * @property {string} [author] - Optional author of the documentation post.
+ * @property {string} [content] - Optional full content of the documentation post.
  * @property {string} [last_updated] - Optional last updated date for the document.
  * @property {string} [version] - Optional version of the document.
  * @property {unknown[]} [relatedDocs] - Optional array of related documentation posts.
- * @property {unknown[]} [relatedArticles] - Optional array of related academy articles.
- * @property {'doc' | 'academy'} [type] - Type of the post.
- * @property {string} [fileName] - File name for internal processing.
  */
 export type DocPost = {
-  /** Unique identifier for the documentation or academy post. */
+  /** Unique identifier for the documentation post. */
   id: string;
-  /** Slug for the documentation or academy post, used in URLs. */
+  /** Slug for the documentation post, used in URLs. */
   slug: string;
-  /** Title of the documentation or academy post. */
+  /** Title of the documentation post. */
   title: string;
-  /** A brief description or excerpt of the documentation or academy post. */
+  /** A brief description or excerpt of the documentation post. */
   description: string;
-  /** Publication date of the documentation or academy post. */
+  /** Publication date of the documentation post. */
   date: string;
-  /** Optional URL for the documentation or academy post's featured image. */
+  /** Optional URL for the documentation post's featured image. */
   image?: string;
-  /** Optional array of tags associated with the documentation or academy post. */
+  /** Optional array of tags associated with the documentation post. */
   tags?: string[];
-  /** Optional estimated reading time of the documentation or academy post. */
+  /** Optional estimated reading time of the documentation post. */
   readingTime?: string;
-  /** Optional author of the documentation or academy post. */
+  /** Optional author of the documentation post. */
   author?: string;
-  /** Optional full content of the documentation or academy post. */
+  /** Optional full content of the documentation post. */
   content?: string;
   /** Optional last updated date for the document. */
   last_updated?: string;
@@ -104,15 +101,13 @@ export type DocPost = {
   version?: string;
   /** Optional array of related documentation posts. */
   relatedDocs?: unknown[];
-  /** Optional array of related academy articles. */
-  relatedArticles?: unknown[];
   /** Type of the post. */
-  type?: 'doc' | 'academy'; // Modified to include 'academy'
+  type?: 'doc';
   /** File name for internal processing. */
   fileName?: string;
-  /** Optional category of the documentation or academy post. */
+  /** Optional category of the documentation post. */
   category?: string;
-  /** Optional order for sorting documentation or academy posts. */
+  /** Optional order for sorting documentation posts. */
   order?: number;
 };
 
@@ -123,15 +118,6 @@ export type DocPost = {
 export interface DocsJsonData {
   /** An array of documentation posts. */
   docs: DocPost[];
-}
-
-/**
- * @typedef {object} AcademyJsonData
- * @property {DocPost[]} academy - An array of academy articles.
- */
-export interface AcademyJsonData {
-  /** An array of academy articles. */
-  academy: DocPost[];
 }
 
 /**

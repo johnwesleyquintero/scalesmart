@@ -42,7 +42,7 @@
     <!-- Main Title -->
     <!-- Using the Yellow accent color for "AI-BRO" -->
     <text x="60" y="160" font-size="48" font-weight="bold" text-anchor="start">
-      <tspan fill="#FFD166">AI-BRO</tspan> DEBUGGING ACADEMY
+      
     </text>
     <!-- Subtitle -->
     <!-- Using the Teal accent color -->
