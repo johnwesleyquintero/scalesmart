@@ -36,6 +36,7 @@ import { toString as hastToString } from 'hast-util-to-string'; // For extractin
 import { Button } from '@/components/ui/button'; // Assuming this is a local Button component
 import { cn } from '@/lib/utils'; // For conditional class names
 import { useToast } from '@/components/ui/use-toast'; // Import useToast hook
+import { useSearchParams } from 'next/navigation';
 
 // --- Interfaces ---
 interface MessageBubbleProps {
@@ -91,12 +92,48 @@ export default function ChatInterface() {
 
   // Load and shuffle prompts on component mount or when prompts change (though they are static here)
   const [displayedPrompts, setDisplayedPrompts] = React.useState<string[]>([]);
+  const [chatSessions, setChatSessions] = React.useState<string[]>([]);
+
+  // Generate a unique session ID for this chat session, persistent across renders but reset on explicit chat reset.
+  const searchParams = useSearchParams();
+  const initialSessionId = searchParams.get('session') || crypto.randomUUID();
+  const chatSessionIdRef = useRef<string>(initialSessionId);
+
+  const handleMessagesLoaded = useCallback(
+    (loadedMessages: Message[]) => {
+      if (loadedMessages.length > 0) {
+        dispatch({ type: 'SET_MESSAGES', payload: loadedMessages });
+      } else {
+        dispatch({ type: 'ADD_MESSAGE', payload: initialGreeting });
+      }
+    },
+    [dispatch],
+  );
+
+  const handleSaveComplete = useCallback(() => {
+    // Optional: Add a toast or log when save is complete
+    console.log('Messages saved to IndexedDB.');
+  }, []);
+
+  const { clearSessionHistory, getAllSessions } = useChatHistory({
+    sessionId: chatSessionIdRef.current,
+    messages: messages,
+    onLoad: handleMessagesLoaded,
+    onSaveComplete: handleSaveComplete,
+  });
 
   useEffect(() => {
     // Shuffle and select a subset (e.g., 4 prompts)
     const shuffledPrompts = suggestedPrompts.sort(() => 0.5 - Math.random());
     setDisplayedPrompts(shuffledPrompts.slice(0, 4)); // Display up to 4 random prompts
-  }, []); // Empty dependency array means this runs once on mount
+
+    const fetchSessions = async () => {
+      const sessions = await getAllSessions();
+      setChatSessions(sessions);
+    };
+
+    fetchSessions();
+  }, [getAllSessions, isSidebarOpen, setChatSessions]); // Fetch sessions on mount and when sidebar is toggled
 
   // --- Helper Functions ---
 
@@ -126,32 +163,6 @@ export default function ChatInterface() {
     }
   }, [input]); // Depend on input to resize as text is typed
 
-  // Generate a unique session ID for this chat session, persistent across renders but reset on explicit chat reset.
-  const chatSessionIdRef = useRef<string>(crypto.randomUUID());
-
-  const handleMessagesLoaded = useCallback(
-    (loadedMessages: Message[]) => {
-      if (loadedMessages.length > 0) {
-        dispatch({ type: 'SET_MESSAGES', payload: loadedMessages });
-      } else {
-        dispatch({ type: 'ADD_MESSAGE', payload: initialGreeting });
-      }
-    },
-    [dispatch],
-  );
-
-  const handleSaveComplete = useCallback(() => {
-    // Optional: Add a toast or log when save is complete
-    console.log('Messages saved to IndexedDB.');
-  }, []);
-
-  const { clearSessionHistory } = useChatHistory({
-    sessionId: chatSessionIdRef.current,
-    messages: messages,
-    onLoad: handleMessagesLoaded,
-    onSaveComplete: handleSaveComplete,
-  });
-
   // Function to reset chat (clear messages and generate new session ID)
   const resetChat = useCallback(() => {
     dispatch({ type: 'CLEAR_MESSAGES' });
@@ -161,6 +172,7 @@ export default function ChatInterface() {
     dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
     dispatch({ type: 'SET_INPUT', payload: '' });
     clearSessionHistory(); // Clear history for the old session ID
+    window.history.pushState({}, '', '/chat'); // Navigate to base chat URL
   }, [dispatch, clearSessionHistory]);
 
   // Function to handle sending a message
@@ -371,79 +383,6 @@ export default function ChatInterface() {
     [input, editingMessage, dispatch, scrollToBottom, mode, messages],
   );
 
-  // Function to handle retrying a message
-  // const handleRetry = useCallback(
-  //   (content: string, messageToRetry: Message) => {
-  //     // Increment retry count and update status
-  //     const updatedMessage: Message = {
-  //       ...messageToRetry,
-  //       retryCount: (messageToRetry.retryCount || 0) + 1,
-  //       status: 'retrying',
-  //       error: undefined, // Clear previous error
-  //     };
-
-  //     dispatch({
-  //       type: 'UPDATE_MESSAGE',
-  //       payload: { id: updatedMessage.id, updates: updatedMessage },
-  //     });
-
-  //     // If retry limit is reached, display an error and do not send
-  //     const currentRetryLimit =
-  //       messageToRetry.retryLimit || DEFAULT_RETRY_LIMIT;
-  //     if ((updatedMessage.retryCount ?? 0) > currentRetryLimit) {
-  //       dispatch({
-  //         type: 'UPDATE_MESSAGE',
-  //         payload: {
-  //           id: updatedMessage.id, // Use id
-  //           updates: {
-  //             status: 'failed',
-  //             error: `Retry limit (${currentRetryLimit}) exceeded. Please try a different prompt.`,
-  //           },
-  //         },
-  //       });
-  //       toast({
-  //         title: 'Retry limit exceeded',
-  //         description: `Failed to get a response after ${currentRetryLimit} retries. Please try a different prompt.`,
-  //         variant: 'destructive',
-  //       });
-  //       dispatch({ type: 'SET_LOADING', payload: false });
-  //       return;
-  //     }
-
-  //     // Find the original user message that triggered the failed assistant message
-  //     const originalUserMessage = messages.find(
-  //       (msg) => msg.id === messageToRetry.metadata?.originalUserMessageId,
-  //     );
-
-  //     if (originalUserMessage) {
-  //       sendMessage(originalUserMessage.content, true); // Re-send the original user message
-  //     } else {
-  //       // Fallback: if original user message not found, retry with the assistant's content (shouldn't happen if logic is correct)
-  //       sendMessage(content, true);
-  //     }
-  //   },
-  //   [sendMessage, messages, dispatch, toast],
-  // );
-
-  // Function to handle deleting a message
-  // const handleDelete = useCallback(
-  //   async (timestamp: number) => {
-  //     dispatch({ type: 'REMOVE_MESSAGE', payload: timestamp });
-  //     // Optionally, delete from IndexedDB here as well
-  //   },
-  //   [dispatch],
-  // );
-
-  // Function to handle editing a message
-  // const handleEdit = useCallback(
-  //   (message: Message) => {
-  //     dispatch({ type: 'SET_EDITING_MESSAGE', payload: message });
-  //     dispatch({ type: 'SET_INPUT', payload: message.content });
-  //     textareaRef.current?.focus();
-  //   },
-  //   [dispatch],
-  // );
-
   // Function to submit edited message
   const submitEdit = useCallback(() => {
     if (editingMessage && input.trim()) {
@@ -467,6 +406,10 @@ export default function ChatInterface() {
   const cancelEdit = useCallback(() => {
     dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
     dispatch({ type: 'SET_INPUT', payload: '' });
+  }, [dispatch]);
+
+  const toggleSidebar = useCallback(() => {
+    dispatch({ type: 'TOGGLE_SIDEBAR' });
   }, [dispatch]);
 
   // Function to handle prompt clicks (for "Prompts to Try")
@@ -513,6 +456,38 @@ export default function ChatInterface() {
             </svg>
             {isSidebarOpen && <span>Chat</span>}
           </a>
+          {isSidebarOpen && chatSessions.length > 0 && (
+            <div className="mt-4 border-t border-border pt-4">
+              <h3 className="text-sm font-semibold text-muted-foreground mb-2">
+                Past Chats
+              </h3>
+              <div className="space-y-1">
+                {chatSessions.map((sessionId) => (
+                  <a
+                    key={sessionId}
+                    href={`/chat?session=${sessionId}`}
+                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground text-sm truncate"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="lucide lucide-message-square"
+                    >
+                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    <span>{sessionId.substring(0, 8)}...</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
           <a
             href="#"
             className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground"
@@ -634,6 +609,7 @@ export default function ChatInterface() {
           'flex h-full flex-col overflow-hidden rounded-lg border bg-background shadow-xl transition-all duration-300 ease-in-out', // Added transition
           isSidebarOpen ? 'w-[calc(100vw-280px)]' : 'w-[calc(100vw-80px)]',
           'mx-auto max-w-4xl', // Added for centering and max-width
+          isSidebarOpen ? 'ml-auto mr-4' : 'ml-auto mr-auto', // Adjust margins based on sidebar state
         )}
       >
         {/* Chat Header */}
@@ -652,22 +628,22 @@ export default function ChatInterface() {
             </span>{' '}
             {/* Display current mode */}
             <Button
-              variant={mode === 'default' ? 'secondary' : 'ghost'} // Highlight active mode
-              size="sm" // Smaller size for mode buttons
+              variant={mode === 'default' ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => dispatch({ type: 'SET_MODE', payload: 'default' })}
             >
               Default
             </Button>
             <Button
-              variant={mode === 'content' ? 'secondary' : 'ghost'} // Highlight active mode
-              size="sm" // Smaller size for mode buttons
+              variant={mode === 'content' ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => dispatch({ type: 'SET_MODE', payload: 'content' })}
             >
               Content
             </Button>
             <Button
-              variant={mode === 'code' ? 'secondary' : 'ghost'} // Highlight active mode
-              size="sm" // Smaller size for mode buttons
+              variant={mode === 'code' ? 'secondary' : 'ghost'}
+              size="sm"
               onClick={() => dispatch({ type: 'SET_MODE', payload: 'code' })}
             >
               Code
@@ -680,7 +656,7 @@ export default function ChatInterface() {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => dispatch({ type: 'TOGGLE_SIDEBAR' })}
+              onClick={toggleSidebar}
               title={isSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
             >
               {isSidebarOpen ? (

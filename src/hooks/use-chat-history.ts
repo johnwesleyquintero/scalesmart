@@ -3,6 +3,7 @@ import {
   initializeDB,
   setItem,
   getChatMessagesBySession,
+  getAllChatSessionIds,
   ChatMessageRecord,
 } from '@/lib/indexeddb-service';
 import {
@@ -133,5 +134,23 @@ export const useChatHistory = ({
     }
   }, [sessionId, toast]);
 
-  return { clearSessionHistory };
+  const getAllSessions = useCallback(async () => {
+    try {
+      await initializeDB();
+      const sessionIds = await getAllChatSessionIds();
+      // For each session ID, you might want to fetch the first message or a summary
+      // For now, just return the IDs
+      return sessionIds;
+    } catch (error) {
+      console.error('useChatHistory: Error getting all sessions:', error);
+      toast({
+        title: 'Error loading all chat sessions',
+        description: 'Could not retrieve all chat sessions from local storage.',
+        variant: 'destructive',
+      });
+      return [];
+    }
+  }, [toast]);
+
+  return { clearSessionHistory, getAllSessions };
 };

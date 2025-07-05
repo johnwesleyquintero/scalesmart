@@ -406,6 +406,17 @@ export const getChatMessagesBySession = async (
   }
 };
 
+export const getAllChatSessionIds = async (): Promise<string[]> => {
+  try {
+    const sessionIds =
+      await db[STORE_CHAT_MESSAGES].orderBy('timestamp').uniqueKeys();
+    return sessionIds.map((id) => String(id));
+  } catch (error) {
+    logError(error, `Failed to get all chat session IDs`, SERVICE_NAME);
+    throw error;
+  }
+};
+
 export const clearChatMessagesBySession = async (
   sessionId: string,
 ): Promise<void> => {
