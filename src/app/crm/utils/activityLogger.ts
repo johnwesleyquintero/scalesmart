@@ -1,5 +1,6 @@
 import { createActivityLog, getAllActivityLogs } from '@/lib/indexeddb/crm-db';
 import { ActivityType, ActivityLog } from '@/app/crm/types';
+import { toast } from 'sonner'; // Import toast for notifications
 
 /**
  * Logs a customer activity to the database.
@@ -20,6 +21,7 @@ export async function logActivity(
     timestamp: Date.now(),
   };
   await createActivityLog(newActivity);
+  toast.info(`New Activity: ${description}`); // Show a toast notification for the new activity
 }
 
 /**

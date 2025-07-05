@@ -1,7 +1,7 @@
 'use client';
 
-import { Toaster } from 'sonner';
-import { useState, useCallback, lazy, Suspense } from 'react'; // Import lazy and Suspense
+import { Toaster, toast } from 'sonner'; // Import toast
+import React, { useState, useCallback, lazy, Suspense, useEffect } from 'react'; // Import useEffect
 import type { Contact } from './types';
 import { Tabs, TabsContent, TabsList } from '@/components/ui/tabs';
 import { useCRMData } from '@/hooks/use-crm-data';
@@ -12,6 +12,10 @@ import { CategoryManagementTab } from './components/CategoryManagementTab';
 import { CommunicationLogsTab } from './components/CommunicationLogsTab';
 import { CRMTabsTrigger } from './components/CRMTabsTrigger';
 import { ActivityFeed } from './components/ActivityFeed'; // Import the new ActivityFeed component
+import { getEmailTemplates } from './utils/emailTemplateUtils'; // Import getEmailTemplates
+import { EmailTemplate } from './types'; // Import EmailTemplate type
+import { DashboardBuilder } from '../dashboard-studio/components/DashboardBuilder'; // Import DashboardBuilder
+import { WidgetConfig } from '../dashboard-studio/widget-types'; // Import WidgetConfig
 
 // Dynamically import components that are not needed on initial load
 const EmailTemplateManager = lazy(
@@ -51,6 +55,23 @@ export default function CRMComponent() {
     handleDeleteSalesOpportunityAction,
   } = useCRMData();
 
+  // State to store email templates
+  const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
+
+  // Fetch email templates on component mount
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const templates = await getEmailTemplates();
+        setEmailTemplates(templates);
+      } catch (error) {
+        console.error('Failed to fetch email templates:', error);
+        toast.error('Failed to load email templates.');
+      }
+    };
+    fetchTemplates();
+  }, []);
+
   // State to manage which customer is currently being edited.
   // When a customer object is set, the edit modal opens.
   const [editingCustomer, setEditingCustomer] = useState<Contact | null>(null);
@@ -88,6 +109,86 @@ export default function CRMComponent() {
     [handleSaveCustomerAction], // Dependency array includes the save action from the hook.
   );
 
+  // Define a default layout for the CRM dashboard
+  const defaultCrmWidgets: WidgetConfig[] = [
+    {
+      id: 'total-customers',
+      type: 'kpi',
+      title: 'Total Customers',
+      data: { value: customers.length, label: 'Customers' }, // Added label
+      x: 0,
+      y: 0,
+      w: 2,
+      h: 2,
+    },
+    {
+      id: 'lead-score-distribution',
+      type: 'chart', // Changed type to 'chart'
+      chartType: 'pie', // Added chartType
+      title: 'Lead Score Distribution',
+      data: (() => {
+        const distribution = customers.reduce(
+          (acc, customer) => {
+            const category = customer.leadScoreCategory || 'N/A';
+            acc[category] = (acc[category] || 0) + 1;
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
+
+        const labels = Object.keys(distribution);
+        const data = Object.values(distribution);
+        const backgroundColors = [
+          '#8884d8',
+          '#82ca9d',
+          '#ffc658',
+          '#ff7300',
+          '#0088FE',
+          '#00C49F',
+          '#FFBB28',
+          '#FF8042',
+        ]; // Example colors
+
+        return {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Number of Customers',
+              data: data,
+              // backgroundColor: labels.map((_, i) => backgroundColors[i % backgroundColors.length]), // Removed to fix TypeScript error
+            },
+          ],
+        };
+      })(),
+      x: 2,
+      y: 0,
+      w: 4,
+      h: 4,
+    },
+    {
+      id: 'recent-contacts',
+      type: 'table',
+      title: 'Recent Contacts',
+      data: {
+        headers: ['Name', 'Email', 'Last Activity'],
+        rows: customers
+          .sort((a, b) => (b.lastActivity || 0) - (a.lastActivity || 0))
+          .slice(0, 5)
+          .map((c) => [
+            c.name,
+            c.email || '',
+            c.lastActivity
+              ? new Date(c.lastActivity).toLocaleDateString()
+              : 'N/A',
+          ]), // Added fallback for email
+      },
+      x: 0,
+      y: 2,
+      w: 6,
+      h: 4,
+    },
+  ];
+
   return (
     <>
       {/* Toaster component for displaying notifications (e.g., success or error messages) */}
@@ -112,6 +213,7 @@ export default function CRMComponent() {
             <CRMTabsTrigger value="communication-logs">
               Communication Logs (Overall)
             </CRMTabsTrigger>
+            <CRMTabsTrigger value="activity-feed">Activity Feed</CRMTabsTrigger>
             <CRMTabsTrigger value="email-templates">
               Email Templates
             </CRMTabsTrigger>
@@ -122,6 +224,7 @@ export default function CRMComponent() {
             <CRMTabsTrigger value="sales-pipeline">
               Sales Pipeline
             </CRMTabsTrigger>
+            <CRMTabsTrigger value="crm-dashboard">CRM Dashboard</CRMTabsTrigger>
           </TabsList>
 
           {/* Tab Content for Adding a Customer */}
@@ -203,7 +306,10 @@ export default function CRMComponent() {
           <TabsContent value="email-composer" className="space-y-4 mt-4">
             <Suspense fallback={<div>Loading Email Composer...</div>}>
               {editingCustomer ? (
-                <EmailComposer customerId={editingCustomer.id} />
+                <EmailComposer
+                  customerId={editingCustomer.id}
+                  templates={emailTemplates} // Pass templates to EmailComposer
+                />
               ) : (
                 <div className="text-muted-foreground">
                   Select a customer from the "Customer List" tab to compose an
@@ -234,6 +340,13 @@ export default function CRMComponent() {
                   live chat.
                 </div>
               )}
+            </Suspense>
+          </TabsContent>
+
+          {/* Tab Content for CRM Dashboard */}
+          <TabsContent value="crm-dashboard" className="space-y-4 mt-4">
+            <Suspense fallback={<div>Loading CRM Dashboard...</div>}>
+              <DashboardBuilder initialWidgets={defaultCrmWidgets} />
             </Suspense>
           </TabsContent>
         </Tabs>

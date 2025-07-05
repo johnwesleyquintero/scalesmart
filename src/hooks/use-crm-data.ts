@@ -142,15 +142,20 @@ export const useCRMData = () => {
       try {
         // Fetch all contacts and map them to the Contact type, ensuring default values.
         const allContacts = await getAllContacts();
-        const allCustomers: Contact[] = allContacts.map(
-          (contact: Contact) =>
-            ({
-              ...contact,
-              id: contact.id, // Ensure ID is present as it's expected for existing contacts.
-              category: contact.category || '', // Default category to empty string if null/undefined.
-              communicationLogs: contact.communicationLogs || [], // Default logs to empty array.
-            }) as Contact,
-        );
+        const allCustomers: Contact[] = allContacts.map((contact: Contact) => {
+          const scoredContact: Contact = {
+            ...contact,
+            id: contact.id, // Ensure ID is present as it's expected for existing contacts.
+            category: contact.category || '', // Default category to empty string if null/undefined.
+            communicationLogs: contact.communicationLogs || [], // Default logs to empty array.
+          };
+          // Calculate lead score and category for existing contacts
+          scoredContact.leadScore = calculateLeadScore(scoredContact);
+          scoredContact.leadScoreCategory = getLeadScoreCategory(
+            scoredContact.leadScore,
+          );
+          return scoredContact;
+        });
         setCustomers(allCustomers);
       } catch (error: unknown) {
         handleOperationError('loading customer data', error, LOAD_DATA_ERROR);
@@ -207,40 +212,7 @@ export const useCRMData = () => {
             'customer_updated',
             `Customer "${updatedCustomer.name}" was updated.`,
           );
-
-          if (updatedCustomer.leadScoreCategory === 'Hot') {
-            console.log(
-              `[Nurturing Workflow] Sending high-priority email to ${updatedCustomer.email}`,
-            );
-            // Simulate sending a high-priority email
-          } else if (updatedCustomer.leadScoreCategory === 'Warm') {
-            console.log(
-              `[Nurturing Workflow] Adding ${updatedCustomer.email} to a nurturing sequence`,
-            );
-            // Simulate adding the customer to a nurturing sequence
-          } else {
-            console.log(
-              `[Nurturing Workflow] No immediate action for ${updatedCustomer.email}`,
-            );
-            // Simulate no immediate action
-          }
-
-          if (updatedCustomer.leadScoreCategory === 'Hot') {
-            console.log(
-              `[Nurturing Workflow] Sending high-priority email to ${updatedCustomer.email}`,
-            );
-            // Simulate sending a high-priority email
-          } else if (updatedCustomer.leadScoreCategory === 'Warm') {
-            console.log(
-              `[Nurturing Workflow] Adding ${updatedCustomer.email} to a nurturing sequence`,
-            );
-            // Simulate adding the customer to a nurturing sequence
-          } else {
-            console.log(
-              `[Nurturing Workflow] No immediate action for ${updatedCustomer.email}`,
-            );
-            // Simulate no immediate action
-          }
+          await triggerNurturingWorkflow(updatedCustomer); // Call the nurturing workflow
         } catch (error: unknown) {
           handleOperationError(
             'updating customer',

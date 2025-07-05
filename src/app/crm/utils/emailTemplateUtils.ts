@@ -1,7 +1,7 @@
 import { EmailTemplate } from '../../crm/types';
 import { createCrudService } from '../../../lib/indexeddb/crm-db';
 
-const CRM_EMAIL_TEMPLATES_STORE_NAME = 'crm-email-templates';
+const CRM_EMAIL_TEMPLATES_STORE_NAME = 'crmEmailTemplates';
 
 // Create a CRUD service specifically for Email Templates
 const emailTemplateService = createCrudService<EmailTemplate>(

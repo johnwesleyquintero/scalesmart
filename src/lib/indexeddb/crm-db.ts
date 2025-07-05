@@ -13,11 +13,11 @@ import type {
 import type { SalesOpportunity } from '@/app/crm/types/sales';
 
 // --- Constants for CRM IndexedDB Store Names ---
-const CRM_CONTACTS_STORE_NAME = 'crm-contacts';
-const CRM_CATEGORIES_STORE_NAME = 'crm-categories';
-const CRM_COMMUNICATION_LOGS_STORE_NAME = 'crm-communication-logs';
-const CRM_ACTIVITY_LOGS_STORE_NAME = 'crm-activity-logs'; // New store for activity logs
-const CRM_SALES_OPPORTUNITIES_STORE_NAME = 'crm-sales-opportunities';
+const CRM_CONTACTS_STORE_NAME = 'crmContacts';
+const CRM_CATEGORIES_STORE_NAME = 'crmCategories';
+const CRM_COMMUNICATION_LOGS_STORE_NAME = 'crmCommunicationLogs';
+const CRM_ACTIVITY_LOGS_STORE_NAME = 'crmActivityLogs'; // New store for activity logs
+const CRM_SALES_OPPORTUNITIES_STORE_NAME = 'crmSalesOpportunities';
 
 // --- Generic CRUD Service Factory ---
 

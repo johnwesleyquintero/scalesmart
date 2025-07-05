@@ -7,15 +7,24 @@ import { Card, CardHeader, CardTitle } from '@/components/ui/card'; // Import Ca
 import { Label } from '@/components/ui/label'; // Import Label component
 import { Input } from '@/components/ui/input'; // Import Input component
 import { Button } from '@/components/ui/button'; // Import Button component
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'; // Import Select components
 
 interface EmailComposerProps {
   customerId: string;
   onEmailSent?: () => void;
+  templates: EmailTemplate[]; // Add templates prop
 }
 
 const EmailComposer: React.FC<EmailComposerProps> = ({
   customerId,
   onEmailSent,
+  templates, // Destructure templates from props
 }) => {
   const { handleCreateCommunicationLogAction } = useCRMData();
   const [toEmail, setToEmail] = useState<string>('');
@@ -59,29 +68,27 @@ const EmailComposer: React.FC<EmailComposerProps> = ({
     onEmailSent,
   ]);
 
-  const handleLoadTemplate = useCallback((template: EmailTemplate) => {
-    setSubject(template.subject);
-    setBody(template.body);
-    toast.info(`Template "${template.name}" loaded.`);
-  }, []);
-
-  // Note: For Quill, you would typically install it via npm/yarn:
-  // npm install react-quill quill
-  // or
-  // yarn add react-quill quill
+  const handleLoadTemplate = useCallback(
+    (templateId: string) => {
+      const selectedTemplate = templates.find(
+        (t: EmailTemplate) => t.id === templateId,
+      ); // Explicitly type t
+      if (selectedTemplate) {
+        setSubject(selectedTemplate.subject);
+        setBody(selectedTemplate.body);
+        toast.info(`Template "${selectedTemplate.name}" loaded.`);
+      }
+    },
+    [templates],
+  ); // Add templates to dependency array
 
   return (
     <Card className="p-4">
-      {' '}
-      {/* Replaced div with Card */}
       <CardHeader>
-        {' '}
-        {/* Replaced h2 with CardHeader and CardTitle */}
         <CardTitle>Compose Email</CardTitle>
       </CardHeader>
       <div className="mb-3">
-        <Label htmlFor="toEmail">To</Label>{' '}
-        {/* Replaced label with Label component */}
+        <Label htmlFor="toEmail">To</Label>
         <Input
           type="email"
           id="toEmail"
@@ -91,8 +98,7 @@ const EmailComposer: React.FC<EmailComposerProps> = ({
         />
       </div>
       <div className="mb-3">
-        <Label htmlFor="subject">Subject</Label>{' '}
-        {/* Replaced label with Label component */}
+        <Label htmlFor="subject">Subject</Label>
         <Input
           type="text"
           id="subject"
@@ -102,33 +108,50 @@ const EmailComposer: React.FC<EmailComposerProps> = ({
         />
       </div>
       <div className="mb-3">
-        <Label htmlFor="emailBody">Body</Label>{' '}
-        {/* Replaced label with Label component */}
+        <Label htmlFor="emailBody">Body</Label>
         <textarea
           id="emailBody"
-          className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-primary focus-visible:border-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 h-[200px]" // Applied Tailwind classes and custom height
+          className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:border-primary focus-visible:border-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:opacity-50 h-[200px]"
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write your email here..."
         />
       </div>
-      <div className="mt-12 flex space-x-2">
-        <Button onClick={handleSendEmail}>
-          {' '}
-          {/* Replaced button with Button component */}
-          Send Email
-        </Button>
+      <div className="mt-4 mb-6">
+        <Label htmlFor="template-select">Load from Template</Label>
+        <Select onValueChange={handleLoadTemplate}>
+          <SelectTrigger id="template-select" className="w-full">
+            <SelectValue placeholder="Select a template" />
+          </SelectTrigger>
+          <SelectContent>
+            {templates.length === 0 ? (
+              <SelectItem
+                value="no-templates"
+                disabled
+                label="No templates available"
+              >
+                No templates available
+              </SelectItem>
+            ) : (
+              templates.map(
+                (
+                  template: EmailTemplate, // Explicitly type template
+                ) => (
+                  <SelectItem
+                    key={template.id}
+                    value={template.id}
+                    label={template.name}
+                  >
+                    {template.name}
+                  </SelectItem>
+                ),
+              )
+            )}
+          </SelectContent>
+        </Select>
       </div>
-      {/* Integration with EmailTemplateManager for selecting templates */}
-      <div className="mt-8">
-        <h3 className="text-xl font-semibold mb-3">Load from Templates</h3>
-        {/* This is where EmailTemplateManager would be rendered, passing handleLoadTemplate as onSelectTemplate */}
-        {/* <EmailTemplateManager onSelectTemplate={handleLoadTemplate} /> */}
-        <p className="text-gray-600">
-          <strong>Note:</strong> The Email Template Manager component will be
-          integrated here to allow selecting and loading templates. For now, you
-          can manually copy-paste template content.
-        </p>
+      <div className="mt-12 flex space-x-2">
+        <Button onClick={handleSendEmail}>Send Email</Button>
       </div>
     </Card>
   );

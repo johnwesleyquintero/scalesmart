@@ -23,6 +23,9 @@ import {
 } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
+// Import custom components for Gantt Chart
+import GanttChartSection from '@/app/project-management/components/GanttChartSection';
+
 // Import types and constants
 import { Project } from '@/lib/indexeddb-service';
 import { NO_PROJECT_VALUE } from '@/lib/constants/project-management';
@@ -159,6 +162,13 @@ const ProjectManagementPage = () => {
             >
               Projects
             </TabsTrigger>
+            {/* New Tab Trigger for Gantt Chart view */}
+            <TabsTrigger
+              value="gantt"
+              className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-muted-foreground"
+            >
+              Gantt Chart
+            </TabsTrigger>
           </TabsList>
 
           {/* Content for the Tasks Tab */}
@@ -188,6 +198,12 @@ const ProjectManagementPage = () => {
               handleUpdateProject={handleUpdateProject}
               handleDeleteProject={handleDeleteProject}
             />
+          </TabsContent>
+
+          {/* Content for the Gantt Chart Tab */}
+          <TabsContent value="gantt" className="space-y-4 mt-4">
+            {/* Render the GanttChartSection component, passing tasks and projects */}
+            <GanttChartSection tasks={tasks} projects={projects} />
           </TabsContent>
         </Tabs>
 
