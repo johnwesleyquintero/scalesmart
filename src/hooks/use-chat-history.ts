@@ -4,6 +4,7 @@ import {
   setItem,
   getChatMessagesBySession,
   getAllChatSessionIds,
+  clearChatMessagesBySession,
   ChatMessageRecord,
 } from '@/lib/indexeddb-service';
 import {
@@ -119,11 +120,8 @@ export const useChatHistory = ({
   const clearSessionHistory = useCallback(async () => {
     try {
       await initializeDB();
-      // This function needs to be implemented in indexeddb-service.ts
-      // await clearChatMessagesBySession(sessionId);
-      console.log(
-        `useChatHistory: Cleared history for session ${sessionId}. (Note: clearChatMessagesBySession needs implementation)`,
-      );
+      await clearChatMessagesBySession(sessionId);
+      console.log(`useChatHistory: Cleared history for session ${sessionId}.`);
     } catch (error) {
       console.error('useChatHistory: Error clearing session history:', error);
       toast({

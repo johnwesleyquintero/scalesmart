@@ -589,23 +589,6 @@ export const getAllChatSessionIds = async (): Promise<string[]> => {
   }
 };
 
-export const clearChatMessagesBySession = async (
-  sessionId: string,
-): Promise<void> => {
-  try {
-    await db[STORE_CHAT_MESSAGES].where('chatSessionId')
-      .equals(sessionId)
-      .delete();
-  } catch (error) {
-    logError(
-      error,
-      `Failed to clear messages for session ${sessionId}`,
-      SERVICE_NAME,
-    );
-    throw error;
-  }
-};
-
 export async function getCacheItem<T>(key: string): Promise<T | undefined> {
   const item = await getItem<{ key: string; value: T }>(STORE_CACHE, key);
   return item?.value;
@@ -1409,6 +1392,35 @@ export const createChatMessageRecord = async (
     throw error;
   }
 };
+
+export async function clearChatMessagesBySession(
+  sessionId: string,
+): Promise<void> {
+  try {
+    await db[STORE_CHAT_MESSAGES].where('chatSessionId')
+      .equals(sessionId)
+      .delete();
+    console.log(
+      `${SERVICE_NAME}: Cleared chat messages for session: ${sessionId}`,
+    );
+  } catch (error) {
+    console.error(
+      `${SERVICE_NAME}: Error clearing chat messages for session ${sessionId}:`,
+      error,
+    );
+    throw error;
+  }
+}
+
+export async function clearAllChatSessions(): Promise<void> {
+  try {
+    await db[STORE_CHAT_MESSAGES].clear();
+    console.log(`${SERVICE_NAME}: Cleared all chat messages.`);
+  } catch (error) {
+    console.error(`${SERVICE_NAME}: Error clearing all chat messages:`, error);
+    throw error;
+  }
+}
 
 export const updateChatMessageRecord = async (
   message: ChatMessageRecord,

@@ -5,8 +5,16 @@ import ChatInput from './ChatInput'; // Import ChatInput component
 // import { RETRY_LIMIT as ConfigRetryLimit } from '@/lib/config'; // Remove this line
 import DOMPurify from 'dompurify';
 import React, { useCallback, useEffect, useReducer, useRef } from 'react';
-import { ChatMessageRecord } from '@/lib/indexeddb-service';
-import { Message, mapMessageRoleToSender } from '@/lib/chat-message-utils';
+import {
+  ChatMessageRecord,
+  clearAllChatSessions,
+  getChatMessagesBySession,
+} from '@/lib/indexeddb-service';
+import {
+  Message,
+  mapMessageRoleToSender,
+  mapDbRecordToMessage,
+} from '@/lib/chat-message-utils';
 import {
   ChatState,
   ChatAction,
@@ -135,6 +143,77 @@ export default function ChatInterface() {
     fetchSessions();
   }, [getAllSessions, isSidebarOpen, setChatSessions]); // Fetch sessions on mount and when sidebar is toggled
 
+  // Function to reset chat (clear messages and generate new session ID)
+  const resetChat = useCallback(() => {
+    dispatch({ type: 'CLEAR_MESSAGES' });
+    chatSessionIdRef.current = crypto.randomUUID(); // Generate a new session ID
+    console.log('Chat reset. New session ID:', chatSessionIdRef.current);
+    // Clear editing state and input on reset
+    dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
+    dispatch({ type: 'SET_INPUT', payload: '' });
+    clearSessionHistory(); // Clear history for the old session ID
+    window.history.pushState({}, '', '/chat'); // Navigate to base chat URL
+  }, [dispatch, clearSessionHistory]);
+
+  // --- Chat Session Management Functions ---
+
+  const handleSessionClick = useCallback(
+    async (sessionId: string) => {
+      chatSessionIdRef.current = sessionId; // Update the current session ID
+      dispatch({ type: 'CLEAR_MESSAGES' }); // Clear current messages
+      dispatch({ type: 'SET_INPUT', payload: '' }); // Clear input
+      dispatch({ type: 'SET_EDITING_MESSAGE', payload: null }); // Clear editing state
+
+      // Reload messages for the new session
+      const dbMessages = await getChatMessagesBySession(sessionId);
+      if (dbMessages.length > 0) {
+        const mappedMessages = dbMessages.map(mapDbRecordToMessage);
+        dispatch({ type: 'SET_MESSAGES', payload: mappedMessages });
+      } else {
+        dispatch({ type: 'ADD_MESSAGE', payload: initialGreeting });
+      }
+      // Update URL without full page reload
+      window.history.pushState({}, '', `/chat?session=${sessionId}`);
+      toast({
+        title: 'Session Loaded',
+        description: `Switched to chat session: ${sessionId.substring(0, 8)}...`,
+      });
+    },
+    [dispatch, toast],
+  );
+
+  const handleClearCurrentSession = useCallback(async () => {
+    await clearSessionHistory(); // Use the hook's function to clear current session
+    resetChat(); // Reset the chat interface
+    toast({
+      title: 'Current Session Cleared',
+      description: 'All messages in the current session have been removed.',
+    });
+  }, [clearSessionHistory, resetChat, toast]);
+
+  const handleClearAllSessions = useCallback(async () => {
+    if (
+      window.confirm(
+        'Are you sure you want to clear all chat sessions? This cannot be undone.',
+      )
+    ) {
+      try {
+        await clearAllChatSessions(); // Use the imported function
+        resetChat(); // Reset the chat interface
+        toast({
+          title: 'All Sessions Cleared',
+          description: 'All chat history has been permanently removed.',
+        });
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to clear all chat sessions.',
+          variant: 'destructive',
+        });
+      }
+    }
+  }, [resetChat, toast]);
+
   // --- Helper Functions ---
 
   const scrollToBottom = useCallback(() => {
@@ -162,18 +241,6 @@ export default function ChatInterface() {
       textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
     }
   }, [input]); // Depend on input to resize as text is typed
-
-  // Function to reset chat (clear messages and generate new session ID)
-  const resetChat = useCallback(() => {
-    dispatch({ type: 'CLEAR_MESSAGES' });
-    chatSessionIdRef.current = crypto.randomUUID(); // Generate a new session ID
-    console.log('Chat reset. New session ID:', chatSessionIdRef.current);
-    // Clear editing state and input on reset
-    dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
-    dispatch({ type: 'SET_INPUT', payload: '' });
-    clearSessionHistory(); // Clear history for the old session ID
-    window.history.pushState({}, '', '/chat'); // Navigate to base chat URL
-  }, [dispatch, clearSessionHistory]);
 
   // Function to handle sending a message
   const sendMessage = useCallback(
@@ -456,36 +523,37 @@ export default function ChatInterface() {
             </svg>
             {isSidebarOpen && <span>Chat</span>}
           </a>
-          {isSidebarOpen && chatSessions.length > 0 && (
-            <div className="mt-4 border-t border-border pt-4">
-              <h3 className="text-sm font-semibold text-muted-foreground mb-2">
-                Past Chats
-              </h3>
-              <div className="space-y-1">
-                {chatSessions.map((sessionId) => (
-                  <a
+          {isSidebarOpen && (
+            <div className="flex flex-col gap-2 p-2 mt-4 border-t border-border pt-4">
+              <h3 className="text-lg font-semibold">Past Chats</h3>
+              {chatSessions.length > 0 ? (
+                chatSessions.map((sessionId) => (
+                  <Button
                     key={sessionId}
-                    href={`/chat?session=${sessionId}`}
-                    className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground text-sm truncate"
+                    variant="ghost"
+                    className="justify-start"
+                    onClick={() => handleSessionClick(sessionId)}
                   >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="lucide lucide-message-square"
-                    >
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                    </svg>
-                    <span>{sessionId.substring(0, 8)}...</span>
-                  </a>
-                ))}
-              </div>
+                    {sessionId.substring(0, 8)}...
+                  </Button>
+                ))
+              ) : (
+                <p className="text-sm text-gray-500">No past chats.</p>
+              )}
+              <Button
+                variant="outline"
+                onClick={handleClearCurrentSession}
+                className="mt-4"
+              >
+                Clear Current Session
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleClearAllSessions}
+                className="mt-2"
+              >
+                Clear All Sessions
+              </Button>
             </div>
           )}
           <a
@@ -720,7 +788,9 @@ export default function ChatInterface() {
   );
 }
 
-// Floating Chat Button
+{
+  /* Floating Chat Button */
+}
 export function FloatingChatButton({
   toggleChatAction,
   isChatOpen,
