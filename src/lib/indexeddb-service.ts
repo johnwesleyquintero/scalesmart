@@ -23,9 +23,11 @@ import {
   Event,
   CalculationData,
   ProjectStatus, // Assuming ProjectStatus is a type needed
+  TaskStatus,
 } from '@/types/indexeddb';
 
 export type {
+  TaskStatus,
   TaskComment,
   Task,
   Project,

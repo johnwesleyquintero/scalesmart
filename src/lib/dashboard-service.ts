@@ -68,6 +68,46 @@ export const DashboardService = {
     });
   },
 
+  async getDashboardWidgets(dashboardId: string): Promise<WidgetConfig[]> {
+    // Simulate API call to fetch widgets for a dashboard
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve([
+          {
+            id: 'chart1',
+            type: 'chart',
+            title: 'Sales by Month',
+            data: {
+              labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+              datasets: [{ label: 'Sales', data: [10, 20, 15, 25, 22, 30] }],
+            },
+            chartType: 'bar',
+            x: 0,
+            y: 0,
+            w: 6,
+            h: 4,
+          },
+          {
+            id: 'table1',
+            type: 'table',
+            title: 'Top Products',
+            data: {
+              headers: ['Product', 'Sales', 'Units'],
+              rows: [
+                ['A', '1000', '100'],
+                ['B', '800', '80'],
+              ],
+            },
+            x: 0,
+            y: 4,
+            w: 6,
+            h: 4,
+          },
+        ]);
+      }, 1000);
+    });
+  },
+
   async saveDashboard(dashboard: Dashboard): Promise<Dashboard> {
     // Simulate API call to save a dashboard
     return new Promise((resolve) => {
@@ -324,7 +364,7 @@ export const processDataWithFormula = (
 };
 
 // In-memory storage for refresh intervals and timers
-const activeRefreshTimers: Map<string, NodeJS.Timeout> = new Map(); // eslint-disable-line no-undef
+const activeRefreshTimers: Map<string, any> = new Map(); // eslint-disable-line no-undef
 
 // Placeholder function to simulate fetching data for a dashboard's widgets
 // In a real application, this would iterate through widgets and use DataConnectorService

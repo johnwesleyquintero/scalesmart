@@ -22,7 +22,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { getAIDrivenRecommendation } from '@/lib/amazon-tools/gemini-api';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -159,55 +158,6 @@ export default function PromptRequestGenerator() {
       categoryNotSelected || requestIsEmpty || customCategoryIsEmptyWhenRequired
     );
   }, [promptData]); // Dependency: Re-create if promptData changes.
-
-  // Handler for generating prompt with AI.
-  const generatePromptWithAIHandler = useCallback(async () => {
-    setLoading(true); // Start loading
-    setOutput(''); // Clear previous output
-
-    const {
-      category,
-      customCategory,
-      request,
-      context,
-      parentTask,
-      subtask,
-      codeInput,
-    } = promptData;
-    const errors: Partial<Record<keyof PromptData, string>> = {};
-
-    if (!category) {
-      errors.category = REQUIRED_CATEGORY_MESSAGE;
-    }
-    if (!request.trim()) {
-      errors.request = REQUIRED_REQUEST_MESSAGE;
-    }
-    if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
-      errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
-    }
-
-    setValidationErrors(errors);
-
-    if (Object.keys(errors).length > 0) {
-      setLoading(false);
-      toast.warning(
-        'Please fix the errors in the form before generating with AI.',
-      );
-      return;
-    }
-
-    try {
-      const prompt = generatePrompt(promptData);
-      const aiGeneratedText = await getAIDrivenRecommendation(prompt);
-      setOutput(aiGeneratedText);
-      toast.success('AI-generated prompt successfully!');
-    } catch (error) {
-      console.error('Error generating prompt with AI:', error);
-      toast.error('Failed to generate prompt with AI. Please try again.');
-    } finally {
-      setLoading(false); // Stop loading
-    }
-  }, [promptData]);
 
   // Handler function to generate the prompt string.
   const generatePromptHandler = useCallback(() => {
@@ -550,23 +500,6 @@ export default function PromptRequestGenerator() {
                     <>
                       <Wand2 className="mr-2 h-4 w-4" />
                       Generate Prompt
-                    </>
-                  )}
-                </Button>
-
-                {/* Generate Prompt with AI Button */}
-                <Button
-                  onClick={generatePromptWithAIHandler} // New handler for AI generation
-                  className="w-full md:w-auto"
-                  aria-label="Generate prompt with AI"
-                  disabled={isGenerateDisabled || loading} // Disable based on validation state or loading
-                >
-                  {loading ? (
-                    'Generating with AI...'
-                  ) : (
-                    <>
-                      <Wand2 className="mr-2 h-4 w-4" />
-                      Generate Prompt with AI
                     </>
                   )}
                 </Button>
