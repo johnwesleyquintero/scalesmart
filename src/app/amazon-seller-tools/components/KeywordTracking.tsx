@@ -9,6 +9,12 @@ interface KeywordTrackingResult extends KeywordTrackingData {
   id: number; // Add an ID for keying in lists
 }
 
+interface KeywordRecommendation {
+  keyword: string;
+  reason: string;
+  suggestedPlacement: string;
+}
+
 interface KeywordTrackingProps {
   /**
    * Data parsed from an uploaded file.
@@ -23,7 +29,9 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
   const [trackingResults, setTrackingResults] = useState<
     KeywordTrackingResult[]
   >([]);
-  const [recommendation, setRecommendation] = useState<string | null>(null);
+  const [recommendations, setRecommendations] = useState<
+    KeywordRecommendation[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -62,7 +70,7 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
   const handleGetKeywordRecommendations = async () => {
     setLoading(true);
     setError(null);
-    setRecommendation(null);
+    setRecommendations([]);
     try {
       // Extract all keyword tracking data from all uploaded files
       const allKeywordData: KeywordTrackingData[] = parsedData.flatMap(
@@ -97,7 +105,23 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
       }
 
       const data = await response.json();
-      setRecommendation(data.recommendation); // Assuming the API returns 'recommendation'
+
+      // Parse the recommendation string into an array of objects
+      const parsedRecommendations: KeywordRecommendation[] = data.recommendation
+        .split('\n- ')
+        .slice(1) // Remove the "AI-Powered Keyword Recommendations:" part
+        .map((rec: string) => {
+          const keywordMatch = rec.match(/Keyword: "([^"]+)"/);
+          const reasonMatch = rec.match(/Reason: (.+)/);
+          const placementMatch = rec.match(/Suggested Placement: (.+)/);
+          return {
+            keyword: keywordMatch ? keywordMatch[1] : 'N/A',
+            reason: reasonMatch ? reasonMatch[1] : 'N/A',
+            suggestedPlacement: placementMatch ? placementMatch[1] : 'N/A',
+          };
+        });
+
+      setRecommendations(parsedRecommendations);
     } catch (err) {
       setError(
         `Failed to get keyword recommendations: ${err instanceof Error ? err.message : String(err)}`,
@@ -176,9 +200,24 @@ const KeywordTracking: React.FC<KeywordTrackingProps> = ({ parsedData }) => {
         >
           {loading ? 'Generating Recommendations...' : 'Get AI Recommendations'}
         </Button>
-        {recommendation && (
-          <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-foreground whitespace-pre-wrap">
-            {recommendation}
+        {recommendations.length > 0 && (
+          <div className="mt-4 space-y-2">
+            {recommendations.map((rec, index) => (
+              <Card key={index}>
+                <CardHeader>
+                  <CardTitle>{rec.keyword}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p>
+                    <strong>Reason:</strong> {rec.reason}
+                  </p>
+                  <p>
+                    <strong>Suggested Placement:</strong>{' '}
+                    {rec.suggestedPlacement}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
         {error && <p className="mt-4 text-red-600">Error: {error}</p>}

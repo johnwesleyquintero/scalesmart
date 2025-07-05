@@ -459,7 +459,13 @@ export const useWorkflowBuilderData = () => {
     try {
       const workflowData = await getCacheItem(STORAGE_KEY);
 
-      if (typeof workflowData === 'string' && workflowData.length > 0) {
+      if (workflowData === null || workflowData === undefined) {
+        toast({
+          title: TOAST_TITLE_NO_WORKFLOW,
+          description: TOAST_DESC_NO_WORKFLOW,
+          variant: TOAST_VARIANT_INFO,
+        });
+      } else if (typeof workflowData === 'string' && workflowData.length > 0) {
         let parsedData: unknown;
         try {
           parsedData = JSON.parse(workflowData);
@@ -501,12 +507,6 @@ export const useWorkflowBuilderData = () => {
             variant: TOAST_VARIANT_DESTRUCTIVE,
           });
         }
-      } else if (workflowData === null) {
-        toast({
-          title: TOAST_TITLE_NO_WORKFLOW,
-          description: TOAST_DESC_NO_WORKFLOW,
-          variant: TOAST_VARIANT_INFO,
-        });
       } else {
         console.error(
           'Unexpected data format or type found in IndexedDB for workflow:',

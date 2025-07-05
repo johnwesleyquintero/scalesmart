@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProductResearchData } from '@/types/amazon-tools';
+import { Badge } from '@/components/ui/badge'; // Import Badge for displaying scores
 
 interface ProductSearchResult extends ProductResearchData {
   id: number; // Add an ID for keying in lists
+  opportunityScore?: number; // Add opportunity score
 }
 
 interface ParsedFileData<T> {
@@ -21,14 +23,40 @@ interface ProductResearchProps {
 const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState<ProductSearchResult[]>([]);
+  const [loadingScores, setLoadingScores] = useState(false);
 
-  const handleSearch = () => {
+  const getOpportunityScore = useCallback(
+    async (product: ProductResearchData): Promise<number | undefined> => {
+      try {
+        const response = await fetch(
+          '/api/amazon-tools/product-opportunity-scoring',
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productData: [{ fileName: 'search', data: [product] }],
+            }),
+          },
+        );
+        if (!response.ok) return undefined;
+        const data = await response.json();
+        // Assuming the API returns a score in the 'analysis' field, and we parse it
+        const scoreMatch = data.analysis?.match(/Opportunity Score: (\d+)/);
+        return scoreMatch ? parseInt(scoreMatch[1], 10) : undefined;
+      } catch (error) {
+        console.error('Failed to fetch opportunity score:', error);
+        return undefined;
+      }
+    },
+    [],
+  );
+
+  const handleSearch = async () => {
     const lowerCaseSearchTerm = searchTerm.toLowerCase();
     const filteredResults: ProductSearchResult[] = [];
 
     parsedData.forEach((file) => {
-      file.data.forEach((product, index) => {
-        // Check if product and its properties exist before accessing them
+      file.data.forEach((product) => {
         const name = product?.name?.toLowerCase() || '';
         const asin = product?.asin?.toLowerCase() || '';
         const brand = product?.brand?.toLowerCase() || '';
@@ -44,7 +72,20 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
         }
       });
     });
+
     setSearchResults(filteredResults);
+    setLoadingScores(true);
+
+    // Fetch scores for the filtered results
+    const resultsWithScores = await Promise.all(
+      filteredResults.map(async (product) => {
+        const score = await getOpportunityScore(product);
+        return { ...product, opportunityScore: score };
+      }),
+    );
+
+    setSearchResults(resultsWithScores);
+    setLoadingScores(false);
   };
 
   return (
@@ -88,7 +129,24 @@ const ProductResearch: React.FC<ProductResearchProps> = ({ parsedData }) => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0 text-sm text-muted-foreground dark:text-gray-400">
-                <p>Price: ${result.price?.toFixed(2) || 'N/A'}</p>
+                <div className="flex justify-between items-center">
+                  <p>Price: ${result.price?.toFixed(2) || 'N/A'}</p>
+                  {loadingScores ? (
+                    <p>Loading score...</p>
+                  ) : result.opportunityScore !== undefined ? (
+                    <Badge
+                      variant={
+                        result.opportunityScore >= 75
+                          ? 'default'
+                          : result.opportunityScore >= 50
+                            ? 'secondary'
+                            : 'destructive'
+                      }
+                    >
+                      Opportunity Score: {result.opportunityScore}
+                    </Badge>
+                  ) : null}
+                </div>
                 <p>ASIN: {result.asin || 'N/A'}</p>
                 <p>Brand: {result.brand || 'N/A'}</p>
                 <p>Category: {result.category || 'N/A'}</p>

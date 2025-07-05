@@ -16,6 +16,7 @@ import { getEmailTemplates } from './utils/emailTemplateUtils'; // Import getEma
 import { EmailTemplate } from './types'; // Import EmailTemplate type
 import { DashboardBuilder } from '../dashboard-studio/components/DashboardBuilder'; // Import DashboardBuilder
 import { WidgetConfig } from '../dashboard-studio/widget-types'; // Import WidgetConfig
+import WorkflowBuilderSection from './components/WorkflowBuilderSection'; // Import WorkflowBuilderSection
 
 // Dynamically import components that are not needed on initial load
 const EmailTemplateManager = lazy(
@@ -225,6 +226,9 @@ export default function CRMComponent() {
               Sales Pipeline
             </CRMTabsTrigger>
             <CRMTabsTrigger value="crm-dashboard">CRM Dashboard</CRMTabsTrigger>
+            <CRMTabsTrigger value="workflow-automation">
+              Workflow Automation
+            </CRMTabsTrigger>
           </TabsList>
 
           {/* Tab Content for Adding a Customer */}
@@ -347,6 +351,13 @@ export default function CRMComponent() {
           <TabsContent value="crm-dashboard" className="space-y-4 mt-4">
             <Suspense fallback={<div>Loading CRM Dashboard...</div>}>
               <DashboardBuilder initialWidgets={defaultCrmWidgets} />
+            </Suspense>
+          </TabsContent>
+
+          {/* Tab Content for Workflow Automation */}
+          <TabsContent value="workflow-automation" className="space-y-4 mt-4">
+            <Suspense fallback={<div>Loading Workflow Builder...</div>}>
+              <WorkflowBuilderSection />
             </Suspense>
           </TabsContent>
         </Tabs>

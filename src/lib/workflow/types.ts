@@ -1,7 +1,7 @@
 export interface NodeProperty {
   name: string;
   label: string;
-  type: 'string' | 'number' | 'boolean' | 'select';
+  type: 'string' | 'number' | 'boolean' | 'select' | 'text';
   options?: string[];
   defaultValue?: unknown;
 }
