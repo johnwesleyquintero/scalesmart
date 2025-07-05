@@ -11,10 +11,7 @@ const ErrorBoundaryClient = dynamic(() => import('./ui/error-boundary'), {
   loading: () => <CardLoading />,
 });
 
-const ClientChatInterfaceClient = dynamic(
-  () => import('./ui/client-chat-interface'),
-  { ssr: false },
-);
+// Removed ClientChatInterfaceClient as it's no longer needed after refactoring chat to directly use ChatInterface.
 
 const HeroSectionClient = dynamic(() => import('./hero-section'), {
   loading: () => <CardLoading />,
@@ -58,7 +55,7 @@ const InAppProjectsClient = dynamic(
 export {
   CardLoadingClient,
   ErrorBoundaryClient,
-  ClientChatInterfaceClient,
+  // ClientChatInterfaceClient,
   HeroSectionClient,
   ProjectsSectionClient,
   AboutSectionClient,
