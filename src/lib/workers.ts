@@ -2,6 +2,7 @@ import { Worker } from 'bullmq';
 import { getAIDrivenRecommendation } from '@/lib/amazon-tools/gemini-api';
 import { generatePrompt } from '@/lib/prompt-generator/promptGenerator';
 import { InventoryData } from '@/types/amazon-tools';
+import { savePrediction } from '@/lib/indexeddb-service'; // Import savePrediction
 
 export const predictiveInventoryWorker = new Worker(
   'predictiveInventory',
@@ -24,9 +25,12 @@ ${JSON.stringify(inventoryData, null, 2)}`,
     // Get AI-driven prediction using the predictive inventory feature config
     const prediction = await getAIDrivenRecommendation(prompt);
 
-    // In a real application, you would store this prediction in your database
-    // or send it back to the client via a websocket or other mechanism.
-    console.log('Predictive Inventory Analysis Complete:', prediction);
+    // Store the prediction in IndexedDB
+    await savePrediction({ predictionData: prediction });
+    console.log(
+      'Predictive Inventory Analysis Complete and Stored:',
+      prediction,
+    );
 
     return prediction;
   },

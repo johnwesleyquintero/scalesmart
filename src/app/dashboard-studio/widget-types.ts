@@ -27,6 +27,8 @@ export interface ConditionalFormattingRule {
 }
 
 // Define specific types for each widget's data and configuration
+import { DataQuery } from './data-source-types'; // Import DataQuery
+
 export interface BaseWidgetConfig {
   id: string;
   type: WidgetType;
@@ -36,6 +38,7 @@ export interface BaseWidgetConfig {
   w: number; // Grid width
   h: number; // Grid height
   conditionalFormattingRules?: ConditionalFormattingRule[]; // Optional conditional formatting rules
+  dataSource?: { query: DataQuery }; // Optional data source configuration for the widget
 }
 
 export interface ChartWidgetConfig extends BaseWidgetConfig {

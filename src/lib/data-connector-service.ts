@@ -1,5 +1,6 @@
 // src/lib/data-connector-service.ts
 
+import Papa from 'papaparse'; // Import Papa Parse
 import {
   DataSourceConnection,
   DataSourceType,
@@ -9,189 +10,126 @@ import {
   DataTransformation,
 } from './../app/dashboard-studio/data-source-types';
 
-// Placeholder for specific connector implementations
-// In a real application, these would be separate files/modules;
-
-// Placeholder for specific connector implementations
-// In a real application, these would be separate files/modules
-
-// Placeholder for specific connector implementations
-// In a real application, these would be separate files/modules
-class SnowflakeConnector implements BaseConnector {
+// For this application, we will focus on local data sources like IndexedDB or CSV imports.
+// Cloud-based data connectors (Snowflake, Kafka, Kinesis) are removed to align with the
+// goal of creating functional local tools without external database dependencies.
+class LocalCSVConnector implements BaseConnector {
   async connect(connectionDetails: Record<string, unknown>): Promise<void> {
-    console.log('Connecting to Snowflake...', connectionDetails);
-    // Simulate connection logic
+    console.log('Connecting to Local CSV...', connectionDetails);
+    // No actual connection needed for local CSV, just simulate readiness
     return Promise.resolve();
   }
 
   async disconnect(): Promise<void> {
-    console.log('Disconnecting from Snowflake...');
-    // Simulate disconnection logic
+    console.log('Disconnecting from Local CSV...');
     return Promise.resolve();
   }
 
   async executeQuery(query: DataQuery): Promise<QueryResult> {
-    console.log('Executing Snowflake query:', query);
-    // Simulate query execution and data retrieval
-    const simulatedData = [
-      { id: 1, snowflake_value: Math.random() * 100 },
-      { id: 2, snowflake_value: Math.random() * 100 },
-      { id: 3, snowflake_value: Math.random() * 100 },
-    ];
-    const columns = Object.keys(simulatedData[0]).map((key) => ({
-      name: key,
-      type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
-    }));
-    const rows = simulatedData.map((item) => Object.values(item));
-    return Promise.resolve({ columns, rows });
+    console.log('Executing Local CSV query:', query);
+    // In a real application, this would involve parsing a local CSV file
+    // The query.query is expected to be the CSV content string
+    if (typeof query.query !== 'string' || !query.query.trim()) {
+      throw new Error(
+        'CSV query must be a non-empty string containing CSV data.',
+      );
+    }
+
+    return new Promise((resolve, reject) => {
+      Papa.parse(query.query, {
+        header: true, // Assume the first row is the header
+        dynamicTyping: true, // Attempt to convert values to appropriate types (numbers, booleans)
+        skipEmptyLines: true,
+        complete: (results) => {
+          if (results.errors.length > 0) {
+            console.error('CSV parsing errors:', results.errors);
+            reject(
+              new Error('Failed to parse CSV: ' + results.errors[0].message),
+            );
+            return;
+          }
+
+          const data = results.data;
+          if (data.length === 0) {
+            resolve({ columns: [], rows: [] });
+            return;
+          }
+
+          const columns = Object.keys(data[0] as Record<string, unknown>).map(
+            (key) => ({
+              name: key,
+              type: typeof (data[0] as Record<string, unknown>)[key], // Infer type from first row
+            }),
+          );
+
+          const rows = data.map((row) =>
+            Object.values(row as Record<string, unknown>),
+          );
+          resolve({ columns, rows });
+        },
+        error: (error: Error) => {
+          reject(new Error(`CSV parsing failed: ${error.message}`));
+        },
+      });
+    });
   }
 }
 
-// Add other connector classes here following the BaseConnector interface
-// e.g., GoogleBigQueryConnector, SalesforceConnector, etc.
+import { getAllItems } from './indexeddb-service'; // Import IndexedDB service functions
 
-// Add other connector classes here following the BaseConnector interface
-// e.g., GoogleBigQueryConnector, SalesforceConnector, etc.
-
-class KafkaConnector implements BaseConnector {
+class IndexedDBConnector implements BaseConnector {
   async connect(connectionDetails: Record<string, unknown>): Promise<void> {
-    console.log('Connecting to Kafka...', connectionDetails);
-    // Simulate connection logic
+    console.log('Connecting to IndexedDB...', connectionDetails);
+    // No explicit connection needed for IndexedDB, it's always available
     return Promise.resolve();
   }
 
   async disconnect(): Promise<void> {
-    console.log('Disconnecting from Kafka...');
-    // Simulate disconnection logic
+    console.log('Disconnecting from IndexedDB...');
     return Promise.resolve();
   }
 
   async executeQuery(query: DataQuery): Promise<QueryResult> {
-    console.log('Executing Kafka query (batch):', query);
-    // Kafka is primarily for streaming, batch query might not be typical
-    // Simulate fetching a small batch or recent data
-    const simulatedData = [
-      { id: 1, kafka_value: Math.random() * 100, timestamp: Date.now() },
-      { id: 2, kafka_value: Math.random() * 100, timestamp: Date.now() },
-    ];
-    const columns = Object.keys(simulatedData[0]).map((key) => ({
-      name: key,
-      type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
-    }));
-    const rows = simulatedData.map((item) => Object.values(item));
-    return Promise.resolve({ columns, rows });
-  }
+    console.log('Executing IndexedDB query:', query);
+    // In a real application, this would involve querying IndexedDB
+    // The query.query is expected to be the store name (string)
+    if (typeof query.query !== 'string' || !query.query.trim()) {
+      throw new Error(
+        'IndexedDB query must be a non-empty string representing the store name.',
+      );
+    }
 
-  subscribe(
-    query: DataQuery,
-    onData: (data: QueryResult) => void,
-    onError: (error: Error) => void,
-  ): () => void {
-    console.log('Subscribing to Kafka topic:', query);
-    // Simulate real-time data streaming
-    const intervalMs =
-      query.refreshInterval && query.refreshInterval > 0
-        ? query.refreshInterval
-        : 1000; // Default to 1000ms
-    const interval = setInterval(() => {
-      const simulatedData = [
-        {
-          id: Date.now(),
-          kafka_value: Math.random() * 100,
-          timestamp: Date.now(),
-        },
-      ];
-      const columns = Object.keys(simulatedData[0]).map((key) => ({
+    try {
+      const items = await getAllItems<Record<string, unknown>>(query.query);
+
+      if (items.length === 0) {
+        return { columns: [], rows: [] };
+      }
+
+      // Infer columns from the first item
+      const columns = Object.keys(items[0]).map((key) => ({
         name: key,
-        type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
+        type: typeof items[0][key],
       }));
-      const rows = simulatedData.map((item) => Object.values(item));
-      onData({ columns, rows });
-    }, intervalMs);
 
-    return () => {
-      console.log('Unsubscribing from Kafka topic:', query);
-      clearInterval(interval);
-    };
-  }
-}
+      // Extract rows as arrays of values
+      const rows = items.map((item) => Object.values(item));
 
-class KinesisConnector implements BaseConnector {
-  async connect(connectionDetails: Record<string, unknown>): Promise<void> {
-    console.log('Connecting to Kinesis...', connectionDetails);
-    // Simulate connection logic
-    return Promise.resolve();
-  }
-
-  async disconnect(): Promise<void> {
-    console.log('Disconnecting from Kinesis...');
-    // Simulate disconnection logic
-    return Promise.resolve();
-  }
-
-  async executeQuery(query: DataQuery): Promise<QueryResult> {
-    console.log('Executing Kinesis query (batch):', query);
-    // Kinesis is primarily for streaming, batch query might not be typical
-    // Simulate fetching a small batch or recent data
-    const simulatedData = [
-      { id: 1, kinesis_value: Math.random() * 100, timestamp: Date.now() },
-      { id: 2, kinesis_value: Math.random() * 100, timestamp: Date.now() },
-    ];
-    const columns = Object.keys(simulatedData[0]).map((key) => ({
-      name: key,
-      type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
-    }));
-    const rows = simulatedData.map((item) => Object.values(item));
-    return Promise.resolve({ columns, rows });
-  }
-
-  subscribe(
-    query: DataQuery,
-    onData: (data: QueryResult) => void,
-    onError: (error: Error) => void,
-  ): () => void {
-    console.log('Subscribing to Kinesis stream:', query);
-    // Simulate real-time data streaming
-    const intervalMs =
-      query.refreshInterval && query.refreshInterval > 0
-        ? query.refreshInterval
-        : 1500; // Default to 1500ms
-    const interval = setInterval(() => {
-      const simulatedData = [
-        {
-          id: Date.now(),
-          kinesis_value: Math.random() * 100,
-          timestamp: Date.now(),
-        },
-      ];
-      const columns = Object.keys(simulatedData[0]).map((key) => ({
-        name: key,
-        type: typeof simulatedData[0][key as keyof (typeof simulatedData)[0]],
-      }));
-      const rows = simulatedData.map((item) => Object.values(item));
-      onData({ columns, rows });
-    }, intervalMs);
-
-    return () => {
-      console.log('Unsubscribing from Kinesis stream:', query);
-      clearInterval(interval);
-    };
+      return { columns, rows };
+    } catch (error) {
+      console.error(`Error querying IndexedDB store "${query.query}":`, error);
+      throw new Error(
+        `Failed to query IndexedDB: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
   }
 }
 
 // This map will hold instances of connected data sources
 const activeConnections: Map<string, BaseConnector> = new Map();
 
-// Placeholder for secure credential management (e.g., using a vault service)
-const secureCredentialManager = {
-  getCredentials(connectionId: string): Record<string, unknown> | undefined {
-    console.log(`Retrieving credentials for connection ID: ${connectionId}`);
-    // Simulate fetching credentials securely
-    // In a real app, this would interact with a secure storage
-    return { dummyCredential: 'dummy_value' };
-  },
-  // Add methods for storing, updating, and deleting credentials
-};
+// For local data sources, credentials are not typically managed in the same way as cloud services.
+// We'll remove the secureCredentialManager as it's not applicable to local storage.
 
 // Placeholder for data transformation logic
 const dataTransformer = {
@@ -228,41 +166,19 @@ export const DataConnectorService = {
 
     let connector: BaseConnector;
     // Retrieve credentials securely
-    const credentials = secureCredentialManager.getCredentials(connection.id);
-
-    if (!credentials) {
-      throw new Error(
-        `Credentials not found for connection ID: ${connection.id}`,
-      );
-    }
-
     switch (connection.type) {
-      case DataSourceType.Snowflake:
-        connector = new SnowflakeConnector();
+      case DataSourceType.LocalCSV:
+        connector = new LocalCSVConnector();
         break;
-      case DataSourceType.Kafka:
-        connector = new KafkaConnector();
+      case DataSourceType.IndexedDB:
+        connector = new IndexedDBConnector();
         break;
-      case DataSourceType.Kinesis:
-        connector = new KinesisConnector();
-        break;
-      // Add cases for other data source types
-      // case DataSourceType.GoogleBigQuery:
-      //   connector = new GoogleBigQueryConnector();
-      //   break;
-      case DataSourceType.Custom:
-        // Handle custom connectors - potentially load dynamically or use a registry
-        throw new Error('Custom connectors not yet fully implemented.');
       default:
         throw new Error(`Unsupported data source type: ${connection.type}`);
     }
 
     try {
-      // Pass connection details and credentials to the connector
-      await connector.connect({
-        ...connection.connectionDetails,
-        ...credentials,
-      });
+      await connector.connect(connection.connectionDetails);
       activeConnections.set(connection.id, connector);
       console.log(
         `Successfully established connection for ${connection.name} (${connection.type})`,
@@ -362,8 +278,8 @@ export const DataConnectorService = {
 
   // Add methods for listing available data sources, managing connections, etc.
   listAvailableDataSources(): DataSourceType[] {
-    // Return the list of supported data source types
-    return Object.values(DataSourceType);
+    // Return the list of supported local data source types
+    return [DataSourceType.LocalCSV, DataSourceType.IndexedDB];
   },
 
   listActiveConnections(): DataSourceConnection[] {

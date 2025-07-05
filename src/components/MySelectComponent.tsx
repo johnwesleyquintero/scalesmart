@@ -43,7 +43,6 @@ export function MySelectComponent<T extends boolean = false>({
       logger.warn(
         `Invalid SelectOption: An option with label "${option.label}" has an empty or missing value. This item will be skipped.`,
       );
-      // In a real application, you might throw an error or provide a fallback value
       return false; // Exclude invalid options from rendering
     }
     return true;

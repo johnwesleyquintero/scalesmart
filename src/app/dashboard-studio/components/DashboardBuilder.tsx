@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import ExportToPdfButton from './ExportToPdfButton';
 import { WidgetLibrary } from './WidgetLibrary';
 import {
   WidgetConfig,
@@ -44,6 +45,8 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
   initialWidgets,
 }) => {
   const [widgets, setWidgets] = useState<WidgetConfig[]>(initialWidgets || []);
+  const dashboardRef = useRef<HTMLDivElement>(null);
+  const dashboardTitle = 'My Custom Dashboard';
 
   const addWidget = (type: string) => {
     let newWidget: WidgetConfig;
@@ -228,23 +231,34 @@ export const DashboardBuilder: React.FC<DashboardBuilderProps> = ({
 
   return (
     <div className="border p-4 rounded-lg">
-      <h2 className="text-2xl font-semibold mb-4">Build Your Dashboard</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-semibold">Build Your Dashboard</h2>
+        <ExportToPdfButton
+          dashboardRef={dashboardRef}
+          dashboardTitle={dashboardTitle}
+        />
+      </div>
       <div className="mb-4">
         <WidgetLibrary onSelectWidget={addWidget} />
       </div>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={widgets} strategy={verticalListSortingStrategy}>
-          {widgets.map((widget) => (
-            <SortableWidget key={widget.id} id={widget.id}>
-              {renderWidget(widget)}
-            </SortableWidget>
-          ))}
-        </SortableContext>
-      </DndContext>
+      <div ref={dashboardRef}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={widgets}
+            strategy={verticalListSortingStrategy}
+          >
+            {widgets.map((widget) => (
+              <SortableWidget key={widget.id} id={widget.id}>
+                {renderWidget(widget)}
+              </SortableWidget>
+            ))}
+          </SortableContext>
+        </DndContext>
+      </div>
     </div>
   );
 };

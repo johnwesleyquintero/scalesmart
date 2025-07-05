@@ -3,8 +3,10 @@
 import {
   DataQuery,
   QueryResult,
+  DataSourceType,
 } from '../app/dashboard-studio/data-source-types';
-import { DataRefreshService } from './dashboard-service'; // Assuming DataRefreshService is in dashboard-service.ts
+import { DataRefreshService } from './dashboard-service';
+import { setItem, getItem, getAllItems, deleteItem } from './indexeddb-service';
 
 // Define interfaces for alert rules and notifications
 export interface AlertRule {
@@ -26,6 +28,8 @@ export interface AlertNotification {
   config: Record<string, unknown>; // Configuration for the notification
 }
 
+const ALERT_RULES_STORE_NAME = 'alertRules';
+
 // In-memory storage for active alert rules and their monitoring processes
 const activeAlerts: Map<
   string,
@@ -36,7 +40,7 @@ export const AlertingService = {
   // Method to create or update an alert rule
   async saveAlertRule(rule: AlertRule): Promise<void> {
     console.log('Saving alert rule:', rule);
-    // In a real application, save the rule to a database
+    await setItem<AlertRule>(ALERT_RULES_STORE_NAME, rule);
 
     // If the rule is active, start or restart monitoring
     if (rule.isActive) {
@@ -49,24 +53,22 @@ export const AlertingService = {
   // Method to delete an alert rule
   async deleteAlertRule(ruleId: string): Promise<void> {
     console.log('Deleting alert rule:', ruleId);
-    // In a real application, delete the rule from the database
+    await deleteItem(ALERT_RULES_STORE_NAME, ruleId);
 
     // Stop monitoring if active
     this.stopMonitoring(ruleId);
   },
 
   // Method to get an alert rule by ID
-  async getAlertRule(ruleId: string): Promise<AlertRule | null> {
+  async getAlertRule(ruleId: string): Promise<AlertRule | undefined> {
     console.log('Getting alert rule:', ruleId);
-    // In a real application, fetch the rule from the database
-    return null; // Placeholder
+    return getItem<AlertRule>(ALERT_RULES_STORE_NAME, ruleId);
   },
 
   // Method to list all alert rules
   async listAlertRules(): Promise<AlertRule[]> {
     console.log('Listing alert rules');
-    // In a real application, fetch all rules from the database
-    return []; // Placeholder
+    return getAllItems<AlertRule>(ALERT_RULES_STORE_NAME);
   },
 
   // Internal method to start monitoring an alert rule
@@ -78,36 +80,22 @@ export const AlertingService = {
 
     console.log('Starting monitoring for alert rule:', rule.name);
 
-    // Determine if the data source is streaming or requires scheduled refresh
-    // This is a simplified example; real logic would inspect the data source type
-    const isStreaming =
-      rule.query.connectionId.includes('kafka') ||
-      rule.query.connectionId.includes('kinesis');
-
     let stopMonitoring: () => void;
 
-    if (isStreaming) {
-      // Use real-time data stream for monitoring
-      stopMonitoring = DataRefreshService.startRealtimeDataStream(
-        rule.query,
-        (data: QueryResult) => this.evaluateCondition(rule, data),
-        (error: unknown) =>
-          console.error(
-            `Error in real-time stream for alert rule ${rule.name}:`,
-            error as Error,
-          ), // Change type to unknown and assert as Error for logging
-      );
-    } else {
-      // Use scheduled data refresh for monitoring
-      // This requires a mechanism in DataRefreshService to fetch data for a specific query
-      // and a way to trigger evaluation after fetching. This is a placeholder.
-      console.warn('Scheduled refresh monitoring for alerts is a placeholder.');
-      stopMonitoring = () =>
-        console.log('Placeholder stop monitoring for scheduled refresh.');
-      // A real implementation would likely involve:
-      // 1. Modifying DataRefreshService to allow subscribing to scheduled fetches for a specific query.
-      // 2. Calling that new subscription method here.
-    }
+    // For local applications, we'll assume scheduled refresh or direct data access
+    // based on the query's connection type (e.g., IndexedDB, LocalCSV).
+    // We will use DataRefreshService's startRealtimeDataStream for simplicity,
+    // assuming it can handle both "streaming" (e.g., watching IndexedDB changes)
+    // and scheduled fetches for local data sources.
+    stopMonitoring = DataRefreshService.startRealtimeDataStream(
+      rule.query,
+      (data: QueryResult) => this.evaluateCondition(rule, data),
+      (error: unknown) =>
+        console.error(
+          `Error in data stream for alert rule ${rule.name}:`,
+          error as Error,
+        ),
+    );
 
     activeAlerts.set(rule.id, { rule, stopMonitoring });
   },

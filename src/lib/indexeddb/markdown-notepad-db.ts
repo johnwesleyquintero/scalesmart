@@ -8,13 +8,14 @@ import {
   IDBPCursorWithValue,
 } from 'idb';
 import { v4 as uuidv4 } from 'uuid';
+import Fuse from 'fuse.js'; // Import Fuse.js
 import { Note, Category, MarkdownNoteVersion } from '@/types/indexeddb'; // Import Note, Category, and MarkdownNoteVersion interfaces
 
 interface MarkdownNotepadDB extends DBSchema {
   notes: {
     key: string; // Unique ID for the note (e.g., UUID)
     value: Note;
-    indexes: { category: string };
+    indexes: { category: string; synced: 'synced' };
   };
   categories: {
     key: string; // Unique ID for the category
@@ -29,7 +30,7 @@ interface MarkdownNotepadDB extends DBSchema {
 }
 
 const DB_NAME = 'markdown-notepad-db';
-const DB_VERSION = 5; // Increment DB_VERSION to trigger the upgrade logic
+const DB_VERSION = 6; // Increment DB_VERSION to trigger the upgrade logic
 const NOTES_STORE_NAME = 'notes';
 const CATEGORIES_STORE_NAME = 'categories';
 const NOTE_VERSIONS_STORE_NAME = 'note_versions';
@@ -200,6 +201,23 @@ async function getDB(): Promise<IDBPDatabase<MarkdownNotepadDB>> {
             noteVersionsStore.createIndex('timestamp', 'timestamp');
           }
         }
+        if (oldVersion < 6) {
+          // Upgrade to version 6: Add 'synced' index to notes store
+          const notesStore = transaction.objectStore(NOTES_STORE_NAME);
+          if (!notesStore.indexNames.contains('synced')) {
+            notesStore.createIndex('synced', 'synced');
+          }
+          // Backfill 'synced' property for existing notes
+          notesStore.openCursor().then(async function addSyncedFlag(cursor) {
+            if (!cursor) return;
+            const note = { ...cursor.value };
+            if (typeof note.synced === 'undefined') {
+              note.synced = 1; // Assume existing notes are synced, changed from true to 1
+            }
+            await cursor.update(note);
+            await cursor.continue();
+          });
+        }
       },
     });
   }
@@ -334,6 +352,7 @@ export async function addNote(
       category: category,
       createdAt: now,
       updatedAt: now,
+      synced: 0, // New notes are initially unsynced, changed from false to 0
     });
     return id;
   } catch (error) {
@@ -405,14 +424,21 @@ async function filterNotesBySearchQuery(
   notes: Note[],
   searchQuery: string,
 ): Promise<Note[]> {
-  if (searchQuery) {
-    return notes.filter(
-      (note) =>
-        note.markdown.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        note.title.toLowerCase().includes(searchQuery.toLowerCase()),
-    );
+  if (!searchQuery) {
+    return notes;
   }
-  return notes;
+
+  const options = {
+    keys: ['title', 'markdown'], // Search in title and markdown content
+    threshold: 0.3, // Fuzziness: 0.0 (exact match) to 1.0 (very loose)
+    includeScore: true, // Include score for debugging/ranking if needed
+  };
+
+  const fuse = new Fuse(notes, options);
+  const result = fuse.search(searchQuery);
+
+  // Return the original note objects, not the Fuse.js result objects
+  return result.map((item) => item.item);
 }
 
 export async function getNotesByCategory(
@@ -469,6 +495,7 @@ export async function updateNote(
         markdown,
         category,
         updatedAt: Date.now(),
+        synced: 0, // Mark as unsynced on update, changed from false to 0
       });
     } else {
       console.warn(`Note with ID ${id} not found for update.`);
@@ -530,6 +557,35 @@ export async function getAllCategories(): Promise<Category[]> {
     return db.getAll(CATEGORIES_STORE_NAME);
   } catch (error) {
     console.error('Error getting all categories:', error);
+    throw error;
+  }
+}
+
+// --- Offline Sync Functions ---
+
+export async function getUnsyncedNotes(): Promise<Note[]> {
+  try {
+    const db = await getDB();
+    const tx = db.transaction(NOTES_STORE_NAME, 'readonly');
+    const store = tx.objectStore(NOTES_STORE_NAME);
+    const index = store.index('synced');
+    return index.getAll(IDBKeyRange.only(0)); // 0 for false in IndexedDB
+  } catch (error) {
+    console.error('Error getting unsynced notes:', error);
+    throw error;
+  }
+}
+
+export async function markNoteAsSynced(noteId: string): Promise<void> {
+  try {
+    const db = await getDB();
+    const note = await db.get(NOTES_STORE_NAME, noteId);
+    if (note) {
+      note.synced = 1; // Changed from true to 1
+      await db.put(NOTES_STORE_NAME, note);
+    }
+  } catch (error) {
+    console.error(`Error marking note ${noteId} as synced:`, error);
     throw error;
   }
 }

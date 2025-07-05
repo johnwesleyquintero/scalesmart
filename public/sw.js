@@ -1,64 +1,79 @@
-/**
- * @fileoverview Service worker script.
- */
-// Service worker global scope: self, caches, fetch, and console are implicitly available.
-const CACHE_NAME = 'my-app-cache-v1';
+const CACHE_NAME = 'scalesmart-platform-cache-v1';
 const urlsToCache = [
   '/',
-  '/index.html',
-  '/manifest.json',
-  // Add other assets you want to cache (CSS, JavaScript, images, etc.)
+  '/manifest.webmanifest',
+  // We will cache other assets dynamically
 ];
 
 self.addEventListener('install', (event) => {
+  console.log('Service Worker: Installing...');
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Opened cache');
+      console.log('Service Worker: Caching app shell');
       return cache.addAll(urlsToCache);
     }),
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      // Cache hit - return response
-      if (response) {
-        return response;
-      }
-      // Not in cache - fetch and cache
-      return fetch(event.request).then((response) => {
-        // Check if we received a valid response
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
-        }
-
-        // IMPORTANT: Clone the response.  A response is a stream
-        // and can only be consumed once.
-        const responseToCache = response.clone();
-
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseToCache);
-        });
-
-        return response;
-      });
-    }),
-  );
-});
-
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
-
+  console.log('Service Worker: Activating...');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName !== CACHE_NAME) {
+            console.log('Service Worker: Clearing old cache:', cacheName);
             return caches.delete(cacheName);
           }
         }),
       );
+    }),
+  );
+  return self.clients.claim();
+});
+
+self.addEventListener('fetch', (event) => {
+  const { request } = event;
+
+  // For API calls, use a network-first strategy
+  if (request.url.includes('/api/')) {
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          // If the network request is successful, cache it
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseToCache);
+          });
+          return response;
+        })
+        .catch(() => {
+          // If the network fails, try to get it from the cache
+          return caches.match(request);
+        }),
+    );
+    return;
+  }
+
+  // For other requests (assets, pages), use a cache-first strategy
+  event.respondWith(
+    caches.match(request).then((cachedResponse) => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(request).then((response) => {
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
+        }
+
+        const responseToCache = response.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put(request, responseToCache);
+        });
+
+        return response;
+      });
     }),
   );
 });

@@ -1,10 +1,14 @@
 'use client';
 
+'use client';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   MarkdownNotepadProvider,
   useMarkdownNotepadContext,
 } from '@/context/MarkdownNotepadContext';
+import { useOnlineStatus } from '@/hooks/use-online-status';
+import { syncOfflineData } from '@/lib/offline-sync';
 import MarkdownEditor from './components/MarkdownEditor';
 import CategorySelector from './components/CategorySelector';
 import SearchBar from './components/SearchBar';
@@ -23,6 +27,7 @@ import { Note } from '@/types/indexeddb';
 import { useToast } from '@/hooks/use-toast';
 import NotepadHeader from './components/NotepadHeader';
 import NotesTabContent from './components/NotesTabContent';
+import ImportExportButtons from './components/ImportExportButtons';
 
 const MarkdownNotepad = () => {
   return (
@@ -35,6 +40,20 @@ const MarkdownNotepad = () => {
 const NotepadContent = () => {
   const { createNewNote } = useMarkdownNotepadContext();
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const isOnline = useOnlineStatus();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (isOnline) {
+      console.log('Application is online. Checking for notes to sync...');
+      syncOfflineData().then(() => {
+        toast({
+          title: 'Sync Complete',
+          description: 'Your offline notes have been successfully synced.',
+        });
+      });
+    }
+  }, [isOnline, toast]);
 
   return (
     <div className="container mx-auto p-4">
@@ -68,6 +87,9 @@ const NotepadContent = () => {
             </Button>
           </div>{' '}
           {/* Wrapped TabsList and Button in a flex div */}
+          <div className="mb-4">
+            <ImportExportButtons />
+          </div>
           <TabsContent value="notes" className="space-y-4 mt-4">
             <NotesTabContent
               isLoading={isLoading}

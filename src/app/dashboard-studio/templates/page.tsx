@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; // Import useRouter
 import { DashboardService } from '@/lib/dashboard-service'; // Assuming dashboard-service is in lib
-import { Dashboard } from '@/lib/dashboard-service'; // Assuming Dashboard type is exported
+import { Dashboard } from '@/types/indexeddb'; // Import Dashboard type from indexeddb
 
 const DashboardTemplatesPage = () => {
   const router = useRouter(); // Get router instance

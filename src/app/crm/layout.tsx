@@ -16,7 +16,7 @@ export default async function CRMLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Temporarily remove authorization logic as Supabase is being removed.
-  // In a real application, you would replace this with your new authentication/authorization system.
+  // For this local-first application, authentication/authorization is not implemented.
+  // Access to CRM features is direct.
   return <>{children}</>;
 }

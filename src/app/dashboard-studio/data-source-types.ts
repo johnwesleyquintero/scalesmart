@@ -1,21 +1,9 @@
 // src/app/dashboard-studio/data-source-types.ts
 
 export enum DataSourceType {
-  Snowflake = 'snowflake',
-  GoogleBigQuery = 'google-bigquery',
-  AzureSynapseAnalytics = 'azure-synapse-analytics',
-  Salesforce = 'salesforce',
-  HubSpot = 'hubspot',
-  GoogleAnalytics4 = 'google-analytics-4',
-  FacebookAds = 'facebook-ads',
-  GoogleAds = 'google-ads',
-  Shopify = 'shopify',
-  AmazonSellerCentral = 'amazon-seller-central',
-  MongoDB = 'mongodb',
-  Cassandra = 'cassandra',
+  LocalCSV = 'local-csv',
+  IndexedDB = 'indexeddb',
   Custom = 'custom', // For self-service connectors
-  Kafka = 'kafka', // Streaming data source
-  Kinesis = 'kinesis', // Streaming data source
 }
 
 export interface DataSourceConnection {

@@ -8,6 +8,7 @@ import {
   CommunicationLog,
   ActivityLog,
   SalesOpportunity,
+  EmailTemplate, // Import EmailTemplate
 } from '@/app/crm/types';
 import {
   Category,
@@ -24,6 +25,8 @@ import {
   CalculationData,
   ProjectStatus, // Assuming ProjectStatus is a type needed
   TaskStatus,
+  Prediction, // Import Prediction
+  Dashboard, // Import Dashboard
 } from '@/types/indexeddb';
 
 export type {
@@ -45,6 +48,9 @@ export type {
   SalesOpportunity,
   ModuleProgressRecord,
   QuizResultRecord,
+  EmailTemplate, // Added EmailTemplate
+  Prediction, // Export Prediction
+  Dashboard, // Export Dashboard
 };
 
 // --- Constants ---
@@ -72,6 +78,8 @@ const STORE_CALCULATIONS = 'calculations'; // matches property name
 const STORE_AMAZON_REPORTS = 'amazonReports'; // matches property name
 const STORE_MARKDOWN_NOTES = 'markdownNotes'; // matches property name
 const STORE_MARKDOWN_NOTE_VERSIONS = 'markdownNoteVersions'; // matches property name
+const STORE_PREDICTIONS = 'predictions'; // New store for predictions
+const STORE_DASHBOARDS = 'dashboards'; // New store for dashboards
 
 // --- Database Class Definition ---
 
@@ -121,6 +129,8 @@ class ScaleSmartDatabase extends Dexie {
     MarkdownNoteVersion,
     number
   >;
+  public readonly [STORE_PREDICTIONS]!: Table<Prediction, string>; // New table for predictions
+  public readonly [STORE_DASHBOARDS]!: Table<Dashboard, string>; // New table for dashboards
 
   constructor() {
     super(DB_NAME);
@@ -149,53 +159,73 @@ class ScaleSmartDatabase extends Dexie {
       [STORE_MARKDOWN_NOTES]: 'id, title, category, createdAt, updatedAt',
       [STORE_MARKDOWN_NOTE_VERSIONS]: '++id, noteId, timestamp', // ++id for auto-increment
       [STORE_TASK_COMMENTS]: 'id, taskId, createdAt, userId',
+      [STORE_PREDICTIONS]: 'id, timestamp, *synced', // New store schema with synced as indexed property
+      [STORE_DASHBOARDS]: 'id, name', // New store schema for dashboards, synced will be added in upgrade
     });
 
     // Chain version upgrades sequentially.
     // The original code had duplicate version(19) blocks, which is incorrect.
     // Combine the schema definitions and upgrade logic for version 19 into one block.
-    this.version(19)
+    this.version(20) // Increment version to 20 for schema changes
       .stores({
-        // Re-declare all schemas for this version. Add new stores/indexes or modify existing ones.
-        // Existing schemas must be compatible with previous versions or handle migration in 'upgrade'.
-        [STORE_CHAT_MESSAGES]: '++id, chatSessionId, timestamp, sender',
-        [STORE_MODULE_PROGRESS]: '[userId+moduleId+progressKey]', // Assuming composite key
+        [STORE_CHAT_MESSAGES]: '++id, chatSessionId, timestamp, sender, synced',
+        [STORE_MODULE_PROGRESS]: '[userId+moduleId+progressKey]',
         [STORE_QUIZ_RESULTS]: '[userId+moduleId]',
         [STORE_CACHE]: 'key',
 
         [STORE_EVENTS]: '++id, date',
         [STORE_CRM_CONTACTS]:
-          'id, name, email, phone, company, notes, category, createdAt, updatedAt, lastActivity',
+          'id, name, email, phone, company, notes, category, createdAt, updatedAt, lastActivity, synced',
         [STORE_CRM_CATEGORIES]: 'id, name',
         [STORE_CRM_COMMUNICATION_LOGS]:
-          'id, customerId, type, date, subject, notes',
-        [STORE_CRM_ACTIVITY_LOGS]: 'id, contactId, type, date, notes',
-        [STORE_CRM_EMAIL_TEMPLATES]: 'id, name',
+          'id, customerId, type, date, subject, notes, synced',
+        [STORE_CRM_ACTIVITY_LOGS]: 'id, contactId, type, date, notes, synced',
+        [STORE_CRM_EMAIL_TEMPLATES]: 'id, name, synced',
         [STORE_CRM_SALES_OPPORTUNITIES]:
-          'id, name, status, amount, closeDate, contactId, createdAt, updatedAt',
+          'id, name, status, amount, closeDate, contactId, createdAt, updatedAt, synced',
         [STORE_TASKS]:
-          'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order',
-        [STORE_PROJECTS]: 'id, name, description, createdAt, updatedAt, status',
+          'id, title, description, status, assignee, dueDate, projectId, createdAt, updatedAt, dependencies, subtasks, priority, order, synced',
+        [STORE_PROJECTS]:
+          'id, name, description, createdAt, updatedAt, status, synced',
         [STORE_CALCULATIONS]: 'id, campaignName, date',
-        [STORE_AMAZON_REPORTS]: 'id, fileName, category, uploadDate',
-        [STORE_MARKDOWN_NOTES]: 'id, title, category, createdAt, updatedAt',
+        [STORE_AMAZON_REPORTS]: 'id, fileName, category, uploadDate, synced',
+        [STORE_MARKDOWN_NOTES]:
+          'id, title, category, createdAt, updatedAt, synced',
         [STORE_MARKDOWN_NOTE_VERSIONS]: '++id, noteId, timestamp',
         [STORE_TASK_COMMENTS]: 'id, taskId, createdAt, userId',
+        [STORE_PREDICTIONS]: 'id, timestamp, *synced', // Update schema for version 20 with synced as indexed property
+        [STORE_DASHBOARDS]: 'id, name, synced', // Update schema for version 20, adding synced as an indexed property
       })
       .upgrade(async (trans) => {
-        // Migration logic from version 18 to 19 goes here.
-        console.log(`Upgrading ${DB_NAME} from version 18 to 19`);
+        console.log(`Upgrading ${DB_NAME} from previous version to 20`);
 
-        // Example: if moduleProgress and quizResults were added in v19,
-        // there's no data migration needed for them, just schema definition.
-        // If fields were added, you might need a modify operation:
-        // await trans.table(STORE_CRM_CONTACTS).toCollection().modify(contact => {
-        //   if (contact.newField === undefined) contact.newField = 'defaultValue';
-        // });
+        // Add 'synced' property to existing records if they don't have it
+        const tablesToUpdate = [
+          STORE_CHAT_MESSAGES,
+          STORE_CRM_CONTACTS,
+          STORE_CRM_COMMUNICATION_LOGS,
+          STORE_CRM_ACTIVITY_LOGS,
+          STORE_CRM_EMAIL_TEMPLATES,
+          STORE_CRM_SALES_OPPORTUNITIES,
+          STORE_TASKS,
+          STORE_PROJECTS,
+          STORE_AMAZON_REPORTS,
+          STORE_MARKDOWN_NOTES,
+          STORE_PREDICTIONS, // Add predictions to tables to update
+          STORE_DASHBOARDS, // Add dashboards to tables to update
+        ];
+
+        for (const storeName of tablesToUpdate) {
+          await trans
+            .table(storeName)
+            .toCollection()
+            .modify((item) => {
+              if (item && typeof item === 'object' && !('synced' in item)) {
+                item.synced = 1; // Assume existing data is synced, changed from true to 1
+              }
+            });
+        }
       });
-
-    // Add further versions as needed, chained sequentially.
-    // this.version(20).stores({...}).upgrade(...);
 
     this.on('versionchange', (event) => {
       console.warn(
@@ -207,6 +237,83 @@ class ScaleSmartDatabase extends Dexie {
 }
 
 export const db = new ScaleSmartDatabase();
+
+// --- Prediction Specific Functions ---
+
+export const savePrediction = async (
+  predictionData: Omit<Prediction, 'id' | 'timestamp' | 'synced'>,
+): Promise<string> => {
+  try {
+    const id = crypto.randomUUID();
+    const timestamp = Date.now();
+    const predictionToStore: Prediction = {
+      ...predictionData,
+      id,
+      timestamp,
+      synced: 0, // Changed from false to 0
+    };
+    await setItem<Prediction>(STORE_PREDICTIONS, predictionToStore);
+    console.log(`${SERVICE_NAME}: Prediction saved`, predictionToStore);
+    return id;
+  } catch (error) {
+    logError(error, `Error saving prediction`, SERVICE_NAME);
+    throw error;
+  }
+};
+
+export const getPrediction = async (
+  id: string,
+): Promise<Prediction | undefined> => {
+  try {
+    return await getItem<Prediction>(STORE_PREDICTIONS, id);
+  } catch (error) {
+    logError(error, `Error getting prediction with id: ${id}`, SERVICE_NAME);
+    throw error;
+  }
+};
+
+// --- Dashboard Specific Functions ---
+
+export const saveDashboardConfig = async (
+  dashboardData: Omit<Dashboard, 'synced'>,
+): Promise<string> => {
+  try {
+    const dashboardToStore: Dashboard = {
+      ...dashboardData,
+      synced: 0, // Changed from false to 0
+    };
+    await setItem<Dashboard>(STORE_DASHBOARDS, dashboardToStore);
+    console.log(`${SERVICE_NAME}: Dashboard config saved`, dashboardToStore);
+    return dashboardToStore.id;
+  } catch (error) {
+    logError(error, `Error saving dashboard config`, SERVICE_NAME);
+    throw error;
+  }
+};
+
+export const getDashboardConfig = async (
+  id: string,
+): Promise<Dashboard | undefined> => {
+  try {
+    return await getItem<Dashboard>(STORE_DASHBOARDS, id);
+  } catch (error) {
+    logError(
+      error,
+      `Error getting dashboard config with id: ${id}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
+
+export const getAllDashboards = async (): Promise<Dashboard[]> => {
+  try {
+    return await getAllItems<Dashboard>(STORE_DASHBOARDS);
+  } catch (error) {
+    logError(error, `Error getting all dashboards`, SERVICE_NAME);
+    throw error;
+  }
+};
 
 // --- Helper Functions ---
 
@@ -256,7 +363,6 @@ export async function setItem<T>(
   try {
     const table = db.table(storeName);
     const key = await table.put(value);
-    // Log success might be noisy, enable for debugging if needed.
     // console.log(`${SERVICE_NAME}: Item set in "${storeName}"`, value);
     return key;
   } catch (error) {
@@ -387,6 +493,70 @@ export async function bulkSetItems<T>(
  */
 export const getAllItemsFromStore = getAllItems;
 
+/**
+ * Retrieves all unsynced items from a specified store.
+ * Assumes items have a 'synced' boolean property.
+ * @param storeName The name of the store.
+ * @returns A promise resolving to an array of unsynced items.
+ */
+export async function getUnsyncedItems<T extends { synced?: number }>(
+  storeName: string,
+): Promise<T[]> {
+  try {
+    const table = db.table(storeName);
+    const unsynced = await table.where('synced').equals(0).toArray(); // Changed from false to 0
+    return unsynced;
+  } catch (error) {
+    logError(
+      error,
+      `Error getting unsynced items from store "${storeName}"`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+}
+
+/**
+ * Marks an item as synced in a specified store.
+ * Assumes the item object contains the primary key property and a 'synced' number property (0 for unsynced, 1 for synced).
+ * @param storeName The name of the store.
+ * @param item The item object to mark as synced.
+ * @returns A promise that resolves when the item is updated.
+ */
+export async function markItemAsSynced<
+  T extends { id: IndexableType; synced?: number },
+>(storeName: string, item: T): Promise<void> {
+  try {
+    const table = db.table(storeName);
+    // Ensure the item has an 'id' property for the put operation
+    if ('id' in item && item.id !== undefined) {
+      const updatedItem = { ...item, synced: 1 }; // Changed from true to 1
+      await table.put(updatedItem);
+      console.log(
+        `${SERVICE_NAME}: Item with id "${item.id}" in "${storeName}" marked as synced.`,
+      );
+    } else {
+      console.warn(
+        `${SERVICE_NAME}: Cannot mark item as synced, 'id' property is missing or undefined for item in store "${storeName}".`,
+        item,
+      );
+    }
+  } catch (error) {
+    // Safely get the ID for logging, handling cases where 'item' might not have a valid 'id'
+    const itemIdForLog =
+      item && typeof item === 'object' && 'id' in item
+        ? String(item.id) // Convert to string for logging
+        : 'unknown';
+
+    logError(
+      error,
+      `Error marking item with id "${itemIdForLog}" in store "${storeName}" as synced`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+}
+
 // --- Specific Service Functions ---
 // These functions leverage the generic CRUD or use direct Dexie methods for complex queries.
 
@@ -444,11 +614,12 @@ export async function getCacheItem<T>(key: string): Promise<T | undefined> {
 export async function setCacheItem<T>(key: string, value: T): Promise<string> {
   // The cache store uses 'key' as its primary key
   const itemToStore = { key: key, value: value };
-  const resultKey = await setItem<{ key: string; value: T }>(
+  // Explicitly cast the return type of setItem to string, as we know the primary key for STORE_CACHE is a string
+  const resultKey: string = (await setItem<{ key: string; value: T }>(
     STORE_CACHE,
     itemToStore,
-  );
-  return resultKey as string; // Primary key for cache is string 'key'
+  )) as string;
+  return resultKey;
 }
 
 export async function removeCacheItem(key: string): Promise<void> {
@@ -513,6 +684,7 @@ export const createContact = async (
       id,
       createdAt: now,
       updatedAt: now,
+      synced: 0, // Mark as unsynced on creation, changed from false to 0
     };
     await setItem<Contact>(STORE_CRM_CONTACTS, contactToStore);
     console.log(`${SERVICE_NAME}: Contact created`, contactToStore);
@@ -547,7 +719,7 @@ export const getAllContacts = async (): Promise<Contact[]> => {
 
 export const updateContact = async (contact: Contact): Promise<void> => {
   try {
-    const contactToStore = { ...contact, updatedAt: Date.now() };
+    const contactToStore = { ...contact, updatedAt: Date.now(), synced: 0 }; // Mark as unsynced on update, changed from false to 0
     await setItem<Contact>(STORE_CRM_CONTACTS, contactToStore);
     console.log(`${SERVICE_NAME}: Contact updated`, contactToStore);
   } catch (error) {
@@ -583,6 +755,7 @@ export const createTask = async (
       id,
       createdAt: now,
       updatedAt: now,
+      synced: 0, // Mark as unsynced on creation, changed from false to 0
     };
     await setItem<Task>(STORE_TASKS, taskToStore);
     console.log(`${SERVICE_NAME}: Task created`, taskToStore);
@@ -637,10 +810,10 @@ export async function getTasksByProjectId(projectId: string): Promise<Task[]> {
 
 export const updateTask = async (task: Task): Promise<void> => {
   try {
-    // Ensure comments is always an array before storing
     const taskToStore = {
       ...task,
       updatedAt: Date.now(),
+      synced: 0, // Mark as unsynced on update, changed from false to 0
     };
     await setItem<Task>(STORE_TASKS, taskToStore);
     console.log(`${SERVICE_NAME}: Task updated`, taskToStore);
@@ -671,6 +844,7 @@ export const createProject = async (
       id,
       createdAt: now,
       updatedAt: now,
+      synced: 0, // Mark as unsynced on creation, changed from false to 0
     };
     await setItem<Project>(STORE_PROJECTS, projectToStore);
     console.log(`${SERVICE_NAME}: Project created`, projectToStore);
@@ -705,7 +879,7 @@ export const getAllProjects = async (): Promise<Project[]> => {
 
 export const updateProject = async (project: Project): Promise<void> => {
   try {
-    const projectToStore = { ...project, updatedAt: Date.now() };
+    const projectToStore = { ...project, updatedAt: Date.now(), synced: 0 }; // Mark as unsynced on update, changed from false to 0
     await setItem<Project>(STORE_PROJECTS, projectToStore);
     console.log(`${SERVICE_NAME}: Project updated`, projectToStore);
   } catch (error) {
@@ -777,7 +951,12 @@ export const createCommunicationLog = async (
 ): Promise<string> => {
   try {
     const id = crypto.randomUUID();
-    const logToStore: CommunicationLog = { ...logData, id, date: Date.now() };
+    const logToStore: CommunicationLog = {
+      ...logData,
+      id,
+      date: Date.now(),
+      synced: 0,
+    }; // Mark as unsynced on creation, changed from false to 0
     await setItem<CommunicationLog>(STORE_CRM_COMMUNICATION_LOGS, logToStore);
     console.log(`${SERVICE_NAME}: Communication log created`, logToStore);
     return id;
@@ -813,7 +992,7 @@ export const updateCommunicationLog = async (
   log: CommunicationLog,
 ): Promise<void> => {
   try {
-    const updatedLog = { ...log, date: Date.now() };
+    const updatedLog = { ...log, date: Date.now(), synced: 0 }; // Mark as unsynced on update, changed from false to 0
     await setItem<CommunicationLog>(STORE_CRM_COMMUNICATION_LOGS, updatedLog);
     console.log(`${SERVICE_NAME}: Communication log updated`, updatedLog);
   } catch (error) {
@@ -845,7 +1024,7 @@ export const addCategory = async (
 ): Promise<string> => {
   try {
     const id = crypto.randomUUID();
-    const categoryToStore: Category = { ...categoryData, id };
+    const categoryToStore: Category = { ...categoryData, id, synced: 0 }; // Mark as unsynced on creation, changed from false to 0
     await setItem<Category>(STORE_CRM_CATEGORIES, categoryToStore);
     console.log(`${SERVICE_NAME}: Category added`, categoryToStore);
     return id;
@@ -870,8 +1049,9 @@ export const getAllCategories = async (): Promise<Category[]> => {
 
 export const updateCategory = async (category: Category): Promise<void> => {
   try {
-    await setItem<Category>(STORE_CRM_CATEGORIES, category);
-    console.log(`${SERVICE_NAME}: Category updated`, category);
+    const categoryToStore = { ...category, synced: 0 }; // Mark as unsynced on update, changed from false to 0
+    await setItem<Category>(STORE_CRM_CATEGORIES, categoryToStore);
+    console.log(`${SERVICE_NAME}: Category updated`, categoryToStore);
   } catch (error) {
     logError(
       error,
@@ -949,11 +1129,61 @@ export async function getSalesOpportunitiesByStatus(
 }
 
 export async function getEmailTemplates(): Promise<
-  { id: string; name: string }[]
+  { id: string; name: string; synced?: number }[] // Changed boolean to number
 > {
   const templates = await db[STORE_CRM_EMAIL_TEMPLATES].toArray();
   return templates;
 }
+
+export const createEmailTemplate = async (
+  templateData: Omit<EmailTemplate, 'id'>,
+): Promise<string> => {
+  try {
+    const id = crypto.randomUUID();
+    const templateToStore: EmailTemplate = { ...templateData, id, synced: 0 }; // Mark as unsynced on creation, changed from false to 0
+    await setItem<EmailTemplate>(STORE_CRM_EMAIL_TEMPLATES, templateToStore);
+    console.log(`${SERVICE_NAME}: Email template created`, templateToStore);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error creating email template: ${templateData.name}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
+
+export const updateEmailTemplate = async (
+  template: EmailTemplate,
+): Promise<void> => {
+  try {
+    const templateToStore = { ...template, synced: 0 }; // Mark as unsynced on update, changed from false to 0
+    await setItem<EmailTemplate>(STORE_CRM_EMAIL_TEMPLATES, templateToStore);
+    console.log(`${SERVICE_NAME}: Email template updated`, templateToStore);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating email template with id: ${template.id}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
+
+export const deleteEmailTemplate = async (id: string): Promise<void> => {
+  try {
+    await deleteItem(STORE_CRM_EMAIL_TEMPLATES, id);
+    console.log(`${SERVICE_NAME}: Email template deleted with id: ${id}`);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting email template with id: ${id}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
 
 // Amazon Seller Tools Specific Functions
 
@@ -975,6 +1205,56 @@ export async function getAmazonReportsByCategory(
   }
 }
 
+export const createAmazonReport = async (
+  reportData: Omit<AmazonReport, 'id'>,
+): Promise<string> => {
+  try {
+    const id = crypto.randomUUID();
+    const reportToStore: AmazonReport = { ...reportData, id, synced: 0 }; // Mark as unsynced on creation, changed from false to 0
+    await setItem<AmazonReport>(STORE_AMAZON_REPORTS, reportToStore);
+    console.log(`${SERVICE_NAME}: Amazon report created`, reportToStore);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error creating Amazon report: ${reportData.fileName}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
+
+export const updateAmazonReport = async (
+  report: AmazonReport,
+): Promise<void> => {
+  try {
+    const reportToStore = { ...report, synced: 0 }; // Mark as unsynced on update, changed from false to 0
+    await setItem<AmazonReport>(STORE_AMAZON_REPORTS, reportToStore);
+    console.log(`${SERVICE_NAME}: Amazon report updated`, reportToStore);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating Amazon report with id: ${report.id}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
+
+export const deleteAmazonReport = async (id: string): Promise<void> => {
+  try {
+    await deleteItem(STORE_AMAZON_REPORTS, id);
+    console.log(`${SERVICE_NAME}: Amazon report deleted with id: ${id}`);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting Amazon report with id: ${id}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
+
 // Markdown Notepad Specific Functions
 
 export async function getNotesByCategory(category: string): Promise<Note[]> {
@@ -992,6 +1272,49 @@ export async function getNotesByCategory(category: string): Promise<Note[]> {
     throw error;
   }
 }
+
+export const createNote = async (
+  noteData: Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'synced'>,
+): Promise<string> => {
+  try {
+    const id = crypto.randomUUID();
+    const now = Date.now();
+    const noteToStore: Note = {
+      ...noteData,
+      id,
+      createdAt: now,
+      updatedAt: now,
+      synced: 0, // Mark as unsynced on creation, changed from false to 0
+    };
+    await setItem<Note>(STORE_MARKDOWN_NOTES, noteToStore);
+    console.log(`${SERVICE_NAME}: Note created`, noteToStore);
+    return id;
+  } catch (error) {
+    logError(error, `Error creating note: ${noteData.title}`, SERVICE_NAME);
+    throw error;
+  }
+};
+
+export const updateNote = async (note: Note): Promise<void> => {
+  try {
+    const noteToStore = { ...note, updatedAt: Date.now(), synced: 0 }; // Mark as unsynced on update, changed from false to 0
+    await setItem<Note>(STORE_MARKDOWN_NOTES, noteToStore);
+    console.log(`${SERVICE_NAME}: Note updated`, noteToStore);
+  } catch (error) {
+    logError(error, `Error updating note with id: ${note.id}`, SERVICE_NAME);
+    throw error;
+  }
+};
+
+export const deleteNote = async (id: string): Promise<void> => {
+  try {
+    await deleteItem(STORE_MARKDOWN_NOTES, id);
+    console.log(`${SERVICE_NAME}: Note deleted with id: ${id}`);
+  } catch (error) {
+    logError(error, `Error deleting note with id: ${id}`, SERVICE_NAME);
+    throw error;
+  }
+};
 
 export async function getNoteVersionsByNoteId(
   noteId: string,
@@ -1063,6 +1386,62 @@ export async function getQuizResultsByUserIdAndModuleId(
     throw error;
   }
 }
+
+export const createChatMessageRecord = async (
+  messageData: Omit<ChatMessageRecord, 'id' | 'timestamp' | 'synced'>,
+): Promise<number> => {
+  try {
+    const timestamp = Date.now();
+    const messageToStore: ChatMessageRecord = {
+      ...messageData,
+      timestamp,
+      synced: 0,
+    }; // Mark as unsynced on creation, changed from false to 0
+    const id = await db[STORE_CHAT_MESSAGES].add(messageToStore);
+    console.log(`${SERVICE_NAME}: Chat message record created`, messageToStore);
+    return id;
+  } catch (error) {
+    logError(
+      error,
+      `Error creating chat message record for session ${messageData.chatSessionId}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
+
+export const updateChatMessageRecord = async (
+  message: ChatMessageRecord,
+): Promise<void> => {
+  try {
+    const messageToStore = { ...message, synced: 0 }; // Mark as unsynced on update, changed from false to 0
+    await setItem<ChatMessageRecord>(STORE_CHAT_MESSAGES, messageToStore);
+    console.log(`${SERVICE_NAME}: Chat message record updated`, messageToStore);
+  } catch (error) {
+    logError(
+      error,
+      `Error updating chat message record with id: ${message.id}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
+
+export const deleteChatMessageRecord = async (
+  id: number | string,
+): Promise<void> => {
+  try {
+    await deleteItem(STORE_CHAT_MESSAGES, id);
+    console.log(`${SERVICE_NAME}: Chat message record deleted with id: ${id}`);
+  } catch (error) {
+    logError(
+      error,
+      `Error deleting chat message record with id: ${id}`,
+      SERVICE_NAME,
+    );
+    throw error;
+  }
+};
 
 export async function getModuleProgressByUserId(
   userId: string,

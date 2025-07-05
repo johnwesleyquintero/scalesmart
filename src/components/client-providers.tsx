@@ -1,9 +1,11 @@
 'use client';
 
+'use client';
+
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SessionProvider } from 'next-auth/react';
-import { useState, type ReactNode, Suspense } from 'react';
+import { useState, useEffect, type ReactNode, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 
@@ -22,6 +24,24 @@ export default function ClientProviders({
 }) {
   const [queryClient] = useState(() => new QueryClient());
   const pathname = usePathname();
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker
+          .register('/sw.js')
+          .then((registration) => {
+            console.log('Service Worker registered: ', registration);
+          })
+          .catch((registrationError) => {
+            console.log(
+              'Service Worker registration failed: ',
+              registrationError,
+            );
+          });
+      });
+    }
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

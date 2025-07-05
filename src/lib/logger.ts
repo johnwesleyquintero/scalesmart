@@ -2,8 +2,11 @@
 
 /**
  * A simple logging utility for consistent application logging.
- * In a real application, this would integrate with a more robust logging solution
- * like Winston, Pino, or a cloud-based logging service.
+ * For a real application, this would be extended to integrate with a robust
+ * logging solution (e.g., Winston, Pino) or a cloud-based logging service
+ * (e.g., AWS CloudWatch, Google Cloud Logging, Azure Monitor) for centralized
+ * log management, aggregation, and analysis. This would involve sending
+ * log data over the network to the chosen service.
  */
 export const logger = {
   info: (message: string, ...args: unknown[]) => {

@@ -9,11 +9,30 @@ import {
   CustomerReviewData, // Added
 } from './amazon-tools';
 import { QuizResult } from '../lib/types';
+import { WidgetConfig } from '../app/dashboard-studio/widget-types'; // Import WidgetConfig
+import { Layout } from 'react-grid-layout'; // Import Layout from react-grid-layout
 
 // Define Category interface
 export interface Category {
   id: string;
   name: string;
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
+}
+
+export interface Dashboard {
+  id: string;
+  name: string;
+  widgets: WidgetConfig[];
+  layout: Layout;
+  refreshInterval?: number;
+  synced?: number;
+}
+
+export interface Prediction {
+  id: string;
+  timestamp: number;
+  predictionData: unknown; // This can be more specific later if needed
+  synced?: number;
 }
 
 // Define ProjectStatus enum
@@ -44,12 +63,13 @@ export enum TaskPriority {
 // --- Shared IndexedDB Types ---
 
 export interface ChatMessageRecord {
-  id?: number | string;
+  id?: number | string; // Reverted to optional
   chatSessionId: string;
   sender: 'user' | 'ai' | 'system';
   text: string;
   timestamp: number;
   metadata?: Record<string, unknown>;
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
 
 export interface ModuleProgressRecord {
@@ -92,6 +112,7 @@ export interface Task {
   createdAt: number;
   updatedAt: number;
   comments: TaskComment[];
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
 
 // Unified Project interface
@@ -102,6 +123,7 @@ export interface Project {
   createdAt: number;
   updatedAt: number;
   status: ProjectStatus; // Use imported enum
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
 
 export interface Event {
@@ -128,6 +150,7 @@ export interface Note {
   category: string;
   createdAt: number;
   updatedAt: number;
+  synced: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
 
 export interface MarkdownNoteVersion {
@@ -143,7 +166,7 @@ export interface MarkdownNoteVersion {
  * Defines the structure for an Amazon report stored in IndexedDB.
  */
 export interface AmazonReport {
-  id?: string; // Unique ID for the report (optional for new entries)
+  id: string; // Made non-optional
   fileName: string;
   category: string;
   uploadDate: number; // Timestamp
@@ -156,4 +179,5 @@ export interface AmazonReport {
     | InventoryData // Added
     | CustomerReviewData // Added
   )[]; // Array of parsed rows
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }

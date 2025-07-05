@@ -1,15 +1,25 @@
+'use client';
+
 import React from 'react';
+import { useOnlineStatus } from '@/hooks/use-online-status';
+import { Badge } from '@/components/ui/badge';
 
 const NotepadHeader: React.FC = () => {
+  const isOnline = useOnlineStatus();
+
   return (
-    <>
-      <h1 className="text-3xl font-bold mb-2 text-center">
-        Markdown Notepad Dashboard
-      </h1>
-      <p className="text-center text-muted-foreground mb-8">
-        Manage your notes, categories, and search through your markdown content.
-      </p>
-    </>
+    <div className="text-center mb-8">
+      <h1 className="text-3xl font-bold mb-2">Markdown Notepad Dashboard</h1>
+      <div className="flex justify-center items-center gap-2">
+        <p className="text-muted-foreground">
+          Manage your notes, categories, and search through your markdown
+          content.
+        </p>
+        <Badge variant={isOnline ? 'default' : 'destructive'}>
+          {isOnline ? 'Online' : 'Offline'}
+        </Badge>
+      </div>
+    </div>
   );
 };
 

@@ -1,11 +1,11 @@
 {
-  "name": "Wesley Quintero Portfolio",
-  "short_name": "WQ Portfolio",
-  "description": "Portfolio showcasing Amazon seller tools and data analytics expertise",
+  "name": "ScaleSmart Platform",
+  "short_name": "ScaleSmart",
+  "description": "A suite of mini-apps for e-commerce and business productivity.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
+  "theme_color": "#3b82f6",
   "orientation": "any",
   "icons": [
     {
@@ -57,54 +57,8 @@
       "purpose": "any maskable"
     }
   ],
-  "shortcuts": [
-    {
-      "name": "Blog",
-      "short_name": "Blog",
-      "description": "View latest blog posts",
-      "url": "/blog",
-      "icons": [
-        { "src": "/images/icons/blog-icon-96x96.png", "sizes": "96x96" }
-      ]
-    },
-    {
-      "name": "Projects",
-      "short_name": "Projects",
-      "description": "View featured projects",
-      "url": "/#projects",
-      "icons": [
-        { "src": "/images/icons/projects-icon-96x96.png", "sizes": "96x96" }
-      ]
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/images/screenshots/desktop-home.png",
-      "sizes": "1920x1080",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Home Screen"
-    },
-    {
-      "src": "/images/screenshots/mobile-home.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Mobile Home Screen"
-    }
-  ],
-  "categories": ["portfolio", "development", "business"],
+  "categories": ["business", "productivity", "tools"],
   "lang": "en",
   "dir": "ltr",
-  "prefer_related_applications": false,
-  "iarc_rating_id": null,
-  "share_target": {
-    "action": "/share-target",
-    "method": "GET",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  }
+  "prefer_related_applications": false
 }

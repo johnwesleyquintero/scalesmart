@@ -6,14 +6,8 @@ import { validateFormula, evaluateFormula } from './formula-evaluator';
 import { DataConnectorService } from './data-connector-service';
 import { Layout } from 'react-grid-layout';
 import { WidgetConfig } from '../app/dashboard-studio/widget-types';
-
-export interface Dashboard {
-  id: string;
-  name: string;
-  widgets: WidgetConfig[]; // Define a more specific type for widgets
-  layout: Layout; // Define a more specific type for layout
-  refreshInterval?: number; // Refresh interval in seconds (optional)
-}
+import { getItem, setItem, getAllItems } from './indexeddb-service';
+import { Dashboard } from '@/types/indexeddb'; // Import Dashboard interface
 
 /**
  * Applies a formula to each record in a dataset.
@@ -22,7 +16,8 @@ export interface Dashboard {
  * @returns A new array with the formula applied to each record.
  */
 
-const EXAMPLE_DASHBOARD_ID = 'example-dashboard-id';
+const DASHBOARD_STORE_NAME = 'dashboards';
+const DASHBOARD_TEMPLATE_STORE_NAME = 'dashboardTemplates';
 
 export const DashboardService = {
   /**
@@ -50,215 +45,56 @@ export const DashboardService = {
     return evaluateFormula(formula, record);
   },
 
-  async getDashboard(id: string): Promise<Dashboard | null> {
-    // Simulate API call to fetch a dashboard
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        if (id === EXAMPLE_DASHBOARD_ID) {
-          resolve({
-            id: EXAMPLE_DASHBOARD_ID,
-            name: 'My Example Dashboard',
-            widgets: [],
-            layout: { i: EXAMPLE_DASHBOARD_ID, x: 0, y: 0, w: 12, h: 8 }, // Example layout
-          });
-        } else {
-          resolve(null);
-        }
-      }, 500);
-    });
+  async getDashboard(id: string): Promise<Dashboard | undefined> {
+    return getItem<Dashboard>(DASHBOARD_STORE_NAME, id);
   },
 
   async getDashboardWidgets(dashboardId: string): Promise<WidgetConfig[]> {
-    // Simulate API call to fetch widgets for a dashboard
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve([
-          {
-            id: 'chart1',
-            type: 'chart',
-            title: 'Sales by Month',
-            data: {
-              labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-              datasets: [{ label: 'Sales', data: [10, 20, 15, 25, 22, 30] }],
-            },
-            chartType: 'bar',
-            x: 0,
-            y: 0,
-            w: 6,
-            h: 4,
-          },
-          {
-            id: 'table1',
-            type: 'table',
-            title: 'Top Products',
-            data: {
-              headers: ['Product', 'Sales', 'Units'],
-              rows: [
-                ['A', '1000', '100'],
-                ['B', '800', '80'],
-              ],
-            },
-            x: 0,
-            y: 4,
-            w: 6,
-            h: 4,
-          },
-        ]);
-      }, 1000);
-    });
+    const dashboard = await getItem<Dashboard>(
+      DASHBOARD_STORE_NAME,
+      dashboardId,
+    );
+    return dashboard ? dashboard.widgets : [];
   },
 
   async saveDashboard(dashboard: Dashboard): Promise<Dashboard> {
-    // Simulate API call to save a dashboard
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('Saving dashboard:', dashboard);
-        resolve(dashboard);
-      }, 500);
-    });
+    await setItem<Dashboard>(DASHBOARD_STORE_NAME, dashboard);
+    return dashboard;
   },
 
   async createDashboard(name: string): Promise<Dashboard> {
-    // Simulate API call to create a new dashboard
-    return new Promise((resolve) => {
-      const newDashboardId = `dashboard-${Date.now()}`;
-      const newDashboard: Dashboard = {
-        id: newDashboardId,
-        name,
-        widgets: [],
-        layout: { i: newDashboardId, x: 0, y: 0, w: 12, h: 8 }, // Example layout
-      };
-      setTimeout(() => {
-        console.log('Creating new dashboard:', newDashboard);
-        resolve(newDashboard);
-      }, 500);
-    });
+    const newDashboardId = `dashboard-${Date.now()}`;
+    const newDashboard: Dashboard = {
+      id: newDashboardId,
+      name,
+      widgets: [],
+      layout: { i: newDashboardId, x: 0, y: 0, w: 12, h: 8 }, // Example layout
+    };
+    await setItem<Dashboard>(DASHBOARD_STORE_NAME, newDashboard);
+    return newDashboard;
   },
 
   async saveDashboardAsTemplate(
     dashboard: Dashboard,
     templateName: string,
   ): Promise<void> {
-    // Simulate saving a dashboard as a template
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log(
-          `Saving dashboard "${dashboard.name}" as template "${templateName}"`,
-        );
-        // In a real application, you would store the dashboard configuration
-        // associated with the templateName.
-        resolve();
-      }, 500);
-    });
+    const template: Dashboard = { ...dashboard, name: templateName };
+    await setItem<Dashboard>(DASHBOARD_TEMPLATE_STORE_NAME, template);
+    console.log(
+      `Saving dashboard "${dashboard.name}" as template "${templateName}"`,
+    );
   },
 
   async getDashboardTemplates(): Promise<Dashboard[]> {
-    // Simulate fetching a list of available templates
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('Fetching dashboard templates');
-        // Simulate returning some dummy templates
-        const dummyTemplates: Dashboard[] = [
-          {
-            id: 'template-sales',
-            name: 'Sales Overview Template',
-            widgets: [
-              // Example widgets for a sales template
-              {
-                id: 'chart-1',
-                type: 'chart',
-                title: 'Monthly Sales',
-                x: 0,
-                y: 0,
-                w: 6,
-                h: 4,
-                data: {
-                  labels: ['Jan', 'Feb', 'Mar'],
-                  datasets: [{ label: 'Sales', data: [100, 200, 150] }],
-                },
-                chartType: 'bar',
-              },
-              {
-                id: 'kpi-1',
-                type: 'kpi',
-                title: 'Total Revenue',
-                x: 6,
-                y: 0,
-                w: 3,
-                h: 2,
-                data: { value: '$15000', label: 'Revenue' },
-              },
-              {
-                id: 'table-1',
-                type: 'table',
-                title: 'Sales Data',
-                x: 0,
-                y: 4,
-                w: 12,
-                h: 6,
-                data: {
-                  headers: ['Product', 'Quantity', 'Price'],
-                  rows: [
-                    ['A', '10', '100'],
-                    ['B', '5', '200'],
-                  ],
-                },
-              },
-            ],
-            layout: { i: 'template-sales', x: 0, y: 0, w: 12, h: 10 }, // Example layout
-          },
-          {
-            id: 'template-marketing',
-            name: 'Marketing Performance Template',
-            widgets: [
-              // Example widgets for a marketing template
-              {
-                id: 'chart-2',
-                type: 'chart',
-                title: 'Website Traffic',
-                x: 0,
-                y: 0,
-                w: 6,
-                h: 4,
-                data: {
-                  labels: ['Jan', 'Feb', 'Mar'],
-                  datasets: [{ label: 'Visits', data: [500, 700, 600] }],
-                },
-                chartType: 'line',
-              },
-              {
-                id: 'kpi-2',
-                type: 'kpi',
-                title: 'New Leads',
-                x: 6,
-                y: 0,
-                w: 3,
-                h: 2,
-                data: { value: '50', label: 'Leads' },
-              },
-            ],
-            layout: { i: 'template-marketing', x: 0, y: 0, w: 12, h: 6 }, // Example layout
-          },
-        ];
-        resolve(dummyTemplates);
-      }, 500);
-    });
+    return getAllItems<Dashboard>(DASHBOARD_TEMPLATE_STORE_NAME);
   },
 
-  async loadDashboardTemplate(templateId: string): Promise<Dashboard | null> {
-    // Simulate loading a specific template
-    return new Promise((resolve) => {
-      DashboardService.getDashboardTemplates().then((templates) => {
-        const template = templates.find((t) => t.id === templateId);
-        setTimeout(() => {
-          console.log(`Loading template: ${templateId}`);
-          resolve(template || null);
-        }, 500);
-      });
-    });
+  async loadDashboardTemplate(
+    templateId: string,
+  ): Promise<Dashboard | undefined> {
+    return getItem<Dashboard>(DASHBOARD_TEMPLATE_STORE_NAME, templateId);
   },
 
-  // Placeholder method for fetching historical data
   async fetchHistoricalData(
     query: DataQuery,
     timeRange: { start: Date; end: Date },
@@ -269,29 +105,26 @@ export const DashboardService = {
       'in time range:',
       timeRange,
     );
-    // Simulate fetching historical data
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        const simulatedHistoricalData = [
-          { date: timeRange.start.toISOString(), value: Math.random() * 50 },
-          {
-            date: new Date(
-              (timeRange.start.getTime() + timeRange.end.getTime()) / 2,
-            ).toISOString(),
-            value: Math.random() * 60,
-          },
-          { date: timeRange.end.toISOString(), value: Math.random() * 70 },
-        ];
-        const columns = Object.keys(simulatedHistoricalData[0]).map((key) => ({
-          name: key,
-          type: typeof simulatedHistoricalData[0][
-            key as keyof (typeof simulatedHistoricalData)[0]
-          ],
-        }));
-        const rows = simulatedHistoricalData.map((item) => Object.values(item));
-        resolve({ columns, rows });
-      }, 1000);
-    });
+    // For local applications, historical data would typically come from IndexedDB or loaded CSVs.
+    // This is a placeholder for actual IndexedDB query logic.
+    const simulatedHistoricalData = [
+      { date: timeRange.start.toISOString(), value: Math.random() * 50 },
+      {
+        date: new Date(
+          (timeRange.start.getTime() + timeRange.end.getTime()) / 2,
+        ).toISOString(),
+        value: Math.random() * 60,
+      },
+      { date: timeRange.end.toISOString(), value: Math.random() * 70 },
+    ];
+    const columns = Object.keys(simulatedHistoricalData[0]).map((key) => ({
+      name: key,
+      type: typeof simulatedHistoricalData[0][
+        key as keyof (typeof simulatedHistoricalData)[0]
+      ],
+    }));
+    const rows = simulatedHistoricalData.map((item) => Object.values(item));
+    return { columns, rows };
   },
 };
 
@@ -364,17 +197,9 @@ export const processDataWithFormula = (
 };
 
 // In-memory storage for refresh intervals and timers
-const activeRefreshTimers: Map<string, any> = new Map(); // eslint-disable-line no-undef
+const activeRefreshTimers: Map<string, number> = new Map();
 
-// Placeholder function to simulate fetching data for a dashboard's widgets
-// In a real application, this would iterate through widgets and use DataConnectorService
-const fetchDashboardData = async (dashboardId: string): Promise<void> => {
-  console.log(`Fetching data for dashboard: ${dashboardId}`);
-  // Simulate data fetching delay
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  console.log(`Data fetched for dashboard: ${dashboardId}`);
-  // In a real application, you would process the fetched data and update the relevant parts of the application state
-};
+// Removed placeholder function for fetching dashboard data as it's no longer needed with IndexedDB integration.
 
 export const DataRefreshService = {
   startDataRefresh(dashboardId: string, intervalSeconds: number): void {
@@ -390,17 +215,46 @@ export const DataRefreshService = {
       return;
     }
 
-    const intervalId = setInterval(() => {
-      fetchDashboardData(dashboardId).catch((error: unknown) => {
+    const intervalId = setInterval(async () => {
+      console.log(`Refreshing data for dashboard: ${dashboardId}`);
+      try {
+        const dashboard = await DashboardService.getDashboard(dashboardId);
+        if (!dashboard) {
+          console.warn(
+            `Dashboard with ID ${dashboardId} not found for refresh.`,
+          );
+          return;
+        }
+
+        for (const widget of dashboard.widgets) {
+          if (widget.dataSource && widget.dataSource.query) {
+            try {
+              const queryResult = await DataConnectorService.executeQuery(
+                widget.dataSource.query,
+              );
+              console.log(
+                `Data refreshed for widget ${widget.id} in dashboard ${dashboardId}:`,
+                queryResult,
+              );
+              // In a real application, this queryResult would be dispatched to a state management system
+              // (e.g., a Zustand store, React context, or Redux) to update the widget's displayed data.
+            } catch (widgetError) {
+              console.error(
+                `Error refreshing data for widget ${widget.id}:`,
+                widgetError,
+              );
+            }
+          }
+        }
+      } catch (dashboardError) {
         console.error(
-          `Error refreshing data for dashboard ${dashboardId}:`,
-          error,
+          `Error during dashboard data refresh for ${dashboardId}:`,
+          dashboardError,
         );
-        // Implement error handling (e.g., notify user)
-      });
+      }
     }, intervalSeconds * 1000); // Convert seconds to milliseconds
 
-    activeRefreshTimers.set(dashboardId, intervalId);
+    activeRefreshTimers.set(dashboardId, intervalId as unknown as number);
     console.log(
       `Started data refresh for dashboard ${dashboardId} with interval ${intervalSeconds} seconds.`,
     );

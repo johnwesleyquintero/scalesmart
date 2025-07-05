@@ -410,6 +410,7 @@ const DataSourceTab: React.FC<DataSourceTabProps> = ({
 
               // Create report object to save
               const report: AmazonReport = {
+                id: crypto.randomUUID(), // Add a unique ID
                 fileName: originalFile.name,
                 category: fileCategory,
                 uploadDate: Date.now(),

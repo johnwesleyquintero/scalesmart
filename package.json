@@ -117,6 +117,7 @@
     "gray-matter": "^4.0.3",
     "hast-util-to-string": "^3.0.1",
     "highlight.js": "^11.9.0",
+    "html2canvas": "^1.4.1",
     "idb": "^8.0.3",
     "immer": "^10.1.1",
     "input-otp": "^1.4.1",

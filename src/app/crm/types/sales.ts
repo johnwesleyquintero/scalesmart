@@ -17,6 +17,7 @@ export interface SalesOpportunity {
   closeDate: number; // Timestamp
   notes?: string;
   lastActivity?: number; // Timestamp of last interaction
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
 
 export const SALES_STAGES_ORDER: SalesStage[] = [

@@ -32,6 +32,7 @@ export interface Contact {
   leadScore?: number; // Optional: The calculated lead score for the contact.
   leadScoreCategory?: 'Hot' | 'Warm' | 'Cold'; // Optional: Categorization of the lead score.
   tags?: string[]; // Optional: Tags for the contact.
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
 
 import { SalesOpportunity, SalesStage } from './types/sales';
@@ -65,6 +66,7 @@ export interface CommunicationLog {
   body?: string; // Optional: The full body of the communication.
   direction?: 'inbound' | 'outbound'; // Optional: The direction of the communication.
   notes: string; // Required: Detailed notes about the communication.
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
 
 /**
@@ -75,6 +77,7 @@ export interface EmailTemplate {
   name: string; // The name of the email template.
   subject: string; // The subject line of the email.
   body: string; // The body content of the email, can include rich text.
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
 
 /**
@@ -106,4 +109,5 @@ export interface ActivityLog {
   type: ActivityType; // Required: The type of activity (e.g., 'email_open', 'website_visit').
   description: string; // Required: A detailed description of the activity.
   timestamp: number; // Required: Timestamp (milliseconds since epoch) when the activity occurred.
+  synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
