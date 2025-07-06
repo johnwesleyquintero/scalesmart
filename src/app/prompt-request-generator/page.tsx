@@ -13,7 +13,14 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Copy, Wand2, ExternalLink, Save, FolderOpen } from 'lucide-react';
+import {
+  Copy,
+  Wand2,
+  ExternalLink,
+  Save,
+  FolderOpen,
+  Loader2,
+} from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -69,7 +76,7 @@ const REQUIRED_CUSTOM_CATEGORY_MESSAGE =
 /**
  * Validates the prompt data and returns an object containing any errors.
  */
-function validatePromptData(
+export function validatePromptData(
   data: PromptData,
 ): Partial<Record<keyof PromptData, string>> {
   const errors: Partial<Record<keyof PromptData, string>> = {};
@@ -146,20 +153,36 @@ export default function PromptRequestGenerator() {
       // 2. Debounce the update to the main `promptData` state
       debouncedUpdatePromptData(field, value);
 
-      // FIX: Clear the validation error for this field as soon as the user starts typing.
-      // This stops the error message from persisting while the user is fixing it.
-      if (validationErrors[field as keyof typeof validationErrors]) {
-        setValidationErrors((prev) => ({ ...prev, [field]: undefined }));
-      }
-
       // FIX: If the user edits the request field, deselect the "Saved Request".
       // This makes the behavior explicit and removes the need for a complex useEffect.
       if (field === 'request') {
         setSelectedSavedRequestId(null);
       }
     },
-    [debouncedUpdatePromptData, validationErrors],
+    [debouncedUpdatePromptData],
   );
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const newErrors = { ...validationErrors };
+      let changed = false;
+      Object.keys(localInputs).forEach((key) => {
+        const field = key as keyof LocalInputs;
+        if (
+          localInputs[field].length > 0 &&
+          newErrors[field as keyof typeof newErrors]
+        ) {
+          delete newErrors[field as keyof typeof newErrors];
+          changed = true;
+        }
+      });
+      if (changed) {
+        setValidationErrors(newErrors);
+      }
+    }, 100); // 100ms delay
+
+    return () => clearTimeout(timer);
+  }, [localInputs, validationErrors]);
 
   const handleCategoryChange = useCallback((value: CategoryValue) => {
     const isCustom = value === CUSTOM_CATEGORY_VALUE;
@@ -205,8 +228,7 @@ export default function PromptRequestGenerator() {
     return true;
   }, [promptData]);
 
-  const generatePromptHandler = useCallback(() => {
-    // FIX: Validation is now only checked on explicit user action.
+  const generatePromptHandler = useCallback(async () => {
     if (!isFormValid()) return;
 
     setLoading(true);
@@ -231,11 +253,15 @@ export default function PromptRequestGenerator() {
       setOutput(generated);
       toast.success('Prompt generated successfully!');
     } catch (error) {
-      console.error('Error generating prompt:', error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'An unexpected error occurred.';
+      console.error('Error generating prompt:', error); //Keep this for debugging.
+      let errorMessage = 'An unexpected error occurred.';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        if (errorMessage.includes('Network request failed')) {
+          errorMessage =
+            'The prompt generation service is unavailable. Please try again later.';
+        }
+      }
       toast.error(`Error generating prompt: ${errorMessage}`);
       setOutput('');
     } finally {
@@ -264,12 +290,12 @@ export default function PromptRequestGenerator() {
       }
 
       const result = await response.json();
-      if (result.generatedPrompt) {
-        setOutput(result.generatedPrompt);
-        toast.success('AI-powered prompt generated successfully!');
-      } else {
+      if (!result.generatedPrompt) {
         throw new Error('AI did not return a prompt. Please try again.');
       }
+
+      setOutput(result.generatedPrompt);
+      toast.success('AI-powered prompt generated successfully!');
     } catch (error) {
       console.error('Error generating AI prompt:', error);
       const errorMessage =
@@ -388,6 +414,7 @@ export default function PromptRequestGenerator() {
                   <Select
                     value={promptData.category}
                     onValueChange={handleCategoryChange}
+                    aria-label="Select a prompt category"
                   >
                     <SelectTrigger
                       id="category"
@@ -419,6 +446,7 @@ export default function PromptRequestGenerator() {
                   <Select
                     value={selectedSavedRequestId || ''}
                     onValueChange={handleLoadRequest}
+                    aria-label="Load a saved prompt request"
                   >
                     <SelectTrigger
                       id="loadRequest"
@@ -551,7 +579,10 @@ export default function PromptRequestGenerator() {
                   disabled={isGenerateDisabled || loading || aiLoading}
                 >
                   {loading ? (
-                    'Generating...'
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
                   ) : (
                     <>
                       <Wand2 className="mr-2 h-4 w-4" /> Generate Prompt
@@ -563,9 +594,14 @@ export default function PromptRequestGenerator() {
                   disabled={isGenerateDisabled || aiLoading || loading}
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
-                  {aiLoading
-                    ? 'Generating with AI...'
-                    : 'Generate with AI (Gemini)'}
+                  {aiLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Generating with AI...
+                    </>
+                  ) : (
+                    'Generate with AI (Gemini)'
+                  )}
                 </Button>
                 <Button
                   variant="outline"
