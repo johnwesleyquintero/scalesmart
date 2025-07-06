@@ -24,9 +24,7 @@ export const metadata: Metadata = {
     'DevFlowDB',
     // Add more relevant keywords here
   ],
-  authors: [
-    { name: AUTHOR_NAME, url: AUTHOR_URL },
-  ],
+  authors: [{ name: AUTHOR_NAME, url: AUTHOR_URL }],
   creator: AUTHOR_NAME,
   publisher: AUTHOR_NAME,
   openGraph: {
@@ -80,7 +78,7 @@ export const metadata: Metadata = {
       ? new URL('https://localhost:3000')
       : new URL('https://wescode.vercel.app'),
   verification: {
-    google: "NbiFbRYrEPdp5H7cgQBcAhLd8zC9wuKjDseZAW5TtzU",
+    google: 'NbiFbRYrEPdp5H7cgQBcAhLd8zC9wuKjDseZAW5TtzU',
   },
   alternates: {
     canonical: 'https://wescode.vercel.app',

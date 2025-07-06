@@ -12,7 +12,7 @@ interface CustomErrorProps {
 
 function sanitize(html: string) {
   // Use a robust library like DOMPurify for production!
-  return html.replace(/</g, "<").replace(/>/g, ">");
+  return html.replace(/</g, '<').replace(/>/g, '>');
 }
 
 /**
@@ -23,7 +23,7 @@ export default function CustomError({ error, reset }: CustomErrorProps) {
   // Log the error to the console for debugging purposes.
   // This is helpful for developers but not shown to the end user.
   useEffect(() => {
-    console.error("CustomError:", error.message, error.stack, error.digest); // Log relevant parts
+    console.error('CustomError:', error.message, error.stack, error.digest); // Log relevant parts
   }, [error]); // Dependency array ensures this runs only when the error object changes
 
   return (
@@ -39,7 +39,8 @@ export default function CustomError({ error, reset }: CustomErrorProps) {
 
         {/* User-friendly explanation */}
         <p className="mb-8 text-muted-foreground">
-          We apologize for the inconvenience. An unexpected error occurred: {sanitize(error.message)}
+          We apologize for the inconvenience. An unexpected error occurred:{' '}
+          {sanitize(error.message)}
         </p>
 
         {/* Optional link to an error guide/documentation */}

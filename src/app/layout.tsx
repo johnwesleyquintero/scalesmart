@@ -64,9 +64,7 @@ export default async function RootLayout({
           content="black-translucent"
         />
       </head>
-      <body
-        className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none"
-      >
+      <body className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none">
         <div className="relative flex min-h-screen flex-col">
           <ErrorBoundary>
             <ClientProviders session={session}>

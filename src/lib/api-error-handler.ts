@@ -1,3 +1,5 @@
+import { logger } from './logger'; // Import the logger utility
+
 export interface ErrorResponse {
   success: false;
   error: {
@@ -29,9 +31,12 @@ interface CustomError extends Error {
 
 export function handleApiError(error: unknown): ErrorResponse {
   if (error instanceof Error) {
+    // Log the error for debugging and monitoring
+    logger.error(`API Error: ${error.message}`, error);
     // Safely access the 'code' property if it exists
     const errorCode = (error as CustomError).code;
     return createErrorResponse(error.message, errorCode);
   }
+  logger.error('An unexpected API error occurred:', error);
   return createErrorResponse('An unexpected error occurred.');
 }
