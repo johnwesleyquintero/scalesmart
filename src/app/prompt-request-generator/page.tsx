@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import useDebounceCallback from '@/hooks/use-debounce-callback';
@@ -13,7 +13,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Copy, Wand2, ExternalLink } from 'lucide-react';
+import { Copy, Wand2, ExternalLink, Save, FolderOpen } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -21,6 +21,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
@@ -34,6 +42,13 @@ import {
 } from '@/lib/prompt-generator/constants';
 import { CategoryValue, PromptData } from '@/lib/prompt-generator/types';
 import { generatePrompt } from '@/lib/prompt-generator/utils';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+
+interface SavedRequest {
+  id: string;
+  name: string;
+  request: string;
+}
 
 // Define a constant for the error border class to avoid duplication
 const ERROR_BORDER_CLASS = 'border-red-500';
@@ -75,11 +90,23 @@ export default function PromptRequestGenerator() {
   // State for loading indicator during prompt generation.
   const [loading, setLoading] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [newRequestName, setNewRequestName] = useState('');
+  const [selectedSavedRequestId, setSelectedSavedRequestId] = useState<
+    string | null
+  >(null);
 
   // State for validation errors.
   const [validationErrors, setValidationErrors] = useState<
     Partial<Record<keyof PromptData, string>>
   >({});
+
+  // Use useLocalStorage hook to persist saved requests
+  const [savedRequests, setSavedRequests] = useLocalStorage<SavedRequest[]>(
+    'savedPromptRequests',
+    [],
+    [], // Initial value for server-side rendering
+  );
 
   type PromptDataKey =
     | 'customCategory'
@@ -327,6 +354,63 @@ export default function PromptRequestGenerator() {
     }
   }, [output]); // Dependency: Re-create if output changes.
 
+  // Handlers for saving and loading requests
+  const handleSaveRequest = useCallback(() => {
+    if (!requestInput.trim()) {
+      toast.error('Cannot save an empty request.');
+      return;
+    }
+    setNewRequestName(''); // Clear previous name
+    setShowSaveDialog(true);
+  }, [requestInput]);
+
+  const confirmSaveRequest = useCallback(() => {
+    if (!newRequestName.trim()) {
+      toast.error('Please enter a name for your request.');
+      return;
+    }
+
+    const newRequest: SavedRequest = {
+      id: Date.now().toString(), // Simple unique ID
+      name: newRequestName.trim(),
+      request: requestInput,
+    };
+
+    setSavedRequests((prev) => [...(prev || []), newRequest]);
+    toast.success(`Request "${newRequest.name}" saved!`);
+    setShowSaveDialog(false);
+    setNewRequestName('');
+  }, [newRequestName, requestInput, setSavedRequests]);
+
+  const handleLoadRequest = useCallback(
+    (id: string) => {
+      const requestToLoad = savedRequests?.find((req) => req.id === id);
+      if (requestToLoad) {
+        setRequestInput(requestToLoad.request);
+        debouncedUpdatePromptData('request', requestToLoad.request);
+        toast.success(`Request "${requestToLoad.name}" loaded!`);
+        setSelectedSavedRequestId(id); // Update selected state
+      } else {
+        toast.error('Selected request not found.');
+      }
+    },
+    [savedRequests, setRequestInput, debouncedUpdatePromptData],
+  );
+
+  // Effect to set the initial selected saved request if requestInput matches one
+  useEffect(() => {
+    if (requestInput && savedRequests) {
+      const found = savedRequests.find((req) => req.request === requestInput);
+      if (found && selectedSavedRequestId !== found.id) {
+        setSelectedSavedRequestId(found.id);
+      } else if (!found && selectedSavedRequestId !== null) {
+        setSelectedSavedRequestId(null); // Clear selection if requestInput no longer matches a saved one
+      }
+    } else if (!requestInput && selectedSavedRequestId !== null) {
+      setSelectedSavedRequestId(null); // Clear selection if requestInput is empty
+    }
+  }, [requestInput, savedRequests, selectedSavedRequestId]);
+
   // Determines if the Copy button should be disabled.
   const isCopyDisabled = useMemo(() => !output || copied, [output, copied]);
 
@@ -413,6 +497,44 @@ export default function PromptRequestGenerator() {
                       {validationErrors.category}
                     </p>
                   )}
+                </div>
+
+                {/* Load Saved Request Select */}
+                <div className="space-y-2">
+                  <Label htmlFor="loadRequest">Load Saved Request</Label>
+                  <Select
+                    value={selectedSavedRequestId || ''}
+                    onValueChange={handleLoadRequest}
+                  >
+                    <SelectTrigger
+                      id="loadRequest"
+                      className="bg-background border-border"
+                      aria-label="Load a previously saved request"
+                    >
+                      <SelectValue placeholder="Select a saved request" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border-border">
+                      {savedRequests && savedRequests.length > 0 ? (
+                        savedRequests.map((req) => (
+                          <SelectItem
+                            key={req.id}
+                            value={req.id}
+                            label={req.name}
+                          >
+                            {req.name}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem
+                          value="no-requests"
+                          disabled
+                          label="No saved requests"
+                        >
+                          No saved requests
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Custom Category Input (conditionally rendered) */}
@@ -584,6 +706,18 @@ export default function PromptRequestGenerator() {
                     : 'Generate with AI (Gemini)'}
                 </Button>
 
+                {/* Save Request Button */}
+                <Button
+                  variant="outline"
+                  onClick={handleSaveRequest}
+                  className="w-full md:w-auto"
+                  aria-label="Save current request to local storage"
+                  disabled={!requestInput.trim()} // Disable if request is empty
+                >
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Request
+                </Button>
+
                 {/* Clear Form Button */}
                 <Button
                   variant="outline"
@@ -605,6 +739,7 @@ export default function PromptRequestGenerator() {
                     setOutput(''); // Clear output as well
                     setValidationErrors({}); // Clear validation errors
                     setCopied(false); // Reset copied state
+                    setSelectedSavedRequestId(null); // Clear selected saved request
                   }}
                   className="w-full md:w-auto"
                   aria-label="Clear all form fields"
@@ -666,6 +801,42 @@ export default function PromptRequestGenerator() {
               </CardContent>
             </Card>
           )}
+          {/* Save Request Dialog */}
+          <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+            <DialogContent className="sm:max-w-[425px] bg-card border-border">
+              <DialogHeader>
+                <DialogTitle className="text-foreground">
+                  Save Request
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground">
+                  Enter a name for your saved request.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="requestName" className="text-right">
+                    Name
+                  </Label>
+                  <Input
+                    id="requestName"
+                    value={newRequestName}
+                    onChange={(e) => setNewRequestName(e.target.value)}
+                    className="col-span-3 bg-background border-border"
+                    placeholder="e.g., My Common Bug Fix Request"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSaveDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={confirmSaveRequest}>Save</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
