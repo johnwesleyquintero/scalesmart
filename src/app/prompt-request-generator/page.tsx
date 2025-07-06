@@ -427,7 +427,8 @@ export default function PromptRequestGenerator() {
                       <SelectValue placeholder="Select a saved request" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border-border">
-                      {Array.isArray(savedRequests) && savedRequests.length > 0 ? (
+                      {Array.isArray(savedRequests) &&
+                      savedRequests.length > 0 ? (
                         savedRequests.map((req) => (
                           <SelectItem
                             key={req.id}
