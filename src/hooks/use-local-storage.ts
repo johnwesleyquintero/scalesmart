@@ -26,12 +26,26 @@ export function useLocalStorage<T>(
     // On the client, attempt to load from IndexedDB synchronously for initial state.
     // This is a common pattern for hooks that read from persistent storage.
     try {
-      const storedData = localStorage.getItem(key); // Use localStorage for synchronous read
-      return storedData ? JSON.parse(storedData) : initialValue;
+      const storedData = localStorage.getItem(key);
+      if (storedData) {
+        const parsedData = JSON.parse(storedData);
+        // If the initialValue is an array, ensure the parsedData is also an array.
+        // This handles cases where localStorage might contain corrupted or old-format data.
+        if (Array.isArray(initialValue) && !Array.isArray(parsedData)) {
+          console.warn(
+            `[useLocalStorage] Data for key "${key}" in localStorage is not an array as expected. Resetting to initial value.`,
+          );
+          return initialValue; // Fallback to the initial array value
+        }
+        return parsedData;
+      }
+      return initialValue;
     } catch (error) {
       console.error(
-        `Error reading initial value from localStorage for key "${key}":`,
+        `[useLocalStorage] Error reading initial value from localStorage for key "${key}":`,
         error,
+        `Returning initial value:`,
+        initialValue,
       );
       return initialValue;
     }
@@ -44,9 +58,20 @@ export function useLocalStorage<T>(
     const loadFromIndexedDB = async () => {
       try {
         if (typeof window !== 'undefined') {
-          const storedData = await getItem<T>('cache', key);
-          if (storedData !== undefined) {
-            setStoredValue(storedData);
+          const storedDataFromIndexedDB = await getItem<T>('cache', key);
+          if (storedDataFromIndexedDB !== undefined) {
+            // Similar check for IndexedDB data consistency
+            if (
+              Array.isArray(initialValue) &&
+              !Array.isArray(storedDataFromIndexedDB)
+            ) {
+              console.warn(
+                `[useLocalStorage] Data for key "${key}" in IndexedDB is not an array as expected. Resetting to initial value.`,
+              );
+              setStoredValue(initialValue);
+            } else {
+              setStoredValue(storedDataFromIndexedDB);
+            }
           } else {
             // If no data in IndexedDB, set the initial value
             setStoredValue(initialValue);
@@ -57,7 +82,12 @@ export function useLocalStorage<T>(
           }
         }
       } catch (error) {
-        console.error(`Error loading from IndexedDB for key "${key}":`, error);
+        console.error(
+          `[useLocalStorage] Error loading from IndexedDB for key "${key}":`,
+          error,
+          `Returning initial value:`,
+          initialValue,
+        );
         setStoredValue(initialValue); // Fallback to initialValue on error
       } finally {
         setHasAttemptedInitialLoad(true);
