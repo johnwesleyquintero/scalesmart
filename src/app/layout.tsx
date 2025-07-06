@@ -49,21 +49,6 @@ export default async function RootLayout({
         '[color-scheme:dark_light]',
       )}
     >
-      <head>
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        {/* Removed redundant viewport meta tag */}
-        {/* Removed redundant theme-color meta tags */}
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta
-          name="apple-mobile-app-status-bar-style"
-          content="black-translucent"
-        />
-      </head>
       <body className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none">
         <div className="relative flex min-h-screen flex-col">
           <ErrorBoundary>
