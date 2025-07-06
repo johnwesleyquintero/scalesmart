@@ -80,7 +80,10 @@ export const metadata: Metadata = {
       ? new URL('https://localhost:3000')
       : new URL('https://wescode.vercel.app'),
   verification: {
-    google: 'google65222257f8d7971d.html',
+    google: "google65222257f8d7971d.html", // Your existing verification
+    other: {
+      "google-site-verification": "NbiFbRYrEPdp5H7cgQBcAhLd8zC9wuKjDseZAW5TtzU",
+    },
   },
   alternates: {
     canonical: 'https://wescode.vercel.app',
