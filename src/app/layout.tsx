@@ -42,7 +42,6 @@ export default async function RootLayout({
   return (
     <html
       lang="en"
-      suppressHydrationWarning
       className={cn(
         inter.variable,
         'scroll-smooth',
@@ -51,38 +50,24 @@ export default async function RootLayout({
       )}
     >
       <head>
-        <meta
-          name="viewport"
-          content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5"
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
         />
-        <meta
-          name="theme-color"
-          content="#ffffff"
-          media="(prefers-color-scheme: light)"
-        />
-        <meta
-          name="theme-color"
-          content="#000000"
-          media="(prefers-color-scheme: dark)"
-        />
+        {/* Removed redundant viewport meta tag */}
+        {/* Removed redundant theme-color meta tags */}
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-app-status-bar-style"
           content="black-translucent"
         />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
       </head>
       <body
-        suppressHydrationWarning
-        className="min-h-screen bg-background font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none"
+        className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none"
       >
         <div className="relative flex min-h-screen flex-col">
-          {/* Wrap children with ErrorBoundary to catch rendering errors within the page content */}
           <ErrorBoundary>
             <ClientProviders session={session}>
               {' '}
@@ -96,14 +81,7 @@ export default async function RootLayout({
           </ErrorBoundary>
           <Toaster />
         </div>
-        {/* <Analytics /> */}
-        {/* Accessibility Enhancement Reminder:
-          1. Conduct regular accessibility audits using tools like Axe or Lighthouse.
-          2. Track the impact of these changes using the following metrics:
-            * Accessibility audit scores (e.g., Lighthouse score)
-            * User feedback on accessibility
-            * Reduction in accessibility-related support tickets
-        */}
+        <Analytics />
       </body>
     </html>
   );
