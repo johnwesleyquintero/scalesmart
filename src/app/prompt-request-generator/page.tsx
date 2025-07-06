@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import useDebounceCallback from '@/hooks/use-debounce-callback';
+import { useDebounce } from '@/hooks/use-debounce';
 import { Label } from '@/components/ui/label';
 import {
   Card,
@@ -136,31 +136,51 @@ export default function PromptRequestGenerator() {
     string | null
   >(null);
 
-  // Debounced handler to update the main `promptData` state from local UI inputs.
-  const debouncedUpdatePromptData = useDebounceCallback(
-    (field: keyof PromptData, value: string) => {
-      setPromptData((prev) => ({ ...prev, [field]: value }));
-    },
-    300,
-  );
+  const debouncedRequest = useDebounce(localInputs.request, 150);
+  const debouncedContext = useDebounce(localInputs.context, 500);
+  const debouncedParentTask = useDebounce(localInputs.parentTask, 500);
+  const debouncedSubtask = useDebounce(localInputs.subtask, 500);
+  const debouncedCodeInput = useDebounce(localInputs.codeInput, 500);
+  const debouncedCustomCategory = useDebounce(localInputs.customCategory, 500);
+
+  useEffect(() => {
+    setPromptData((prev) => ({ ...prev, request: debouncedRequest }));
+  }, [debouncedRequest]);
+
+  useEffect(() => {
+    setPromptData((prev) => ({ ...prev, context: debouncedContext }));
+  }, [debouncedContext]);
+
+  useEffect(() => {
+    setPromptData((prev) => ({ ...prev, parentTask: debouncedParentTask }));
+  }, [debouncedParentTask]);
+
+  useEffect(() => {
+    setPromptData((prev) => ({ ...prev, subtask: debouncedSubtask }));
+  }, [debouncedSubtask]);
+
+  useEffect(() => {
+    setPromptData((prev) => ({ ...prev, codeInput: debouncedCodeInput }));
+  }, [debouncedCodeInput]);
+
+  useEffect(() => {
+    setPromptData((prev) => ({
+      ...prev,
+      customCategory: debouncedCustomCategory,
+    }));
+  }, [debouncedCustomCategory]);
 
   // REFACTOR: Unified handler for all text inputs.
-  const handleInputChange = useCallback(
-    (field: keyof LocalInputs, value: string) => {
-      // 1. Update the local input state immediately for a responsive UI
-      setLocalInputs((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = useCallback((field: keyof LocalInputs, value: string) => {
+    // 1. Update the local input state immediately for a responsive UI
+    setLocalInputs((prev) => ({ ...prev, [field]: value }));
 
-      // 2. Debounce the update to the main `promptData` state
-      debouncedUpdatePromptData(field, value);
-
-      // FIX: If the user edits the request field, deselect the "Saved Request".
-      // This makes the behavior explicit and removes the need for a complex useEffect.
-      if (field === 'request') {
-        setSelectedSavedRequestId(null);
-      }
-    },
-    [debouncedUpdatePromptData],
-  );
+    // FIX: If the user edits the request field, deselect the "Saved Request".
+    // This makes the behavior explicit and removes the need for a complex useEffect.
+    if (field === 'request') {
+      setSelectedSavedRequestId(null);
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -419,6 +439,9 @@ export default function PromptRequestGenerator() {
                     <SelectTrigger
                       id="category"
                       className={`bg-background border-border ${validationErrors.category ? ERROR_BORDER_CLASS : ''}`}
+                      aria-describedby={
+                        validationErrors.category ? 'category-error' : undefined
+                      }
                     >
                       <SelectValue placeholder="Select a category" />
                     </SelectTrigger>
@@ -434,7 +457,10 @@ export default function PromptRequestGenerator() {
                     </SelectContent>
                   </Select>
                   {validationErrors.category && (
-                    <p className="text-red-500 text-sm mt-1">
+                    <p
+                      id="category-error"
+                      className="text-red-500 text-sm mt-1"
+                    >
                       {validationErrors.category}
                     </p>
                   )}
@@ -493,9 +519,17 @@ export default function PromptRequestGenerator() {
                         handleInputChange('customCategory', e.target.value)
                       }
                       className={`bg-background border-border ${validationErrors.customCategory ? ERROR_BORDER_CLASS : ''}`}
+                      aria-describedby={
+                        validationErrors.customCategory
+                          ? 'custom-category-error'
+                          : undefined
+                      }
                     />
                     {validationErrors.customCategory && (
-                      <p className="text-red-500 text-sm mt-1">
+                      <p
+                        id="custom-category-error"
+                        className="text-red-500 text-sm mt-1"
+                      >
                         {validationErrors.customCategory}
                       </p>
                     )}
@@ -526,9 +560,12 @@ export default function PromptRequestGenerator() {
                   onChange={(e) => handleInputChange('request', e.target.value)}
                   rows={3}
                   className={`bg-background border-border font-mono ${validationErrors.request ? ERROR_BORDER_CLASS : ''}`}
+                  aria-describedby={
+                    validationErrors.request ? 'request-error' : undefined
+                  }
                 />
                 {validationErrors.request && (
-                  <p className="text-red-500 text-sm mt-1">
+                  <p id="request-error" className="text-red-500 text-sm mt-1">
                     {validationErrors.request}
                   </p>
                 )}
@@ -680,7 +717,12 @@ export default function PromptRequestGenerator() {
                 >
                   Cancel
                 </Button>
-                <Button onClick={confirmSaveRequest}>Save</Button>
+                <Button
+                  onClick={confirmSaveRequest}
+                  disabled={!newRequestName.trim()}
+                >
+                  Save
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
