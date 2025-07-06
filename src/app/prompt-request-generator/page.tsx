@@ -327,7 +327,9 @@ export default function PromptRequestGenerator() {
 
   const handleLoadRequest = useCallback(
     (id: string) => {
-      const requestToLoad = savedRequests?.find((req) => req.id === id);
+      const requestToLoad = Array.isArray(savedRequests)
+        ? savedRequests.find((req) => req.id === id)
+        : undefined;
       if (requestToLoad) {
         handleInputChange('request', requestToLoad.request);
         setSelectedSavedRequestId(id);
@@ -425,7 +427,7 @@ export default function PromptRequestGenerator() {
                       <SelectValue placeholder="Select a saved request" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border-border">
-                      {savedRequests && savedRequests.length > 0 ? (
+                      {Array.isArray(savedRequests) && savedRequests.length > 0 ? (
                         savedRequests.map((req) => (
                           <SelectItem
                             key={req.id}
