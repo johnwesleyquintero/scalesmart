@@ -1,19 +1,6 @@
 {
   "docs": [
     {
-      "title": "CourseListServer Documentation",
-      "description": "Documentation for the CourseListServer component.",
-
-      "order": 1,
-
-      "date": "2025-06-05"
-    },
-    {
-      "order": 2,
-
-      "date": "2025-06-05"
-    },
-    {
       "slug": "admin",
       "title": "Admin Page Documentation",
       "description": "The Admin Page (src/app/admin/page.tsx) is the main page for the admin section of the application.",
@@ -41,12 +28,6 @@
       "date": "2025-06-05"
     },
     {
-      "category": "api",
-      "order": 0,
-
-      "date": "2025-06-05"
-    },
-    {
       "slug": "api",
       "title": "API Documentation Overview",
       "description": "This document provides an overview of the API endpoints for the ScaleSmart application.",
@@ -56,25 +37,13 @@
       "date": "2025-06-01"
     },
     {
-      "category": "api",
-      "order": 1,
-
-      "date": "2025-06-05"
-    },
-    {
-      "category": "api",
-      "order": 2,
-
-      "date": "2025-06-05"
-    },
-    {
       "slug": "api-reference",
       "title": "API Reference",
       "description": "Detailed documentation for our API endpoints.",
       "category": "api",
       "order": 2,
       "tags": [],
-      "date": "2025-07-04"
+      "date": "2025-07-06"
     },
     {
       "slug": "api-amazon-competitor-analysis",
@@ -407,7 +376,7 @@
       "category": "getting-started",
       "order": 0,
       "tags": [],
-      "date": "2025-07-04"
+      "date": "2025-07-06"
     },
     {
       "slug": "prerequisites",

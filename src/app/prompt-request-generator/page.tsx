@@ -171,16 +171,19 @@ export default function PromptRequestGenerator() {
   }, [debouncedCustomCategory]);
 
   // REFACTOR: Unified handler for all text inputs.
-  const handleInputChange = useCallback((field: keyof LocalInputs, value: string) => {
-    // 1. Update the local input state immediately for a responsive UI
-    setLocalInputs((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange = useCallback(
+    (field: keyof LocalInputs, value: string) => {
+      // 1. Update the local input state immediately for a responsive UI
+      setLocalInputs((prev) => ({ ...prev, [field]: value }));
 
-    // FIX: If the user edits the request field, deselect the "Saved Request".
-    // This makes the behavior explicit and removes the need for a complex useEffect.
-    if (field === 'request') {
-      setSelectedSavedRequestId(null);
-    }
-  }, []);
+      // FIX: If the user edits the request field, deselect the "Saved Request".
+      // This makes the behavior explicit and removes the need for a complex useEffect.
+      if (field === 'request') {
+        setSelectedSavedRequestId(null);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     const timer = setTimeout(() => {

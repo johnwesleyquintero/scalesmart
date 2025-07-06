@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Contact, CommunicationLog } from '../types';
-import useDebounce from '@/hooks/use-debounce';
+import { useDebounce } from '@/hooks/use-debounce';
 import { COMMUNICATION_TYPES } from './CommunicationLog';
 
 /**

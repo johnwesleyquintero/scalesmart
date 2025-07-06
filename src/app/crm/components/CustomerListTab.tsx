@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Download, Trash2 } from 'lucide-react';
 import ReactPaginate from 'react-paginate';
 import { toast } from 'sonner';
-import useDebounce from '@/hooks/use-debounce';
+import { useDebounce } from '@/hooks/use-debounce';
 import type { Contact, CommunicationLog, Category, SalesStage } from '../types';
 import {
   filterCustomers,
