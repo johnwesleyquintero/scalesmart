@@ -18,28 +18,27 @@ export default async function Home() {
     <div className="relative min-h-screen bg-gradient-to-br from-background via-muted/50 to-background">
       <div className="grid-background"></div>
       <div className="relative flex flex-col items-center gap-4">
+        <HeroSection />
+        <FeatureHighlightsSection />
         <ErrorBoundary fallback={<CardLoading />}>
-          <HeroSection />
-          <FeatureHighlightsSection />
+          {' '}
+          {/* Error boundary for InAppProjects */}
           <Suspense fallback={<CardLoading />}>
             <InAppProjects />
           </Suspense>
+        </ErrorBoundary>
+        <ErrorBoundary fallback={<CardLoading />}>
+          {' '}
+          {/* Error boundary for ProjectsSection */}
           <Suspense fallback={<CardLoading />}>
             <ProjectsSection />
           </Suspense>
-          <Suspense fallback={<CardLoading />}>
-            <AboutSection />
-          </Suspense>
-          <Suspense fallback={<CardLoading />}>
-            <CertificationsSection />
-          </Suspense>
-          <Suspense fallback={<CardLoading />}>
-            <BlogSection blogPosts={blogPosts} limit={6} />
-          </Suspense>
-          <Suspense fallback={<CardLoading />}>
-            <ContactSection />
-          </Suspense>
         </ErrorBoundary>
+        {/* Add ErrorBoundaries and Suspense as needed for other sections based on profiling */}
+        <AboutSection />
+        <CertificationsSection />
+        <BlogSection blogPosts={blogPosts} limit={6} />
+        <ContactSection />
       </div>
       {/* The main ChatInterface is now handled in the layout */}
     </div>

@@ -11,7 +11,12 @@ const CardLoading: React.FC<CardLoadingProps> = ({
   height = 'h-32',
 }) => {
   return (
-    <div className={`rounded-md ${width} ${height} animate-pulse bg-muted`}>
+    <div
+      className={`rounded-md ${width} ${height} animate-pulse bg-muted`}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
       <Skeleton className="w-full h-full" />
     </div>
   );
