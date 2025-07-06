@@ -13,7 +13,7 @@ const useUserProfile = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [localStorageProfile, setLocalStorageProfile] = useLocalStorage<
     UserProfile | null | undefined
-  >(USER_PROFILE_KEY, undefined, undefined);
+  >(USER_PROFILE_KEY, undefined);
 
   useEffect(() => {
     const fetchUserProfile = async () => {

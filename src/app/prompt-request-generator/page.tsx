@@ -59,6 +59,29 @@ const REQUIRED_CUSTOM_CATEGORY_MESSAGE =
   "Please enter a value for the 'Custom Category'.";
 
 /**
+ * Validates the prompt data and returns an object containing any errors.
+ * @param {PromptData} data - The prompt data to validate.
+ * @returns {Partial<Record<keyof PromptData, string>>} An object with validation errors.
+ */
+function validatePromptData(
+  data: PromptData,
+): Partial<Record<keyof PromptData, string>> {
+  const errors: Partial<Record<keyof PromptData, string>> = {};
+  const { category, customCategory, request } = data;
+
+  if (!category) {
+    errors.category = REQUIRED_CATEGORY_MESSAGE;
+  }
+  if (!request.trim()) {
+    errors.request = REQUIRED_REQUEST_MESSAGE;
+  }
+  if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
+    errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
+  }
+  return errors;
+}
+
+/**
  * A component for generating structured prompts based on user input for code assistance.
  * Allows selecting a category, providing context, describing the request, and including code snippets.
  */
@@ -105,7 +128,6 @@ export default function PromptRequestGenerator() {
   const [savedRequests, setSavedRequests] = useLocalStorage<SavedRequest[]>(
     'savedPromptRequests',
     [],
-    [], // Initial value for server-side rendering
   );
 
   type PromptDataKey =
@@ -202,23 +224,11 @@ export default function PromptRequestGenerator() {
       subtask,
       codeInput,
     } = promptData;
-    const errors: Partial<Record<keyof PromptData, string>> = {};
+    const errors = validatePromptData(promptData);
+    setValidationErrors(errors);
 
-    if (!category) {
-      errors.category = REQUIRED_CATEGORY_MESSAGE;
-    }
-    if (!request.trim()) {
-      errors.request = REQUIRED_REQUEST_MESSAGE;
-    }
-    if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
-      errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
-    }
-
-    setValidationErrors(errors); // Update validation errors state
-
-    // If there are any errors, stop the process
     if (Object.keys(errors).length > 0) {
-      setLoading(false); // Stop loading
+      setLoading(false);
       toast.warning('Please fix the errors in the form.');
       return;
     }
@@ -276,18 +286,7 @@ export default function PromptRequestGenerator() {
       subtask,
       codeInput,
     } = promptData;
-    const errors: Partial<Record<keyof PromptData, string>> = {};
-
-    if (!category) {
-      errors.category = REQUIRED_CATEGORY_MESSAGE;
-    }
-    if (!request.trim()) {
-      errors.request = REQUIRED_REQUEST_MESSAGE;
-    }
-    if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
-      errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
-    }
-
+    const errors = validatePromptData(promptData);
     setValidationErrors(errors);
 
     if (Object.keys(errors).length > 0) {
@@ -306,8 +305,13 @@ export default function PromptRequestGenerator() {
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorBody = await response.text(); // Attempt to read error body
+        throw new Error(
+          `HTTP error! Status: ${response.status}. Details: ${errorBody || 'No additional details.'}`,
+        );
       }
+      // IMPORTANT: Ensure server-side endpoint /api/generate-ai-prompt sanitizes all inputs
+      // to prevent security vulnerabilities (e.g., XSS).
 
       const result = await response.json();
       if (result.generatedPrompt) {
@@ -324,8 +328,8 @@ export default function PromptRequestGenerator() {
       const errorMessage =
         error instanceof Error
           ? error.message
-          : 'An unexpected error occurred.';
-      toast.error(`Error generating AI prompt: ${errorMessage}`);
+          : 'An unexpected error occurred during AI prompt generation.';
+      toast.error(`AI Prompt Error: ${errorMessage}`);
       setOutput('');
     } finally {
       setAiLoading(false);
