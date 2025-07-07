@@ -108,7 +108,9 @@ export default function ProjectsSection({
         const curatedProjects = fetchedProjects
           .filter((repo) => {
             const hasRealDescription =
-              repo.description && repo.description.length >= 20 && repo.description !== 'No description provided.'; //Simplified condition
+              repo.description &&
+              repo.description.length >= 20 &&
+              repo.description !== 'No description provided.'; //Simplified condition
             const hasHomepage = !!repo.homepage;
             return !repo.fork && (hasRealDescription || hasHomepage);
           })
