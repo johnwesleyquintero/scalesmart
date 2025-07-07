@@ -143,7 +143,7 @@ export function generatePrompt(data: PromptData): string {
   // Add category heading and an introductory phrase if a category name is determined.
   // The introduction phrase is based on the selected category value.
   if (categoryName) {
-    prompt += `${TASK_CATEGORY_HEADING} ${categoryName}\n${getIntroductionPhrase(category, customCategory)}\n\n`;
+    prompt += `${TASK_CATEGORY_HEADING} ${categoryName}\n${getIntroductionPhrase(category as CategoryValue, customCategory)}\n\n`;
   }
 
   // Add context section if provided and not just whitespace.

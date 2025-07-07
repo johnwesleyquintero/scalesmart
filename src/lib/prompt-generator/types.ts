@@ -1,19 +1,29 @@
-import { CATEGORIES, CUSTOM_CATEGORY_VALUE } from './constants';
-
-// Define the type for valid category values, including 'custom' and an empty string for the initial state.
-export type CategoryValue =
-  | (typeof CATEGORIES)[number]
-  | typeof CUSTOM_CATEGORY_VALUE
-  | '';
-
-// Type definition for prompt data fields used in the component state
-// and expected by the generatePromptUtility function.
 export interface PromptData {
-  category: CategoryValue; // Holds the selected standard category value or 'custom'
-  customCategory: string; // Holds the user-defined custom category text (only relevant if category is 'custom')
-  context: string; // Background information
-  request: string; // The core request description (required)
-  parentTask: string; // Optional parent task for task-related prompts
-  subtask: string; // Optional subtask for task-related prompts
-  codeInput: string; // Relevant code snippet (optional)
+  category: string;
+  customCategory: string;
+  context: string;
+  request: string;
+  parentTask: string;
+  subtask: string;
+  codeInput: string;
 }
+
+import { INTRODUCTION_PHRASES, CUSTOM_CATEGORY_VALUE } from './constants';
+
+export type CategoryValue =
+  | keyof typeof INTRODUCTION_PHRASES
+  | typeof CUSTOM_CATEGORY_VALUE;
+
+export interface SavedRequest {
+  id: string;
+  name: string;
+  data: PromptData;
+}
+
+export type PromptDataKey =
+  | 'customCategory'
+  | 'context'
+  | 'request'
+  | 'parentTask'
+  | 'subtask'
+  | 'codeInput';

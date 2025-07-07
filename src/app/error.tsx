@@ -53,7 +53,7 @@ ${error.stack || 'No stack trace available.'}
 **3. Context & Digest:**
 ${digestInfo}
 
-Based on this information, what are the most likely causes? Please provide specific code examples for the fix.
+Based on this information, what are the most likely causes? Please provide specific code changes for the fix.
     `;
   };
 

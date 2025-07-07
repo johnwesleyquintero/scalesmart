@@ -2,6 +2,7 @@
 
 import { useForm } from 'react-hook-form';
 import { usePromptGenerator } from '@/hooks/use-prompt-generator';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,22 +10,17 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { ExternalLink } from 'lucide-react';
+import { Copy, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { PromptData } from '@/lib/prompt-generator/types';
-import { CUSTOM_CATEGORY_VALUE } from '@/lib/prompt-generator/constants';
 
 // Import new components
+import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
 import PromptInputForm from './components/PromptInputForm';
 import SavedRequestsDropdown from './components/SavedRequestsDropdown';
 import SaveRequestDialog from './components/SaveRequestDialog';
 import PromptActionButtons from './components/PromptActionButtons';
 import PromptOutputDisplay from './components/PromptOutputDisplay';
-
-// Import types from the new types file
-import { SavedRequest, PromptDataKey } from './components/types';
-
-const ERROR_BORDER_CLASS = 'border-red-500';
 
 /**
  * A component for generating structured prompts based on user input for code assistance.
@@ -33,39 +29,16 @@ const ERROR_BORDER_CLASS = 'border-red-500';
 export default function PromptRequestGenerator() {
   const {
     promptData,
-    setPromptData,
-    clearForm,
-    contextInput,
-    setContextInput,
-    requestInput,
-    setRequestInput,
-    parentTaskInput,
-    setParentTaskInput,
-    subtaskInput,
-    setSubtaskInput,
-    codeInput,
-    setCodeInput,
-    customCategoryInput,
-    setCustomCategoryInput,
     output,
-    setOutput,
     copied,
-    setCopied,
     loading,
-    setLoading,
     aiLoading,
-    setAiLoading,
     showSaveDialog,
-    setShowSaveDialog,
     newRequestName,
-    setNewRequestName,
     selectedSavedRequestId,
-    setSelectedSavedRequestId,
-    validationErrors,
-    setValidationErrors,
     savedRequests,
-    setSavedRequests,
-    debouncedUpdatePromptData,
+    clearForm,
+    handleFieldChange,
     handleCategoryChange,
     showCustomCategory,
     isGenerateDisabled,
@@ -77,18 +50,26 @@ export default function PromptRequestGenerator() {
     handleLoadRequest,
     handleDeleteRequest,
     isCopyDisabled,
+    setNewRequestName,
+    setShowSaveDialog,
+    requestPendingDeletion,
+    confirmDeleteRequest,
+    cancelDeleteRequest,
   } = usePromptGenerator();
 
   const form = useForm<PromptData>({
-    defaultValues: promptData,
+    values: promptData,
   });
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="bg-card p-6 rounded-lg shadow-xl border border-border/50">
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-100/30 via-transparent to-blue-100/30 dark:from-purple-950/30 dark:via-transparent dark:to-blue-950/30 blur-3xl"></div>
+      </div>
+      <div className="bg-card p-6 rounded-lg shadow-xl border border-border/50 relative z-10">
         {/* Header Section */}
         <div className="text-center mb-10 space-y-3">
-          <h1 className="text-4xl font-extrabold text-foreground sm:text-5xl leading-tight">
+          <h1 className="mb-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl leading-tight">
             Prompt Request Generator
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
@@ -119,72 +100,69 @@ export default function PromptRequestGenerator() {
             </Link>
           </p>
         </div>
-        {/* Split Panel Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
-          {/* Left Column: Input Form and Controls */}
-          <div className="space-y-6">
-            <Card className="bg-card border-border shadow-sm">
-              <CardHeader>
-                <CardTitle className="text-foreground">
-                  Request Details
-                </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Fill in the sections below to generate a well-structured
-                  prompt
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <PromptInputForm
-                  form={form}
-                  promptData={promptData}
-                  handleCategoryChange={handleCategoryChange}
-                  showCustomCategory={showCustomCategory}
-                />
-                <SavedRequestsDropdown
-                  savedRequests={savedRequests}
-                  selectedSavedRequestId={selectedSavedRequestId}
-                  handleLoadRequest={handleLoadRequest}
-                  handleDeleteRequest={handleDeleteRequest}
-                />
-                <PromptActionButtons
-                  isGenerateDisabled={isGenerateDisabled}
-                  loading={loading}
-                  aiLoading={aiLoading}
-                  generatePromptHandler={generatePromptHandler}
-                  generateAiPromptHandler={generateAiPromptHandler}
-                  handleSaveRequest={handleSaveRequest}
-                  requestInput={requestInput}
-                  clearForm={clearForm}
-                />
-              </CardContent>
-            </Card>
-          </div>
+        {/* Full-Width Layout */}
+        <div className="mt-8 space-y-8">
+          {/* Input Form and Controls */}
+          <Card className="bg-card border-border shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-foreground">Request Details</CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Fill in the sections below to generate a well-structured prompt
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <PromptInputForm
+                form={form}
+                promptData={promptData}
+                handleFieldChange={handleFieldChange}
+                handleCategoryChange={handleCategoryChange}
+                showCustomCategory={showCustomCategory}
+              />
+              <SavedRequestsDropdown
+                savedRequests={savedRequests}
+                selectedSavedRequestId={selectedSavedRequestId}
+                handleLoadRequest={handleLoadRequest}
+                handleDeleteRequest={handleDeleteRequest}
+              />
+              <PromptActionButtons
+                isGenerateDisabled={isGenerateDisabled}
+                loading={loading}
+                aiLoading={aiLoading}
+                generatePromptHandler={generatePromptHandler}
+                generateAiPromptHandler={generateAiPromptHandler}
+                handleSaveRequest={handleSaveRequest}
+                requestInput={promptData.request}
+                clearForm={clearForm}
+              />
+            </CardContent>
+          </Card>
 
-          {/* Right Column: Output Display */}
-          <div className="space-y-6">
-            <Card className="bg-card border-border shadow-sm h-full">
-              {' '}
-              {/* Use h-full to make card fill height */}
-              <CardHeader>
+          {/* Output Display */}
+          <Card className="bg-card border-border shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
                 <CardTitle className="text-foreground">
                   Generated Prompt
                 </CardTitle>
                 <CardDescription className="text-muted-foreground">
-                  Review and copy the generated prompt
+                  Ready to copy and use
                 </CardDescription>
-              </CardHeader>
-              <CardContent className="h-[calc(100%-theme(spacing.20))] overflow-y-auto p-6">
-                {' '}
-                {/* Adjust height and add scroll */}
-                <PromptOutputDisplay
-                  output={output}
-                  copied={copied}
-                  isCopyDisabled={isCopyDisabled}
-                  copyToClipboard={copyToClipboard}
-                />
-              </CardContent>
-            </Card>
-          </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={copyToClipboard}
+                disabled={isCopyDisabled}
+                aria-label="Copy generated prompt to clipboard"
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                {copied ? 'Copied!' : 'Copy'}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              <PromptOutputDisplay output={output} />
+            </CardContent>
+          </Card>
         </div>
         <SaveRequestDialog
           showSaveDialog={showSaveDialog}
@@ -192,6 +170,11 @@ export default function PromptRequestGenerator() {
           newRequestName={newRequestName}
           setNewRequestName={setNewRequestName}
           confirmSaveRequest={confirmSaveRequest}
+        />
+        <DeleteConfirmationDialog
+          requestPendingDeletion={requestPendingDeletion}
+          onConfirmDelete={confirmDeleteRequest}
+          onCancelDelete={cancelDeleteRequest}
         />
       </div>
     </div>

@@ -14,9 +14,9 @@ import { Button } from '@/components/ui/button';
 
 interface SaveRequestDialogProps {
   showSaveDialog: boolean;
-  setShowSaveDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowSaveDialog: (show: boolean) => void;
   newRequestName: string;
-  setNewRequestName: React.Dispatch<React.SetStateAction<string>>;
+  setNewRequestName: (name: string) => void;
   confirmSaveRequest: () => void;
 }
 

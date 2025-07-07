@@ -12,10 +12,10 @@ import { Trash2 } from 'lucide-react';
 import { SavedRequest } from './types'; // Import from new types file
 
 interface SavedRequestsDropdownProps {
-  savedRequests: SavedRequest[] | undefined; // Changed from null to undefined
+  savedRequests: SavedRequest[] | undefined;
   selectedSavedRequestId: string | null;
   handleLoadRequest: (id: string) => void;
-  handleDeleteRequest: (id: string, name: string) => void;
+  handleDeleteRequest: (id: string) => void;
 }
 
 const SavedRequestsDropdown: React.FC<SavedRequestsDropdownProps> = ({
@@ -49,7 +49,7 @@ const SavedRequestsDropdown: React.FC<SavedRequestsDropdownProps> = ({
                     size="sm"
                     onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                       e.stopPropagation(); // Prevent selection when deleting
-                      handleDeleteRequest(req.id, req.name);
+                      handleDeleteRequest(req.id);
                     }}
                     aria-label={`Delete saved request ${req.name}`}
                     className="ml-2 h-6 w-6 p-0 hover:bg-red-100 dark:hover:bg-red-900"

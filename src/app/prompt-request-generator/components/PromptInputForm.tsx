@@ -24,6 +24,7 @@ type PromptFormValues = PromptData;
 interface PromptInputFormProps {
   form: UseFormReturn<PromptFormValues>;
   promptData: PromptData;
+  handleFieldChange: (field: keyof PromptData, value: string) => void;
   handleCategoryChange: (value: CategoryValue) => void;
   showCustomCategory: boolean;
 }
@@ -31,6 +32,7 @@ interface PromptInputFormProps {
 const PromptInputForm: React.FC<PromptInputFormProps> = ({
   form,
   promptData,
+  handleFieldChange,
   handleCategoryChange,
   showCustomCategory,
 }) => {
@@ -39,11 +41,6 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
     formState: { errors },
     setValue,
   } = form;
-
-  // Effect to update form state when promptData changes externally (e.g., loading a saved request)
-  useEffect(() => {
-    form.reset(promptData);
-  }, [promptData, form]);
 
   return (
     <div className="space-y-4">
@@ -59,7 +56,7 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
                 Category <span className="text-red-500">*</span>
               </Label>
               <Select<CategoryValue>
-                value={field.value}
+                value={field.value as CategoryValue}
                 onValueChange={(value) => {
                   field.onChange(value); // Update react-hook-form state
                   handleCategoryChange(value); // Trigger custom category logic in hook
@@ -121,6 +118,10 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
                   id="customCategory"
                   placeholder="e.g., AI Agent Development"
                   {...field} // Binds input to react-hook-form
+                  onChange={(e) => {
+                    field.onChange(e);
+                    handleFieldChange('customCategory', e.target.value);
+                  }}
                   className={`bg-background border-border ${errors.customCategory ? ERROR_BORDER_CLASS : ''}`}
                   aria-required={showCustomCategory}
                   aria-invalid={!!errors.customCategory}
@@ -154,6 +155,10 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
               id="context"
               placeholder="Provide background information about your project or problem..."
               {...field} // Binds textarea to react-hook-form
+              onChange={(e) => {
+                field.onChange(e);
+                handleFieldChange('context', e.target.value);
+              }}
               rows={3}
               className="bg-background border-border font-mono"
               aria-label="Context for the request (optional)"
@@ -176,6 +181,10 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
               id="request"
               placeholder="Clearly describe what you need help with..."
               {...field} // Binds textarea to react-hook-form
+              onChange={(e) => {
+                field.onChange(e);
+                handleFieldChange('request', e.target.value);
+              }}
               rows={3}
               className={`bg-background border-border font-mono ${errors.request ? ERROR_BORDER_CLASS : ''}`}
               aria-required="true"
@@ -206,6 +215,10 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
               id="parentTask"
               placeholder="e.g., Implement user authentication"
               {...field} // Binds input to react-hook-form
+              onChange={(e) => {
+                field.onChange(e);
+                handleFieldChange('parentTask', e.target.value);
+              }}
               className="bg-background border-border font-mono"
               aria-label="Parent task for the request (optional)"
             />
@@ -224,6 +237,10 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
               id="subtask"
               placeholder="e.g., Create login form UI"
               {...field} // Binds input to react-hook-form
+              onChange={(e) => {
+                field.onChange(e);
+                handleFieldChange('subtask', e.target.value);
+              }}
               className="bg-background border-border font-mono"
               aria-label="Subtask for the request (optional)"
             />
@@ -242,6 +259,10 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
               id="codeInput"
               placeholder="Paste relevant code, data (CSV, JSON, etc.), or logs here..."
               {...field} // Binds textarea to react-hook-form
+              onChange={(e) => {
+                field.onChange(e);
+                handleFieldChange('codeInput', e.target.value);
+              }}
               rows={10}
               className="bg-background border-border font-mono text-sm"
               aria-label="Relevant code or data (optional)"
