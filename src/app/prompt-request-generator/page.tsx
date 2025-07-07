@@ -1,10 +1,6 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { useDebounce } from '@/hooks/use-debounce';
-import { Label } from '@/components/ui/label';
+import { usePromptGenerator } from '@/hooks/use-prompt-generator';
 import {
   Card,
   CardContent,
@@ -12,414 +8,106 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import {
-  Copy,
-  Wand2,
-  ExternalLink,
-  Save,
-  FolderOpen,
-  Loader2,
-} from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { toast } from 'sonner';
+import { ExternalLink } from 'lucide-react';
 import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { components } from '@/components/MdxRenderer';
-import {
-  CATEGORIES,
-  CUSTOM_CATEGORY_VALUE,
-  DEFAULT_PROMPT_TEXTS,
-} from '@/lib/prompt-generator/constants';
-import { CategoryValue, PromptData } from '@/lib/prompt-generator/types';
-import { generatePrompt } from '@/lib/prompt-generator/utils';
-import { useLocalStorage } from '@/hooks/use-local-storage';
 
-interface SavedRequest {
-  id: string;
-  name: string;
-  request: string;
-}
+import { CUSTOM_CATEGORY_VALUE } from '@/lib/prompt-generator/constants';
 
-// REFACTOR: Consolidate local input state into a single object for easier management.
-interface LocalInputs {
-  context: string;
-  request: string;
-  parentTask: string;
-  subtask: string;
-  codeInput: string;
-  customCategory: string;
-}
+// Import new components
+import PromptInputForm from './components/PromptInputForm';
+import SavedRequestsDropdown from './components/SavedRequestsDropdown';
+import SaveRequestDialog from './components/SaveRequestDialog';
+import PromptActionButtons from './components/PromptActionButtons';
+import PromptOutputDisplay from './components/PromptOutputDisplay';
+
+// Import types from the new types file
+import { SavedRequest, PromptDataKey } from './components/types';
 
 const ERROR_BORDER_CLASS = 'border-red-500';
 
-const REQUIRED_CATEGORY_MESSAGE = "Please select a 'Category'.";
-const REQUIRED_REQUEST_MESSAGE = "The 'Request' field is required.";
-const REQUIRED_CUSTOM_CATEGORY_MESSAGE =
-  "Please enter a value for the 'Custom Category'.";
-
 /**
- * Validates the prompt data and returns an object containing any errors.
+ * A component for generating structured prompts based on user input for code assistance.
+ * Allows selecting a category, providing context, describing the request, and including code snippets.
  */
-export function validatePromptData(
-  data: PromptData,
-): Partial<Record<keyof PromptData, string>> {
-  const errors: Partial<Record<keyof PromptData, string>> = {};
-  const { category, customCategory, request } = data;
-
-  if (!category) {
-    errors.category = REQUIRED_CATEGORY_MESSAGE;
-  }
-  if (!request.trim()) {
-    errors.request = REQUIRED_REQUEST_MESSAGE;
-  }
-  if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
-    errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
-  }
-  return errors;
-}
-
 export default function PromptRequestGenerator() {
-  // "Source of Truth" state for prompt generation
-  const [promptData, setPromptData] = useState<PromptData>({
-    category: '',
-    customCategory: '',
-    context: '',
-    request: '',
-    parentTask: '',
-    subtask: '',
-    codeInput: '',
-  });
-
-  // REFACTOR: Consolidated local state for all text inputs for a cleaner component.
-  // This state reflects what's in the UI fields directly.
-  const [localInputs, setLocalInputs] = useState<LocalInputs>({
-    context: '',
-    request: '',
-    parentTask: '',
-    subtask: '',
-    codeInput: '',
-    customCategory: '',
-  });
-
-  const [output, setOutput] = useState('');
-  const [copied, setCopied] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [showSaveDialog, setShowSaveDialog] = useState(false);
-  const [newRequestName, setNewRequestName] = useState('');
-  const [validationErrors, setValidationErrors] = useState<
-    Partial<Record<keyof PromptData, string>>
-  >({});
-
-  // Local Storage State
-  const [savedRequests, setSavedRequests] = useLocalStorage<SavedRequest[]>(
-    'savedPromptRequests',
-    [],
-  );
-  const [selectedSavedRequestId, setSelectedSavedRequestId] = useState<
-    string | null
-  >(null);
-
-  const debouncedRequest = useDebounce(localInputs.request, 150);
-  const debouncedContext = useDebounce(localInputs.context, 500);
-  const debouncedParentTask = useDebounce(localInputs.parentTask, 500);
-  const debouncedSubtask = useDebounce(localInputs.subtask, 500);
-  const debouncedCodeInput = useDebounce(localInputs.codeInput, 500);
-  const debouncedCustomCategory = useDebounce(localInputs.customCategory, 500);
-
-  useEffect(() => {
-    setPromptData((prev) => ({ ...prev, request: debouncedRequest }));
-  }, [debouncedRequest]);
-
-  useEffect(() => {
-    setPromptData((prev) => ({ ...prev, context: debouncedContext }));
-  }, [debouncedContext]);
-
-  useEffect(() => {
-    setPromptData((prev) => ({ ...prev, parentTask: debouncedParentTask }));
-  }, [debouncedParentTask]);
-
-  useEffect(() => {
-    setPromptData((prev) => ({ ...prev, subtask: debouncedSubtask }));
-  }, [debouncedSubtask]);
-
-  useEffect(() => {
-    setPromptData((prev) => ({ ...prev, codeInput: debouncedCodeInput }));
-  }, [debouncedCodeInput]);
-
-  useEffect(() => {
-    setPromptData((prev) => ({
-      ...prev,
-      customCategory: debouncedCustomCategory,
-    }));
-  }, [debouncedCustomCategory]);
-
-  // REFACTOR: Unified handler for all text inputs.
-  const handleInputChange = useCallback(
-    (field: keyof LocalInputs, value: string) => {
-      // 1. Update the local input state immediately for a responsive UI
-      setLocalInputs((prev) => ({ ...prev, [field]: value }));
-
-      // FIX: If the user edits the request field, deselect the "Saved Request".
-      // This makes the behavior explicit and removes the need for a complex useEffect.
-      if (field === 'request') {
-        setSelectedSavedRequestId(null);
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const newErrors = { ...validationErrors };
-      let changed = false;
-      Object.keys(localInputs).forEach((key) => {
-        const field = key as keyof LocalInputs;
-        if (
-          localInputs[field].length > 0 &&
-          newErrors[field as keyof typeof newErrors]
-        ) {
-          delete newErrors[field as keyof typeof newErrors];
-          changed = true;
-        }
-      });
-      if (changed) {
-        setValidationErrors(newErrors);
-      }
-    }, 100); // 100ms delay
-
-    return () => clearTimeout(timer);
-  }, [localInputs, validationErrors]);
-
-  const handleCategoryChange = useCallback((value: CategoryValue) => {
-    const isCustom = value === CUSTOM_CATEGORY_VALUE;
-
-    setPromptData((prev) => ({
-      ...prev,
-      category: value,
-      customCategory: isCustom ? prev.customCategory : '',
-    }));
-
-    // Clear validation error for category
-    setValidationErrors((prev) => ({ ...prev, category: undefined }));
-
-    if (!isCustom) {
-      // If switching away from custom, clear the custom category input and any errors
-      setLocalInputs((prev) => ({ ...prev, customCategory: '' }));
-      setValidationErrors((prev) => ({ ...prev, customCategory: undefined }));
-    }
-  }, []);
-
-  const showCustomCategory = useMemo(
-    () => promptData.category === CUSTOM_CATEGORY_VALUE,
-    [promptData.category],
-  );
-
-  const isGenerateDisabled = useMemo(() => {
-    const { category, customCategory, request } = promptData;
-    return (
-      !category ||
-      !request.trim() ||
-      (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim())
-    );
-  }, [promptData]);
-
-  // REFACTOR: Central validation logic to be called by generation handlers.
-  const isFormValid = useCallback(() => {
-    const errors = validatePromptData(promptData);
-    setValidationErrors(errors);
-    if (Object.keys(errors).length > 0) {
-      toast.warning('Please fix the errors in the form.');
-      return false;
-    }
-    return true;
-  }, [promptData]);
-
-  const generatePromptHandler = useCallback(async () => {
-    if (!isFormValid()) return;
-
-    setLoading(true);
-    setOutput('');
-
-    try {
-      const defaults =
-        DEFAULT_PROMPT_TEXTS[promptData.category] || DEFAULT_PROMPT_TEXTS[''];
-      const dataForGenerator: PromptData = {
-        ...promptData,
-        context:
-          promptData.context.trim() === ''
-            ? defaults.defaultContext
-            : promptData.context,
-        request:
-          promptData.request.trim() === ''
-            ? defaults.defaultRequest
-            : promptData.request,
-      };
-
-      const generated = generatePrompt(dataForGenerator);
-      setOutput(generated);
-      toast.success('Prompt generated successfully!');
-    } catch (error) {
-      console.error('Error generating prompt:', error); //Keep this for debugging.
-      let errorMessage = 'An unexpected error occurred.';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        if (errorMessage.includes('Network request failed')) {
-          errorMessage =
-            'The prompt generation service is unavailable. Please try again later.';
-        }
-      }
-      toast.error(`Error generating prompt: ${errorMessage}`);
-      setOutput('');
-    } finally {
-      setLoading(false);
-    }
-  }, [promptData, isFormValid]);
-
-  const generateAiPromptHandler = useCallback(async () => {
-    if (!isFormValid()) return;
-
-    setAiLoading(true);
-    setOutput('');
-
-    try {
-      const response = await fetch('/api/generate-ai-prompt', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(promptData),
-      });
-
-      if (!response.ok) {
-        const errorBody = await response.text();
-        throw new Error(
-          `HTTP error! Status: ${response.status}. Details: ${errorBody || 'No details.'}`,
-        );
-      }
-
-      const result = await response.json();
-      if (!result.generatedPrompt) {
-        throw new Error('AI did not return a prompt. Please try again.');
-      }
-
-      setOutput(result.generatedPrompt);
-      toast.success('AI-powered prompt generated successfully!');
-    } catch (error) {
-      console.error('Error generating AI prompt:', error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'An unexpected error occurred.';
-      toast.error(`AI Prompt Error: ${errorMessage}`);
-      setOutput('');
-    } finally {
-      setAiLoading(false);
-    }
-  }, [promptData, isFormValid]);
-
-  const copyToClipboard = useCallback(async () => {
-    if (!output) return;
-    try {
-      await navigator.clipboard.writeText(output);
-      setCopied(true);
-      toast.success('Prompt copied to clipboard!');
-      const timer = setTimeout(() => setCopied(false), 2000);
-      return () => clearTimeout(timer);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-      toast.error('Failed to copy prompt to clipboard.');
-      setCopied(false);
-    }
-  }, [output]);
-
-  // REFACTOR: Simplified Local Storage Logic
-  const handleSaveRequest = useCallback(() => {
-    if (!localInputs.request.trim()) {
-      toast.error('Cannot save an empty request.');
-      return;
-    }
-    setNewRequestName('');
-    setShowSaveDialog(true);
-  }, [localInputs.request]);
-
-  const confirmSaveRequest = useCallback(() => {
-    if (!newRequestName.trim()) {
-      toast.error('Please enter a name for your request.');
-      return;
-    }
-    const newRequest: SavedRequest = {
-      id: Date.now().toString(),
-      name: newRequestName.trim(),
-      request: localInputs.request,
-    };
-    const updatedRequests = [...(savedRequests || []), newRequest];
-    setSavedRequests(updatedRequests);
-    setSelectedSavedRequestId(newRequest.id); // Select the newly saved request
-    toast.success(`Request "${newRequest.name}" saved!`);
-    setShowSaveDialog(false);
-  }, [newRequestName, localInputs.request, setSavedRequests, savedRequests]);
-
-  const handleLoadRequest = useCallback(
-    (id: string) => {
-      const requestToLoad = Array.isArray(savedRequests)
-        ? savedRequests.find((req) => req.id === id)
-        : undefined;
-      if (requestToLoad) {
-        handleInputChange('request', requestToLoad.request);
-        setSelectedSavedRequestId(id);
-        toast.success(`Request "${requestToLoad.name}" loaded!`);
-      }
-    },
-    [savedRequests, handleInputChange],
-  );
-
-  // REFACTOR: Extracted clear form logic into its own handler for cleanliness.
-  const handleClearForm = useCallback(() => {
-    setPromptData({
-      category: '',
-      customCategory: '',
-      context: '',
-      request: '',
-      parentTask: '',
-      subtask: '',
-      codeInput: '',
-    });
-    setLocalInputs({
-      context: '',
-      request: '',
-      parentTask: '',
-      subtask: '',
-      codeInput: '',
-      customCategory: '',
-    });
-    setOutput('');
-    setValidationErrors({});
-    setCopied(false);
-    setSelectedSavedRequestId(null);
-  }, []);
-
-  const isCopyDisabled = useMemo(() => !output || copied, [output, copied]);
+  const {
+    promptData,
+    setPromptData,
+    clearForm,
+    contextInput,
+    setContextInput,
+    requestInput,
+    setRequestInput,
+    parentTaskInput,
+    setParentTaskInput,
+    subtaskInput,
+    setSubtaskInput,
+    codeInput,
+    setCodeInput,
+    customCategoryInput,
+    setCustomCategoryInput,
+    output,
+    setOutput,
+    copied,
+    setCopied,
+    loading,
+    setLoading,
+    aiLoading,
+    setAiLoading,
+    showSaveDialog,
+    setShowSaveDialog,
+    newRequestName,
+    setNewRequestName,
+    selectedSavedRequestId,
+    setSelectedSavedRequestId,
+    validationErrors,
+    setValidationErrors,
+    savedRequests,
+    setSavedRequests,
+    debouncedUpdatePromptData,
+    handleCategoryChange,
+    showCustomCategory,
+    isGenerateDisabled,
+    generatePromptHandler,
+    generateAiPromptHandler,
+    copyToClipboard,
+    handleSaveRequest,
+    confirmSaveRequest,
+    handleLoadRequest,
+    handleDeleteRequest,
+    isCopyDisabled,
+  } = usePromptGenerator();
 
   return (
     <div className="container mx-auto p-4">
       <div className="bg-card p-6 rounded-lg shadow-md">
-        <div className="text-center mb-8">{/* Header remains the same */}</div>
+        {' '}
+        {/* Main content wrapper */}
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-foreground">
+            Prompt Request Generator
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Create structured prompts for any assistance requests
+          </p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Check our new AI assistant:
+            <Link
+              href="https://wesai-pa.netlify.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-1 text-blue-500 hover:underline inline-flex items-center"
+            >
+              WesAI Personal Assistant
+              <ExternalLink className="ml-1 h-3 w-3" />
+            </Link>
+          </p>
+        </div>
         <div className="space-y-6">
+          {' '}
+          {/* Wrapper for input and output cards */}
+          {/* Input Card */}
           <Card className="bg-card border-border">
             <CardHeader>
               <CardTitle className="text-foreground">Request Details</CardTitle>
@@ -429,306 +117,58 @@ export default function PromptRequestGenerator() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Category Select */}
-                <div className="space-y-2">
-                  <Label htmlFor="category">
-                    Category <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={promptData.category}
-                    onValueChange={handleCategoryChange}
-                    aria-label="Select a prompt category"
-                  >
-                    <SelectTrigger
-                      id="category"
-                      className={`bg-background border-border ${validationErrors.category ? ERROR_BORDER_CLASS : ''}`}
-                      aria-describedby={
-                        validationErrors.category ? 'category-error' : undefined
-                      }
-                    >
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border-border">
-                      {CATEGORIES.map((cat) => (
-                        <SelectItem key={cat} value={cat} label={cat}>
-                          {cat}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value={CUSTOM_CATEGORY_VALUE} label="Custom">
-                        Custom
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {validationErrors.category && (
-                    <p
-                      id="category-error"
-                      className="text-red-500 text-sm mt-1"
-                    >
-                      {validationErrors.category}
-                    </p>
-                  )}
-                </div>
-
-                {/* Load Saved Request Select */}
-                <div className="space-y-2">
-                  <Label htmlFor="loadRequest">Load Saved Request</Label>
-                  <Select
-                    value={selectedSavedRequestId || ''}
-                    onValueChange={handleLoadRequest}
-                    aria-label="Load a saved prompt request"
-                  >
-                    <SelectTrigger
-                      id="loadRequest"
-                      className="bg-background border-border"
-                    >
-                      <SelectValue placeholder="Select a saved request" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border-border">
-                      {Array.isArray(savedRequests) &&
-                      savedRequests.length > 0 ? (
-                        savedRequests.map((req) => (
-                          <SelectItem
-                            key={req.id}
-                            value={req.id}
-                            label={req.name}
-                          >
-                            {req.name}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem
-                          value="no-requests"
-                          disabled
-                          label="No saved requests"
-                        >
-                          No saved requests
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Custom Category Input */}
-                {showCustomCategory && (
-                  <div className="space-y-2">
-                    <Label htmlFor="customCategory">
-                      Custom Category <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="customCategory"
-                      placeholder="e.g., AI Agent Development"
-                      value={localInputs.customCategory}
-                      onChange={(e) =>
-                        handleInputChange('customCategory', e.target.value)
-                      }
-                      className={`bg-background border-border ${validationErrors.customCategory ? ERROR_BORDER_CLASS : ''}`}
-                      aria-describedby={
-                        validationErrors.customCategory
-                          ? 'custom-category-error'
-                          : undefined
-                      }
-                    />
-                    {validationErrors.customCategory && (
-                      <p
-                        id="custom-category-error"
-                        className="text-red-500 text-sm mt-1"
-                      >
-                        {validationErrors.customCategory}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Context Textarea */}
-              <div className="space-y-2">
-                <Label htmlFor="context">Context (optional)</Label>
-                <Textarea
-                  id="context"
-                  value={localInputs.context}
-                  onChange={(e) => handleInputChange('context', e.target.value)}
-                  rows={3}
-                  className="bg-background border-border font-mono"
+                <PromptInputForm
+                  promptData={promptData}
+                  contextInput={contextInput}
+                  setContextInput={setContextInput}
+                  requestInput={requestInput}
+                  setRequestInput={setRequestInput}
+                  parentTaskInput={parentTaskInput}
+                  setParentTaskInput={setParentTaskInput}
+                  subtaskInput={subtaskInput}
+                  setSubtaskInput={setSubtaskInput}
+                  codeInput={codeInput}
+                  setCodeInput={setCodeInput}
+                  customCategoryInput={customCategoryInput}
+                  setCustomCategoryInput={setCustomCategoryInput}
+                  debouncedUpdatePromptData={debouncedUpdatePromptData}
+                  handleCategoryChange={handleCategoryChange}
+                  showCustomCategory={showCustomCategory}
+                  validationErrors={validationErrors}
+                />
+                <SavedRequestsDropdown
+                  savedRequests={savedRequests}
+                  selectedSavedRequestId={selectedSavedRequestId}
+                  handleLoadRequest={handleLoadRequest}
+                  handleDeleteRequest={handleDeleteRequest}
                 />
               </div>
 
-              {/* Request Textarea */}
-              <div className="space-y-2">
-                <Label htmlFor="request">
-                  Request <span className="text-red-500">*</span>
-                </Label>
-                <Textarea
-                  id="request"
-                  value={localInputs.request}
-                  onChange={(e) => handleInputChange('request', e.target.value)}
-                  rows={3}
-                  className={`bg-background border-border font-mono ${validationErrors.request ? ERROR_BORDER_CLASS : ''}`}
-                  aria-describedby={
-                    validationErrors.request ? 'request-error' : undefined
-                  }
-                />
-                {validationErrors.request && (
-                  <p id="request-error" className="text-red-500 text-sm mt-1">
-                    {validationErrors.request}
-                  </p>
-                )}
-              </div>
-
-              {/* Parent Task Input */}
-              <div className="space-y-2">
-                <Label htmlFor="parentTask">Parent Task (optional)</Label>
-                <Input
-                  id="parentTask"
-                  value={localInputs.parentTask}
-                  onChange={(e) =>
-                    handleInputChange('parentTask', e.target.value)
-                  }
-                  className="bg-background border-border font-mono"
-                />
-              </div>
-
-              {/* Subtask Input */}
-              <div className="space-y-2">
-                <Label htmlFor="subtask">Subtask (optional)</Label>
-                <Input
-                  id="subtask"
-                  value={localInputs.subtask}
-                  onChange={(e) => handleInputChange('subtask', e.target.value)}
-                  className="bg-background border-border font-mono"
-                />
-              </div>
-
-              {/* Code Input Textarea */}
-              <div className="space-y-2">
-                <Label htmlFor="codeInput">Relevant Data (optional)</Label>
-                <Textarea
-                  id="codeInput"
-                  value={localInputs.codeInput}
-                  onChange={(e) =>
-                    handleInputChange('codeInput', e.target.value)
-                  }
-                  rows={5}
-                  className="bg-background border-border font-mono"
-                />
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col md:flex-row gap-4">
-                <Button
-                  onClick={generatePromptHandler}
-                  disabled={isGenerateDisabled || loading || aiLoading}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <Wand2 className="mr-2 h-4 w-4" /> Generate Prompt
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={generateAiPromptHandler}
-                  disabled={isGenerateDisabled || aiLoading || loading}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  {aiLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating with AI...
-                    </>
-                  ) : (
-                    'Generate with AI (Gemini)'
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleSaveRequest}
-                  disabled={!localInputs.request.trim()}
-                >
-                  <Save className="mr-2 h-4 w-4" /> Save Request
-                </Button>
-                <Button variant="outline" onClick={handleClearForm}>
-                  Clear Form
-                </Button>
-                {/* Links remain the same */}
-              </div>
+              <PromptActionButtons
+                isGenerateDisabled={isGenerateDisabled}
+                loading={loading}
+                aiLoading={aiLoading}
+                generatePromptHandler={generatePromptHandler}
+                generateAiPromptHandler={generateAiPromptHandler}
+                handleSaveRequest={handleSaveRequest}
+                requestInput={requestInput}
+                clearForm={clearForm}
+              />
             </CardContent>
           </Card>
-
-          {/* Output Card */}
-          {output && (
-            <Card className="bg-card border-border">
-              <CardHeader>
-                <CardTitle className="text-foreground">
-                  Generated Prompt
-                </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Use the button below to copy the generated prompt.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="relative">
-                  <div className="prose dark:prose-invert max-w-none">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      components={components}
-                    >
-                      {output}
-                    </ReactMarkdown>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="absolute top-2 right-2"
-                    onClick={copyToClipboard}
-                    disabled={isCopyDisabled}
-                  >
-                    <Copy className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Save Dialog */}
-          <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Save Request</DialogTitle>
-                <DialogDescription>
-                  Enter a name for your request to save it for later use.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newRequestName">Request Name</Label>
-                  <Input
-                    id="newRequestName"
-                    value={newRequestName}
-                    onChange={(e) => setNewRequestName(e.target.value)}
-                    placeholder="e.g., My Cool Prompt Request"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => setShowSaveDialog(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={confirmSaveRequest}
-                  disabled={!newRequestName.trim()}
-                >
-                  Save
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <PromptOutputDisplay
+            output={output}
+            copied={copied}
+            isCopyDisabled={isCopyDisabled}
+            copyToClipboard={copyToClipboard}
+          />
+          <SaveRequestDialog
+            showSaveDialog={showSaveDialog}
+            setShowSaveDialog={setShowSaveDialog}
+            newRequestName={newRequestName}
+            setNewRequestName={setNewRequestName}
+            confirmSaveRequest={confirmSaveRequest}
+          />
         </div>
       </div>
     </div>
