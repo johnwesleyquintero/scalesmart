@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataSourceTab from './components/DataSourceTab';
 import ProductResearch from './components/ProductResearch';
@@ -247,13 +248,12 @@ const AmazonSellerToolsPage: React.FC = () => {
 
       <div className="mt-8 p-4 border rounded">
         <h2 className="text-2xl font-semibold mb-4">AI Recommendation</h2>
-        <button
+        <Button
           onClick={handleGetRecommendation}
           disabled={loading || allParsedData.length === 0} // Disable if loading or no data
-          className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
         >
           {loading ? 'Analyzing Data...' : 'Get AI-Driven Analysis'}
-        </button>
+        </Button>
         {recommendation && (
           <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-foreground whitespace-pre-wrap">
             {recommendation}

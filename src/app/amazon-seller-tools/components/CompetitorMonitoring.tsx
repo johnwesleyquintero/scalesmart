@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ParsedFileData, CompetitorMonitoringData } from '@/types/amazon-tools';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 
 interface CompetitorMonitoringProps {
   parsedData: ParsedFileData<CompetitorMonitoringData>[];
@@ -137,13 +138,9 @@ const CompetitorMonitoring: React.FC<CompetitorMonitoringProps> = ({
               }
             }}
           />
-          <button
-            onClick={handleAddAsin}
-            disabled={loading}
-            className="px-4 py-2 bg-blue-500 text-white rounded disabled:opacity-50"
-          >
+          <Button onClick={handleAddAsin} disabled={loading}>
             {loading ? 'Adding...' : 'Add ASIN'}
-          </button>
+          </Button>
         </div>
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       </div>
@@ -191,16 +188,15 @@ const CompetitorMonitoring: React.FC<CompetitorMonitoringProps> = ({
 
       <div className="mt-6">
         <h4 className="text-lg font-medium mb-2">AI Analysis</h4>
-        <button
+        <Button
           onClick={handleAnalyzeCompetitors}
           disabled={
             loading ||
             (parsedData.length === 0 && monitoredCompetitors.length === 0)
           } // Disable if loading or no data
-          className="px-4 py-2 bg-green-500 text-white rounded disabled:opacity-50"
         >
           {loading ? 'Analyzing...' : 'Get AI Competitor Analysis'}
-        </button>
+        </Button>
         {analysisResult && (
           <div className="mt-4 p-3 bg-gray-100 dark:bg-gray-800 rounded text-foreground whitespace-pre-wrap">
             {analysisResult}

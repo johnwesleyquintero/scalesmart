@@ -21,6 +21,7 @@ import ImageWidget from './ImageWidget';
 import { FilterWidget } from './FilterWidget';
 import { v4 as uuidv4 } from 'uuid';
 import { WidgetLibrary } from './WidgetLibrary'; // Import WidgetLibrary
+import { Button } from '@/components/ui/button';
 
 // Define a type for Report Elements - reusing WidgetConfig for consistency
 type ReportElementConfig = WidgetConfig;
@@ -275,12 +276,7 @@ export const ReportEditor = () => {
         </ResponsiveGridLayout>
       </div>
 
-      <button
-        onClick={handleSaveReport}
-        className="bg-indigo-600 text-white px-4 py-2 rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-      >
-        Save Report
-      </button>
+      <Button onClick={handleSaveReport}>Save Report</Button>
     </div>
   );
 };

@@ -98,29 +98,6 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
           )}
         </div>
 
-        {/* Placeholder for Load Saved Request Select - will be a separate component */}
-        <div className="space-y-2">
-          <Label htmlFor="loadRequest">Load Saved Request</Label>
-          <Select value="" onValueChange={() => {}} disabled>
-            <SelectTrigger
-              id="loadRequest"
-              className="bg-background border-border"
-              aria-label="Load a previously saved request"
-            >
-              <SelectValue placeholder="Select a saved request" />
-            </SelectTrigger>
-            <SelectContent className="bg-background border-border">
-              <SelectItem
-                value="no-requests"
-                disabled
-                label="No saved requests (moved to separate component)"
-              >
-                No saved requests (moved to separate component)
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
         {/* Custom Category Input (conditionally rendered) */}
         {showCustomCategory && (
           <div className="space-y-2">

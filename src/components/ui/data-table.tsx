@@ -25,6 +25,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import { ArrowDownUp, Columns } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 /**
  * Props for the DataTable component.
@@ -112,8 +113,10 @@ export function DataTable<TData, TValue>({
                             header.getContext(),
                           )}
                       {header.column.getCanSort() ? (
-                        <button
-                          className="ml-2"
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="ml-2 h-6 w-6"
                           onClick={() => header.column.toggleSorting()}
                           aria-label={`Sort ${header.column.id} ${
                             header.column.getIsSorted() === 'asc'
@@ -132,7 +135,7 @@ export function DataTable<TData, TValue>({
                                   : 'opacity-50'
                             }`}
                           />
-                        </button>
+                        </Button>
                       ) : undefined}
                     </TableHead>
                   );
@@ -177,7 +180,9 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-2">
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => {
             table.previousPage();
           }}
@@ -185,8 +190,10 @@ export function DataTable<TData, TValue>({
           aria-label="Previous page"
         >
           Previous
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => {
             table.nextPage();
           }}
@@ -194,7 +201,7 @@ export function DataTable<TData, TValue>({
           aria-label="Next page"
         >
           Next
-        </button>
+        </Button>
       </div>
     </div>
   );

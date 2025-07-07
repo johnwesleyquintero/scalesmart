@@ -33,7 +33,13 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
 // --- Component Imports ---
-import { RotateCcw, Trash2, Maximize, Minimize } from 'lucide-react';
+import {
+  RotateCcw,
+  Trash2,
+  Maximize,
+  Minimize,
+  MessageSquare,
+} from 'lucide-react';
 import CopyMarkdownButton from './CopyMarkdownButton';
 import { toString as hastToString } from 'hast-util-to-string'; // For extracting raw code
 import { Button } from '@/components/ui/button'; // Assuming this is a local Button component
@@ -742,28 +748,16 @@ export function FloatingChatButton({
   isChatOpen: boolean;
 }) {
   return (
-    <button
+    <Button
       onClick={toggleChatAction}
       className={cn(
-        'fixed bottom-4 right-4 z-50 rounded-full bg-blue-600 p-3 text-white shadow-lg transition-all duration-300 ease-in-out hover:bg-blue-700',
+        'fixed bottom-4 right-4 z-50 rounded-full shadow-lg transition-all duration-300 ease-in-out',
         isChatOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
       )}
       title="Open Chat"
+      size="lg"
     >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="h-6 w-6"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.75 9.75 0 01-6.79-2.916M21 12c0-4.556-4.03-8.25-9-8.25S3 7.444 3 12c0 2.104.859 4.023 2.273 5.484M3 12c0 4.556 4.03 8.25 9 8.25s9-3.694 9-8.25M18.75 12h.008v.008h-.008V12zm-4.5 0h.008v.008h-.008V12zm-4.5 0h.008v.008h-.008V12z"
-        />
-      </svg>
-    </button>
+      <MessageSquare className="h-6 w-6" />
+    </Button>
   );
 }

@@ -40,15 +40,7 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions); // Fetch session data
 
   return (
-    <html
-      lang="en"
-      className={cn(
-        inter.variable,
-        'scroll-smooth',
-        'motion-safe:scroll-smooth',
-        '[color-scheme:dark_light]',
-      )}
-    >
+    <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none">
         <div className="relative flex min-h-screen flex-col">
           <ErrorBoundary>

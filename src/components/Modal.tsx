@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useRef, useEffect, useCallback } from 'react';
+import { Button } from '@/components/ui/button';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -43,9 +45,14 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, title }) => {
       <div className="modal-content">
         <div className="modal-header">
           {title && <h2>{title}</h2>}
-          <button className="modal-close-button" onClick={onClose}>
-            &times;
-          </button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="modal-close-button"
+            onClick={onClose}
+          >
+            <X className="h-6 w-6" />
+          </Button>
         </div>
         <div className="modal-body">{children}</div>
       </div>

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation'; // Import useRouter
 import { DashboardService } from '@/lib/dashboard-service'; // Assuming dashboard-service is in lib
 import { Dashboard } from '@/types/indexeddb'; // Import Dashboard type from indexeddb
+import { Button } from '@/components/ui/button';
 
 const DashboardTemplatesPage = () => {
   const router = useRouter(); // Get router instance
@@ -63,12 +64,9 @@ const DashboardTemplatesPage = () => {
               <div className="mb-4 text-gray-600">
                 Template preview goes here
               </div>
-              <button
-                onClick={() => handleLoadTemplate(template.id)}
-                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-              >
+              <Button onClick={() => handleLoadTemplate(template.id)}>
                 Load Template
-              </button>
+              </Button>
             </div>
           ))}
         </div>
@@ -78,15 +76,9 @@ const DashboardTemplatesPage = () => {
       <div className="mt-6 border-t pt-4">
         <h2 className="text-2xl font-bold mb-4">Template Actions</h2>
         <div className="flex space-x-4">
-          <button className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
-            Save Template
-          </button>
-          <button className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600">
-            Share Template
-          </button>
-          <button className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
-            Collaborate
-          </button>
+          <Button>Save Template</Button>
+          <Button>Share Template</Button>
+          <Button>Collaborate</Button>
         </div>
         <p className="mt-2 text-sm text-gray-500">
           Note: Actual saving, sharing, and collaboration logic needs to be

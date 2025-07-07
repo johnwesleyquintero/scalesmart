@@ -1,5 +1,6 @@
 import { Clipboard, ClipboardCheck } from 'lucide-react';
 import React from 'react';
+import { Button } from '@/components/ui/button';
 
 interface CopyMarkdownButtonProps {
   content: string;
@@ -30,9 +31,11 @@ const CopyMarkdownButton: React.FC<CopyMarkdownButtonProps> = ({
   };
 
   return (
-    <button
+    <Button
       onClick={handleCopy}
-      className="absolute top-1 right-1 p-1.5 bg-gray-300 dark:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-400 dark:hover:bg-gray-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      variant="ghost"
+      size="icon"
+      className="absolute top-1 right-1 h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
       aria-label={copied ? COPIED_LABEL : DEFAULT_LABEL}
       title={copied ? COPIED_LABEL : DEFAULT_LABEL}
     >
@@ -41,7 +44,7 @@ const CopyMarkdownButton: React.FC<CopyMarkdownButtonProps> = ({
       ) : (
         <Clipboard className="w-3.5 h-3.5" />
       )}
-    </button>
+    </Button>
   );
 };
 

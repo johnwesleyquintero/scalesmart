@@ -1,5 +1,6 @@
 'use client';
 import React from 'react';
+import { Button } from '@/components/ui/button';
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -46,12 +47,7 @@ export class ErrorBoundary extends React.Component<
                 : 'An unexpected error occurred.'}
             </p>
             <div className="flex gap-4">
-              <button
-                onClick={this.reload}
-                className="rounded-md bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90"
-              >
-                Reload page
-              </button>
+              <Button onClick={this.reload}>Reload page</Button>
             </div>
           </div>
         )
