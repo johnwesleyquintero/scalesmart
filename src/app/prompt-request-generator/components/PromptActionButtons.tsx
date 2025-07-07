@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Wand2, Save, ExternalLink } from 'lucide-react';
+import { Wand2, Save } from 'lucide-react';
 import Link from 'next/link';
 
 interface PromptActionButtonsProps {
@@ -24,12 +24,14 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
   requestInput,
   clearForm,
 }) => {
+  const baseButtonClass = 'w-full sm:w-auto rounded-md py-2 px-4'; //Added base class for consistency
+
   return (
-    <div className="flex flex-col md:flex-row gap-4">
+    <div className="flex flex-col sm:flex-row flex-wrap gap-4">
       {/* Generate Prompt Button */}
       <Button
         onClick={generatePromptHandler}
-        className="w-full md:w-auto"
+        className={`${baseButtonClass}`}
         aria-label="Generate prompt based on details"
         disabled={isGenerateDisabled || loading || aiLoading}
       >
@@ -37,29 +39,38 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
           'Generating...'
         ) : (
           <>
-            <Wand2 className="mr-2 h-4 w-4" />
+            <Wand2 className="mr-2 h-4 w-4 inline-block" />
             Generate Prompt
           </>
         )}
       </Button>
+
+      {/* Generate AI Prompt Button */}
       <Button
         onClick={generateAiPromptHandler}
         disabled={isGenerateDisabled || aiLoading || loading}
-        className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+        className={`${baseButtonClass} bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white`}
         aria-label="Generate prompt using AI (Gemini)"
       >
-        {aiLoading ? 'Generating with AI...' : 'Generate with AI (Gemini)'}
+        {aiLoading ? (
+          'Generating with AI...'
+        ) : (
+          <>
+            <Wand2 className="mr-2 h-4 w-4 inline-block" />
+            Generate with AI
+          </>
+        )}
       </Button>
 
       {/* Save Request Button */}
       <Button
         variant="outline"
         onClick={handleSaveRequest}
-        className="w-full md:w-auto"
+        className={`${baseButtonClass}`}
         aria-label="Save current request to local storage"
         disabled={!requestInput.trim()}
       >
-        <Save className="mr-2 h-4 w-4" />
+        <Save className="mr-2 h-4 w-4 inline-block" />
         Save Request
       </Button>
 
@@ -67,23 +78,11 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
       <Button
         variant="outline"
         onClick={clearForm}
-        className="w-full md:w-auto"
+        className={`${baseButtonClass}`}
         aria-label="Clear all form fields"
       >
         Clear Form
       </Button>
-
-      {/* Link to External AI Assistant */}
-      <Link
-        href="https://wesai.netlify.app/"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 h-9 px-4 py-2 w-full md:w-auto"
-        aria-label="Open WesAI Code Assistant in a new tab"
-      >
-        WesAI Code Assistant
-        <ExternalLink className="ml-2 h-4 w-4" />
-      </Link>
     </div>
   );
 };

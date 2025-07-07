@@ -20,6 +20,7 @@ export function useLocalStorage<T>(
       try {
         if (typeof window !== 'undefined') {
           const storedDataFromIndexedDB = await getItem<T>('cache', key);
+
           setStoredValue(storedDataFromIndexedDB ?? initialValue);
           if (
             initialValue !== undefined &&

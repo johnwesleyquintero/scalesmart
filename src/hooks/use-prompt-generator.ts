@@ -403,7 +403,11 @@ export const usePromptGenerator = () => {
       data: currentPromptDataForSave, // Save the entire promptData
     };
 
-    setSavedRequests((prev) => [...(prev || []), newRequest]);
+    // Ensure prev is an array before spreading
+    setSavedRequests((prev) => [
+      ...(Array.isArray(prev) ? prev : []),
+      newRequest,
+    ]);
     toast.success(`Request "${newRequest.name}" saved!`);
     setShowSaveDialog(false);
     setNewRequestName('');
@@ -421,9 +425,20 @@ export const usePromptGenerator = () => {
 
   const handleLoadRequest = useCallback(
     (id: string) => {
-      const requestToLoad = savedRequests?.find((req) => req.id === id);
+      // Ensure savedRequests is an array before attempting to find the request
+      if (!Array.isArray(savedRequests)) {
+        console.error('savedRequests is not an array:', savedRequests);
+        toast.error(
+          'Failed to load request: Saved requests data is corrupted.',
+        );
+        return;
+      }
+
+      const requestToLoad = savedRequests.find((req) => req.id === id);
+
       if (requestToLoad) {
         const loadedData = requestToLoad.data;
+        console.log('[usePromptGenerator] Loading data:', loadedData);
 
         // Update the main promptData state
         setPromptData(loadedData);
@@ -451,7 +466,10 @@ export const usePromptGenerator = () => {
 
   const handleDeleteRequest = useCallback(
     (id: string, name: string) => {
-      setSavedRequests((prev) => prev?.filter((req) => req.id !== id) || []);
+      // Ensure prev is an array before filtering
+      setSavedRequests((prev) =>
+        Array.isArray(prev) ? prev.filter((req) => req.id !== id) : [],
+      );
       toast.success(`Request "${name}" deleted!`);
       if (selectedSavedRequestId === id) {
         setSelectedSavedRequestId(null);
@@ -483,7 +501,8 @@ export const usePromptGenerator = () => {
   // requestInput (manually or via other means) happens to match a saved request.
   // It's robust for its purpose.
   useEffect(() => {
-    if (requestInput && savedRequests) {
+    // Safely access find on savedRequests
+    if (requestInput && Array.isArray(savedRequests)) {
       const found = savedRequests.find(
         (req) => req.data.request === requestInput,
       );
@@ -493,8 +512,10 @@ export const usePromptGenerator = () => {
         setSelectedSavedRequestId(null);
       }
     } else if (!requestInput && selectedSavedRequestId !== null) {
+      // If requestInput is empty and a request was previously selected, deselect it
       setSelectedSavedRequestId(null);
     }
+    // Note: The dependency array should include savedRequests
   }, [requestInput, savedRequests, selectedSavedRequestId]);
 
   // Determines if the Copy button should be disabled.

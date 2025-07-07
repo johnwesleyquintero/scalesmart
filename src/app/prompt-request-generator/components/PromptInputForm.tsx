@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,218 +14,241 @@ import {
   CUSTOM_CATEGORY_VALUE,
 } from '@/lib/prompt-generator/constants';
 import { CategoryValue, PromptData } from '@/lib/prompt-generator/types';
-import { PromptDataKey } from './types'; // Import from new types file
+import { useForm, Controller, UseFormReturn } from 'react-hook-form';
 
 const ERROR_BORDER_CLASS = 'border-red-500';
 
+// Define the form values type based on PromptData
+type PromptFormValues = PromptData;
+
 interface PromptInputFormProps {
+  form: UseFormReturn<PromptFormValues>;
   promptData: PromptData;
-  contextInput: string;
-  setContextInput: React.Dispatch<React.SetStateAction<string>>;
-  requestInput: string;
-  setRequestInput: React.Dispatch<React.SetStateAction<string>>;
-  parentTaskInput: string;
-  setParentTaskInput: React.Dispatch<React.SetStateAction<string>>;
-  subtaskInput: string;
-  setSubtaskInput: React.Dispatch<React.SetStateAction<string>>;
-  codeInput: string;
-  setCodeInput: React.Dispatch<React.SetStateAction<string>>;
-  customCategoryInput: string;
-  setCustomCategoryInput: React.Dispatch<React.SetStateAction<string>>;
-  debouncedUpdatePromptData: (field: PromptDataKey, value: string) => void;
   handleCategoryChange: (value: CategoryValue) => void;
   showCustomCategory: boolean;
-  validationErrors: Partial<Record<keyof PromptData, string>>;
 }
 
 const PromptInputForm: React.FC<PromptInputFormProps> = ({
+  form,
   promptData,
-  contextInput,
-  setContextInput,
-  requestInput,
-  setRequestInput,
-  parentTaskInput,
-  setParentTaskInput,
-  subtaskInput,
-  setSubtaskInput,
-  codeInput,
-  setCodeInput,
-  customCategoryInput,
-  setCustomCategoryInput,
-  debouncedUpdatePromptData,
   handleCategoryChange,
   showCustomCategory,
-  validationErrors,
 }) => {
+  const {
+    control,
+    formState: { errors },
+    setValue,
+  } = form;
+
+  // Effect to update form state when promptData changes externally (e.g., loading a saved request)
+  useEffect(() => {
+    form.reset(promptData);
+  }, [promptData, form]);
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Category Select */}
-        <div className="space-y-2">
-          <Label htmlFor="category">
-            Category <span className="text-red-500">*</span>
-          </Label>
-          <Select<CategoryValue>
-            value={promptData.category}
-            onValueChange={handleCategoryChange}
-          >
-            <SelectTrigger
-              id="category"
-              className={`bg-background border-border ${validationErrors.category ? ERROR_BORDER_CLASS : ''}`}
-              aria-required="true"
-              aria-invalid={!!validationErrors.category}
-              aria-describedby={
-                validationErrors.category ? 'category-error' : undefined
-              }
-            >
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
-            <SelectContent className="bg-background border-border">
-              {CATEGORIES.map((category) => (
-                <SelectItem key={category} value={category} label={category}>
-                  {category}
-                </SelectItem>
-              ))}
-              <SelectItem value={CUSTOM_CATEGORY_VALUE} label="Custom">
-                Custom
-              </SelectItem>
-            </SelectContent>
-          </Select>
-          {validationErrors.category && (
-            <p id="category-error" className="text-red-500 text-sm mt-1">
-              {validationErrors.category}
-            </p>
+        <Controller
+          name="category"
+          control={control}
+          rules={{ required: 'Please select a Category.' }}
+          render={({ field }) => (
+            <div className="space-y-2">
+              <Label htmlFor="category">
+                Category <span className="text-red-500">*</span>
+              </Label>
+              <Select<CategoryValue>
+                value={field.value}
+                onValueChange={(value) => {
+                  field.onChange(value); // Update react-hook-form state
+                  handleCategoryChange(value); // Trigger custom category logic in hook
+                }}
+              >
+                <SelectTrigger
+                  id="category"
+                  className={`bg-background border-border ${errors.category ? ERROR_BORDER_CLASS : ''}`}
+                  aria-required="true"
+                  aria-invalid={!!errors.category}
+                  aria-describedby={
+                    errors.category ? 'category-error' : undefined
+                  }
+                >
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border-border">
+                  {CATEGORIES.map((category) => (
+                    <SelectItem
+                      key={category}
+                      value={category}
+                      label={category}
+                    >
+                      {category}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value={CUSTOM_CATEGORY_VALUE} label="Custom">
+                    Custom
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {errors.category && (
+                <p
+                  id="category-error"
+                  className="text-red-500 text-sm mt-1"
+                  role="alert"
+                >
+                  {errors.category.message}
+                </p>
+              )}
+            </div>
           )}
-        </div>
+        />
 
         {/* Custom Category Input (conditionally rendered) */}
         {showCustomCategory && (
-          <div className="space-y-2">
-            <Label htmlFor="customCategory">
-              Custom Category <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="customCategory"
-              placeholder="e.g., AI Agent Development"
-              value={customCategoryInput}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setCustomCategoryInput(e.target.value);
-                debouncedUpdatePromptData('customCategory', e.target.value);
-              }}
-              className={`bg-background border-border ${validationErrors.customCategory ? ERROR_BORDER_CLASS : ''}`}
-              aria-required={showCustomCategory}
-              aria-invalid={!!validationErrors.customCategory}
-              aria-describedby={
-                validationErrors.customCategory
-                  ? 'custom-category-error'
-                  : undefined
-              }
-            />
-            {validationErrors.customCategory && (
-              <p
-                id="custom-category-error"
-                className="text-red-500 text-sm mt-1"
-              >
-                {validationErrors.customCategory}
-              </p>
+          <Controller
+            name="customCategory"
+            control={control}
+            rules={{
+              required: 'Please enter a value for the Custom Category.',
+            }}
+            render={({ field }) => (
+              <div className="space-y-2">
+                <Label htmlFor="customCategory">
+                  Custom Category <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="customCategory"
+                  placeholder="e.g., AI Agent Development"
+                  {...field} // Binds input to react-hook-form
+                  className={`bg-background border-border ${errors.customCategory ? ERROR_BORDER_CLASS : ''}`}
+                  aria-required={showCustomCategory}
+                  aria-invalid={!!errors.customCategory}
+                  aria-describedby={
+                    errors.customCategory ? 'custom-category-error' : undefined
+                  }
+                />
+                {errors.customCategory && (
+                  <p
+                    id="custom-category-error"
+                    className="text-red-500 text-sm mt-1"
+                    role="alert"
+                  >
+                    {errors.customCategory.message}
+                  </p>
+                )}
+              </div>
             )}
-          </div>
+          />
         )}
       </div>
 
       {/* Context Textarea */}
-      <div className="space-y-2">
-        <Label htmlFor="context">Context (optional)</Label>
-        <Textarea
-          id="context"
-          placeholder="Provide background information about your project or problem..."
-          value={contextInput}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            setContextInput(e.target.value);
-            debouncedUpdatePromptData('context', e.target.value);
-          }}
-          rows={3}
-          className="bg-background border-border font-mono"
-          aria-label="Context for the request (optional)"
-        />
-      </div>
+      <Controller
+        name="context"
+        control={control}
+        render={({ field }) => (
+          <div className="space-y-2">
+            <Label htmlFor="context">Context (optional)</Label>
+            <Textarea
+              id="context"
+              placeholder="Provide background information about your project or problem..."
+              {...field} // Binds textarea to react-hook-form
+              rows={3}
+              className="bg-background border-border font-mono"
+              aria-label="Context for the request (optional)"
+            />
+          </div>
+        )}
+      />
 
       {/* Request Textarea */}
-      <div className="space-y-2">
-        <Label htmlFor="request">
-          Request <span className="text-red-500">*</span>
-        </Label>
-        <Textarea
-          id="request"
-          placeholder="Clearly describe what you need help with..."
-          value={requestInput}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            setRequestInput(e.target.value);
-            debouncedUpdatePromptData('request', e.target.value);
-          }}
-          rows={3}
-          className={`bg-background border-border font-mono ${validationErrors.request ? ERROR_BORDER_CLASS : ''}`}
-          aria-required="true"
-          aria-invalid={!!validationErrors.request}
-          aria-describedby={
-            validationErrors.request ? 'request-error' : undefined
-          }
-        />
-        {validationErrors.request && (
-          <p id="request-error" className="text-red-500 text-sm mt-1">
-            {validationErrors.request}
-          </p>
+      <Controller
+        name="request"
+        control={control}
+        rules={{ required: 'The Request field is required.' }}
+        render={({ field }) => (
+          <div className="space-y-2">
+            <Label htmlFor="request">
+              Request <span className="text-red-500">*</span>
+            </Label>
+            <Textarea
+              id="request"
+              placeholder="Clearly describe what you need help with..."
+              {...field} // Binds textarea to react-hook-form
+              rows={3}
+              className={`bg-background border-border font-mono ${errors.request ? ERROR_BORDER_CLASS : ''}`}
+              aria-required="true"
+              aria-invalid={!!errors.request}
+              aria-describedby={errors.request ? 'request-error' : undefined}
+            />
+            {errors.request && (
+              <p
+                id="request-error"
+                className="text-red-500 text-sm mt-1"
+                role="alert"
+              >
+                {errors.request.message}
+              </p>
+            )}
+          </div>
         )}
-      </div>
+      />
 
       {/* Parent Task Input */}
-      <div className="space-y-2">
-        <Label htmlFor="parentTask">Parent Task (optional)</Label>
-        <Input
-          id="parentTask"
-          placeholder="e.g., Implement user authentication"
-          value={parentTaskInput}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setParentTaskInput(e.target.value);
-            debouncedUpdatePromptData('parentTask', e.target.value);
-          }}
-          className="bg-background border-border font-mono"
-          aria-label="Parent task for the request (optional)"
-        />
-      </div>
+      <Controller
+        name="parentTask"
+        control={control}
+        render={({ field }) => (
+          <div className="space-y-2">
+            <Label htmlFor="parentTask">Parent Task (optional)</Label>
+            <Input
+              id="parentTask"
+              placeholder="e.g., Implement user authentication"
+              {...field} // Binds input to react-hook-form
+              className="bg-background border-border font-mono"
+              aria-label="Parent task for the request (optional)"
+            />
+          </div>
+        )}
+      />
 
       {/* Subtask Input */}
-      <div className="space-y-2">
-        <Label htmlFor="subtask">Subtask (optional)</Label>
-        <Input
-          id="subtask"
-          placeholder="e.g., Create login form UI"
-          value={subtaskInput}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-            setSubtaskInput(e.target.value);
-            debouncedUpdatePromptData('subtask', e.target.value);
-          }}
-          className="bg-background border-border font-mono"
-          aria-label="Subtask for the request (optional)"
-        />
-      </div>
+      <Controller
+        name="subtask"
+        control={control}
+        render={({ field }) => (
+          <div className="space-y-2">
+            <Label htmlFor="subtask">Subtask (optional)</Label>
+            <Input
+              id="subtask"
+              placeholder="e.g., Create login form UI"
+              {...field} // Binds input to react-hook-form
+              className="bg-background border-border font-mono"
+              aria-label="Subtask for the request (optional)"
+            />
+          </div>
+        )}
+      />
 
       {/* Code Input Textarea */}
-      <div className="space-y-2">
-        <Label htmlFor="codeInput">Relevant Data (optional)</Label>
-        <Textarea
-          id="codeInput"
-          placeholder="Paste any relevant data (code, CSV, JSON, logs, markdown, etc.)..."
-          value={codeInput}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-            setCodeInput(e.target.value);
-            debouncedUpdatePromptData('codeInput', e.target.value);
-          }}
-          rows={5}
-          className="bg-background border-border font-mono"
-          aria-label="Relevant code snippet (optional)"
-        />
-      </div>
+      <Controller
+        name="codeInput"
+        control={control}
+        render={({ field }) => (
+          <div className="space-y-2">
+            <Label htmlFor="codeInput">Relevant Data (optional)</Label>
+            <Textarea
+              id="codeInput"
+              placeholder="Paste relevant code, data (CSV, JSON, etc.), or logs here..."
+              {...field} // Binds textarea to react-hook-form
+              rows={10}
+              className="bg-background border-border font-mono text-sm"
+              aria-label="Relevant code or data (optional)"
+            />
+          </div>
+        )}
+      />
     </div>
   );
 };
