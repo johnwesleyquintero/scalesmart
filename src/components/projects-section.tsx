@@ -26,17 +26,7 @@ interface GitHubRepo {
   fork: boolean;
 }
 
-// Interface for the raw data structure from GitHub API for the fields we care about
-interface RawGitHubRepoFromAPI {
-  name: string;
-  description: string | null;
-  html_url: string;
-  homepage: string | null;
-  language: string | null;
-  stargazers_count: number;
-  forks_count: number;
-  fork: boolean;
-}
+// Removed redundant RawGitHubRepoFromAPI interface; it's identical to GitHubRepo
 
 async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
   if (!username) {
@@ -44,8 +34,8 @@ async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
     return [];
   }
   try {
-    const url = `https://api.github.com/users/${username}/repos?sort=pushed&direction=desc&per_page=100`; // Fetch more and sort by last push
-    console.log('Fetching GitHub projects from URL:', url); // Log the URL
+    const url = `https://api.github.com/users/${username}/repos?sort=pushed&direction=desc&per_page=100`;
+    console.log('Fetching GitHub projects from URL:', url);
     const response = await fetch(url);
     if (!response.ok) {
       const errorText = await response.text();
@@ -54,7 +44,6 @@ async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
         `Status: ${response.status}`,
         `Error: ${errorText}`,
       );
-      // If the user is not found, return an empty array without throwing an error
       if (response.status === 404) {
         console.warn(
           `GitHub user '${username}' not found. Returning empty projects list.`,
@@ -65,23 +54,15 @@ async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
         `GitHub API responded with status ${response.status}: ${errorText}`,
       );
     }
-    const data: RawGitHubRepoFromAPI[] = await response.json();
+    const data: GitHubRepo[] = await response.json(); // Use GitHubRepo directly
     if (!Array.isArray(data)) {
       console.error('GitHub API did not return an array:', data);
       return [];
     }
-    return data.map((repo: RawGitHubRepoFromAPI) => ({
-      name: repo.name || 'Unnamed Repo',
-      description: repo.description || 'No description provided.',
-      html_url: repo.html_url,
-      homepage: repo.homepage || null,
-      language: repo.language || null,
-      stargazers_count: repo.stargazers_count || 0,
-      forks_count: repo.forks_count || 0,
-      fork: repo.fork,
-    }));
+    //Simplified data mapping - no need for default values as they're already handled in the component
+    return data;
   } catch (error) {
-    console.error('Error in getGitHubProjects:', error); // Keep existing error logging
+    console.error('Error in getGitHubProjects:', error);
     return [];
   }
 }
@@ -108,60 +89,46 @@ const getLanguageColor = (language: string | null): string => {
   }
 };
 
-export default function ProjectsSection() {
-  console.log('ProjectsSection: rendering'); // ADDED LOGGING STATEMENT
+export default function ProjectsSection({
+  username = 'johnwesleyquintero',
+}: {
+  username?: string;
+}) {
+  //Added prop for username
   const [activeTab, setActiveTab] = useState('all');
   const [projects, setProjects] = useState<GitHubRepo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchProjects() {
-      console.log('fetchProjects: setIsLoading(true)');
+    const fetchProjects = async () => {
       setIsLoading(true);
       try {
-        console.log('fetchProjects: calling getGitHubProjects');
-        const fetchedProjects = await getGitHubProjects('johnwesleyquintero');
-        console.log('fetchProjects: fetchedProjects =', fetchedProjects);
-
-        const MIN_DESCRIPTION_LENGTH = 20; // Minimum characters for a description to be considered "real"
-        const MAX_PROJECTS_TO_SHOW = 10; // Show top N projects
-
+        const fetchedProjects = await getGitHubProjects(username);
         const curatedProjects = fetchedProjects
-          .filter((repo: GitHubRepo) => {
+          .filter((repo) => {
             const hasRealDescription =
-              repo.description &&
-              repo.description !== 'No description provided.' &&
-              repo.description.length >= MIN_DESCRIPTION_LENGTH;
-
+              repo.description && repo.description.length >= 20 && repo.description !== 'No description provided.'; //Simplified condition
             const hasHomepage = !!repo.homepage;
-
             return !repo.fork && (hasRealDescription || hasHomepage);
           })
-          .sort((a, b) => b.stargazers_count - a.stargazers_count) // Sort by stars
-          .slice(0, MAX_PROJECTS_TO_SHOW); // Take the top N
-
-        console.log('fetchProjects: curatedProjects =', curatedProjects);
+          .sort((a, b) => b.stargazers_count - a.stargazers_count)
+          .slice(0, 10);
         setProjects(curatedProjects);
-        setError(null); // Clear any previous errors
+        setError(null);
       } catch (err) {
-        console.error(
-          'fetchProjects: Error fetching or processing projects:',
-          err,
-        );
-        setProjects([]); // Set to empty array on error
-        setError('Failed to load projects. Please try again later.'); // Set user-friendly error message
+        console.error('Error fetching or processing projects:', err);
+        setProjects([]);
+        setError('Failed to load projects. Please try again later.');
       } finally {
-        console.log('fetchProjects: setIsLoading(false)');
         setIsLoading(false);
       }
-    }
+    };
 
     fetchProjects();
-  }, []);
+  }, [username]); // Added username to dependency array
 
-  // In a real scenario with filtering, this would change based on activeTab
-  const filteredProjects = projects;
+  const filteredProjects = projects; //Filtering logic not implemented yet
 
   return (
     <section id="projects" className="container relative mx-auto px-4 py-32">
@@ -169,10 +136,6 @@ export default function ProjectsSection() {
         <div className="absolute inset-0 bg-gradient-to-r from-purple-100/50 to-blue-100/50 dark:from-purple-950/50 dark:to-blue-950/50 blur-3xl"></div>
       </div>
 
-      {/*
-        The parent <section> is already a 'container' which handles max-width and centering.
-        This inner div should take the full width of that container.
-      */}
       <div className="w-full">
         <div className="mb-12 text-center">
           <Badge variant="secondary" className="mb-4">
