@@ -7,6 +7,7 @@ import {
   GraduationCap,
   FileText,
   MessageSquare,
+  Lightbulb,
 } from 'lucide-react';
 
 interface Project {
@@ -72,6 +73,15 @@ export const projects: Project[] = [
       'Organize tasks, collaborate with your team, and keep projects on track with our intuitive PM tool.',
     href: '/project-management',
     icon: KanbanSquare,
+    auth: 'always',
+    status: 'beta',
+  },
+  {
+    name: 'Prompt Request Generator',
+    description:
+      'Generate effective prompts for various AI models and use cases.',
+    href: '/prompt-request-generator',
+    icon: Lightbulb,
     auth: 'always',
     status: 'beta',
   },
