@@ -18,12 +18,11 @@ import { useToast } from '@/hooks/use-toast'; // Re-add useToast
 
 interface MarkdownCategoryManagerProps {
   categories: Category[];
-  onAddCategory: (name: string) => Promise<void>;
+  onAddCategory: (name: string) => Promise<Category | string | void>;
   onUpdateCategory: (category: Category) => Promise<void>;
   onDeleteCategory: (id: string) => Promise<void>;
   onCategoryRenamed: (oldName: string, newName: string) => Promise<void>;
-  getNoteCountsByCategory: () => Promise<Map<string, number>>; // Add the new prop
-  noteCounts: Map<string, number>; // Add noteCounts as a prop
+  noteCounts: Map<string, number>;
 }
 
 const MarkdownCategoryManager = ({
@@ -32,8 +31,7 @@ const MarkdownCategoryManager = ({
   onUpdateCategory,
   onDeleteCategory,
   onCategoryRenamed,
-  getNoteCountsByCategory, // Destructure the new prop
-  noteCounts, // Destructure noteCounts
+  noteCounts,
 }: MarkdownCategoryManagerProps) => {
   const [categoryInputName, setCategoryInputName] = useState('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);

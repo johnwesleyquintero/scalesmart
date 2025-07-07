@@ -27,12 +27,8 @@ const NoteActions: React.FC<NoteActionsProps> = ({
   setNotes,
 }) => {
   const { toast } = useToast();
-  const {
-    handleDeleteNote,
-    handleUpdateNote,
-    fetchNotesContent,
-    fetchCategories,
-  } = useMarkdownNotepadContext();
+  const { handleDeleteNote, handleUpdateNote, fetchNotesContent } =
+    useMarkdownNotepadContext();
 
   const handleDeleteNoteClick = async (noteId: string) => {
     if (window.confirm('Are you sure you want to delete this note?')) {
@@ -44,7 +40,6 @@ const NoteActions: React.FC<NoteActionsProps> = ({
         handleCloseNoteTab(noteId);
         const loadedNotes = await fetchNotesContent();
         setNotes(loadedNotes || []);
-        await fetchCategories();
         toast({
           title: 'Success',
           description: 'Note deleted successfully.',
@@ -93,7 +88,6 @@ const NoteActions: React.FC<NoteActionsProps> = ({
       setBulkCategory('');
       const loadedNotes = await fetchNotesContent();
       setNotes(loadedNotes || []);
-      await fetchCategories();
       toast({
         title: 'Success',
         description: 'Selected notes updated successfully.',

@@ -19,7 +19,7 @@ interface CategoryManagementTabProps {
   categories: Category[]; // List of all available categories.
   customers: Contact[]; // List of all customers, used to calculate category counts.
   // Handlers for category actions, now passed down to CategoryManager
-  handleAddCategoryAction: (name: string) => Promise<void>;
+  handleAddCategoryAction: (name: string) => Promise<Category | string | void>;
   handleUpdateCategoryAction: (category: Category) => Promise<void>;
   handleDeleteCategoryAction: (id: string) => Promise<void>;
   handleCategorySuccessfullyDeletedAction: (

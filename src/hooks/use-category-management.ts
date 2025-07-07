@@ -1,179 +1,110 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Category } from '@/types/indexeddb';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import {
-  addCategory,
-  updateCategory,
-  deleteCategory,
-  getAllCategories,
-  getNoteCountsByCategory as dbGetNoteCountsByCategory,
-} from '@/lib/indexeddb/markdown-notepad-db';
+import { Category } from '@/types/indexeddb';
 
-interface UseCategoryManagementResult {
-  categories: Category[];
-  noteCounts: Map<string, number>;
-  isLoading: boolean;
-  error: string | null;
-  fetchCategories: () => Promise<void>;
-  handleAddCategory: (name: string) => Promise<void>;
-  handleUpdateCategory: (category: Category) => Promise<void>;
-  handleDeleteCategory: (id: string) => Promise<void>;
-  getNoteCountsByCategory: () => Promise<Map<string, number>>;
+interface CategoryDbFunctions {
+  getAll: () => Promise<Category[]>;
+  add: (category: { name: string }) => Promise<Category | string>; // Can return Category or string ID
+  update: (category: Category) => Promise<void>; // Returns void
+  delete: (id: string) => Promise<void>;
+  getCounts?: () => Promise<Map<string, number>>;
 }
 
-export const useCategoryManagement = (): UseCategoryManagementResult => {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [noteCounts, setNoteCounts] = useState<Map<string, number>>(new Map());
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export const useCategoryManagement = (
+  db: CategoryDbFunctions,
+  queryKey: string,
+) => {
+  const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const fetchCategories = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const fetchedCategories = await getAllCategories();
-      setCategories(fetchedCategories);
-    } catch (err: unknown) {
-      console.error('Failed to fetch categories:', err);
-      setError('Failed to load categories.');
+  const {
+    data: categories = [],
+    isLoading: isLoadingCategories,
+    error: errorCategories,
+  } = useQuery<Category[], Error>({
+    queryKey: [queryKey],
+    queryFn: db.getAll,
+  });
+
+  const {
+    data: counts = new Map(),
+    isLoading: isLoadingCounts,
+    error: errorCounts,
+  } = useQuery<Map<string, number>, Error>({
+    queryKey: [`${queryKey}Counts`],
+    queryFn: db.getCounts || (() => Promise.resolve(new Map())),
+    enabled: !!db.getCounts,
+  });
+
+  const addCategoryMutation = useMutation<
+    Category | string,
+    Error,
+    string,
+    unknown
+  >({
+    mutationFn: (name: string) => db.add({ name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({ queryKey: [`${queryKey}Counts`] });
+      toast({
+        title: 'Success',
+        description: 'Category added.',
+      });
+    },
+    onError: (error: Error) => {
       toast({
         title: 'Error',
-        description: 'Failed to load categories.',
+        description: error.message || 'Failed to add category.',
         variant: 'destructive',
       });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
+    },
+  });
 
-  const fetchNoteCounts = useCallback(async (): Promise<
-    Map<string, number>
-  > => {
-    try {
-      const counts = await dbGetNoteCountsByCategory();
-      setNoteCounts(counts);
-      return counts;
-    } catch (err: unknown) {
-      console.error('Failed to fetch note counts:', err);
+  const updateCategoryMutation = useMutation<void, Error, Category>({
+    mutationFn: (category: Category) => db.update(category),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({ queryKey: [`${queryKey}Counts`] });
+      toast({
+        title: 'Success',
+        description: 'Category updated.',
+      });
+    },
+    onError: (error: Error) => {
       toast({
         title: 'Error',
-        description: 'Failed to load note counts.',
+        description: error.message || 'Failed to update category.',
         variant: 'destructive',
       });
-      return new Map();
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    fetchCategories();
-    fetchNoteCounts();
-  }, [fetchCategories, fetchNoteCounts]);
-
-  const handleAddCategory = useCallback(
-    async (name: string) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const newCategory: Category = await addCategory({ name });
-        setCategories((prev: Category[]) => [...prev, newCategory]);
-        await fetchNoteCounts();
-        toast({
-          title: 'Success',
-          description: `Category "${name}" added.`,
-        });
-      } catch (err: unknown) {
-        console.error('Failed to add category:', err);
-        let errorMessage = 'Failed to add category.';
-        if (err instanceof Error) {
-          errorMessage = err.message;
-        }
-        setError(errorMessage);
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
     },
-    [fetchNoteCounts, toast],
-  );
+  });
 
-  const handleUpdateCategory = useCallback(
-    async (category: Category) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        await updateCategory(category);
-        setCategories((prev) =>
-          prev.map((cat) => (cat.id === category.id ? category : cat)),
-        );
-        await fetchNoteCounts();
-        toast({
-          title: 'Success',
-          description: `Category "${category.name}" updated.`,
-        });
-      } catch (err: unknown) {
-        console.error('Failed to update category:', err);
-        let errorMessage = 'Failed to update category.';
-        if (err instanceof Error) {
-          errorMessage = err.message;
-        }
-        setError(errorMessage);
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
+  const deleteCategoryMutation = useMutation({
+    mutationFn: (id: string) => db.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKey] });
+      queryClient.invalidateQueries({ queryKey: [`${queryKey}Counts`] });
+      toast({
+        title: 'Success',
+        description: 'Category deleted.',
+      });
     },
-    [fetchNoteCounts, toast],
-  );
-
-  const handleDeleteCategory = useCallback(
-    async (id: string) => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        await deleteCategory(id);
-        setCategories((prev) => prev.filter((cat) => cat.id !== id));
-        await fetchNoteCounts();
-        toast({
-          title: 'Success',
-          description: 'Category deleted.',
-        });
-      } catch (err: unknown) {
-        console.error('Failed to delete category:', err);
-        let errorMessage = 'Failed to delete category.';
-        if (err instanceof Error) {
-          errorMessage = err.message;
-        }
-        setError(errorMessage);
-        toast({
-          title: 'Error',
-          description: errorMessage,
-          variant: 'destructive',
-        });
-      } finally {
-        setIsLoading(false);
-      }
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete category.',
+        variant: 'destructive',
+      });
     },
-    [fetchNoteCounts, toast],
-  );
+  });
 
   return {
     categories,
-    noteCounts,
-    isLoading,
-    error,
-    fetchCategories,
-    handleAddCategory,
-    handleUpdateCategory,
-    handleDeleteCategory,
-    getNoteCountsByCategory: fetchNoteCounts,
+    counts,
+    isLoading: isLoadingCategories || isLoadingCounts,
+    error: errorCategories || errorCounts,
+    addCategory: addCategoryMutation.mutateAsync,
+    updateCategory: updateCategoryMutation.mutateAsync,
+    deleteCategory: deleteCategoryMutation.mutateAsync,
   };
 };

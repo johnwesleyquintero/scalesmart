@@ -9,19 +9,23 @@ import {
   // addNote,
   updateNote,
   deleteNote,
-  getNote, // Import getNote
+  getNote,
   addNote,
   addNoteVersion,
   getNoteVersions,
   cleanOldNoteVersions,
   deleteAllNoteVersions,
-  getNotesByCategory, // Import getNotesByCategory
-  searchNotes, // Import searchNotes
-  // getNoteCountsByCategory as fetchNoteCountsByCategoryFromDB, // Import getNoteCountsByCategory
+  getNotesByCategory,
+  searchNotes,
+  getNoteCountsByCategory,
+  getAllCategories,
+  addCategory as dbAddCategory,
+  updateCategory as dbUpdateCategory,
+  deleteCategory as dbDeleteCategory,
 } from '@/lib/indexeddb/markdown-notepad-db';
 import { useToast } from '@/hooks/use-toast';
-import { useCategoryManagement } from '@/hooks/use-category-management'; // Import the new hook
-import { Category, Note, MarkdownNoteVersion } from '@/types/indexeddb'; // Import Category, Note, and MarkdownNoteVersion types
+import { useCategoryManagement } from '@/hooks/use-category-management';
+import { Category, Note, MarkdownNoteVersion } from '@/types/indexeddb';
 
 interface MarkdownNotepadContextType {
   category: string;
@@ -29,10 +33,9 @@ interface MarkdownNotepadContextType {
   searchQuery: string;
   setSearchQuery: (searchQuery: string) => void;
   allCategories: Category[];
-  handleAddCategory: (name: string) => Promise<void>;
+  handleAddCategory: (name: string) => Promise<Category | string>;
   handleUpdateCategory: (category: Category) => Promise<void>;
   handleDeleteCategory: (id: string) => Promise<void>;
-  fetchCategories: () => Promise<void>;
   noteCounts: Map<string, number>;
   // New version history functions
   fetchNoteVersions: (noteId: string) => Promise<MarkdownNoteVersion[]>;
@@ -49,7 +52,6 @@ interface MarkdownNotepadContextType {
   handleDeleteNote: (id: string) => Promise<void>;
   fetchNotesContent: () => Promise<Note[]>;
   createNewNote: () => Promise<string>;
-  setNotes: (notes: Note[]) => void;
 }
 
 const MarkdownNotepadContext = createContext<
@@ -65,16 +67,21 @@ export const MarkdownNotepadProvider = ({
   const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
-  // Use the new category management hook
+  const dbFunctions = {
+    getAll: getAllCategories,
+    add: dbAddCategory,
+    update: dbUpdateCategory,
+    delete: dbDeleteCategory,
+    getCounts: getNoteCountsByCategory,
+  };
+
   const {
     categories: allCategories,
-    fetchCategories,
-    handleAddCategory: handleAddCategoryAction,
-    handleUpdateCategory: handleUpdateCategoryAction,
-    handleDeleteCategory: handleDeleteCategoryAction,
-    noteCounts,
-    // getNoteCountsByCategory,
-  } = useCategoryManagement();
+    addCategory: handleAddCategoryAction,
+    updateCategory: handleUpdateCategoryAction,
+    deleteCategory: handleDeleteCategoryAction,
+    counts: noteCounts,
+  } = useCategoryManagement(dbFunctions, 'markdownCategories');
 
   const fetchNoteVersions = useCallback(
     async (noteId: string) => {
@@ -229,7 +236,6 @@ export const MarkdownNotepadProvider = ({
         handleAddCategory: handleAddCategoryAction,
         handleUpdateCategory: handleUpdateCategoryAction,
         handleDeleteCategory: handleDeleteCategoryAction,
-        fetchCategories,
         noteCounts,
         fetchNoteVersions,
         restoreNoteVersion,
@@ -237,7 +243,6 @@ export const MarkdownNotepadProvider = ({
         handleDeleteNote,
         fetchNotesContent,
         createNewNote,
-        setNotes: () => {}, // Placeholder, implement actual logic
       }}
     >
       {children}

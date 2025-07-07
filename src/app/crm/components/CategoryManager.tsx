@@ -32,7 +32,7 @@ import {
  */
 interface CategoryManagerProps {
   categories: Category[];
-  onAddCategory: (name: string) => Promise<void>;
+  onAddCategory: (name: string) => Promise<Category | string | void>;
   onUpdateCategory: (category: Category) => Promise<void>;
   onDeleteCategory: (id: string) => Promise<void>;
   onCategorySuccessfullyDeleted: (deletedCategoryName: string) => void;

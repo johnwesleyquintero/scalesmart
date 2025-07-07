@@ -29,7 +29,6 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
     searchQuery,
     createNewNote,
     allCategories,
-    fetchCategories,
     handleDeleteNote,
     handleUpdateNote,
   } = useMarkdownNotepadContext();
@@ -132,7 +131,6 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
         setSelectedNoteId(null);
         setSelectedNoteIds((prev) => prev.filter((id) => id !== noteId));
         handleCloseNoteTab(noteId);
-        await fetchCategories();
         toast({
           title: 'Success',
           description: 'Note deleted successfully.',
@@ -183,7 +181,6 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
       });
       setSelectedNoteIds([]);
       setBulkCategory('');
-      await fetchCategories();
     } catch (error: unknown) {
       console.error('Failed to assign bulk category:', error);
       let errorMessage = 'Failed to assign category to selected notes.';
@@ -226,7 +223,6 @@ const NotesTabContent: React.FC<NotesTabContentProps> = ({
         });
         setSelectedNoteId(null);
         setSelectedNoteIds([]);
-        await fetchCategories();
       } catch (error: unknown) {
         console.error('Failed to bulk delete notes:', error);
         let errorMessage = 'Failed to delete selected notes.';
