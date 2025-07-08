@@ -89,6 +89,9 @@ const initialGreeting: Message = {
 
 // --- Main Chat Component ---
 export default function ChatInterface() {
+  const MESSAGE_SQUARE_ICON_CLASSES = 'h-4 w-4 mr-2';
+  const JUSTIFY_BETWEEN = 'justify-between';
+  const JUSTIFY_CENTER = 'justify-center';
   const [state, dispatch] = useReducer(chatReducer, initialState);
   const { toast } = useToast(); // Initialize useToast hook
   const {
@@ -497,255 +500,156 @@ export default function ChatInterface() {
   // Remove custom markdown rendering components defined here
 
   return (
-    <div className="flex h-full pt-24 pb-24">
-      {' '}
-      {/* Adjusted padding-top and added padding-bottom */}
+    <div className="flex h-screen bg-background">
       {/* Left Sidebar */}
       <div
         className={cn(
-          'bg-gray-100 dark:bg-gray-800 p-4 border-r border-border flex flex-col transition-all duration-300 ease-in-out',
-          isSidebarOpen ? 'w-64' : 'w-16 overflow-hidden', // Adjust width based on state
+          'bg-background border-r border-border flex flex-col transition-all duration-300 ease-in-out',
+          isSidebarOpen ? 'w-72' : 'w-20',
         )}
       >
-        <div className="text-lg font-bold mb-4 text-foreground">WesAI</div>
-        <nav className="space-y-2">
-          <a
-            href="#"
-            className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-message-square"
-            >
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V3a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-            {isSidebarOpen && <span>Chat</span>}
-          </a>
+        <div
+          className={cn(
+            'flex items-center p-4 border-b border-border',
+            isSidebarOpen ? JUSTIFY_BETWEEN : JUSTIFY_CENTER,
+          )}
+        >
           {isSidebarOpen && (
-            <div className="flex flex-col gap-2 p-2 mt-4 border-t border-border pt-4">
-              <h3 className="text-lg font-semibold">Past Chats</h3>
-              {chatSessions.length > 0 ? (
-                chatSessions.map((sessionId) => (
-                  <Button
-                    key={sessionId}
-                    variant="ghost"
-                    className="justify-start"
-                    onClick={() => handleSessionClick(sessionId)}
-                  >
-                    {sessionId.substring(0, 8)}...
-                  </Button>
-                ))
-              ) : (
-                <p className="text-sm text-gray-500">No past chats.</p>
-              )}
+            <h1 className="text-2xl font-bold text-foreground">WesAI</h1>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar}
+            title={isSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
+          >
+            {isSidebarOpen ? (
+              <PanelLeftClose className="h-5 w-5" />
+            ) : (
+              <PanelLeftOpen className="h-5 w-5" />
+            )}
+          </Button>
+        </div>
+        <div className="flex-grow p-2 space-y-2">
+          <Button
+            variant="outline"
+            className={cn(
+              'w-full flex items-center gap-2',
+              !isSidebarOpen && JUSTIFY_CENTER,
+            )}
+            onClick={resetChat}
+          >
+            <MessageSquare className="h-5 w-5" />
+            {isSidebarOpen && 'New Chat'}
+          </Button>
+          <nav className="mt-4">
+            {isSidebarOpen && (
+              <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2 mb-2">
+                Recent Chats
+              </h2>
+            )}
+            <div className="space-y-1">
+              {chatSessions.length > 0
+                ? chatSessions.map((sessionId) => (
+                    <Button
+                      key={sessionId}
+                      variant={
+                        chatSessionIdRef.current === sessionId
+                          ? 'secondary'
+                          : 'ghost'
+                      }
+                      className={cn(
+                        'w-full justify-start truncate',
+                        !isSidebarOpen && JUSTIFY_CENTER,
+                      )}
+                      onClick={() => handleSessionClick(sessionId)}
+                      title={sessionId}
+                    >
+                      <MessageSquare className={MESSAGE_SQUARE_ICON_CLASSES} />
+                      {isSidebarOpen && sessionId.substring(0, 20)}
+                      {isSidebarOpen && sessionId.length > 20 && '...'}
+                    </Button>
+                  ))
+                : isSidebarOpen && (
+                    <p className="text-sm text-muted-foreground px-2">
+                      No past chats.
+                    </p>
+                  )}
+            </div>
+          </nav>
+        </div>
+        <div className="p-2 border-t border-border">
+          {isSidebarOpen && (
+            <div className="space-y-2">
               <Button
-                variant="outline"
+                variant="ghost"
+                className="w-full justify-start"
                 onClick={handleClearCurrentSession}
-                className="mt-4"
               >
+                <Trash2 className="h-4 w-4 mr-2" />
                 Clear Current Session
               </Button>
               <Button
                 variant="destructive"
+                className="w-full justify-start"
                 onClick={handleClearAllSessions}
-                className="mt-2"
               >
+                <Trash2 className="h-4 w-4 mr-2" />
                 Clear All Sessions
               </Button>
             </div>
           )}
-          <a
-            href="#"
-            className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-users"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <path d="M22 21v-2a4 4 0 0 0-3-3.87 4 4 0 0 0-7-1.13" />
-              <circle cx="16" cy="7" r="4" />
-            </svg>
-            {isSidebarOpen && <span>Agents</span>}
-            {isSidebarOpen && (
-              <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
-                Beta
-              </span>
-            )}
-          </a>
-          <a
-            href="#"
-            className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-book"
-            >
-              <path d="M4 19.5v-15A2.5 2 0 0 1 6.5 2H20v20H6.5a2.5 2 0 0 1 0-5H20" />
-            </svg>
-            {isSidebarOpen && <span>Libraries</span>}
-            {isSidebarOpen && (
-              <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
-                Beta
-              </span>
-            )}
-          </a>
-          <a
-            href="#"
-            className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 text-foreground"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-plug-zap"
-            >
-              <path d="M12 22v-5" />
-              <path d="M9 18v-3" />
-              <path d="M15 18v-3" />
-              <path d="M12 12V2" />
-              <path d="M4 9h16" />
-              <path d="M12 2a7 7 0 1 0 7 7Z" />
-              <path d="m13 10-1 3-3-1" />
-            </svg>
-            {isSidebarOpen && <span>Connections</span>}
-            {isSidebarOpen && (
-              <span className="ml-auto bg-blue-200 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded-full dark:bg-blue-700 dark:text-blue-100">
-                Beta
-              </span>
-            )}
-          </a>
-        </nav>
-        <div className="mt-auto space-y-2">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="Search"
-              className="w-full p-2 pl-10 rounded-md bg-gray-200 dark:bg-gray-700 text-foreground placeholder-gray-500"
-            />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-          </div>
-          {isSidebarOpen && (
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Ctrl-K
-            </div>
-          )}
         </div>
       </div>
+
       {/* Main Chat Area */}
-      <div
-        className={cn(
-          'flex h-full flex-col overflow-hidden rounded-lg border bg-background shadow-xl transition-all duration-300 ease-in-out', // Added transition
-          isSidebarOpen ? 'w-[calc(100vw-280px)]' : 'w-[calc(100vw-80px)]',
-          'mx-auto max-w-4xl', // Added for centering and max-width
-          isSidebarOpen ? 'ml-auto mr-4' : 'ml-auto mr-auto', // Adjust margins based on sidebar state
-        )}
-      >
+      <div className="flex flex-col flex-grow">
         {/* Chat Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-xl font-semibold text-foreground">Chat</h2>
-          {/* Session indicator */}
-          <div className="text-sm text-muted-foreground ml-4">
-            Session saved
+        <div className="flex items-center justify-between p-4 border-b border-border bg-background">
+          <div>
+            <h2 className="text-xl font-semibold text-foreground">AI Chat</h2>
+            <p className="text-sm text-muted-foreground">
+              Session ID: {chatSessionIdRef.current.substring(0, 8)}...
+            </p>
           </div>
-          {/* Mode Selector */}
-          <div className="flex items-center space-x-2 ml-auto">
-            {' '}
-            {/* Added ml-auto to push to the right */}
-            <span className="text-sm text-muted-foreground">
-              Mode: {mode.charAt(0).toUpperCase() + mode.slice(1)}
-            </span>{' '}
-            {/* Display current mode */}
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-1 rounded-md bg-secondary text-secondary-foreground p-1">
+              <Button
+                variant={mode === 'default' ? 'primary' : 'ghost'}
+                size="sm"
+                className="rounded-sm"
+                onClick={() =>
+                  dispatch({ type: 'SET_MODE', payload: 'default' })
+                }
+              >
+                Default
+              </Button>
+              <Button
+                variant={mode === 'content' ? 'primary' : 'ghost'}
+                size="sm"
+                className="rounded-sm"
+                onClick={() =>
+                  dispatch({ type: 'SET_MODE', payload: 'content' })
+                }
+              >
+                Content
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full justify-start"
+                onClick={handleClearCurrentSession}
+              >
+                <Trash2 className={MESSAGE_SQUARE_ICON_CLASSES} />
+                Clear Current Session
+              </Button>
+            </div>
             <Button
-              variant={mode === 'default' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => dispatch({ type: 'SET_MODE', payload: 'default' })}
+              variant="destructive"
+              className="w-full justify-start"
+              onClick={handleClearAllSessions}
             >
-              Default
-            </Button>
-            <Button
-              variant={mode === 'content' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => dispatch({ type: 'SET_MODE', payload: 'content' })}
-            >
-              Content
-            </Button>
-            <Button
-              variant={mode === 'code' ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => dispatch({ type: 'SET_MODE', payload: 'code' })}
-            >
-              Code
-            </Button>
-          </div>
-          <div className="flex space-x-2 ml-4">
-            {' '}
-            {/* Added ml-4 for spacing */}
-            {/* Sidebar Toggle Button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              title={isSidebarOpen ? 'Collapse Sidebar' : 'Expand Sidebar'}
-            >
-              {isSidebarOpen ? (
-                <PanelLeftClose className="h-5 w-5" />
-              ) : (
-                <PanelLeftOpen className="h-5 w-5" />
-              )}
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={resetChat}
-              title="New Chat"
-            >
-              <RotateCcw className="h-5 w-5" />
+              <Trash2 className={MESSAGE_SQUARE_ICON_CLASSES} />
+              Clear All Sessions
             </Button>
           </div>
         </div>
@@ -794,9 +698,8 @@ export default function ChatInterface() {
   );
 }
 
-{
-  /* Floating Chat Button */
-}
+const floatingButtonClasses =
+  'fixed bottom-4 right-4 z-50 rounded-full shadow-lg transition-all duration-300 ease-in-out';
 export function FloatingChatButton({
   toggleChatAction,
   isChatOpen,
@@ -808,7 +711,7 @@ export function FloatingChatButton({
     <Button
       onClick={toggleChatAction}
       className={cn(
-        'fixed bottom-4 right-4 z-50 rounded-full shadow-lg transition-all duration-300 ease-in-out',
+        floatingButtonClasses,
         isChatOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
       )}
       title="Open Chat"

@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Message } from '@/lib/chat-message-utils'; // Assuming Message type is needed
-import { Loader2 } from 'lucide-react'; // Import Loader2 icon for spinner
+import { Loader2, Send } from 'lucide-react'; // Import Loader2 and Send icons
 
 interface ChatInputProps {
   input: string;
@@ -108,20 +108,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             {isLoading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-send h-4 w-4"
-              >
-                <path d="m22 2-7 7m-4 4-7 7L2 12l7-7 7 7 7-7Z" />
-              </svg>
+              <Send className="h-4 w-4" />
             )}
             <span className="sr-only">Send message</span>
           </Button>
@@ -130,17 +117,19 @@ const ChatInput: React.FC<ChatInputProps> = ({
       {messagesLength === 1 &&
         isGreetingMessage &&
         displayedPrompts.length > 0 && (
-          <div className="mt-2 text-sm text-muted-foreground">
-            <p>Try these prompts:</p>
-            <div className="flex flex-wrap gap-2 mt-2">
+          <div className="mt-4">
+            <p className="text-sm font-medium text-foreground mb-2">
+              Or try one of these prompts:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {displayedPrompts.map((prompt, index) => (
                 <Button
                   key={index}
                   variant="outline"
-                  size="sm"
+                  className="text-left h-auto justify-start"
                   onClick={() => handlePromptClick(prompt)}
                 >
-                  {prompt}
+                  <div className="text-sm">{prompt}</div>
                 </Button>
               ))}
             </div>

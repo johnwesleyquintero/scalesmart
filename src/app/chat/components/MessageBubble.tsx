@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import type { HTMLAttributes } from 'react';
 
 // Third-party Libraries
-import { RotateCcw, Trash2, Edit } from 'lucide-react'; // Import Edit icon
+import { RotateCcw, Trash2, Edit, Clipboard } from 'lucide-react'; // Import Edit and Clipboard icons
 
 // Local Utilities and Components
 import { cn } from '@/lib/utils';
@@ -114,11 +114,27 @@ function MessageActions({
     return null;
   }
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(message.content);
+    // You might want to add a toast notification here to confirm the copy
+  };
+
   return (
     // Position actions absolutely, hide by default and show on parent group hover
     <div className="absolute top-1 right-1 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
       {' '}
       {/* Added z-index */}
+      {/* Copy Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleCopy}
+        aria-label="Copy message"
+        title="Copy"
+        className="text-gray-400 hover:text-gray-500 dark:text-gray-500 dark:hover:text-gray-400"
+      >
+        <Clipboard className="w-3 h-3" />
+      </Button>
       {/* Edit Button: Only for sent user messages */}
       {isUser && (
         <Button
@@ -231,8 +247,15 @@ export default function MessageBubble({
         >
           {/* Render the memoized content */}
           {renderedContent}
-          {/* Render the edited badge below the content */}
+        </div>
+        <div className="flex items-center justify-end mt-1 text-xs text-gray-400 dark:text-gray-500">
           {editedBadge}
+          <span>
+            {new Date(message.timestamp).toLocaleTimeString([], {
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
+          </span>
         </div>
 
         {/* Status Indicator: Renders 'Typing...' or 'Error' message/retry */}
