@@ -4,6 +4,8 @@ import ChatInterface from './components/chat-interface'; // Import the ChatInter
 
 export default function ChatPage() {
   return (
-    <ChatInterface /> // Use the imported ChatInterface component
+    <div className="container mx-auto">
+      <ChatInterface />
+    </div>
   );
 }

@@ -53,7 +53,7 @@ import CopyMarkdownButton from './CopyMarkdownButton';
 import { toString as hastToString } from 'hast-util-to-string'; // For extracting raw code
 import { Button } from '@/components/ui/button'; // Assuming this is a local Button component
 import { cn } from '@/lib/utils'; // For conditional class names
-import { useToast } from '@/components/ui/use-toast'; // Import useToast hook
+import { toast } from 'sonner'; // Import sonner toast
 import { useSearchParams } from 'next/navigation';
 
 // --- Interfaces ---
@@ -71,10 +71,10 @@ import { DEFAULT_RETRY_LIMIT } from '@/lib/chat-constants';
 import { useChatHistory } from '@/hooks/use-chat-history';
 
 const greetings = [
-  "Hey there! I'm WesAI. I can turn your raw data into insights!",
-  'Hello! WesAI here, ready to help you analyze your data.',
-  "Hi! I'm WesAI, your AI assistant for data insights.",
-  "Greetings! WesAI at your service, let's explore your data.",
+  "Hey there! I'm WesAI, your personal AI assistant for driving Amazon e-commerce success.",
+  'Hello! WesAI here, ready to assist you with Amazon strategy, data analysis, and technical solutions.',
+  "Hi! I'm WesAI, your expert partner for optimizing Amazon performance and building custom e-commerce tools.",
+  "Greetings! WesAI at your service. Let's tackle your e-commerce challenges and unlock new growth opportunities.",
 ];
 
 const getRandomGreeting = () => {
@@ -85,7 +85,7 @@ const getRandomGreeting = () => {
 const initialGreeting: Message = {
   id: crypto.randomUUID(), // Give the greeting a stable ID
   role: 'assistant',
-  content: getRandomGreeting() + ' or try one of these prompts:',
+  content: getRandomGreeting(),
   timestamp: Date.now(),
   status: 'sent',
   isGreeting: true, // Mark this as the greeting message
@@ -97,7 +97,6 @@ export default function ChatInterface() {
   const JUSTIFY_BETWEEN = 'justify-between';
   const JUSTIFY_CENTER = 'justify-center';
   const [state, dispatch] = useReducer(chatReducer, initialState);
-  const { toast } = useToast(); // Initialize useToast hook
   const {
     messages,
     input,
@@ -166,13 +165,9 @@ export default function ChatInterface() {
       setChatSessions(sessions);
     } catch (error) {
       console.error('Failed to fetch all chat sessions:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load chat sessions.',
-        variant: 'destructive',
-      });
+      toast.error('Failed to load chat sessions.');
     }
-  }, [toast]);
+  }, []);
 
   useEffect(() => {
     // Shuffle and select a subset (e.g., 4 prompts)
@@ -220,13 +215,12 @@ export default function ChatInterface() {
       }
       // Update URL without full page reload
       window.history.pushState({}, '', `/chat?session=${sessionId}`);
-      toast({
-        title: 'Session Loaded',
+      toast.success('Session Loaded', {
         description: `Switched to chat session: ${sessionId.substring(0, 8)}...`,
       });
       fetchAllChatSessions(); // Re-fetch sessions after loading one
     },
-    [dispatch, toast, fetchAllChatSessions],
+    [dispatch, fetchAllChatSessions],
   );
 
   const handleClearCurrentSession = useCallback(async () => {
@@ -237,21 +231,16 @@ export default function ChatInterface() {
         try {
           await clearChatSession(sessionIdState); // Use the new clearChatSession
           resetChat(); // Reset the chat interface
-          toast({
-            title: 'Current Session Cleared',
+          toast.success('Current Session Cleared', {
             description:
               'All messages in the current session have been removed.',
           });
         } catch (error) {
-          toast({
-            title: 'Error',
-            description: 'Failed to clear current chat session.',
-            variant: 'destructive',
-          });
+          toast.error('Failed to clear current chat session.');
         }
       }
     }
-  }, [sessionIdState, resetChat, toast]);
+  }, [sessionIdState, resetChat]);
 
   const handleClearAllSessions = useCallback(async () => {
     if (
@@ -262,19 +251,14 @@ export default function ChatInterface() {
       try {
         await clearAllChatSessions(); // Use the imported function from indexeddb-service
         resetChat(); // Reset the chat interface
-        toast({
-          title: 'All Sessions Cleared',
+        toast.success('All Sessions Cleared', {
           description: 'All chat history has been permanently removed.',
         });
       } catch (error) {
-        toast({
-          title: 'Error',
-          description: 'Failed to clear all chat sessions.',
-          variant: 'destructive',
-        });
+        toast.error('Failed to clear all chat sessions.');
       }
     }
-  }, [resetChat, toast]);
+  }, [resetChat]);
 
   // --- Helper Functions ---
 
@@ -356,17 +340,15 @@ export default function ChatInterface() {
             },
           },
         });
-        toast({
-          title: 'Message failed',
+        toast.error('Message failed', {
           description:
             'Failed to get a response from the AI. Please try again.',
-          variant: 'destructive',
         });
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     },
-    [dispatch, scrollToBottom, mode, messages, toast], // Add messages and toast to dependencies
+    [dispatch, scrollToBottom, mode, messages],
   );
 
   // Function to handle retrying a message
@@ -399,10 +381,8 @@ export default function ChatInterface() {
             },
           },
         });
-        toast({
-          title: 'Retry limit exceeded',
+        toast.error('Retry limit exceeded', {
           description: `Failed to get a response after ${currentRetryLimit} retries. Please try a different prompt.`,
-          variant: 'destructive',
         });
         dispatch({ type: 'SET_LOADING', payload: false });
         return;
@@ -420,7 +400,7 @@ export default function ChatInterface() {
         sendMessage(content, true);
       }
     },
-    [sendMessage, messages, dispatch, toast],
+    [sendMessage, messages, dispatch],
   );
 
   // Function to handle deleting a message
@@ -656,12 +636,8 @@ export default function ChatInterface() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex flex-col flex-grow items-center">
-        {' '}
-        {/* Added items-center to center content */}
-        <div className="flex flex-col w-full max-w-4xl h-full">
-          {' '}
-          {/* New wrapper for max-width and centering */}
+      <div className="flex flex-col flex-grow">
+        <div className="flex flex-col w-full h-full">
           {/* Chat Header */}
           <div className="flex items-center justify-between p-4 border-b border-border bg-background">
             <div>
@@ -703,41 +679,49 @@ export default function ChatInterface() {
             className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"
             role="list"
           >
-            {messages.map((message, index) => (
-              <MessageBubble
-                key={message.id || index}
-                message={message}
-                onRetry={handleRetry}
-                onDelete={handleDelete}
-                onPromptClick={handlePromptClick}
-                onEdit={handleEdit}
-              >
-                {/* Use MessageContent component for markdown rendering */}
-                <MessageContent content={message.content} />
-              </MessageBubble>
-            ))}
-            <div ref={messagesEndRef} />
+            <div className="max-w-4xl mx-auto w-full">
+              {' '}
+              {/* Centering container */}
+              {messages.map((message, index) => (
+                <MessageBubble
+                  key={message.id || index}
+                  message={message}
+                  onRetry={handleRetry}
+                  onDelete={handleDelete}
+                  onPromptClick={handlePromptClick}
+                  onEdit={handleEdit}
+                >
+                  {/* Use MessageContent component for markdown rendering */}
+                  <MessageContent content={message.content} />
+                </MessageBubble>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
+
           {/* Chat Input Area */}
-          <ChatInput
-            input={input}
-            setInput={(input: string) =>
-              dispatch({ type: 'SET_INPUT', payload: input })
-            }
-            sendMessage={sendMessage}
-            isLoading={isLoading}
-            editingMessage={editingMessage}
-            submitEdit={submitEdit}
-            cancelEdit={cancelEdit}
-            displayedPrompts={displayedPrompts}
-            handlePromptClick={handlePromptClick}
-            messagesLength={messages.length}
-            isGreetingMessage={
-              messages.length === 1 && Boolean(messages[0].isGreeting)
-            }
-          />
-        </div>{' '}
-        {/* Closing the new wrapper div */}
+          <div className="max-w-4xl mx-auto w-full">
+            {' '}
+            {/* Centering container */}
+            <ChatInput
+              input={input}
+              setInput={(input: string) =>
+                dispatch({ type: 'SET_INPUT', payload: input })
+              }
+              sendMessage={sendMessage}
+              isLoading={isLoading}
+              editingMessage={editingMessage}
+              submitEdit={submitEdit}
+              cancelEdit={cancelEdit}
+              displayedPrompts={displayedPrompts}
+              handlePromptClick={handlePromptClick}
+              messagesLength={messages.length}
+              isGreetingMessage={
+                messages.length === 1 && Boolean(messages[0].isGreeting)
+              }
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

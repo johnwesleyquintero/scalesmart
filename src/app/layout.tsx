@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/next';
 import Footer from '@/components/footer'; // /* IMPORT THE FOOTER */
 import Header from '@/components/header'; // /* IMPORT THE HEADER */
 import { ErrorBoundary } from '@/components/error-boundary'; // Import ErrorBoundary for catching rendering errors
+import { Toaster as SonnerToaster } from 'sonner'; // Import Sonner
 import { Toaster } from '@/components/ui/toaster'; // Import Toaster
 import { cn } from '@/lib/utils';
 import type { Metadata, Viewport } from 'next';
@@ -55,6 +56,7 @@ export default async function RootLayout({
             </ClientProviders>
           </ErrorBoundary>
           <Toaster />
+          <SonnerToaster />
         </div>
         <Analytics />
       </body>

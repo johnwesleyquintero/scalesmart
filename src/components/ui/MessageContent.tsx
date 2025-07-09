@@ -41,10 +41,11 @@ function CodeBlock({
   const cleanedCodeContent = codeContent.replace(/\n$/, '');
 
   return (
-    <div className="relative group code-block-wrapper" {...htmlProps}>
-      <pre className={className}>
-        <code className={className}>{cleanedCodeContent}</code>
-      </pre>
+    <div
+      className={`relative group code-block-wrapper ${className}`}
+      {...htmlProps}
+    >
+      <code className={className}>{cleanedCodeContent}</code>
       <CopyMarkdownButton content={cleanedCodeContent} type="code" />
     </div>
   );
@@ -99,9 +100,16 @@ const markdownComponentsConfig: ReactMarkdownOptions['components'] = {
   a: ({ node: _node, ...props }) => (
     <a className="font-medium text-blue-600 underline" {...props} />
   ),
-  p: ({ node: _node, ...props }) => (
-    <p className="leading-7 [&:not(:first-child)]:mt-6" {...props} />
-  ),
+  p: ({ node, ...props }) => {
+    if (
+      node?.children.some(
+        (child) => child.type === 'element' && child.tagName === 'pre',
+      )
+    ) {
+      return <>{props.children}</>;
+    }
+    return <p className="leading-7 [&:not(:first-child)]:mt-6" {...props} />;
+  },
 };
 
 interface MessageContentProps {
