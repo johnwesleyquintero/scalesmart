@@ -1,10 +1,12 @@
 [
-  "What are the key features of the WesAI platform?",
-  "How can I use WesAI for project management?",
-  "Explain the workflow builder in WesAI.",
-  "Tell me about the Amazon tools available in WesAI.",
-  "How do I create a new task?",
-  "What is the purpose of the markdown notepad?",
-  "Can you help me understand the data analysis features?",
-  "How does WesAI handle user authentication?"
+  "How does ScaleSmart provide offline functionality using IndexedDB?",
+  "Can you explain the data visualization and reporting features in ScaleSmart's Dashboard Studio?",
+  "What are the PWA capabilities of the ScaleSmart mini-apps?",
+  "How does the client-side fuzzy search work in the Markdown Notepad?",
+  "Describe the data import/export functionality for notes in the Markdown Notepad.",
+  "How can I customize the theme (light/dark mode) in ScaleSmart?",
+  "What are the key functionalities of the Amazon Seller Tools, including SP-API integration?",
+  "How does the ATS Optimizer help improve resume compatibility and keyword matching?",
+  "Explain the project management features within ScaleSmart.",
+  "What are the CRM functionalities available in ScaleSmart?"
 ]
