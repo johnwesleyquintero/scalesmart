@@ -15,7 +15,6 @@ import {
   Note,
   MarkdownNoteVersion,
   AmazonReport,
-  ChatMessageRecord,
   ModuleProgressRecord,
   QuizResultRecord,
   TaskComment,
@@ -28,6 +27,7 @@ import {
   Prediction, // Import Prediction
   Dashboard, // Import Dashboard
 } from '@/types/indexeddb';
+import { ChatMessageRecord } from '@/lib/indexeddb/chat-db'; // Import ChatMessageRecord from chat-db.ts
 
 export type {
   TaskStatus,
@@ -40,7 +40,6 @@ export type {
   CommunicationLog,
   ActivityLog,
   Event,
-  ChatMessageRecord,
   Note,
   MarkdownNoteVersion,
   AmazonReport,
@@ -51,6 +50,7 @@ export type {
   EmailTemplate, // Added EmailTemplate
   Prediction, // Export Prediction
   Dashboard, // Export Dashboard
+  ChatMessageRecord, // Export ChatMessageRecord
 };
 
 // --- Constants ---
@@ -85,7 +85,7 @@ const STORE_DASHBOARDS = 'dashboards'; // New store for dashboards
 
 class ScaleSmartDatabase extends Dexie {
   // Define table properties using store name constants or descriptive names
-  public readonly [STORE_CHAT_MESSAGES]!: Table<ChatMessageRecord, number>;
+  public readonly [STORE_CHAT_MESSAGES]!: Table<ChatMessageRecord, string>; // Changed primary key type to string
   public readonly [STORE_MODULE_PROGRESS]!: Table<
     ModuleProgressRecord,
     [string, string, string]
@@ -139,7 +139,7 @@ class ScaleSmartDatabase extends Dexie {
     // but avoid overly complex strings if the structure is simple (like id, name).
     // Ensure store names here match the constants and property names.
     this.version(18).stores({
-      [STORE_CHAT_MESSAGES]: '++id, chatSessionId, timestamp, sender',
+      [STORE_CHAT_MESSAGES]: 'id, sessionId, timestamp, sender', // Changed to 'id' and 'sessionId'
       [STORE_CACHE]: 'key',
       [STORE_EVENTS]: '++id, date', // Assuming 'id' is auto-incrementing or unique
       [STORE_CRM_CONTACTS]:
@@ -168,7 +168,7 @@ class ScaleSmartDatabase extends Dexie {
     // Combine the schema definitions and upgrade logic for version 19 into one block.
     this.version(20) // Increment version to 20 for schema changes
       .stores({
-        [STORE_CHAT_MESSAGES]: '++id, chatSessionId, timestamp, sender, synced',
+        [STORE_CHAT_MESSAGES]: 'id, sessionId, timestamp, sender, synced', // Changed to 'id' and 'sessionId'
         [STORE_MODULE_PROGRESS]: '[userId+moduleId+progressKey]',
         [STORE_QUIZ_RESULTS]: '[userId+moduleId]',
         [STORE_CACHE]: 'key',
@@ -561,17 +561,17 @@ export async function markItemAsSynced<
 // These functions leverage the generic CRUD or use direct Dexie methods for complex queries.
 
 export const getChatMessagesBySession = async (
-  chatSessionId: string,
+  sessionId: string,
 ): Promise<ChatMessageRecord[]> => {
   try {
-    const messages = await db[STORE_CHAT_MESSAGES].where('chatSessionId')
-      .equals(chatSessionId)
+    const messages = await db[STORE_CHAT_MESSAGES].where('sessionId')
+      .equals(sessionId)
       .sortBy('timestamp');
     return messages;
   } catch (error) {
     logError(
       error,
-      `Failed to get messages for session ${chatSessionId}`,
+      `Failed to get messages for session ${sessionId}`,
       SERVICE_NAME,
     );
     throw error; // Re-throw for consistency
@@ -1372,21 +1372,24 @@ export async function getQuizResultsByUserIdAndModuleId(
 
 export const createChatMessageRecord = async (
   messageData: Omit<ChatMessageRecord, 'id' | 'timestamp' | 'synced'>,
-): Promise<number> => {
+): Promise<string> => {
+  // Changed return type to string
   try {
+    const id = crypto.randomUUID(); // Generate UUID for id
     const timestamp = Date.now();
     const messageToStore: ChatMessageRecord = {
       ...messageData,
+      id, // Assign generated ID
       timestamp,
       synced: 0,
-    }; // Mark as unsynced on creation, changed from false to 0
-    const id = await db[STORE_CHAT_MESSAGES].add(messageToStore);
+    };
+    await setItem<ChatMessageRecord>(STORE_CHAT_MESSAGES, messageToStore); // Use setItem for string ID
     console.log(`${SERVICE_NAME}: Chat message record created`, messageToStore);
     return id;
   } catch (error) {
     logError(
       error,
-      `Error creating chat message record for session ${messageData.chatSessionId}`,
+      `Error creating chat message record for session ${messageData.sessionId}`, // Changed to sessionId
       SERVICE_NAME,
     );
     throw error;
@@ -1397,7 +1400,7 @@ export async function clearChatMessagesBySession(
   sessionId: string,
 ): Promise<void> {
   try {
-    await db[STORE_CHAT_MESSAGES].where('chatSessionId')
+    await db[STORE_CHAT_MESSAGES].where('sessionId') // Changed to sessionId
       .equals(sessionId)
       .delete();
     console.log(

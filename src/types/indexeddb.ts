@@ -63,12 +63,21 @@ export enum TaskPriority {
 // --- Shared IndexedDB Types ---
 
 export interface ChatMessageRecord {
-  id?: number | string; // Reverted to optional
-  chatSessionId: string;
+  id: string; // Changed to required string
+  sessionId: string; // Changed from chatSessionId to sessionId
   sender: 'user' | 'ai' | 'system';
   text: string;
   timestamp: number;
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    status?: 'sending' | 'sent' | 'error';
+    error?: string;
+    retryCount?: number;
+    retryLimit?: number;
+    isGreeting?: boolean;
+    isEdited?: boolean;
+    editedAt?: number;
+    originalUserMessageId?: string; // Add this to metadata
+  };
   synced?: number; // New property to track sync status (0 for unsynced, 1 for synced)
 }
 

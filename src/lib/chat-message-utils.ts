@@ -1,11 +1,13 @@
-import { ChatMessageRecord } from '@/lib/indexeddb-service';
+import { ChatMessageRecord } from '@/lib/indexeddb/chat-db'; // Import from chat-db.ts
 
-interface MessageMetadata {
+export interface MessageMetadata {
   originalUserMessageId?: string;
   // Add other metadata properties as needed
 }
 
 export interface Message {
+  id: string; // Unique identifier for the message (making it required as it's used for updates)
+  sessionId?: string; // Add sessionId to Message interface
   role: 'user' | 'assistant';
   content: string;
   timestamp: number; // Unique identifier for the message
@@ -21,7 +23,6 @@ export interface Message {
   error?: string; // Error message if status is 'error'
   retryCount?: number; // How many times retry has been attempted (starts at 0 for first send)
   retryLimit?: number; // Maximum number of retries allowed for this specific message
-  id: string; // Unique identifier for the message (making it required as it's used for updates)
   isGreeting?: boolean; // Flag for the initial greeting message
   isEdited?: boolean; // Flag if the message has been edited
   editedAt?: number; // Timestamp of when the message was last edited
@@ -31,18 +32,20 @@ export interface Message {
 // Maps a ChatMessageRecord from the DB to the Message interface used in the UI
 export const mapDbRecordToMessage = (record: ChatMessageRecord): Message => {
   return {
-    id: record.id!.toString(), // Dexie ID is number, UI needs string. Use non-null assertion as ID should exist for records.
+    id: record.id, // ID is already string in ChatMessageRecord
+    sessionId: record.sessionId, // Map sessionId
     role: record.sender === 'ai' ? 'assistant' : 'user', // Map 'ai' to 'assistant', 'user' to 'user'
     content: record.text,
     timestamp: record.timestamp,
     // Map other fields from record.metadata if necessary
-    status: record.metadata?.status as Message['status'],
-    error: record.metadata?.error as Message['error'],
-    retryCount: record.metadata?.retryCount as Message['retryCount'],
-    retryLimit: record.metadata?.retryLimit as Message['retryLimit'],
-    isGreeting: record.metadata?.isGreeting as Message['isGreeting'],
-    isEdited: record.metadata?.isEdited as Message['isEdited'],
-    editedAt: record.metadata?.editedAt as Message['editedAt'],
+    status: record.metadata?.status,
+    error: record.metadata?.error,
+    retryCount: record.metadata?.retryCount,
+    retryLimit: record.metadata?.retryLimit,
+    isGreeting: record.metadata?.isGreeting,
+    isEdited: record.metadata?.isEdited,
+    editedAt: record.metadata?.editedAt,
+    metadata: record.metadata, // Pass the entire metadata object
   };
 };
 

@@ -1,4 +1,4 @@
-import { setItem, getAllItems } from '../indexeddb-service';
+import { setItem, getAllItems, db } from '../indexeddb-service';
 
 // --- Constants for Chat IndexedDB Store Names ---
 const CHAT_MESSAGES_STORE_NAME = 'chatMessages';
@@ -7,7 +7,7 @@ const CHAT_MESSAGES_STORE_NAME = 'chatMessages';
 export interface ChatMessageRecord {
   id: string; // Unique ID for the message
   sessionId: string; // ID of the chat session
-  sender: 'user' | 'ai';
+  sender: 'user' | 'ai' | 'system'; // Added 'system'
   text: string;
   timestamp: number;
   metadata?: {
@@ -18,7 +18,9 @@ export interface ChatMessageRecord {
     isGreeting?: boolean;
     isEdited?: boolean;
     editedAt?: number;
+    originalUserMessageId?: string; // Added originalUserMessageId
   };
+  synced?: number; // Added synced property for synchronization status (0 for unsynced, 1 for synced)
 }
 
 // --- Chat Message Operations ---
@@ -50,6 +52,21 @@ export async function getChatMessagesBySession(
     sessionMessages,
   );
   return sessionMessages;
+}
+
+export async function getAllChatSessionIds(): Promise<string[]> {
+  console.log('chat-db: getAllChatSessionIds called');
+  const sessionIds =
+    await db[CHAT_MESSAGES_STORE_NAME].orderBy('sessionId').uniqueKeys();
+  return sessionIds.map((id) => String(id));
+}
+
+export async function clearChatSession(sessionId: string): Promise<void> {
+  console.log('chat-db: clearChatSession called for session:', sessionId);
+  await db[CHAT_MESSAGES_STORE_NAME].where('sessionId')
+    .equals(sessionId)
+    .delete();
+  console.log('chat-db: clearChatSession finished for session:', sessionId);
 }
 
 // Note: Deleting individual chat messages or clearing a session would require

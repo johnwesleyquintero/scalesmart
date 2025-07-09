@@ -9,7 +9,11 @@ import {
   ChatMessageRecord,
   clearAllChatSessions,
   getChatMessagesBySession,
-} from '@/lib/indexeddb-service';
+} from '@/lib/indexeddb-service'; // Keep these for now, will refine later
+import {
+  getAllChatSessionIds, // Import the new function
+  clearChatSession, // Import the new function
+} from '@/lib/indexeddb/chat-db'; // Import from chat-db.ts
 import {
   Message,
   mapMessageRoleToSender,
@@ -143,28 +147,43 @@ export default function ChatInterface() {
   }, []);
 
   // Only pass sessionId to useChatHistory once it's determined on the client
-  const { clearSessionHistory, getAllSessions } = useChatHistory({
+  const {
+    saveMessages,
+    loadMessages,
+    clearSessionHistory: clearHookSessionHistory,
+    getAllSessions,
+  } = useChatHistory({
     sessionId: sessionIdState || '', // Pass a stable ID, or empty string if not yet determined
     messages: messages,
     onLoad: handleMessagesLoaded,
     onSaveComplete: handleSaveComplete,
   });
 
+  // Function to fetch all chat sessions from IndexedDB
+  const fetchAllChatSessions = useCallback(async () => {
+    try {
+      const sessions = await getAllChatSessionIds();
+      setChatSessions(sessions);
+    } catch (error) {
+      console.error('Failed to fetch all chat sessions:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load chat sessions.',
+        variant: 'destructive',
+      });
+    }
+  }, [toast]);
+
   useEffect(() => {
     // Shuffle and select a subset (e.g., 4 prompts)
     const shuffledPrompts = suggestedPrompts.sort(() => 0.5 - Math.random());
     setDisplayedPrompts(shuffledPrompts.slice(0, 4)); // Display up to 4 random prompts
 
-    const fetchSessions = async () => {
-      const sessions = await getAllSessions();
-      setChatSessions(sessions);
-    };
-
     // Only fetch sessions if sessionIdState is available
     if (sessionIdState) {
-      fetchSessions();
+      fetchAllChatSessions();
     }
-  }, [getAllSessions, isSidebarOpen, setChatSessions, sessionIdState]); // Depend on sessionIdState
+  }, [fetchAllChatSessions, isSidebarOpen, sessionIdState]); // Depend on sessionIdState
 
   // Function to reset chat (clear messages and generate new session ID)
   const resetChat = useCallback(() => {
@@ -176,9 +195,10 @@ export default function ChatInterface() {
     // Clear editing state and input on reset
     dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
     dispatch({ type: 'SET_INPUT', payload: '' });
-    clearSessionHistory(); // Clear history for the old session ID
+    clearHookSessionHistory(); // Clear history for the old session ID
     window.history.pushState({}, '', '/chat'); // Navigate to base chat URL
-  }, [dispatch, clearSessionHistory]);
+    fetchAllChatSessions(); // Re-fetch sessions after reset
+  }, [dispatch, clearHookSessionHistory, fetchAllChatSessions]);
 
   // --- Chat Session Management Functions ---
 
@@ -204,22 +224,34 @@ export default function ChatInterface() {
         title: 'Session Loaded',
         description: `Switched to chat session: ${sessionId.substring(0, 8)}...`,
       });
+      fetchAllChatSessions(); // Re-fetch sessions after loading one
     },
-    [dispatch, toast],
+    [dispatch, toast, fetchAllChatSessions],
   );
 
   const handleClearCurrentSession = useCallback(async () => {
     if (
       window.confirm('Are you sure you want to clear the current chat session?')
     ) {
-      await clearSessionHistory(); // Use the hook's function to clear current session
-      resetChat(); // Reset the chat interface
-      toast({
-        title: 'Current Session Cleared',
-        description: 'All messages in the current session have been removed.',
-      });
+      if (sessionIdState) {
+        try {
+          await clearChatSession(sessionIdState); // Use the new clearChatSession
+          resetChat(); // Reset the chat interface
+          toast({
+            title: 'Current Session Cleared',
+            description:
+              'All messages in the current session have been removed.',
+          });
+        } catch (error) {
+          toast({
+            title: 'Error',
+            description: 'Failed to clear current chat session.',
+            variant: 'destructive',
+          });
+        }
+      }
     }
-  }, [clearSessionHistory, resetChat, toast]);
+  }, [sessionIdState, resetChat, toast]);
 
   const handleClearAllSessions = useCallback(async () => {
     if (
@@ -228,7 +260,7 @@ export default function ChatInterface() {
       )
     ) {
       try {
-        await clearAllChatSessions(); // Use the imported function
+        await clearAllChatSessions(); // Use the imported function from indexeddb-service
         resetChat(); // Reset the chat interface
         toast({
           title: 'All Sessions Cleared',
