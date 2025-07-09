@@ -56,6 +56,10 @@ export const useChat = () => {
   const searchParams = useSearchParams();
   const [sessionIdState, setSessionIdState] = useState<string | null>(null);
   const chatSessionIdRef = useRef<string | null>(null);
+  const [showClearCurrentSessionModal, setShowClearCurrentSessionModal] =
+    useState(false);
+  const [showClearAllSessionsModal, setShowClearAllSessionsModal] =
+    useState(false);
 
   useEffect(() => {
     const sessionFromUrl = searchParams.get('session');
@@ -130,20 +134,42 @@ export const useChat = () => {
   }, [input]);
 
   const sendMessage = useCallback(
-    async (messageContent: string) => {
+    async (
+      messageContent: string,
+      isRetry: boolean = false,
+      originalUserMessageId?: string,
+    ) => {
       if (!messageContent.trim()) return;
 
       dispatch({ type: 'SET_INPUT', payload: '' });
 
+      const sanitizedContent = DOMPurify.sanitize(messageContent);
+
       const userMessage: Message = {
-        id: crypto.randomUUID(),
+        id: editingMessage?.id || crypto.randomUUID(),
         role: 'user',
-        content: messageContent,
+        content: sanitizedContent,
         timestamp: Date.now(),
         status: 'sent',
       };
 
-      dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
+      if (editingMessage) {
+        dispatch({
+          type: 'UPDATE_MESSAGE',
+          payload: {
+            id: userMessage.id,
+            updates: {
+              content: userMessage.content,
+              isEdited: true,
+              editedAt: Date.now(),
+            },
+          },
+        });
+        dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
+      } else if (!isRetry) {
+        dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
+      }
+
       dispatch({ type: 'SET_LOADING', payload: true });
 
       const assistantPlaceholder: Message = {
@@ -152,7 +178,9 @@ export const useChat = () => {
         content: '...',
         timestamp: Date.now(),
         status: 'pending',
-        metadata: { originalUserMessageId: userMessage.id },
+        metadata: {
+          originalUserMessageId: originalUserMessageId || userMessage.id,
+        },
       };
       dispatch({ type: 'ADD_MESSAGE', payload: assistantPlaceholder });
 
@@ -164,9 +192,9 @@ export const useChat = () => {
           dispatch,
           scrollToBottom,
           mode,
-          messages,
+          [...messages, userMessage], // Pass current messages + new user message
         );
-      } catch (error) {
+      } catch (error: Error | unknown) {
         console.error('API call failed:', error);
         dispatch({
           type: 'UPDATE_MESSAGE',
@@ -174,7 +202,10 @@ export const useChat = () => {
             id: assistantPlaceholder.id,
             updates: {
               status: 'failed',
-              error: 'Failed to get a response. Please try again.',
+              error:
+                error instanceof Error
+                  ? error.message
+                  : 'Failed to get a response. Please try again.',
             },
           },
         });
@@ -186,7 +217,7 @@ export const useChat = () => {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
     },
-    [dispatch, scrollToBottom, mode, messages],
+    [dispatch, scrollToBottom, mode, messages, editingMessage],
   );
 
   const handleRetry = useCallback(
@@ -203,8 +234,9 @@ export const useChat = () => {
         payload: { id: updatedMessage.id, updates: updatedMessage },
       });
 
-      const currentRetryLimit =
-        messageToRetry.retryLimit || DEFAULT_RETRY_LIMIT;
+      const currentRetryLimit = Number(
+        messageToRetry.retryLimit || DEFAULT_RETRY_LIMIT,
+      );
       if ((updatedMessage.retryCount ?? 0) > currentRetryLimit) {
         dispatch({
           type: 'UPDATE_MESSAGE',
@@ -226,17 +258,18 @@ export const useChat = () => {
       );
 
       if (originalUserMessage) {
-        sendMessage(originalUserMessage.content);
+        sendMessage(originalUserMessage.content, true, originalUserMessage.id);
       } else {
-        sendMessage(content);
+        sendMessage(content, true, messageToRetry.id);
       }
     },
     [sendMessage, messages, dispatch],
   );
 
   const handleDelete = useCallback(
-    async (timestamp: number) => {
-      dispatch({ type: 'REMOVE_MESSAGE', payload: timestamp });
+    async (id: string) => {
+      // Changed from timestamp to id for consistency
+      dispatch({ type: 'REMOVE_MESSAGE', payload: id });
     },
     [dispatch],
   );
@@ -250,90 +283,11 @@ export const useChat = () => {
     [dispatch],
   );
 
-  const handleSubmit = useCallback(
-    async (overrideInput?: string, modeOverride?: ChatState['mode']) => {
-      const messageContent = overrideInput ?? input.trim();
-      if (!messageContent && !editingMessage) return;
-
-      const userMessage: Message = {
-        id: editingMessage?.id || crypto.randomUUID(),
-        role: 'user',
-        content: DOMPurify.sanitize(messageContent),
-        timestamp: Date.now(),
-        status: 'sent',
-      };
-
-      if (editingMessage) {
-        dispatch({
-          type: 'UPDATE_MESSAGE',
-          payload: { id: userMessage.id, updates: userMessage },
-        });
-        dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
-      } else {
-        dispatch({ type: 'ADD_MESSAGE', payload: userMessage });
-      }
-
-      dispatch({ type: 'SET_INPUT', payload: '' });
-      dispatch({ type: 'SET_LOADING', payload: true });
-
-      const aiRespondingMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: '...',
-        timestamp: Date.now(),
-        status: 'receiving',
-      };
-      dispatch({ type: 'ADD_MESSAGE', payload: aiRespondingMessage });
-
-      try {
-        await fetchAndProcessChatApi(
-          userMessage,
-          aiRespondingMessage,
-          DEFAULT_RETRY_LIMIT,
-          dispatch,
-          scrollToBottom,
-          modeOverride || mode,
-          [...messages, userMessage],
-        );
-      } catch (error: Error | unknown) {
-        console.error('Error during API call:', error);
-        dispatch({
-          type: 'UPDATE_MESSAGE',
-          payload: {
-            id: aiRespondingMessage.id,
-            updates: {
-              status: 'error',
-              error:
-                error instanceof Error
-                  ? error.message
-                  : 'An unknown error occurred.',
-            },
-          },
-        });
-      } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
-      }
-    },
-    [input, editingMessage, dispatch, scrollToBottom, mode, messages],
-  );
-
   const submitEdit = useCallback(() => {
     if (editingMessage && input.trim()) {
-      dispatch({
-        type: 'UPDATE_MESSAGE',
-        payload: {
-          id: editingMessage.id,
-          updates: {
-            content: input.trim(),
-            isEdited: true,
-            editedAt: Date.now(),
-          },
-        },
-      });
-      dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
-      dispatch({ type: 'SET_INPUT', payload: '' });
+      sendMessage(input.trim()); // Use the consolidated sendMessage
     }
-  }, [editingMessage, input, dispatch]);
+  }, [editingMessage, input, sendMessage]);
 
   const cancelEdit = useCallback(() => {
     dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
@@ -374,35 +328,37 @@ export const useChat = () => {
     [dispatch, fetchAllChatSessions],
   );
 
-  const handleClearCurrentSession = useCallback(async () => {
-    if (
-      window.confirm('Are you sure you want to clear the current chat session?')
-    ) {
-      if (sessionIdState) {
-        try {
-          await clearChatSession(sessionIdState);
-          resetChat();
-          toast.success('Current Session Cleared');
-        } catch (error) {
-          toast.error('Failed to clear current chat session.');
-        }
+  const handleClearCurrentSession = useCallback(() => {
+    setShowClearCurrentSessionModal(true);
+  }, []);
+
+  const confirmClearCurrentSession = useCallback(async () => {
+    if (sessionIdState) {
+      try {
+        await clearChatSession(sessionIdState);
+        resetChat();
+        toast.success('Current Session Cleared');
+      } catch (error) {
+        toast.error('Failed to clear current chat session.');
+      } finally {
+        setShowClearCurrentSessionModal(false);
       }
     }
   }, [sessionIdState, resetChat]);
 
-  const handleClearAllSessions = useCallback(async () => {
-    if (
-      window.confirm(
-        'Are you sure you want to clear all chat sessions? This cannot be undone.',
-      )
-    ) {
-      try {
-        await clearAllChatSessions();
-        resetChat();
-        toast.success('All Sessions Cleared');
-      } catch (error) {
-        toast.error('Failed to clear all chat sessions.');
-      }
+  const handleClearAllSessions = useCallback(() => {
+    setShowClearAllSessionsModal(true);
+  }, []);
+
+  const confirmClearAllSessions = useCallback(async () => {
+    try {
+      await clearAllChatSessions();
+      resetChat();
+      toast.success('All Sessions Cleared');
+    } catch (error) {
+      toast.error('Failed to clear all chat sessions.');
+    } finally {
+      setShowClearAllSessionsModal(false);
     }
   }, [resetChat]);
 
@@ -424,7 +380,6 @@ export const useChat = () => {
     messages,
     input,
     isLoading,
-    isChatOpen: state.isChatOpen,
     editingMessage,
     mode,
     isSidebarOpen,
@@ -438,13 +393,18 @@ export const useChat = () => {
     handleRetry,
     handleDelete,
     handleEdit,
-    handleSubmit,
     submitEdit,
     cancelEdit,
     resetChat,
     handleSessionClick,
     handleClearCurrentSession,
+    confirmClearCurrentSession,
+    showClearCurrentSessionModal,
+    setShowClearCurrentSessionModal,
     handleClearAllSessions,
+    confirmClearAllSessions,
+    showClearAllSessionsModal,
+    setShowClearAllSessionsModal,
     toggleSidebar,
     handlePromptClick,
     setInput: (payload: string) => dispatch({ type: 'SET_INPUT', payload }),

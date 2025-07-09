@@ -13,6 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Message } from '@/lib/chat-message-utils';
+import Modal from '@/components/Modal';
 
 // --- Main Chat Component ---
 export default function ChatInterface() {
@@ -40,7 +41,13 @@ export default function ChatInterface() {
     resetChat,
     handleSessionClick,
     handleClearCurrentSession,
+    confirmClearCurrentSession,
+    showClearCurrentSessionModal,
+    setShowClearCurrentSessionModal,
     handleClearAllSessions,
+    confirmClearAllSessions,
+    showClearAllSessionsModal,
+    setShowClearAllSessionsModal,
     toggleSidebar,
     handlePromptClick,
     setInput,
@@ -201,7 +208,7 @@ export default function ChatInterface() {
                   key={message.id || index}
                   message={message}
                   onRetry={handleRetry}
-                  onDelete={handleDelete}
+                  onDelete={() => handleDelete(message.id)}
                   onPromptClick={handlePromptClick}
                   onEdit={handleEdit}
                 >
@@ -232,30 +239,47 @@ export default function ChatInterface() {
           </div>
         </div>
       </div>
-    </div>
-  );
-}
+      {/* Modals for confirmation */}
+      <Modal
+        isOpen={showClearCurrentSessionModal}
+        onClose={() => setShowClearCurrentSessionModal(false)}
+        title="Confirm Clear Current Session"
+      >
+        <p>Are you sure you want to clear the current chat session?</p>
+        <div className="flex justify-end space-x-2 mt-4">
+          <Button
+            variant="ghost"
+            onClick={() => setShowClearCurrentSessionModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={confirmClearCurrentSession}>
+            Clear
+          </Button>
+        </div>
+      </Modal>
 
-const floatingButtonClasses =
-  'fixed bottom-4 right-4 z-50 rounded-full shadow-lg transition-all duration-300 ease-in-out';
-export function FloatingChatButton({
-  toggleChatAction,
-  isChatOpen,
-}: {
-  toggleChatAction: () => void;
-  isChatOpen: boolean;
-}) {
-  return (
-    <Button
-      onClick={toggleChatAction}
-      className={cn(
-        floatingButtonClasses,
-        isChatOpen ? 'scale-0 opacity-0' : 'scale-100 opacity-100',
-      )}
-      title="Open Chat"
-      size="lg"
-    >
-      <MessageSquare className="h-6 w-6" />
-    </Button>
+      <Modal
+        isOpen={showClearAllSessionsModal}
+        onClose={() => setShowClearAllSessionsModal(false)}
+        title="Confirm Clear All Sessions"
+      >
+        <p>
+          Are you sure you want to clear all chat sessions? This cannot be
+          undone.
+        </p>
+        <div className="flex justify-end space-x-2 mt-4">
+          <Button
+            variant="ghost"
+            onClick={() => setShowClearAllSessionsModal(false)}
+          >
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={confirmClearAllSessions}>
+            Clear All
+          </Button>
+        </div>
+      </Modal>
+    </div>
   );
 }

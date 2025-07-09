@@ -41,7 +41,9 @@ export const mapDbRecordToMessage = (record: ChatMessageRecord): Message => {
     status: record.metadata?.status,
     error: record.metadata?.error,
     retryCount: record.metadata?.retryCount,
-    retryLimit: record.metadata?.retryLimit,
+    retryLimit: record.metadata?.retryLimit
+      ? Number(record.metadata.retryLimit)
+      : undefined,
     isGreeting: record.metadata?.isGreeting,
     isEdited: record.metadata?.isEdited,
     editedAt: record.metadata?.editedAt,

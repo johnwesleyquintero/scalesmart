@@ -17,7 +17,7 @@ import { Message } from '../../lib/chat-message-utils';
 interface MessageBubbleProps {
   message: Message;
   onRetry?: (content: string, message: Message) => void;
-  onDelete: (timestamp: number) => void;
+  onDelete: (id: string) => void; // Changed to id (string)
   onEdit?: (message: Message) => void;
   onPromptClick?: (promptText: string) => void;
 }
@@ -79,7 +79,7 @@ interface MessageActionsProps {
   message: Message;
   isUser: boolean;
   onEdit?: (message: Message) => void; // Matches MessageBubbleProps signature
-  onDelete: (timestamp: number) => void; // Matches MessageBubbleProps signature
+  onDelete: (id: string) => void; // Changed to id (string)
 }
 
 /**
@@ -120,7 +120,7 @@ function MessageActions({
       <Button
         variant="ghost"
         size="icon"
-        onClick={() => onDelete(message.timestamp)}
+        onClick={() => onDelete(message.id)}
         aria-label="Delete message"
         title="Delete"
         className="text-red-400 hover:text-red-500 dark:text-red-500 dark:hover:text-red-400" // Added text color classes

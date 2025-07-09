@@ -51,7 +51,7 @@ import { useToast } from '@/hooks/use-toast'; // Import useToast
 interface MessageBubbleProps {
   message: Message;
   onRetry?: (content: string, messageToRetry: Message) => void;
-  onDelete?: (timestamp: number) => void;
+  onDelete?: (id: string) => void; // Changed to id (string)
   onPromptClick?: (promptText: string) => void; // For "Prompts to Try"
   onEdit?: (message: Message) => void;
 }
@@ -462,8 +462,8 @@ export default function ChatInterface() {
 
   // Function to handle deleting a message
   const handleDelete = useCallback(
-    (timestamp: number) => {
-      dispatch({ type: 'REMOVE_MESSAGE', payload: timestamp });
+    (id: string) => {
+      dispatch({ type: 'REMOVE_MESSAGE', payload: id });
     },
     [dispatch],
   );

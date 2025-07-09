@@ -28,7 +28,7 @@ export type ChatAction =
         updates: Partial<Message>; // Use Partial<Message> for updates
       };
     }
-  | { type: 'REMOVE_MESSAGE'; payload: number } // Payload is the timestamp
+  | { type: 'REMOVE_MESSAGE'; payload: string } // Payload is the message id
   | { type: 'CLEAR_MESSAGES' }
   | { type: 'SET_EDITING_MESSAGE'; payload: Message | null };
 
@@ -47,12 +47,9 @@ const updateMessageInState = (
   );
 };
 
-// Removes a message from the state array based on timestamp
-const removeMessageFromState = (
-  messages: Message[],
-  timestamp: number,
-): Message[] => {
-  return messages.filter((msg) => msg.timestamp !== timestamp);
+// Removes a message from the state array based on id
+const removeMessageFromState = (messages: Message[], id: string): Message[] => {
+  return messages.filter((msg) => msg.id !== id);
 };
 
 export const initialState: ChatState = {
