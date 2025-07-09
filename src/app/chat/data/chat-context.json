@@ -17,7 +17,7 @@
         "linkedin": "https://www.linkedin.com/in/johnwesleyquintero/",
         "github": "https://github.com/johnwesleyquintero",
         "portfolio": "https://wescode.vercel.app",
-        "resume": "https://johnwesleyquintero-resume.netlify.app/",
+        "resume": "https://johnwesleyquintero.netlify.app/",
         "blog": {
           "url": "https://wescode.vercel.app/blog",
           "summary": "My main blog covering a range of topics in tech, e-commerce, and AI."
@@ -26,7 +26,6 @@
           "url": "https://wescode.vercel.app/blog/amazon-seller-tools",
           "summary": "In-depth articles and tutorials focusing on tools and strategies for Amazon sellers, often featuring tools from the ScaleSmart platform."
         }
-        
       },
       "familyInfo": {
         "sibling": "Melkie",
@@ -192,7 +191,11 @@
         "degree": "Information Technology",
         "period": "2014",
         "description": "Relevant coursework in information technology.",
-        "skills": ["Programming Fundamentals", "Network Basics", "Database Management"]
+        "skills": [
+          "Programming Fundamentals",
+          "Network Basics",
+          "Database Management"
+        ]
       }
     ],
     "certifications": [
@@ -605,8 +608,14 @@
         "name": "ATS (Applicant Tracking System) Optimizer Feature",
         "overview": "The ATS (Applicant Tracking System) Optimizer feature helps users improve their resumes to pass ATS scans and increase their chances of getting noticed by recruiters. It analyzes resumes against job descriptions, identifies missing keywords, and provides suggestions for improvement.",
         "objective": "To provide users with a powerful tool to optimize their resumes for Applicant Tracking Systems, ensuring their applications are effectively screened and reach human recruiters. This enhances job application success rates by providing targeted feedback and actionable insights.",
+        "description": "The ATS (Applicant Tracking System) Optimizer feature helps users improve their resumes to pass ATS scans and increase their chances of getting noticed by recruiters. It analyzes resumes against job descriptions, identifies missing keywords, and provides suggestions for improvement.",
         "category": "Recruitment & Optimization",
-        "keywords": ["ats", "resume optimization", "job application", "career tools"],
+        "keywords": [
+          "ats",
+          "resume optimization",
+          "job application",
+          "career tools"
+        ],
         "version": "1.0.0",
         "status": "Active Development",
         "features": [
@@ -617,12 +626,8 @@
           "Actionable Suggestions: Provides specific recommendations to enhance the resume's content and formatting."
         ],
         "relevantFiles": {
-          "mainApplicationAndPages": [
-            "src/app/ats/page.tsx"
-          ],
-          "apiRoutes": [
-            "src/app/api/resume/analyze/route.ts"
-          ]
+          "mainApplicationAndPages": ["src/app/ats/page.tsx"],
+          "apiRoutes": ["src/app/api/resume/analyze/route.ts"]
         },
         "knownIssues": [],
         "roadmap": []
@@ -663,9 +668,7 @@
             "src/app/blog/components/blog-listing-client.tsx",
             "src/app/blog/components/mdx-components.tsx"
           ],
-          "utilitiesAndHooks": [
-            "src/lib/mdx.ts"
-          ]
+          "utilitiesAndHooks": ["src/lib/mdx.ts"]
         },
         "knownIssues": [],
         "roadmap": ["Continued content development and feature enhancements."]
@@ -799,9 +802,7 @@
             "src/app/chat/lib/chat-message-utils.ts",
             "src/app/chat/lib/chat-reducer.ts"
           ],
-          "apiRoutes": [
-            "src/app/api/chat/route.ts"
-          ]
+          "apiRoutes": ["src/app/api/chat/route.ts"]
         },
         "knownIssues": [],
         "roadmap": ["Expanding knowledge base and conversational capabilities."]
@@ -810,8 +811,15 @@
         "name": "ScaleSmart Content Management",
         "overview": "The Content Management feature leverages MDX files to dynamically render both blog posts and documentation. This allows for rich, interactive content that can include React components directly within Markdown.",
         "objective": "To provide a flexible and powerful system for managing and displaying various types of content (blogs, documentation, static pages) within the application, ensuring consistency and ease of updates.",
+        "description": "The Content Management feature leverages MDX files to dynamically render both blog posts and documentation. This allows for rich, interactive content that can include React components directly within Markdown.",
         "category": "Content & Documentation Management",
-        "keywords": ["content management", "mdx", "blog", "documentation", "static pages"],
+        "keywords": [
+          "content management",
+          "mdx",
+          "blog",
+          "documentation",
+          "static pages"
+        ],
         "version": "1.0.0",
         "status": "Active Development",
         "features": [
@@ -826,9 +834,7 @@
             "src/app/content/docs/",
             "src/app/content/static/"
           ],
-          "mdxUtilities": [
-            "src/lib/mdx.ts"
-          ],
+          "mdxUtilities": ["src/lib/mdx.ts"],
           "mdxComponentsForRendering": [
             "src/components/MdxRenderer.tsx",
             "src/app/blog/components/mdx-components.tsx"
@@ -892,9 +898,7 @@
             "src/lib/indexeddb-service.ts",
             "src/lib/constants/project-management.ts"
           ],
-          "types": [
-            "src/types/project-management.ts"
-          ]
+          "types": ["src/types/project-management.ts"]
         },
         "knownIssues": [],
         "roadmap": ["Further enhancements for user experience and integration."]
@@ -905,7 +909,14 @@
         "objective": "To provide a flexible and intuitive platform for data visualization and analysis, empowering users to gain actionable insights from their data through customizable dashboards.",
         "description": "The Dashboard Studio is a powerful, interactive tool that allows users to create, customize, and manage dynamic dashboards. It supports various widget types (KPIs, charts, tables, text, images) and enables users to visualize data from different sources.",
         "category": "Data Visualization & Analytics",
-        "keywords": ["dashboard", "data visualization", "analytics", "reporting", "charts", "kpi"],
+        "keywords": [
+          "dashboard",
+          "data visualization",
+          "analytics",
+          "reporting",
+          "charts",
+          "kpi"
+        ],
         "version": "1.0.0",
         "status": "Active Development",
         "features": [
@@ -954,6 +965,7 @@
         "name": "ScaleSmart Error Guide",
         "overview": "The Error Guide feature provides a dedicated page to display comprehensive error documentation. It dynamically loads and renders MDX content, ensuring that users have access to up-to-date troubleshooting information and solutions.",
         "objective": "To improve user experience by offering a centralized, easily accessible resource for understanding and resolving common application errors, thereby reducing support inquiries and empowering users to self-diagnose issues.",
+        "description": "The Error Guide feature provides a dedicated page to display comprehensive error documentation. It dynamically loads and renders MDX content, ensuring that users have access to up-to-date troubleshooting information and solutions.",
         "category": "Troubleshooting & Documentation",
         "keywords": ["error guide", "documentation", "troubleshooting", "help"],
         "version": "1.0.0",
@@ -965,12 +977,8 @@
           "Consistent UI: Integrates with the application's overall design system for a cohesive look and feel."
         ],
         "relevantFiles": {
-          "mainApplicationAndPages": [
-            "src/app/error-guide/page.tsx"
-          ],
-          "contentFiles": [
-            "src/docs/error-guide.mdx"
-          ]
+          "mainApplicationAndPages": ["src/app/error-guide/page.tsx"],
+          "contentFiles": ["src/docs/error-guide.mdx"]
         },
         "knownIssues": [],
         "roadmap": []
@@ -1036,8 +1044,15 @@
         "name": "ScaleSmart Privacy Policy Page",
         "overview": "The Privacy Policy page outlines how user data is collected, used, protected, and managed within the ScaleSmart Platform. It dynamically loads content from an MDX file, ensuring that the policy is always up-to-date and easily maintainable.",
         "objective": "To ensure transparency and compliance with data protection regulations by clearly communicating the platform's data handling practices to users, building trust and fulfilling legal obligations.",
+        "description": "The Privacy Policy page outlines how user data is collected, used, protected, and managed within the ScaleSmart Platform. It dynamically loads content from an MDX file, ensuring that the policy is always up-to-date and easily maintainable.",
         "category": "Legal & Compliance",
-        "keywords": ["privacy policy", "data privacy", "legal", "compliance", "mdx"],
+        "keywords": [
+          "privacy policy",
+          "data privacy",
+          "legal",
+          "compliance",
+          "mdx"
+        ],
         "version": "1.0.0",
         "status": "Available",
         "features": [
@@ -1047,12 +1062,8 @@
           "Responsive Design: Ensures the policy is readable and accessible on all devices."
         ],
         "relevantFiles": {
-          "mainApplicationAndPages": [
-            "src/app/privacy-policy/page.tsx"
-          ],
-          "contentFiles": [
-            "src/content/static/privacy-policy.mdx"
-          ],
+          "mainApplicationAndPages": ["src/app/privacy-policy/page.tsx"],
+          "contentFiles": ["src/content/static/privacy-policy.mdx"],
           "components": [
             "src/components/shared/ArticleModule.tsx",
             "src/components/TimeStamp.tsx"
@@ -1101,9 +1112,7 @@
             "src/lib/prompt-generator/types.ts",
             "src/lib/prompt-generator/utils.ts"
           ],
-          "hooks": [
-            "src/hooks/use-debounce-callback.ts"
-          ]
+          "hooks": ["src/hooks/use-debounce-callback.ts"]
         },
         "knownIssues": [],
         "roadmap": ["Integration with other AI features within the platform."]
@@ -1207,8 +1216,14 @@
         { "name": "lucide-react", "purpose": "Icon library" },
         { "name": "shadcn/ui", "purpose": "UI components library" },
         { "name": "recharts", "purpose": "Charting and data visualization" },
-        { "name": "next-themes", "purpose": "Theme management (light/dark mode)" },
-        { "name": "react-query", "purpose": "Data fetching, caching, and state management" },
+        {
+          "name": "next-themes",
+          "purpose": "Theme management (light/dark mode)"
+        },
+        {
+          "name": "react-query",
+          "purpose": "Data fetching, caching, and state management"
+        },
         { "name": "vitest", "purpose": "Unified testing framework" }
       ],
       "testing": {
