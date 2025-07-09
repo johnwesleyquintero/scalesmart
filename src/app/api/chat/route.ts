@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/cognitive-complexity */
 import { rateLimiter } from '@/lib/api/rate-limiter';
 import { GoogleGenerativeAI, Part } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
@@ -26,8 +25,8 @@ interface SocialLinks {
   resume?: string;
   blog?: SocialLinkDetail;
   amazonToolsBlog?: SocialLinkDetail;
-  aiBlog?: SocialLinkDetail;
-  ecommerceBlog?: SocialLinkDetail;
+  aiBlog?: SocialLinkDetail; // Kept as it might be used in other contexts
+  ecommerceBlog?: SocialLinkDetail; // Kept as it might be used in other contexts
 }
 
 interface PersonalInfo {
@@ -50,7 +49,7 @@ interface ProfessionalProfile {
   strengths?: string[];
   details?: string;
   keyAchievements?: string[];
-  typicalResponsibilities?: string[]; // Added based on JSON refinement
+  typicalResponsibilities?: string[];
 }
 
 // Skills
@@ -71,8 +70,8 @@ interface AmazonCertification {
 interface AmazonExpertise {
   certifications?: AmazonCertification[];
   areasOfExpertise?: string[];
-  details?: string; // Can refer to main profile or be specific
-  keyAchievements?: string; // Can refer to main profile or be specific
+  details?: string;
+  keyAchievements?: string;
 }
 
 // Work Experience
@@ -111,17 +110,17 @@ interface FAQ {
   answer: string;
 }
 
-// Common Queries (New in PersonalContext)
+// Common Queries
 interface CommonQueryDetail {
   summary: string;
   details: string;
   keywords: string[];
 }
 interface CommonQueries {
-  [key: string]: CommonQueryDetail; // e.g., portfolio, experience
+  [key: string]: CommonQueryDetail;
 }
 
-// Job Application Profile (New in PersonalContext)
+// Job Application Profile
 interface JobApplicationProfile {
   targetRoles?: string[];
   keySkillsEmphasized?: string[];
@@ -132,7 +131,7 @@ interface JobApplicationProfile {
     willingToWorkUsHours?: boolean;
     acceptableWorkArrangements?: string[];
   };
-  summaryStatement?: string; // Changed from additional_context for clarity
+  summaryStatement?: string;
 }
 
 // Personal Context
@@ -144,13 +143,32 @@ interface PersonalContext {
   workExperience?: WorkExperience[];
   education?: Education[];
   certifications?: GeneralCertification[];
-  commonQueries?: CommonQueries; // Added
-  jobApplicationProfile?: JobApplicationProfile; // Added
+  commonQueries?: CommonQueries;
+  jobApplicationProfile?: JobApplicationProfile;
 }
 
-// Web App Context
+// REFINED: RelevantFiles to allow both string[] and string
+interface RelevantFiles {
+  mainApplicationAndLayout?: string[];
+  mainApplicationAndPages?: string[];
+  components?: string[];
+  apiRoutes?: string[];
+  utilitiesAndHooks?: string[];
+  indexedDbIntegration?: string;
+  testFiles?: string[];
+  contentFiles?: string[];
+  dataFiles?: string[];
+  librariesAndUtilities?: string[];
+  contextAndHooks?: string;
+  types?: string | string[];
+  [key: string]: string[] | string | undefined; // Allow for other keys that are string arrays or single strings
+}
+
+// REFINED: WebAppTool to include new fields like overview, objective, and relevantFiles
 interface WebAppTool {
   name: string;
+  overview?: string; // Added based on JSON
+  objective?: string; // Added based on JSON
   description: string;
   category?: string;
   keywords?: string[];
@@ -159,13 +177,14 @@ interface WebAppTool {
   features?: string[];
   knownIssues?: string[];
   roadmap?: string[];
-  impact?: string; // Added from amazonPortfolioPlatform example
-  keyEnhancements?: string[]; // Added to match CRMFeature, ProjectManagementFeature, AmazonSellerToolsFeature
-  subToolsExamples?: string[]; // Added to match AmazonSellerToolsFeature
+  impact?: string;
+  keyEnhancements?: string[];
+  subToolsExamples?: string[];
+  relevantFiles?: RelevantFiles; // Added based on JSON
 }
+
 interface WebAppComponents {
   [key: string]: {
-    // e.g. listingQualityChecker, errorBoundary
     name: string;
     targetAudience: string;
     description: string;
@@ -176,6 +195,7 @@ interface WebAppComponents {
     dependencies?: string[];
   };
 }
+
 interface WebAppTechnicalDetails {
   majorLibraries?: { name: string; purpose: string }[];
   testing?: { approach: string; examples: string[] };
@@ -199,11 +219,33 @@ interface WebAppContext {
     documentation?: string;
   };
   tools?: {
-    // Index signature for various tools
     [toolKey: string]: WebAppTool;
   };
   components?: WebAppComponents;
   technicalDetails?: WebAppTechnicalDetails;
+  indexedDbImplementation?: {
+    // Added from JSON
+    overview?: string;
+    objective?: string;
+    relevantCoreFiles?: {
+      dbInitializationAndSchema?: string;
+      utilityFunctions?: string;
+    };
+    featureSpecificFiles?: {
+      name: string;
+      path: string;
+    }[];
+  };
+  developerGuidelinesAndConsiderations?: {
+    // Added from JSON
+    objective?: string;
+    keyAreasOfChange?: {
+      name: string;
+      specificVersions?: string;
+      impact: string;
+      actionRequired: string;
+    }[];
+  };
 }
 
 // Development Setup
@@ -222,7 +264,7 @@ interface DevelopmentSetup {
   devToolsWorkflow?: DevToolsWorkflow;
 }
 
-// Interactive Capabilities (New at root)
+// Interactive Capabilities
 interface InteractiveCapability {
   id: string;
   name: string;
@@ -232,23 +274,58 @@ interface InteractiveCapability {
   relatedTools?: string[];
 }
 
-// System Directives (New at root)
-interface SystemDirectives {
-  greeting?: string;
-  persona?: string;
-  contextAdherence?: string;
-  capabilitiesStatement?: string;
-  mermaidSyntax?: string;
-  htmlGeneration?: string;
-  jsonGeneration?: string;
-  codeEditing?: string;
-  privacy?: string;
-  appBuildingAssistance?: string;
-  dataAnalysisAssistance?: string;
-  generalAssistance?: string; // Added to match updated chat-context.json
+// REFINED: SystemDirectives and its nested interfaces to precisely match JSON
+interface CodeGenerationDirectives {
+  overallQuality: string;
+  frontend: string;
+  backend: string;
+  database: string;
+  portableWeb: string;
 }
 
-// Root Portfolio Context type matching the single JSON object
+interface CareerAssistanceFramework {
+  name: string;
+  description: string;
+  steps: string[];
+}
+
+interface CareerAssistanceContentRules {
+  demonstrateNotDeclare: string;
+  respectExistingWorkflows: string;
+  coreNarrative: string;
+  credibleMetrics: string;
+}
+
+interface CareerAssistanceDirectives {
+  roleDescription: string;
+  primeDirective: string;
+  tone: string;
+  writingPerspective: string;
+  framework: CareerAssistanceFramework;
+  contentRules: CareerAssistanceContentRules;
+  prohibitedActions: string[];
+}
+
+interface SystemDirectives {
+  greeting: string;
+  persona: string;
+  contextAdherence: string;
+  proactiveEngagement: string;
+  technicalGuidanceScope: string;
+  codeGeneration: CodeGenerationDirectives;
+  codeReviewAndDebugging: string;
+  architecturalAndBestPractices: string;
+  testingSupport: string;
+  dataVisualization: string; // This is a string in the JSON
+  jsonGeneration: string;
+  codeEditing: string;
+  careerAssistance: CareerAssistanceDirectives;
+  outputFormatting: string;
+  privacy: string;
+  limitations: string;
+}
+
+// Root Portfolio Context matching the single JSON object
 interface PortfolioContext {
   version?: string;
   lastUpdated?: string;
@@ -261,15 +338,15 @@ interface PortfolioContext {
   webappContext?: WebAppContext;
   developmentSetup?: DevelopmentSetup;
   faqs?: FAQ[];
-  interactiveCapabilities?: InteractiveCapability[]; // Added
-  systemDirectives?: SystemDirectives; // Added
+  interactiveCapabilities?: InteractiveCapability[];
+  systemDirectives?: SystemDirectives;
 }
 
 // Chat Request/Response types
 interface ChatRequest {
   message: string;
   history?: ChatHistoryMessage[];
-  mode?: 'default' | 'content'; // Add mode to the request interface
+  mode?: 'default' | 'content';
 }
 
 interface ChatHistoryMessage {
@@ -290,15 +367,21 @@ interface ChatResponse {
 const NOT_SPECIFIED = 'Not specified';
 
 const GEMINI_CONFIG = {
-  DEFAULT_MODEL: 'gemini-1.5-flash-latest',
+  MODELS: [
+    'gemini-2.5-flash-latest',
+    'gemini-2.0-flash-latest',
+    process.env.GEMINI_MODEL_NAME || 'gemini-1.5-flash-latest',
+    'gemini-1.5-pro-latest',
+    'gemini-pro',
+  ],
   MAX_OUTPUT_TOKENS: 1000,
   TEMPERATURE: 0.85,
   TOP_P: 0.9,
   TOP_K: 40,
 };
 
-const MAX_RETRIES = 3; // Maximum number of retries for Gemini API calls
-const RETRY_DELAY_MS = 1000; // 1 second delay between retries
+const MAX_RETRIES = 3;
+const RETRY_DELAY_MS = 1000;
 
 // --- Portfolio Context Loading (Memoized) ---
 let portfolioContextPromise: Promise<PortfolioContext> | null = null;
@@ -312,7 +395,6 @@ async function getPortfolioContext(): Promise<PortfolioContext> {
       const portfolioContextModule = await import(
         '@/app/chat/data/chat-context.json'
       );
-      // FIX: Load the default export, which is now the single context object
       const context = portfolioContextModule.default;
 
       if (!context || typeof context !== 'object' || Array.isArray(context)) {
@@ -331,7 +413,7 @@ async function getPortfolioContext(): Promise<PortfolioContext> {
   return portfolioContextPromise;
 }
 
-// --- System Instruction Builder ---
+// --- System Instruction Builder Utilities ---
 
 const formatSection = <T>(
   title: string,
@@ -388,13 +470,13 @@ const formatFamilyInfo = (family?: FamilyInfo): string => {
   ].filter(Boolean);
 
   return members.length > 0
-    ? `Family:\n${members.map((m) => `- ${m}`).join('\n')}` // Ensure bullet points here too
+    ? `Family:\n${members.map((m) => `- ${m}`).join('\n')}`
     : `Family: ${NOT_SPECIFIED}`;
 };
 
 const formatSocialLink = (
   linkName: string,
-  linkData?: SocialLinkDetail | string, // Allow for simple string URLs from socialLinks like linkedin
+  linkData?: SocialLinkDetail | string,
 ): string => {
   if (!linkData) return `${linkName}: ${NOT_SPECIFIED}`;
   if (typeof linkData === 'string') {
@@ -546,6 +628,7 @@ const _formatJobApplicationProfile = (
   return parts;
 };
 
+// REVISED: _formatWebAppInformation to include new tool fields but omit relevantFiles
 const _formatWebAppInformation = (webappContext?: WebAppContext): string[] => {
   if (!webappContext)
     return [`Web App Information (ScaleSmart Platform): ${NOT_SPECIFIED}`];
@@ -569,6 +652,8 @@ const _formatWebAppInformation = (webappContext?: WebAppContext): string[] => {
     Object.entries(webappContext.tools).forEach(([key, tool]) => {
       parts.push(
         `\nTool: ${tool.name || key}`,
+        formatSection('Overview', tool.overview), // Added
+        formatSection('Objective', tool.objective), // Added
         formatSection('Category', tool.category),
         formatSection('Description', tool.description),
         formatSection('Version', tool.version), // Tool-specific version
@@ -577,6 +662,8 @@ const _formatWebAppInformation = (webappContext?: WebAppContext): string[] => {
         formatSection('Features', tool.features),
         formatSection('Key Enhancements', tool.keyEnhancements),
         formatSection('Impact', tool.impact),
+        // Relevant files are omitted from system instruction to keep it concise,
+        // as the AI can access the full JSON context for detailed file paths if needed.
         formatSection('Known Issues', tool.knownIssues),
         formatSection('Roadmap', tool.roadmap),
         formatSection(
@@ -656,47 +743,101 @@ const _formatInteractiveCapabilities = (
   ].filter(Boolean) as string[];
 };
 
-const formatDirective = (
-  directive: string | undefined,
-  prefix: string,
-): string | null => {
-  return directive ? `${prefix}: ${directive}` : null;
-};
-
+// REVISED: _formatSystemDirectives to match JSON structure and intent for LLM instruction
 const _formatSystemDirectives = (
   systemDirectives?: SystemDirectives,
 ): string[] => {
+  if (!systemDirectives) {
+    return [
+      'AI Persona (Default): You are a helpful, professional, and knowledgeable AI assistant.',
+      'Context Adherence: You must strictly adhere to the provided information.',
+    ];
+  }
+
   const parts: string[] = [];
 
+  // Core Persona and Greeting
+  parts.push(systemDirectives.greeting);
+  parts.push(`Persona: ${systemDirectives.persona}`);
+  parts.push(''); // Blank line for readability
+
+  // Core Directives & Guardrails
+  parts.push('--- Core Directives & Guardrails for My (AI) Operation ---');
+  parts.push(`- Context Adherence: ${systemDirectives.contextAdherence}`);
+  parts.push(`- Proactive Engagement: ${systemDirectives.proactiveEngagement}`);
   parts.push(
-    systemDirectives?.greeting ||
-      `You are Wesley Quintero, a skilled and experienced software engineer. Your personality is ${systemDirectives?.persona || 'professional, friendly, and helpful'}. Respond in the first person, using "I", "me", "my". You have access to the following information about yourself:`,
+    `- Technical Guidance Scope: ${systemDirectives.technicalGuidanceScope}`,
   );
+  parts.push(
+    `- Code Review & Debugging: ${systemDirectives.codeReviewAndDebugging}`,
+  );
+  parts.push(
+    `- Architectural & Best Practices: ${systemDirectives.architecturalAndBestPractices}`,
+  );
+  parts.push(`- Testing Support: ${systemDirectives.testingSupport}`);
+  parts.push(`- Output Formatting: ${systemDirectives.outputFormatting}`);
+  parts.push(`- Privacy: ${systemDirectives.privacy}`);
+  parts.push(`- Limitations: ${systemDirectives.limitations}`);
+  parts.push(''); // Blank line for readability
 
-  const directives = [
-    formatDirective(systemDirectives?.capabilitiesStatement, '\nImportant Note for Me (AI)'),
-    formatDirective(systemDirectives?.contextAdherence, '\nGuideline for Me (AI)'),
-    formatDirective(systemDirectives?.mermaidSyntax, '\nMermaid Diagram Generation Guideline'),
-    formatDirective(systemDirectives?.htmlGeneration, '\nHTML Generation Guideline'),
-    formatDirective(systemDirectives?.jsonGeneration, '\nJSON Generation Guideline'),
-    formatDirective(systemDirectives?.codeEditing, '\nCode Editing Guideline'),
-    formatDirective(systemDirectives?.privacy, '\nPrivacy Guideline'),
-    formatDirective(systemDirectives?.appBuildingAssistance, '\nApp Building Assistance Guideline'),
-    formatDirective(systemDirectives?.dataAnalysisAssistance, '\nData Analysis Assistance Guideline'),
-    formatDirective(systemDirectives?.generalAssistance, '\nGeneral Assistance Guideline'),
-  ];
+  // Detailed Code Generation Rules
+  parts.push('--- Detailed Code Generation Rules ---');
+  if (systemDirectives.codeGeneration) {
+    const cg = systemDirectives.codeGeneration;
+    parts.push(`- Overall Quality: ${cg.overallQuality}`);
+    parts.push(`- Frontend (React/Next.js): ${cg.frontend}`);
+    parts.push(`- Backend (Node.js/Express): ${cg.backend}`);
+    parts.push(`- Database (MongoDB/PostgreSQL): ${cg.database}`);
+    parts.push(`- Portable Web (HTML/CSS/JS): ${cg.portableWeb}`);
+  }
+  parts.push(''); // Blank line for readability
 
-  directives.forEach((directive) => {
-    if (directive) {
-      parts.push(directive);
-    }
-  });
+  // Other specific generation/editing rules (they are strings in the JSON)
+  parts.push('--- Specific Generation & Editing Rules ---');
+  parts.push(`- Data Visualization: ${systemDirectives.dataVisualization}`);
+  parts.push(`- JSON Generation: ${systemDirectives.jsonGeneration}`);
+  parts.push(`- Code Editing: ${systemDirectives.codeEditing}`);
+  parts.push(''); // Blank line for readability
+
+  // Career Assistance Specific Rules (Crucial for persona switching guidance)
+  parts.push(
+    "--- Career Assistance Guidelines (When providing career advice, adopt John Wesley Quintero's first-person persona) ---",
+  );
+  if (systemDirectives.careerAssistance) {
+    const ca = systemDirectives.careerAssistance;
+    parts.push(`- Role Description (as John Wesley): ${ca.roleDescription}`);
+    parts.push(`- Prime Directive (as John Wesley): ${ca.primeDirective}`);
+    parts.push(`- Tone (as John Wesley): ${ca.tone}`);
+    parts.push(
+      `- Writing Perspective (as John Wesley): ${ca.writingPerspective}`,
+    );
+    parts.push(
+      `- Application Framework (C-A-P): ${ca.framework.name} - ${ca.framework.description}`,
+    );
+    ca.framework.steps.forEach((step, index) =>
+      parts.push(`  Step ${index + 1}: ${step}`),
+    );
+    parts.push(`- Content Rules (for John Wesley's voice):`);
+    parts.push(
+      `  - Demonstrate Not Declare: ${ca.contentRules.demonstrateNotDeclare}`,
+    );
+    parts.push(
+      `  - Respect Existing Workflows: ${ca.contentRules.respectExistingWorkflows}`,
+    );
+    parts.push(`  - Core Narrative: ${ca.contentRules.coreNarrative}`);
+    parts.push(`  - Credible Metrics: ${ca.contentRules.credibleMetrics}`);
+    parts.push(`- Prohibited Actions (when acting as John Wesley):`);
+    ca.prohibitedActions.forEach((action) => parts.push(`  - ${action}`));
+  }
 
   return parts.filter(Boolean) as string[];
 };
 
 // --- System Instruction Builder (Modified to accept mode) ---
-const addSections = (sections: (string | string[])[], portfolioContext: PortfolioContext) => {
+const addSections = (
+  sections: (string | string[])[],
+  portfolioContext: PortfolioContext,
+) => {
   const {
     personalContext,
     webappContext,
@@ -708,28 +849,40 @@ const addSections = (sections: (string | string[])[], portfolioContext: Portfoli
 
   sections.push(_formatSystemDirectives(systemDirectives));
   if (personalContext) {
-    sections.push(_formatPersonalInfo(personalContext.personalInfo, personalContext.personalInfo?.socialLinks, personalContext.personalInfo?.familyInfo));
-    sections.push(_formatProfessionalProfile(personalContext.professionalProfile));
+    sections.push(
+      _formatPersonalInfo(
+        personalContext.personalInfo,
+        personalContext.personalInfo?.socialLinks,
+        personalContext.personalInfo?.familyInfo,
+      ),
+    );
+    sections.push(
+      _formatProfessionalProfile(personalContext.professionalProfile),
+    );
     sections.push(_formatSkills(personalContext.skills));
     sections.push(_formatAmazonExpertise(personalContext.amazonExpertise));
     sections.push(_formatWorkExperience(personalContext.workExperience || []));
     sections.push(_formatEducation(personalContext.education || []));
     sections.push(_formatCertifications(personalContext.certifications || []));
     sections.push(_formatCommonQueries(personalContext.commonQueries));
-    sections.push(_formatJobApplicationProfile(personalContext.jobApplicationProfile));
+    sections.push(
+      _formatJobApplicationProfile(personalContext.jobApplicationProfile),
+    );
     if (personalContext.personalInfo?.socialLinks) {
-      sections.push(_formatAdditionalResources(personalContext.personalInfo.socialLinks));
+      sections.push(
+        _formatAdditionalResources(personalContext.personalInfo.socialLinks),
+      );
     }
   }
   sections.push(_formatWebAppInformation(webappContext));
   sections.push(_formatDevelopmentSetup(developmentSetup));
   sections.push(_formatFAQs(faqs));
   sections.push(_formatInteractiveCapabilities(interactiveCapabilities || []));
-}
+};
 
 const buildSystemInstruction = (
   portfolioContext: PortfolioContext,
-  mode: 'default' | 'content', // Accept mode parameter
+  mode: 'default' | 'content',
 ): string => {
   const sections: (string | string[])[] = [
     `Carefully read and utilize the following context about Wesley Quintero to answer the user's questions. Refer to the relevant sections based on the query.`,
@@ -738,7 +891,9 @@ const buildSystemInstruction = (
 
   addSections(sections, portfolioContext);
 
-  sections.push(`\n[End of Context. Primary directive: Always assist the user based on the information above and your capabilities.]`);
+  sections.push(
+    `\n[End of Context. Primary directive: Always assist the user based on the information above and your capabilities.]`,
+  );
 
   // Add mode-specific instruction
   const modeInstruction = _getModeSpecificInstruction(mode);
@@ -752,16 +907,7 @@ const buildSystemInstruction = (
 // New helper to get mode-specific instruction
 const _getModeSpecificInstruction = (mode: 'default' | 'content'): string => {
   if (mode === 'content') {
-    return `\n\n--- Content Mode Active ---
-Your primary goal in this mode is to assist with crafting job application responses and dynamic content based on the provided context. Focus on generating:
-- Concise answers to job application questions (max 3 sentences per question).
-- Dynamic content like headlines, summaries, cover letters, and LinkedIn messages.
-- Highlight relevant skills, achievements, and experience in Amazon account management, SEO, PPC, and e-commerce.
-- Adhere to the formatting guidelines provided in the context.
-- Do NOT mention SP API unless specifically asked.
-- Avoid placeholder brackets.
-- Tailor responses to the specific job description and company (assume job description/company details will be provided in the user's message).
----`;
+    return `\n\n--- Content Mode Active --- Your primary goal in this mode is to assist with crafting job application responses and dynamic content based on the provided context. Focus on generating: - Concise answers to job application questions (max 3 sentences per question). - Dynamic content like headlines, summaries, cover letters, and LinkedIn messages. - Highlight relevant skills, achievements, and experience in Amazon account management, SEO, PPC, and e-commerce. - Adhere to the formatting guidelines provided in the context. - Do NOT mention SP API unless specifically asked. - Avoid placeholder brackets. - Tailor responses to the specific job description and company (assume job description/company details will be provided in the user's message). ---`;
   }
   return '';
 };
@@ -827,7 +973,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { message, history = [], mode = 'default' } = body; // Extract mode with a default value
+  const { message, history = [], mode = 'default' } = body;
 
   try {
     // 4. Load Portfolio Context (memoized)
@@ -837,25 +983,14 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenerativeAI(apiKey);
     const systemInstructionString = buildSystemInstruction(
       portfolioContext,
-      mode, // Pass the mode to the system instruction builder
+      mode,
     );
     // For debugging the generated prompt:
-    console.log("System Instruction Length:", systemInstructionString.length);
-    console.log("System Instruction (first 500 chars):", systemInstructionString.substring(0, 500));
-
-    const model = genAI.getGenerativeModel({
-      model: process.env.GEMINI_MODEL_NAME || GEMINI_CONFIG.DEFAULT_MODEL,
-      generationConfig: {
-        maxOutputTokens: GEMINI_CONFIG.MAX_OUTPUT_TOKENS,
-        temperature: GEMINI_CONFIG.TEMPERATURE,
-        topP: GEMINI_CONFIG.TOP_P,
-        topK: GEMINI_CONFIG.TOP_K,
-      },
-      systemInstruction: {
-        role: 'system',
-        parts: [{ text: systemInstructionString }],
-      },
-    });
+    console.log('System Instruction Length:', systemInstructionString.length);
+    console.log(
+      'System Instruction (first 500 chars):',
+      systemInstructionString.substring(0, 500),
+    );
 
     // 6. Transform Chat History for Gemini
     const transformedHistory: GeminiHistoryPart[] = history
@@ -864,44 +999,57 @@ export async function POST(request: NextRequest) {
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }],
       }));
-    console.log("Transformed History Length:", transformedHistory.length);
+    console.log('Transformed History Length:', transformedHistory.length);
 
-    // 7. Start Chat and Send Message
-    const chat = model.startChat({ history: transformedHistory });
-
+    // 7. Start Chat and Send Message with Fallback Logic
     let result;
     let lastError: unknown = null;
 
-    for (let i = 0; i < MAX_RETRIES; i++) {
+    for (const modelName of GEMINI_CONFIG.MODELS) {
       try {
+        console.log(`Attempting to use model: ${modelName}`);
+        const model = genAI.getGenerativeModel({
+          model: modelName,
+          generationConfig: {
+            maxOutputTokens: GEMINI_CONFIG.MAX_OUTPUT_TOKENS,
+            temperature: GEMINI_CONFIG.TEMPERATURE,
+            topP: GEMINI_CONFIG.TOP_P,
+            topK: GEMINI_CONFIG.TOP_K,
+          },
+          systemInstruction: {
+            role: 'system',
+            parts: [{ text: systemInstructionString }],
+          },
+        });
+
+        const chat = model.startChat({ history: transformedHistory });
         const startTime = Date.now();
         result = await chat.sendMessage(message);
         const endTime = Date.now();
-        console.log(`Gemini API call duration (Attempt ${i}): ${endTime - startTime}ms`);
-        break; // If successful, break the loop
+        console.log(
+          `API call to ${modelName} successful in ${endTime - startTime}ms`,
+        );
+        break; // Success, exit the loop
       } catch (error: unknown) {
         lastError = error;
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`Gemini API attempt ${i} failed:`, errorMessage);
+        const errorMessage =
+          error instanceof Error ? error.message : String(error);
+        console.error(`API call to ${modelName} failed:`, errorMessage);
 
-        // Check for 503 Service Unavailable or similar transient errors
         if (
-          i < MAX_RETRIES - 1 &&
-          errorMessage.includes('503 Service Unavailable') ||
-          errorMessage.includes('Error fetching from') // Catch general fetch errors that might be transient
+          !errorMessage.includes('503 Service Unavailable') &&
+          !errorMessage.includes('Error fetching from')
         ) {
-          console.log(`Retrying Gemini API call in ${RETRY_DELAY_MS / 1000} seconds...`);
-          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
-        } else {
-          // If it's the last attempt or a non-retryable error, re-throw
+          console.warn(
+            `Non-transient error with ${modelName}. Stopping fallback attempts.`,
+          );
           throw error;
         }
       }
     }
 
     if (!result) {
-      // This case should ideally not be reached if the loop always throws on final failure
-      throw lastError || new Error('Gemini API call failed after multiple retries.');
+      throw lastError || new Error('All Gemini API models failed to respond.');
     }
 
     const responseText = result.response.text();
