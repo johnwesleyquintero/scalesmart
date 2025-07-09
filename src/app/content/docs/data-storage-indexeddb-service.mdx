@@ -1,16 +1,126 @@
 ---
-title: IndexedDB Service details
-slug: data-storage/indexeddb-service
-description: Focused on indexedDB Service functions
+title: IndexedDB Service Layer
+slug: data-storage-indexeddb-service
+description: Detailed documentation of the IndexedDB service layer, its functions, and how it simplifies client-side data management in the ScaleSmart Platform.
 date: 2025-06-01
-tags: ['data', 'data-storage', 'indexeddb']
-readingTime: '1 min read'
+tags: ['data', 'data-storage', 'indexeddb', 'service', 'api-abstraction']
+readingTime: '7 min read'
 author: 'Wesley Quintero'
 type: 'doc'
 category: data-storage
 order: 2
 ---
 
-# IndexedDB Service Details
+# IndexedDB Service Layer
 
-Explores functions like creating entries updating progress
+The IndexedDB Service Layer (`src/lib/indexeddb-service.ts`) in the ScaleSmart Platform is designed to abstract the complexities of the native IndexedDB API, providing a simplified, promise-based interface for common database operations. This service ensures consistent data handling, error management, and facilitates easier interaction with client-side data stores.
+
+## Purpose of the Service Layer
+
+The primary goals of the IndexedDB Service Layer are:
+
+1.  **Simplification:** Reduce boilerplate code and simplify interactions with IndexedDB, making it easier for developers to store and retrieve data.
+2.  **Consistency:** Ensure that all IndexedDB operations across the application follow a consistent pattern, including error handling and data formatting.
+3.  **Maintainability:** Centralize database logic, making it easier to update, debug, and extend data storage functionalities.
+4.  **Error Handling:** Provide robust error handling mechanisms for database operations, integrating with the application's centralized logging.
+5.  **Type Safety:** (If using TypeScript) Enforce type safety for data models stored in IndexedDB.
+
+## Key Functions and Operations
+
+The IndexedDB Service typically exposes functions for common CRUD (Create, Read, Update, Delete) operations, tailored to the application's data models. Below are examples of the types of functions you would find in this service:
+
+### 1. Database Initialization and Connection
+
+- `initDb(dbName: string, version: number, objectStores: ObjectStoreConfig[]): Promise<IDBDatabase>`:
+  - Initializes and opens an IndexedDB database.
+  - Handles database versioning and schema upgrades (e.g., creating object stores and indexes).
+  - Ensures the database is ready for operations.
+
+### 2. Data Creation (Add/Put)
+
+- `addEntry<T>(storeName: string, data: T): Promise<IDBValidKey>`:
+  - Adds a new record to a specified object store.
+  - Typically used when the key is auto-generated or explicitly provided and guaranteed to be unique.
+- `putEntry<T>(storeName: string, data: T): Promise<IDBValidKey>`:
+  - Adds a new record or updates an existing one if a record with the same key already exists.
+  - Useful for upsert operations.
+
+### 3. Data Retrieval (Get/GetAll/Query)
+
+- `getEntry<T>(storeName: string, key: IDBValidKey): Promise<T | undefined>`:
+  - Retrieves a single record by its primary key.
+- `getAllEntries<T>(storeName: string): Promise<T[]>`:
+  - Retrieves all records from a specified object store.
+- `queryEntries<T>(storeName: string, indexName: string, query: IDBKeyRange | IDBValidKey): Promise<T[]>`:
+  - Retrieves records using an index, allowing for more complex queries (e.g., range queries).
+
+### 4. Data Update
+
+- `updateEntry<T>(storeName: string, key: IDBValidKey, updates: Partial<T>): Promise<IDBValidKey>`:
+  - Updates specific properties of an existing record identified by its key.
+  - Ensures that only the necessary fields are modified.
+
+### 5. Data Deletion
+
+- `deleteEntry(storeName: string, key: IDBValidKey): Promise<void>`:
+  - Deletes a single record by its primary key.
+- `clearStore(storeName: string): Promise<void>`:
+  - Deletes all records from a specified object store.
+
+### 6. Transaction Management
+
+The service layer internally manages IndexedDB transactions, ensuring that operations are atomic and isolated. Developers typically don't need to interact directly with `IDBTransaction` objects when using the service functions.
+
+## Example Usage (Conceptual)
+
+```typescript
+import { indexedDbService } from '@/lib/indexeddb-service'; // Assuming this is the singleton instance
+
+interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  lastLogin: number;
+}
+
+const USER_STORE = 'userProfiles';
+
+async function saveUserProfile(profile: UserProfile) {
+  try {
+    await indexedDbService.putEntry<UserProfile>(USER_STORE, profile);
+    console.log('User profile saved successfully!');
+  } catch (error) {
+    console.error('Failed to save user profile:', error);
+    // Integrate with centralized error logging if available
+    // logError('Failed to save user profile', 'IndexedDB Service', 'high', error);
+  }
+}
+
+async function getUserProfile(id: string): Promise<UserProfile | undefined> {
+  try {
+    const profile = await indexedDbService.getEntry<UserProfile>(
+      USER_STORE,
+      id,
+    );
+    return profile;
+  } catch (error) {
+    console.error('Failed to retrieve user profile:', error);
+    // logError('Failed to retrieve user profile', 'IndexedDB Service', 'high', error);
+    return undefined;
+  }
+}
+
+// Example of updating a part of the profile
+async function updateLastLogin(userId: string) {
+  try {
+    await indexedDbService.updateEntry(USER_STORE, userId, {
+      lastLogin: Date.now(),
+    });
+    console.log('Last login updated!');
+  } catch (error) {
+    console.error('Failed to update last login:', error);
+  }
+}
+```
+
+By utilizing the IndexedDB Service Layer, developers can interact with the client-side database efficiently and reliably, focusing on application logic rather than low-level database operations. This abstraction is key to building robust offline-first and data-intensive features within the ScaleSmart Platform.

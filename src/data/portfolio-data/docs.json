@@ -43,7 +43,7 @@
       "category": "api",
       "order": 2,
       "tags": [],
-      "date": "2025-07-06"
+      "date": "2025-07-09"
     },
     {
       "slug": "api-amazon-competitor-analysis",
@@ -244,15 +244,6 @@
       "date": "2025-05-30"
     },
     {
-      "slug": "content",
-      "title": "Content Management Documentation",
-      "description": "Documentation related to content management, specifically for the blog.",
-      "category": "content",
-      "order": 0,
-      "tags": ["content", "management", "blog"],
-      "date": "2025-06-01"
-    },
-    {
       "slug": "crm",
       "title": "CRM Documentation",
       "description": "Documentation for the Customer Relationship Management (CRM) features of the project.",
@@ -289,48 +280,27 @@
       "date": "2025-06-01"
     },
     {
-      "slug": "data-storage",
-      "title": "data-storage",
-      "description": "Details documentation on what is related to data storage",
-      "category": "data-storage",
-      "order": 0,
-      "tags": ["data", "data-storage"],
-      "date": "2025-06-01"
-    },
-    {
       "slug": "data-storage-indexeddb",
-      "title": "Core indexedDB Details",
-      "description": "Details about using indexedDB data store solution",
+      "title": "IndexedDB Overview",
+      "description": "A comprehensive overview of IndexedDB, its role in client-side data storage, and its integration within the ScaleSmart Platform.",
       "category": "data-storage",
       "order": 1,
-      "tags": ["data", "data-storage", "indexeddb"],
-      "date": "2025-06-01"
-    },
-    {
-      "slug": "data-storage-indexeddb_integration",
-      "title": "IndexedDB Integration details",
-      "description": "more specific implementation points on integrating with IndexedDB client data store solution",
-      "category": "data-storage",
-      "order": 1,
-      "tags": ["data", "data-storage", "indexeddb"],
+      "tags": ["data", "data-storage", "indexeddb", "offline", "client-side"],
       "date": "2025-06-01"
     },
     {
       "slug": "data-storage-indexeddb-service",
-      "title": "IndexedDB Service details",
-      "description": "Focused on indexedDB Service functions",
+      "title": "IndexedDB Service Layer",
+      "description": "Detailed documentation of the IndexedDB service layer, its functions, and how it simplifies client-side data management in the ScaleSmart Platform.",
       "category": "data-storage",
       "order": 2,
-      "tags": ["data", "data-storage", "indexeddb"],
-      "date": "2025-06-01"
-    },
-    {
-      "slug": "error-guide-error-guide",
-      "title": "ErrorGuide Root Document",
-      "description": "What errors will happen when things mess up.",
-      "category": "error-guide",
-      "order": 0,
-      "tags": ["guides", "testing"],
+      "tags": [
+        "data",
+        "data-storage",
+        "indexeddb",
+        "service",
+        "api-abstraction"
+      ],
       "date": "2025-06-01"
     },
     {
@@ -376,7 +346,7 @@
       "category": "getting-started",
       "order": 0,
       "tags": [],
-      "date": "2025-07-06"
+      "date": "2025-07-09"
     },
     {
       "slug": "prerequisites",
@@ -397,15 +367,6 @@
       "date": "2025-06-04"
     },
     {
-      "slug": "introduction",
-      "title": "Nextjs Architecture Introduction",
-      "description": "High level introduction documentation to begin with the scaleSmart WebProject!",
-      "category": "getting-started",
-      "order": 2,
-      "tags": ["introduction", "guides"],
-      "date": "2025-06-01"
-    },
-    {
       "slug": "troubleshooting",
       "title": "Troubleshooting Guide",
       "description": "Solutions to common issues encountered while using the ScaleSmart Platform and CLI.",
@@ -413,15 +374,6 @@
       "order": 3,
       "tags": ["troubleshooting", "errors", "support"],
       "date": "2025-06-04"
-    },
-    {
-      "slug": "hooks",
-      "title": "Details Surrounding folder HOOKS",
-      "description": "UseHooks main entry page or documentation root page for that grouping, as we use on SHadcn UI, makes great practice!",
-      "category": "hooks",
-      "order": 0,
-      "tags": ["section guide"],
-      "date": "2025-06-01"
     },
     {
       "slug": "hooks-use-local-storage",
@@ -457,15 +409,6 @@
       "date": "2025-06-01"
     },
     {
-      "slug": "implementation",
-      "title": "This will details the subdirectories that contains whats implementation used!",
-      "description": "Top document all around implementation concerns of the architecture itself",
-      "category": "implementation",
-      "order": 0,
-      "tags": ["data"],
-      "date": "2025-06-01"
-    },
-    {
       "slug": "implementation-background-implementation",
       "title": "How these are being used on different framework of impl background",
       "description": "Under what can be implemented background code",
@@ -475,24 +418,19 @@
       "date": "2025-06-01"
     },
     {
-      "slug": "project-management",
-      "title": "high node folder on base details. Used by main",
-      "description": "main node base under file tree on projects folder guide",
-      "category": "project-management",
+      "slug": "loading",
+      "title": "Optimizing Loading Performance",
+      "description": "Strategies for optimizing loading performance in web applications, including server-side rendering (SSR) and client-side rendering (CSR) considerations.",
+      "category": "performance",
       "order": 0,
       "tags": [
-        "base nodes of site with a solid approach",
-        "documentatoin-leveling"
+        "performance",
+        "loading",
+        "SSR",
+        "CSR",
+        "user experience",
+        "optimization"
       ],
-      "date": "2025-06-01"
-    },
-    {
-      "slug": "strategies-synchronization_strategy",
-      "title": "details as they synchrony between each details to cloud dbs. and service on client browser in general to keep UI to scale always",
-      "description": "high details to be made when and at all places or types, we dont need always what make sync right",
-      "category": "strategies",
-      "order": 0,
-      "tags": ["detail"],
       "date": "2025-06-01"
     },
     {
@@ -583,17 +521,6 @@
       "category": "utils",
       "order": 3,
       "tags": ["guides", "implementations"],
-      "date": "2025-06-01"
-    },
-    {
-      "slug": "loading",
-      "title": "This section is based code spliting example based all",
-      "description": "loading - with what going with SSR and that ",
-      "category": "utils",
-      "order": 4,
-      "tags": [
-        "detailings to make code function proper on how to operate page faster or user expectations set up time frame on web pages"
-      ],
       "date": "2025-06-01"
     },
     {

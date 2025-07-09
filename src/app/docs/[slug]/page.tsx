@@ -1,9 +1,22 @@
 import { notFound } from 'next/navigation';
 import { MDXRemote } from 'next-mdx-remote/rsc';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { components } from '../../../components/MdxRenderer';
-import { getAllDocSlugs, getDocBySlug } from '@/lib/docs-data/static-docs';
+import {
+  getAllDocSlugs,
+  getDocBySlug,
+} from '../../../lib/docs-data/static-docs';
+import {
+  getHeadingsFromMdx,
+  Heading,
+} from '../../../lib/docs-data/get-headings';
+import { HeadingsSetter } from './HeadingsSetter'; // Import HeadingsSetter
+import { ClientHeadingsSetterWrapper } from './ClientHeadingsSetterWrapper'; // Import the new wrapper
+
+interface DocMetadata {
+  title?: string;
+  description?: string;
+  [key: string]: unknown; // Allow for other properties if they exist
+}
 
 interface DocPageProps {
   params: {
@@ -17,30 +30,35 @@ export async function generateStaticParams() {
 }
 
 export default async function DocPage({ params }: DocPageProps) {
-  // Await params here based on the Next.js 15.3.3 experimental version feedback
-  // For stable Next.js versions, `params` is usually directly accessible
-  const { slug } = await params;
+  const { slug } = params;
 
-  let content;
-  let metadata;
+  let content: string;
+  let metadata: DocMetadata;
+  let headings: Heading[] = [];
 
   try {
-    // Use getDocBySlug to fetch both content and metadata
     const { content: fetchedContent, data: fetchedData } = getDocBySlug(slug);
     content = fetchedContent;
     metadata = fetchedData;
+    headings = await getHeadingsFromMdx(content);
   } catch (error) {
-    console.error(`Failed to fetch doc for slug ${slug}:`, error);
+    console.error(
+      `Failed to fetch doc or extract headings for slug ${slug}:`,
+      error,
+    );
     notFound();
   }
 
-  // Pass the components from MdxRenderer to MDXRemote
   return (
-    <div className="dark:prose-invert max-w-none">
-      {/* Optionally display metadata like title, description */}
-      {metadata && <h1>{metadata.title}</h1>}
-      {metadata && metadata.description && <p>{metadata.description}</p>}
-      <MDXRemote source={content} components={components} key={slug} />
-    </div>
+    <>
+      <ClientHeadingsSetterWrapper headings={headings} />{' '}
+      {/* Wrap HeadingsSetter in a client component */}
+      <div className="dark:prose-invert max-w-none">
+        {/* Optionally display metadata like title, description */}
+        {metadata && <h1>{metadata.title}</h1>}
+        {metadata && metadata.description && <p>{metadata.description}</p>}
+        <MDXRemote source={content} components={components} key={slug} />
+      </div>
+    </>
   );
 }

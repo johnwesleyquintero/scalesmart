@@ -10,11 +10,7 @@ order: 2
 
 This section provides comprehensive details on how to interact with our RESTful API.
 
-## Authentication
-
-All API requests must be authenticated. Use your API key in the `Authorization` header.
-
-### General API Structure
+## General API Structure
 
 All API endpoints are prefixed with `/api/`. Requests and responses are typically in JSON format.
 
@@ -41,7 +37,8 @@ API errors are returned with appropriate HTTP status codes and a JSON body conta
 
 Below is a summary of the main API categories. For detailed documentation on each endpoint, refer to the specific `.mdx` files within the `api/` directory.
 
-- [`/api/module-progress`](/docs/api-module-progress)
+- **Module Management:** Endpoints for tracking module progress.
+  - [`/api/module-progress`](/docs/api-module-progress)
 - **Amazon Tools:** Endpoints for various Amazon-related functionalities.
   - [`/api/amazon/competitor-analysis`](/docs/api-amazon-competitor-analysis)
   - [`/api/amazon/inventory`](/docs/api-amazon-inventory)

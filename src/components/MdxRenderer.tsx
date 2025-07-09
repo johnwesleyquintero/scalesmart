@@ -1,8 +1,41 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Import useState, useEffect, and useRef
 
 import { clsx } from 'clsx'; // Import clsx
+
+// Component for the copy button
+const CopyCodeButton = ({ code }: { code: string }) => {
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); // Use ReturnType<typeof setTimeout>
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(code);
+    setCopied(true);
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+    timeoutRef.current = setTimeout(() => setCopied(false), 2000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="absolute top-2 right-2 p-1 rounded bg-gray-700 text-gray-200 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
+      title="Copy code to clipboard"
+    >
+      {copied ? 'Copied!' : 'Copy'}
+    </button>
+  );
+};
 
 // Utility function to slugify text for IDs
 const slugify = (text: string) => {
@@ -117,17 +150,38 @@ export const components = {
       delete cleanedProps.tabIndex;
     }
 
+    // Safely extract code content from children
+    let codeText = '';
+    React.Children.forEach(children, (child: React.ReactNode) => {
+      if (React.isValidElement(child) && 'props' in child) {
+        const childProps = child.props as { children?: React.ReactNode };
+        if (typeof childProps.children === 'string') {
+          codeText += childProps.children;
+        } else if (Array.isArray(childProps.children)) {
+          codeText += React.Children.toArray(childProps.children).join('');
+        }
+      } else if (typeof child === 'string') {
+        codeText += child;
+      }
+    });
+
     return (
-      <pre
-        tabIndex={effectiveTabIndex}
-        className={clsx(
-          'relative rounded bg-gray-900 text-gray-200 px-[0.3rem] py-[0.2rem] font-mono text-sm overflow-x-auto my-4 p-4 rounded-md', // Added dark background and light text
-          className,
-        )}
-        {...cleanedProps}
-      >
-        {children}
-      </pre>
+      <div className="relative">
+        <pre
+          tabIndex={effectiveTabIndex}
+          className={clsx(
+            'relative rounded bg-gray-900 text-gray-200 px-[0.3rem] py-[0.2rem] font-mono text-sm overflow-x-auto my-4 p-4 rounded-md', // Added dark background and light text
+            className,
+          )}
+          {...cleanedProps}
+        >
+          {children}
+        </pre>
+        {isCodeBlock &&
+          codeText && ( // Only show button if it's a code block and has content
+            <CopyCodeButton code={codeText.toString()} />
+          )}
+      </div>
     );
   },
   kbd: ({ children, ...props }: React.ComponentPropsWithoutRef<'kbd'>) => (

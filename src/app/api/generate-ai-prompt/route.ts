@@ -123,7 +123,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
   } catch (error: unknown) {
-    console.error('Caught unexpected error in generate AI prompt route:', error);
+    console.error(
+      'Caught unexpected error in generate AI prompt route:',
+      error,
+    );
     const errorMessage =
       error instanceof Error
         ? error.message
