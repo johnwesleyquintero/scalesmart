@@ -1018,7 +1018,7 @@ export async function POST(request: NextRequest) {
             topK: GEMINI_CONFIG.TOP_K,
           },
           systemInstruction: {
-            role: 'system',
+            role: 'user',
             parts: [{ text: systemInstructionString }],
           },
         });
