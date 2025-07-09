@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/cognitive-complexity */
 import { rateLimiter } from '@/lib/api/rate-limiter';
 import { GoogleGenerativeAI, Part } from '@google/generative-ai';
 import { NextRequest, NextResponse } from 'next/server';
@@ -295,6 +296,9 @@ const GEMINI_CONFIG = {
   TOP_P: 0.9,
   TOP_K: 40,
 };
+
+const MAX_RETRIES = 3; // Maximum number of retries for Gemini API calls
+const RETRY_DELAY_MS = 1000; // 1 second delay between retries
 
 // --- Portfolio Context Loading (Memoized) ---
 let portfolioContextPromise: Promise<PortfolioContext> | null = null;
@@ -652,34 +656,47 @@ const _formatInteractiveCapabilities = (
   ].filter(Boolean) as string[];
 };
 
+const formatDirective = (
+  directive: string | undefined,
+  prefix: string,
+): string | null => {
+  return directive ? `${prefix}: ${directive}` : null;
+};
+
 const _formatSystemDirectives = (
   systemDirectives?: SystemDirectives,
 ): string[] => {
-  if (!systemDirectives) return [];
-  return [
-    systemDirectives.capabilitiesStatement
-      ? `\nImportant Note for Me (AI): ${systemDirectives.capabilitiesStatement}`
-      : '',
-    systemDirectives.contextAdherence
-      ? `\nGuideline for Me (AI): ${systemDirectives.contextAdherence}`
-      : '',
-    systemDirectives.mermaidSyntax
-      ? `\nMermaid Diagram Generation Guideline: ${systemDirectives.mermaidSyntax}`
-      : '',
-    systemDirectives.htmlGeneration
-      ? `\nHTML Generation Guideline: ${systemDirectives.htmlGeneration}`
-      : '',
-    systemDirectives.jsonGeneration
-      ? `\nJSON Generation Guideline: ${systemDirectives.jsonGeneration}`
-      : '',
-  ].filter(Boolean) as string[];
+  const parts: string[] = [];
+
+  parts.push(
+    systemDirectives?.greeting ||
+      `You are Wesley Quintero, a skilled and experienced software engineer. Your personality is ${systemDirectives?.persona || 'professional, friendly, and helpful'}. Respond in the first person, using "I", "me", "my". You have access to the following information about yourself:`,
+  );
+
+  const directives = [
+    formatDirective(systemDirectives?.capabilitiesStatement, '\nImportant Note for Me (AI)'),
+    formatDirective(systemDirectives?.contextAdherence, '\nGuideline for Me (AI)'),
+    formatDirective(systemDirectives?.mermaidSyntax, '\nMermaid Diagram Generation Guideline'),
+    formatDirective(systemDirectives?.htmlGeneration, '\nHTML Generation Guideline'),
+    formatDirective(systemDirectives?.jsonGeneration, '\nJSON Generation Guideline'),
+    formatDirective(systemDirectives?.codeEditing, '\nCode Editing Guideline'),
+    formatDirective(systemDirectives?.privacy, '\nPrivacy Guideline'),
+    formatDirective(systemDirectives?.appBuildingAssistance, '\nApp Building Assistance Guideline'),
+    formatDirective(systemDirectives?.dataAnalysisAssistance, '\nData Analysis Assistance Guideline'),
+    formatDirective(systemDirectives?.generalAssistance, '\nGeneral Assistance Guideline'),
+  ];
+
+  directives.forEach((directive) => {
+    if (directive) {
+      parts.push(directive);
+    }
+  });
+
+  return parts.filter(Boolean) as string[];
 };
 
 // --- System Instruction Builder (Modified to accept mode) ---
-const buildSystemInstruction = (
-  portfolioContext: PortfolioContext,
-  mode: 'default' | 'content', // Accept mode parameter
-): string => {
+const addSections = (sections: (string | string[])[], portfolioContext: PortfolioContext) => {
   const {
     personalContext,
     webappContext,
@@ -689,44 +706,53 @@ const buildSystemInstruction = (
     systemDirectives,
   } = portfolioContext;
 
-  const personalInfo = personalContext?.personalInfo;
-  const professionalProfile = personalContext?.professionalProfile;
-  const skills = personalContext?.skills;
-  const amazonExpertise = personalContext?.amazonExpertise;
-  const workExperience = personalContext?.workExperience || [];
-  const education = personalContext?.education || [];
-  const generalCertifications = personalContext?.certifications || [];
-  const commonQueries = personalContext?.commonQueries;
-  const jobApplicationProfile = personalContext?.jobApplicationProfile;
-  const socialLinks = personalInfo?.socialLinks;
-  const familyInfo = personalInfo?.familyInfo;
+  sections.push(_formatSystemDirectives(systemDirectives));
+  if (personalContext) {
+    sections.push(_formatPersonalInfo(personalContext.personalInfo, personalContext.personalInfo?.socialLinks, personalContext.personalInfo?.familyInfo));
+    sections.push(_formatProfessionalProfile(personalContext.professionalProfile));
+    sections.push(_formatSkills(personalContext.skills));
+    sections.push(_formatAmazonExpertise(personalContext.amazonExpertise));
+    sections.push(_formatWorkExperience(personalContext.workExperience || []));
+    sections.push(_formatEducation(personalContext.education || []));
+    sections.push(_formatCertifications(personalContext.certifications || []));
+    sections.push(_formatCommonQueries(personalContext.commonQueries));
+    sections.push(_formatJobApplicationProfile(personalContext.jobApplicationProfile));
+    if (personalContext.personalInfo?.socialLinks) {
+      sections.push(_formatAdditionalResources(personalContext.personalInfo.socialLinks));
+    }
+  }
+  sections.push(_formatWebAppInformation(webappContext));
+  sections.push(_formatDevelopmentSetup(developmentSetup));
+  sections.push(_formatFAQs(faqs));
+  sections.push(_formatInteractiveCapabilities(interactiveCapabilities || []));
+}
 
-  const instructionParts = [
-    `Carefully read and utilize the following context about Wesley Quintero to answer the user's questions. Refer to the relevant sections based on the query.`, // New directive
-    `When appropriate, suggest your interactive capabilities (e.g., generating HTML, Mermaid diagrams, explaining tech concepts) based on the user's needs.`, // New directive
-    systemDirectives?.greeting ||
-      `You are Wesley Quintero, a skilled and experienced software engineer. Your personality is ${systemDirectives?.persona || 'professional, friendly, and helpful'}. Respond in the first person, using "I", "me", "my". You have access to the following information about yourself:`,
-    ..._formatPersonalInfo(personalInfo, socialLinks, familyInfo),
-    ..._formatProfessionalProfile(professionalProfile),
-    ..._formatSkills(skills),
-    ..._formatAmazonExpertise(amazonExpertise),
-    _formatWorkExperience(workExperience),
-    _formatEducation(education),
-    _formatCertifications(generalCertifications),
-    ..._formatCommonQueries(commonQueries),
-    ..._formatJobApplicationProfile(jobApplicationProfile),
-    ..._formatWebAppInformation(webappContext),
-    ..._formatAdditionalResources(socialLinks),
-    ..._formatDevelopmentSetup(developmentSetup),
-    _formatFAQs(faqs),
-    ..._formatInteractiveCapabilities(interactiveCapabilities),
-    ..._formatSystemDirectives(systemDirectives),
-    `\n[End of Context. Primary directive: Always assist the user based on the information above and your capabilities.]`,
+const buildSystemInstruction = (
+  portfolioContext: PortfolioContext,
+  mode: 'default' | 'content', // Accept mode parameter
+): string => {
+  const sections: (string | string[])[] = [
+    `Carefully read and utilize the following context about Wesley Quintero to answer the user's questions. Refer to the relevant sections based on the query.`,
+    `When appropriate, suggest your interactive capabilities (e.g., generating HTML, Mermaid diagrams, explaining tech concepts) based on the user's needs.`,
   ];
 
-  // Add mode-specific instruction if in 'content' mode
+  addSections(sections, portfolioContext);
+
+  sections.push(`\n[End of Context. Primary directive: Always assist the user based on the information above and your capabilities.]`);
+
+  // Add mode-specific instruction
+  const modeInstruction = _getModeSpecificInstruction(mode);
+  if (modeInstruction) {
+    sections.push(modeInstruction);
+  }
+
+  return sections.flat().filter(Boolean).join('\n\n');
+};
+
+// New helper to get mode-specific instruction
+const _getModeSpecificInstruction = (mode: 'default' | 'content'): string => {
   if (mode === 'content') {
-    instructionParts.push(`\n\n--- Content Mode Active ---
+    return `\n\n--- Content Mode Active ---
 Your primary goal in this mode is to assist with crafting job application responses and dynamic content based on the provided context. Focus on generating:
 - Concise answers to job application questions (max 3 sentences per question).
 - Dynamic content like headlines, summaries, cover letters, and LinkedIn messages.
@@ -735,10 +761,9 @@ Your primary goal in this mode is to assist with crafting job application respon
 - Do NOT mention SP API unless specifically asked.
 - Avoid placeholder brackets.
 - Tailor responses to the specific job description and company (assume job description/company details will be provided in the user's message).
----`);
+---`;
   }
-
-  return instructionParts.filter(Boolean).join('\n\n');
+  return '';
 };
 
 // --- API Route Handler (POST) ---
@@ -815,8 +840,8 @@ export async function POST(request: NextRequest) {
       mode, // Pass the mode to the system instruction builder
     );
     // For debugging the generated prompt:
-    // console.log("System Instruction Length:", systemInstructionString.length);
-    // console.log("System Instruction (first 500 chars):", systemInstructionString.substring(0, 500));
+    console.log("System Instruction Length:", systemInstructionString.length);
+    console.log("System Instruction (first 500 chars):", systemInstructionString.substring(0, 500));
 
     const model = genAI.getGenerativeModel({
       model: process.env.GEMINI_MODEL_NAME || GEMINI_CONFIG.DEFAULT_MODEL,
@@ -839,14 +864,45 @@ export async function POST(request: NextRequest) {
         role: msg.role === 'assistant' ? 'model' : 'user',
         parts: [{ text: msg.content }],
       }));
+    console.log("Transformed History Length:", transformedHistory.length);
 
     // 7. Start Chat and Send Message
     const chat = model.startChat({ history: transformedHistory });
 
-    const startTime = Date.now();
-    const result = await chat.sendMessage(message);
-    const endTime = Date.now();
-    console.log(`Gemini API call duration: ${endTime - startTime}ms`);
+    let result;
+    let lastError: unknown = null;
+
+    for (let i = 0; i < MAX_RETRIES; i++) {
+      try {
+        const startTime = Date.now();
+        result = await chat.sendMessage(message);
+        const endTime = Date.now();
+        console.log(`Gemini API call duration (Attempt ${i}): ${endTime - startTime}ms`);
+        break; // If successful, break the loop
+      } catch (error: unknown) {
+        lastError = error;
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error(`Gemini API attempt ${i} failed:`, errorMessage);
+
+        // Check for 503 Service Unavailable or similar transient errors
+        if (
+          i < MAX_RETRIES - 1 &&
+          errorMessage.includes('503 Service Unavailable') ||
+          errorMessage.includes('Error fetching from') // Catch general fetch errors that might be transient
+        ) {
+          console.log(`Retrying Gemini API call in ${RETRY_DELAY_MS / 1000} seconds...`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY_MS));
+        } else {
+          // If it's the last attempt or a non-retryable error, re-throw
+          throw error;
+        }
+      }
+    }
+
+    if (!result) {
+      // This case should ideally not be reached if the loop always throws on final failure
+      throw lastError || new Error('Gemini API call failed after multiple retries.');
+    }
 
     const responseText = result.response.text();
     const response: ChatResponse = { response: responseText };
