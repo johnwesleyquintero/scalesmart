@@ -113,8 +113,18 @@ export default function ChatInterface() {
 
   // Generate a unique session ID for this chat session, persistent across renders but reset on explicit chat reset.
   const searchParams = useSearchParams();
-  const initialSessionId = searchParams.get('session') || crypto.randomUUID();
-  const chatSessionIdRef = useRef<string>(initialSessionId);
+  const [sessionIdState, setSessionIdState] = React.useState<string | null>(
+    null,
+  );
+  const chatSessionIdRef = useRef<string | null>(null); // Initialize with null
+
+  // Effect to set session ID on client-side only
+  useEffect(() => {
+    const sessionFromUrl = searchParams.get('session');
+    const newSessionId = sessionFromUrl || crypto.randomUUID();
+    setSessionIdState(newSessionId);
+    chatSessionIdRef.current = newSessionId;
+  }, [searchParams]);
 
   const handleMessagesLoaded = useCallback(
     (loadedMessages: Message[]) => {
@@ -132,8 +142,9 @@ export default function ChatInterface() {
     console.log('Messages saved to IndexedDB.');
   }, []);
 
+  // Only pass sessionId to useChatHistory once it's determined on the client
   const { clearSessionHistory, getAllSessions } = useChatHistory({
-    sessionId: chatSessionIdRef.current,
+    sessionId: sessionIdState || '', // Pass a stable ID, or empty string if not yet determined
     messages: messages,
     onLoad: handleMessagesLoaded,
     onSaveComplete: handleSaveComplete,
@@ -149,14 +160,19 @@ export default function ChatInterface() {
       setChatSessions(sessions);
     };
 
-    fetchSessions();
-  }, [getAllSessions, isSidebarOpen, setChatSessions]); // Fetch sessions on mount and when sidebar is toggled
+    // Only fetch sessions if sessionIdState is available
+    if (sessionIdState) {
+      fetchSessions();
+    }
+  }, [getAllSessions, isSidebarOpen, setChatSessions, sessionIdState]); // Depend on sessionIdState
 
   // Function to reset chat (clear messages and generate new session ID)
   const resetChat = useCallback(() => {
     dispatch({ type: 'CLEAR_MESSAGES' });
-    chatSessionIdRef.current = crypto.randomUUID(); // Generate a new session ID
-    console.log('Chat reset. New session ID:', chatSessionIdRef.current);
+    const newSessionId = crypto.randomUUID(); // Generate a new session ID
+    setSessionIdState(newSessionId); // Update state
+    chatSessionIdRef.current = newSessionId; // Update ref
+    console.log('Chat reset. New session ID:', newSessionId);
     // Clear editing state and input on reset
     dispatch({ type: 'SET_EDITING_MESSAGE', payload: null });
     dispatch({ type: 'SET_INPUT', payload: '' });
@@ -168,6 +184,7 @@ export default function ChatInterface() {
 
   const handleSessionClick = useCallback(
     async (sessionId: string) => {
+      setSessionIdState(sessionId); // Update state
       chatSessionIdRef.current = sessionId; // Update the current session ID
       dispatch({ type: 'CLEAR_MESSAGES' }); // Clear current messages
       dispatch({ type: 'SET_INPUT', payload: '' }); // Clear input
@@ -192,12 +209,16 @@ export default function ChatInterface() {
   );
 
   const handleClearCurrentSession = useCallback(async () => {
-    await clearSessionHistory(); // Use the hook's function to clear current session
-    resetChat(); // Reset the chat interface
-    toast({
-      title: 'Current Session Cleared',
-      description: 'All messages in the current session have been removed.',
-    });
+    if (
+      window.confirm('Are you sure you want to clear the current chat session?')
+    ) {
+      await clearSessionHistory(); // Use the hook's function to clear current session
+      resetChat(); // Reset the chat interface
+      toast({
+        title: 'Current Session Cleared',
+        description: 'All messages in the current session have been removed.',
+      });
+    }
   }, [clearSessionHistory, resetChat, toast]);
 
   const handleClearAllSessions = useCallback(async () => {
@@ -603,96 +624,88 @@ export default function ChatInterface() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex flex-col flex-grow">
-        {/* Chat Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border bg-background">
-          <div>
-            <h2 className="text-xl font-semibold text-foreground">AI Chat</h2>
-            <p className="text-sm text-muted-foreground">
-              Session ID: {chatSessionIdRef.current.substring(0, 8)}...
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1 rounded-md bg-secondary text-secondary-foreground p-1">
-              <Button
-                variant={mode === 'default' ? 'primary' : 'ghost'}
-                size="sm"
-                className="rounded-sm"
-                onClick={() =>
-                  dispatch({ type: 'SET_MODE', payload: 'default' })
-                }
-              >
-                Default
-              </Button>
-              <Button
-                variant={mode === 'content' ? 'primary' : 'ghost'}
-                size="sm"
-                className="rounded-sm"
-                onClick={() =>
-                  dispatch({ type: 'SET_MODE', payload: 'content' })
-                }
-              >
-                Content
-              </Button>
-              <Button
-                variant="ghost"
-                className="w-full justify-start"
-                onClick={handleClearCurrentSession}
-              >
-                <Trash2 className={MESSAGE_SQUARE_ICON_CLASSES} />
-                Clear Current Session
-              </Button>
+      <div className="flex flex-col flex-grow items-center">
+        {' '}
+        {/* Added items-center to center content */}
+        <div className="flex flex-col w-full max-w-4xl h-full">
+          {' '}
+          {/* New wrapper for max-width and centering */}
+          {/* Chat Header */}
+          <div className="flex items-center justify-between p-4 border-b border-border bg-background">
+            <div>
+              <h2 className="text-xl font-semibold text-foreground">AI Chat</h2>
+              <p className="text-sm text-muted-foreground">
+                Session ID:{' '}
+                {sessionIdState
+                  ? sessionIdState.substring(0, 8) + '...'
+                  : 'Loading...'}
+              </p>
             </div>
-            <Button
-              variant="destructive"
-              className="w-full justify-start"
-              onClick={handleClearAllSessions}
-            >
-              <Trash2 className={MESSAGE_SQUARE_ICON_CLASSES} />
-              Clear All Sessions
-            </Button>
+            <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-1 rounded-md bg-secondary text-secondary-foreground p-1">
+                <Button
+                  variant={mode === 'default' ? 'primary' : 'ghost'}
+                  size="sm"
+                  className="rounded-sm"
+                  onClick={() =>
+                    dispatch({ type: 'SET_MODE', payload: 'default' })
+                  }
+                >
+                  Default
+                </Button>
+                <Button
+                  variant={mode === 'content' ? 'primary' : 'ghost'}
+                  size="sm"
+                  className="rounded-sm"
+                  onClick={() =>
+                    dispatch({ type: 'SET_MODE', payload: 'content' })
+                  }
+                >
+                  Content
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
-
-        {/* Message Display Area */}
-        <div
-          className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"
-          role="list"
-        >
-          {messages.map((message, index) => (
-            <MessageBubble
-              key={message.id || index}
-              message={message}
-              onRetry={handleRetry}
-              onDelete={handleDelete}
-              onPromptClick={handlePromptClick}
-              onEdit={handleEdit}
-            >
-              {/* Use MessageContent component for markdown rendering */}
-              <MessageContent content={message.content} />
-            </MessageBubble>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Chat Input Area */}
-        <ChatInput
-          input={input}
-          setInput={(input: string) =>
-            dispatch({ type: 'SET_INPUT', payload: input })
-          }
-          sendMessage={sendMessage}
-          isLoading={isLoading}
-          editingMessage={editingMessage}
-          submitEdit={submitEdit}
-          cancelEdit={cancelEdit}
-          displayedPrompts={displayedPrompts}
-          handlePromptClick={handlePromptClick}
-          messagesLength={messages.length}
-          isGreetingMessage={
-            messages.length === 1 && Boolean(messages[0].isGreeting)
-          }
-        />
+          {/* Message Display Area */}
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar"
+            role="list"
+          >
+            {messages.map((message, index) => (
+              <MessageBubble
+                key={message.id || index}
+                message={message}
+                onRetry={handleRetry}
+                onDelete={handleDelete}
+                onPromptClick={handlePromptClick}
+                onEdit={handleEdit}
+              >
+                {/* Use MessageContent component for markdown rendering */}
+                <MessageContent content={message.content} />
+              </MessageBubble>
+            ))}
+            <div ref={messagesEndRef} />
+          </div>
+          {/* Chat Input Area */}
+          <ChatInput
+            input={input}
+            setInput={(input: string) =>
+              dispatch({ type: 'SET_INPUT', payload: input })
+            }
+            sendMessage={sendMessage}
+            isLoading={isLoading}
+            editingMessage={editingMessage}
+            submitEdit={submitEdit}
+            cancelEdit={cancelEdit}
+            displayedPrompts={displayedPrompts}
+            handlePromptClick={handlePromptClick}
+            messagesLength={messages.length}
+            isGreetingMessage={
+              messages.length === 1 && Boolean(messages[0].isGreeting)
+            }
+          />
+        </div>{' '}
+        {/* Closing the new wrapper div */}
       </div>
     </div>
   );

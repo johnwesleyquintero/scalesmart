@@ -54,8 +54,11 @@ function MessageStatusIndicator({
   isUser,
   onRetry,
 }: MessageStatusIndicatorProps) {
-  // Typing indicator for non-user messages that are sending
-  if (message.status === 'sending' && !isUser) {
+  // Typing indicator for non-user messages that are sending or receiving
+  if (
+    (message.status === 'sending' || message.status === 'receiving') &&
+    !isUser
+  ) {
     return <TypingIndicator />;
   }
 
