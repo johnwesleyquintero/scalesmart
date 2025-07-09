@@ -76,11 +76,13 @@ export async function POST(req: Request) {
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
+      console.error('GEMINI_API_KEY is not configured.');
       return NextResponse.json(
         { error: 'Gemini API key not configured' },
         { status: 500 },
       );
     }
+    console.log('GEMINI_API_KEY is configured.');
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -99,7 +101,7 @@ export async function POST(req: Request) {
         }
       } catch (error) {
         lastError = error;
-        console.warn(
+        console.error(
           `Failed to generate content with model ${modelName}:`,
           error,
         );
@@ -111,7 +113,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ generatedPrompt: generatedText });
     } else {
       console.error(
-        'All Gemini models failed to generate AI prompt:',
+        'All Gemini models failed to generate AI prompt. Last error:',
         lastError,
       );
       const errorMessage =
@@ -121,7 +123,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
   } catch (error: unknown) {
-    console.error('Error in generate AI prompt route:', error);
+    console.error('Caught unexpected error in generate AI prompt route:', error);
     const errorMessage =
       error instanceof Error
         ? error.message
