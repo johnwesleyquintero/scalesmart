@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
-import rehypeSanitize from 'rehype-sanitize';
+import rehypePrismPlus from 'rehype-prism-plus';
 import type { Element as HastElement } from 'hast';
 import CopyMarkdownButton from './CopyMarkdownButton';
 import MermaidDiagram from './MermaidDiagram';
@@ -128,7 +128,11 @@ const MessageContent: React.FC<MessageContentProps> = ({ content }) => {
     return (
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeRaw, rehypeSanitize, rehypeKatex]}
+        rehypePlugins={[
+          rehypeRaw,
+          rehypeKatex,
+          [rehypePrismPlus, { ignoreMissing: true }],
+        ]}
         components={markdownComponentsConfig}
       >
         {content}

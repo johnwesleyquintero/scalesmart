@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Message } from '@/lib/chat-message-utils'; // Assuming Message type is needed
-import { Loader2, Send } from 'lucide-react'; // Import Loader2 and Send icons
+import { Loader, Send } from 'lucide-react'; // Import Loader and Send icons
 
 interface ChatInputProps {
   input: string;
@@ -106,7 +106,7 @@ const ChatInput: React.FC<ChatInputProps> = ({
             disabled={!input.trim() || isLoading}
           >
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader className="h-4 w-4 animate-spin" />
             ) : (
               <Send className="h-4 w-4" />
             )}
