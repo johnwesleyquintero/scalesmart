@@ -40,16 +40,25 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // If the network request is successful, cache it
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
-          });
+          // If the network request is successful and it's a GET request, cache it
+          if (request.method === 'GET') {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
           return response;
         })
         .catch(() => {
-          // If the network fails, try to get it from the cache
-          return caches.match(request);
+          // If the network fails, try to get it from the cache (only for GET requests)
+          if (request.method === 'GET') {
+            return caches.match(request);
+          }
+          // For non-GET requests, if network fails, there's no cache fallback
+          return new Response(null, {
+            status: 503,
+            statusText: 'Service Unavailable',
+          });
         }),
     );
     return;
@@ -63,15 +72,17 @@ self.addEventListener('fetch', (event) => {
       }
 
       return fetch(request).then((response) => {
-        if (!response || response.status !== 200 || response.type !== 'basic') {
-          return response;
+        // Only cache successful GET requests
+        if (
+          request.method === 'GET' &&
+          response.status === 200 &&
+          response.type === 'basic'
+        ) {
+          const responseToCache = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(request, responseToCache);
+          });
         }
-
-        const responseToCache = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(request, responseToCache);
-        });
-
         return response;
       });
     }),
