@@ -368,16 +368,17 @@ const NOT_SPECIFIED = 'Not specified';
 
 const GEMINI_CONFIG = {
   MODELS: [
-    'gemini-2.5-flash-latest',
-    'gemini-2.0-flash-latest',
-    process.env.GEMINI_MODEL_NAME || 'gemini-1.5-flash-latest',
+    // prioritize the latest flash model due to its speed and cost-effectiveness.
+    'gemini-1.5-flash-latest',
+    // Fallback to the latest pro model if flash is unavailable.
     'gemini-1.5-pro-latest',
+    // A stable and reliable model as a further fallback.
     'gemini-pro',
   ],
-  MAX_OUTPUT_TOKENS: 1000,
-  TEMPERATURE: 0.85,
-  TOP_P: 0.9,
-  TOP_K: 40,
+  MAX_OUTPUT_TOKENS: 2048, // Increased for more detailed responses
+  TEMPERATURE: 0.75, // Slightly reduced for more focused and less random responses
+  TOP_P: 0.95, // Standard value
+  TOP_K: 50, // Increased for more diversity in the generated response
 };
 
 const MAX_RETRIES = 3;
