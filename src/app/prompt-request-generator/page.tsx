@@ -69,7 +69,7 @@ export default function PromptRequestGenerator() {
       <div className="bg-card p-6 rounded-lg shadow-xl border border-border/50 relative z-10">
         {/* Header Section */}
         <div className="text-center mb-10 space-y-3">
-          <h1 className="mb-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl leading-tight">
+          <h1 className="mb-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl leading-tight bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
             Prompt Request Generator
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
