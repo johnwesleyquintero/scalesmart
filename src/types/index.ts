@@ -54,8 +54,8 @@ export type BlogPost = {
   content?: string;
   /** Optional array of related posts. */
   relatedPosts?: BlogPost[];
-  /** Type of the blog post (e.g., 'blog', 'article', 'case-study'). */
-  type?: 'blog' | 'article' | 'case-study';
+  /** Type of the blog post (e.g., 'blog', 'article', 'case-study', 'playbook'). */
+  type?: 'blog' | 'article' | 'case-study' | 'playbook';
 };
 
 /**

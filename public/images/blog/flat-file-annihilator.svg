@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <!-- Define reusable assets and styles -->
+  <defs>
+    <!-- Gradient Background matching ScaleSmart style -->
+    <linearGradient id="purpleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8A2BE2"/>
+      <stop offset="100%" stop-color="#4D2C8D"/>
+    </linearGradient>
+
+    <!-- Arrowhead marker for flow lines -->
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="0" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#E0E0E0" />
+    </marker>
+
+    <!-- Reusable Text and Icon Styles -->
+    <style>
+      .section-title { font-family: 'Inter', sans-serif; font-size: 20px; font-weight: bold; fill: #4D2C8D; }
+      .block-title { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: bold; fill: #212121; }
+      .block-desc { font-family: 'Inter', sans-serif; font-size: 14px; fill: #666; }
+      .icon-primary-fill { fill: #8A2BE2; } /* Icon primary color */
+      .icon-primary-stroke { stroke: #8A2BE2; stroke-width: 1.5; fill: none; } /* Icon stroke color */
+      .icon-warning-fill { fill: #FFC107; } /* Warning icon fill color */
+      .icon-dark-fill { fill: #000; } /* Dark elements within icons */
+    </style>
+  </defs>
+
+  <!-- Background Layer -->
+  <rect x="0" y="0" width="1200" height="630" fill="url(#purpleGradient)"/>
+
+  <!-- Main Content Area Frame -->
+  <rect x="50" y="50" width="1100" height="530" fill="#FFFFFF" opacity="0.9" rx="15"/>
+
+  <!-- Main Title and Subtitle -->
+  <text x="600" y="95" font-family="Inter, sans-serif" font-size="38" font-weight="bold" fill="#212121" text-anchor="middle">
+    The Flat File Annihilator: Mastering Amazon Bulk Operations
+  </text>
+  <text x="600" y="125" font-family="Inter, sans-serif" font-size="18" fill="#555" text-anchor="middle">
+    From Chaos to Command with Precision Tools
+  </text>
+
+  <!-- Section 1: Template Anatomy -->
+  <g transform="translate(100, 180)">
+    <text x="0" y="0" class="section-title">1. Template Anatomy: The Weapon</text>
+
+    <!-- Block 1: Instructions Tab -->
+    <rect x="0" y="30" width="300" height="120" rx="8" fill="#F8F8F8" stroke="#E0E0E0" stroke-width="1"/>
+    <text x="150" y="65" class="block-title" text-anchor="middle">Instructions Tab</text>
+    <text x="150" y="85" class="block-desc" text-anchor="middle">The Codex: Rules &amp; Enums</text>
+    <!-- Icon: Book -->
+    <g transform="translate(25, 45)">
+      <path class="icon-primary-fill" d="M0 0 H20 V60 H0 Z M20 0 V60 H10 V0 Z"/>
+      <line x1="0" y1="5" x2="20" y2="5" class="icon-primary-stroke"/>
+    </g>
+
+    <!-- Block 2: Data Definitions Tab -->
+    <rect x="0" y="170" width="300" height="120" rx="8" fill="#F8F8F8" stroke="#E0E0E0" stroke-width="1"/>
+    <text x="150" y="205" class="block-title" text-anchor="middle">Data Definitions Tab</text>
+    <text x="150" y="225" class="block-desc" text-anchor="middle">The Schema: Validations</text>
+    <!-- Icon: Gears -->
+    <g transform="translate(35, 220)">
+      <circle r="15" class="icon-primary-stroke"/>
+      <line x1="-15" y1="0" x2="15" y2="0" class="icon-primary-stroke"/>
+      <line x1="0" y1="-15" x2="0" y2="15" class="icon-primary-stroke"/>
+      <circle r="4" class="icon-primary-fill"/>
+    </g>
+
+    <!-- Block 3: Template Tab -->
+    <rect x="0" y="310" width="300" height="120" rx="8" fill="#F8F8F8" stroke="#E0E0E0" stroke-width="1"/>
+    <text x="150" y="345" class="block-title" text-anchor="middle">Template Tab</text>
+    <text x="150" y="365" class="block-desc" text-anchor="middle">The Battlefield: Your Data</text>
+    <!-- Icon: Spreadsheet -->
+    <g transform="translate(20, 335)">
+      <rect x="0" y="0" width="30" height="20" class="icon-primary-fill"/>
+      <rect x="0" y="25" width="30" height="20" class="icon-primary-stroke"/>
+      <line x1="0" y1="10" x2="30" y2="10" class="icon-primary-stroke"/>
+      <line x1="15" y1="0" x2="15" y2="45" class="icon-primary-stroke"/>
+    </g>
+  </g>
+
+  <!-- Section 2: Modes of Engagement -->
+  <g transform="translate(450, 180)">
+    <text x="0" y="0" class="section-title">2. Modes of Engagement</text>
+
+    <!-- Block 1: Update (Full) -->
+    <rect x="0" y="30" width="300" height="120" rx="8" fill="#F8F8F8" stroke="#E0E0E0" stroke-width="1"/>
+    <text x="150" y="65" class="block-title" text-anchor="middle">Update (Full)</text>
+    <text x="150" y="85" class="block-desc" text-anchor="middle">Sledgehammer: Overwrite All</text>
+    <!-- Icon: Circular Arrow -->
+    <g transform="translate(35, 50)">
+      <path class="icon-primary-stroke" d="M0 0 A15 15 0 1 1 0 30"/>
+      <path class="icon-primary-fill" d="M0 30 L5 25 L-5 25 Z"/>
+    </g>
+
+    <!-- Block 2: Partial Update -->
+    <rect x="0" y="170" width="300" height="120" rx="8" fill="#F8F8F8" stroke="#E0E0E0" stroke-width="1"/>
+    <text x="150" y="205" class="block-title" text-anchor="middle">Partial Update</text>
+    <text x="150" y="225" class="block-desc" text-anchor="middle">Scalpel: Update Specific Fields</text>
+    <!-- Icon: Scalpel -->
+    <g transform="translate(25, 195)">
+      <path class="icon-primary-fill" d="M0 0 L15 15 L10 25 L-5 10 Z"/>
+      <line x1="10" y1="25" x2="20" y2="35" class="icon-primary-stroke"/>
+    </g>
+
+    <!-- Block 3: Delete -->
+    <rect x="0" y="310" width="300" height="120" rx="8" fill="#F8F8F8" stroke="#E0E0E0" stroke-width="1"/>
+    <text x="150" y="345" class="block-title" text-anchor="middle">Delete</text>
+    <text x="150" y="365" class="block-desc" text-anchor="middle">Annihilate: Remove ASIN</text>
+    <!-- Icon: Trash Can -->
+    <g transform="translate(25, 335)">
+      <rect x="0" y="0" width="20" height="10" class="icon-primary-fill"/>
+      <path class="icon-primary-fill" d="M-5 10 H25 L23 35 H-3 Z"/>
+      <line x1="5" y1="15" x2="5" y2="30" class="icon-primary-stroke"/>
+      <line x1="15" y1="15" x2="15" y2="30" class="icon-primary-stroke"/>
+    </g>
+  </g>
+
+  <!-- Section 3: Debugging Protocol -->
+  <g transform="translate(800, 180)">
+    <text x="0" y="0" class="section-title">3. Debugging Protocol</text>
+
+    <!-- Block 1: Processing Report -->
+    <rect x="0" y="30" width="300" height="120" rx="8" fill="#F8F8F8" stroke="#E0E0E0" stroke-width="1"/>
+    <text x="150" y="65" class="block-title" text-anchor="middle">Processing Report</text>
+    <text x="150" y="85" class="block-desc" text-anchor="middle">The Battle Report</text>
+    <!-- Icon: Document with exclamation -->
+    <g transform="translate(25, 45)">
+      <rect x="0" y="0" width="25" height="40" class="icon-primary-fill"/>
+      <circle cx="20" cy="-5" r="10" class="icon-warning-fill"/> <!-- Yellow circle for warning -->
+      <text x="20" y="-1" font-family="Inter, sans-serif" font-size="14" font-weight="bold" class="icon-dark-fill" text-anchor="middle">!</text>
+    </g>
+
+    <!-- Block 2: Error Codes -->
+    <rect x="0" y="170" width="300" height="120" rx="8" fill="#F8F8F8" stroke="#E0E0E0" stroke-width="1"/>
+    <text x="150" y="205" class="block-title" text-anchor="middle">Error Codes (e.g., 8541)</text>
+    <text x="150" y="225" class="block-desc" text-anchor="middle">Error Coordinates</text>
+    <!-- Icon: Warning Triangle -->
+    <g transform="translate(35, 190)">
+      <polygon points="0 0, 15 30, -15 30" class="icon-warning-fill"/>
+      <rect x="-2" y="10" width="4" height="10" class="icon-dark-fill"/>
+      <circle cx="0" cy="25" r="2" class="icon-dark-fill"/>
+    </g>
+
+    <!-- Block 3: Automated Lookup -->
+    <rect x="0" y="310" width="300" height="120" rx="8" fill="#F8F8F8" stroke="#E0E0E0" stroke-width="1"/>
+    <text x="150" y="345" class="block-title" text-anchor="middle">Automated Lookup</text>
+    <text x="150" y="365" class="block-desc" text-anchor="middle">Instant Remedy</text>
+    <!-- Icon: Magnifying Glass over database -->
+    <g transform="translate(30, 355)">
+      <circle r="10" class="icon-primary-stroke"/>
+      <line x1="8" y1="7" x2="20" y2="20" class="icon-primary-stroke"/>
+      <rect x="-10" y="-20" width="30" height="10" class="icon-primary-fill"/>
+      <rect x="-10" y="-7" width="30" height="10" class="icon-primary-fill"/>
+    </g>
+  </g>
+
+  <!-- Arrows for flow between main sections -->
+  <line x1="400" y1="310" x2="440" y2="310" stroke="#E0E0E0" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <line x1="750" y1="310" x2="790" y2="310" stroke="#E0E0E0" stroke-width="2" marker-end="url(#arrowhead)"/>
+
+  <!-- ScaleSmart Branding at bottom -->
+  <text x="600" y="600" font-family="Inter, sans-serif" font-size="14" fill="#FFFFFF" text-anchor="middle">
+    Powered by ScaleSmart.dev
+  </text>
+</svg>

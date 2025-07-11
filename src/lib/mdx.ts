@@ -29,7 +29,10 @@ const blogMatterDataSchema = z.object({
   tags: z.array(z.string()).optional(),
   readingTime: z.string().optional(),
   author: z.string().optional(),
-  type: z.enum(['blog', 'article', 'case-study']).optional().default('blog'),
+  type: z
+    .enum(['blog', 'article', 'case-study', 'playbook'])
+    .optional()
+    .default('blog'),
 });
 
 const docMatterDataSchema = z.object({
