@@ -42,7 +42,7 @@ An Amazon Flat File is not just a spreadsheet; it's a multi-tabbed command cente
       - The **Unique Identifier** (e.g., `item-sku` or `External Product ID`). This is what Amazon's system reads.
       - The **Accepted Values / Example** (e.g., `sku` or `Example: X000000000`).
 
-> **The Hayabusa's Edge (The Unspoken Rule):**
+> **The Specialist's Edge (The Unspoken Rule):**
 >
 > Your template is a living document. **Never use an old template.** Always download the freshest version directly from Seller Central before _every single upload_. Amazon's schemas can change without warning. An outdated template is a guaranteed error, no matter how perfect your data is. Assume every template you downloaded yesterday is already obsolete.
 
@@ -62,7 +62,7 @@ An Amazon Flat File is not just a spreadsheet; it's a multi-tabbed command cente
 | **`Delete`**              | Completely removes the ASIN and all associated data from your inventory and catalog.                                    | Permanently delisting a product.                                             |
 ```
 
-> **The Hayabusa's Edge (The Unspoken Rule):**
+> **The Specialist's Edge (The Unspoken Rule):**
 >
 > **Always prefer `PartialUpdate`** unless you explicitly intend to overwrite the entire listing. `PartialUpdate` is your precision scalpel; `Update` (Full) is a sledgehammer. The vast majority of day-to-day operations can and should be done with `PartialUpdate`. This minimizes risk and prevents accidental deletion of existing, correct data.
 
@@ -82,7 +82,7 @@ Common Error Codes and their immediate remedies:
 - **Error 90000-series (Invalid Value):** You entered a value not allowed for that field (e.g., "red" instead of "Red").
   - **Remedy:** Consult the 'Valid Values' list in the 'Data Definitions' or 'Instructions' tab for the exact, case-sensitive accepted value.
 
-> **The Hayabusa's Edge (The Unspoken Rule):**
+> **The Specialist's Edge (The Unspoken Rule):**
 >
 > Don't manually copy-paste error messages. After every upload, download the **Processing Report** and, if you have a custom system, automatically parse the `Error Code` column. The pattern of error codes is your **diagnostic signature**. Build a simple lookup table that maps common error codes to their specific remedies. This turns a manual troubleshooting nightmare into an automated, one-click solution. This is how you reclaim hours of your life.
 
