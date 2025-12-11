@@ -137,3 +137,4 @@ __mocks__/
 .env*.local
 
 .vercel
+.issues.md
