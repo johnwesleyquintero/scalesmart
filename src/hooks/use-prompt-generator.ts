@@ -15,7 +15,7 @@ import {
   SavedRequest,
 } from '@/lib/prompt-generator/types';
 import { generatePrompt } from '@/lib/prompt-generator/utils';
-import { getCacheItem, setCacheItem } from '@/lib/indexeddb-service';
+import { getCacheItem, setCacheItem } from '@/lib/localstorage-service';
 
 // Auto-save constants
 const AUTOSAVE_DEBOUNCE_MS = 1000;
