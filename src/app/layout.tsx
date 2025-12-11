@@ -10,8 +10,7 @@ import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { metadata as metadataConfig } from './metadata';
-import { getServerSession } from 'next-auth'; // Import getServerSession
-import { authOptions } from '@/lib/auth'; // Import your authOptions
+// Authentication removed - using simplified approach
 
 const inter = Inter({
   subsets: ['latin'],
@@ -33,21 +32,17 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession(authOptions); // Fetch session data
-
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none">
         <div className="relative flex min-h-screen flex-col">
           <ErrorBoundary>
-            <ClientProviders session={session}>
-              {' '}
-              {/* Pass session to ClientProviders */}
+            <ClientProviders>
               <Header />
               <main className="flex-1 w-full px-4 sm:px-6 md:px-8">
                 {children}

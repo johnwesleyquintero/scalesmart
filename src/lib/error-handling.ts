@@ -1,22 +1,6 @@
 import { toast } from '@/app/hooks/use-toast.tsx';
-import * as Sentry from '@sentry/react';
 
 type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
-
-const mapSeverityToSentry = (severity: ErrorSeverity): Sentry.SeverityLevel => {
-  switch (severity) {
-    case 'critical':
-      return 'fatal';
-    case 'high':
-      return 'error';
-    case 'medium':
-      return 'warning';
-    case 'low':
-      return 'info';
-    default:
-      return 'error';
-  }
-};
 
 interface ErrorLogEntry {
   message: string;
@@ -65,18 +49,12 @@ export const logError = ({
     variant: 'destructive',
   });
 
-  // In production, send to error tracking service (Sentry)
+  // In production, log to console for monitoring
   if (process.env.NODE_ENV === 'production') {
-    Sentry.captureException(error, {
-      contexts: {
-        error: {
-          message,
-          component,
-          severity,
-          context,
-        },
-      },
-      level: mapSeverityToSentry(severity),
+    console.error(`[PRODUCTION ERROR] [${component}] ${message}`, {
+      error,
+      context,
+      severity,
     });
   }
 };

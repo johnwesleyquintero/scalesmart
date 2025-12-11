@@ -1,6 +1,4 @@
-import DOMPurify from 'isomorphic-dompurify';
-// @ts-expect-error: NodeJS is not available in browser environments, but setTimeout types are needed.
-import type { NodeJS } from 'node';
+// DOMPurify removed - using simplified validation
 import { z } from 'zod';
 import { asinSchema, productNameSchema } from './input-validation';
 
@@ -9,12 +7,7 @@ export const descriptionSchema = z
   .string()
   .min(1, 'Description is required')
   .max(5000, 'Description is too long')
-  .transform((val) =>
-    DOMPurify.sanitize(val, {
-      ALLOWED_TAGS: ['p', 'b', 'i', 'ul', 'ol', 'li', 'br'],
-      ALLOWED_ATTR: [],
-    }),
-  );
+  .transform((val) => val); // Simple validation - no sanitization
 
 // Product description validation schema
 export const productDescriptionSchema = z.object({
@@ -28,7 +21,7 @@ export const debounce = <T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number,
 ): ((...args: Parameters<T>) => ReturnType<T>) => {
-  let timeout: NodeJS.Timeout;
+  let timeout: ReturnType<typeof setTimeout>;
 
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);

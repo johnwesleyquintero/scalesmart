@@ -17,20 +17,7 @@ export function trackEvent(event: AppEvent) {
     });
   }
 
-  // Sync with Redis for real-time dashboard updates
-  if (process.env.KV_URL) {
-    fetch(`${process.env.KV_REST_API_URL}/analytics/event`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${process.env.KV_REST_API_TOKEN}`,
-      },
-      body: JSON.stringify({
-        timestamp: Date.now(),
-        ...event,
-      }),
-    }).catch(console.error);
-  }
+  // Redis sync removed - using simplified analytics
 }
 
 export function initAnalytics() {

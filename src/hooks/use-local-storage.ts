@@ -1,5 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getItem, setItem, removeCacheItem } from '@/lib/indexeddb-service';
+import {
+  getCacheItem,
+  setCacheItem,
+  removeCacheItem,
+} from '@/lib/localstorage-service';
 
 type UseLocalStorageResult<T> = [
   T | undefined,
@@ -16,31 +20,27 @@ export function useLocalStorage<T>(
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const loadFromIndexedDB = async () => {
+    const loadFromLocalStorage = async () => {
       try {
         if (typeof window !== 'undefined') {
-          const storedDataFromIndexedDB = await getItem<T>('cache', key);
+          const storedData = await getCacheItem<T>(key);
 
-          setStoredValue(storedDataFromIndexedDB ?? initialValue);
-          if (
-            initialValue !== undefined &&
-            storedDataFromIndexedDB === undefined
-          ) {
-            await setItem('cache', { key, value: initialValue });
+          setStoredValue(storedData ?? initialValue);
+          if (initialValue !== undefined && storedData === undefined) {
+            await setCacheItem(key, initialValue);
           }
         }
       } catch (error) {
         console.error(
-          `[useLocalStorage] Error loading from IndexedDB for key "${key}":`,
+          `[useLocalStorage] Error loading from localStorage for key "${key}":`,
           error,
         );
-        // Consider a more sophisticated error handling strategy here, e.g., retry, fallback, user notification.
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadFromIndexedDB();
+    loadFromLocalStorage();
   }, [key, initialValue]);
 
   const setValue = useCallback(
@@ -49,10 +49,12 @@ export function useLocalStorage<T>(
         value instanceof Function ? value(storedValue) : value;
       if (typeof window !== 'undefined') {
         try {
-          setItem('cache', { key, value: valueToStore });
+          setCacheItem(key, valueToStore);
         } catch (error) {
-          console.error(`Error saving to IndexedDB for key "${key}":`, error);
-          // Consider a more sophisticated error handling strategy here, e.g., retry, fallback, user notification.
+          console.error(
+            `Error saving to localStorage for key "${key}":`,
+            error,
+          );
         }
       }
       setStoredValue(valueToStore);

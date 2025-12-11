@@ -66,6 +66,10 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000'],
     },
+    // Disable problematic turbopack rules
+    turbopack: {
+      rules: {},
+    },
   },
   // Compiler options
   compiler: {
@@ -145,9 +149,7 @@ const nextConfig = {
             lighthouse: 'commonjs lighthouse',
             puppeteer: 'commonjs puppeteer',
             playwright: 'commonjs playwright',
-            '@sentry/node': 'commonjs @sentry/node',
-            '@sentry/react': 'commonjs @sentry/react',
-            '@sentry/tracing': 'commonjs @sentry/tracing',
+
             newrelic: 'commonjs newrelic',
             'datadog-lambda-js': 'commonjs datadog-lambda-js',
           }
@@ -295,4 +297,13 @@ const mdxConfig = {
   },
 };
 
-export default withMDX(mdxConfig)(nextConfig);
+// Add turbopack configuration to the main config
+const finalConfig = withMDX(mdxConfig)(nextConfig);
+
+// Override any problematic turbopack rules added by MDX plugin
+if (finalConfig.experimental?.turbopack?.rules) {
+  // Clear all turbopack rules to avoid conflicts
+  finalConfig.experimental.turbopack.rules = {};
+}
+
+export default finalConfig;

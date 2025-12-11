@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 interface EmailPayload {
@@ -19,28 +18,16 @@ export async function POST(request: Request) {
     );
   }
 
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: 587,
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
+  // Email functionality disabled - using console log for now
+  console.log('Contact form submission:', {
+    from: `${body.name} <${body.email}>`,
+    to: process.env.CONTACT_EMAIL,
+    subject: `New message from ${body.name}`,
+    message: body.message,
   });
 
-  try {
-    await transporter.sendMail({
-      from: `${body.name} <${body.email}>`,
-      to: process.env.CONTACT_EMAIL,
-      subject: `New message from ${body.name}`,
-      text: body.message,
-      html: `<p>${body.message}</p>`,
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Email sending error:', error);
-    return NextResponse.json(handleApiError(error), { status: 500 });
-  }
+  return NextResponse.json({
+    success: true,
+    message: 'Contact form submission logged (email functionality disabled)',
+  });
 }

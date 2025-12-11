@@ -35,7 +35,6 @@ The project includes API routes for various functionalities, such as:
 - Downloads
 - Module Progress
 - Prohibited Keywords
-- Redis
 - Search
 
 Detailed API documentation can be found in the `src/app/content/docs/api-*.mdx` files.
@@ -46,10 +45,8 @@ Detailed API documentation can be found in the `src/app/content/docs/api-*.mdx` 
 - TypeScript
 - Tailwind CSS
 - Supabase
-- Redis
-- Upstash
 - Vercel
-- IndexedDB (Used for local data storage in several features)
+- LocalStorage (Used for local data storage in several features)
 
 ## Installation
 

@@ -19,8 +19,17 @@
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import chalk from 'chalk';
 import { CHECKS } from './code-checks.config.mjs'; // Assumed to be CheckConfig[]
+
+// Simple console color replacements for chalk
+const colors = {
+  green: (text) => `\x1b[32m${text}\x1b[0m`,
+  red: (text) => `\x1b[31m${text}\x1b[0m`,
+  yellow: (text) => `\x1b[33m${text}\x1b[0m`,
+  blue: (text) => `\x1b[34m${text}\x1b[0m`,
+  bold: (text) => `\x1b[1m${text}\x1b[0m`,
+  dim: (text) => `\x1b[2m${text}\x1b[0m`,
+};
 
 const execPromise = promisify(exec);
 
@@ -113,7 +122,7 @@ function parseLinterOutput(output) {
  */
 async function runCommand(check) {
   const { name, command } = check;
-  console.log(chalk.blue(`▶ Running: ${name}...`));
+  console.log(colors.blue(`▶ Running: ${name}...`));
 
   try {
     const { stdout, stderr } = await execPromise(command);
@@ -165,26 +174,26 @@ function displayHumanReadableOutput(results) {
   const failedChecks = results.filter((r) => !r.success);
   const passedChecks = results.filter((r) => r.success);
 
-  console.log(chalk.bold('\n--- Code Quality Check Summary ---'));
+  console.log(colors.bold('\n--- Code Quality Check Summary ---'));
 
   // Display passed checks and any warnings they produced
   passedChecks.forEach((check) => {
-    console.log(chalk.green(`✓ ${check.name} passed`));
+    console.log(colors.green(`✓ ${check.name} passed`));
     if (check.stderr && check.stderr.trim()) {
-      console.log(chalk.yellow(`  ⚠ Warnings:`));
+      console.log(colors.yellow(`  ⚠ Warnings:`));
       // Indent warnings for readability
-      console.log(chalk.dim(check.stderr.trim().replace(/^/gm, '    ')));
+      console.log(colors.dim(check.stderr.trim().replace(/^/gm, '    ')));
     }
   });
 
   // Display failed checks (name only)
   failedChecks.forEach((check) => {
-    console.error(chalk.red(`✗ ${check.name} failed`));
+    console.error(colors.red(`✗ ${check.name} failed`));
   });
 
   // If there are failures, show the consolidated AI prompt with all details
   if (failedChecks.length > 0) {
-    console.error(chalk.bold.red('\nSome checks failed. See details below.'));
+    console.error(colors.bold('\nSome checks failed. See details below.'));
     const prompt = `
 The following code quality checks failed. Your task is to provide the necessary code changes or commands to fix these issues.
 
@@ -203,11 +212,11 @@ ${check.combinedOutput.trim()}
   .join('')}
 Please analyze the error output for each failed check and provide a plan or code patch to resolve the problems.
 `;
-    console.log(chalk.bold.cyan('\n--- AI Task Prompt for Failed Checks ---'));
+    console.log(colors.bold('\n--- AI Task Prompt for Failed Checks ---'));
     console.log(prompt);
-    console.log(chalk.bold.cyan('------------------------------------'));
+    console.log(colors.bold('------------------------------------'));
   } else {
-    console.log(chalk.bold.green('\n✨ All checks passed successfully!'));
+    console.log(colors.bold('\n✨ All checks passed successfully!'));
   }
 }
 
@@ -242,7 +251,7 @@ async function main() {
   const useJsonOutput = process.argv.includes('--json');
 
   if (!useJsonOutput) {
-    console.log(chalk.bold('\nRunning Code Quality Checks...'));
+    console.log(colors.bold('\nRunning Code Quality Checks...'));
   }
 
   try {
@@ -261,7 +270,7 @@ async function main() {
 
     process.exit(allPassed ? EXIT_CODES.SUCCESS : EXIT_CODES.CHECK_FAILED);
   } catch (error) {
-    console.error(chalk.bold.red('\nAn unexpected error occurred:'));
+    console.error(colors.bold('\nAn unexpected error occurred:'));
     console.error(error);
     process.exit(EXIT_CODES.UNEXPECTED_ERROR);
   }

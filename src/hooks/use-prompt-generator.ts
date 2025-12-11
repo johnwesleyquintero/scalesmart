@@ -129,7 +129,7 @@ export const usePromptGenerator = () => {
         } else if (loadedData) {
           // If data exists but is not an array, log an error and ignore it.
           console.error(
-            'Loaded saved requests from IndexedDB is not an array:',
+            'Loaded saved requests from localStorage is not an array:',
             loadedData,
           );
           toast.warning(
@@ -137,7 +137,7 @@ export const usePromptGenerator = () => {
           );
         }
       } catch (error) {
-        console.error('Failed to load saved requests from IndexedDB', error);
+        console.error('Failed to load saved requests from localStorage', error);
         toast.error('Could not load saved requests.');
       }
     };
@@ -210,7 +210,7 @@ export const usePromptGenerator = () => {
         }
         await setCacheItem('savedPromptRequests', savedRequests);
       } catch (error) {
-        console.error('Failed to save requests to IndexedDB', error);
+        console.error('Failed to save requests to localStorage', error);
         toast.error('Could not save requests.');
       }
     };

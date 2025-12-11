@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/navigation-menu';
 import { cn } from '@/lib/utils';
 import { Menu, Moon, Sun, X } from 'lucide-react'; // Removed FileText, Loader2
-import { signOut, useSession } from 'next-auth/react'; // Added signOut for potential future use or logout
+// Authentication removed - using simplified approach
 import { useScroll } from '@/hooks/use-scroll';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
@@ -45,7 +45,7 @@ interface NavItemChild {
 }
 
 export default function Header() {
-  const { data: session } = useSession();
+  // const { data: session } = useSession(); // Authentication removed
   const scrolled = useScroll(50);
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);

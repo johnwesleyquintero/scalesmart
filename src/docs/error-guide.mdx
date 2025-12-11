@@ -20,7 +20,7 @@ All errors within the application should be reported using the `logError` utilit
 
 - Logs the error to the console (in development).
 - Displays a user-friendly toast notification to the user.
-- Captures the error for reporting services (like Sentry) in production environments.
+- Logs the error to console for monitoring in production environments.
 
 When calling `logError`, you can specify:
 
@@ -30,9 +30,9 @@ When calling `logError`, you can specify:
 - `error`: The actual error object (e.g., `new Error('...')`).
 - `context`: Additional relevant data for debugging.
 
-### Error Reporting Service (Sentry)
+### Error Monitoring
 
-In production, errors captured by `logError` are sent to [Sentry](https://sentry.io/) for detailed tracking and analysis. This helps developers monitor application health and quickly identify issues.
+In production, errors captured by `logError` are logged to the console for monitoring and debugging purposes. This helps developers monitor application health and quickly identify issues.
 
 ## Common Error Categories
 
@@ -75,7 +75,7 @@ API errors are handled centrally using the `handleApiError` utility function (fr
   - **Troubleshooting**: Check network connection, inspect browser console for network errors, use tools like Postman/Insomnia to test API endpoints directly.
 - **Server-Side Errors (5xx)**:
   - **Cause**: Unexpected errors on the server, database issues, or unhandled exceptions.
-  - **Troubleshooting**: Check server logs (via Sentry or direct log access), ensure all necessary services are running, review recent code changes.
+  - **Troubleshooting**: Check server logs, ensure all necessary services are running, review recent code changes.
 - **Rate Limiting (429 Too Many Requests)**:
   - **Cause**: Exceeding the allowed number of requests to an external API within a given timeframe.
   - **Troubleshooting**: Implement retry mechanisms with exponential backoff, optimize API calls to reduce frequency, check API documentation for rate limit policies.

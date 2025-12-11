@@ -5,7 +5,7 @@ import Papa from 'papaparse'; // Import Papa Parse
 // Placeholder interfaces for types that were in dashboard-studio
 export enum DataSourceType {
   LocalCSV = 'LocalCSV',
-  IndexedDB = 'IndexedDB',
+  LocalStorage = 'LocalStorage',
   Custom = 'Custom',
 }
 
@@ -18,7 +18,7 @@ export interface DataSourceConnection {
 
 export interface DataQuery {
   connectionId: string;
-  query: string; // Assuming query is a string for CSV content or IndexedDB store name
+  query: string; // Assuming query is a string for CSV content or LocalStorage key
   transformations?: DataTransformation[];
 }
 
@@ -43,7 +43,7 @@ export interface DataTransformation {
   config: Record<string, unknown>;
 }
 
-// For this application, we will focus on local data sources like IndexedDB or CSV imports.
+// For this application, we will focus on local data sources like LocalStorage or CSV imports.
 // Cloud-based data connectors (Snowflake, Kafka, Kinesis) are removed to align with the
 // goal of creating functional local tools without external database dependencies.
 class LocalCSVConnector implements BaseConnector {
@@ -108,34 +108,32 @@ class LocalCSVConnector implements BaseConnector {
   }
 }
 
-import { getAllItems } from './indexeddb-service'; // Import IndexedDB service functions
+import { getCacheItem } from './localstorage-service'; // Import localStorage service functions
 
-class IndexedDBConnector implements BaseConnector {
+class LocalStorageConnector implements BaseConnector {
   async connect(connectionDetails: Record<string, unknown>): Promise<void> {
-    console.log('Connecting to IndexedDB...', connectionDetails);
-    // No explicit connection needed for IndexedDB, it's always available
+    console.log('Connecting to LocalStorage...', connectionDetails);
     return Promise.resolve();
   }
 
   async disconnect(): Promise<void> {
-    console.log('Disconnecting from IndexedDB...');
+    console.log('Disconnecting from LocalStorage...');
     return Promise.resolve();
   }
 
   async executeQuery(query: DataQuery): Promise<QueryResult> {
-    console.log('Executing IndexedDB query:', query);
-    // In a real application, this would involve querying IndexedDB
-    // The query.query is expected to be the store name (string)
+    console.log('Executing LocalStorage query:', query);
+    // The query.query is expected to be the localStorage key (string)
     if (typeof query.query !== 'string' || !query.query.trim()) {
       throw new Error(
-        'IndexedDB query must be a non-empty string representing the store name.',
+        'LocalStorage query must be a non-empty string representing the key.',
       );
     }
 
     try {
-      const items = await getAllItems<Record<string, unknown>>(query.query);
+      const items = await getCacheItem<Record<string, unknown>[]>(query.query);
 
-      if (items.length === 0) {
+      if (!items || items.length === 0) {
         return { columns: [], rows: [] };
       }
 
@@ -150,9 +148,9 @@ class IndexedDBConnector implements BaseConnector {
 
       return { columns, rows };
     } catch (error) {
-      console.error(`Error querying IndexedDB store "${query.query}":`, error);
+      console.error(`Error querying LocalStorage key "${query.query}":`, error);
       throw new Error(
-        `Failed to query IndexedDB: ${error instanceof Error ? error.message : String(error)}`,
+        `Failed to query LocalStorage: ${error instanceof Error ? error.message : String(error)}`,
       );
     }
   }
@@ -203,8 +201,8 @@ export const DataConnectorService = {
       case DataSourceType.LocalCSV:
         connector = new LocalCSVConnector();
         break;
-      case DataSourceType.IndexedDB:
-        connector = new IndexedDBConnector();
+      case DataSourceType.LocalStorage:
+        connector = new LocalStorageConnector();
         break;
       default:
         throw new Error(`Unsupported data source type: ${connection.type}`);
@@ -312,7 +310,7 @@ export const DataConnectorService = {
   // Add methods for listing available data sources, managing connections, etc.
   listAvailableDataSources(): DataSourceType[] {
     // Return the list of supported local data source types
-    return [DataSourceType.LocalCSV, DataSourceType.IndexedDB];
+    return [DataSourceType.LocalCSV, DataSourceType.LocalStorage];
   },
 
   listActiveConnections(): DataSourceConnection[] {
