@@ -100,7 +100,7 @@ The project leverages several architectural patterns facilitated by the Next.js 
 - **API Routes:** Implements API endpoints within `src/app/api/` for server-side logic and data fetching.
 - **Data Fetching:** Employs a mix of server-side data fetching (in Server Components) and client-side fetching (using React Query or similar patterns) depending on the data's nature and where it's needed.
 - **Local State Management:** Utilizes React Context API (`src/context/`) and custom hooks (`src/hooks/`) for managing local state within features.
- - **IndexedDB for Local Data:** IndexedDB (`src/lib/indexeddb/`) is used for select modules to provide persistent local storage and reduce reliance on the backend.
+- **IndexedDB for Local Data:** IndexedDB (`src/lib/indexeddb/`) is used for select modules to provide persistent local storage and reduce reliance on the backend.
 
 ## 6. Common Utilities and Helper Functions
 
@@ -118,5 +118,3 @@ Developers are encouraged to explore this directory before writing new utility f
 ## 7. Feature/Module Development Notes
 
 This section provides brief notes on developing specific modules within the platform. For detailed implementation, refer to the respective directories in `src/app/`.
-
- 

@@ -1,14 +1,47 @@
 // src/lib/data-connector-service.ts
 
 import Papa from 'papaparse'; // Import Papa Parse
-import {
-  DataSourceConnection,
-  DataSourceType,
-  DataQuery,
-  QueryResult,
-  BaseConnector,
-  DataTransformation,
-} from './../app/dashboard-studio/data-source-types';
+
+// Placeholder interfaces for types that were in dashboard-studio
+export enum DataSourceType {
+  LocalCSV = 'LocalCSV',
+  IndexedDB = 'IndexedDB',
+  Custom = 'Custom',
+}
+
+export interface DataSourceConnection {
+  id: string;
+  name: string;
+  type: DataSourceType;
+  connectionDetails: Record<string, unknown>;
+}
+
+export interface DataQuery {
+  connectionId: string;
+  query: string; // Assuming query is a string for CSV content or IndexedDB store name
+  transformations?: DataTransformation[];
+}
+
+export interface QueryResult {
+  columns: { name: string; type: string }[];
+  rows: unknown[][];
+}
+
+export interface BaseConnector {
+  connect(connectionDetails: Record<string, unknown>): Promise<void>;
+  disconnect(): Promise<void>;
+  executeQuery(query: DataQuery): Promise<QueryResult>;
+  subscribe?(
+    query: DataQuery,
+    onData: (data: QueryResult) => void,
+    onError: (error: unknown) => void,
+  ): () => void;
+}
+
+export interface DataTransformation {
+  type: string; // e.g., 'filter', 'aggregate'
+  config: Record<string, unknown>;
+}
 
 // For this application, we will focus on local data sources like IndexedDB or CSV imports.
 // Cloud-based data connectors (Snowflake, Kafka, Kinesis) are removed to align with the

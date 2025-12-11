@@ -1,9 +1,13 @@
 import { QuizResult } from '../lib/types';
-import { WidgetConfig } from '../app/dashboard-studio/widget-types'; // Import WidgetConfig
 import { Layout } from 'react-grid-layout'; // Import Layout from react-grid-layout
 
 // Define Category interface
 //
+
+export interface WidgetConfig {
+  id: string;
+  // Add other properties of WidgetConfig if they are used in this file
+}
 
 export interface Dashboard {
   id: string;

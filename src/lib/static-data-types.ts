@@ -1,5 +1,3 @@
- 
-
 export interface StaticDataTypes {
   'case-studies': CaseStudy[];
   blog: BlogPost[];
@@ -18,8 +16,6 @@ export interface AcosData {
   clicks: number;
   impressions: number;
 }
-
- 
 
 export interface ChangelogEntry {
   version: string;

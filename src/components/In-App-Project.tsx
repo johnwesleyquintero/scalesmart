@@ -22,14 +22,13 @@ const InAppProjects = () => {
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
           <Badge variant="secondary" className="mb-4 text-sm">
-            Free Mini App Tools
+            Native App Tools
           </Badge>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl mb-3">
-            Explore Our Core Capabilities
+            Explore Utility Tools
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Powerful tools and resources designed to help you succeed and grow
-            your ventures.
+            Practical tools to help you work smarter and move faster.
           </p>
         </div>
 

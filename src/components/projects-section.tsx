@@ -147,7 +147,7 @@ export default function ProjectsSection({
             GitHub Projects
           </h2>
           <p className="text-xl text-muted-foreground">
-            A showcase of my recent public repositories on GitHub.
+            My recent public repositories on GitHub.
           </p>
         </div>
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>

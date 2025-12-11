@@ -76,7 +76,6 @@ export default function PromptRequestGenerator() {
             Create structured prompts for any assistance requests to streamline
             your workflow.
           </p>
-          
         </div>
         {/* Full-Width Layout */}
         <div className="mt-8 space-y-8">

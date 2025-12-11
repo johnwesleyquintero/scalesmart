@@ -1,4 +1,17 @@
-import { ConditionalFormattingRule } from '../app/dashboard-studio/widget-types';
+interface ConditionalFormattingRule {
+  field: string;
+  operator:
+    | 'gt'
+    | 'lt'
+    | 'eq'
+    | 'gte'
+    | 'lte'
+    | 'ne'
+    | 'contains'
+    | 'not-contains';
+  value: string | number | boolean;
+  style: React.CSSProperties;
+}
 
 /**
  * Applies conditional formatting rules to a single data point.

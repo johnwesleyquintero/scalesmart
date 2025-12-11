@@ -17,7 +17,6 @@ export default function ClientProviders({
   readonly session: Session | null; // Define type for session prop
 }) {
   const [queryClient] = useState(() => new QueryClient());
-  
 
   useEffect(() => {
     if ('serviceWorker' in navigator) {

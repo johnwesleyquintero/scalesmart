@@ -68,14 +68,8 @@ export default function Header() {
 
   const navItems: NavItem[] = [
     {
-      name: 'Free Tools',
+      name: 'Resources',
       children: [
-        {
-          name: 'Dashboard Studio',
-          href: '/dashboard-studio',
-          category: productsCategories[0],
-          description: 'Create and manage interactive data dashboards.',
-        },
         {
           name: 'Prompt Request Generator',
           href: '/prompt-request-generator',
@@ -161,7 +155,7 @@ export default function Header() {
                           {item.name}
                         </NavigationMenuTrigger>
                         <NavigationMenuContent>
-                          {item.name === 'Free Tools' ? (
+                          {item.name === 'Resources' ? (
                             <div className="grid w-[600px] gap-3 p-4 md:grid-cols-2 lg:w-[700px] lg:grid-cols-3">
                               {productsCategories.map((category) => (
                                 <div

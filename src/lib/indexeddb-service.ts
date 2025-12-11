@@ -1,11 +1,22 @@
 import Dexie, { Table, IndexableType } from 'dexie';
- 
 
 // --- Type Definitions ---
 // Consolidate imports for better organization
-import { ModuleProgressRecord, QuizResultRecord, Event, Prediction, Dashboard } from '@/types/indexeddb';
+import {
+  ModuleProgressRecord,
+  QuizResultRecord,
+  Event,
+  Prediction,
+  Dashboard,
+} from '@/types/indexeddb';
 
-export type { ModuleProgressRecord, QuizResultRecord, Event, Prediction, Dashboard };
+export type {
+  ModuleProgressRecord,
+  QuizResultRecord,
+  Event,
+  Prediction,
+  Dashboard,
+};
 
 // --- Constants ---
 
@@ -70,10 +81,7 @@ class ScaleSmartDatabase extends Dexie {
         console.log(`Upgrading ${DB_NAME} from previous version to 20`);
 
         // Add 'synced' property to existing records if they don't have it
-        const tablesToUpdate = [
-          STORE_PREDICTIONS,
-          STORE_DASHBOARDS,
-        ];
+        const tablesToUpdate = [STORE_PREDICTIONS, STORE_DASHBOARDS];
 
         for (const storeName of tablesToUpdate) {
           await trans
@@ -461,10 +469,8 @@ export const addEvent = async (event: Omit<Event, 'id'>): Promise<number> => {
 };
 
 // Example using direct Dexie query for calculations
- 
 
 // Example using direct Dexie query for calculations by campaign
- 
 
 // Example using setItem for adding, assuming UUID is generated before calling setItem
 // Removed CRM contact helpers
