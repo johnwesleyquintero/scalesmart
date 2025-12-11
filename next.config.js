@@ -84,13 +84,16 @@ const nextConfig = {
       config.externals.push({
         '.next/cache/webpack': 'commonjs .next/cache/webpack',
       });
-      
+
       // Exclude large dependencies that cause serverless function size issues
       config.externals.push({
         'next/dist/compiled/webpack': 'commonjs next/dist/compiled/webpack',
-        'next/dist/compiled/webpack-sources': 'commonjs next/dist/compiled/webpack-sources',
-        'next/dist/compiled/loader-utils': 'commonjs next/dist/compiled/loader-utils',
-        'next/dist/compiled/schema-utils': 'commonjs next/dist/compiled/schema-utils',
+        'next/dist/compiled/webpack-sources':
+          'commonjs next/dist/compiled/webpack-sources',
+        'next/dist/compiled/loader-utils':
+          'commonjs next/dist/compiled/loader-utils',
+        'next/dist/compiled/schema-utils':
+          'commonjs next/dist/compiled/schema-utils',
       });
     }
 

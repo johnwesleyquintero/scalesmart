@@ -70,22 +70,87 @@ const staticUrls: MetadataRoute.Sitemap = [
 
 // Pre-computed blog and doc URLs to avoid file system operations in serverless function
 const blogUrls: MetadataRoute.Sitemap = [
-  { url: `${baseUrl}/blog/proactive-specialist`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-  { url: `${baseUrl}/blog/b2b-strategies-amazon-sellers`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-  { url: `${baseUrl}/blog/data-visualization-for-amazon-sellers`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-  { url: `${baseUrl}/blog/ai-automation-for-amazon-sellers`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-  { url: `${baseUrl}/blog/amazon-ppc-strategy`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-  { url: `${baseUrl}/blog/building-systems-not-goals`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-  { url: `${baseUrl}/blog/technical-debt-management`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-  { url: `${baseUrl}/blog/scalable-architecture-patterns`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-  { url: `${baseUrl}/blog/modern-development-workflows`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+  {
+    url: `${baseUrl}/blog/proactive-specialist`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  },
+  {
+    url: `${baseUrl}/blog/b2b-strategies-amazon-sellers`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  },
+  {
+    url: `${baseUrl}/blog/data-visualization-for-amazon-sellers`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  },
+  {
+    url: `${baseUrl}/blog/ai-automation-for-amazon-sellers`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  },
+  {
+    url: `${baseUrl}/blog/amazon-ppc-strategy`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  },
+  {
+    url: `${baseUrl}/blog/building-systems-not-goals`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  },
+  {
+    url: `${baseUrl}/blog/technical-debt-management`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  },
+  {
+    url: `${baseUrl}/blog/scalable-architecture-patterns`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  },
+  {
+    url: `${baseUrl}/blog/modern-development-workflows`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  },
 ];
 
 const docUrls: MetadataRoute.Sitemap = [
-  { url: `${baseUrl}/docs/getting-started`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-  { url: `${baseUrl}/docs/api-reference`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-  { url: `${baseUrl}/docs/deployment`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
-  { url: `${baseUrl}/docs/configuration`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+  {
+    url: `${baseUrl}/docs/getting-started`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  },
+  {
+    url: `${baseUrl}/docs/api-reference`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  },
+  {
+    url: `${baseUrl}/docs/deployment`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  },
+  {
+    url: `${baseUrl}/docs/configuration`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.8,
+  },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

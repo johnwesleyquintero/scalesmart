@@ -228,9 +228,13 @@ export default function PromptRequestGenerator() {
               <AISettings
                 aiModel={promptData.aiModel || 'gpt-4-turbo'}
                 temperature={promptData.temperature || 0.7}
+                geminiApiKey={promptData.geminiApiKey}
                 onModelChange={(model) => updatePromptData({ aiModel: model })}
                 onTemperatureChange={(temp) =>
                   updatePromptData({ temperature: temp })
+                }
+                onGeminiApiKeyChange={(apiKey) =>
+                  updatePromptData({ geminiApiKey: apiKey })
                 }
                 className="mt-6"
               />

@@ -35,6 +35,9 @@ export const AI_MODELS = [
   { value: 'claude-3-opus', label: 'Claude 3 Opus', provider: 'Anthropic' },
   { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet', provider: 'Anthropic' },
   { value: 'claude-3-haiku', label: 'Claude 3 Haiku', provider: 'Anthropic' },
+  { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'Google' },
+  { value: 'gemini-1.5-flash', label: 'Gemini 1.5 Flash', provider: 'Google' },
+  { value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro', provider: 'Google' },
 ] as const;
 
 export const DEFAULT_AI_MODEL = 'gpt-4-turbo' as const;

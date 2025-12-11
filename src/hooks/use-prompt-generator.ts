@@ -300,6 +300,7 @@ export const usePromptGenerator = () => {
             ...dataForApi,
             temperature: promptData.temperature,
             aiModel: promptData.aiModel,
+            geminiApiKey: promptData.geminiApiKey,
           }),
         });
 

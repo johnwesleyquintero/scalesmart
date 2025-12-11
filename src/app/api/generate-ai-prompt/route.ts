@@ -11,6 +11,7 @@ function buildPrompt({
   codeInput,
   aiModel,
   temperature,
+  geminiApiKey,
 }: {
   category: string;
   customCategory: string;
@@ -21,6 +22,7 @@ function buildPrompt({
   codeInput: string;
   aiModel?: string;
   temperature?: number;
+  geminiApiKey?: string;
 }): string {
   let prompt = `Category: ${category}\n`;
   if (category === 'custom' && customCategory) {
@@ -63,6 +65,7 @@ export async function POST(req: Request) {
       codeInput,
       aiModel,
       temperature,
+      geminiApiKey,
     } = await req.json();
 
     if (!request) {
@@ -82,6 +85,7 @@ export async function POST(req: Request) {
       codeInput,
       aiModel,
       temperature,
+      geminiApiKey,
     });
 
     if (!prompt) {
@@ -91,19 +95,32 @@ export async function POST(req: Request) {
       );
     }
 
-    const apiKey = process.env.GEMINI_API_KEY;
+    // Use user-provided API key if available, otherwise fall back to environment variable
+    const apiKey = geminiApiKey || process.env.GEMINI_API_KEY;
     if (!apiKey) {
-      console.error('GEMINI_API_KEY is not configured.');
+      console.error('No Gemini API key provided.');
       return NextResponse.json(
-        { error: 'Gemini API key not configured' },
+        { error: 'Gemini API key not provided or configured' },
         { status: 500 },
       );
     }
-    console.log('GEMINI_API_KEY is configured.');
+
+    // Basic validation for Gemini API key format
+    if (!apiKey.startsWith('AIza')) {
+      console.error('Invalid Gemini API key format.');
+      return NextResponse.json(
+        {
+          error: 'Invalid Gemini API key format. Keys should start with "AIza"',
+        },
+        { status: 400 },
+      );
+    }
+
+    console.log('Gemini API key is available.');
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const models = ['gemini-1.5-flash', 'gemini-1.0-pro']; // Prioritize 1.5-flash, then 1.0-pro
+    const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.0-pro']; // Prioritize 2.5-flash, then 1.5-flash, then 1.0-pro
     let generatedText = '';
     let lastError: unknown = null;
 

@@ -9,7 +9,8 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { Settings, Brain, Thermometer } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Settings, Brain, Thermometer, Key } from 'lucide-react';
 import { AIModel } from '@/lib/prompt-generator/types';
 import {
   AI_MODELS,
@@ -33,16 +34,20 @@ const CSS_CLASSES = {
 interface AISettingsProps {
   aiModel: AIModel;
   temperature: number;
+  geminiApiKey?: string;
   onModelChange: (model: AIModel) => void;
   onTemperatureChange: (temperature: number) => void;
+  onGeminiApiKeyChange?: (apiKey: string) => void;
   className?: string;
 }
 
 export const AISettings: React.FC<AISettingsProps> = ({
   aiModel,
   temperature,
+  geminiApiKey,
   onModelChange,
   onTemperatureChange,
+  onGeminiApiKeyChange,
   className,
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
@@ -175,6 +180,36 @@ export const AISettings: React.FC<AISettingsProps> = ({
                 Creative
               </Button>
             </div>
+          </div>
+
+          {/* Gemini API Key */}
+          <div className="space-y-2">
+            <Label htmlFor="gemini-api-key" className="text-sm">
+              <div className="flex items-center gap-2">
+                <Key className="w-4 h-4" />
+                Gemini API Key (Optional)
+              </div>
+            </Label>
+            <Input
+              id="gemini-api-key"
+              type="password"
+              placeholder="Enter your Gemini API key for direct access"
+              value={geminiApiKey || ''}
+              onChange={(e) => onGeminiApiKeyChange?.(e.target.value)}
+              className="bg-background border-border text-sm"
+              isInvalid={
+                geminiApiKey ? !geminiApiKey.startsWith('AIza') : false
+              }
+              errorMessage={
+                geminiApiKey && !geminiApiKey.startsWith('AIza')
+                  ? 'Gemini API keys typically start with "AIza"'
+                  : undefined
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              Optional: Add your own Gemini API key to use gemini-2.5-flash
+              directly. Leave empty to use the default service.
+            </p>
           </div>
         </div>
       )}
