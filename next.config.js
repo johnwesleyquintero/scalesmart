@@ -84,6 +84,14 @@ const nextConfig = {
       config.externals.push({
         '.next/cache/webpack': 'commonjs .next/cache/webpack',
       });
+      
+      // Exclude large dependencies that cause serverless function size issues
+      config.externals.push({
+        'next/dist/compiled/webpack': 'commonjs next/dist/compiled/webpack',
+        'next/dist/compiled/webpack-sources': 'commonjs next/dist/compiled/webpack-sources',
+        'next/dist/compiled/loader-utils': 'commonjs next/dist/compiled/loader-utils',
+        'next/dist/compiled/schema-utils': 'commonjs next/dist/compiled/schema-utils',
+      });
     }
 
     // Define environment variables (build-time/server-side)
@@ -293,13 +301,7 @@ const mdxConfig = {
   },
 };
 
-// Add turbopack configuration to the main config
+// Add MDX configuration to the main config
 const finalConfig = withMDX(mdxConfig)(nextConfig);
-
-// Override any problematic turbopack rules added by MDX plugin
-if (finalConfig.experimental?.turbopack?.rules) {
-  // Clear all turbopack rules to avoid conflicts
-  finalConfig.experimental.turbopack.rules = {};
-}
 
 export default finalConfig;

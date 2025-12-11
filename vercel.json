@@ -1,0 +1,23 @@
+{
+  "functions": {
+    "app/sitemap.ts": {
+      "maxDuration": 10,
+      "excludeFiles": [
+        "node_modules/**",
+        ".next/cache/**",
+        "public/**",
+        "*.mdx",
+        "*.md",
+        "src/docs/**",
+        "scripts/**"
+      ]
+    }
+  },
+  "build": {
+    "env": {
+      "NEXT_TELEMETRY_DISABLED": "1"
+    }
+  },
+  "cleanUrls": true,
+  "trailingSlash": false
+}
