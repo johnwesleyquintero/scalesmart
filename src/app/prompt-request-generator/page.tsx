@@ -261,25 +261,13 @@ export default function PromptRequestGenerator() {
 
           {/* Output Display */}
           <Card className="bg-card border-border shadow-sm">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-foreground">
-                  Generated Prompt
-                </CardTitle>
-                <CardDescription className="text-muted-foreground">
-                  Ready to copy and use
-                </CardDescription>
-              </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={copyToClipboard}
-                disabled={isCopyDisabled}
-                aria-label="Copy generated prompt to clipboard"
-              >
-                <Copy className="mr-2 h-4 w-4" />
-                {copied ? 'Copied!' : 'Copy'}
-              </Button>
+            <CardHeader>
+              <CardTitle className="text-foreground">
+                Generated Prompt
+              </CardTitle>
+              <CardDescription className="text-muted-foreground">
+                Ready to copy and use
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <PromptOutputDisplay output={output} />
