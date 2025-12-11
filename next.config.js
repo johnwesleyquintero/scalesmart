@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['@react-pdf/renderer', 'next-mdx-remote'],
+  transpilePackages: ['next-mdx-remote'],
   productionBrowserSourceMaps: false, // Disable source maps in production for smaller bundle size
   eslint: {
     ignoreDuringBuilds: true,
