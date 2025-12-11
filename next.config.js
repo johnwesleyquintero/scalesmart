@@ -78,6 +78,14 @@ const nextConfig = {
     if (!dev) {
       config.optimization.minimize = true;
     }
+
+    // CRITICAL: Exclude webpack cache from serverless functions to prevent 250MB+ size issues
+    if (isServer && !dev) {
+      config.externals.push({
+        '.next/cache/webpack': 'commonjs .next/cache/webpack',
+      });
+    }
+
     // Define environment variables (build-time/server-side)
     // Use NEXT_PUBLIC_ prefix for variables needed in the browser
     // Removed redundant DefinePlugin configuration
@@ -133,9 +141,31 @@ const nextConfig = {
             https: 'commonjs https',
             zlib: 'commonjs zlib',
             process: 'commonjs process',
+            // CRITICAL: Exclude large dependencies that cause serverless function size issues
+            lighthouse: 'commonjs lighthouse',
+            puppeteer: 'commonjs puppeteer',
+            playwright: 'commonjs playwright',
+            '@sentry/node': 'commonjs @sentry/node',
+            '@sentry/react': 'commonjs @sentry/react',
+            '@sentry/tracing': 'commonjs @sentry/tracing',
+            newrelic: 'commonjs newrelic',
+            'datadog-lambda-js': 'commonjs datadog-lambda-js',
           }
         : [],
     ].flat();
+
+    // CRITICAL: Optimize webpack cache for production builds to reduce serverless function size
+    if (!dev) {
+      config.cache = {
+        type: 'filesystem',
+        cacheDirectory: path.resolve(process.cwd(), '.next/cache/webpack'),
+        // Prevent cache from being included in serverless functions
+        store: 'pack',
+        buildDependencies: {
+          config: [path.resolve(process.cwd(), 'next.config.js')],
+        },
+      };
+    }
 
     config.module.rules.push({
       test: /\.csv$/,
@@ -198,6 +228,20 @@ const nextConfig = {
           },
         },
       };
+    }
+
+    // CRITICAL: Optimize server-side bundle size for serverless functions
+    if (isServer && !dev) {
+      config.optimization.minimize = true;
+      config.optimization.usedExports = true;
+      config.optimization.sideEffects = false;
+
+      // Remove source maps from serverless functions to reduce size
+      config.devtool = false;
+
+      // Tree shake unused code
+      config.optimization.providedExports = true;
+      config.optimization.innerGraph = true;
     }
     return config;
   },

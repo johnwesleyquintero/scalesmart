@@ -13,7 +13,7 @@ export function useScrollAnimation({
   threshold = 0.1,
   rootMargin = '-50px',
   triggerOnce = true,
-  delay = 0
+  delay = 0,
 }: UseScrollAnimationOptions = {}) {
   const ref = useRef<HTMLElement>(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -34,7 +34,7 @@ export function useScrollAnimation({
       {
         threshold,
         rootMargin,
-      }
+      },
     );
 
     if (ref.current) {
@@ -51,12 +51,12 @@ export function useScrollAnimation({
   return {
     ref,
     isVisible,
-    animationClass: isVisible 
-      ? 'opacity-100 translate-y-0' 
+    animationClass: isVisible
+      ? 'opacity-100 translate-y-0'
       : 'opacity-0 translate-y-10',
     animationStyle: {
       transition: 'opacity 0.6s ease-out, transform 0.6s ease-out',
-      willChange: 'opacity, transform'
-    }
+      willChange: 'opacity, transform',
+    },
   };
 }

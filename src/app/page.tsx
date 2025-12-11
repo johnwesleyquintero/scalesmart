@@ -24,13 +24,13 @@ export default async function Home() {
           <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 via-transparent to-blue-50/30 dark:from-purple-950/30 dark:via-transparent dark:to-blue-950/30"></div>
           <HeroSection />
         </section>
-        
+
         {/* Feature Highlights Section - Enhanced with animations */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/30 to-transparent"></div>
           <FeatureHighlightsSection />
         </section>
-        
+
         {/* InApp Projects Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-transparent to-purple-50/20 dark:from-blue-950/20 dark:via-transparent dark:to-purple-950/20"></div>
@@ -40,7 +40,7 @@ export default async function Home() {
             </Suspense>
           </ErrorBoundary>
         </section>
-        
+
         {/* Projects Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-tl from-green-50/20 via-transparent to-blue-50/20 dark:from-green-950/20 dark:via-transparent dark:to-blue-950/20"></div>
@@ -50,25 +50,25 @@ export default async function Home() {
             </Suspense>
           </ErrorBoundary>
         </section>
-        
+
         {/* About Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-orange-50/20 via-transparent to-red-50/20 dark:from-orange-950/20 dark:via-transparent dark:to-red-950/20"></div>
           <AboutSection />
         </section>
-        
+
         {/* Certifications Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-b from-yellow-50/20 via-transparent to-indigo-50/20 dark:from-yellow-950/20 dark:via-transparent dark:to-indigo-950/20"></div>
           <CertificationsSection />
         </section>
-        
+
         {/* Blog Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-tr from-pink-50/20 via-transparent to-purple-50/20 dark:from-pink-950/20 dark:via-transparent dark:to-purple-950/20"></div>
           <BlogSection blogPosts={blogPosts} limit={6} />
         </section>
-        
+
         {/* Contact Section */}
         <section className="w-full py-20 relative bg-gradient-to-t from-muted/50 to-transparent">
           <ContactSection />

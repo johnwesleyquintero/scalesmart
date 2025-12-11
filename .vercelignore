@@ -26,3 +26,21 @@ jest.config.js
 jest.setup.js
 **mocks**/
 vitest.config.ts
+
+# CRITICAL: Exclude webpack cache to prevent 250MB+ serverless function size
+.next/cache/webpack
+.next/cache/.tsbuildinfo
+
+# Exclude large development files
+node_modules/.cache
+*.tsbuildinfo
+.cache
+
+# Exclude documentation and examples (if any)
+docs/
+examples/
+
+# Exclude any local development databases or logs
+*.db
+*.sqlite
+*.log

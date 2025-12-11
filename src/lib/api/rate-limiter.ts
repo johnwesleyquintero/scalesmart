@@ -1,4 +1,9 @@
 import { createClient, RedisClientType } from 'redis';
+import {
+  isRedisConfigured,
+  getRedisConfig,
+  createMockRedisClient,
+} from '@/lib/redis-config';
 
 const redisUrl = process.env.REDIS_URL;
 
@@ -19,69 +24,76 @@ let redis: RateLimiterRedis = {
   expire: async () => {},
 };
 
-if (redisUrl) {
+if (redisUrl && isRedisConfigured()) {
   // Use globalThis to ensure a single Redis client instance across hot reloads
   if (!globalThis.redisClient) {
     try {
-      const nodeRedisClient = createClient({
-        url: redisUrl,
-        socket: {
-          connectTimeout: 10000, // Increase connection timeout to 10 seconds
-        },
-        // Removed respVersion as it's not a valid option here
-      });
+      const redisConfig = getRedisConfig();
+      if (!redisConfig) {
+        console.warn('Redis configuration invalid - using no-op client');
+        redis = {
+          incr: async () => 1,
+          expire: async () => {},
+        };
+      } else {
+        const nodeRedisClient = createClient(redisConfig);
 
-      nodeRedisClient.on('error', (err) =>
-        console.error('Redis Client Error', err),
-      );
+        nodeRedisClient.on('error', (err) =>
+          console.error('Redis Client Error', err),
+        );
 
-      const connectWithRetry = async (
-        client: ReturnType<typeof createClient>,
-        retries = 5,
-        delay = 1000,
-      ) => {
-        for (let i = 0; i < retries; i++) {
-          try {
-            await client.connect();
-            console.log(
-              'Redis client initialized and connected for rate limiting.',
-            );
-            return true;
-          } catch (err) {
-            console.error(
-              `Error connecting to Redis (attempt ${i + 1}/${retries}):`,
-              err,
-            );
-            if (i < retries - 1) {
-              await new Promise((resolve) => setTimeout(resolve, delay));
+        const connectWithRetry = async (
+          client: ReturnType<typeof createClient>,
+          retries = 3, // Reduced retries for faster build process
+          delay = 1000,
+        ) => {
+          for (let i = 0; i < retries; i++) {
+            try {
+              await client.connect();
+              console.log(
+                'Redis client initialized and connected for rate limiting.',
+              );
+              return true;
+            } catch (err) {
+              console.error(
+                `Error connecting to Redis (attempt ${i + 1}/${retries}):`,
+                err,
+              );
+              if (i < retries - 1) {
+                await new Promise((resolve) => setTimeout(resolve, delay));
+              }
             }
           }
-        }
-        return false;
-      };
+          return false;
+        };
 
-      (async () => {
-        const connected = await connectWithRetry(nodeRedisClient);
-        if (connected) {
-          globalThis.redisClient = nodeRedisClient;
-          globalThis.rateLimiterRedis = {
-            incr: async (key: string) => {
-              const result = await nodeRedisClient.incr(key);
-              return typeof result === 'number' ? result : 1;
-            },
-            expire: async (key: string, ttl: number) => {
-              await nodeRedisClient.expire(key, ttl);
-            },
-          };
-          redis = globalThis.rateLimiterRedis; // Assign the globally managed client
-        } else {
-          console.warn(
-            'Falling back to no-op Redis client for rate limiting due to persistent connection errors.',
-          );
-        }
-      })();
+        (async () => {
+          const connected = await connectWithRetry(nodeRedisClient);
+          if (connected) {
+            globalThis.redisClient = nodeRedisClient;
+            globalThis.rateLimiterRedis = {
+              incr: async (key: string) => {
+                const result = await nodeRedisClient.incr(key);
+                return typeof result === 'number' ? result : 1;
+              },
+              expire: async (key: string, ttl: number) => {
+                await nodeRedisClient.expire(key, ttl);
+              },
+            };
+            redis = globalThis.rateLimiterRedis; // Assign the globally managed client
+          } else {
+            console.warn(
+              'Falling back to no-op Redis client for rate limiting due to persistent connection errors.',
+            );
+          }
+        })();
+      }
     } catch (error) {
       console.error('Error initializing Node Redis client:', error);
+      // During build process, use no-op client instead of failing
+      if (process.env.NODE_ENV === 'production' && !process.env.REDIS_URL) {
+        console.warn('Using no-op Redis client for build process');
+      }
     }
   } else {
     // If client already exists, use the existing global instance

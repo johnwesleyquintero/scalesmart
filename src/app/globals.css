@@ -2,46 +2,83 @@
 
 /* Smooth dark mode transition */
 * {
-  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 /* Enhanced gradient text effects */
 .bg-gradient-to-r {
-  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
 }
 
 /* Smooth transitions for interactive elements */
 .group {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 /* Custom animations */
 @keyframes float {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-10px) rotate(1deg); }
-  66% { transform: translateY(-5px) rotate(-1deg); }
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(-5px) rotate(-1deg);
+  }
 }
 
 @keyframes float-delayed {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-8px) rotate(-1deg); }
-  66% { transform: translateY(-12px) rotate(1deg); }
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-8px) rotate(-1deg);
+  }
+  66% {
+    transform: translateY(-12px) rotate(1deg);
+  }
 }
 
 @keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @keyframes slideInUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Animation utilities */
@@ -165,9 +202,24 @@
   --font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
 
   /* Enhanced Gradients */
-  --primary-gradient: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a855f7 100%);
-  --secondary-gradient: linear-gradient(135deg, #3b82f6 0%, #6366f1 50%, #8b5cf6 100%);
-  --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%);
+  --primary-gradient: linear-gradient(
+    135deg,
+    #7c3aed 0%,
+    #8b5cf6 50%,
+    #a855f7 100%
+  );
+  --secondary-gradient: linear-gradient(
+    135deg,
+    #3b82f6 0%,
+    #6366f1 50%,
+    #8b5cf6 100%
+  );
+  --accent-gradient: linear-gradient(
+    135deg,
+    #06b6d4 0%,
+    #3b82f6 50%,
+    #8b5cf6 100%
+  );
 }
 
 /* --- CSS Variables: Dark Theme Overrides --- */

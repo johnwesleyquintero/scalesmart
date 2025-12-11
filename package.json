@@ -9,7 +9,7 @@
   "scripts": {
     "dev:next": "next dev",
     "dev": "next dev --turbo",
-    "build": "npx cross-env NODE_ENV=production next build",
+    "build": "npx cross-env NODE_ENV=production next build && npm run post-build",
     "start": "cross-env NODE_ENV=production next start",
     "format": "prettier --write . --log-level warn",
     "typecheck": "tsc --noEmit",
@@ -21,6 +21,8 @@
     "lint:npx": "npx eslint .",
     "lint:fix": "npm run lint -- --fix",
     "clean": "rimraf .next",
+    "post-build": "npm run clean-cache",
+    "clean-cache": "rimraf .next/cache/webpack .next/cache/.tsbuildinfo",
     "check": "node scripts/code-checker.mjs",
     "git": "node scripts/git-commit.mjs"
   },
