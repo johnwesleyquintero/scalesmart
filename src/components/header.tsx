@@ -83,12 +83,6 @@ export default function Header() {
       name: 'Docs',
       children: [
         {
-          name: 'Documentation',
-          href: '/docs',
-          external: false,
-          description: 'Comprehensive guides and API references.',
-        },
-        {
           name: 'Blog',
           href: '/blog',
           external: false,
