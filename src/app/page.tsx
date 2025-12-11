@@ -40,7 +40,7 @@ export default async function Home() {
         <BlogSection blogPosts={blogPosts} limit={6} />
         <ContactSection />
       </div>
-      {/* The main ChatInterface is now handled in the layout */}
+      
     </div>
   );
 }

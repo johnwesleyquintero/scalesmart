@@ -8,7 +8,6 @@
       "achievements": [
         "Architected and developed ScaleSmart, a monorepo platform hosting a suite of personal productivity and developer tools (Prompt Generators, Code Checkers, etc.).",
         "Engineered Alerion, an enterprise-grade SaaS platform for Amazon advertising analytics and automation, leveraging the SP-API.",
-        "Created WesAI, a suite of AI-powered assistants for code generation, content creation, and personal guidance, integrated with the Google Gemini API.",
         "Designed and built the foundational infrastructure for WesAcademy, a Learning Management System (LMS) aimed at democratizing professional education."
       ],
       "startDate": "2025-01-01",

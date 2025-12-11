@@ -76,29 +76,7 @@ export default function PromptRequestGenerator() {
             Create structured prompts for any assistance requests to streamline
             your workflow.
           </p>
-          {/* Added WesAI Code Assistant link alongside Personal Assistant link */}
-          <p className="text-sm text-muted-foreground mt-4 flex flex-wrap justify-center items-center gap-x-4 gap-y-2">
-            Check our new AI assistants:
-            <Link
-              href="https://wesai-pa.netlify.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline inline-flex items-center font-medium"
-            >
-              WesAI Personal Assistant
-              <ExternalLink className="ml-1 h-3 w-3" />
-            </Link>
-            <Link
-              href="https://wesai.netlify.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline inline-flex items-center font-medium"
-              aria-label="Open WesAI Code Assistant in a new tab"
-            >
-              WesAI Code Assistant
-              <ExternalLink className="ml-1 h-3 w-3" />
-            </Link>
-          </p>
+          
         </div>
         {/* Full-Width Layout */}
         <div className="mt-8 space-y-8">

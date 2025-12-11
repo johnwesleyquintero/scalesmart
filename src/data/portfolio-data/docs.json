@@ -10,15 +10,6 @@
       "date": "2025-06-05"
     },
     {
-      "slug": "amazon-seller-tools",
-      "title": "Amazon Seller Tools Page Documentation",
-      "description": "Documentation for the Amazon Seller Tools page.",
-      "category": "amazon-seller-tools",
-      "order": 0,
-      "tags": ["amazon", "seller", "tools"],
-      "date": "2025-06-05"
-    },
-    {
       "slug": "analytics",
       "title": "Vercel Analytics Integration",
       "description": "Documentation for integrating Vercel Analytics.",
@@ -44,51 +35,6 @@
       "order": 2,
       "tags": [],
       "date": "2025-07-09"
-    },
-    {
-      "slug": "api-amazon-competitor-analysis",
-      "title": "Amazon Competitor Analysis API Endpoint Documentation",
-      "description": "Documentation for the Amazon Competitor Analysis API endpoint.",
-      "category": "api",
-      "order": 3,
-      "tags": ["api", "amazon", "competitor-analysis"],
-      "date": "2025-06-05"
-    },
-    {
-      "slug": "api-amazon-inventory",
-      "title": "Amazon Inventory API Endpoint Documentation",
-      "description": "Documentation for the Amazon Inventory API endpoint.",
-      "category": "api",
-      "order": 4,
-      "tags": ["api", "amazon", "inventory"],
-      "date": "2025-06-05"
-    },
-    {
-      "slug": "api-amazon-keyword-trends",
-      "title": "Amazon Keyword Trends API Endpoint Documentation",
-      "description": "Documentation for the Amazon Keyword Trends API endpoint.",
-      "category": "api",
-      "order": 5,
-      "tags": ["api", "amazon", "keyword-trends"],
-      "date": "2025-06-05"
-    },
-    {
-      "slug": "api-amazon-pricing",
-      "title": "Amazon Pricing API",
-      "description": "Documentation for the Amazon Pricing API in Amazon Seller Tools.",
-      "category": "api",
-      "order": 6,
-      "tags": ["api", "amazon", "pricing"],
-      "date": "2025-06-05"
-    },
-    {
-      "slug": "api-chat",
-      "title": "Chat API Endpoint Documentation",
-      "description": "Documentation for the Chat API endpoint.",
-      "category": "api",
-      "order": 7,
-      "tags": ["api", "chat", "documentation"],
-      "date": "2025-05-31"
     },
     {
       "slug": "api-contact",
@@ -163,15 +109,6 @@
       "date": "2025-05-31"
     },
     {
-      "slug": "ats",
-      "title": "Applicant Tracking System (ATS) Documentation",
-      "description": "Documentation for the Applicant Tracking System (ATS) integration or features.",
-      "category": "ats",
-      "order": 0,
-      "tags": ["ats", "applicant tracking", "integration"],
-      "date": "2025-06-01"
-    },
-    {
       "slug": "api-auth-nextauth-options",
       "title": "NextAuth.js Options Documentation",
       "description": "Documentation for the NextAuth.js options.",
@@ -226,15 +163,6 @@
       "date": "2025-05-30"
     },
     {
-      "slug": "chat",
-      "title": "Chat Documentation",
-      "description": "Documentation for the chat functionality of the project.",
-      "category": "chat",
-      "order": 0,
-      "tags": ["chat", "realtime", "communication"],
-      "date": "2025-06-01"
-    },
-    {
       "slug": "content-blog",
       "title": "Blog Content Directory Documentation (src/app/content/blog)",
       "description": "The `src/app/content/blog` directory contains the MDX files that provide the content for the blog posts.",
@@ -242,15 +170,6 @@
       "order": 0,
       "tags": ["blog", "content"],
       "date": "2025-05-30"
-    },
-    {
-      "slug": "crm",
-      "title": "CRM Documentation",
-      "description": "Documentation for the Customer Relationship Management (CRM) features of the project.",
-      "category": "crm",
-      "order": 0,
-      "tags": ["crm", "customer relationship management"],
-      "date": "2025-06-01"
     },
     {
       "slug": "data",
@@ -441,15 +360,6 @@
       "order": 0,
       "tags": ["guides", "code-patterns", "development-methodologies"],
       "date": "2025-06-01"
-    },
-    {
-      "slug": "api-resume",
-      "title": "Resume Analysis API Endpoint Documentation",
-      "description": "Documentation for the Resume Analysis API endpoint.",
-      "category": "Uncategorized",
-      "order": 0,
-      "tags": ["api", "resume"],
-      "date": "2025-05-31"
     },
     {
       "slug": "api-search",

@@ -9,8 +9,7 @@ export async function GET() {
     const query = 'seo';
     const blogPosts = await loadStaticData('blog');
 
-    // Load tools data
-    const tools = await loadStaticData('tools');
+    const tools: { name: string; description: string }[] = [];
 
     const blogResults = blogPosts.filter(
       (post: BlogPost) =>
@@ -18,12 +17,7 @@ export async function GET() {
         post.content.toLowerCase().includes(query),
     );
 
-    // Search tools
-    const toolResults = tools.filter(
-      (tool) =>
-        tool.name.toLowerCase().includes(query) ||
-        tool.description.toLowerCase().includes(query),
-    );
+    const toolResults = [] as typeof tools;
 
     return NextResponse.json({
       blog: blogResults,

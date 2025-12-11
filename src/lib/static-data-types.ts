@@ -1,11 +1,10 @@
-import { CompetitorDataRow } from './amazon-types';
+ 
 
 export interface StaticDataTypes {
   'case-studies': CaseStudy[];
   blog: BlogPost[];
   projects: Project[];
   experience: Experience[];
-  tools: Tool[];
   changelog: ChangelogEntry[];
   acos: AcosData[];
   'prohibited-keywords': string[];
@@ -20,10 +19,7 @@ export interface AcosData {
   impressions: number;
 }
 
-export interface Tool {
-  name: string;
-  description: string;
-}
+ 
 
 export interface ChangelogEntry {
   version: string;
@@ -48,7 +44,7 @@ export interface CaseStudy {
     change: number;
     trend: string;
   }[];
-  competitorData: CompetitorDataRow[];
+  competitorData: unknown[];
   date: string;
   tags: string[];
 }

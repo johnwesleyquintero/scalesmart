@@ -105,10 +105,7 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
       return mappedExperience;
     }) as StaticDataTypes[T];
   }
-  if (file === 'tools') {
-    return (await import('../data/portfolio-data/tools.json')).default
-      .tools as StaticDataTypes[T];
-  }
+  
 
   if (file === 'acos') {
     // Remove unsafe type assertion

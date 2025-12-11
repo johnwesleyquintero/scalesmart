@@ -12,17 +12,10 @@ export const metadata: Metadata = {
   description: SITE_DESCRIPTION,
   keywords: [
     AUTHOR_NAME,
-    'Amazon Specialist',
     'Data Analytics',
     'E-commerce',
-    'Amazon Seller Tools',
     'Portfolio',
-    'Amazon SEO',
-    'PPC Optimization',
     'Data Visualization',
-    'SellSmart Hub',
-    'DevFlowDB',
-    // Add more relevant keywords here
   ],
   authors: [{ name: AUTHOR_NAME, url: AUTHOR_URL }],
   creator: AUTHOR_NAME,

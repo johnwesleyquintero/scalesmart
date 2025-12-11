@@ -100,7 +100,7 @@ The project leverages several architectural patterns facilitated by the Next.js 
 - **API Routes:** Implements API endpoints within `src/app/api/` for server-side logic and data fetching.
 - **Data Fetching:** Employs a mix of server-side data fetching (in Server Components) and client-side fetching (using React Query or similar patterns) depending on the data's nature and where it's needed.
 - **Local State Management:** Utilizes React Context API (`src/context/`) and custom hooks (`src/hooks/`) for managing local state within features.
-- **IndexedDB for Local Data:** Several features (Amazon Seller Tools, AI Chat, CRM, Project Board, Workflow Builder, Markdown Notepad) use IndexedDB (`src/lib/indexeddb/`) for persistent local data storage, reducing reliance on the backend for certain operations.
+ - **IndexedDB for Local Data:** IndexedDB (`src/lib/indexeddb/`) is used for select modules to provide persistent local storage and reduce reliance on the backend.
 
 ## 6. Common Utilities and Helper Functions
 
@@ -110,7 +110,7 @@ The `src/lib/` directory is a central place for reusable logic that is not tied 
 - [`src/lib/api-error-handler.ts`](src/lib/api-error-handler.ts): Provides standardized error handling for API routes.
 - [`src/lib/logger.ts`](src/lib/logger.ts): A utility for logging messages across the application.
 - [`src/lib/utils.ts`](src/lib/utils.ts): Core utility functions.
-- [`src/lib/constants.ts`](src/lib/constants.ts): Defines application-wide constants.
+- [`src/lib/types.ts`](src/lib/types.ts): Contains shared TypeScript type definitions.
 - [`src/lib/types.ts`](src/lib/types.ts): Contains shared TypeScript type definitions.
 
 Developers are encouraged to explore this directory before writing new utility functions to avoid duplication.
@@ -119,6 +119,4 @@ Developers are encouraged to explore this directory before writing new utility f
 
 This section provides brief notes on developing specific modules within the platform. For detailed implementation, refer to the respective directories in `src/app/`.
 
-- **Project Management:** Components are in `src/app/project-management/components/`. Data management uses custom hooks like `src/hooks/use-task-management.ts` and IndexedDB via `src/lib/indexeddb/project-management-db.ts`.
-- **CRM:** Components are in relevant `src/app/` subdirectories (e.g., potentially within a `crm` directory if it existed, or integrated into other sections). Data is managed via hooks like `src/hooks/use-crm-data.ts` and IndexedDB via `src/lib/indexeddb/crm-db.ts`.
-- **Markdown Notepad:** Components are in `src/app/markdown-notepad/components/`. Data handling is managed by hooks like `src/hooks/use-notes-data.ts` and `src/hooks/use-markdown-categories.ts`, interacting with IndexedDB via `src/lib/indexeddb/markdown-notepad-db.ts`.
+ 

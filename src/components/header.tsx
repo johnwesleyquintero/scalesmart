@@ -71,58 +71,16 @@ export default function Header() {
       name: 'Free Tools',
       children: [
         {
-          name: 'Amazon Seller Tools',
-          href: '/amazon-seller-tools',
-          external: false, // Assuming internal link based on user's project structure
-          category: productsCategories[0], // Business & E-commerce
-          description:
-            'Suite of tools to optimize listings & track performance.',
-        },
-        {
-          name: 'Resume Scanner (ATS)',
-          href: '/ats',
-          category: productsCategories[2], // Career & Personal Growth
-          description: 'Analyze your resume against job descriptions.',
-        },
-        {
-          name: 'CRM',
-          href: '/crm',
-          category: productsCategories[0], // Business & E-commerce
-          description: 'Manage customer relationships and sales pipelines.',
-        },
-        {
           name: 'Dashboard Studio',
           href: '/dashboard-studio',
-          category: productsCategories[0], // Business & E-commerce
+          category: productsCategories[0],
           description: 'Create and manage interactive data dashboards.',
         },
         {
-          name: 'Project Management',
-          href: '/project-management',
-          category: productsCategories[1], // Productivity & Automation
-          description: 'Organize tasks and keep projects on track.',
-        },
-        {
-          name: 'Markdown Notepad',
-          href: '/markdown-notepad',
-          category: productsCategories[1], // Productivity & Automation
-          description:
-            'Create and manage markdown notes with categories and search.',
-        },
-
-        {
           name: 'Prompt Request Generator',
           href: '/prompt-request-generator',
-          category: productsCategories[1], // Productivity & Automation
+          category: productsCategories[1],
           description: 'Generate structured prompts for AI code assistance.',
-        },
-        {
-          name: 'WesAI',
-          href: '/chat',
-          external: false,
-          category: productsCategories[3], // AI & Automation
-          description:
-            'Engage with our AI assistant for quick answers and support.',
         },
       ],
     },

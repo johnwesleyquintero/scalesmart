@@ -173,13 +173,10 @@ const DOC_CATEGORY_ORDER = [
   'implementation',
   'strategies',
   'blog',
-  'chat',
-  'crm',
-  'project-management',
-  'amazon-seller-tools',
+  
 
   'admin',
-  'ats',
+  
   'privacy-policy',
   'metadata',
   'page',
