@@ -2,15 +2,7 @@
   "functions": {
     "app/sitemap.ts": {
       "maxDuration": 10,
-      "excludeFiles": [
-        "node_modules/**",
-        ".next/cache/**",
-        "public/**",
-        "*.mdx",
-        "*.md",
-        "src/docs/**",
-        "scripts/**"
-      ]
+      "excludeFiles": "{node_modules/**,.next/cache/**,public/**,*.mdx,*.md,src/docs/**,scripts/**}"
     }
   },
   "build": {
