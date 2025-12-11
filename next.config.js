@@ -66,10 +66,6 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000'],
     },
-    // Disable problematic turbopack rules
-    turbopack: {
-      rules: {},
-    },
   },
   // Compiler options
   compiler: {
