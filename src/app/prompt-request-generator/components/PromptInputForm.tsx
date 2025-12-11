@@ -1,7 +1,17 @@
 import React, { useEffect } from 'react';
+import Editor from 'react-simple-code-editor';
+import { highlight, languages } from 'prismjs';
+import 'prismjs/components/prism-clike';
+import 'prismjs/components/prism-javascript';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 import {
   Select,
   SelectContent,
@@ -27,6 +37,9 @@ interface PromptInputFormProps {
   handleFieldChange: (field: keyof PromptData, value: string) => void;
   handleCategoryChange: (value: CategoryValue) => void;
   showCustomCategory: boolean;
+  requestInputRef?: React.RefObject<HTMLTextAreaElement>;
+  contextInputRef?: React.RefObject<HTMLTextAreaElement>;
+  codeInputRef?: React.RefObject<HTMLTextAreaElement>;
 }
 
 const PromptInputForm: React.FC<PromptInputFormProps> = ({
@@ -35,6 +48,9 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
   handleFieldChange,
   handleCategoryChange,
   showCustomCategory,
+  requestInputRef,
+  contextInputRef,
+  codeInputRef,
 }) => {
   const {
     control,
@@ -162,6 +178,7 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
               rows={3}
               className="bg-background border-border font-mono"
               aria-label="Context for the request (optional)"
+              ref={contextInputRef}
             />
           </div>
         )}
@@ -190,6 +207,7 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
               aria-required="true"
               aria-invalid={!!errors.request}
               aria-describedby={errors.request ? 'request-error' : undefined}
+              ref={requestInputRef}
             />
             {errors.request && (
               <p
@@ -204,69 +222,82 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
         )}
       />
 
-      {/* Parent Task Input */}
-      <Controller
-        name="parentTask"
-        control={control}
-        render={({ field }) => (
-          <div className="space-y-2">
-            <Label htmlFor="parentTask">Parent Task (optional)</Label>
-            <Input
-              id="parentTask"
-              placeholder="e.g., Implement user authentication"
-              {...field} // Binds input to react-hook-form
-              onChange={(e) => {
-                field.onChange(e);
-                handleFieldChange('parentTask', e.target.value);
-              }}
-              className="bg-background border-border font-mono"
-              aria-label="Parent task for the request (optional)"
+      <Accordion type="multiple" className="w-full">
+        <AccordionItem value="advanced-options">
+          <AccordionTrigger className="hover:no-underline text-base font-semibold">
+            Advanced Options (Optional Fields)
+          </AccordionTrigger>
+          <AccordionContent className="pt-2 space-y-4">
+            {/* Parent Task Input */}
+            <Controller
+              name="parentTask"
+              control={control}
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Label htmlFor="parentTask">Parent Task (optional)</Label>
+                  <Input
+                    id="parentTask"
+                    placeholder="e.g., Implement user authentication"
+                    {...field} // Binds input to react-hook-form
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleFieldChange('parentTask', e.target.value);
+                    }}
+                    className="bg-background border-border font-mono"
+                    aria-label="Parent task for the request (optional)"
+                  />
+                </div>
+              )}
             />
-          </div>
-        )}
-      />
 
-      {/* Subtask Input */}
-      <Controller
-        name="subtask"
-        control={control}
-        render={({ field }) => (
-          <div className="space-y-2">
-            <Label htmlFor="subtask">Subtask (optional)</Label>
-            <Input
-              id="subtask"
-              placeholder="e.g., Create login form UI"
-              {...field} // Binds input to react-hook-form
-              onChange={(e) => {
-                field.onChange(e);
-                handleFieldChange('subtask', e.target.value);
-              }}
-              className="bg-background border-border font-mono"
-              aria-label="Subtask for the request (optional)"
+            {/* Subtask Input */}
+            <Controller
+              name="subtask"
+              control={control}
+              render={({ field }) => (
+                <div className="space-y-2">
+                  <Label htmlFor="subtask">Subtask (optional)</Label>
+                  <Input
+                    id="subtask"
+                    placeholder="e.g., Create login form UI"
+                    {...field} // Binds input to react-hook-form
+                    onChange={(e) => {
+                      field.onChange(e);
+                      handleFieldChange('subtask', e.target.value);
+                    }}
+                    className="bg-background border-border font-mono"
+                    aria-label="Subtask for the request (optional)"
+                  />
+                </div>
+              )}
             />
-          </div>
-        )}
-      />
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
-      {/* Code Input Textarea */}
+      {/* Code Input Editor */}
       <Controller
         name="codeInput"
         control={control}
         render={({ field }) => (
           <div className="space-y-2">
             <Label htmlFor="codeInput">Relevant Data (optional)</Label>
-            <Textarea
-              id="codeInput"
-              placeholder="Paste relevant code, data (CSV, JSON, etc.), or logs here..."
-              {...field} // Binds textarea to react-hook-form
-              onChange={(e) => {
-                field.onChange(e);
-                handleFieldChange('codeInput', e.target.value);
-              }}
-              rows={10}
-              className="bg-background border-border font-mono text-sm"
-              aria-label="Relevant code or data (optional)"
-            />
+            <div className="relative border border-input rounded-md bg-background font-mono text-sm overflow-hidden shadow-sm [&>div]:!p-0">
+              <Editor
+                value={field.value || ''}
+                onValueChange={(code) => {
+                  field.onChange(code);
+                  handleFieldChange('codeInput', code);
+                }}
+                highlight={(code) =>
+                  highlight(code, languages.javascript, 'javascript')
+                }
+                padding={12}
+                textareaClassName="focus:outline-none min-h-[200px]"
+                preClassName="p-3"
+                aria-label="Relevant code or data (optional)"
+              />
+            </div>
           </div>
         )}
       />

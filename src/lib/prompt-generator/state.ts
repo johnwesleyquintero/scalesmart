@@ -1,4 +1,9 @@
 import { PromptData, SavedRequest } from '@/lib/prompt-generator/types';
+import {
+  CUSTOM_CATEGORY_VALUE,
+  DEFAULT_AI_MODEL,
+  DEFAULT_TEMPERATURE,
+} from '@/lib/prompt-generator/constants';
 
 export interface PromptGeneratorState {
   promptData: PromptData;
@@ -16,13 +21,20 @@ export interface PromptGeneratorState {
 
 export const initialState: PromptGeneratorState = {
   promptData: {
-    category: '',
+    category: 'Error Fixing',
     customCategory: '',
     context: '',
     request: '',
     parentTask: '',
     subtask: '',
     codeInput: '',
+    outputFormat: '',
+    constraints: '',
+    examples: '',
+    tone: '',
+    additionalInfo: '',
+    temperature: DEFAULT_TEMPERATURE,
+    aiModel: DEFAULT_AI_MODEL,
   },
   output: '',
   copied: false,

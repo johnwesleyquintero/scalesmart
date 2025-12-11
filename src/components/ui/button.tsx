@@ -8,21 +8,22 @@ import { cn } from '@/lib/utils';
  * Defines the button's visual variants and sizes using class-variance-authority (cva).
  */
 const buttonVariants = cva(
-  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 active:scale-[0.98] hover:scale-[1.02]',
   {
     variants: {
       variant: {
         primary:
-          'bg-primary text-primary-foreground shadow hover:bg-primary/90',
+          'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg hover:from-purple-600 hover:to-indigo-700 hover:shadow-xl focus:ring-purple-500',
         destructive:
-          'bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90',
+          'bg-gradient-to-r from-red-500 to-red-600 text-white shadow hover:from-red-600 hover:to-red-700 focus:ring-red-500',
         outline:
-          'border border-primary bg-background text-primary shadow-sm hover:bg-primary hover:text-primary-foreground dark:text-gray-300 dark:hover:text-primary-foreground',
+          'border-2 border-purple-200 bg-background text-purple-700 shadow-sm hover:bg-purple-50 hover:border-purple-300 hover:text-purple-800 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950 dark:hover:border-purple-700 focus:ring-purple-500',
         secondary:
-          'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
-        tertiary: 'bg-gray-100 text-gray-800 hover:bg-gray-200',
-        ghost: 'hover:bg-accent hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 hover:underline',
+          'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 shadow-sm hover:from-gray-200 hover:to-gray-300 focus:ring-gray-500',
+        tertiary:
+          'bg-gray-100 text-gray-800 hover:bg-gray-200 hover:text-gray-900 focus:ring-gray-500',
+        ghost: 'hover:bg-accent hover:text-accent-foreground hover:scale-100',
+        link: 'text-primary underline-offset-4 hover:underline hover:scale-100',
       },
       size: {
         default: 'h-10 px-4 py-2',

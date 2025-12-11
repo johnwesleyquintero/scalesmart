@@ -9,6 +9,8 @@ function buildPrompt({
   parentTask,
   subtask,
   codeInput,
+  aiModel,
+  temperature,
 }: {
   category: string;
   customCategory: string;
@@ -17,6 +19,8 @@ function buildPrompt({
   parentTask: string;
   subtask: string;
   codeInput: string;
+  aiModel?: string;
+  temperature?: number;
 }): string {
   let prompt = `Category: ${category}\n`;
   if (category === 'custom' && customCategory) {
@@ -35,6 +39,15 @@ function buildPrompt({
   if (codeInput) {
     prompt += `Code Input:\n\`\`\`\n${codeInput}\n\`\`\`\n`;
   }
+
+  // Add AI settings if provided
+  if (aiModel) {
+    prompt += `AI Model: ${aiModel}\n`;
+  }
+  if (temperature !== undefined) {
+    prompt += `Temperature: ${temperature}\n`;
+  }
+
   return prompt;
 }
 
@@ -48,6 +61,8 @@ export async function POST(req: Request) {
       parentTask,
       subtask,
       codeInput,
+      aiModel,
+      temperature,
     } = await req.json();
 
     if (!request) {
@@ -65,6 +80,8 @@ export async function POST(req: Request) {
       parentTask,
       subtask,
       codeInput,
+      aiModel,
+      temperature,
     });
 
     if (!prompt) {

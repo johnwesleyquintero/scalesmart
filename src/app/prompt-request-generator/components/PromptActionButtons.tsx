@@ -12,6 +12,8 @@ interface PromptActionButtonsProps {
   handleSaveRequest: () => void;
   requestInput: string;
   clearForm: () => void;
+  aiModel?: string;
+  temperature?: number;
 }
 
 const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
@@ -23,6 +25,8 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
   handleSaveRequest,
   requestInput,
   clearForm,
+  aiModel,
+  temperature,
 }) => {
   const baseButtonClass = 'w-full sm:w-auto rounded-md py-2 px-4'; //Added base class for consistency
 
@@ -49,8 +53,8 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
       <Button
         onClick={generateAiPromptHandler}
         disabled={isGenerateDisabled || aiLoading || loading}
-        className={`${baseButtonClass} bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white`}
-        aria-label="Generate prompt using AI (Gemini)"
+        className={`${baseButtonClass} bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white relative group`}
+        aria-label={`Generate prompt using AI (${aiModel || 'GPT-4 Turbo'})`}
       >
         {aiLoading ? (
           'Generating with AI...'
@@ -59,6 +63,11 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
             <Wand2 className="mr-2 h-4 w-4 inline-block" />
             Generate with AI
           </>
+        )}
+        {aiModel && (
+          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap">
+            {aiModel} • {temperature || 0.7}°
+          </div>
         )}
       </Button>
 

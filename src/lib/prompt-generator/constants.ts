@@ -26,7 +26,19 @@ export type CustomCategory = typeof CUSTOM_CATEGORY_VALUE;
 export type CategoryKey = StandardCategory | '' | CustomCategory;
 
 // Define a constant for the 'custom' category value used in the Select component state.
-export const CUSTOM_CATEGORY_VALUE = 'custom';
+export const CUSTOM_CATEGORY_VALUE = 'custom' as const;
+
+export const AI_MODELS = [
+  { value: 'gpt-4', label: 'GPT-4', provider: 'OpenAI' },
+  { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', provider: 'OpenAI' },
+  { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', provider: 'OpenAI' },
+  { value: 'claude-3-opus', label: 'Claude 3 Opus', provider: 'Anthropic' },
+  { value: 'claude-3-sonnet', label: 'Claude 3 Sonnet', provider: 'Anthropic' },
+  { value: 'claude-3-haiku', label: 'Claude 3 Haiku', provider: 'Anthropic' },
+] as const;
+
+export const DEFAULT_AI_MODEL = 'gpt-4-turbo' as const;
+export const DEFAULT_TEMPERATURE = 0.7;
 
 // Define default texts based on categories for generating the prompt
 // when corresponding user input fields are empty.

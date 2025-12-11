@@ -17,6 +17,10 @@ import {
 import { generatePrompt } from '@/lib/prompt-generator/utils';
 import { getCacheItem, setCacheItem } from '@/lib/indexeddb-service';
 
+// Auto-save constants
+const AUTOSAVE_DEBOUNCE_MS = 1000;
+const AUTOSAVE_KEY = 'promptGeneratorFormState';
+
 const REQUIRED_CATEGORY_MESSAGE = "Please select a 'Category'.";
 const REQUIRED_REQUEST_MESSAGE = "The 'Request' field is required.";
 const REQUIRED_CUSTOM_CATEGORY_MESSAGE =
@@ -34,7 +38,7 @@ function validatePromptData(
   if (!request.trim()) {
     errors.request = REQUIRED_REQUEST_MESSAGE;
   }
-  if (category === CUSTOM_CATEGORY_VALUE && !customCategory.trim()) {
+  if (category === CUSTOM_CATEGORY_VALUE && !customCategory?.trim()) {
     errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
   }
   return errors;
@@ -99,6 +103,18 @@ export const usePromptGenerator = () => {
   } = state;
 
   const isInitialMount = useRef(true);
+  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Refs for input elements
+  const requestInputRef = useRef<HTMLTextAreaElement>(
+    null,
+  ) as React.RefObject<HTMLTextAreaElement>;
+  const contextInputRef = useRef<HTMLTextAreaElement>(
+    null,
+  ) as React.RefObject<HTMLTextAreaElement>;
+  const codeInputRef = useRef<HTMLTextAreaElement>(
+    null,
+  ) as React.RefObject<HTMLTextAreaElement>;
 
   // Effect to load requests from IndexedDB on mount
   useEffect(() => {
@@ -128,6 +144,58 @@ export const usePromptGenerator = () => {
     loadRequests();
   }, [dispatch]);
 
+  // Effect to load auto-saved form state on mount
+  useEffect(() => {
+    const loadAutoSavedState = async () => {
+      try {
+        const savedState = await getCacheItem<PromptData>(AUTOSAVE_KEY);
+        if (savedState && typeof savedState === 'object') {
+          // Only load if we don't have a loaded request and form is empty
+          if (!selectedSavedRequestId && !promptData.request) {
+            dispatch({ type: 'SET_PROMPT_DATA', payload: savedState });
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load auto-saved form state', error);
+      }
+    };
+
+    if (isInitialMount.current) {
+      loadAutoSavedState();
+    }
+  }, [dispatch, selectedSavedRequestId, promptData.request]);
+
+  // Auto-save effect
+  useEffect(() => {
+    // Don't auto-save if we're loading a saved request or if it's the initial mount
+    if (isInitialMount.current || selectedSavedRequestId) {
+      return;
+    }
+
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set new timeout for auto-save
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        // Only save if there's actual content
+        if (promptData.request || promptData.context || promptData.codeInput) {
+          await setCacheItem(AUTOSAVE_KEY, promptData);
+        }
+      } catch (error) {
+        console.error('Failed to auto-save form state', error);
+      }
+    }, AUTOSAVE_DEBOUNCE_MS);
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [promptData, selectedSavedRequestId]);
+
   // Effect to save requests to IndexedDB when they change
   useEffect(() => {
     if (isInitialMount.current) {
@@ -151,6 +219,10 @@ export const usePromptGenerator = () => {
 
   const clearForm = useCallback(() => {
     dispatch({ type: 'CLEAR_FORM' });
+    // Clear auto-saved state when form is manually cleared
+    setCacheItem(AUTOSAVE_KEY, initialState.promptData).catch((error) => {
+      console.error('Failed to clear auto-saved state', error);
+    });
   }, []);
 
   const handleFieldChange = useCallback(
@@ -177,7 +249,7 @@ export const usePromptGenerator = () => {
     const requestIsEmpty = !request.trim();
     const categoryNotSelected = !category;
     const customCategoryIsEmptyWhenRequired =
-      category === CUSTOM_CATEGORY_VALUE && !customCategory.trim();
+      category === CUSTOM_CATEGORY_VALUE && !customCategory?.trim();
 
     return (
       categoryNotSelected || requestIsEmpty || customCategoryIsEmptyWhenRequired
@@ -224,7 +296,11 @@ export const usePromptGenerator = () => {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(dataForApi),
+          body: JSON.stringify({
+            ...dataForApi,
+            temperature: promptData.temperature,
+            aiModel: promptData.aiModel,
+          }),
         });
 
         if (!response.ok) {
@@ -346,25 +422,47 @@ export const usePromptGenerator = () => {
     selectedSavedRequestId,
     validationErrors,
     savedRequests,
+    requestPendingDeletion,
+    // Renamed functions to match page expectations
+    updatePromptData: (data: Partial<PromptData>) => {
+      Object.entries(data).forEach(([key, value]) => {
+        dispatch({
+          type: 'SET_FIELD',
+          field: key as keyof PromptData,
+          value: value as string,
+        });
+      });
+    },
+    handleGeneratePrompt: generatePromptHandler,
+    generateAiPromptHandler,
+    handleCopyOutput: copyToClipboard,
+    handleSaveRequest,
+    handleDeleteRequest,
+    handleLoadRequest,
+    handleNewRequestNameChange: (name: string) =>
+      dispatch({ type: 'SET_NEW_REQUEST_NAME', payload: name }),
+    handleSaveDialogOpen: () =>
+      dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: true }),
+    handleSaveDialogClose: () =>
+      dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: false }),
     clearForm,
+    // Keep original functions for backward compatibility
     handleFieldChange,
     handleCategoryChange,
     showCustomCategory,
     isGenerateDisabled,
-    generatePromptHandler,
-    generateAiPromptHandler,
     copyToClipboard,
-    handleSaveRequest,
     confirmSaveRequest,
-    handleLoadRequest,
-    handleDeleteRequest,
     isCopyDisabled,
-    requestPendingDeletion,
     confirmDeleteRequest,
     cancelDeleteRequest,
     setNewRequestName: (name: string) =>
       dispatch({ type: 'SET_NEW_REQUEST_NAME', payload: name }),
     setShowSaveDialog: (show: boolean) =>
       dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: show }),
+    // Refs
+    requestInputRef,
+    contextInputRef,
+    codeInputRef,
   };
 };
