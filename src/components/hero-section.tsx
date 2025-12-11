@@ -8,7 +8,9 @@ export default function HeroSection() {
   return (
     <section className="container relative mx-auto px-4 py-24 md:py-32">
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-100/30 via-transparent to-blue-100/30 dark:from-purple-950/30 dark:via-transparent dark:to-blue-950/30 blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-100/30 via-transparent to-blue-100/30 dark:from-purple-950/30 dark:via-transparent dark:to-blue-950/30 blur-3xl animate-pulse duration-3000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-tr from-purple-400/20 to-blue-400/20 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-bl from-blue-400/20 to-purple-400/20 rounded-full blur-2xl animate-float-delayed"></div>
       </div>
       <div className="grid items-center gap-12 md:grid-cols-2">
         <div className="space-y-8">
@@ -26,8 +28,8 @@ export default function HeroSection() {
           <div className="animate-fadeIn">
             <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
               I&apos;m{' '}
-              {/* Improved contrast with darker gradient colors and text shadow */}
-              <span className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] hover:animate-none drop-shadow-sm">
+              {/* Enhanced gradient text with 3D effect and better contrast */}
+              <span className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] hover:animate-none drop-shadow-lg hover:drop-shadow-xl transition-all duration-300">
                 Wesley Quintero
               </span>
             </h1>
@@ -62,59 +64,67 @@ export default function HeroSection() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="GitHub"
-              className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 group hover:rotate-6"
+              className="rounded-full bg-background p-3 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 group hover:-translate-y-1 hover:rotate-3 relative overflow-hidden border border-border/50 hover:border-primary/30"
             >
-              <Github className="h-5 w-5" />
+              <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <Github className="h-5 w-5 relative z-10" />
             </Link>
             <Link
               href="https://linkedin.com/in/wesleyquintero"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn"
-              className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
+              className="rounded-full bg-background p-3 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:-translate-y-1 hover:rotate-3 group relative overflow-hidden border border-border/50 hover:border-primary/30"
             >
-              <Linkedin className="h-5 w-5" />
+              <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <Linkedin className="h-5 w-5 relative z-10" />
             </Link>
             <Link
               href="https://twitter.com/wesleyquintero"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Twitter"
-              className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
+              className="rounded-full bg-background p-3 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:-translate-y-1 hover:rotate-3 group relative overflow-hidden border border-border/50 hover:border-primary/30"
             >
-              <Twitter className="h-5 w-5" />
+              <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <Twitter className="h-5 w-5 relative z-10" />
             </Link>
             <Link
               href="mailto:johnwesleyquintero@gmail.com"
               aria-label="Email"
-              className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
+              className="rounded-full bg-background p-3 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:-translate-y-1 hover:rotate-3 group relative overflow-hidden border border-border/50 hover:border-primary/30"
             >
-              <Mail className="h-5 w-5" />
+              <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <Mail className="h-5 w-5 relative z-10" />
             </Link>
             <Link
               href="https://sellsmart-pro.vercel.app/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="SellSmart Pro"
-              className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
+              className="rounded-full bg-background p-3 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:-translate-y-1 hover:rotate-3 group relative overflow-hidden border border-border/50 hover:border-primary/30"
             >
-              <Triangle className="h-5 w-5" />
+              <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              <Triangle className="h-5 w-5 relative z-10" />
             </Link>
           </div>
         </div>
 
-        <div className="relative mx-auto aspect-square w-full max-w-md animate-float hover:animate-none">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-purple-500/20 blur-3xl animate-gradient bg-[length:200%_200%] hover:animate-none"></div>
-          <div className="relative h-full overflow-hidden rounded-3xl border bg-background/50 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group">
-            <Image
-              priority
-              quality={90}
-              className="rounded-lg shadow-xl transition-transform duration-300 hover:scale-105 object-cover group-hover:rotate-3 hover:animate-none"
-              src="https://avatars.githubusercontent.com/u/190981914?v=4"
-              alt="Wesley Quintero"
-              fill
-              sizes="(max-width: 768px) 100vw, 448px"
-            />
+        <div className="relative mx-auto aspect-square w-full max-w-md animate-float hover:animate-none group">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-purple-500/20 blur-3xl animate-gradient bg-[length:200%_200%] group-hover:animate-none"></div>
+          <div className="relative h-full overflow-hidden rounded-3xl border bg-background/50 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group perspective-1000">
+            <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 group-hover:rotate-y-6 group-hover:rotate-3">
+              <Image
+                priority
+                quality={90}
+                className="rounded-lg shadow-xl object-cover w-full h-full"
+                src="https://avatars.githubusercontent.com/u/190981914?v=4"
+                alt="Wesley Quintero"
+                fill
+                sizes="(max-width: 768px) 100vw, 448px"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            </div>
           </div>
         </div>
       </div>

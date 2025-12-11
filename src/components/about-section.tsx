@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { useScrollAnimation } from '@/hooks/use-scroll-animation';
 
 // Type definitions for data structures
 interface Skill {

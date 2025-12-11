@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ExternalLink, GitFork, Github, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useScrollAnimation } from '@/hooks/use-scroll-animation';
 
 interface GitHubRepo {
   name: string;

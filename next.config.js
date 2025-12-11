@@ -242,7 +242,7 @@ import remarkGfm from 'remark-gfm';
 import rehypePrism from 'rehype-prism-plus';
 import withMDX from '@next/mdx';
 
-const config = {
+const mdxConfig = {
   extension: /\.mdx?$/,
   options: {
     remarkPlugins: [remarkGfm],
@@ -251,4 +251,4 @@ const config = {
   },
 };
 
-export default withMDX(config)(nextConfig);
+export default withMDX(mdxConfig)(nextConfig);
