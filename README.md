@@ -6,7 +6,6 @@ This project is a comprehensive portfolio platform, the "ScaleSmart" (AKA WesVer
 
 - **Blog**: A platform for publishing articles and updates, supporting MDX for rich content creation and dynamic rendering.
 - **Content Management**: Leverages MDX files for dynamic rendering of blog posts and documentation, allowing for rich, interactive content with embedded React components.
-- **Dashboard Studio**: A powerful, interactive tool for creating, customizing, and managing dynamic dashboards with various widget types (KPIs, charts, tables, text, images) and data source integration.
 - **Error Guide**: Provides a dedicated page to display comprehensive error documentation, dynamically loading and rendering MDX content for troubleshooting and solutions.
 - **Privacy Policy Page**: Outlines how user data is collected, used, protected, and managed, dynamically loading content from an MDX file for easy updates.
 - **Prompt Request Generator**: A specialized tool designed to help users construct well-structured and effective prompts for AI models, guiding them through selecting categories, providing context, detailing requests, and including code snippets.
@@ -81,7 +80,6 @@ Detailed API documentation can be found in the `src/app/content/docs/api-*.mdx` 
 
 - **Blog**: Browse articles and learn about various topics. Content is managed via MDX files, supporting rich content creation and dynamic rendering.
 - **Content Management**: Manage various types of content (blog posts, documentation, static pages) using MDX files, leveraging MDX for dynamic rendering and embedded React components.
-- **Dashboard Studio**: Build custom dashboards with drag-and-drop functionality, various widget types (KPIs, charts, tables, text, images), and data source integration.
 - **Error Guide**: Access a dynamic guide for common errors, providing comprehensive error documentation dynamically loaded from MDX files.
 - **Privacy Policy Page**: View the project's privacy policy, which outlines how user data is collected, used, protected, and managed, with dynamic content loading from an MDX file.
 - **Prompt Request Generator**: Generate structured prompt requests for various purposes, guiding users through selecting categories, providing context, detailing requests, and including code snippets.
