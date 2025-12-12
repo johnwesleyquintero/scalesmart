@@ -5,9 +5,8 @@ import crypto from 'crypto';
 const nextConfig = {
   transpilePackages: ['next-mdx-remote'],
   productionBrowserSourceMaps: false, // Disable source maps in production for smaller bundle size
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
+  turbopack: {},
+
   // Core settings
   // output: 'standalone', // Keep if needed for Docker/standalone deployment
 
