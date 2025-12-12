@@ -1,5 +1,3 @@
-'use client';
-
 import React, { ReactNode } from 'react'; // Explicitly import React and ReactNode
 import { Badge } from '@/components/ui/badge';
 import {
