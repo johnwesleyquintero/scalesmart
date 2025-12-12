@@ -39,7 +39,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none">
+      <body
+        className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none"
+        suppressHydrationWarning
+      >
         <div className="relative flex min-h-screen flex-col">
           <ErrorBoundary>
             <ClientProviders>

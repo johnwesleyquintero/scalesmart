@@ -1,27 +1,27 @@
 {
   "experience": [
     {
-      "title": "Founder & Software Architect",
+      "title": "Founder • Full-Stack Architect • E-commerce Systems Specialist",
       "company": "ScaleSmart (Personal Brand & Development Hub)",
       "period": "Jan 2025 - Present",
-      "description": "Architecting a comprehensive ecosystem of full-stack applications under the ScaleSmart brand. Focused on creating intelligent, scalable solutions for e-commerce, developer productivity, and digital education.",
+      "description": "Building a fully integrated ecosystem of intelligent, scalable tools powering e-commerce brands, developer productivity, and digital education. Focused on designing autonomous systems instead of one-off solutions.",
       "achievements": [
-        "Architected and developed ScaleSmart, a monorepo platform hosting a suite of personal productivity and developer tools (Prompt Generators, Code Checkers, etc.).",
-        "Engineered Alerion, an enterprise-grade SaaS platform for Amazon advertising analytics and automation, leveraging the SP-API.",
-        "Designed and built the foundational infrastructure for WesAcademy, a Learning Management System (LMS) aimed at democratizing professional education."
+        "Engineered ScaleSmart as a monorepo ecosystem hosting high-leverage productivity tools, AI utilities, and operational frameworks used across personal and client brands.",
+        "Built Alerion, an enterprise-grade Amazon advertising SaaS leveraging the SP-API for automated analytics, insights, and campaign optimization.",
+        "Designed the core infrastructure for WesAcademy, an LMS platform centered on skill development, professional training, and accessible digital education."
       ],
       "startDate": "2025-01-01",
       "endDate": null
     },
     {
-      "title": "Amazon Specialist 2",
+      "title": "Amazon Specialist II",
       "company": "My Amazon Guy",
       "period": "Oct 2024 - Mar 2025",
-      "description": "Spearheaded data-driven Amazon SEO (Search Engine Optimization) and PPC (Pay-Per-Click) strategies for diverse clients, resulting in an average client sales increase of 35%. ",
+      "description": "Led SEO, PPC, and catalog optimization strategies across multiple Amazon brands, delivering a measurable lift in sales performance through data-driven execution.",
       "achievements": [
-        "Designed and implemented data visualization dashboards for client reporting, enhancing transparency and strategic decision-making in Amazon marketplace performance.",
-        "Optimized Amazon product listings, managed Amazon Ads campaigns, and conducted keyword research to significantly improve organic rank and ACoS (Advertising Cost of Sale) for client portfolios.",
-        "Developed \"My Amazon Analytics,\" a powerful analytics dashboard for monitoring and optimizing Amazon advertising performance."
+        "Built end-to-end analytics dashboards that simplified client reporting, improved data visibility, and strengthened strategic decision-making.",
+        "Optimized product listings, PPC structures, and keyword architecture to improve organic rank, reduce ACoS, and boost conversion rates.",
+        "Created “My Amazon Analytics,” a proprietary dashboard that unified campaign tracking, keyword intelligence, and performance monitoring."
       ],
       "startDate": "2024-10-01",
       "endDate": "2025-03-01"
@@ -30,24 +30,24 @@
       "title": "Item Specialist",
       "company": "Bulk Buy America",
       "period": "Mar 2024 - Sep 2024",
-      "description": "Managed and maintained extensive Amazon product catalogs, ensuring precise data accuracy and optimizing product listings for enhanced discoverability and sales.",
+      "description": "Maintained and optimized Amazon product catalogs at scale, ensuring data accuracy, listing quality, and operational efficiency across hundreds of SKUs.",
       "achievements": [
-        "Developed custom Excel-based price checking tools and utilized advanced VLOOKUP functions to streamline inventory management and procurement processes, improving efficiency by 25%. ",
-        "Collaborated cross-functionally with supply chain and sales teams to resolve product-related issues, enhancing overall Amazon marketplace performance and customer satisfaction."
+        "Developed Excel-based pricing and inventory tools using advanced formulas and automation, increasing procurement workflow efficiency by 25%.",
+        "Partnered with supply chain and sales teams to resolve catalog, pricing, and listing discrepancies, improving marketplace stability and customer satisfaction."
       ],
       "startDate": "2024-03-01",
       "endDate": "2024-09-01"
     },
     {
-      "title": "Marketplace Support",
+      "title": "Marketplace Support Specialist",
       "company": "Adorama",
       "period": "May 2023 - Sep 2023",
-      "description": "Provided comprehensive technical support and issue resolution for B2B clients concerning Amazon marketplace integrations, product listings, and Seller Central operations.",
+      "description": "Supported Amazon B2B integrations, listing operations, and Seller Central troubleshooting for enterprise-level partners.",
       "achievements": [
-        "Effectively managed and updated product information across various online marketplaces, ensuring data accuracy and consistency for optimal product visibility.",
-        "Streamlined communication between clients and internal teams, facilitating swift resolution of Amazon order, listing, and account health discrepancies.",
-        "Developed and implemented a comprehensive Standard Operating Procedure (SOP) for the Amazon Reimbursement Process, improving efficiency and accuracy. ",
-        "Created a Google Sheet SOP for Amazon Jira Issues, enhancing issue tracking and resolution efficiency. "
+        "Managed and corrected listing data across multiple marketplaces, ensuring accuracy and visibility for high-volume product lines.",
+        "Coordinated across internal and external teams to resolve order, listing, and account health issues rapidly.",
+        "Authored a complete SOP for Amazon reimbursement workflows, increasing accuracy and recovery rates.",
+        "Created an Amazon Jira Issue SOP using Google Sheets, improving tracking and reducing resolution time."
       ],
       "startDate": "2023-05-01",
       "endDate": "2023-09-01"
@@ -56,11 +56,11 @@
       "title": "Amazon Account Manager",
       "company": "Champion E-com LLC",
       "period": "Oct 2022 - Sep 2023",
-      "description": "Managed and optimized Amazon account health, performance metrics, and compliance for multiple B2B clients, proactively addressing issues and driving sustainable growth.",
+      "description": "Managed full Amazon operations for multiple brands, focusing on account health, catalog stability, compliance, and strategic growth.",
       "achievements": [
-        "Implemented strategic Amazon SEO and PPC campaigns, including keyword optimization and bid management, leading to a 20% increase in sales and enhanced product visibility within six months.",
-        "Analyzed competitor strategies, market trends, and Amazon data to identify new opportunities for client expansion, product launches, and profitability.",
-        "Developed and implemented a comprehensive Standard Operating Procedure (SOP) for Amazon FBA Department Operations, enhancing workflow efficiency and team productivity. "
+        "Implemented SEO and PPC systems that delivered a 20% sales lift through structured keyword optimization and bid management.",
+        "Conducted competitor and market analysis to identify expansion opportunities and guide new product launches.",
+        "Authored a complete FBA Operations SOP, standardizing workflows and improving team efficiency."
       ],
       "startDate": "2022-10-01",
       "endDate": "2023-09-01"
@@ -69,11 +69,11 @@
       "title": "Amazon Wholesale Buyer",
       "company": "Sales.support",
       "period": "Oct 2018 - Jul 2022",
-      "description": "Successfully identified and sourced profitable wholesale product opportunities for Amazon FBA (Fulfillment by Amazon) and FBM (Fulfillment by Merchant) models, directly contributing to a 25% increase in overall revenue.",
+      "description": "Sourced profitable wholesale products for FBA and FBM channels, driving sustainable sales growth through strategic negotiation and market analysis.",
       "achievements": [
-        "Expertly negotiated favorable pricing and terms with suppliers and distributors, consistently maximizing profit margins and maintaining a competitive edge in the Amazon marketplace.",
-        "Conducted in-depth market research, competitor analysis, and product trend forecasting to inform purchasing decisions and capitalize on emerging opportunities within the e-commerce landscape.",
-        "Developed a comprehensive Standard Operating Procedure (SOP) for Amazon Wholesale Buyers, streamlining the sourcing and negotiation process. "
+        "Negotiated strong pricing and supplier terms, consistently maximizing profit margins and competitive positioning.",
+        "Performed comprehensive market, competitor, and trend analysis to guide purchasing decisions and product opportunities.",
+        "Created a full Wholesale Buyer SOP, standardizing sourcing and negotiation processes across the team."
       ],
       "startDate": "2018-10-01",
       "endDate": "2022-07-01"
