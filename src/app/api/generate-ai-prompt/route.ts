@@ -1,6 +1,24 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
 
+function getErrorMessage(error: unknown): string {
+  if (!(error instanceof Error)) {
+    return 'An unknown error occurred';
+  }
+  
+  const message = error.message;
+  
+  if (message.includes('403') || message.includes('PERMISSION_DENIED')) {
+    return 'Gemini API permission denied. Please check your API key has proper permissions for the selected model.';
+  }
+  
+  if (message.includes('404') || message.includes('not found')) {
+    return 'Selected Gemini model not found. Please ensure the model is available in your region and API tier.';
+  }
+  
+  return message;
+}
+
 function buildPrompt({
   category,
   customCategory,
@@ -120,7 +138,7 @@ export async function POST(req: Request) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const models = ['gemini-2.5-flash', 'gemini-1.5-flash']; // Use only working free tier Gemini models
+    const models = ['gemini-2.5-flash']; // Use only working free tier Gemini model
     let generatedText = '';
     let lastError: unknown = null;
 
@@ -135,10 +153,8 @@ export async function POST(req: Request) {
         }
       } catch (error) {
         lastError = error;
-        console.error(
-          `Failed to generate content with model ${modelName}:`,
-          error,
-        );
+        const errorMessage = getErrorMessage(error);
+        console.error(`Failed to generate content with model ${modelName}:`, errorMessage);
         // Continue to the next model
       }
     }
@@ -150,10 +166,7 @@ export async function POST(req: Request) {
         'All Gemini models failed to generate AI prompt. Last error:',
         lastError,
       );
-      const errorMessage =
-        lastError instanceof Error
-          ? lastError.message
-          : 'Failed to generate AI prompt after multiple retries.';
+      const errorMessage = lastError ? getErrorMessage(lastError) : 'Failed to generate AI prompt after multiple retries.';
       return NextResponse.json({ error: errorMessage }, { status: 500 });
     }
   } catch (error: unknown) {
