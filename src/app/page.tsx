@@ -3,7 +3,6 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { getAllBlogPosts } from '@/lib/mdx';
 import HeroSection from '@/components/hero-section';
 import FeatureHighlightsSection from '@/components/feature-highlights-section';
-import InAppProjects from '@/components/In-App-Project';
 import ProjectsSection from '@/components/projects-section';
 import AboutSection from '@/components/about-section';
 import CertificationsSection from '@/components/certifications-section';
@@ -31,15 +30,6 @@ export default async function Home() {
           <FeatureHighlightsSection />
         </section>
 
-        {/* InApp Projects Section */}
-        <section className="w-full py-20 relative">
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-transparent to-purple-50/20 dark:from-blue-950/20 dark:via-transparent dark:to-purple-950/20"></div>
-          <ErrorBoundary fallback={<CardLoading />}>
-            <Suspense fallback={<CardLoading />}>
-              <InAppProjects />
-            </Suspense>
-          </ErrorBoundary>
-        </section>
 
         {/* Projects Section */}
         <section className="w-full py-20 relative">
