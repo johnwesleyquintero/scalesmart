@@ -46,7 +46,7 @@ const ContactSectionClient = dynamic(
 );
 
 const InAppProjectsClient = dynamic(
-  () => import('@/components/projects-section'),
+  () => import('@/components/In-App-Project'),
   {
     loading: () => <CardLoading />,
   },

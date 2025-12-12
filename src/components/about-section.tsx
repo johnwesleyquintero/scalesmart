@@ -21,7 +21,7 @@ interface ExperienceItem {
   title: string;
   company: string;
   startDate?: string;
-  endDate?: string | null; // Added null as a possible type
+  endDate?: string;
   description?: string;
   achievements?: string[];
 }
@@ -48,7 +48,10 @@ interface EducationData {
   education: EducationItem[];
 }
 
-// Data imports moved inside async component for Turbopack compatibility
+// Import data with types
+import educationData from '@/data/portfolio-data/education.json';
+import experienceData from '@/data/portfolio-data/experience.json';
+import skillsData from '@/data/portfolio-data/skills.json';
 
 // Import Lucide icons
 import {
@@ -139,17 +142,11 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
 };
 
 // Main AboutSection component
-interface AboutSectionProps {
-  skills?: Skill[];
-  experience?: ExperienceItem[];
-  education?: EducationItem[];
-}
+export default function AboutSection() {
+  const skills = skillsData.skills || [];
+  const experience = experienceData.experience || [];
+  const education = educationData.education || [];
 
-export default function AboutSection({
-  skills = [],
-  experience = [],
-  education = [],
-}: AboutSectionProps) {
   return (
     <section id="about" className={styles.aboutSection}>
       <div className={`${styles.container} container mx-auto px-4`}>

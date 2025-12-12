@@ -3,8 +3,9 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { getAllBlogPosts } from '@/lib/mdx';
 import HeroSection from '@/components/hero-section';
 import FeatureHighlightsSection from '@/components/feature-highlights-section';
+import InAppProjects from '@/components/In-App-Project';
 import ProjectsSection from '@/components/projects-section';
-import AboutSectionServer from '@/components/about-section-server';
+import AboutSection from '@/components/about-section';
 import CertificationsSection from '@/components/certifications-section';
 import { BlogSection } from '@/components/blog-section';
 import ContactSection from '@/components/contact-section';
@@ -13,8 +14,6 @@ import { useScrollAnimation } from '@/hooks/use-scroll-animation';
 
 export default async function Home() {
   const blogPosts = await getAllBlogPosts();
-
-  // Load portfolio data
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-muted/50 to-background">
@@ -36,7 +35,9 @@ export default async function Home() {
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 via-transparent to-purple-50/20 dark:from-blue-950/20 dark:via-transparent dark:to-purple-950/20"></div>
           <ErrorBoundary fallback={<CardLoading />}>
-            <Suspense fallback={<CardLoading />}></Suspense>
+            <Suspense fallback={<CardLoading />}>
+              <InAppProjects />
+            </Suspense>
           </ErrorBoundary>
         </section>
 
@@ -53,7 +54,7 @@ export default async function Home() {
         {/* About Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-orange-50/20 via-transparent to-red-50/20 dark:from-orange-950/20 dark:via-transparent dark:to-red-950/20"></div>
-          <AboutSectionServer />
+          <AboutSection />
         </section>
 
         {/* Certifications Section */}
