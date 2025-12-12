@@ -39,25 +39,6 @@ export default function HeroSection() {
             </p>
           </div>
 
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <Button asChild size="lg">
-              <Link href="">
-                View My Portfolio
-                <span className="ml-2 group-hover:translate-x-1 duration-500">
-                  →
-                </span>
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="">
-                Learn About My Experience
-                <span className="ml-2 group-hover:translate-x-1 duration-500">
-                  →
-                </span>
-              </Link>
-            </Button>
-          </div>
-
           <div className="flex items-center gap-4">
             <Link
               href="https://github.com/johnwesleyquintero"
@@ -96,16 +77,6 @@ export default function HeroSection() {
             >
               <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               <Mail className="h-5 w-5 relative z-10" />
-            </Link>
-            <Link
-              href="https://sellsmart-pro.vercel.app/"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="SellSmart Pro"
-              className="rounded-full bg-background p-3 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:-translate-y-1 hover:rotate-3 group relative overflow-hidden border border-border/50 hover:border-primary/30"
-            >
-              <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              <Triangle className="h-5 w-5 relative z-10" />
             </Link>
           </div>
         </div>

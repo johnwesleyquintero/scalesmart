@@ -293,18 +293,15 @@ const nextConfig = {
 
 import remarkGfm from 'remark-gfm';
 import rehypePrism from 'rehype-prism-plus';
-import withMDX from '@next/mdx';
 
-const mdxConfig = {
-  extension: /\.mdx?$/,
-  options: {
-    remarkPlugins: [remarkGfm],
-    rehypePlugins: [rehypePrism],
-    providerImportSource: '@mdx-js/react',
+// Configure MDX with Turbopack compatibility
+const nextConfigWithMDX = {
+  ...nextConfig,
+  pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
+  experimental: {
+    ...nextConfig.experimental,
+    mdxRs: true, // Enable Rust-based MDX compilation for better performance
   },
 };
 
-// Add MDX configuration to the main config
-const finalConfig = withMDX(mdxConfig)(nextConfig);
-
-export default finalConfig;
+export default nextConfigWithMDX;
