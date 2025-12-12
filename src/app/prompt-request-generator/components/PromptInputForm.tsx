@@ -25,6 +25,7 @@ import {
 } from '@/lib/prompt-generator/constants';
 import { CategoryValue, PromptData } from '@/lib/prompt-generator/types';
 import { useForm, Controller, UseFormReturn } from 'react-hook-form';
+import CharacterCounter from './CharacterCounter';
 
 const ERROR_BORDER_CLASS = 'border-red-500';
 
@@ -166,7 +167,10 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
         control={control}
         render={({ field }) => (
           <div className="space-y-2">
-            <Label htmlFor="context">Context (optional)</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="context">Context (optional)</Label>
+              <CharacterCounter current={field.value?.length || 0} max={2000} />
+            </div>
             <Textarea
               id="context"
               placeholder="Provide background information about your project or problem..."
@@ -191,9 +195,12 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
         rules={{ required: 'The Request field is required.' }}
         render={({ field }) => (
           <div className="space-y-2">
-            <Label htmlFor="request">
-              Request <span className="text-red-500">*</span>
-            </Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="request">
+                Request <span className="text-red-500">*</span>
+              </Label>
+              <CharacterCounter current={field.value?.length || 0} max={1000} />
+            </div>
             <Textarea
               id="request"
               placeholder="Clearly describe what you need help with..."
@@ -234,7 +241,13 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
               control={control}
               render={({ field }) => (
                 <div className="space-y-2">
-                  <Label htmlFor="parentTask">Parent Task (optional)</Label>
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="parentTask">Parent Task (optional)</Label>
+                    <CharacterCounter
+                      current={field.value?.length || 0}
+                      max={200}
+                    />
+                  </div>
                   <Input
                     id="parentTask"
                     placeholder="e.g., Implement user authentication"
@@ -256,7 +269,13 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
               control={control}
               render={({ field }) => (
                 <div className="space-y-2">
-                  <Label htmlFor="subtask">Subtask (optional)</Label>
+                  <div className="flex justify-between items-center">
+                    <Label htmlFor="subtask">Subtask (optional)</Label>
+                    <CharacterCounter
+                      current={field.value?.length || 0}
+                      max={150}
+                    />
+                  </div>
                   <Input
                     id="subtask"
                     placeholder="e.g., Create login form UI"
@@ -281,7 +300,10 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
         control={control}
         render={({ field }) => (
           <div className="space-y-2">
-            <Label htmlFor="codeInput">Relevant Data (optional)</Label>
+            <div className="flex justify-between items-center">
+              <Label htmlFor="codeInput">Relevant Data (optional)</Label>
+              <CharacterCounter current={field.value?.length || 0} max={5000} />
+            </div>
             <div className="relative border border-input rounded-md bg-background font-mono text-sm overflow-hidden shadow-sm [&>div]:!p-0">
               <Editor
                 value={field.value || ''}

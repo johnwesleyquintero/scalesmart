@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Wand2, Save } from 'lucide-react';
+import { Wand2, Save, Undo2, Redo2 } from 'lucide-react';
 import Link from 'next/link';
+import LoadingSpinner from './LoadingSpinner';
 
 interface PromptActionButtonsProps {
   isGenerateDisabled: boolean;
@@ -14,6 +15,10 @@ interface PromptActionButtonsProps {
   clearForm: () => void;
   aiModel?: string;
   temperature?: number;
+  undo?: () => void;
+  redo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
@@ -27,11 +32,37 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
   clearForm,
   aiModel,
   temperature,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
 }) => {
   const baseButtonClass = 'w-full sm:w-auto rounded-md py-2 px-4'; //Added base class for consistency
 
   return (
     <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+      {/* Undo/Redo Buttons */}
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          onClick={undo}
+          className="px-3 py-2"
+          aria-label="Undo last change"
+          disabled={!canUndo || loading || aiLoading}
+        >
+          <Undo2 className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          onClick={redo}
+          className="px-3 py-2"
+          aria-label="Redo last undone change"
+          disabled={!canRedo || loading || aiLoading}
+        >
+          <Redo2 className="h-4 w-4" />
+        </Button>
+      </div>
+
       {/* Generate Prompt Button */}
       <Button
         onClick={generatePromptHandler}
@@ -40,7 +71,10 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
         disabled={isGenerateDisabled || loading || aiLoading}
       >
         {loading ? (
-          'Generating...'
+          <div className="flex items-center gap-2">
+            <LoadingSpinner size="sm" />
+            <span>Generating prompt...</span>
+          </div>
         ) : (
           <>
             <Wand2 className="mr-2 h-4 w-4 inline-block" />
@@ -57,7 +91,10 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
         aria-label={`Generate prompt using AI (${aiModel || 'GPT-4 Turbo'})`}
       >
         {aiLoading ? (
-          'Generating with AI...'
+          <div className="flex items-center gap-2">
+            <LoadingSpinner size="sm" />
+            <span>Thinking with AI...</span>
+          </div>
         ) : (
           <>
             <Wand2 className="mr-2 h-4 w-4 inline-block" />

@@ -5,15 +5,18 @@ import { components } from '@/components/MdxRenderer';
 import { Check, Copy, Wand2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { PromptOutputSkeleton } from './Skeleton';
 
 interface PromptOutputDisplayProps {
   output: string;
   onCopy?: () => void;
+  isLoading?: boolean;
 }
 
 const PromptOutputDisplay: React.FC<PromptOutputDisplayProps> = ({
   output,
   onCopy,
+  isLoading = false,
 }) => {
   const [isCopied, setIsCopied] = useState(false);
 
@@ -46,6 +49,14 @@ const PromptOutputDisplay: React.FC<PromptOutputDisplayProps> = ({
             Fill in the details and click generate to get started
           </p>
         </div>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-gradient-to-br from-muted/30 to-muted/50 rounded-lg border border-border/50">
+        <PromptOutputSkeleton />
       </div>
     );
   }

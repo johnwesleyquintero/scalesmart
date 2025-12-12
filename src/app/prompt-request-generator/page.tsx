@@ -27,6 +27,9 @@ import {
 import Link from 'next/link';
 import { PromptData } from '@/lib/prompt-generator/types';
 import { useToast } from '@/hooks/use-toast';
+import PromptTemplateSelector, {
+  PromptTemplate,
+} from './components/PromptTemplateSelector';
 
 // Import new components
 import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
@@ -79,6 +82,10 @@ export default function PromptRequestGenerator() {
     confirmSaveRequest,
     confirmDeleteRequest,
     cancelDeleteRequest,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   } = usePromptGenerator();
 
   const { toast } = useToast();
@@ -133,12 +140,85 @@ export default function PromptRequestGenerator() {
           }
         },
       },
+      {
+        ...PROMPT_GENERATOR_SHORTCUTS.UNDO,
+        handler: () => {
+          if (canUndo) {
+            undo();
+            toast({
+              title: 'Undone',
+              description: 'Previous state restored',
+            });
+          }
+        },
+      },
+      {
+        ...PROMPT_GENERATOR_SHORTCUTS.REDO,
+        handler: () => {
+          if (canRedo) {
+            redo();
+            toast({
+              title: 'Redone',
+              description: 'Next state restored',
+            });
+          }
+        },
+      },
+      {
+        ...PROMPT_GENERATOR_SHORTCUTS.TEMPLATES,
+        handler: () => {
+          // Scroll to templates section
+          const templatesSection = document.querySelector(
+            '[data-templates-section]',
+          );
+          if (templatesSection) {
+            templatesSection.scrollIntoView({ behavior: 'smooth' });
+          }
+          toast({
+            title: 'Templates',
+            description: 'Opening templates section',
+          });
+        },
+      },
+      {
+        ...PROMPT_GENERATOR_SHORTCUTS.DUPLICATE,
+        handler: () => {
+          if (promptData.request) {
+            // Create a copy of current request
+            const duplicatedData = {
+              ...promptData,
+              request: promptData.request + ' (Copy)',
+            };
+            Object.entries(duplicatedData).forEach(([key, value]) => {
+              updatePromptData({ [key]: value } as Partial<PromptData>);
+            });
+            toast({
+              title: 'Duplicated',
+              description: 'Current request duplicated',
+            });
+          }
+        },
+      },
     ],
   });
 
   const form = useForm<PromptData>({
     values: promptData,
   });
+
+  const handleTemplateSelect = (template: PromptTemplate) => {
+    // Apply template data to form
+    Object.entries(template.data).forEach(([key, value]) => {
+      if (value) {
+        updatePromptData({ [key]: value } as Partial<PromptData>);
+      }
+    });
+
+    toast({
+      title: 'Template Applied',
+      description: `Applied "${template.name}" template`,
+    });
+  };
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -192,7 +272,7 @@ export default function PromptRequestGenerator() {
               toast({
                 title: 'Keyboard Shortcuts',
                 description:
-                  'Ctrl+Enter: Generate prompt\nCtrl+K: Clear form\nCtrl+Shift+C: Copy output\nCtrl+S: Save request',
+                  'Ctrl+Enter: Generate prompt\nCtrl+K: Clear form\nCtrl+Shift+C: Copy output\nCtrl+S: Save request\nCtrl+Z: Undo\nCtrl+Y: Redo\nCtrl+T: Templates\nCtrl+D: Duplicate',
                 duration: 5000,
               });
             }}
@@ -202,6 +282,12 @@ export default function PromptRequestGenerator() {
             Shortcuts
           </Button>
         </div>
+
+        {/* Quick Templates */}
+        <div className="mb-8" data-templates-section>
+          <PromptTemplateSelector onSelectTemplate={handleTemplateSelect} />
+        </div>
+
         {/* Full-Width Layout */}
         <div className="mt-8 space-y-8">
           {/* Input Form and Controls */}
@@ -255,6 +341,10 @@ export default function PromptRequestGenerator() {
                 clearForm={clearForm}
                 aiModel={promptData.aiModel}
                 temperature={promptData.temperature}
+                undo={undo}
+                redo={redo}
+                canUndo={canUndo}
+                canRedo={canRedo}
               />
             </CardContent>
           </Card>
@@ -270,7 +360,10 @@ export default function PromptRequestGenerator() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PromptOutputDisplay output={output} />
+              <PromptOutputDisplay
+                output={output}
+                isLoading={loading || aiLoading}
+              />
             </CardContent>
           </Card>
         </div>

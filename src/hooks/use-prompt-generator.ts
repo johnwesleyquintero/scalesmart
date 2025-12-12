@@ -16,6 +16,7 @@ import {
 } from '@/lib/prompt-generator/types';
 import { generatePrompt } from '@/lib/prompt-generator/utils';
 import { getCacheItem, setCacheItem } from '@/lib/localstorage-service';
+import { useUndoRedo } from './use-undo-redo';
 
 // Auto-save constants
 const AUTOSAVE_DEBOUNCE_MS = 1000;
@@ -104,6 +105,25 @@ export const usePromptGenerator = () => {
 
   const isInitialMount = useRef(true);
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Undo/redo functionality
+  const {
+    state: undoRedoState,
+    canUndo,
+    canRedo,
+    undo,
+    redo,
+    update: updateUndoRedoState,
+    reset: resetUndoRedo,
+  } = useUndoRedo(promptData, {
+    maxHistory: 20,
+    onUndo: (state) => {
+      dispatch({ type: 'SET_PROMPT_DATA', payload: state });
+    },
+    onRedo: (state) => {
+      dispatch({ type: 'SET_PROMPT_DATA', payload: state });
+    },
+  });
 
   // Refs for input elements
   const requestInputRef = useRef<HTMLTextAreaElement>(
@@ -426,6 +446,13 @@ export const usePromptGenerator = () => {
     requestPendingDeletion,
     // Renamed functions to match page expectations
     updatePromptData: (data: Partial<PromptData>) => {
+      // Create new state by merging current state with updates
+      const newState = { ...promptData, ...data };
+
+      // Update undo/redo history
+      updateUndoRedoState(newState);
+
+      // Update the reducer state
       Object.entries(data).forEach(([key, value]) => {
         dispatch({
           type: 'SET_FIELD',
@@ -465,5 +492,10 @@ export const usePromptGenerator = () => {
     requestInputRef,
     contextInputRef,
     codeInputRef,
+    // Undo/redo functions
+    undo,
+    redo,
+    canUndo,
+    canRedo,
   };
 };

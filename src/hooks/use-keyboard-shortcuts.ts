@@ -95,4 +95,24 @@ export const PROMPT_GENERATOR_SHORTCUTS = {
     alt: true,
     description: 'Focus code input field',
   },
+  UNDO: {
+    key: 'z',
+    ctrl: true,
+    description: 'Undo last change',
+  },
+  REDO: {
+    key: 'y',
+    ctrl: true,
+    description: 'Redo last undone change',
+  },
+  TEMPLATES: {
+    key: 't',
+    ctrl: true,
+    description: 'Open templates',
+  },
+  DUPLICATE: {
+    key: 'd',
+    ctrl: true,
+    description: 'Duplicate current request',
+  },
 };
