@@ -120,7 +120,7 @@ export async function POST(req: Request) {
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const models = ['gemini-2.5-flash', 'gemini-1.5-flash', 'gemini-1.0-pro']; // Prioritize 2.5-flash, then 1.5-flash, then 1.0-pro
+    const models = ['gemini-2.5-flash', 'gemini-1.5-flash']; // Use only working free tier Gemini models
     let generatedText = '';
     let lastError: unknown = null;
 

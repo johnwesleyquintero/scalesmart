@@ -6,8 +6,7 @@ export type AIModel =
   | 'claude-3-sonnet'
   | 'claude-3-haiku'
   | 'gemini-2.5-flash'
-  | 'gemini-1.5-flash'
-  | 'gemini-1.0-pro';
+  | 'gemini-1.5-flash';
 
 export interface PromptData {
   category: CategoryValue;
