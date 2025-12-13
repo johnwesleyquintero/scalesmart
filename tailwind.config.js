@@ -30,16 +30,16 @@ const config = {
     },
     extend: {
       fontSize: {
-        xs: '.75rem',
-        sm: '.875rem',
-        base: '1rem',
-        lg: '1.125rem',
-        xl: '1.25rem',
-        '2xl': '1.5rem',
-        '3xl': '1.875rem',
-        '4xl': '2.25rem',
-        '5xl': '3rem',
-        '6xl': '4rem',
+        xs: ['0.75rem', { lineHeight: '1rem' }],
+        sm: ['0.875rem', { lineHeight: '1.25rem' }],
+        base: ['1rem', { lineHeight: '1.5rem' }],
+        lg: ['1.125rem', { lineHeight: '1.75rem' }],
+        xl: ['1.25rem', { lineHeight: '1.75rem' }],
+        '2xl': ['1.5rem', { lineHeight: '2rem' }],
+        '3xl': ['1.875rem', { lineHeight: '2.25rem' }],
+        '4xl': ['2.25rem', { lineHeight: '2.5rem' }],
+        '5xl': ['3rem', { lineHeight: '1' }],
+        '6xl': ['4rem', { lineHeight: '1' }],
       },
       fontWeight: {
         hairline: '100',
@@ -146,6 +146,15 @@ const config = {
         float: 'float 3s ease-in-out infinite',
         gradient: 'gradient 8s linear infinite alternate',
       },
+      transitionProperty: {
+        'common': 'background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter',
+      },
+      transitionDuration: {
+        'DEFAULT': '200ms',
+      },
+      transitionTimingFunction: {
+        'in-out': 'ease-in-out',
+      },
       typography: {
         DEFAULT: {
           css: {
@@ -200,38 +209,14 @@ const config = {
             p: {
               marginTop: '1rem',
               marginBottom: '1rem',
-              '&:first-child': {
-                marginTop: '0',
-              },
-            },
-            a: {
-              color: primaryColor,
-              textDecoration: 'underline',
-              textUnderlineOffset: '4px',
-              fontWeight: '500',
-              '&:hover': {
-                color: primaryForegroundColor,
-              },
             },
             ul: {
-              listStyleType: 'disc',
-              marginLeft: '1.5rem',
-              paddingLeft: '0.5rem',
               marginTop: '1rem',
               marginBottom: '1rem',
-              '& > li': {
-                marginTop: '0.5rem',
-              },
             },
             ol: {
-              listStyleType: 'decimal',
-              marginLeft: '1.5rem',
-              paddingLeft: '0.5rem',
               marginTop: '1rem',
               marginBottom: '1rem',
-              '& > li': {
-                marginTop: '0.5rem',
-              },
             },
             li: {
               marginTop: '0.25rem',
@@ -363,7 +348,9 @@ const config = {
       },
     },
   },
-  plugins: [tailwindcssAnimate, typography],
+  plugins: [typography, tailwindcssAnimate, function ({ addVariant }) {
+    addVariant('group-hover', '.group:hover &');
+  }],
 };
 
 export default config;
