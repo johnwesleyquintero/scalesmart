@@ -14,6 +14,7 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button } from './ui/button';
+import { usePathname } from 'next/navigation';
 
 export function BlogSection({
   blogPosts,
@@ -22,7 +23,10 @@ export function BlogSection({
   blogPosts: BlogPost[];
   limit?: number;
 }) {
+  const pathname = usePathname();
+  const isBlogPage = pathname === '/blog';
   const displayedPosts = limit ? blogPosts.slice(0, limit) : blogPosts;
+
   return (
     <section id="blog" className="py-20 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -38,8 +42,11 @@ export function BlogSection({
           {displayedPosts.map((post) => (
             <Card
               key={post.slug}
-              className="overflow-hidden transition-all duration-300 hover:shadow-lg group hover:border-primary"
+              className="overflow-hidden transition-all duration-300 hover:shadow-lg group hover:border-primary relative"
             >
+              <Link href={`/blog/${post.slug}`} className="absolute inset-0 z-10">
+                <span className="sr-only">Read {post.title}</span>
+              </Link>
               <div className="aspect-video overflow-hidden relative">
                 <Image
                   src={post.image || '/default-fallback.svg'}
@@ -65,7 +72,7 @@ export function BlogSection({
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 pt-0">
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 relative z-20">
                   {(post.tags ?? []).map((tag) => (
                     <Badge key={tag} variant="secondary" className="text-xs">
                       {tag}
@@ -74,27 +81,24 @@ export function BlogSection({
                 </div>
               </CardContent>
               <CardFooter className="p-4 pt-0">
-                <Button asChild variant="ghost">
-                  <Link
-                    href={`/blog/${post.slug}`}
-                    className="flex items-center text-primary group-hover:underline"
-                  >
-                    Read Article{' '}
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
-                  </Link>
-                </Button>
+                <div className="flex items-center text-primary font-medium group-hover:underline">
+                  Read Article{' '}
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                </div>
               </CardFooter>
             </Card>
           ))}
         </div>
 
-        <div className="mt-12 text-center">
-          <Button asChild variant="outline" size="lg">
-            <Link href="/blog">
-              View All Articles <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
+        {!isBlogPage && (
+          <div className="mt-12 text-center">
+            <Button asChild variant="outline" size="lg">
+              <Link href="/blog">
+                View All Articles <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        )}
       </div>
     </section>
   );

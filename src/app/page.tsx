@@ -26,13 +26,13 @@ export default async function Home() {
 
         {/* Feature Highlights Section - Enhanced with animations */}
         <section className="w-full py-20 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/30 to-transparent"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/30 to-transparent pointer-events-none"></div>
           <FeatureHighlightsSection />
         </section>
 
         {/* Projects Section */}
         <section className="w-full py-20 relative">
-          <div className="absolute inset-0 bg-gradient-to-tl from-green-50/20 via-transparent to-blue-50/20 dark:from-green-950/20 dark:via-transparent dark:to-blue-950/20"></div>
+          <div className="absolute inset-0 bg-gradient-to-tl from-green-50/20 via-transparent to-blue-50/20 dark:from-green-950/20 dark:via-transparent dark:to-blue-950/20 pointer-events-none"></div>
           <ErrorBoundary fallback={<CardLoading />}>
             <Suspense fallback={<CardLoading />}>
               <ProjectsSection />
@@ -42,19 +42,19 @@ export default async function Home() {
 
         {/* About Section */}
         <section className="w-full py-20 relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-orange-50/20 via-transparent to-red-50/20 dark:from-orange-950/20 dark:via-transparent dark:to-red-950/20"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-orange-50/20 via-transparent to-red-50/20 dark:from-orange-950/20 dark:via-transparent dark:to-red-950/20 pointer-events-none"></div>
           <AboutSection />
         </section>
 
         {/* Certifications Section */}
         <section className="w-full py-20 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-yellow-50/20 via-transparent to-indigo-50/20 dark:from-yellow-950/20 dark:via-transparent dark:to-indigo-950/20"></div>
+          <div className="absolute inset-0 bg-gradient-to-b from-yellow-50/20 via-transparent to-indigo-50/20 dark:from-yellow-950/20 dark:via-transparent dark:to-indigo-950/20 pointer-events-none"></div>
           <CertificationsSection />
         </section>
 
         {/* Blog Section */}
         <section className="w-full py-20 relative">
-          <div className="absolute inset-0 bg-gradient-to-tr from-pink-50/20 via-transparent to-purple-50/20 dark:from-pink-950/20 dark:via-transparent dark:to-purple-950/20"></div>
+          <div className="absolute inset-0 bg-gradient-to-tr from-pink-50/20 via-transparent to-purple-50/20 dark:from-pink-950/20 dark:via-transparent dark:to-purple-950/20 pointer-events-none"></div>
           <BlogSection blogPosts={blogPosts} limit={6} />
         </section>
 

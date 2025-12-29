@@ -24,7 +24,7 @@ export default function Footer() {
             <ul className="mt-2 space-y-2 text-sm">
               <li>
                 <Link
-                  href="#projects"
+                  href="/#projects"
                   className="text-muted-foreground hover:text-primary"
                 >
                   Projects
@@ -32,7 +32,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#about"
+                  href="/#about"
                   className="text-muted-foreground hover:text-primary"
                 >
                   About
@@ -40,7 +40,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#blog"
+                  href="/blog"
                   className="text-muted-foreground hover:text-primary"
                 >
                   Blog
@@ -48,7 +48,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="#contact"
+                  href="/#contact"
                   className="text-muted-foreground hover:text-primary"
                 >
                   Contact

@@ -1,6 +1,21 @@
 {
   "experience": [
     {
+      "title": "eCommerce Account Manager",
+      "company": "VAXPH - Seculife | Speedtalk",
+      "period": "Jul 2025 - Present",
+      "description": "Driving consistent sales growth and enhancing brand presence across Amazon, eBay, and Walmart. Managing the end-to-end lifecycle of product listings while maintaining high account health standards.",
+      "achievements": [
+        "Developing critical operational playbooks that streamlined team onboarding and reduced operational friction.",
+        "Monitoring daily account health proactively, minimizing incident rates and ensuring full compliance.",
+        "Developed Operation Citadel: A definitive GitHub documentation repository serving as the single source of truth for all VAXPH product listings and operational playbooks.",
+        "Developed WesBI Cockpit: Transforms raw CSV dumps into actionable insights, significantly improving inventory planning efficiency.",
+        "Created Buy Box Master: A pricing intelligence tool that improved Buy Box win rates through systematic price monitoring."
+      ],
+      "startDate": "2025-07-01",
+      "endDate": null
+    },
+    {
       "title": "Founder & Software Architect",
       "company": "ScaleSmart (Personal Brand & Development Hub)",
       "period": "Jan 2025 - Present",
