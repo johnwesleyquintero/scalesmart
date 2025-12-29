@@ -3,11 +3,12 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { usePromptGenerator } from '@/hooks/use-prompt-generator';
-import {
-  useKeyboardShortcuts,
-  PROMPT_GENERATOR_SHORTCUTS,
-} from '@/hooks/use-keyboard-shortcuts';
-import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { PromptData } from '@/lib/prompt-generator/types';
+import { PromptTemplate } from './components/PromptTemplateSelector';
+import { useGeneratorShortcuts } from './hooks/use-generator-shortcuts';
+
+// UI Components
 import {
   Card,
   CardContent,
@@ -15,12 +16,8 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Wand2 } from 'lucide-react';
-import { PromptData } from '@/lib/prompt-generator/types';
-import { useToast } from '@/hooks/use-toast';
-import { PromptTemplate } from './components/PromptTemplateSelector';
 
-// Import new components
+// Custom Components
 import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
 import PromptInputForm from './components/PromptInputForm';
 import SaveRequestDialog from './components/SaveRequestDialog';
@@ -36,12 +33,9 @@ export default function PromptRequestGenerator() {
   const {
     promptData,
     output,
-    copied,
     loading,
     showSaveDialog,
     newRequestName,
-    selectedSavedRequestId,
-    validationErrors,
     savedRequests,
     requestPendingDeletion,
     updatePromptData,
@@ -51,9 +45,7 @@ export default function PromptRequestGenerator() {
     handleDeleteRequest,
     handleUpdateRequest,
     handleLoadRequest,
-    handleNewRequestNameChange,
     handleSaveDialogOpen,
-    handleSaveDialogClose,
     clearForm,
     handleFieldChange,
     handleCategoryChange,
@@ -62,8 +54,6 @@ export default function PromptRequestGenerator() {
     contextInputRef,
     codeInputRef,
     isGenerateDisabled,
-    copyToClipboard,
-    isCopyDisabled,
     setShowSaveDialog,
     setNewRequestName,
     confirmSaveRequest,
@@ -78,111 +68,20 @@ export default function PromptRequestGenerator() {
   const { toast } = useToast();
   const [showUserGuide, setShowUserGuide] = useState(false);
 
-  // Keyboard shortcuts
-  useKeyboardShortcuts({
-    shortcuts: [
-      {
-        ...PROMPT_GENERATOR_SHORTCUTS.GENERATE,
-        handler: () => {
-          if (!loading) {
-            handleGeneratePrompt();
-            toast({
-              title: 'Generating prompt...',
-              description: 'Creating your structured request',
-            });
-          }
-        },
-      },
-      {
-        ...PROMPT_GENERATOR_SHORTCUTS.CLEAR,
-        handler: () => {
-          clearForm();
-          toast({
-            title: 'Form Cleared',
-            description: 'All fields have been reset',
-          });
-        },
-      },
-      {
-        ...PROMPT_GENERATOR_SHORTCUTS.COPY,
-        handler: () => {
-          if (output) {
-            handleCopyOutput();
-            toast({
-              title: 'Copied!',
-              description: 'Prompt copied to clipboard',
-            });
-          }
-        },
-      },
-      {
-        ...PROMPT_GENERATOR_SHORTCUTS.SAVE,
-        handler: () => {
-          if (output) {
-            handleSaveDialogOpen();
-          }
-        },
-      },
-      {
-        ...PROMPT_GENERATOR_SHORTCUTS.UNDO,
-        handler: () => {
-          if (canUndo) {
-            undo();
-            toast({
-              title: 'Undone',
-              description: 'Previous state restored',
-            });
-          }
-        },
-      },
-      {
-        ...PROMPT_GENERATOR_SHORTCUTS.REDO,
-        handler: () => {
-          if (canRedo) {
-            redo();
-            toast({
-              title: 'Redone',
-              description: 'Next state restored',
-            });
-          }
-        },
-      },
-      {
-        ...PROMPT_GENERATOR_SHORTCUTS.TEMPLATES,
-        handler: () => {
-          // Scroll to templates section
-          const templatesSection = document.querySelector(
-            '[data-templates-section]',
-          );
-          if (templatesSection) {
-            templatesSection.scrollIntoView({ behavior: 'smooth' });
-          }
-          toast({
-            title: 'Templates',
-            description: 'Opening templates section',
-          });
-        },
-      },
-      {
-        ...PROMPT_GENERATOR_SHORTCUTS.DUPLICATE,
-        handler: () => {
-          if (promptData.request) {
-            // Create a copy of current request
-            const duplicatedData = {
-              ...promptData,
-              request: promptData.request + ' (Copy)',
-            };
-            Object.entries(duplicatedData).forEach(([key, value]) => {
-              updatePromptData({ [key]: value } as Partial<PromptData>);
-            });
-            toast({
-              title: 'Duplicated',
-              description: 'Current request duplicated',
-            });
-          }
-        },
-      },
-    ],
+  // Initialize keyboard shortcuts
+  useGeneratorShortcuts({
+    loading,
+    output,
+    canUndo,
+    canRedo,
+    promptData,
+    handleGeneratePrompt,
+    clearForm,
+    handleCopyOutput,
+    handleSaveDialogOpen,
+    undo,
+    redo,
+    updatePromptData,
   });
 
   const form = useForm<PromptData>({
@@ -190,13 +89,7 @@ export default function PromptRequestGenerator() {
   });
 
   const handleTemplateSelect = (template: PromptTemplate) => {
-    // Apply template data to form
-    Object.entries(template.data).forEach(([key, value]) => {
-      if (value) {
-        updatePromptData({ [key]: value } as Partial<PromptData>);
-      }
-    });
-
+    updatePromptData(template.data);
     toast({
       title: 'Template Applied',
       description: `Applied "${template.name}" template`,

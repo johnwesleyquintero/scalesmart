@@ -8,6 +8,7 @@ import {
 import {
   CUSTOM_CATEGORY_VALUE,
   DEFAULT_PROMPT_TEXTS,
+  AUTOSAVE_DEBOUNCE_MS,
 } from '@/lib/prompt-generator/constants';
 import {
   CategoryValue,
@@ -15,35 +16,15 @@ import {
   SavedRequest,
 } from '@/lib/prompt-generator/types';
 import { generatePrompt } from '@/lib/prompt-generator/utils';
-import { getCacheItem, setCacheItem } from '@/lib/localstorage-service';
 import { useUndoRedo } from './use-undo-redo';
-
-// Auto-save constants
-const AUTOSAVE_DEBOUNCE_MS = 1000;
-const AUTOSAVE_KEY = 'promptGeneratorFormState';
-
-const REQUIRED_CATEGORY_MESSAGE = "Please select a 'Category'.";
-const REQUIRED_REQUEST_MESSAGE = "The 'Request' field is required.";
-const REQUIRED_CUSTOM_CATEGORY_MESSAGE =
-  "Please enter a value for the 'Custom Category'.";
-
-function validatePromptData(
-  data: PromptData,
-): Partial<Record<keyof PromptData, string>> {
-  const errors: Partial<Record<keyof PromptData, string>> = {};
-  const { category, customCategory, request } = data;
-
-  if (!category) {
-    errors.category = REQUIRED_CATEGORY_MESSAGE;
-  }
-  if (!request.trim()) {
-    errors.request = REQUIRED_REQUEST_MESSAGE;
-  }
-  if (category === CUSTOM_CATEGORY_VALUE && !customCategory?.trim()) {
-    errors.customCategory = REQUIRED_CUSTOM_CATEGORY_MESSAGE;
-  }
-  return errors;
-}
+import { validatePromptData } from '@/lib/prompt-generator/validation';
+import {
+  loadAutoSavedState,
+  saveAutoSavedState,
+  clearAutoSavedState,
+  loadSavedRequests,
+  savePromptRequests,
+} from '@/lib/prompt-generator/storage';
 
 async function executePromptGeneration(
   promptData: PromptData,
@@ -139,52 +120,35 @@ export const usePromptGenerator = () => {
     null,
   ) as React.RefObject<HTMLTextAreaElement>;
 
-  // Effect to load requests from IndexedDB on mount
+  // Effect to load requests from storage on mount
   useEffect(() => {
-    const loadRequests = async () => {
+    const fetchRequests = async () => {
       try {
-        const loadedData = await getCacheItem<SavedRequest[]>(
-          'savedPromptRequests',
-        );
-        // Validate that the loaded data is an array before setting the state.
-        if (Array.isArray(loadedData)) {
+        const loadedData = await loadSavedRequests();
+        if (loadedData.length > 0) {
           dispatch({ type: 'SET_SAVED_REQUESTS', payload: loadedData });
-        } else if (loadedData) {
-          // If data exists but is not an array, log an error and ignore it.
-          console.error(
-            'Loaded saved requests from localStorage is not an array:',
-            loadedData,
-          );
-          toast.warning(
-            'Could not load saved requests due to data corruption.',
-          );
         }
       } catch (error) {
-        console.error('Failed to load saved requests from localStorage', error);
         toast.error('Could not load saved requests.');
       }
     };
-    loadRequests();
+    fetchRequests();
   }, [dispatch]);
 
   // Effect to load auto-saved form state on mount
   useEffect(() => {
-    const loadAutoSavedState = async () => {
-      try {
-        const savedState = await getCacheItem<PromptData>(AUTOSAVE_KEY);
-        if (savedState && typeof savedState === 'object') {
-          // Only load if we don't have a loaded request and form is empty
-          if (!selectedSavedRequestId && !promptData.request) {
-            dispatch({ type: 'SET_PROMPT_DATA', payload: savedState });
-          }
+    const fetchAutoSavedState = async () => {
+      const savedState = await loadAutoSavedState();
+      if (savedState) {
+        // Only load if we don't have a loaded request and form is empty
+        if (!selectedSavedRequestId && !promptData.request) {
+          dispatch({ type: 'SET_PROMPT_DATA', payload: savedState });
         }
-      } catch (error) {
-        console.error('Failed to load auto-saved form state', error);
       }
     };
 
     if (isInitialMount.current) {
-      loadAutoSavedState();
+      fetchAutoSavedState();
     }
   }, [dispatch, selectedSavedRequestId, promptData.request]);
 
@@ -202,14 +166,7 @@ export const usePromptGenerator = () => {
 
     // Set new timeout for auto-save
     autoSaveTimeoutRef.current = setTimeout(async () => {
-      try {
-        // Only save if there's actual content
-        if (promptData.request || promptData.context || promptData.codeInput) {
-          await setCacheItem(AUTOSAVE_KEY, promptData);
-        }
-      } catch (error) {
-        console.error('Failed to auto-save form state', error);
-      }
+      await saveAutoSavedState(promptData);
     }, AUTOSAVE_DEBOUNCE_MS);
 
     return () => {
@@ -219,7 +176,7 @@ export const usePromptGenerator = () => {
     };
   }, [promptData, selectedSavedRequestId]);
 
-  // Effect to save requests to IndexedDB when they change
+  // Effect to save requests to storage when they change
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
@@ -227,13 +184,8 @@ export const usePromptGenerator = () => {
     }
     const saveRequests = async () => {
       try {
-        // Do not save if savedRequests is null or undefined to prevent corruption
-        if (savedRequests === null || savedRequests === undefined) {
-          return;
-        }
-        await setCacheItem('savedPromptRequests', savedRequests);
+        await savePromptRequests(savedRequests);
       } catch (error) {
-        console.error('Failed to save requests to localStorage', error);
         toast.error('Could not save requests.');
       }
     };
@@ -243,9 +195,7 @@ export const usePromptGenerator = () => {
   const clearForm = useCallback(() => {
     dispatch({ type: 'CLEAR_FORM' });
     // Clear auto-saved state when form is manually cleared
-    setCacheItem(AUTOSAVE_KEY, initialState.promptData).catch((error) => {
-      console.error('Failed to clear auto-saved state', error);
-    });
+    clearAutoSavedState();
   }, []);
 
   const handleFieldChange = useCallback(

@@ -156,3 +156,14 @@ export const INTRODUCTION_PHRASES = {
   'Personal Productivity':
     'I need help with personal organization and productivity. ',
 } as const;
+
+// Auto-save constants
+export const AUTOSAVE_DEBOUNCE_MS = 1000;
+export const AUTOSAVE_KEY = 'promptGeneratorFormState';
+export const SAVED_REQUESTS_KEY = 'savedPromptRequests';
+
+// Validation messages
+export const REQUIRED_CATEGORY_MESSAGE = "Please select a 'Category'.";
+export const REQUIRED_REQUEST_MESSAGE = "The 'Request' field is required.";
+export const REQUIRED_CUSTOM_CATEGORY_MESSAGE =
+  "Please enter a value for the 'Custom Category'.";

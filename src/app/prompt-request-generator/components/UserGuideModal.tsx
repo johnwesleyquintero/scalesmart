@@ -15,6 +15,7 @@ import {
   Layers,
   Code2,
   CheckCircle2,
+  Keyboard,
 } from 'lucide-react';
 
 interface UserGuideModalProps {
@@ -106,6 +107,63 @@ const UserGuideModal: React.FC<UserGuideModalProps> = ({
               <strong className="font-bold text-foreground">Auto-Save</strong>{' '}
               feature to keep track of successful prompt patterns you've built.
             </p>
+          </section>
+
+          <section className="space-y-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2 text-slate-600 dark:text-slate-400">
+              <Keyboard className="h-5 w-5" />
+              Keyboard Shortcuts
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2 text-sm">
+              <div className="flex justify-between items-center border-b border-border/40 py-1.5">
+                <span className="text-muted-foreground">Generate Prompt</span>
+                <kbd className="px-2 py-0.5 rounded bg-muted font-mono text-xs border border-border/60">
+                  Ctrl + Enter
+                </kbd>
+              </div>
+              <div className="flex justify-between items-center border-b border-border/40 py-1.5">
+                <span className="text-muted-foreground">Clear Form</span>
+                <kbd className="px-2 py-0.5 rounded bg-muted font-mono text-xs border border-border/60">
+                  Ctrl + K
+                </kbd>
+              </div>
+              <div className="flex justify-between items-center border-b border-border/40 py-1.5">
+                <span className="text-muted-foreground">Copy Output</span>
+                <kbd className="px-2 py-0.5 rounded bg-muted font-mono text-xs border border-border/60">
+                  Ctrl + Shift + C
+                </kbd>
+              </div>
+              <div className="flex justify-between items-center border-b border-border/40 py-1.5">
+                <span className="text-muted-foreground">Save Request</span>
+                <kbd className="px-2 py-0.5 rounded bg-muted font-mono text-xs border border-border/60">
+                  Ctrl + S
+                </kbd>
+              </div>
+              <div className="flex justify-between items-center border-b border-border/40 py-1.5">
+                <span className="text-muted-foreground">Undo / Redo</span>
+                <kbd className="px-2 py-0.5 rounded bg-muted font-mono text-xs border border-border/60">
+                  Ctrl + Z / Y
+                </kbd>
+              </div>
+              <div className="flex justify-between items-center border-b border-border/40 py-1.5">
+                <span className="text-muted-foreground">Open Templates</span>
+                <kbd className="px-2 py-0.5 rounded bg-muted font-mono text-xs border border-border/60">
+                  Ctrl + T
+                </kbd>
+              </div>
+              <div className="flex justify-between items-center border-b border-border/40 py-1.5">
+                <span className="text-muted-foreground">Duplicate Request</span>
+                <kbd className="px-2 py-0.5 rounded bg-muted font-mono text-xs border border-border/60">
+                  Ctrl + D
+                </kbd>
+              </div>
+              <div className="flex justify-between items-center border-b border-border/40 py-1.5">
+                <span className="text-muted-foreground">Focus Fields</span>
+                <kbd className="px-2 py-0.5 rounded bg-muted font-mono text-xs border border-border/60">
+                  Ctrl+Alt+1/2/3
+                </kbd>
+              </div>
+            </div>
           </section>
 
           <div className="mt-4 p-4 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-900/30">
