@@ -81,6 +81,7 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
                   onClick={undo}
                   disabled={!canUndo || loading}
                   className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  aria-label="Undo last change"
                 >
                   <Undo2 className="h-4 w-4" />
                 </Button>
@@ -96,6 +97,7 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
                   onClick={redo}
                   disabled={!canRedo || loading}
                   className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  aria-label="Redo last change"
                 >
                   <Redo2 className="h-4 w-4" />
                 </Button>
@@ -113,6 +115,7 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
                   onClick={handleSaveRequest}
                   disabled={!requestInput.trim() || loading}
                   className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  aria-label="Save current request"
                 >
                   <Save className="h-4 w-4" />
                 </Button>
@@ -136,7 +139,8 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
                   variant="ghost"
                   size="icon"
                   onClick={handleOpenGuide}
-                  className="h-8 w-8 text-muted-foreground hover:text-purple-600 hover:bg-purple-50"
+                  className="h-8 w-8 text-muted-foreground hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950/30"
+                  aria-label="Open user guide"
                 >
                   <HelpCircle className="h-4 w-4" />
                 </Button>
@@ -151,7 +155,8 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
                   size="icon"
                   onClick={clearForm}
                   disabled={loading}
-                  className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50"
+                  className="h-8 w-8 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  aria-label="Clear all form fields"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

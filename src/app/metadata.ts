@@ -74,7 +74,7 @@ export const metadata: Metadata = {
     google: 'NbiFbRYrEPdp5H7cgQBcAhLd8zC9wuKjDseZAW5TtzU',
   },
   alternates: {
-    canonical: 'https://wescode.vercel.app',
+    canonical: '/',
   },
   generator: 'Next.js',
   applicationName: `${AUTHOR_NAME} Portfolio`,

@@ -72,6 +72,7 @@ export const CategorySection: React.FC<CategorySectionProps> = ({
                       variant="ghost"
                       size="sm"
                       className="h-7 text-xs gap-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                      aria-label="Use a pre-defined prompt template"
                     >
                       <Wand2 className="w-3 h-3" />
                       Use Template

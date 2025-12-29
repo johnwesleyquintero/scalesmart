@@ -45,7 +45,7 @@ export const BasicInputSection: React.FC<BasicInputSectionProps> = ({
                 }}
                 rows={6}
                 className={`bg-background border-border font-mono pr-12 ${errors.request ? ERROR_BORDER_CLASS : ''}`}
-                aria-required="true"
+                aria-required={true}
                 aria-invalid={!!errors.request}
                 ref={requestInputRef}
               />
@@ -83,7 +83,6 @@ export const BasicInputSection: React.FC<BasicInputSectionProps> = ({
                 }}
                 rows={4}
                 className="bg-background border-border font-mono resize-none pr-12"
-                aria-label="Context for the request (optional)"
                 ref={contextInputRef}
               />
               <div className="absolute bottom-2 right-2 opacity-50 text-[10px]">

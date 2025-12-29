@@ -17,13 +17,29 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 
+import dynamic from 'next/dynamic';
+
+// Dynamic imports for heavy components
+const PromptOutputDisplay = dynamic(() => import('./components/PromptOutputDisplay'), {
+  ssr: false,
+  loading: () => <div className="h-48 animate-pulse bg-muted/20 rounded-lg border border-dashed border-border/50" />
+});
+
+const UserGuideModal = dynamic(() => import('./components/UserGuideModal'), {
+  ssr: false
+});
+
+const DeleteConfirmationDialog = dynamic(() => import('./components/DeleteConfirmationDialog'), {
+  ssr: false
+});
+
+const SaveRequestDialog = dynamic(() => import('./components/SaveRequestDialog'), {
+  ssr: false
+});
+
 // Custom Components
-import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
 import PromptInputForm from './components/PromptInputForm';
-import SaveRequestDialog from './components/SaveRequestDialog';
 import PromptActionButtons from './components/PromptActionButtons';
-import PromptOutputDisplay from './components/PromptOutputDisplay';
-import UserGuideModal from './components/UserGuideModal';
 
 /**
  * A component for generating structured prompts based on user input for code assistance.

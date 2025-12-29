@@ -62,6 +62,7 @@ export const SavedRequestsDropdown: React.FC<SavedRequestsDropdownProps> = ({
               size="icon"
               disabled={loading}
               className="h-8 w-8 text-muted-foreground hover:text-foreground"
+              aria-label="Open saved requests menu"
             >
               <FolderOpen className="h-4 w-4" />
             </Button>
@@ -96,6 +97,7 @@ export const SavedRequestsDropdown: React.FC<SavedRequestsDropdownProps> = ({
                   size="icon"
                   className="h-7 w-7 text-green-600 hover:bg-green-50"
                   onClick={handleSaveEdit}
+                  aria-label="Save name change"
                 >
                   <Check className="h-4 w-4" />
                 </Button>
@@ -104,35 +106,38 @@ export const SavedRequestsDropdown: React.FC<SavedRequestsDropdownProps> = ({
                   size="icon"
                   className="h-7 w-7 text-red-600 hover:bg-red-50"
                   onClick={cancelEditing}
+                  aria-label="Cancel editing"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
               <>
-                <span className="truncate flex-1 font-medium">{req.name}</span>
-                <div className="flex items-center gap-1">
+                <span className="flex-1 text-sm truncate">{req.name}</span>
+                <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 opacity-0 group-hover/item:opacity-100 hover:text-purple-600 hover:bg-purple-50"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
                     onClick={(e) => {
                       e.stopPropagation();
                       startEditing(req);
                     }}
+                    aria-label={`Edit name for ${req.name}`}
                   >
-                    <Edit2 className="h-3 w-3" />
+                    <Edit2 className="h-3.5 w-3.5" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 opacity-0 group-hover/item:opacity-100 hover:text-red-600 hover:bg-red-50"
+                    className="h-7 w-7 text-muted-foreground hover:text-red-600 hover:bg-red-50"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleDeleteRequest(req.id);
                     }}
+                    aria-label={`Delete saved request ${req.name}`}
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </div>
               </>

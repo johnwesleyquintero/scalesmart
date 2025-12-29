@@ -170,7 +170,7 @@
 
   /* Muted/Subtle */
   --muted: 210 40% 96.1%; /* Light gray */
-  --muted-foreground: 215.4 16.3% 35%; /* Adjusted for better contrast */
+  --muted-foreground: 215.4 16.3% 30%; /* Darkened for better contrast (was 35%) */
 
   /* Interactive/Accent */
   --accent: 210 40% 96.1%; /* Light gray */
