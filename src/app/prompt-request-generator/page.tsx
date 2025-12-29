@@ -20,22 +20,33 @@ import {
 import dynamic from 'next/dynamic';
 
 // Dynamic imports for heavy components
-const PromptOutputDisplay = dynamic(() => import('./components/PromptOutputDisplay'), {
-  ssr: false,
-  loading: () => <div className="h-48 animate-pulse bg-muted/20 rounded-lg border border-dashed border-border/50" />
-});
+const PromptOutputDisplay = dynamic(
+  () => import('./components/PromptOutputDisplay'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-48 animate-pulse bg-muted/20 rounded-lg border border-dashed border-border/50" />
+    ),
+  },
+);
 
 const UserGuideModal = dynamic(() => import('./components/UserGuideModal'), {
-  ssr: false
+  ssr: false,
 });
 
-const DeleteConfirmationDialog = dynamic(() => import('./components/DeleteConfirmationDialog'), {
-  ssr: false
-});
+const DeleteConfirmationDialog = dynamic(
+  () => import('./components/DeleteConfirmationDialog'),
+  {
+    ssr: false,
+  },
+);
 
-const SaveRequestDialog = dynamic(() => import('./components/SaveRequestDialog'), {
-  ssr: false
-});
+const SaveRequestDialog = dynamic(
+  () => import('./components/SaveRequestDialog'),
+  {
+    ssr: false,
+  },
+);
 
 // Custom Components
 import PromptInputForm from './components/PromptInputForm';

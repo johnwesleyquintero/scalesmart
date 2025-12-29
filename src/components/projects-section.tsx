@@ -216,19 +216,24 @@ export default function ProjectsSection({
                             href={project.html_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="hover:underline"
+                            className="hover:underline py-1"
                           >
                             {project.name}
                           </Link>
                         </CardTitle>
                         {project.homepage && (
-                          <Button variant="outline" size="sm" asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                            className="h-9 px-4"
+                          >
                             <Link
                               href={project.homepage}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <ExternalLink className="mr-2 h-3 w-3" /> Live
+                              <ExternalLink className="mr-2 h-3.5 w-3.5" /> Live
                             </Link>
                           </Button>
                         )}
