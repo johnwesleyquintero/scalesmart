@@ -15,7 +15,7 @@ export interface PromptGeneratorState {
 
 export const initialState: PromptGeneratorState = {
   promptData: {
-    category: 'Technical Problem Solving',
+    category: 'General Assistance',
     customCategory: '',
     context: '',
     request: '',
