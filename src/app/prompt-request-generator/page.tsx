@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { usePromptGenerator } from '@/hooks/use-prompt-generator';
 import {
@@ -7,7 +8,6 @@ import {
   PROMPT_GENERATOR_SHORTCUTS,
 } from '@/hooks/use-keyboard-shortcuts';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   Card,
   CardContent,
@@ -15,30 +15,18 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import {
-  Copy,
-  ExternalLink,
-  Wand2,
-  Zap,
-  Save,
-  Sparkles,
-  Keyboard,
-} from 'lucide-react';
-import Link from 'next/link';
+import { Wand2 } from 'lucide-react';
 import { PromptData } from '@/lib/prompt-generator/types';
 import { useToast } from '@/hooks/use-toast';
-import PromptTemplateSelector, {
-  PromptTemplate,
-} from './components/PromptTemplateSelector';
+import { PromptTemplate } from './components/PromptTemplateSelector';
 
 // Import new components
 import DeleteConfirmationDialog from './components/DeleteConfirmationDialog';
 import PromptInputForm from './components/PromptInputForm';
-import SavedRequestsDropdown from './components/SavedRequestsDropdown';
 import SaveRequestDialog from './components/SaveRequestDialog';
 import PromptActionButtons from './components/PromptActionButtons';
 import PromptOutputDisplay from './components/PromptOutputDisplay';
-import { AISettings } from './components/AISettings';
+import UserGuideModal from './components/UserGuideModal';
 
 /**
  * A component for generating structured prompts based on user input for code assistance.
@@ -50,7 +38,6 @@ export default function PromptRequestGenerator() {
     output,
     copied,
     loading,
-    aiLoading,
     showSaveDialog,
     newRequestName,
     selectedSavedRequestId,
@@ -59,10 +46,10 @@ export default function PromptRequestGenerator() {
     requestPendingDeletion,
     updatePromptData,
     handleGeneratePrompt,
-    generateAiPromptHandler,
     handleCopyOutput,
     handleSaveRequest,
     handleDeleteRequest,
+    handleUpdateRequest,
     handleLoadRequest,
     handleNewRequestNameChange,
     handleSaveDialogOpen,
@@ -89,6 +76,7 @@ export default function PromptRequestGenerator() {
   } = usePromptGenerator();
 
   const { toast } = useToast();
+  const [showUserGuide, setShowUserGuide] = useState(false);
 
   // Keyboard shortcuts
   useKeyboardShortcuts({
@@ -96,16 +84,11 @@ export default function PromptRequestGenerator() {
       {
         ...PROMPT_GENERATOR_SHORTCUTS.GENERATE,
         handler: () => {
-          if (!loading && !aiLoading) {
-            generateAiPromptHandler();
+          if (!loading) {
+            handleGeneratePrompt();
             toast({
-              title: 'Generating with AI...',
-              description:
-                'Using ' +
-                (promptData.aiModel || 'GPT-4 Turbo') +
-                ' at ' +
-                (promptData.temperature || 0.7) +
-                ' temperature',
+              title: 'Generating prompt...',
+              description: 'Creating your structured request',
             });
           }
         },
@@ -226,70 +209,8 @@ export default function PromptRequestGenerator() {
         <div className="absolute inset-0 bg-gradient-to-br from-purple-100/30 via-transparent to-blue-100/30 dark:from-purple-950/30 dark:via-transparent dark:to-blue-950/30 blur-3xl"></div>
       </div>
       <div className="bg-card p-6 rounded-lg shadow-xl border border-border/50 relative z-10 backdrop-blur-sm">
-        {/* Header Section */}
-        <div className="text-center mb-10 space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 mb-4 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-2xl">
-            <Wand2 className="w-8 h-8 text-purple-600 dark:text-purple-400" />
-          </div>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl leading-tight bg-gradient-to-r from-purple-400 via-purple-500 to-indigo-600 bg-clip-text text-transparent">
-            Prompt Request Generator
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Create structured prompts for any assistance requests to streamline
-            your workflow with AI-powered precision.
-          </p>
-          <div className="flex flex-wrap justify-center gap-2 mt-6">
-            <Badge
-              variant="secondary"
-              className="bg-purple-50 text-purple-700 border-purple-200"
-            >
-              <Zap className="w-3 h-3 mr-1" />
-              AI Enhanced
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="bg-indigo-50 text-indigo-700 border-indigo-200"
-            >
-              <Save className="w-3 h-3 mr-1" />
-              Auto-Save
-            </Badge>
-            <Badge
-              variant="secondary"
-              className="bg-green-50 text-green-700 border-green-200"
-            >
-              <Sparkles className="w-3 h-3 mr-1" />
-              Smart Templates
-            </Badge>
-          </div>
-        </div>
-
-        {/* Keyboard Shortcuts Help */}
-        <div className="flex justify-center mb-8">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              toast({
-                title: 'Keyboard Shortcuts',
-                description:
-                  'Ctrl+Enter: Generate prompt\nCtrl+K: Clear form\nCtrl+Shift+C: Copy output\nCtrl+S: Save request\nCtrl+Z: Undo\nCtrl+Y: Redo\nCtrl+T: Templates\nCtrl+D: Duplicate',
-                duration: 5000,
-              });
-            }}
-            className="gap-2"
-          >
-            <Keyboard className="w-4 h-4" />
-            Shortcuts
-          </Button>
-        </div>
-
-        {/* Quick Templates */}
-        <div className="mb-8" data-templates-section>
-          <PromptTemplateSelector onSelectTemplate={handleTemplateSelect} />
-        </div>
-
         {/* Full-Width Layout */}
-        <div className="mt-8 space-y-8">
+        <div className="mt-2 space-y-8">
           {/* Input Form and Controls */}
           <Card className="bg-card border-border shadow-sm">
             <CardHeader>
@@ -305,46 +226,28 @@ export default function PromptRequestGenerator() {
                 handleFieldChange={handleFieldChange}
                 handleCategoryChange={handleCategoryChange}
                 showCustomCategory={showCustomCategory}
+                onSelectTemplate={handleTemplateSelect}
                 requestInputRef={requestInputRef}
                 contextInputRef={contextInputRef}
                 codeInputRef={codeInputRef}
               />
 
-              {/* AI Settings */}
-              <AISettings
-                aiModel={promptData.aiModel || 'gpt-4-turbo'}
-                temperature={promptData.temperature || 0.7}
-                geminiApiKey={promptData.geminiApiKey}
-                onModelChange={(model) => updatePromptData({ aiModel: model })}
-                onTemperatureChange={(temp) =>
-                  updatePromptData({ temperature: temp })
-                }
-                onGeminiApiKeyChange={(apiKey) =>
-                  updatePromptData({ geminiApiKey: apiKey })
-                }
-                className="mt-6"
-              />
-              <SavedRequestsDropdown
-                savedRequests={savedRequests}
-                selectedSavedRequestId={selectedSavedRequestId}
-                handleLoadRequest={handleLoadRequest}
-                handleDeleteRequest={handleDeleteRequest}
-              />
               <PromptActionButtons
                 isGenerateDisabled={isGenerateDisabled}
                 loading={loading}
-                aiLoading={aiLoading}
                 generatePromptHandler={handleGeneratePrompt}
-                generateAiPromptHandler={generateAiPromptHandler}
-                handleSaveRequest={handleSaveDialogOpen}
+                handleSaveRequest={handleSaveRequest}
                 requestInput={promptData.request}
                 clearForm={clearForm}
-                aiModel={promptData.aiModel}
-                temperature={promptData.temperature}
                 undo={undo}
                 redo={redo}
                 canUndo={canUndo}
                 canRedo={canRedo}
+                savedRequests={savedRequests}
+                handleLoadRequest={handleLoadRequest}
+                handleDeleteRequest={handleDeleteRequest}
+                handleUpdateRequest={handleUpdateRequest}
+                handleOpenGuide={() => setShowUserGuide(true)}
               />
             </CardContent>
           </Card>
@@ -360,10 +263,7 @@ export default function PromptRequestGenerator() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PromptOutputDisplay
-                output={output}
-                isLoading={loading || aiLoading}
-              />
+              <PromptOutputDisplay output={output} isLoading={loading} />
             </CardContent>
           </Card>
         </div>
@@ -379,6 +279,7 @@ export default function PromptRequestGenerator() {
           onConfirmDelete={confirmDeleteRequest}
           onCancelDelete={cancelDeleteRequest}
         />
+        <UserGuideModal open={showUserGuide} onOpenChange={setShowUserGuide} />
       </div>
     </div>
   );

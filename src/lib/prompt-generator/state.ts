@@ -1,16 +1,10 @@
 import { PromptData, SavedRequest } from '@/lib/prompt-generator/types';
-import {
-  CUSTOM_CATEGORY_VALUE,
-  DEFAULT_AI_MODEL,
-  DEFAULT_TEMPERATURE,
-} from '@/lib/prompt-generator/constants';
 
 export interface PromptGeneratorState {
   promptData: PromptData;
   output: string;
   copied: boolean;
   loading: boolean;
-  aiLoading: boolean;
   showSaveDialog: boolean;
   newRequestName: string;
   selectedSavedRequestId: string | null;
@@ -21,7 +15,7 @@ export interface PromptGeneratorState {
 
 export const initialState: PromptGeneratorState = {
   promptData: {
-    category: 'Error Fixing',
+    category: 'Technical Problem Solving',
     customCategory: '',
     context: '',
     request: '',
@@ -33,13 +27,10 @@ export const initialState: PromptGeneratorState = {
     examples: '',
     tone: '',
     additionalInfo: '',
-    temperature: DEFAULT_TEMPERATURE,
-    aiModel: DEFAULT_AI_MODEL,
   },
   output: '',
   copied: false,
   loading: false,
-  aiLoading: false,
   showSaveDialog: false,
   newRequestName: '',
   selectedSavedRequestId: null,
@@ -55,7 +46,6 @@ export type PromptGeneratorAction =
   | { type: 'SET_OUTPUT'; payload: string }
   | { type: 'SET_COPIED'; payload: boolean }
   | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_AI_LOADING'; payload: boolean }
   | { type: 'SET_SHOW_SAVE_DIALOG'; payload: boolean }
   | { type: 'SET_NEW_REQUEST_NAME'; payload: string }
   | { type: 'SET_SELECTED_SAVED_REQUEST_ID'; payload: string | null }
@@ -66,6 +56,7 @@ export type PromptGeneratorAction =
   | { type: 'SET_SAVED_REQUESTS'; payload: SavedRequest[] }
   | { type: 'LOAD_REQUEST'; payload: SavedRequest }
   | { type: 'DELETE_REQUEST'; payload: string }
+  | { type: 'UPDATE_REQUEST'; payload: SavedRequest }
   | { type: 'SET_REQUEST_PENDING_DELETION'; payload: SavedRequest | null };
 
 export function promptGeneratorReducer(
@@ -94,8 +85,6 @@ export function promptGeneratorReducer(
       return { ...state, copied: action.payload };
     case 'SET_LOADING':
       return { ...state, loading: action.payload };
-    case 'SET_AI_LOADING':
-      return { ...state, aiLoading: action.payload };
     case 'SET_SHOW_SAVE_DIALOG':
       return { ...state, showSaveDialog: action.payload };
     case 'SET_NEW_REQUEST_NAME':
@@ -127,6 +116,15 @@ export function promptGeneratorReducer(
         ...(isDeletingSelected
           ? { ...initialState, savedRequests: newSavedRequests }
           : {}),
+      };
+    }
+    case 'UPDATE_REQUEST': {
+      const newSavedRequests = state.savedRequests.map((req) =>
+        req.id === action.payload.id ? action.payload : req,
+      );
+      return {
+        ...state,
+        savedRequests: newSavedRequests,
       };
     }
     case 'SET_REQUEST_PENDING_DELETION':

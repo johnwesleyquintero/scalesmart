@@ -1,13 +1,3 @@
-export type AIModel =
-  | 'gpt-4'
-  | 'gpt-4-turbo'
-  | 'gpt-3.5-turbo'
-  | 'claude-3-opus'
-  | 'claude-3-sonnet'
-  | 'claude-3-haiku'
-  | 'gemini-2.5-flash'
-  | 'gemini-1.5-flash';
-
 export interface PromptData {
   category: CategoryValue;
   customCategory?: string;
@@ -21,9 +11,6 @@ export interface PromptData {
   examples: string;
   tone: string;
   additionalInfo: string;
-  aiModel?: AIModel;
-  temperature?: number;
-  geminiApiKey?: string;
 }
 
 import { INTRODUCTION_PHRASES, CUSTOM_CATEGORY_VALUE } from './constants';
@@ -49,7 +36,4 @@ export type PromptDataKey =
   | 'constraints'
   | 'examples'
   | 'tone'
-  | 'additionalInfo'
-  | 'aiModel'
-  | 'temperature'
-  | 'geminiApiKey';
+  | 'additionalInfo';

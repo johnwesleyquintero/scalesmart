@@ -51,16 +51,15 @@ async function executePromptGeneration(
   generatorFunction: (data: PromptData) => Promise<string>,
   successMessage: string,
   errorMessagePrefix: string,
-  loadingActionType: 'SET_LOADING' | 'SET_AI_LOADING',
 ) {
-  dispatch({ type: loadingActionType, payload: true });
+  dispatch({ type: 'SET_LOADING', payload: true });
   dispatch({ type: 'SET_OUTPUT', payload: '' });
 
   const errors = validatePromptData(promptData);
   dispatch({ type: 'SET_VALIDATION_ERRORS', payload: errors });
 
   if (Object.keys(errors).length > 0) {
-    dispatch({ type: loadingActionType, payload: false });
+    dispatch({ type: 'SET_LOADING', payload: false });
     toast.warning('Please fix the errors in the form.');
     return;
   }
@@ -83,7 +82,7 @@ async function executePromptGeneration(
     toast.error(`${errorMessagePrefix}: ${msg}`);
     dispatch({ type: 'SET_OUTPUT', payload: '' });
   } finally {
-    dispatch({ type: loadingActionType, payload: false });
+    dispatch({ type: 'SET_LOADING', payload: false });
   }
 }
 
@@ -94,7 +93,6 @@ export const usePromptGenerator = () => {
     output,
     copied,
     loading,
-    aiLoading,
     showSaveDialog,
     newRequestName,
     selectedSavedRequestId,
@@ -307,41 +305,6 @@ export const usePromptGenerator = () => {
       },
       'Prompt generated successfully!',
       'generating prompt',
-      'SET_LOADING',
-    );
-  }, [promptData]);
-
-  const generateAiPromptHandler = useCallback(() => {
-    executePromptGeneration(
-      promptData,
-      dispatch,
-      async (dataForApi) => {
-        const response = await fetch('/api/generate-ai-prompt', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...dataForApi,
-            temperature: promptData.temperature,
-            aiModel: promptData.aiModel,
-            geminiApiKey: promptData.geminiApiKey,
-          }),
-        });
-
-        if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(
-            `HTTP error! Status: ${response.status}. Details: ${errorBody || 'No additional details.'}`,
-          );
-        }
-
-        const result = await response.json();
-        return result.generatedPrompt || '';
-      },
-      'AI-powered prompt generated successfully!',
-      'AI prompt generation',
-      'SET_AI_LOADING',
     );
   }, [promptData]);
 
@@ -431,6 +394,21 @@ export const usePromptGenerator = () => {
     }
   }, [requestPendingDeletion]);
 
+  const handleUpdateRequest = useCallback(
+    (id: string, name: string) => {
+      const requestToUpdate = savedRequests.find((req) => req.id === id);
+      if (requestToUpdate) {
+        const updatedRequest: SavedRequest = {
+          ...requestToUpdate,
+          name: name.trim(),
+        };
+        dispatch({ type: 'UPDATE_REQUEST', payload: updatedRequest });
+        toast.success(`Request renamed to "${name.trim()}"`);
+      }
+    },
+    [savedRequests],
+  );
+
   const cancelDeleteRequest = useCallback(() => {
     dispatch({ type: 'SET_REQUEST_PENDING_DELETION', payload: null });
   }, []);
@@ -442,7 +420,6 @@ export const usePromptGenerator = () => {
     output,
     copied,
     loading,
-    aiLoading,
     showSaveDialog,
     newRequestName,
     selectedSavedRequestId,
@@ -467,10 +444,10 @@ export const usePromptGenerator = () => {
       });
     },
     handleGeneratePrompt: generatePromptHandler,
-    generateAiPromptHandler,
     handleCopyOutput: copyToClipboard,
     handleSaveRequest,
     handleDeleteRequest,
+    handleUpdateRequest,
     handleLoadRequest,
     handleNewRequestNameChange: (name: string) =>
       dispatch({ type: 'SET_NEW_REQUEST_NAME', payload: name }),

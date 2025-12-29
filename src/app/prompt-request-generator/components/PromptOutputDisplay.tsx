@@ -37,18 +37,10 @@ const PromptOutputDisplay: React.FC<PromptOutputDisplayProps> = ({
 
   if (!output) {
     return (
-      <div className="flex items-center justify-center h-48 bg-gradient-to-br from-muted/30 to-muted/50 rounded-lg border border-border/50">
-        <div className="text-center space-y-2">
-          <div className="w-12 h-12 mx-auto bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-full flex items-center justify-center">
-            <Wand2 className="w-6 h-6 text-purple-600 dark:text-purple-400" />
-          </div>
-          <p className="text-muted-foreground text-sm">
-            Your generated prompt will appear here
-          </p>
-          <p className="text-muted-foreground/70 text-xs">
-            Fill in the details and click generate to get started
-          </p>
-        </div>
+      <div className="flex items-center justify-center h-48 bg-muted/10 rounded-lg border border-dashed border-border/50">
+        <p className="text-muted-foreground text-sm italic">
+          Prompt output will appear here.
+        </p>
       </div>
     );
   }
