@@ -44,7 +44,10 @@ export function BlogSection({
               key={post.slug}
               className="overflow-hidden transition-all duration-300 hover:shadow-lg group hover:border-primary relative"
             >
-              <Link href={`/blog/${post.slug}`} className="absolute inset-0 z-10">
+              <Link
+                href={`/blog/${post.slug}`}
+                className="absolute inset-0 z-10"
+              >
                 <span className="sr-only">Read {post.title}</span>
               </Link>
               <div className="aspect-video overflow-hidden relative">
