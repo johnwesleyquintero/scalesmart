@@ -67,9 +67,14 @@ function normalizeDate(date: string | Date): string {
 
 const blogPostsDirectory = path.join(process.cwd(), 'src/app/content/blog');
 const docsDirectory = path.join(process.cwd(), 'src/app/content/docs');
+const staticContentDirectory = path.join(
+  process.cwd(),
+  'src/app/content/static',
+);
 
 console.log(`[MDX Config] Blog Directory: ${blogPostsDirectory}`);
 console.log(`[MDX Config] Docs Directory: ${docsDirectory}`);
+console.log(`[MDX Config] Static Directory: ${staticContentDirectory}`);
 
 const MARKDOWN_FILE_EXTENSIONS = [EXT_MDX, EXT_MD];
 const MARKDOWN_FILE_REGEX = new RegExp(`\\.(${STR_MDX}|${STR_MD})$`);
@@ -392,6 +397,42 @@ export const getDocPostBySlug = cache(
       return processContentFile(fullPath, 'doc');
     } catch (e) {
       console.error('Error in getDocPostBySlug', e);
+      return undefined;
+    }
+  },
+);
+
+/**
+ * Fetches static content (e.g., Privacy Policy, Terms) by its slug.
+ * @param slug - The slug of the static content.
+ * @returns An object containing the content and frontmatter, or undefined if not found.
+ */
+export const getStaticContentBySlug = cache(
+  async (
+    slug: string,
+  ): Promise<{ content: string; data: Record<string, any> } | undefined> => {
+    const lowerSlug = slug.toLowerCase();
+    let fullPath = '';
+
+    for (const ext of MARKDOWN_FILE_EXTENSIONS) {
+      const p = path.join(staticContentDirectory, `${lowerSlug}${ext}`);
+      if (fs.existsSync(p)) {
+        fullPath = p;
+        break;
+      }
+    }
+
+    if (!fullPath) {
+      console.warn(`WARNING: Static content not found for slug: ${slug}`);
+      return undefined;
+    }
+
+    try {
+      const fileContents = fs.readFileSync(fullPath, UTF8);
+      const { data, content } = matter(fileContents);
+      return { data, content };
+    } catch (error) {
+      console.error(`Error reading static MDX file for slug ${slug}:`, error);
       return undefined;
     }
   },

@@ -13,28 +13,10 @@ const staticUrls: MetadataRoute.Sitemap = [
     priority: 1.0,
   },
   {
-    url: `${baseUrl}/admin`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.5,
-  },
-  {
     url: `${baseUrl}/blog`,
     lastModified: new Date(),
     changeFrequency: 'weekly',
     priority: 0.8,
-  },
-  {
-    url: `${baseUrl}/docs`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.8,
-  },
-  {
-    url: `${baseUrl}/login`,
-    lastModified: new Date(),
-    changeFrequency: 'yearly',
-    priority: 0.3,
   },
   {
     url: `${baseUrl}/privacy-policy`,
@@ -43,35 +25,17 @@ const staticUrls: MetadataRoute.Sitemap = [
     priority: 0.5,
   },
   {
-    url: `${baseUrl}/profile`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.7,
-  },
-  {
     url: `${baseUrl}/prompt-request-generator`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
   },
-  {
-    url: `${baseUrl}/projects`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.9,
-  },
-  {
-    url: `${baseUrl}/contact`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.8,
-  },
 ];
 
-// Pre-computed blog and doc URLs to avoid file system operations in serverless function
+// Pre-computed blog URLs to avoid file system operations in serverless function
 const blogUrls: MetadataRoute.Sitemap = [
   {
-    url: `${baseUrl}/blog/proactive-specialist`,
+    url: `${baseUrl}/blog/10-advanced-amazon-seo-techniques-that-actually-work-in-2025`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
@@ -89,70 +53,43 @@ const blogUrls: MetadataRoute.Sitemap = [
     priority: 0.7,
   },
   {
-    url: `${baseUrl}/blog/ai-automation-for-amazon-sellers`,
+    url: `${baseUrl}/blog/excel-power-tools-amazon-sellers`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
   },
   {
-    url: `${baseUrl}/blog/amazon-ppc-strategy`,
+    url: `${baseUrl}/blog/flat-file`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
   },
   {
-    url: `${baseUrl}/blog/building-systems-not-goals`,
+    url: `${baseUrl}/blog/getting-started-with-amazon-fba`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
   },
   {
-    url: `${baseUrl}/blog/technical-debt-management`,
+    url: `${baseUrl}/blog/mastering-amazon-ppc`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
   },
   {
-    url: `${baseUrl}/blog/scalable-architecture-patterns`,
+    url: `${baseUrl}/blog/proactive-specialist`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
   },
   {
-    url: `${baseUrl}/blog/modern-development-workflows`,
+    url: `${baseUrl}/blog/project-board`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.7,
-  },
-];
-
-const docUrls: MetadataRoute.Sitemap = [
-  {
-    url: `${baseUrl}/docs/getting-started`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.8,
-  },
-  {
-    url: `${baseUrl}/docs/api-reference`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.8,
-  },
-  {
-    url: `${baseUrl}/docs/deployment`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.8,
-  },
-  {
-    url: `${baseUrl}/docs/configuration`,
-    lastModified: new Date(),
-    changeFrequency: 'monthly',
-    priority: 0.8,
   },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  return [...staticUrls, ...blogUrls, ...docUrls];
+  return [...staticUrls, ...blogUrls];
 }

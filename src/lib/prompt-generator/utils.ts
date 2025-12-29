@@ -109,6 +109,38 @@ function detectLanguage(codeInput: string): string {
 }
 
 /**
+ * Prepares the prompt data by applying defaults for empty fields and trimming values.
+ * @param {PromptData} data - The raw input data.
+ * @returns {PromptData} The prepared prompt data with defaults applied.
+ */
+export function preparePromptData(data: PromptData): PromptData {
+  const defaults =
+    DEFAULT_PROMPT_TEXTS[data.category as keyof typeof DEFAULT_PROMPT_TEXTS] ||
+    DEFAULT_PROMPT_TEXTS[''];
+
+  return {
+    ...data,
+    context:
+      data.context.trim() === ''
+        ? defaults.defaultContext
+        : data.context.trim(),
+    request:
+      data.request.trim() === ''
+        ? defaults.defaultRequest
+        : data.request.trim(),
+    parentTask: data.parentTask.trim(),
+    subtask: data.subtask.trim(),
+    customCategory: data.customCategory?.trim() || '',
+    codeInput: data.codeInput?.trim() || '',
+    outputFormat: data.outputFormat?.trim() || '',
+    constraints: data.constraints?.trim() || '',
+    examples: data.examples?.trim() || '',
+    tone: data.tone?.trim() || '',
+    additionalInfo: data.additionalInfo?.trim() || '',
+  };
+}
+
+/**
  * Generates a structured prompt based on the provided data.
  * Includes sections for category, context, request, and code input.
  * Assumes the input data has been validated before calling.

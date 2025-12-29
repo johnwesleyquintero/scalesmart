@@ -1,37 +1,33 @@
-import { PromptGeneratorAction } from '@/lib/prompt-generator/state';
-import { useCallback, useMemo, useEffect, useReducer, useRef } from 'react';
+import { useCallback, useMemo, useRef, useReducer, useEffect } from 'react';
 import { toast } from 'sonner';
 import {
   promptGeneratorReducer,
   initialState,
+  PromptGeneratorAction,
 } from '@/lib/prompt-generator/state';
-import {
-  CUSTOM_CATEGORY_VALUE,
-  DEFAULT_PROMPT_TEXTS,
-  AUTOSAVE_DEBOUNCE_MS,
-} from '@/lib/prompt-generator/constants';
+import { CUSTOM_CATEGORY_VALUE } from '@/lib/prompt-generator/constants';
 import {
   CategoryValue,
   PromptData,
   SavedRequest,
 } from '@/lib/prompt-generator/types';
-import { generatePrompt } from '@/lib/prompt-generator/utils';
+import {
+  generatePrompt,
+  preparePromptData,
+} from '@/lib/prompt-generator/utils';
 import { useUndoRedo } from './use-undo-redo';
 import { validatePromptData } from '@/lib/prompt-generator/validation';
-import {
-  loadAutoSavedState,
-  saveAutoSavedState,
-  clearAutoSavedState,
-  loadSavedRequests,
-  savePromptRequests,
-} from '@/lib/prompt-generator/storage';
+import { clearAutoSavedState } from '@/lib/prompt-generator/storage';
+import { useClipboard } from './use-clipboard';
+import { usePromptStorage } from './use-prompt-storage';
 
+/**
+ * Helper to execute prompt generation with loading and error handling
+ */
 async function executePromptGeneration(
   promptData: PromptData,
   dispatch: React.Dispatch<PromptGeneratorAction>,
-  generatorFunction: (data: PromptData) => Promise<string>,
-  successMessage: string,
-  errorMessagePrefix: string,
+  generatorFunction: (data: PromptData) => string,
 ) {
   dispatch({ type: 'SET_LOADING', payload: true });
   dispatch({ type: 'SET_OUTPUT', payload: '' });
@@ -46,21 +42,19 @@ async function executePromptGeneration(
   }
 
   try {
-    const generated = await generatorFunction(promptData);
+    const preparedData = preparePromptData(promptData);
+    const generated = generatorFunction(preparedData);
+
     if (generated) {
       dispatch({ type: 'SET_OUTPUT', payload: generated });
-      toast.success(successMessage);
+      toast.success('Prompt generated successfully!');
     } else {
       dispatch({ type: 'SET_OUTPUT', payload: '' });
-      toast.warning(
-        'The generator did not return a prompt. Please try again or refine your request.',
-      );
+      toast.warning('The generator did not return a prompt.');
     }
   } catch (error) {
-    console.error(`Error ${errorMessagePrefix}:`, error);
-    const msg =
-      error instanceof Error ? error.message : 'An unexpected error occurred.';
-    toast.error(`${errorMessagePrefix}: ${msg}`);
+    console.error('Error generating prompt:', error);
+    toast.error('An unexpected error occurred while generating the prompt.');
     dispatch({ type: 'SET_OUTPUT', payload: '' });
   } finally {
     dispatch({ type: 'SET_LOADING', payload: false });
@@ -72,7 +66,6 @@ export const usePromptGenerator = () => {
   const {
     promptData,
     output,
-    copied,
     loading,
     showSaveDialog,
     newRequestName,
@@ -83,118 +76,48 @@ export const usePromptGenerator = () => {
   } = state;
 
   const isInitialMount = useRef(true);
-
   useEffect(() => {
     isInitialMount.current = false;
   }, []);
 
-  const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // 1. Clipboard Hook
+  const { isCopied, copy: copyToClipboard } = useClipboard({
+    successMessage: 'Prompt copied to clipboard!',
+  });
 
-  // Undo/redo functionality
+  // 2. Undo/Redo Hook
   const {
-    state: undoRedoState,
     canUndo,
     canRedo,
     undo,
     redo,
     update: updateUndoRedoState,
-    reset: resetUndoRedo,
   } = useUndoRedo(promptData, {
     maxHistory: 20,
-    onUndo: (state) => {
-      dispatch({ type: 'SET_PROMPT_DATA', payload: state });
-    },
-    onRedo: (state) => {
-      dispatch({ type: 'SET_PROMPT_DATA', payload: state });
-    },
+    onUndo: (state) => dispatch({ type: 'SET_PROMPT_DATA', payload: state }),
+    onRedo: (state) => dispatch({ type: 'SET_PROMPT_DATA', payload: state }),
   });
 
-  // Refs for input elements
-  const requestInputRef = useRef<HTMLTextAreaElement>(
-    null,
-  ) as React.RefObject<HTMLTextAreaElement>;
-  const contextInputRef = useRef<HTMLTextAreaElement>(
-    null,
-  ) as React.RefObject<HTMLTextAreaElement>;
-  const codeInputRef = useRef<HTMLTextAreaElement>(
-    null,
-  ) as React.RefObject<HTMLTextAreaElement>;
+  // 3. Storage Hook
+  usePromptStorage({
+    promptData,
+    savedRequests,
+    selectedSavedRequestId,
+    isInitialMount: isInitialMount.current,
+    onLoadRequests: (requests) =>
+      dispatch({ type: 'SET_SAVED_REQUESTS', payload: requests }),
+    onLoadAutoSavedState: (savedState) =>
+      dispatch({ type: 'SET_PROMPT_DATA', payload: savedState }),
+  });
 
-  // Effect to load requests from storage on mount
-  useEffect(() => {
-    const fetchRequests = async () => {
-      try {
-        const loadedData = await loadSavedRequests();
-        if (loadedData.length > 0) {
-          dispatch({ type: 'SET_SAVED_REQUESTS', payload: loadedData });
-        }
-      } catch (error) {
-        toast.error('Could not load saved requests.');
-      }
-    };
-    fetchRequests();
-  }, [dispatch]);
+  // Input Refs
+  const requestInputRef = useRef<HTMLTextAreaElement>(null);
+  const contextInputRef = useRef<HTMLTextAreaElement>(null);
+  const codeInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Effect to load auto-saved form state on mount
-  useEffect(() => {
-    const fetchAutoSavedState = async () => {
-      const savedState = await loadAutoSavedState();
-      if (savedState) {
-        // Only load if we don't have a loaded request and form is empty
-        if (!selectedSavedRequestId && !promptData.request) {
-          dispatch({ type: 'SET_PROMPT_DATA', payload: savedState });
-        }
-      }
-    };
-
-    if (isInitialMount.current) {
-      fetchAutoSavedState();
-    }
-  }, [dispatch, selectedSavedRequestId, promptData.request]);
-
-  // Auto-save effect
-  useEffect(() => {
-    // Don't auto-save if we're loading a saved request or if it's the initial mount
-    if (isInitialMount.current || selectedSavedRequestId) {
-      return;
-    }
-
-    // Clear existing timeout
-    if (autoSaveTimeoutRef.current) {
-      clearTimeout(autoSaveTimeoutRef.current);
-    }
-
-    // Set new timeout for auto-save
-    autoSaveTimeoutRef.current = setTimeout(async () => {
-      await saveAutoSavedState(promptData);
-    }, AUTOSAVE_DEBOUNCE_MS);
-
-    return () => {
-      if (autoSaveTimeoutRef.current) {
-        clearTimeout(autoSaveTimeoutRef.current);
-      }
-    };
-  }, [promptData, selectedSavedRequestId]);
-
-  // Effect to save requests to storage when they change
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-    const saveRequests = async () => {
-      try {
-        await savePromptRequests(savedRequests);
-      } catch (error) {
-        toast.error('Could not save requests.');
-      }
-    };
-    saveRequests();
-  }, [savedRequests]);
-
+  // Handlers
   const clearForm = useCallback(() => {
     dispatch({ type: 'CLEAR_FORM' });
-    // Clear auto-saved state when form is manually cleared
     clearAutoSavedState();
   }, []);
 
@@ -212,71 +135,25 @@ export const usePromptGenerator = () => {
     }
   }, []);
 
-  const showCustomCategory = useMemo(
-    () => promptData.category === CUSTOM_CATEGORY_VALUE,
-    [promptData.category],
+  const updatePromptData = useCallback(
+    (data: Partial<PromptData>) => {
+      const newState = { ...promptData, ...data };
+      updateUndoRedoState(newState);
+
+      Object.entries(data).forEach(([key, value]) => {
+        dispatch({
+          type: 'SET_FIELD',
+          field: key as keyof PromptData,
+          value: value as string,
+        });
+      });
+    },
+    [promptData, updateUndoRedoState],
   );
 
-  const isGenerateDisabled = useMemo(() => {
-    const { category, customCategory, request } = promptData;
-    const requestIsEmpty = !request.trim();
-    const categoryNotSelected = !category;
-    const customCategoryIsEmptyWhenRequired =
-      category === CUSTOM_CATEGORY_VALUE && !customCategory?.trim();
-
-    return (
-      categoryNotSelected || requestIsEmpty || customCategoryIsEmptyWhenRequired
-    );
-  }, [promptData]);
-
   const generatePromptHandler = useCallback(() => {
-    executePromptGeneration(
-      promptData,
-      dispatch,
-      async (dataForGenerator) => {
-        const defaults =
-          DEFAULT_PROMPT_TEXTS[
-            dataForGenerator.category as keyof typeof DEFAULT_PROMPT_TEXTS
-          ] || DEFAULT_PROMPT_TEXTS[''];
-        const finalDataForUtility: PromptData = {
-          ...dataForGenerator,
-          context:
-            dataForGenerator.context.trim() === ''
-              ? defaults.defaultContext
-              : dataForGenerator.context.trim(),
-          request:
-            dataForGenerator.request.trim() === ''
-              ? defaults.defaultRequest
-              : dataForGenerator.request.trim(),
-          parentTask: dataForGenerator.parentTask.trim(),
-          subtask: dataForGenerator.subtask.trim(),
-        };
-        return generatePrompt(finalDataForUtility);
-      },
-      'Prompt generated successfully!',
-      'generating prompt',
-    );
+    executePromptGeneration(promptData, dispatch, generatePrompt);
   }, [promptData]);
-
-  const copyToClipboard = useCallback(async () => {
-    if (!output) return;
-
-    try {
-      await navigator.clipboard.writeText(output);
-      dispatch({ type: 'SET_COPIED', payload: true });
-      toast.success('Prompt copied to clipboard!');
-
-      const timer = setTimeout(
-        () => dispatch({ type: 'SET_COPIED', payload: false }),
-        2000,
-      );
-      return () => clearTimeout(timer);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-      toast.error('Failed to copy prompt to clipboard.');
-      dispatch({ type: 'SET_COPIED', payload: false });
-    }
-  }, [output]);
 
   const handleSaveRequest = useCallback(() => {
     if (!promptData.request.trim()) {
@@ -299,13 +176,8 @@ export const usePromptGenerator = () => {
       data: promptData,
     };
 
-    // Ensure savedRequests is an array before concatenation
     const updatedRequests = (savedRequests || []).concat(newRequest);
-
-    dispatch({
-      type: 'SET_SAVED_REQUESTS',
-      payload: updatedRequests,
-    });
+    dispatch({ type: 'SET_SAVED_REQUESTS', payload: updatedRequests });
     toast.success(`Request "${newRequest.name}" saved!`);
     dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: false });
     dispatch({ type: 'SET_NEW_REQUEST_NAME', payload: '' });
@@ -363,12 +235,18 @@ export const usePromptGenerator = () => {
     dispatch({ type: 'SET_REQUEST_PENDING_DELETION', payload: null });
   }, []);
 
-  const isCopyDisabled = useMemo(() => !output || copied, [output, copied]);
+  const isGenerateDisabled = useMemo(() => {
+    const { category, customCategory, request } = promptData;
+    return (
+      !category ||
+      !request.trim() ||
+      (category === CUSTOM_CATEGORY_VALUE && !customCategory?.trim())
+    );
+  }, [promptData]);
 
   return {
     promptData,
     output,
-    copied,
     loading,
     showSaveDialog,
     newRequestName,
@@ -376,25 +254,10 @@ export const usePromptGenerator = () => {
     validationErrors,
     savedRequests,
     requestPendingDeletion,
-    // Renamed functions to match page expectations
-    updatePromptData: (data: Partial<PromptData>) => {
-      // Create new state by merging current state with updates
-      const newState = { ...promptData, ...data };
-
-      // Update undo/redo history
-      updateUndoRedoState(newState);
-
-      // Update the reducer state
-      Object.entries(data).forEach(([key, value]) => {
-        dispatch({
-          type: 'SET_FIELD',
-          field: key as keyof PromptData,
-          value: value as string,
-        });
-      });
-    },
+    isCopied,
+    updatePromptData,
     handleGeneratePrompt: generatePromptHandler,
-    handleCopyOutput: copyToClipboard,
+    handleCopyOutput: () => copyToClipboard(output),
     handleSaveRequest,
     handleDeleteRequest,
     handleUpdateRequest,
@@ -406,25 +269,20 @@ export const usePromptGenerator = () => {
     handleSaveDialogClose: () =>
       dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: false }),
     clearForm,
-    // Keep original functions for backward compatibility
     handleFieldChange,
     handleCategoryChange,
-    showCustomCategory,
+    showCustomCategory: promptData.category === CUSTOM_CATEGORY_VALUE,
     isGenerateDisabled,
-    copyToClipboard,
     confirmSaveRequest,
-    isCopyDisabled,
     confirmDeleteRequest,
     cancelDeleteRequest,
     setNewRequestName: (name: string) =>
       dispatch({ type: 'SET_NEW_REQUEST_NAME', payload: name }),
     setShowSaveDialog: (show: boolean) =>
       dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: show }),
-    // Refs
     requestInputRef,
     contextInputRef,
     codeInputRef,
-    // Undo/redo functions
     undo,
     redo,
     canUndo,

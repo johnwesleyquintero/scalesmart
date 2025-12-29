@@ -1,8 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Link from 'next/link';
-import ArticleModule from '@/components/shared/ArticleModule';
 import TimeStamp from '@/components/TimeStamp';
 import type { Metadata } from 'next';
+import { getStaticContentBySlug } from '@/lib/mdx';
+import { MDXRemote } from 'next-mdx-remote/rsc';
+import { MDXComponents } from '@/app/blog/components/mdx-components';
+import { notFound } from 'next/navigation';
 
 const PAGE_TITLE = 'Privacy Policy - ScaleSmart Platform';
 const PAGE_DESCRIPTION =
@@ -41,15 +44,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PrivacyPolicyPage() {
+export default async function PrivacyPolicyPage() {
+  const content = await getStaticContentBySlug('privacy-policy');
+
+  if (!content) {
+    notFound();
+  }
+
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
       <div className="mx-auto flex max-w-6xl gap-8">
-        {' '}
-        {/* Adjusted max-width and added flex */}
         <Card className="shadow-lg flex-grow">
-          {' '}
-          {/* Added flex-grow to card */}
           <CardHeader>
             <CardTitle className="text-2xl sm:text-3xl font-bold text-center text-primary">
               Privacy Policy
@@ -59,8 +64,10 @@ export default function PrivacyPolicyPage() {
             Last Updated: <TimeStamp date="2025-05-21" relative />
           </p>
           <CardContent className="space-y-6 text-foreground">
-            <ArticleModule contentSlug="privacy-policy" />
-            <div className="text-center pt-4">
+            <div className="prose dark:prose-invert max-w-none">
+              <MDXRemote source={content.content} components={MDXComponents} />
+            </div>
+            <div className="text-center pt-4 border-t">
               <Link href="/" className="text-primary hover:underline">
                 &larr; Back to Home
               </Link>
