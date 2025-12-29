@@ -45,7 +45,6 @@ const ContactSectionClient = dynamic(
   },
 );
 
-
 export {
   CardLoadingClient,
   ErrorBoundaryClient,

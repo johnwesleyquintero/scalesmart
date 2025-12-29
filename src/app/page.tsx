@@ -30,7 +30,6 @@ export default async function Home() {
           <FeatureHighlightsSection />
         </section>
 
-
         {/* Projects Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-tl from-green-50/20 via-transparent to-blue-50/20 dark:from-green-950/20 dark:via-transparent dark:to-blue-950/20"></div>

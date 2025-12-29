@@ -12,10 +12,30 @@ const staticContentDirectory = path.join(
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } },
+  { params }: { params: Promise<{ slug: string }> },
 ) {
-  const { slug } = params;
-  const fullPath = path.join(staticContentDirectory, `${slug}.mdx`);
+  const { slug } = await params;
+  const lowerSlug = slug.toLowerCase();
+
+  // Support both .mdx and .md
+  const extensions = ['.mdx', '.md'];
+  let fullPath = '';
+
+  for (const ext of extensions) {
+    const p = path.join(staticContentDirectory, `${lowerSlug}${ext}`);
+    if (fs.existsSync(p)) {
+      fullPath = p;
+      break;
+    }
+  }
+
+  if (!fullPath) {
+    console.warn(`WARNING: Static content not found for slug: ${slug}`);
+    return NextResponse.json(
+      { success: false, error: { message: 'Content not found' } },
+      { status: 404 },
+    );
+  }
 
   try {
     const fileContents = fs.readFileSync(fullPath, 'utf8');

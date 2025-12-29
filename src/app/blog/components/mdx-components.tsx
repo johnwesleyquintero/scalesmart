@@ -70,13 +70,7 @@ export const MDXComponents = {
   ),
   table: ({ className, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
     <div className="my-6 w-full overflow-y-auto">
-      <table className={cn('w-full', className)} {...props}>
-        <thead>
-          <tr>
-            <th></th>
-          </tr>
-        </thead>
-      </table>
+      <table className={cn('w-full border-collapse', className)} {...props} />
     </div>
   ),
   tr: ({ className, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (

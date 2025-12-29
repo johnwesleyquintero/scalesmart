@@ -147,10 +147,11 @@ const config = {
         gradient: 'gradient 8s linear infinite alternate',
       },
       transitionProperty: {
-        'common': 'background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter',
+        common:
+          'background-color, border-color, color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter',
       },
       transitionDuration: {
-        'DEFAULT': '200ms',
+        DEFAULT: '200ms',
       },
       transitionTimingFunction: {
         'in-out': 'ease-in-out',
@@ -348,9 +349,13 @@ const config = {
       },
     },
   },
-  plugins: [typography, tailwindcssAnimate, function ({ addVariant }) {
-    addVariant('group-hover', '.group:hover &');
-  }],
+  plugins: [
+    typography,
+    tailwindcssAnimate,
+    function ({ addVariant }) {
+      addVariant('group-hover', '.group:hover &');
+    },
+  ],
 };
 
 export default config;

@@ -1,7 +1,8 @@
-import fs, { existsSync } from 'fs'; // Add existsSync
+import fs, { existsSync } from 'fs';
 import matter from 'gray-matter';
 import path from 'path';
 import { z } from 'zod';
+import { cache } from 'react';
 import { BlogPost, DocPost } from '@/types';
 import {
   DEFAULT_DOC_TITLE,
@@ -48,13 +49,27 @@ const docMatterDataSchema = z.object({
   version: z.string().optional(),
 });
 
-function normalizeDate(date: string | Date) {
-  const d = new Date(date);
-  return d.toISOString().split('T')[0];
+function normalizeDate(date: string | Date): string {
+  try {
+    const d = new Date(date);
+    if (isNaN(d.getTime())) {
+      console.warn(
+        `WARNING: Invalid date encountered: ${date}. Using current date.`,
+      );
+      return new Date().toISOString().split('T')[0];
+    }
+    return d.toISOString().split('T')[0];
+  } catch (err) {
+    console.error(`ERROR: Failed to normalize date ${date}:`, err);
+    return new Date().toISOString().split('T')[0];
+  }
 }
 
 const blogPostsDirectory = path.join(process.cwd(), 'src/app/content/blog');
 const docsDirectory = path.join(process.cwd(), 'src/app/content/docs');
+
+console.log(`[MDX Config] Blog Directory: ${blogPostsDirectory}`);
+console.log(`[MDX Config] Docs Directory: ${docsDirectory}`);
 
 const MARKDOWN_FILE_EXTENSIONS = [EXT_MDX, EXT_MD];
 const MARKDOWN_FILE_REGEX = new RegExp(`\\.(${STR_MDX}|${STR_MD})$`);
@@ -66,6 +81,7 @@ const MARKDOWN_FILE_REGEX = new RegExp(`\\.(${STR_MDX}|${STR_MD})$`);
  */
 function readFilesFlat(directory: string, fileList: string[]) {
   if (!fs.existsSync(directory)) {
+    console.warn(`WARNING: Directory not found: ${directory}`);
     return;
   }
   const files = fs.readdirSync(directory);
@@ -81,44 +97,52 @@ function readFilesFlat(directory: string, fileList: string[]) {
   }
 }
 
-export async function getAllBlogPosts(): Promise<BlogPost[]> {
-  if (!fs.existsSync(blogPostsDirectory)) {
+export const getAllBlogPosts = cache(async (): Promise<BlogPost[]> => {
+  try {
+    if (!fs.existsSync(blogPostsDirectory)) {
+      console.warn(
+        `WARNING: Blog directory not found at ${blogPostsDirectory}`,
+      );
+      return [];
+    }
+
+    const fileNames = fs.readdirSync(blogPostsDirectory);
+    const allPostsData = await Promise.all(
+      fileNames
+        .filter((fileName): boolean =>
+          MARKDOWN_FILE_EXTENSIONS.some((ext) => fileName.endsWith(ext)),
+        )
+        .map(async (fileName) => {
+          const slug = fileName.replace(MARKDOWN_FILE_REGEX, '');
+          const fullPath = path.join(blogPostsDirectory, fileName);
+          const fileContents = fs.readFileSync(fullPath, UTF8);
+          const parsed = matter(fileContents);
+          const data = blogMatterDataSchema.parse(parsed.data);
+
+          return {
+            id: slug,
+            slug: slug,
+            title: data.title,
+            description: data.description,
+            date: normalizeDate(data.date || new Date()),
+            image: data.image || `/images/blog/${slug}.svg`,
+            tags: data.tags || [],
+            readingTime: data.readingTime || DEFAULT_READING_TIME,
+            author: data.author || DEFAULT_AUTHOR,
+            type: data.type,
+            content: EMPTY_STRING,
+          } as BlogPost;
+        }),
+    );
+
+    return allPostsData.sort((a: BlogPost, b: BlogPost) =>
+      normalizeDate(b.date).localeCompare(normalizeDate(a.date)),
+    );
+  } catch (error) {
+    console.error('ERROR in getAllBlogPosts:', error);
     return [];
   }
-  const fileNames = fs.readdirSync(blogPostsDirectory);
-  const allPostsData = await Promise.all(
-    fileNames
-      .filter((fileName): boolean =>
-        MARKDOWN_FILE_EXTENSIONS.some((ext) => fileName.endsWith(ext)),
-      )
-      .map((fileName) => {
-        const slug = fileName.replace(MARKDOWN_FILE_REGEX, '');
-        const fullPath = path.join(blogPostsDirectory, fileName);
-        const fileContents = fs.readFileSync(fullPath, UTF8);
-        console.log(`[MDX Debug] Processing blog post: ${fullPath}`);
-        const parsed = matter(fileContents);
-        const data = blogMatterDataSchema.parse(parsed.data);
-
-        return {
-          id: slug,
-          slug: slug,
-          title: data.title,
-          description: data.description,
-          date: normalizeDate(data.date || new Date()),
-          image: data.image || `/images/blog/${slug}.svg`,
-          tags: data.tags || [],
-          readingTime: data.readingTime || DEFAULT_READING_TIME,
-          author: data.author || DEFAULT_AUTHOR,
-          type: data.type,
-          content: EMPTY_STRING,
-        } as BlogPost;
-      }),
-  );
-
-  return allPostsData.sort((a: BlogPost, b: BlogPost) =>
-    normalizeDate(b.date).localeCompare(normalizeDate(a.date)),
-  );
-}
+});
 
 export async function getAllDocPosts(): Promise<DocPost[]> {
   const docFiles: string[] = [];
@@ -259,66 +283,84 @@ interface ContentData {
   tags?: string[];
 }
 
-export async function getBlogPostBySlug(
-  slug: string,
-): Promise<BlogPost | undefined> {
-  // If blogPostsDirectory does not exist, this function will return undefined, which is handled by notFound() in page.tsx
-  // The fallback to blog.json is removed as it's not the primary content source and causes module not found errors.
+function findBlogPostFile(slug: string): string | undefined {
+  const lowerSlug = slug.toLowerCase();
+  for (const ext of MARKDOWN_FILE_EXTENSIONS) {
+    const filePath = path.join(blogPostsDirectory, `${lowerSlug}${ext}`);
+    if (fs.existsSync(filePath)) {
+      return filePath;
+    }
+  }
+  return undefined;
+}
 
-  try {
-    const fullPath = path.join(blogPostsDirectory, `${slug}.mdx`);
-    let fileContents: string;
+export const getBlogPostBySlug = cache(
+  async (slug: string): Promise<BlogPost | undefined> => {
+    // If blogPostsDirectory does not exist, this function will return undefined, which is handled by notFound() in page.tsx
+    // The fallback to blog.json is removed as it's not the primary content source and causes module not found errors.
+
     try {
-      fileContents = fs.readFileSync(fullPath, UTF8);
-    } catch (err) {
-      console.error(`ERROR: Could not read blog file ${fullPath}:`, err);
+      const fullPath = findBlogPostFile(slug);
+      if (!fullPath) {
+        console.warn(
+          `WARNING: Could not find blog post file for slug: ${slug}`,
+        );
+        return undefined;
+      }
+
+      let fileContents: string;
+      try {
+        fileContents = fs.readFileSync(fullPath, UTF8);
+      } catch (err) {
+        console.error(`ERROR: Could not read blog file ${fullPath}:`, err);
+        return undefined;
+      }
+      console.log(
+        `[MDX Debug] Processing specific blog post by slug: ${fullPath}`,
+      );
+      const parsed = matter(fileContents);
+      const data = blogMatterDataSchema.parse(parsed.data);
+      const { content } = parsed;
+
+      const allPosts = await getAllBlogPosts();
+      const relatedPosts = allPosts
+        .filter(
+          (post: BlogPost): boolean =>
+            post.slug !== slug &&
+            (post.tags ?? []).some(
+              (tag: string): boolean => data.tags?.includes(tag) ?? false,
+            ),
+        )
+        .slice(0, 2)
+        .map((p: BlogPost) => ({
+          // Changed type to BlogPost for clarity and correct property access
+          id: p.id,
+          slug: p.slug,
+          title: p.title,
+          description: p.description,
+          date: p.date, // Added date property
+        }));
+
+      return {
+        id: slug,
+        slug,
+        title: data.title,
+        description: data.description,
+        date: normalizeDate(data.date || new Date()),
+        image: data.image || `/images/blog/${slug}.svg`,
+        tags: data.tags || [],
+        readingTime: data.readingTime || DEFAULT_READING_TIME,
+        author: data.author || DEFAULT_AUTHOR,
+        type: data.type,
+        content,
+        relatedPosts,
+      };
+    } catch (e) {
+      console.error(`Error processing blog post ${slug}:`, e);
       return undefined;
     }
-    console.log(
-      `[MDX Debug] Processing specific blog post by slug: ${fullPath}`,
-    );
-    const parsed = matter(fileContents);
-    const data = blogMatterDataSchema.parse(parsed.data);
-    const { content } = parsed;
-
-    const allPosts = await getAllBlogPosts();
-    const relatedPosts = allPosts
-      .filter(
-        (post: BlogPost): boolean =>
-          post.slug !== slug &&
-          (post.tags ?? []).some(
-            (tag: string): boolean => data.tags?.includes(tag) ?? false,
-          ),
-      )
-      .slice(0, 2)
-      .map((p: BlogPost) => ({
-        // Changed type to BlogPost for clarity and correct property access
-        id: p.id,
-        slug: p.slug,
-        title: p.title,
-        description: p.description,
-        date: p.date, // Added date property
-      }));
-
-    return {
-      id: slug,
-      slug,
-      title: data.title,
-      description: data.description,
-      date: normalizeDate(data.date || new Date()),
-      image: data.image || `/images/blog/${slug}.svg`,
-      tags: data.tags || [],
-      readingTime: data.readingTime || DEFAULT_READING_TIME,
-      author: data.author || DEFAULT_AUTHOR,
-      type: data.type,
-      content,
-      relatedPosts,
-    };
-  } catch (e) {
-    console.error(`Error processing blog post ${slug}:`, e);
-    return undefined;
-  }
-}
+  },
+);
 
 function findContentFile(
   slug: string,
@@ -334,21 +376,23 @@ function findContentFile(
   return undefined;
 }
 
-export async function getDocPostBySlug(
-  slug: string,
-): Promise<DocPost | undefined> {
-  // Special handling for the root docs page (slug is empty string)
-  const actualSlug = slug === '' ? 'index' : slug;
-  const fullPath = findContentFile(actualSlug, docsDirectory, 'doc');
+export const getDocPostBySlug = cache(
+  async (slug: string): Promise<DocPost | undefined> => {
+    // Special handling for the root docs page (slug is empty string)
+    const actualSlug = slug === '' ? 'index' : slug;
+    const lowerSlug = actualSlug.toLowerCase();
+    const fullPath = findContentFile(lowerSlug, docsDirectory, 'doc');
 
-  if (!fullPath) {
-    return undefined;
-  }
+    if (!fullPath) {
+      console.warn(`WARNING: Could not find doc post file for slug: ${slug}`);
+      return undefined;
+    }
 
-  try {
-    return processContentFile(fullPath, 'doc');
-  } catch (e) {
-    console.error('Error in getDocPostBySlug', e);
-    return undefined;
-  }
-}
+    try {
+      return processContentFile(fullPath, 'doc');
+    } catch (e) {
+      console.error('Error in getDocPostBySlug', e);
+      return undefined;
+    }
+  },
+);

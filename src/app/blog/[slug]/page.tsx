@@ -11,8 +11,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
 interface Props {
-  params: { slug: string };
-  searchParams?: { [key: string]: string | string[] | undefined };
+  params: Promise<{ slug: string }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 const DEFAULT_IMAGE_URL = '/default-fallback.svg';
@@ -27,7 +27,7 @@ const SITE_URL = 'https://wescode.vercel.app'; // Define site URL constant
 export async function generateMetadata({
   params,
 }: Readonly<Props>): Promise<Metadata> {
-  const { slug } = params;
+  const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
 
   const NOT_FOUND_TITLE = 'Post Not Found | Wesley Quintero';
@@ -112,7 +112,7 @@ export async function generateStaticParams() {
  * @returns JSX element for the blog post page.
  */
 export default async function BlogPostPage({ params }: Readonly<Props>) {
-  const { slug } = params;
+  const { slug } = await params;
   const post = await getBlogPostBySlug(slug);
 
   // If post is not found, trigger the Next.js notFound page
