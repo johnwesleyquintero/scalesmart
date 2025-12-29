@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import { ThemeProvider } from '@/components/ui/theme-provider';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState, useEffect, type ReactNode, Suspense } from 'react';

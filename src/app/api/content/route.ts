@@ -1,24 +1,30 @@
-import skills from '@/data/portfolio-data/skills.json';
+import { loadStaticData } from '@/lib/load-static-data';
 import { getGitHubProjects } from '@/lib/github';
 import { NextResponse } from 'next/server';
-import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
+import { handleApiError } from '@/lib/api-error-handler';
 
 export async function GET() {
   try {
-    // Fetch data from GitHub and LinkedIn APIs
-    const [projects] = await Promise.all([
-      getGitHubProjects().catch((error) => {
-        console.error('Error fetching GitHub projects:', error);
-        return [];
-      }),
-    ]);
+    const [skills, experience, education, personal, projects] =
+      await Promise.all([
+        loadStaticData('skills'),
+        loadStaticData('experience'),
+        loadStaticData('education'),
+        loadStaticData('personal'),
+        getGitHubProjects().catch((error) => {
+          console.error('Error fetching GitHub projects:', error);
+          return [];
+        }),
+      ]);
 
     return NextResponse.json({
-      skills: skills.skills || [],
-      projects: projects || [],
+      skills,
+      experience,
+      education,
+      personal,
+      projects,
     });
   } catch (error) {
-    console.error('Error fetching content:', error);
     return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

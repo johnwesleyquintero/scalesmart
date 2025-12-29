@@ -1,6 +1,6 @@
 'use client';
 
-import Image from 'next/image';
+import OptimizedImage from '@/components/shared/optimized-image';
 
 interface Props {
   src: string;
@@ -18,7 +18,7 @@ export default function BlogImage({
   className,
 }: Readonly<Props>) {
   return (
-    <Image
+    <OptimizedImage
       src={src}
       alt={alt}
       className={className}

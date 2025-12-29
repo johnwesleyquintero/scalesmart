@@ -7,7 +7,7 @@ export default function Footer() {
 
   return (
     <footer className="border-t bg-muted/40 min-h-[200px]">
-      <div className="container py-8 md:py:12">
+      <div className="container py-8 md:py-12">
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           <div>
             <div className="flex items-center gap-2">
@@ -56,12 +56,12 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="https://amzsync.vercel.app/"
+                  href="https://johnwesleyquintero.vercel.app/"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-muted-foreground hover:text-primary"
                 >
-                  Platform
+                  Resume
                 </Link>
               </li>
             </ul>
@@ -88,16 +88,16 @@ export default function Footer() {
                 <Linkedin className="h-5 w-5" />
               </Link>
               <Link
-                href="https://twitter.com/wesleyquintero"
+                href="https://x.com/wesley_q26158"
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Twitter"
+                aria-label="X"
                 className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
               >
                 <Twitter className="h-5 w-5" />
               </Link>
               <Link
-                href="mailto:johnwesleyquintero@gmail.com"
+                href="mailto:wesley.ecomva@gmail.com"
                 aria-label="Email"
                 className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
               >

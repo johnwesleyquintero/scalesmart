@@ -17,9 +17,12 @@ export async function GET() {
     try {
       fileBuffer = await readFile(filePath);
     } catch (error: unknown) {
-      console.error('Error reading file:', error);
+      console.error('Error reading sample data file:', error);
       return NextResponse.json(
-        createErrorResponse('Failed to read file', 'FILE_READ_ERROR'),
+        createErrorResponse(
+          'Failed to read sample data file',
+          'FILE_READ_ERROR',
+        ),
         { status: 500 },
       );
     }
@@ -27,14 +30,14 @@ export async function GET() {
     const headers = {
       'Content-Type': 'text/csv',
       'Content-Disposition': 'attachment; filename="sample_amazon_data.csv"',
-      'Access-Control-Allow-Origin': '*',
     };
 
-    return new NextResponse(fileBuffer, {
+    return new NextResponse(new Uint8Array(fileBuffer), {
+      status: 200,
       headers: headers,
     });
   } catch (error) {
-    console.error('Error serving PDF:', error);
-    return NextResponse.json(handleApiError(error), { status: 404 });
+    console.error('Error in download route:', error);
+    return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }

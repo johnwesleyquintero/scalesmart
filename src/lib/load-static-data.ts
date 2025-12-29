@@ -1,5 +1,5 @@
 import { generateSampleCsv } from './generate-sample-csv';
-import { getAllBlogPosts } from './mdx';
+import { getAllBlogPosts, getAllDocPosts } from './mdx';
 import {
   BlogPost,
   CaseStudy,
@@ -11,6 +11,10 @@ import {
 export async function loadStaticData<T extends keyof StaticDataTypes>(
   file: T,
 ): Promise<StaticDataTypes[T]> {
+  if (file === 'docs') {
+    const posts = await getAllDocPosts();
+    return posts as unknown as StaticDataTypes[T];
+  }
   if (file === 'projects') {
     interface ProjectsJson {
       default: {
@@ -46,7 +50,7 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
         };
         return mappedProject;
       },
-    ) as StaticDataTypes[T];
+    ) as unknown as StaticDataTypes[T];
   }
   if (file === 'blog') {
     const posts = await getAllBlogPosts();
@@ -82,16 +86,16 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
         tags,
       };
       return mappedStudy;
-    }) as StaticDataTypes[T];
+    }) as unknown as StaticDataTypes[T];
   }
   if (file === 'changelog') {
     return (await import('../data/portfolio-data/changelog.json')).default
-      .changes as StaticDataTypes[T];
+      .changes as unknown as StaticDataTypes[T];
   }
   if (file === 'experience') {
     return (
       await import('../data/portfolio-data/experience.json')
-    ).default.experience.map((exp) => {
+    ).default.experience.map((exp: any) => {
       const { title, company, startDate, endDate, description, achievements } =
         exp;
       const mappedExperience: Experience = {
@@ -103,7 +107,22 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
         achievements,
       };
       return mappedExperience;
-    }) as StaticDataTypes[T];
+    }) as unknown as StaticDataTypes[T];
+  }
+
+  if (file === 'skills') {
+    return (await import('../data/portfolio-data/skills.json')).default
+      .skills as unknown as StaticDataTypes[T];
+  }
+
+  if (file === 'education') {
+    return (await import('../data/portfolio-data/education.json')).default
+      .education as unknown as StaticDataTypes[T];
+  }
+
+  if (file === 'personal') {
+    return (await import('../data/portfolio-data/personal.json'))
+      .default as unknown as StaticDataTypes[T];
   }
 
   if (file === 'acos') {
@@ -126,14 +145,14 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
       };
     });
 
-    return data as StaticDataTypes[T];
+    return data as unknown as StaticDataTypes[T];
   }
 
   if (file === 'prohibited-keywords') {
     // Load from the single source of truth JSON file
     const data = await import('../data/prohibited-keywords.json');
     // Assuming the JSON file directly contains the array of strings
-    return data.default as StaticDataTypes[T];
+    return data.default as unknown as StaticDataTypes[T];
   }
 
   throw new Error(`Invalid file type: ${file}`);

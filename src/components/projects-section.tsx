@@ -11,10 +11,9 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ExternalLink, GitFork, Github, Star } from 'lucide-react';
+import { ExternalLink, GitFork, Github, Star, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useScrollAnimation } from '@/hooks/use-scroll-animation';
 
 interface GitHubRepo {
   name: string;
@@ -176,9 +175,31 @@ export default function ProjectsSection({
                 ))}
               </div>
             ) : error ? (
-              <div className="text-center text-red-500 text-lg mt-8">
-                <p>{error}</p>
-                <p>Please check your internet connection or try again later.</p>
+              <div className="flex flex-col items-center justify-center p-12 text-center bg-muted/20 rounded-xl border border-dashed">
+                <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">
+                  Projects temporarily unavailable
+                </h3>
+                <p className="text-muted-foreground max-w-md">
+                  {error.includes('rate limit')
+                    ? 'GitHub API rate limit reached. Please try again in a few minutes or visit my GitHub profile directly.'
+                    : error}
+                </p>
+                <Button asChild variant="outline" className="mt-6">
+                  <Link href={`https://github.com/${username}`} target="_blank">
+                    View on GitHub
+                  </Link>
+                </Button>
+              </div>
+            ) : filteredProjects.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-12 text-center bg-muted/10 rounded-xl border border-dashed">
+                <Github className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-xl font-semibold mb-2">
+                  No projects found
+                </h3>
+                <p className="text-muted-foreground">
+                  I haven&apos;t added any public projects to this category yet.
+                </p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

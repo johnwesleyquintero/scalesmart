@@ -1,5 +1,5 @@
 'use client';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 interface TimeStampProps {
   date: string; // Expected format: YYYY-MM-DD
@@ -7,7 +7,18 @@ interface TimeStampProps {
 }
 
 export default function TimeStamp({ date, relative }: TimeStampProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const formattedDate = useMemo(() => {
+    if (!mounted) {
+      // Return a consistent placeholder during SSR to avoid mismatch
+      return date;
+    }
+
     const d = new Date(date);
     if (isNaN(d.getTime())) {
       return 'Invalid Date';
@@ -31,13 +42,13 @@ export default function TimeStamp({ date, relative }: TimeStampProps) {
       }
     }
 
-    // Fallback to a standard date format if not relative or if relative logic doesn't apply
+    // Fallback to a standard date format
     return d.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
-  }, [date, relative]);
+  }, [date, relative, mounted]);
 
-  return <span>{formattedDate}</span>;
+  return <span title={date}>{formattedDate}</span>;
 }

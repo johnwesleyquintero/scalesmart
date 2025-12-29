@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import Image, { ImageProps } from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface OptimizedImageProps extends Omit<ImageProps, 'onError'> {
   fallback?: string;
@@ -20,6 +20,10 @@ export default function OptimizedImage({
   ...props
 }: OptimizedImageProps) {
   const [error, setError] = useState(false);
+
+  useEffect(() => {
+    setError(false);
+  }, [src]);
 
   return (
     <div
@@ -45,6 +49,8 @@ export default function OptimizedImage({
         onError={() => setError(true)}
         loading={priority ? 'eager' : 'lazy'}
         decoding={priority ? 'sync' : 'async'}
+        placeholder="blur"
+        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMSAxIiBwcmVzZXJ2ZUFzcGVjdFJhdGlvPSJub25lIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZjFmMWYxIi8+PC9zdmc+"
         {...props}
       />
     </div>

@@ -9,7 +9,10 @@ import { cn } from '@/lib/utils';
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
-import { metadata as metadataConfig } from './metadata';
+import {
+  metadata as metadataConfig,
+  viewport as viewportConfig,
+} from './metadata';
 // Authentication removed - using simplified approach
 
 const inter = Inter({
@@ -20,17 +23,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = metadataConfig;
-
-export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: 'white' },
-    { media: '(prefers-color-scheme: dark)', color: 'black' },
-  ],
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
-};
+export const viewport: Viewport = viewportConfig;
 
 export default function RootLayout({
   children,

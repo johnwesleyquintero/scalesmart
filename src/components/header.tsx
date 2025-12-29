@@ -18,7 +18,6 @@ import { useScroll } from '@/hooks/use-scroll';
 import { useTheme } from 'next-themes';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { cachedFetch } from '@/lib/api-cache';
 import React from 'react'; // Added React for ListItem
 
 const SITE_TITLE = 'ScaleSmart';

@@ -104,6 +104,11 @@ export const usePromptGenerator = () => {
   } = state;
 
   const isInitialMount = useRef(true);
+
+  useEffect(() => {
+    isInitialMount.current = false;
+  }, []);
+
   const autoSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Undo/redo functionality

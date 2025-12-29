@@ -130,7 +130,7 @@ export const getAllBlogPosts = cache(async (): Promise<BlogPost[]> => {
             readingTime: data.readingTime || DEFAULT_READING_TIME,
             author: data.author || DEFAULT_AUTHOR,
             type: data.type,
-            content: EMPTY_STRING,
+            content: parsed.content,
           } as BlogPost;
         }),
     );

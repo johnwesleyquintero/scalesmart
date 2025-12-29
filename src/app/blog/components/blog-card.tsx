@@ -9,14 +9,14 @@ import {
 } from '@/components/ui/card';
 import { BlogPost } from '@/lib/static-data-types';
 import { ArrowRight, Calendar, Clock } from 'lucide-react';
-import Image from 'next/image';
+import OptimizedImage from '@/components/shared/optimized-image';
 import Link from 'next/link';
 
 export default function BlogCard({ post }: { readonly post: BlogPost }) {
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg">
       <div className="aspect-video overflow-hidden">
-        <Image
+        <OptimizedImage
           src={post.image || '/placeholder.svg?height=400&width=600'}
           alt={post.title}
           width={600}
@@ -44,7 +44,7 @@ export default function BlogCard({ post }: { readonly post: BlogPost }) {
       </CardHeader>
       <CardContent className="p-4 pt-0">
         <div className="flex flex-wrap gap-2">
-          {post.tags.map((tag) => (
+          {(post.tags ?? []).map((tag: string) => (
             <Badge key={tag} variant="secondary" className="text-xs">
               {tag}
             </Badge>

@@ -3,7 +3,7 @@ import path from 'path';
 import { NextResponse } from 'next/server';
 import matter from 'gray-matter';
 import { serialize } from 'next-mdx-remote/serialize';
-import { handleApiError } from '@/lib/api-error-handler';
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 const staticContentDirectory = path.join(
   process.cwd(),
@@ -32,7 +32,7 @@ export async function GET(
   if (!fullPath) {
     console.warn(`WARNING: Static content not found for slug: ${slug}`);
     return NextResponse.json(
-      { success: false, error: { message: 'Content not found' } },
+      createErrorResponse('Content not found', 'NOT_FOUND'),
       { status: 404 },
     );
   }

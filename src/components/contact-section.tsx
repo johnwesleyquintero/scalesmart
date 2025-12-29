@@ -20,16 +20,41 @@ import { useState } from 'react';
 export default function ContactSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
 
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const formData = new FormData(e.currentTarget);
+    const data = {
+      name: formData.get('name'),
+      email: formData.get('email'),
+      message: formData.get('message'),
+    };
 
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error?.message || 'Failed to send message');
+      }
+
+      setIsSubmitted(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Something went wrong');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -64,10 +89,10 @@ export default function ContactSection() {
             </CardHeader>
             <CardContent className="p-4">
               <a
-                href="mailto:johnwesleyquintero@gmail.com"
+                href="mailto:wesley.ecomva@gmail.com"
                 className="text-sm text-muted-foreground hover:text-primary"
               >
-                johnwesleyquintero@gmail.com
+                wesley.ecomva@gmail.com
               </a>
             </CardContent>
           </Card>
@@ -84,7 +109,7 @@ export default function ContactSection() {
                 href="tel:+639504469156"
                 className="text-sm text-muted-foreground hover:text-primary"
               >
-                +63 950 446 9156
+                +63 9XX XXX XXX
               </a>
             </CardContent>
           </Card>
@@ -139,7 +164,12 @@ export default function ContactSection() {
                     <label htmlFor="name" className="text-sm font-medium">
                       Name
                     </label>
-                    <Input id="name" placeholder="Your name" required />
+                    <Input
+                      id="name"
+                      name="name"
+                      placeholder="Your name"
+                      required
+                    />
                   </div>
                   <div className="space-y-2">
                     <label htmlFor="email" className="text-sm font-medium">
@@ -147,6 +177,7 @@ export default function ContactSection() {
                     </label>
                     <Input
                       id="email"
+                      name="email"
                       type="email"
                       placeholder="Your email"
                       required
@@ -159,6 +190,7 @@ export default function ContactSection() {
                   </label>
                   <Input
                     id="subject"
+                    name="subject"
                     placeholder="Subject of your message"
                     required
                   />
@@ -169,25 +201,38 @@ export default function ContactSection() {
                   </label>
                   <Textarea
                     id="message"
+                    name="message"
                     placeholder="Your message"
                     rows={5}
                     className="resize-none"
                     required
                   />
                 </div>
+                {error && (
+                  <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                    {error}
+                  </div>
+                )}
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      Send Message
+                    </>
+                  )}
+                </Button>
               </form>
             )}
           </CardContent>
-          {!isSubmitted && (
-            <CardFooter className="flex justify-end border-t px-6 py-4">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {isSubmitting ? 'Sending...' : 'Send Message'}
-              </Button>
-            </CardFooter>
-          )}
         </Card>
       </div>
     </section>

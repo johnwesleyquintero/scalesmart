@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Github, Linkedin, Mail, Triangle, Twitter } from 'lucide-react';
-import Image from 'next/image';
+import OptimizedImage from './shared/optimized-image';
 import Link from 'next/link';
 
 export default function HeroSection() {
@@ -61,17 +61,17 @@ export default function HeroSection() {
               <Linkedin className="h-5 w-5 relative z-10" />
             </Link>
             <Link
-              href="https://twitter.com/wesleyquintero"
+              href="https://x.com/wesley_q26158"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Twitter"
+              aria-label="X"
               className="rounded-full bg-background p-3 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:-translate-y-1 hover:rotate-3 group relative overflow-hidden border border-border/50 hover:border-primary/30"
             >
               <span className="absolute inset-0 bg-gradient-to-r from-primary/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               <Twitter className="h-5 w-5 relative z-10" />
             </Link>
             <Link
-              href="mailto:johnwesleyquintero@gmail.com"
+              href="mailto:wesley.ecomva@gmail.com"
               aria-label="Email"
               className="rounded-full bg-background p-3 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:-translate-y-1 hover:rotate-3 group relative overflow-hidden border border-border/50 hover:border-primary/30"
             >
@@ -85,9 +85,8 @@ export default function HeroSection() {
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-purple-500/20 blur-3xl animate-gradient bg-[length:200%_200%] group-hover:animate-none"></div>
           <div className="relative h-full overflow-hidden rounded-3xl border bg-background/50 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group perspective-1000">
             <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 group-hover:rotate-y-6 group-hover:rotate-3">
-              <Image
+              <OptimizedImage
                 priority
-                quality={90}
                 className="rounded-lg shadow-xl object-cover w-full h-full"
                 src="https://avatars.githubusercontent.com/u/190981914?v=4"
                 alt="Wesley Quintero"

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { MDXRemote, MDXRemoteSerializeResult } from 'next-mdx-remote';
 import { components as mdxComponents } from '@/components/MdxRenderer'; // Renamed to avoid conflict
 import {
@@ -30,6 +30,7 @@ interface ArticleData {
 
 const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
   const [headings, setHeadings] = useState<Heading[]>([]);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const fetchArticleContent = useCallback(
     async ({ queryKey }: QueryFunctionContext<QueryKey>) => {
@@ -53,10 +54,10 @@ const ArticleModule: React.FC<ArticleModuleProps> = ({ contentSlug }) => {
   });
 
   useEffect(() => {
-    if (data) {
-      // Extract headings after MDX content has rendered
+    if (data && containerRef.current) {
+      // Extract headings after MDX content has rendered, scoped to container
       const extractedHeadings: Heading[] = [];
-      document.querySelectorAll('h2, h3, h4').forEach((heading) => {
+      containerRef.current.querySelectorAll('h2, h3, h4').forEach((heading) => {
         if (heading.id && heading.textContent) {
           extractedHeadings.push({
             id: heading.id,

@@ -12,7 +12,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import Link from 'next/link';
-import Image from 'next/image';
+import OptimizedImage from './shared/optimized-image';
 import { Button } from './ui/button';
 import { usePathname } from 'next/navigation';
 
@@ -51,14 +51,12 @@ export function BlogSection({
                 <span className="sr-only">Read {post.title}</span>
               </Link>
               <div className="aspect-video overflow-hidden relative">
-                <Image
+                <OptimizedImage
                   src={post.image || '/default-fallback.svg'}
                   alt={post.title}
                   width={800}
                   height={400}
-                  quality={75}
-                  loading="lazy"
-                  className="object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="object-cover transition-transform duration-300 group-hover:scale-105 h-full w-full"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
               </div>
@@ -75,7 +73,7 @@ export function BlogSection({
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 pt-0">
-                <div className="flex flex-wrap gap-2 relative z-20">
+                <div className="flex flex-wrap gap-2">
                   {(post.tags ?? []).map((tag) => (
                     <Badge key={tag} variant="secondary" className="text-xs">
                       {tag}

@@ -1,23 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { NextResponse } from 'next/server';
-
-function getErrorMessage(error: unknown): string {
-  if (!(error instanceof Error)) {
-    return 'An unknown error occurred';
-  }
-
-  const message = error.message;
-
-  if (message.includes('403') || message.includes('PERMISSION_DENIED')) {
-    return 'Gemini API permission denied. Please check your API key has proper permissions for the selected model.';
-  }
-
-  if (message.includes('404') || message.includes('not found')) {
-    return 'Selected Gemini model not found. Please ensure the model is available in your region and API tier.';
-  }
-
-  return message;
-}
+import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 function buildPrompt({
   category,
@@ -88,8 +71,20 @@ export async function POST(req: Request) {
 
     if (!request) {
       return NextResponse.json(
-        { error: 'Request field is required' },
+        createErrorResponse('Request field is required', 'VALIDATION_ERROR'),
         { status: 400 },
+      );
+    }
+
+    const apiKey = geminiApiKey || process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return NextResponse.json(
+        createErrorResponse(
+          'Gemini API key is missing. Please provide one in settings or contact the administrator.',
+          'CONFIG_ERROR',
+        ),
+        { status: 401 },
       );
     }
 
@@ -103,86 +98,38 @@ export async function POST(req: Request) {
       codeInput,
       aiModel,
       temperature,
-      geminiApiKey,
     });
-
-    if (!prompt) {
-      return NextResponse.json(
-        { error: 'Prompt is required' },
-        { status: 400 },
-      );
-    }
-
-    // Use user-provided API key if available, otherwise fall back to environment variable
-    const apiKey = geminiApiKey || process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      console.error('No Gemini API key provided.');
-      return NextResponse.json(
-        { error: 'Gemini API key not provided or configured' },
-        { status: 500 },
-      );
-    }
-
-    // Basic validation for Gemini API key format
-    if (!apiKey.startsWith('AIza')) {
-      console.error('Invalid Gemini API key format.');
-      return NextResponse.json(
-        {
-          error: 'Invalid Gemini API key format. Keys should start with "AIza"',
-        },
-        { status: 400 },
-      );
-    }
-
-    console.log('Gemini API key is available.');
 
     const genAI = new GoogleGenerativeAI(apiKey);
 
-    const models = ['gemini-2.5-flash']; // Use only working free tier Gemini model
-    let generatedText = '';
-    let lastError: unknown = null;
+    // Use the requested model, or fall back to flash then pro
+    const modelName = aiModel || 'gemini-1.5-flash';
 
-    for (const modelName of models) {
-      try {
-        const model = genAI.getGenerativeModel({ model: modelName });
-        const result = await model.generateContent(prompt);
+    try {
+      const model = genAI.getGenerativeModel({
+        model: modelName,
+        generationConfig: {
+          temperature: temperature ?? 0.7,
+        },
+      });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      const text = response.text();
+      return NextResponse.json({ prompt: text });
+    } catch (modelError) {
+      // If the specific model fails, try a safe fallback
+      if (modelName !== 'gemini-1.5-pro') {
+        const fallbackModel = genAI.getGenerativeModel({
+          model: 'gemini-1.5-pro',
+        });
+        const result = await fallbackModel.generateContent(prompt);
         const response = await result.response;
-        generatedText = response.text();
-        if (generatedText) {
-          break; // Successfully generated content, exit loop
-        }
-      } catch (error) {
-        lastError = error;
-        const errorMessage = getErrorMessage(error);
-        console.error(
-          `Failed to generate content with model ${modelName}:`,
-          errorMessage,
-        );
-        // Continue to the next model
+        const text = response.text();
+        return NextResponse.json({ prompt: text });
       }
+      throw modelError;
     }
-
-    if (generatedText) {
-      return NextResponse.json({ generatedPrompt: generatedText });
-    } else {
-      console.error(
-        'All Gemini models failed to generate AI prompt. Last error:',
-        lastError,
-      );
-      const errorMessage = lastError
-        ? getErrorMessage(lastError)
-        : 'Failed to generate AI prompt after multiple retries.';
-      return NextResponse.json({ error: errorMessage }, { status: 500 });
-    }
-  } catch (error: unknown) {
-    console.error(
-      'Caught unexpected error in generate AI prompt route:',
-      error,
-    );
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : 'An unexpected error occurred in the API route.';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  } catch (error) {
+    return handleApiError(error);
   }
 }

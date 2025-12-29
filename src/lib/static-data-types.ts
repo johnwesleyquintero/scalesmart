@@ -1,11 +1,24 @@
+import { BlogPost, DocPost } from '@/types';
+export type { BlogPost, DocPost };
+
 export interface StaticDataTypes {
   'case-studies': CaseStudy[];
   blog: BlogPost[];
+  docs: DocPost[];
   projects: Project[];
   experience: Experience[];
   changelog: ChangelogEntry[];
   acos: AcosData[];
   'prohibited-keywords': string[];
+  skills: SkillItem[];
+  education: Education[];
+  personal: PersonalInfo;
+}
+
+export interface SkillItem {
+  name: string;
+  level: number;
+  icon: string;
 }
 
 export interface AcosData {
@@ -44,27 +57,6 @@ export interface CaseStudy {
   date: string;
   tags: string[];
 }
-export interface RelatedPost {
-  id: string;
-  slug: string;
-  title: string;
-  description: string;
-}
-
-export interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  content: string;
-  description: string;
-  date: string;
-  image?: string;
-  tags: string[];
-  // Removed duplicate relatedPosts property
-  readingTime?: string;
-  author?: string;
-  relatedPosts: RelatedPost[];
-}
 
 export interface Project {
   id: string;
@@ -89,27 +81,29 @@ export interface Experience {
 export interface Education {
   institution: string;
   degree: string;
-  field: string;
-  startDate: string;
-  endDate: string;
+  period: string;
   description?: string;
-}
-
-export interface Skill {
-  category: string;
-  items: {
-    name: string;
-    level: number;
-  }[];
+  skills?: string[];
 }
 
 export interface PersonalInfo {
   name: string;
-  title: string;
-  description: string;
-  location: string;
+  avatar: string;
   email: string;
-  github: string;
-  linkedin: string;
-  twitter?: string;
+  location: string;
+  phone: string;
+  amazonProfile: {
+    sellerCentral: { role: string; link: string };
+    developerCentral: { role: string; link: string };
+  };
+  professionalSummary: {
+    title: string;
+    tagline: string;
+    description: string;
+  };
+  expertise: {
+    technicalExpert: string[];
+    technicalAdvanced: string[];
+    softSkills: string[];
+  };
 }

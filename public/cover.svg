@@ -105,14 +105,14 @@
 
     <!-- Email -->
     <g class="contact-item" transform="translate(1440, 360)">
-      <title>Email: johnwesleyquintero@gmail.com</title>
+      <title>Email: wesley.ecomva@gmail.com</title>
       <!-- Icon parts grouped and transform applied to the group -->
       <g class="contact-icon" transform="translate(30, -14) scale(1.2)">
         <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
         <polyline points="22,6 12,13 2,6"/>
       </g>
       <!-- Text y adjusted to 0 -->
-      <text x="80" y="0" class="text contact-text">johnwesleyquintero@gmail.com</text>
+      <text x="80" y="0" class="text contact-text">wesley.ecomva@gmail.com</text>
     </g>
 
     <!-- Website -->
