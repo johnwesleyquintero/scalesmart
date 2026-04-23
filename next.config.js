@@ -21,10 +21,20 @@ const nextConfig = {
 
   // Headers for caching and security
   async headers() {
+    const apolloDomains = 'https://assets.apollo.io https://api.apollo.io https://aplo-evnt.com';
+    const csp =
+      process.env.NODE_ENV === 'development'
+        ? `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://assets.apollo.io; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com ${apolloDomains};`
+        : `default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://assets.apollo.io; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com ${apolloDomains};`;
+
     return [
       {
         source: '/(.*)',
         headers: [
+          {
+            key: 'Content-Security-Policy',
+            value: csp,
+          },
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
@@ -40,6 +50,10 @@ const nextConfig = {
           {
             key: 'Referrer-Policy',
             value: 'strict-origin-when-cross-origin',
+          },
+          {
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
           },
         ],
       },
@@ -57,16 +71,7 @@ const nextConfig = {
         ],
       },
       {
-        source: '/images/(.*)',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-      {
-        source: '/fonts/(.*)',
+        source: '/(.*).(css|js|webp|gif|png|jpg|jpeg|svg|woff2)$',
         headers: [
           {
             key: 'Cache-Control',
@@ -310,41 +315,6 @@ const nextConfig = {
       config.optimization.innerGraph = true;
     }
     return config;
-  },
-  headers: async () => {
-    const csp =
-      process.env.NODE_ENV === 'development'
-        ? "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com;"
-        : "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com;";
-
-    return [
-      {
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: csp,
-          },
-          {
-            key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
-          },
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-        ],
-      },
-      {
-        source: '/(.*).(css|js|webp|gif|png|jpg|jpeg|svg|woff2)$',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
-    ];
   },
 };
 

@@ -34,6 +34,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <Script id="apollo-tracker" strategy="afterInteractive">
+          {`
+            function initApollo(){var n=Math.random().toString(36).substring(7),o=document.createElement("script");
+            o.src="https://assets.apollo.io/micro/website-tracker/tracker.iife.js?nocache="+n,o.async=!0,o.defer=!0,
+            o.onload=function(){window.trackingFunctions.onLoad({appId:"69e9c98e19be35000d0ed8c5"})},
+            document.head.appendChild(o)}initApollo();
+          `}
+        </Script>
+      </head>
       <body className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none">
         <div className="relative flex min-h-screen flex-col">
           <ErrorBoundary>
@@ -49,17 +59,6 @@ export default function RootLayout({
           <SonnerToaster />
         </div>
         <Analytics />
-        <Script id="apollo-tracker" strategy="afterInteractive">
-          {`
-            function initApollo(){
-              var n=Math.random().toString(36).substring(7),o=document.createElement("script");
-              o.src="https://assets.apollo.io/micro/website-tracker/tracker.iife.js?nocache="+n,o.async=!0,o.defer=!0,
-              o.onload=function(){window.trackingFunctions.onLoad({appId:"69e9c98e19be35000d0ed8c5"})},
-              document.head.appendChild(o)
-            }
-            initApollo();
-          `}
-        </Script>
       </body>
     </html>
   );
