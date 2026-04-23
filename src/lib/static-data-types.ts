@@ -116,4 +116,3 @@ export interface PersonalInfo {
     tasks: string[];
   }[];
 }
-

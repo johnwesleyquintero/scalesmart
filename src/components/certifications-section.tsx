@@ -1,74 +1,26 @@
 import { Award, Calendar, CheckCircle } from 'lucide-react';
 import { Badge } from './ui/badge';
 import { Card, CardContent } from './ui/card';
-const CERTIFICATION_SECTION_HEADING = 'Certifications';
-const MAG_SCHOOL = 'MAG School';
-// Then use CERTIFICATION_TITLE instead of repeating the string
-const certifications = [
-  {
-    name: 'Amazon Advertising',
-    issuer: 'Amazon',
-    date: '2023',
-    status: 'Active',
-    credentialId: '-',
-  },
-  {
-    name: 'Data Modeling',
-    issuer: 'Pragmatic Works',
-    date: '2024',
-    status: 'Active',
-    credentialId: 'PW-2024-DM',
-  },
-  {
-    name: 'Catalog Management',
-    issuer: MAG_SCHOOL,
-    date: '2024',
-    status: 'Active',
-    credentialId: '66a7c61defaf90db750bde04',
-  },
-  {
-    name: 'Design & Conversion',
-    issuer: MAG_SCHOOL,
-    date: '2024',
-    status: 'Active',
-    credentialId: '66a7c65840e6a05d9005d5eb',
-  },
-  {
-    name: 'Launching on Amazon',
-    issuer: MAG_SCHOOL,
-    date: '2024',
-    status: 'Active',
-    credentialId: '66a7ce36b87e351e77072f99',
-  },
-  {
-    name: 'Main Image CTR Course',
-    issuer: MAG_SCHOOL,
-    date: '2024',
-    status: 'Active',
-    credentialId: '66a7c5d70ef423bb240bd554',
-  },
-  {
-    name: 'SEO Optimization',
-    issuer: MAG_SCHOOL,
-    date: '2024',
-    status: 'Active',
-    credentialId: '66a7c4f76b8386f0560b9407',
-  },
-  {
-    name: 'Licensed Teacher',
-    issuer: 'PRC',
-    date: '2021',
-    status: 'Active',
-    credentialId: 'LPT-2021-05',
-  },
-];
+import educationData from '@/data/portfolio-data/education.json';
+
+interface Certification {
+  name: string;
+  issuer: string;
+  date: string;
+  status: string;
+  credentialId?: string;
+}
+
+const certifications =
+  (educationData.certifications as any[] as Certification[]) || [];
 
 export default function CertificationsSection() {
   return (
     <section id="certifications" className="py-20">
       <div className="container mx-auto px-4">
         <div className="mb-12 text-center">
-          <h2 className="section-heading">{CERTIFICATION_SECTION_HEADING}</h2>
+          <h2 className="section-heading">Certifications</h2>
+
           <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
             Professional certifications and credentials in Amazon, data
             analytics, and e-commerce.
@@ -101,7 +53,7 @@ export default function CertificationsSection() {
                       {cert.status}
                     </span>
                   </div>
-                  {cert.credentialId !== '-' && (
+                  {cert.credentialId && cert.credentialId !== '-' && (
                     <div className="pt-2">
                       <Badge variant="secondary" className="text-xs">
                         ID: {cert.credentialId}

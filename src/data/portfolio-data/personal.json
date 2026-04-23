@@ -20,9 +20,24 @@
     "description": "Results-driven E-commerce Operations Specialist with 7+ years of experience across Amazon marketplace management, catalog operations, customer experience, inventory coordination, and process optimization. Proven ability to manage day-to-day execution while improving systems that reduce errors, save time, and support growth. Experienced in Amazon Seller Central, listing optimization, account health, Voice of Customer analysis, and AI-assisted workflows using ChatGPT, Gemini, and Claude. Strong operator mindset focused on ownership, efficiency, and measurable business outcomes."
   },
   "expertise": {
-    "technicalExpert": ["Amazon Seller Central", "Catalog Operations", "FBA Logistics", "Compliance"],
-    "technicalAdvanced": ["Helium 10", "Data Dive", "AI Workflows", "Excel/Google Sheets"],
-    "softSkills": ["Operational Ownership", "Systems Thinking", "Problem Solving", "Cross-functional Collaboration"]
+    "technicalExpert": [
+      "Amazon Seller Central",
+      "Catalog Operations",
+      "FBA Logistics",
+      "Compliance"
+    ],
+    "technicalAdvanced": [
+      "Helium 10",
+      "Data Dive",
+      "AI Workflows",
+      "Excel/Google Sheets"
+    ],
+    "softSkills": [
+      "Operational Ownership",
+      "Systems Thinking",
+      "Problem Solving",
+      "Cross-functional Collaboration"
+    ]
   },
   "operatingPrinciples": [
     {

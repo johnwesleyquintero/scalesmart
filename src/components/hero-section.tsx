@@ -32,13 +32,11 @@ export default function HeroSection() {
               <span className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] hover:animate-none drop-shadow-lg hover:drop-shadow-xl transition-all duration-300">
                 John Wesley Quintero
               </span>
-
             </h1>
             <p className="text-xl font-medium text-gray-700 dark:text-gray-200 md:text-2xl opacity-0 animate-[fadeIn_0.5s_ease-out_0.3s_forwards]">
               E-commerce Operations Specialist | Amazon Marketplace | AI-Driven
               Systems
             </p>
-
           </div>
 
           <div className="flex items-center gap-4">
