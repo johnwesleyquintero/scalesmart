@@ -52,7 +52,7 @@ export default function HeroSection() {
               <Github className="h-5 w-5 relative z-10" />
             </Link>
             <Link
-              href="https://linkedin.com/in/wesleyquintero"
+              href="https://linkedin.com/in/johnwesleyquintero"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="LinkedIn"
