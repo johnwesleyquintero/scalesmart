@@ -9,8 +9,8 @@ const FAVICON_PATH = '/favicon.svg';
 const MANIFEST_PATH = '/site.webmanifest';
 
 export const metadata: Metadata = {
-  title: `${AUTHOR_NAME} - Professional Portfolio`,
-  description: SITE_DESCRIPTION,
+  title: `ScaleSmart | E-commerce Operations & Automation Systems`,
+  description: `High-performance e-commerce operations and automation systems by ${AUTHOR_NAME}. We turn recurring chaos into repeatable growth.`,
   keywords: [
     AUTHOR_NAME,
     'Data Analytics',
@@ -25,10 +25,9 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://wescode.vercel.app/',
-    title: `${AUTHOR_NAME} | E-commerce Operations Specialist`,
-
-    description: SITE_DESCRIPTION,
-    siteName: `${AUTHOR_NAME} Portfolio`,
+    title: `ScaleSmart | E-commerce Operations Specialist`,
+    description: `High-performance systems to reduce errors and support business growth.`,
+    siteName: `ScaleSmart Portfolio`,
     images: [
       {
         url: 'https://wescode.vercel.app/og-image.svg',
@@ -40,9 +39,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${AUTHOR_NAME} | E-commerce Operations Specialist`,
-
-    description: SITE_DESCRIPTION,
+    title: `ScaleSmart | E-commerce Operations & Automation`,
+    description: `Stable e-commerce operations through repeatable systems and AI-driven automation.`,
     images: ['https://wescode.vercel.app/og-image.svg'],
   },
   robots: {

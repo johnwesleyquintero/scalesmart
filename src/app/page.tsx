@@ -4,6 +4,7 @@ import { getAllBlogPosts } from '@/lib/mdx';
 import HeroSection from '@/components/hero-section';
 import FeatureHighlightsSection from '@/components/feature-highlights-section';
 import ProjectsSection from '@/components/projects-section';
+import SuccessStoriesSection from '@/components/success-stories-section';
 import AboutSection from '@/components/about-section';
 import CertificationsSection from '@/components/certifications-section';
 import { BlogSection } from '@/components/blog-section';
@@ -43,6 +44,15 @@ export default async function Home() {
           <ErrorBoundary fallback={<CardLoading />}>
             <Suspense fallback={<CardLoading />}>
               <ProjectsSection />
+            </Suspense>
+          </ErrorBoundary>
+        </section>
+
+        {/* Success Stories Section */}
+        <section className="w-full py-20 relative">
+          <ErrorBoundary fallback={<CardLoading />}>
+            <Suspense fallback={<CardLoading />}>
+              <SuccessStoriesSection />
             </Suspense>
           </ErrorBoundary>
         </section>

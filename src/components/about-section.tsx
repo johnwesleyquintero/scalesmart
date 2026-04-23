@@ -93,6 +93,10 @@ import {
   Zap,
   Clock,
   CheckCircle2,
+  Package,
+  TrendingUp,
+  Activity,
+  MessageSquare,
 } from 'lucide-react';
 
 // Map string icon names to Lucide components outside the component
@@ -115,6 +119,11 @@ const LucideIconMap: { [key: string]: React.ElementType } = {
   Database, // <--- Corrected: Tool now maps to Wrench
   Cloud,
   GitBranch,
+  Package,
+  ShieldCheck,
+  TrendingUp,
+  Activity,
+  MessageSquare,
 };
 
 // Import CSS module styles
@@ -165,9 +174,8 @@ export default function AboutSection() {
   const experience = (experienceData.experience as ExperienceItem[]) || [];
   const education = (educationData.education as EducationItem[]) || [];
   const operatingPrinciples =
-    ((personalData as any).operatingPrinciples as OperatingPrinciple[]) || [];
-  const dailyRhythm =
-    ((personalData as any).dailyRhythm as DailyRhythm[]) || [];
+    (personalData.operatingPrinciples as OperatingPrinciple[]) || [];
+  const dailyRhythm = (personalData.dailyRhythm as DailyRhythm[]) || [];
 
   return (
     <section id="about" className={styles.aboutSection}>
@@ -252,9 +260,11 @@ export default function AboutSection() {
                     footerContent={
                       exp.achievements && exp.achievements.length > 0 ? (
                         <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                          {exp.achievements.map((achievement: string, idx: number) => (
-                            <li key={`ach-${idx}`}>{achievement}</li>
-                          ))}
+                          {exp.achievements.map(
+                            (achievement: string, idx: number) => (
+                              <li key={`ach-${idx}`}>{achievement}</li>
+                            ),
+                          )}
                         </ul>
                       ) : undefined
                     }
@@ -283,20 +293,21 @@ export default function AboutSection() {
                   <div className="space-y-4">
                     {operatingPrinciples.map(
                       (principle: OperatingPrinciple, index: number) => (
-                      <div key={`principle-${index}`} className="flex gap-4">
-                        <div className="flex-shrink-0 mt-1">
-                          <CheckCircle2 className="h-5 w-5 text-primary/60" />
+                        <div key={`principle-${index}`} className="flex gap-4">
+                          <div className="flex-shrink-0 mt-1">
+                            <CheckCircle2 className="h-5 w-5 text-primary/60" />
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-foreground">
+                              {principle.title}
+                            </h4>
+                            <p className="text-muted-foreground text-sm">
+                              {principle.description}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-semibold text-foreground">
-                            {principle.title}
-                          </h4>
-                          <p className="text-muted-foreground text-sm">
-                            {principle.description}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
+                      ),
+                    )}
                   </div>
                 </CardContent>
               </Card>

@@ -1,5 +1,66 @@
 {
-  "default": {
-    "projects": []
-  }
+  "projects": [
+    {
+      "name": "Apollo + Slack Lead Intelligence",
+      "description": "Automated pipeline that captures high-intent leads from Apollo.io and delivers real-time intelligence to Slack channels for immediate sales action.",
+      "longDescription": "Built a scalable integration using Node.js and Apollo APIs to monitor website visitors and target accounts. When a high-intent visitor is detected, the system pulls enriched company data and notifies the relevant sales team in Slack with actionable insights.",
+      "technologies": [
+        "Node.js",
+        "Apollo.io API",
+        "Slack Webhooks",
+        "TypeScript"
+      ],
+      "image": "/projects/apollo-slack.webp",
+      "featured": true,
+      "link": "https://github.com/johnwesleyquintero/lead-intelligence-pipeline"
+    },
+    {
+      "name": "HubSpot Data Sync Engine",
+      "description": "Custom middleware for bidirectional synchronization between Amazon Seller Central and HubSpot CRM, ensuring unified customer data across all channels.",
+      "longDescription": "Developed a robust sync engine that captures Amazon order data, customer feedback, and return signals, mapping them directly to HubSpot contacts and deals. This provides a 360-degree view of the customer journey for the marketing and support teams.",
+      "technologies": ["Next.js", "HubSpot API", "Amazon SP-API", "PostgreSQL"],
+      "image": "/projects/hubspot-amazon.webp",
+      "featured": true
+    },
+    {
+      "name": "ScaleSmart Operations Dashboard",
+      "description": "Unified command center for Amazon marketplace health, inventory tracking, and VOC analysis, built for high-volume sellers.",
+      "longDescription": "A comprehensive internal tool that aggregates data from multiple sources to provide a real-time overview of account health, buy box wins, and inventory levels, with automated alerts for critical events.",
+      "technologies": ["React", "Tailwind CSS", "Recharts", "Supabase"],
+      "image": "/projects/scalesmart-dashboard.webp",
+      "featured": true
+    },
+    {
+      "name": "SpeedTalk Mobile",
+      "description": "Rebuilt SpeedTalk’s Amazon strategy around the Connected Camera micro-segment. Eliminated trust barriers, restructured catalog logic, and optimized ad spend to capture high-intent buyers.",
+      "technologies": ["Strategy", "Segmentation", "Brand Trust"],
+      "image": "https://drive.google.com/uc?export=view&id=1lQ1GUvWdAS_FvU-VQBDJJJratS-PViIj",
+      "featured": true,
+      "link": "https://case-study-speedtalk-mobile.netlify.app/"
+    },
+    {
+      "name": "SecuLife Operations",
+      "description": "Unified SecuLife’s hardware, service, and support systems into a premium, Amazon-forward brand architecture. Powered by direct VOC loops guiding CX, refunds, warranty flows, and activation steps.",
+      "technologies": ["Operations", "Ecosystem Design", "CX"],
+      "image": "https://drive.google.com/uc?export=view&id=1sM5RxEHYJASa1pVXmDWQpm4wXIegwmYz",
+      "featured": true,
+      "link": "https://case-study-seculife.netlify.app/"
+    },
+    {
+      "name": "WesBI Cockpit",
+      "description": "Transforms raw CSV dumps into actionable insights. Provides instant visibility into inventory KPIs, velocity trends, and operational risk — designed for rapid Amazon decision-making.",
+      "technologies": ["React", "Data Visualization", "FBA Ops"],
+      "image": "https://drive.google.com/uc?export=view&id=1pwn0f0z66shweAXpwky04nAEb-tQqqG5",
+      "featured": true,
+      "link": "https://wes-bi.vercel.app/"
+    },
+    {
+      "name": "Buy Box Master",
+      "description": "A high-speed analysis engine reading Keepa exports to detect multi-ASIN Buy Box shifts. Built for instant competitive response across SecuLife, Jolt, and SpeedTalk portfolios.",
+      "technologies": ["Automation", "CSV Parsing", "Competitive Intel"],
+      "image": "https://drive.google.com/uc?export=view&id=1Ui2PjYkokxKIyaASBsoZao141BwOqbQk",
+      "featured": true,
+      "link": "https://buy-box-master.vercel.app/"
+    }
+  ]
 }

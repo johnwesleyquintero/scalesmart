@@ -11,8 +11,7 @@ interface Certification {
   credentialId?: string;
 }
 
-const certifications =
-  (educationData.certifications as any[] as Certification[]) || [];
+const certifications = (educationData.certifications as Certification[]) || [];
 
 export default function CertificationsSection() {
   return (

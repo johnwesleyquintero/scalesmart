@@ -17,40 +17,27 @@ export async function loadStaticData<T extends keyof StaticDataTypes>(
   }
   if (file === 'projects') {
     interface ProjectsJson {
-      default: {
-        default: {
-          projects: Project[];
-        };
-      };
+      projects: Project[];
     }
-    const projectsData = (await import(
-      '../data/portfolio-data/projects.json'
-    )) as ProjectsJson;
-    return projectsData.default.default.projects.map(
-      (project: Project, index: number) => {
-        const id = project.title.toLowerCase().replace(/ /g, '-') + '-' + index;
-        const {
-          title,
-          description,
-          technologies,
-          image,
-          link,
-          github,
-          featured,
-        } = project;
-        const mappedProject: Project = {
-          id,
-          title,
-          description,
-          technologies: technologies || [],
-          image: image || undefined,
-          link: link || undefined,
-          github: github || undefined,
-          featured: featured || false,
-        };
-        return mappedProject;
-      },
-    ) as unknown as StaticDataTypes[T];
+    const projectsData = (await import('../data/portfolio-data/projects.json'))
+      .default as unknown as ProjectsJson;
+    return projectsData.projects.map((project: any, index: number) => {
+      const title = project.name || project.title || 'Untitled Project';
+      const id = title.toLowerCase().replace(/ /g, '-') + '-' + index;
+      const { description, technologies, image, link, github, featured } =
+        project;
+      const mappedProject: Project = {
+        id,
+        title,
+        description,
+        technologies: technologies || [],
+        image: image || undefined,
+        link: link || undefined,
+        github: github || undefined,
+        featured: featured || false,
+      };
+      return mappedProject;
+    }) as unknown as StaticDataTypes[T];
   }
   if (file === 'blog') {
     const posts = await getAllBlogPosts();
