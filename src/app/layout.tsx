@@ -1,4 +1,6 @@
 import ClientProviders from '@/components/client-providers';
+import Script from 'next/script';
+
 import { Analytics } from '@vercel/analytics/next';
 import Footer from '@/components/footer'; // /* IMPORT THE FOOTER */
 import Header from '@/components/header'; // /* IMPORT THE HEADER */
@@ -47,6 +49,17 @@ export default function RootLayout({
           <SonnerToaster />
         </div>
         <Analytics />
+        <Script id="apollo-tracker" strategy="afterInteractive">
+          {`
+            function initApollo(){
+              var n=Math.random().toString(36).substring(7),o=document.createElement("script");
+              o.src="https://assets.apollo.io/micro/website-tracker/tracker.iife.js?nocache="+n,o.async=!0,o.defer=!0,
+              o.onload=function(){window.trackingFunctions.onLoad({appId:"69e9c98e19be35000d0ed8c5"})},
+              document.head.appendChild(o)
+            }
+            initApollo();
+          `}
+        </Script>
       </body>
     </html>
   );

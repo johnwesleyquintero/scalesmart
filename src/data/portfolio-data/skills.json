@@ -1,99 +1,65 @@
 {
   "skills": [
     {
-      "name": "Amazon & E-commerce",
-      "level": 95,
+      "name": "Amazon Seller Central",
+      "level": 98,
       "icon": "ShoppingBag"
     },
     {
-      "name": "Marketplace Management & SEO",
-      "level": 90,
+      "name": "Catalog & Inventory Operations",
+      "level": 95,
+      "icon": "Package"
+    },
+    {
+      "name": "Account Health & Compliance",
+      "level": 95,
+      "icon": "ShieldCheck"
+    },
+    {
+      "name": "Helium 10 & Data Dive",
+      "level": 92,
       "icon": "Search"
     },
     {
-      "name": "PPC & Advertising (Amazon Ads)",
-      "level": 85,
-      "icon": "DollarSign"
-    },
-    {
-      "name": "FBA Inventory & Logistics",
-      "level": 90,
-      "icon": "Truck"
-    },
-    {
-      "name": "Competitor & Market Analysis",
-      "level": 90,
+      "name": "Amazon SEO & Brand Analytics",
+      "level": 92,
       "icon": "BarChart2"
     },
     {
-      "name": "Data & Analytics",
-      "level": 95,
-      "icon": "LineChart"
-    },
-    {
-      "name": "Data Visualization (Tableau, Power BI)",
-      "level": 85,
-      "icon": "PieChart"
-    },
-    {
-      "name": "Seller Central Reporting",
+      "name": "Keepa & SellerAmp SAS",
       "level": 90,
-      "icon": "FileText"
+      "icon": "TrendingUp"
     },
     {
-      "name": "Business Intelligence & Insights",
-      "level": 90,
-      "icon": "Lightbulb"
+      "name": "ScanUnlimited",
+      "level": 88,
+      "icon": "Activity"
     },
     {
-      "name": "Advanced Excel (VLOOKUP, Pivots)",
+      "name": "Excel & Google Sheets (Advanced)",
       "level": 95,
       "icon": "Table"
     },
     {
-      "name": "Automation & Development",
-      "level": 90,
-      "icon": "Code"
-    },
-    {
-      "name": "SP-API Development & Integration",
+      "name": "Looker Studio Dashboards",
       "level": 85,
-      "icon": "Share2"
+      "icon": "PieChart"
     },
     {
-      "name": "Custom E-commerce Tooling (Node.js)",
-      "level": 80,
-      "icon": "Tool"
-    },
-    {
-      "name": "AI/ML Implementation Concepts",
-      "level": 75,
+      "name": "AI Workflow Acceleration (ChatGPT, Gemini, Claude)",
+      "level": 95,
       "icon": "Brain"
     },
     {
-      "name": "Workflow Automation",
-      "level": 85,
-      "icon": "Workflow"
+      "name": "Operational Ownership & SOP Development",
+      "level": 98,
+      "icon": "FileText"
     },
     {
-      "name": "Node.js, React, Next.js",
+      "name": "Voice of Customer (VOC) Analysis",
       "level": 90,
-      "icon": "Code"
-    },
-    {
-      "name": "MongoDB, PostgreSQL, SQL",
-      "level": 85,
-      "icon": "Database"
-    },
-    {
-      "name": "AWS (Lambda, S3, API Gateway)",
-      "level": 80,
-      "icon": "Cloud"
-    },
-    {
-      "name": "Git, Docker, CI/CD",
-      "level": 85,
-      "icon": "GitBranch"
+      "icon": "MessageSquare"
     }
   ]
+
 }

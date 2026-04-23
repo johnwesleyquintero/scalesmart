@@ -1,8 +1,9 @@
 import { Metadata } from 'next';
 
 const SITE_DESCRIPTION =
-  'Data Analytics Innovator and Founder of ScaleSmart, building tools that streamline workflows and provide valuable insights.';
-const AUTHOR_NAME = 'Wesley Quintero';
+  'E-commerce Operations Specialist and Amazon Marketplace expert, building stable systems that reduce errors and support business growth.';
+const AUTHOR_NAME = 'John Wesley Quintero';
+
 const AUTHOR_URL = 'https://github.com/johnwesleyquintero';
 const FAVICON_PATH = '/favicon.svg';
 const MANIFEST_PATH = '/site.webmanifest';
@@ -24,7 +25,8 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://wescode.vercel.app/',
-    title: `${AUTHOR_NAME} | Data Analytics Innovator`,
+    title: `${AUTHOR_NAME} | E-commerce Operations Specialist`,
+
     description: SITE_DESCRIPTION,
     siteName: `${AUTHOR_NAME} Portfolio`,
     images: [
@@ -38,7 +40,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: `${AUTHOR_NAME} | Data Analytics Innovator`,
+    title: `${AUTHOR_NAME} | E-commerce Operations Specialist`,
+
     description: SITE_DESCRIPTION,
     images: ['https://wescode.vercel.app/og-image.svg'],
   },

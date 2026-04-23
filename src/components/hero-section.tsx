@@ -30,13 +30,15 @@ export default function HeroSection() {
               I&apos;m{' '}
               {/* Enhanced gradient text with 3D effect and better contrast */}
               <span className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] hover:animate-none drop-shadow-lg hover:drop-shadow-xl transition-all duration-300">
-                Wesley Quintero
+                John Wesley Quintero
               </span>
+
             </h1>
             <p className="text-xl font-medium text-gray-700 dark:text-gray-200 md:text-2xl opacity-0 animate-[fadeIn_0.5s_ease-out_0.3s_forwards]">
-              Empowering your business with intelligent solutions and seamless
-              workflows.
+              E-commerce Operations Specialist | Amazon Marketplace | AI-Driven
+              Systems
             </p>
+
           </div>
 
           <div className="flex items-center gap-4">
@@ -89,10 +91,11 @@ export default function HeroSection() {
                 priority
                 className="rounded-lg shadow-xl object-cover w-full h-full"
                 src="https://avatars.githubusercontent.com/u/190981914?v=4"
-                alt="Wesley Quintero"
+                alt="John Wesley Quintero"
                 fill
                 sizes="(max-width: 768px) 100vw, 448px"
               />
+
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           </div>

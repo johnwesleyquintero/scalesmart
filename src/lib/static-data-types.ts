@@ -106,4 +106,14 @@ export interface PersonalInfo {
     technicalAdvanced: string[];
     softSkills: string[];
   };
+  operatingPrinciples?: {
+    title: string;
+    description: string;
+  }[];
+  dailyRhythm?: {
+    title: string;
+    description: string;
+    tasks: string[];
+  }[];
 }
+

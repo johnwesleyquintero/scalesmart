@@ -2,86 +2,36 @@
   "education": [
     {
       "institution": "University of Southeastern Philippines",
-      "degree": "Bachelor's degree, Elementary Education and Teaching (Licensed Professional Teacher)",
+      "degree": "Bachelor in Elementary Education",
       "period": "2015 - 2019",
-      "description": "Relevant coursework in education and teaching methodologies.",
-      "skills": ["Teaching", "Curriculum Development", "Classroom Management"]
-    },
-    {
-      "institution": "Iowa State University",
-      "degree": "Educational Technology",
-      "period": "May 2018",
-      "description": "Relevant coursework in educational technology.",
-      "skills": ["Educational Software", "E-learning", "Instructional Design"]
+      "description": "Major in General Education | Licensed Professional Teacher (LPT)"
     },
     {
       "institution": "Magugpo Institute of Technology",
       "degree": "Information Technology",
-      "period": "2014",
-      "description": "Relevant coursework in information technology.",
-      "skills": [
-        "Programming Fundamentals",
-        "Network Basics",
-        "Database Management"
-      ]
+      "period": "2011 - 2014",
+      "description": "Computer Technology and Programming"
     }
   ],
   "certifications": [
     {
-      "name": "Amazon Advertising",
-      "issuer": "Amazon",
-      "date": "2023-01-01",
-      "status": "Active",
-      "credentialId": "-"
-    },
-    {
-      "name": "Data Modeling",
-      "issuer": "Pragmatic Works",
-      "date": "2024-11-15",
-      "status": "Active",
-      "credentialId": "PW-2024-DM"
-    },
-    {
-      "name": "Catalog Management",
-      "issuer": "MAG School",
-      "date": "2024-10-01",
-      "status": "Active",
-      "credentialId": "66a7c61defaf90db750bde04"
-    },
-    {
-      "name": "Design & Conversion",
-      "issuer": "MAG School",
-      "date": "2024-10-01",
-      "status": "Active",
-      "credentialId": "66a7c65840e6a05d9005d5eb"
-    },
-    {
-      "name": "Launching on Amazon",
-      "issuer": "MAG School",
-      "date": "2024-10-01",
-      "status": "Active",
-      "credentialId": "66a7ce36b87e351e77072f99"
-    },
-    {
-      "name": "Main Image CTR Course",
-      "issuer": "MAG School",
-      "date": "2024-10-01",
-      "status": "Active",
-      "credentialId": "66a7c5d70ef423bb240bd554"
-    },
-    {
-      "name": "SEO Optimization",
-      "issuer": "MAG School",
-      "date": "2024-10-01",
-      "status": "Active",
-      "credentialId": "66a7c4f76b8386f0560b9407"
-    },
-    {
-      "name": "Licensed Teacher",
+      "name": "Professional Teacher's License (LPT)",
       "issuer": "PRC",
-      "date": "2021-05-01",
-      "status": "Active",
-      "credentialId": "LPT-2021-05"
+      "date": "2021",
+      "status": "Active"
+    },
+    {
+      "name": "Amazon SEO & PPC Certification",
+      "issuer": "Amazon/Industry",
+      "date": "2024",
+      "status": "Active"
+    },
+    {
+      "name": "Data Modeling for Power BI",
+      "issuer": "Pragmatic Works",
+      "date": "2024",
+      "status": "Active"
     }
   ]
+
 }

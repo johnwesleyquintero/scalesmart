@@ -21,9 +21,11 @@ interface ExperienceItem {
   company: string;
   startDate?: string;
   endDate?: string;
+  period?: string;
   description?: string;
   achievements?: string[];
 }
+
 
 interface EducationItem {
   // Renamed from Education to avoid potential conflicts
@@ -50,7 +52,9 @@ interface EducationData {
 // Import data with types
 import educationData from '@/data/portfolio-data/education.json';
 import experienceData from '@/data/portfolio-data/experience.json';
+import personalData from '@/data/portfolio-data/personal.json';
 import skillsData from '@/data/portfolio-data/skills.json';
+
 
 // Import Lucide icons
 import {
@@ -74,7 +78,14 @@ import {
   Database,
   Cloud,
   GitBranch,
+  ShieldCheck,
+  Target,
+  Users,
+  Zap,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
+
 
 // Map string icon names to Lucide components outside the component
 const LucideIconMap: { [key: string]: React.ElementType } = {
@@ -145,6 +156,9 @@ export default function AboutSection() {
   const skills = skillsData.skills || [];
   const experience = experienceData.experience || [];
   const education = educationData.education || [];
+  const operatingPrinciples = personalData.operatingPrinciples || [];
+  const dailyRhythm = personalData.dailyRhythm || [];
+
 
   return (
     <section id="about" className={styles.aboutSection}>
@@ -220,10 +234,12 @@ export default function AboutSection() {
                     title={exp.title}
                     subtitle={exp.company}
                     period={
-                      exp.startDate || exp.endDate
+                      exp.period ||
+                      (exp.startDate || exp.endDate
                         ? `${exp.startDate ? exp.startDate : ''}${exp.endDate ? ` - ${exp.endDate}` : ' - Present'}`
-                        : undefined
+                        : undefined)
                     }
+
                     description={exp.description}
                     footerContent={
                       exp.achievements && exp.achievements.length > 0 ? (
@@ -240,7 +256,89 @@ export default function AboutSection() {
             </Card>
           )}
 
+          {/* Operating Principles Section */}
+          {operatingPrinciples.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary">
+                <CardHeader className="bg-card-foreground/5 dark:bg-card-foreground/10 pb-4">
+                  <div className="flex items-center gap-3">
+                    <Target className="h-6 w-6 text-primary" />
+                    <CardTitle className="text-2xl font-semibold">
+                      Operating Principles
+                    </CardTitle>
+                  </div>
+                  <CardDescription>
+                    The core values that guide my professional work.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="space-y-4">
+                    {operatingPrinciples.map((principle, index) => (
+                      <div key={`principle-${index}`} className="flex gap-4">
+                        <div className="flex-shrink-0 mt-1">
+                          <CheckCircle2 className="h-5 w-5 text-primary/60" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-foreground">
+                            {principle.title}
+                          </h4>
+                          <p className="text-muted-foreground text-sm">
+                            {principle.description}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Daily Rhythm Section */}
+              {dailyRhythm.length > 0 && (
+                <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border-l-4 border-l-secondary">
+                  <CardHeader className="bg-card-foreground/5 dark:bg-card-foreground/10 pb-4">
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-6 w-6 text-secondary" />
+                      <CardTitle className="text-2xl font-semibold">
+                        Daily Rhythm
+                      </CardTitle>
+                    </div>
+                    <CardDescription>
+                      How I maintain account health and drive growth daily.
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    {dailyRhythm.map((rhythm, index) => (
+                      <div key={`rhythm-${index}`} className="space-y-4">
+                        <div>
+                          <h4 className="font-semibold text-foreground flex items-center gap-2">
+                            <Zap className="h-4 w-4 text-secondary" />
+                            {rhythm.title}
+                          </h4>
+                          <p className="text-muted-foreground text-sm mt-1">
+                            {rhythm.description}
+                          </p>
+                        </div>
+                        <ul className="space-y-2">
+                          {rhythm.tasks.map((task, tIdx) => (
+                            <li
+                              key={`task-${tIdx}`}
+                              className="text-sm text-muted-foreground flex gap-2"
+                            >
+                              <span className="text-secondary font-bold">•</span>
+                              {task}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          )}
+
           {/* Education Section */}
+
           {education.length > 0 && (
             <Card className="overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
               <CardHeader className="bg-card-foreground/5 dark:bg-card-foreground/10">
