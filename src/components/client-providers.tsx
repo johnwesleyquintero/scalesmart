@@ -12,21 +12,7 @@ export default function ClientProviders({
   const [queryClient] = useState(() => new QueryClient());
 
   useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((registration) => {
-            console.log('Service Worker registered: ', registration);
-          })
-          .catch((registrationError) => {
-            console.log(
-              'Service Worker registration failed: ',
-              registrationError,
-            );
-          });
-      });
-    }
+    // Service Worker registration removed to ensure users always receive the latest deployment.
   }, []);
 
   return (

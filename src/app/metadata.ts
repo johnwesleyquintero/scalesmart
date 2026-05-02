@@ -6,7 +6,6 @@ const AUTHOR_NAME = 'ScaleSmart';
 
 const AUTHOR_URL = 'https://scalesmart.vercel.app';
 const FAVICON_PATH = '/images/agency-assets/images/logo_no_bg_no_text.png';
-const MANIFEST_PATH = '/site.webmanifest';
 
 export const metadata: Metadata = {
   title: `ScaleSmart | Digital Solutions & Automation Agency`,
@@ -66,7 +65,6 @@ export const metadata: Metadata = {
       },
     ],
   },
-  manifest: MANIFEST_PATH,
   metadataBase:
     process.env.NODE_ENV === 'development'
       ? new URL('https://localhost:3000')
@@ -84,10 +82,6 @@ export const metadata: Metadata = {
     email: false,
     address: false,
     telephone: false,
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: 'black-translucent',
   },
 };
 
