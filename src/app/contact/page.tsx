@@ -108,173 +108,172 @@ export default function ContactPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-24 md:py-32">
-      <div className="grid gap-16 lg:grid-cols-2">
-        <div>
+    <main className="container mx-auto px-4 py-24 md:py-32">
+      <div className="mb-20 grid gap-16 lg:grid-cols-2">
+        <section>
           <Badge variant="secondary" className="mb-4">
-            Get In Touch
+            CONTACT US
           </Badge>
-          <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl">
-            Let's build your{' '}
-            <span className="text-blue-600">scaling system.</span>
+          <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+            Let’s build your <span className="text-blue-600">next system.</span>
           </h1>
-          <p className="mb-12 text-xl text-muted-foreground">
-            Ready to move faster? Send us a message and we'll get back to you
-            within 24 hours.
+          <p className="mb-10 text-xl text-muted-foreground leading-relaxed">
+            Ready to systematize your operations? Reach out and let’s discuss
+            how ScaleSmart can build the foundation for your next stage of
+            growth.
           </p>
 
           <div className="space-y-8">
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30">
+            <div className="flex gap-6">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 transition-transform hover:scale-110 hover:rotate-3">
                 <Mail className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Email us at
+                <h3 className="text-lg font-bold">Email Us</h3>
+                <p className="text-muted-foreground">
+                  scalesmart.contact@gmail.com
                 </p>
-                <p className="text-lg font-bold">{SOCIAL_LINKS.EMAIL}</p>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30">
-                <Linkedin className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  LinkedIn
-                </p>
-                <a
-                  href={SOCIAL_LINKS.LINKEDIN}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-lg font-bold hover:text-blue-600 transition-colors"
-                >
-                  ScaleSmart PH
-                </a>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white">
-                <Facebook className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Facebook
-                </p>
-                <a
-                  href={SOCIAL_LINKS.FACEBOOK}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-lg font-bold hover:text-blue-600 transition-colors"
-                >
-                  ScaleSmart
-                </a>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30">
+            <div className="flex gap-6">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30 transition-transform hover:scale-110 hover:rotate-3">
                 <Globe className="h-6 w-6" />
               </div>
               <div>
-                <p className="text-sm font-medium text-muted-foreground">
-                  Official Website
-                </p>
-                <a
-                  href={SOCIAL_LINKS.WEBSITE}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-lg font-bold hover:text-blue-600 transition-colors"
-                >
-                  scalesmart.vercel.app
-                </a>
+                <h3 className="text-lg font-bold">Location</h3>
+                <p className="text-muted-foreground">Remote-First | Global</p>
               </div>
             </div>
           </div>
-        </div>
 
-        <div className="rounded-3xl border bg-background/50 p-8 shadow-xl backdrop-blur-sm md:p-12">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid gap-6 md:grid-cols-2">
+          <div className="mt-12">
+            <h3 className="mb-6 text-sm font-bold uppercase tracking-widest text-muted-foreground">
+              Follow Our Journey
+            </h3>
+            <div className="flex gap-4">
+              {[
+                {
+                  icon: <Linkedin className="h-5 w-5" />,
+                  href: SOCIAL_LINKS.LINKEDIN,
+                  label: 'LinkedIn',
+                },
+                {
+                  icon: <Facebook className="h-5 w-5" />,
+                  href: SOCIAL_LINKS.FACEBOOK,
+                  label: 'Facebook',
+                },
+              ].map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.label}
+                  className="flex h-12 w-12 items-center justify-center rounded-xl border bg-background transition-all hover:border-blue-500 hover:text-blue-600 hover:-translate-y-1"
+                >
+                  {social.icon}
+                </a>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="relative">
+          <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 blur-2xl" />
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="relative space-y-6 rounded-3xl border bg-background/80 p-8 shadow-2xl backdrop-blur-md"
+          >
+            <div className="grid gap-6 sm:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="name">
-                  Name
+                <label htmlFor="name" className="text-sm font-bold">
+                  Full Name
                 </label>
                 <input
-                  {...register('name')}
                   id="name"
-                  className={`${INPUT_CLASSES} ${errors.name ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
+                  {...register('name')}
                   placeholder="John Doe"
-                  type="text"
+                  className="w-full rounded-xl border bg-background px-4 py-3 outline-none transition-colors focus:border-blue-500"
                 />
                 {errors.name && (
-                  <p className="text-xs text-red-500">{errors.name.message}</p>
+                  <p className="text-xs font-bold text-red-500">
+                    {errors.name.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium" htmlFor="email">
-                  Email
+                <label htmlFor="email" className="text-sm font-bold">
+                  Email Address
                 </label>
                 <input
-                  {...register('email')}
                   id="email"
-                  className={`${INPUT_CLASSES} ${errors.email ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
-                  placeholder="john@example.com"
                   type="email"
+                  {...register('email')}
+                  placeholder="john@example.com"
+                  className="w-full rounded-xl border bg-background px-4 py-3 outline-none transition-colors focus:border-blue-500"
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500">{errors.email.message}</p>
+                  <p className="text-xs font-bold text-red-500">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
             </div>
+
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="service">
+              <label htmlFor="service" className="text-sm font-bold">
                 Service Interested In
               </label>
               <select
-                {...register('service')}
                 id="service"
+                {...register('service')}
                 className="w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-blue-500 transition-colors appearance-none"
               >
-                <option>Digital Solutions</option>
-                <option>VA Workflows</option>
-                <option>Tech Systems</option>
-                <option>Full Agency Revamp</option>
+                <option value="Operations & Growth">Operations & Growth</option>
+                <option value="Workforce & Workflows">
+                  Workforce & Workflows
+                </option>
+                <option value="Brand & Support">Brand & Support</option>
+                <option value="Digital Solutions">Digital Solutions</option>
+                <option value="Other">Other</option>
               </select>
-              {errors.service && (
-                <p className="text-xs text-red-500">{errors.service.message}</p>
-              )}
             </div>
+
             <div className="space-y-2">
-              <label className="text-sm font-medium" htmlFor="message">
-                Message
+              <label htmlFor="message" className="text-sm font-bold">
+                Tell us about your project
               </label>
               <textarea
-                {...register('message')}
                 id="message"
-                rows={4}
-                className={`${INPUT_CLASSES} resize-none ${errors.message ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
-                placeholder="Tell us about your project..."
+                {...register('message')}
+                placeholder="How can we help you scale?"
+                rows={5}
+                className="w-full rounded-xl border bg-background px-4 py-3 outline-none transition-colors focus:border-blue-500 resize-none"
               />
               {errors.message && (
-                <p className="text-xs text-red-500">{errors.message.message}</p>
+                <p className="text-xs font-bold text-red-500">
+                  {errors.message.message}
+                </p>
               )}
             </div>
+
             <Button
+              type="submit"
               disabled={isSubmitting}
-              className="w-full h-12 text-lg rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+              className="w-full h-14 text-lg font-bold rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20"
             >
               {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-5 w-5 animate-spin" />
                   Logging System...
-                </>
+                </div>
               ) : (
-                'Send Message'
+                'Log System Request'
               )}
             </Button>
           </form>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }

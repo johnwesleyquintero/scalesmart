@@ -47,12 +47,9 @@ export default function PricingPage() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-24 md:py-32">
+    <main className="container mx-auto px-4 py-24 md:py-32">
       <div className="mb-20 text-center">
-        <Badge
-          variant="secondary"
-          className="mb-4 py-1.5 px-4 text-sm font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-        >
+        <Badge variant="secondary" className="mb-4">
           PRICING
         </Badge>
         <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
@@ -66,7 +63,7 @@ export default function PricingPage() {
       </div>
 
       <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
-        <div className="relative">
+        <section className="relative">
           <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 blur-2xl" />
           <div className="relative overflow-hidden rounded-3xl border bg-background/80 p-8 shadow-2xl backdrop-blur-md md:p-12">
             <div className="mb-8 flex items-center justify-between">
@@ -97,66 +94,84 @@ export default function PricingPage() {
                 execution.
               </p>
               <Button
-                className="w-full h-14 text-lg font-bold rounded-xl bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20"
                 asChild
+                className="w-full h-14 text-lg font-bold rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20"
               >
-                <Link href="/contact">Get Started Today</Link>
+                <Link href="/contact" className="flex items-center gap-2">
+                  Get Started <ArrowRight className="h-5 w-5" />
+                </Link>
               </Button>
-            </div>
-
-            <div className="mt-8 border-t pt-8">
-              <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
-                <Clock className="h-4 w-4 text-blue-500" />
-                Flexible hours to fit your workflow
+              <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                <Clock className="h-4 w-4" /> Billed weekly based on actual
+                usage.
               </div>
             </div>
           </div>
-        </div>
+        </section>
 
-        <div className="space-y-8">
-          <h2 className="text-3xl font-bold">What You Get</h2>
+        <section className="space-y-8">
+          <h2 className="text-3xl font-bold tracking-tight">
+            What’s Included in Our{' '}
+            <span className="text-blue-600">Standard Support?</span>
+          </h2>
           <div className="grid gap-6">
             {features.map((feature) => (
               <div
                 key={feature.title}
-                className="flex gap-4 p-4 rounded-2xl border bg-background/50 hover:bg-background transition-colors shadow-sm"
+                className="group flex gap-6 rounded-2xl border bg-background/50 p-6 transition-all hover:bg-background"
               >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white shadow-sm border">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 transition-transform group-hover:scale-110 group-hover:rotate-3">
                   {feature.icon}
                 </div>
                 <div>
-                  <h4 className="text-lg font-bold mb-1">{feature.title}</h4>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
+                  <h3 className="mb-1 font-bold text-lg">{feature.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">
                     {feature.description}
                   </p>
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       </div>
 
-      <div className="mt-24 rounded-3xl border bg-muted/30 p-8 md:p-16 text-center">
-        <h3 className="mb-6 text-2xl font-bold md:text-3xl">
-          Built for Operators Who Value Results
-        </h3>
-        <p className="mx-auto mb-10 max-w-3xl text-lg text-muted-foreground">
-          Whether you&apos;re managing daily operations, scaling your store, or
-          building systems—ScaleSmart gives you the execution layer you need
-          without the chaos.
-        </p>
-        <Button
-          variant="outline"
-          size="lg"
-          className="h-14 px-10 text-lg font-bold rounded-xl group"
-          asChild
-        >
-          <Link href="/contact" className="flex items-center gap-2">
-            Build Your System{' '}
-            <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </Button>
-      </div>
-    </div>
+      <section className="mt-32 rounded-[3rem] border bg-background/50 p-8 md:p-16">
+        <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
+          <div>
+            <h2 className="mb-6 text-3xl font-bold tracking-tight md:text-4xl">
+              Scale With <span className="text-blue-600">Confidence.</span>
+            </h2>
+            <div className="space-y-4">
+              {[
+                'No long-term lock-in contracts.',
+                'Pay for exactly what you need.',
+                'Dedicated support systems.',
+                'Continuous workflow optimization.',
+              ].map((item) => (
+                <div key={item} className="flex items-center gap-3">
+                  <CheckCircle2 className="h-6 w-6 text-emerald-500" />
+                  <span className="text-lg font-medium text-muted-foreground">
+                    {item}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col items-center justify-center text-center p-8 rounded-3xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30">
+            <p className="text-lg font-medium italic text-blue-800 dark:text-blue-300">
+              "We focus on the systems so you can focus on the growth. Our
+              pricing is built to scale alongside your business."
+            </p>
+            <Button
+              asChild
+              variant="outline"
+              className="mt-8 rounded-full h-12 px-8 border-blue-200 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950"
+            >
+              <Link href="/contact">Ask About Custom Plans</Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    </main>
   );
 }

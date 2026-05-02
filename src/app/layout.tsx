@@ -33,11 +33,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className={cn(inter.variable)} suppressHydrationWarning>
       <head>
         <ApolloTracker />
       </head>
-      <body className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none">
+      <body
+        className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none"
+        suppressHydrationWarning
+      >
         <div className="relative flex min-h-screen flex-col">
           <ErrorBoundary>
             <ClientProviders>

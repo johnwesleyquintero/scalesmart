@@ -1,4 +1,5 @@
-import { Input, Label } from '@/components/ui';
+import { Input } from './input';
+import { Label } from './label';
 import React from 'react';
 
 interface NumberInputProps {

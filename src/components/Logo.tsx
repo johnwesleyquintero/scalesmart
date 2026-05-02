@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import Image from 'next/image';
+import OptimizedImage from './shared/optimized-image';
 
 interface LogoProps {
   className?: string;
@@ -9,7 +9,7 @@ interface LogoProps {
 export default function Logo({ className, title }: Readonly<LogoProps>) {
   return (
     <div className={cn('relative overflow-hidden', className)}>
-      <Image
+      <OptimizedImage
         src="/images/agency-assets/images/logo_no_bg_no_text.png"
         alt={title || 'ScaleSmart Logo'}
         width={40}

@@ -116,101 +116,101 @@ export default function ServicesPage() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-24 md:py-32">
-      <div className="mb-24 max-w-4xl">
-        <Badge
-          variant="secondary"
-          className="mb-4 py-1.5 px-4 text-sm font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-        >
-          OUR SERVICES
+    <main className="container mx-auto px-4 py-24 md:py-32">
+      <div className="mb-20 text-center">
+        <Badge variant="secondary" className="mb-4">
+          OUR EXPERTISE
         </Badge>
-        <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-7xl">
-          Digital Systems Built{' '}
-          <span className="text-blue-600">For Operators.</span>
+        <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
+          Systems designed for <span className="text-blue-600">impact.</span>
         </h1>
-        <p className="text-xl text-muted-foreground leading-relaxed">
-          We don't just "do work"—we build the systems that make work
-          repeatable, measurable, and scalable. Explore our core operational
-          categories.
+        <p className="mx-auto max-w-2xl text-xl text-muted-foreground">
+          We build the operational infrastructure that allows your business to
+          breathe, execute, and scale.
         </p>
       </div>
 
       <div className="space-y-32">
         {serviceCategories.map((category) => (
           <section key={category.id} id={category.id} className="scroll-mt-32">
-            <div className="mb-12 border-l-4 border-blue-600 pl-6">
-              <h2 className="text-3xl font-bold md:text-4xl mb-2">
-                {category.title}
-              </h2>
-              <p className="text-xl text-muted-foreground">
-                {category.description}
-              </p>
+            <div className="mb-12 flex flex-col items-center justify-between gap-6 md:flex-row">
+              <div className="max-w-xl">
+                <h2 className="mb-4 text-3xl font-bold tracking-tight md:text-4xl">
+                  {category.title}
+                </h2>
+                <p className="text-lg text-muted-foreground">
+                  {category.description}
+                </p>
+              </div>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="rounded-full"
+              >
+                <Link href={category.href} className="flex items-center gap-2">
+                  View Detailed Services <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
 
-            <div className="grid gap-6 md:grid-cols-3">
+            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {category.services.map((service) => (
                 <div
                   key={service.id}
-                  className="group relative flex flex-col justify-between overflow-hidden rounded-3xl border bg-background/50 p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1"
+                  className="group relative flex flex-col rounded-3xl border bg-background/50 p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1"
                 >
-                  <div className="relative z-10">
-                    <div className="mb-6 inline-block rounded-2xl bg-muted/30 p-3 shadow-sm">
-                      {service.icon}
-                    </div>
-                    <h3 className="mb-2 text-xl font-bold">{service.title}</h3>
-                    <p className="mb-4 text-xs font-bold text-blue-600 uppercase tracking-widest">
-                      {service.tagline}
-                    </p>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {service.description}
-                    </p>
+                  <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted/50 transition-transform group-hover:scale-110 group-hover:rotate-3">
+                    {service.icon}
                   </div>
+                  <h3 className="mb-2 text-xl font-bold">{service.title}</h3>
+                  <p className="mb-4 text-sm font-medium text-blue-600 uppercase tracking-wider">
+                    {service.tagline}
+                  </p>
+                  <p className="mb-8 flex-1 text-muted-foreground leading-relaxed">
+                    {service.description}
+                  </p>
+                  <Link
+                    href={`${category.href}#${service.id}`}
+                    className="inline-flex items-center gap-2 text-sm font-bold text-foreground transition-colors hover:text-blue-600"
+                  >
+                    Learn More <ChevronRight className="h-4 w-4" />
+                  </Link>
                 </div>
               ))}
-            </div>
-
-            <div className="mt-8 flex justify-end">
-              <Button
-                variant="ghost"
-                className="group text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                asChild
-              >
-                <Link href={category.href} className="flex items-center gap-2">
-                  Deep Dive into this system{' '}
-                  <ChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </Button>
             </div>
           </section>
         ))}
       </div>
 
-      <div className="mt-32 rounded-3xl bg-gradient-to-br from-blue-600 to-indigo-700 p-8 md:p-16 text-center text-white shadow-2xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
-
-        <div className="relative z-10 max-w-2xl mx-auto">
-          <h2 className="mb-6 text-3xl font-bold md:text-5xl">
-            Ready to Systemize?
-          </h2>
-          <p className="mb-10 text-xl text-blue-100">
-            Stop working in messy operations. Let's build the foundation your
-            business needs to scale.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Button
-              size="lg"
-              variant="secondary"
-              className="h-14 px-8 text-lg font-bold rounded-xl"
-              asChild
-            >
-              <Link href="/contact" className="flex items-center gap-2">
-                Book a Strategy Call <ArrowRight className="h-5 w-5" />
-              </Link>
-            </Button>
-          </div>
+      {/* CTA Section */}
+      <section className="mt-32 rounded-[3rem] bg-gradient-to-br from-blue-600 to-indigo-700 p-8 md:p-20 text-center text-white shadow-2xl">
+        <h2 className="mb-6 text-3xl font-bold md:text-5xl">
+          Ready to systematize your growth?
+        </h2>
+        <p className="mx-auto mb-10 max-w-2xl text-lg text-blue-100 md:text-xl">
+          Stop managing chaos and start building a business that runs itself.
+          Let's design your scale-ready operations today.
+        </p>
+        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <Button
+            asChild
+            size="lg"
+            variant="secondary"
+            className="w-full sm:w-auto rounded-full bg-white text-blue-600 hover:bg-blue-50 h-14 px-8 text-lg font-bold"
+          >
+            <Link href="/contact">Book a Strategy Call</Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="w-full sm:w-auto rounded-full border-white/20 bg-white/10 text-white hover:bg-white/20 h-14 px-8 text-lg font-bold backdrop-blur-sm"
+          >
+            <Link href="/pricing">View Pricing Plans</Link>
+          </Button>
         </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

@@ -66,19 +66,19 @@ async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
 }
 
 const getLanguageColor = (language: string | null): string => {
-  if (!language) return 'bg-gray-400';
+  if (!language) return 'bg-muted';
   const lang = language.toLowerCase();
   switch (lang) {
     case 'typescript':
-      return 'bg-blue-500';
+      return 'bg-blue-600';
     case 'javascript':
-      return 'bg-yellow-400';
+      return 'bg-yellow-500';
     case 'python':
-      return 'bg-green-500';
+      return 'bg-emerald-600';
     case 'tsx':
-      return 'bg-sky-500';
+      return 'bg-indigo-600';
     default:
-      return 'bg-gray-400';
+      return 'bg-muted';
   }
 };
 

@@ -1,13 +1,6 @@
 import { Badge } from '@/components/ui/badge';
-import {
-  Target,
-  TrendingUp,
-  Zap,
-  Users,
-  Briefcase,
-  Calendar,
-} from 'lucide-react';
-import Image from 'next/image';
+import { Target, TrendingUp, Zap } from 'lucide-react';
+import OptimizedImage from '@/components/shared/optimized-image';
 
 export default function AboutPage() {
   const founders = [
@@ -30,9 +23,9 @@ export default function AboutPage() {
   ];
 
   return (
-    <div className="container mx-auto px-4 py-24 md:py-32">
+    <main className="container mx-auto px-4 py-24 md:py-32">
       {/* Introduction Section */}
-      <div className="mb-24 grid gap-16 lg:grid-cols-2 lg:items-center">
+      <section className="mb-24 grid gap-16 lg:grid-cols-2 lg:items-center">
         <div>
           <Badge variant="secondary" className="mb-4">
             Our Story
@@ -99,39 +92,27 @@ export default function AboutPage() {
             </p>
           </div>
         </div>
-      </div>
-
-      {/* Brand Identity Section */}
-      <div className="mb-24 flex justify-center">
-        <div className="relative h-24 w-full max-w-lg">
-          <Image
-            src="/images/agency-assets/images/header_logo.png"
-            alt="ScaleSmart Brand Logo"
-            fill
-            className="object-contain"
-          />
-        </div>
-      </div>
+      </section>
 
       {/* Founders Section */}
-      <div className="mb-24">
+      <section className="mb-24">
         <div className="mb-12 text-center">
           <Badge variant="outline" className="mb-4">
-            Meet The Founders
+            The Team
           </Badge>
-          <h2 className="text-3xl font-bold md:text-4xl">
-            The Minds Behind ScaleSmart
+          <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+            Meet the Founders
           </h2>
         </div>
         <div className="grid gap-8 md:grid-cols-2">
           {founders.map((founder) => (
             <div
               key={founder.name}
-              className="group relative overflow-hidden rounded-3xl border bg-background/50 p-8 transition-all hover:shadow-xl hover:-translate-y-1"
+              className="group overflow-hidden rounded-3xl border bg-background/50 p-8 shadow-sm transition-all hover:shadow-xl"
             >
-              <div className="flex flex-col gap-6 md:flex-row md:items-start">
-                <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border-2 border-blue-500/20 group-hover:border-blue-500/50 transition-colors">
-                  <Image
+              <div className="mb-6 flex flex-col items-center gap-6 md:flex-row md:items-start">
+                <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl grayscale transition-all group-hover:grayscale-0">
+                  <OptimizedImage
                     src={founder.image}
                     alt={founder.name}
                     fill
@@ -139,96 +120,20 @@ export default function AboutPage() {
                   />
                 </div>
                 <div>
-                  <div className="mb-2 flex items-center justify-between">
-                    <h3 className="text-2xl font-bold">{founder.name}</h3>
-                    <Badge
-                      variant="secondary"
-                      className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
-                    >
-                      {founder.period}
-                    </Badge>
-                  </div>
-                  <p className="mb-4 font-medium text-blue-600">
-                    {founder.role}
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed">
-                    {founder.description}
+                  <h3 className="text-2xl font-bold">{founder.name}</h3>
+                  <p className="font-medium text-blue-600">{founder.role}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {founder.period}
                   </p>
                 </div>
               </div>
+              <p className="text-lg leading-relaxed text-muted-foreground">
+                {founder.description}
+              </p>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Experience Story Section */}
-      <div className="relative rounded-3xl border bg-muted/30 p-8 md:p-16 overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
-
-        <div className="relative z-10">
-          <div className="mb-12 flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background shadow-sm">
-              <Briefcase className="h-6 w-6 text-blue-600" />
-            </div>
-            <h2 className="text-3xl font-bold">Our Journey</h2>
-          </div>
-
-          <div className="grid gap-12 lg:grid-cols-2">
-            <div className="space-y-8">
-              <div className="relative pl-8 border-l-2 border-blue-200 dark:border-blue-900">
-                <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-blue-600" />
-                <div className="mb-2 flex items-center gap-2 text-sm font-bold text-blue-600">
-                  <Calendar className="h-4 w-4" />
-                  JAN 2026 - PRESENT
-                </div>
-                <h4 className="mb-4 text-xl font-bold">
-                  The Foundation of ScaleSmart
-                </h4>
-                <p className="text-muted-foreground leading-relaxed">
-                  In early 2026, John Wesley and Melkie Quintero joined forces
-                  to address a critical gap in the market: the lack of
-                  systematic scaling for small to medium businesses. ScaleSmart
-                  was born not just as a service provider, but as a "systems
-                  builder."
-                </p>
-              </div>
-              <div className="relative pl-8 border-l-2 border-transparent">
-                <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 border-blue-600 bg-background" />
-                <h4 className="mb-4 text-xl font-bold">
-                  Operational Excellence
-                </h4>
-                <p className="text-muted-foreground leading-relaxed">
-                  We focused on three core areas: digital strategy, VA workflow
-                  optimization, and scalable tech infrastructure. Our goal was
-                  simple: provide the clarity and speed businesses need to move
-                  from "messy operations" to confident scaling.
-                </p>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border bg-background/50 p-8 shadow-sm">
-              <h4 className="mb-6 flex items-center gap-2 text-lg font-bold">
-                <Users className="h-5 w-5 text-blue-600" />A Family-Driven
-                Mission
-              </h4>
-              <p className="text-muted-foreground leading-relaxed italic">
-                "We believe that the best systems are built on trust and shared
-                vision. As brothers and co-founders, we bring a unique synergy
-                to ScaleSmart—combining operational precision with management
-                expertise to help our clients succeed."
-              </p>
-              <div className="mt-8 flex items-center gap-4">
-                <div className="h-px flex-1 bg-border" />
-                <div className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
-                  Established 2026
-                </div>
-                <div className="h-px flex-1 bg-border" />
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }

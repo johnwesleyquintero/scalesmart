@@ -1,8 +1,10 @@
 import * as React from 'react';
 import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { FEATURE_FLAGS } from '@/lib/feature-flags';
 
 /**
  * Defines the button's visual variants and sizes using class-variance-authority (cva).
@@ -51,6 +53,14 @@ export interface ButtonProps
    * Useful for integrating with routing libraries like `react-router-dom` or `next/link`.
    */
   asChild?: boolean;
+  /**
+   * If true, shows a loading spinner and disables the button.
+   */
+  loading?: boolean;
+  /**
+   * Optional text to show when loading.
+   */
+  loadingText?: string;
 }
 
 /**
@@ -58,14 +68,38 @@ export interface ButtonProps
  * and rendering as a child element.
  */
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  (
+    {
+      className,
+      variant,
+      size,
+      asChild = false,
+      loading = false,
+      loadingText,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     const Comp = asChild ? Slot : 'button';
+    const showLoading = loading && FEATURE_FLAGS.ACCESSIBILITY_ENHANCEMENTS;
+
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
+        disabled={loading || props.disabled}
         {...props}
-      />
+      >
+        {showLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            {loadingText || children}
+          </>
+        ) : (
+          children
+        )}
+      </Comp>
     );
   },
 );

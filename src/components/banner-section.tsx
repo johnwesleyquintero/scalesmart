@@ -1,9 +1,9 @@
 import React from 'react';
-import Image from 'next/image';
+import OptimizedImage from './shared/optimized-image';
 
 export default function BannerSection() {
   return (
-    <div className="w-full py-12 md:py-24 overflow-hidden">
+    <section className="w-full py-12 md:py-24 overflow-hidden">
       <div className="container mx-auto px-4">
         <div className="group relative h-[300px] md:h-[450px] w-full overflow-hidden rounded-[2rem] border bg-background/50 shadow-2xl backdrop-blur-sm">
           {/* Animated Glow Effect */}
@@ -11,7 +11,7 @@ export default function BannerSection() {
 
           {/* Main Image with Parallax-like effect (via group-hover) */}
           <div className="relative h-full w-full overflow-hidden">
-            <Image
+            <OptimizedImage
               src="/images/agency-assets/images/banner.png"
               alt="ScaleSmart Systems Banner"
               fill
@@ -26,6 +26,6 @@ export default function BannerSection() {
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

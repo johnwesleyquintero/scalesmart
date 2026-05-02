@@ -99,6 +99,29 @@
   animation: fadeIn 0.8s ease-out forwards;
 }
 
+/* Accessibility: Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+    scroll-behavior: auto;
+  }
+
+  .animate-float,
+  .animate-float-delayed,
+  .animate-gradient,
+  .animate-fadeIn,
+  .animate-pulse,
+  .animate-shimmer,
+  .animate-ping,
+  .animate-slideInUp {
+    animation: none;
+  }
+}
+
 .animate-slideInUp {
   animation: slideInUp 0.6s ease-out forwards;
 }
@@ -119,7 +142,7 @@
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
@@ -127,12 +150,13 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--muted-foreground));
-  border-radius: 4px;
+  background: hsl(var(--muted));
+  border-radius: 5px;
+  border: 2px solid hsl(var(--background));
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--primary));
+  background: hsl(var(--muted-foreground));
 }
 /*
   ScaleSmart Platform CSS Refinement
@@ -171,9 +195,9 @@
   --muted: 214 32% 91%;
   --muted-foreground: 215 25% 27%; /* #334155 - Body Text */
 
-  /* Interactive/Accent */
-  --accent: 189 94% 43%; /* #06B6D4 - Cyan Accent */
-  --accent-foreground: 0 0% 100%;
+  /* Interactive/Accent - Harmonized with ScaleSmart Blue */
+  --accent: 221 83% 96%; /* Very light blue for hover states */
+  --accent-foreground: 221 83% 45%;
   --ring: 221 83% 53%;
 
   /* State Colors */
@@ -199,42 +223,42 @@
   --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
 }
 
-/* --- CSS Variables: Dark Theme Overrides --- */
+/* --- CSS Variables: Dark Theme Overrides (Notion-inspired Black) --- */
 .dark {
   /* Base Colors */
-  --background: 222 47% 4%; /* Very deep navy background */
-  --foreground: 210 20% 98%;
+  --background: 0 0% 10%; /* #191919 - Deep neutral gray */
+  --foreground: 0 0% 90%; /* Off-white for readability */
 
   /* Surface Colors */
-  --card: 222 47% 4%;
-  --card-foreground: 210 20% 98%;
-  --popover: 222 47% 4%;
-  --popover-foreground: 210 20% 98%;
+  --card: 0 0% 13%; /* #202020 - Slightly lighter than background */
+  --card-foreground: 0 0% 90%;
+  --popover: 0 0% 13%;
+  --popover-foreground: 0 0% 90%;
 
-  /* Primary Accent */
-  --primary: 217 91% 60%; /* Bright Blue #3B82F6 */
+  /* Primary Accent - Keep the ScaleSmart Blue but slightly brighter for dark mode */
+  --primary: 217 91% 65%;
   --primary-foreground: 0 0% 100%;
 
   /* Secondary Accent */
-  --secondary: 222 47% 11%;
-  --secondary-foreground: 210 20% 98%;
+  --secondary: 0 0% 16%;
+  --secondary-foreground: 0 0% 90%;
 
   /* Muted/Subtle */
-  --muted: 222 47% 11%;
-  --muted-foreground: 215 20% 65%;
+  --muted: 0 0% 16%;
+  --muted-foreground: 0 0% 65%;
 
-  /* Interactive/Accent */
-  --accent: 189 94% 43%;
-  --accent-foreground: 0 0% 100%;
-  --ring: 217 91% 60%;
+  /* Interactive/Accent - Harmonized with ScaleSmart Blue */
+  --accent: 217 91% 15%; /* Subtle blue hover tint */
+  --accent-foreground: 217 91% 90%;
+  --ring: 217 91% 65%;
 
   /* State Colors */
   --destructive: 0 62.8% 30.6%;
-  --destructive-foreground: 210 20% 98%;
+  --destructive-foreground: 0 0% 90%;
 
   /* Borders & Inputs */
-  --border: 222 47% 11%;
-  --input: 222 47% 11%;
+  --border: 0 0% 18%; /* #2F2F2F - Distinct but subtle borders */
+  --input: 0 0% 18%;
 }
 
 /*
@@ -250,6 +274,11 @@
   layers, allowing utilities to override them.
 */
 @layer base {
+  ::selection {
+    background-color: hsl(var(--primary) / 0.2);
+    color: inherit;
+  }
+
   /*
     Basic Reset & Box Sizing
     Removed universal margin/padding reset to rely more on Tailwind's Preflight

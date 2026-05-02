@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Users, Target, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
+import OptimizedImage from './shared/optimized-image';
 
 export default function AboutSection() {
   const founders = [
@@ -32,7 +32,7 @@ export default function AboutSection() {
                   className={`relative overflow-hidden rounded-2xl border bg-background/50 p-4 shadow-xl backdrop-blur-sm ${index === 1 ? 'mt-8' : ''}`}
                 >
                   <div className="relative aspect-square mb-4 overflow-hidden rounded-xl">
-                    <Image
+                    <OptimizedImage
                       src={founder.image}
                       alt={founder.name}
                       fill
@@ -82,7 +82,7 @@ export default function AboutSection() {
               </div>
             </div>
 
-            <Button asChild size="lg" className="group">
+            <Button asChild size="lg" className="group rounded-full">
               <Link href="/about">
                 Read Our Full Story
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />

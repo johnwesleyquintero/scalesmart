@@ -7,9 +7,12 @@ const CardLoadingClient = dynamic(() => import('./shared/CardLoading'), {
   ssr: false,
 });
 
-const ErrorBoundaryClient = dynamic(() => import('./ui/error-boundary'), {
-  loading: () => <CardLoading />,
-});
+const ErrorBoundaryClient = dynamic(
+  () => import('./error-boundary').then((mod) => mod.ErrorBoundary),
+  {
+    loading: () => <CardLoading />,
+  },
+);
 
 const HeroSectionClient = dynamic(() => import('./hero-section'), {
   loading: () => <CardLoading />,
