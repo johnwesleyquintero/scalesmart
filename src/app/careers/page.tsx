@@ -17,7 +17,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { GOOGLE_SHEETS_WEBHOOK_URL } from '@/constants/links';
 
 // Form validation schema for careers
 const careerFormSchema = z.object({
@@ -60,17 +59,18 @@ export default function CareersPage() {
   const onSubmit = async (data: CareerFormValues) => {
     setIsSubmitting(true);
     try {
-      // Sending data to Google Sheets
-      // We use the same webhook URL as the contact form for now
-      await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+      // Sending data via Next.js API to avoid browser CORS errors
+      const response = await fetch('/api/careers', {
         method: 'POST',
-        mode: 'no-cors',
-        body: JSON.stringify({
-          ...data,
-          type: 'JOB_APPLICATION',
-          submittedAt: new Date().toISOString(),
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit application');
+      }
 
       setIsSuccess(true);
       toast.success('Application Submitted! We will review it soon.');

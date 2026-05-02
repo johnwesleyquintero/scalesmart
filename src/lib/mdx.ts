@@ -65,16 +65,15 @@ function normalizeDate(date: string | Date): string {
   }
 }
 
-const blogPostsDirectory = path.join(process.cwd(), 'src/app/content/blog');
-const docsDirectory = path.join(process.cwd(), 'src/app/content/docs');
-const staticContentDirectory = path.join(
-  process.cwd(),
-  'src/app/content/static',
-);
-
-console.log(`[MDX Config] Blog Directory: ${blogPostsDirectory}`);
-console.log(`[MDX Config] Docs Directory: ${docsDirectory}`);
-console.log(`[MDX Config] Static Directory: ${staticContentDirectory}`);
+function getBlogDirectory() {
+  return path.join(process.cwd(), 'src', 'app', 'content', 'blog');
+}
+function getDocsDirectory() {
+  return path.join(process.cwd(), 'src', 'app', 'content', 'docs');
+}
+function getStaticDirectory() {
+  return path.join(process.cwd(), 'src', 'app', 'content', 'static');
+}
 
 const MARKDOWN_FILE_EXTENSIONS = [EXT_MDX, EXT_MD];
 const MARKDOWN_FILE_REGEX = new RegExp(`\\.(${STR_MDX}|${STR_MD})$`);
@@ -103,6 +102,7 @@ function readFilesFlat(directory: string, fileList: string[]) {
 }
 
 export const getAllBlogPosts = cache(async (): Promise<BlogPost[]> => {
+  const blogPostsDirectory = getBlogDirectory();
   try {
     if (!fs.existsSync(blogPostsDirectory)) {
       console.warn(
@@ -150,6 +150,7 @@ export const getAllBlogPosts = cache(async (): Promise<BlogPost[]> => {
 });
 
 export async function getAllDocPosts(): Promise<DocPost[]> {
+  const docsDirectory = getDocsDirectory();
   const docFiles: string[] = [];
   readFilesFlat(docsDirectory, docFiles); // Use readFilesFlat for docs
 
@@ -250,7 +251,7 @@ async function processContentFile(
     };
   }
 
-  const baseDir = docsDirectory;
+  const baseDir = getDocsDirectory();
   const currentSlug = deriveContentSlug(fullPath, baseDir, fileType);
 
   const currentTitle = deriveContentTitle(
@@ -289,6 +290,7 @@ interface ContentData {
 }
 
 function findBlogPostFile(slug: string): string | undefined {
+  const blogPostsDirectory = getBlogDirectory();
   const lowerSlug = slug.toLowerCase();
   for (const ext of MARKDOWN_FILE_EXTENSIONS) {
     const filePath = path.join(blogPostsDirectory, `${lowerSlug}${ext}`);
@@ -383,6 +385,7 @@ function findContentFile(
 
 export const getDocPostBySlug = cache(
   async (slug: string): Promise<DocPost | undefined> => {
+    const docsDirectory = getDocsDirectory();
     // Special handling for the root docs page (slug is empty string)
     const actualSlug = slug === '' ? 'index' : slug;
     const lowerSlug = actualSlug.toLowerCase();
@@ -410,7 +413,8 @@ export const getDocPostBySlug = cache(
 export const getStaticContentBySlug = cache(
   async (
     slug: string,
-  ): Promise<{ content: string; data: Record<string, any> } | undefined> => {
+  ): Promise<{ content: string; data: Record<string, unknown> } | undefined> => {
+    const staticContentDirectory = getStaticDirectory();
     const lowerSlug = slug.toLowerCase();
     let fullPath = '';
 

@@ -2,6 +2,9 @@ declare global {
   // Add proper typing for global objects
   interface Window {
     localStorage: Storage;
+    trackingFunctions?: {
+      onLoad: (config: { appId: string }) => void;
+    };
   }
 
   // Add proper typing for template literal expressions

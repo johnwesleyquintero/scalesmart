@@ -2,19 +2,34 @@ import { NextResponse } from 'next/server';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 import { GOOGLE_SHEETS_WEBHOOK_URL } from '@/constants/links';
 
-interface ContactPayload {
-  name: string;
+interface CareerPayload {
+  fullName: string;
   email: string;
-  service: string;
-  message: string;
+  whatsapp: string;
+  msTeams?: string;
+  profession: string;
+  proposal: string;
+  cvLink: string;
+  tools: string;
+  skills: string;
+  referral?: string;
 }
 
 export async function POST(request: Request) {
   try {
-    const body: ContactPayload = await request.json();
+    const body: CareerPayload = await request.json();
 
-    // Validate input
-    if (!body.name || !body.email || !body.message || !body.service) {
+    // Validate required fields
+    if (
+      !body.fullName ||
+      !body.email ||
+      !body.whatsapp ||
+      !body.profession ||
+      !body.proposal ||
+      !body.cvLink ||
+      !body.tools ||
+      !body.skills
+    ) {
       return NextResponse.json(
         createErrorResponse('Missing required fields', 'VALIDATION_ERROR'),
         { status: 400 },
@@ -31,7 +46,6 @@ export async function POST(request: Request) {
     }
 
     // Send data to Google Sheets via Apps Script Webhook
-    // Executing this server-side avoids browser CORS issues
     const response = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
       method: 'POST',
       headers: {
@@ -39,9 +53,10 @@ export async function POST(request: Request) {
       },
       body: JSON.stringify({
         ...body,
-        type: 'LEAD_CAPTURE',
+        type: 'JOB_APPLICATION',
+        submittedAt: new Date().toISOString(),
       }),
-      redirect: 'follow', // Apps Script often redirects
+      redirect: 'follow',
     });
 
     if (!response.ok) {
@@ -50,7 +65,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'System Logged successfully',
+      message: 'Application Submitted successfully',
     });
   } catch (error) {
     return NextResponse.json(handleApiError(error), { status: 500 });

@@ -6,7 +6,7 @@ import { serialize } from 'next-mdx-remote/serialize';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 
 const staticContentDirectory = path.join(
-  process.cwd(),
+  /*turbopackIgnore: true*/ process.cwd(),
   'src/app/content/static',
 );
 

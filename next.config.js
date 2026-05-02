@@ -152,7 +152,10 @@ const nextConfig = {
     // Removed redundant DefinePlugin configuration
 
     // Alias for @/ imports (assuming source code is primarily in 'src')
-    config.resolve.alias['@'] = path.resolve(process.cwd(), 'src');
+    config.resolve.alias['@'] = path.resolve(
+      /*turbopackIgnore: true*/ process.cwd(),
+      'src',
+    );
 
     // Rule for handling SVGs as React components using @svgr/webpack
     // Ensure you have @svgr/webpack installed (`npm install --save-dev @svgr/webpack`)
@@ -217,11 +220,19 @@ const nextConfig = {
     if (!dev) {
       config.cache = {
         type: 'filesystem',
-        cacheDirectory: path.resolve(process.cwd(), '.next/cache/webpack'),
+        cacheDirectory: path.resolve(
+          /*turbopackIgnore: true*/ process.cwd(),
+          '.next/cache/webpack',
+        ),
         // Prevent cache from being included in serverless functions
         store: 'pack',
         buildDependencies: {
-          config: [path.resolve(process.cwd(), 'next.config.js')],
+          config: [
+            path.resolve(
+              /*turbopackIgnore: true*/ process.cwd(),
+              'next.config.js',
+            ),
+          ],
         },
       };
     }

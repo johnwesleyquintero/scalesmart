@@ -1,5 +1,5 @@
 import ClientProviders from '@/components/client-providers';
-import Script from 'next/script';
+import ApolloTracker from '@/components/apollo-tracker';
 
 import { Analytics } from '@vercel/analytics/next';
 import Footer from '@/components/footer'; // /* IMPORT THE FOOTER */
@@ -35,14 +35,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <Script id="apollo-tracker" strategy="afterInteractive">
-          {`
-            function initApollo(){var n=Math.random().toString(36).substring(7),o=document.createElement("script");
-            o.src="https://assets.apollo.io/micro/website-tracker/tracker.iife.js?nocache="+n,o.async=!0,o.defer=!0,
-            o.onload=function(){window.trackingFunctions.onLoad({appId:"69e9c98e19be35000d0ed8c5"})},
-            document.head.appendChild(o)}initApollo();
-          `}
-        </Script>
+        <ApolloTracker />
       </head>
       <body className="min-h-screen bg-body font-sans antialiased overflow-x-hidden text-base md:text-[16px] overscroll-none">
         <div className="relative flex min-h-screen flex-col">
