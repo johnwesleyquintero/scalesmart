@@ -21,7 +21,8 @@ const nextConfig = {
 
   // Headers for caching and security
   async headers() {
-    const apolloDomains = 'https://assets.apollo.io https://api.apollo.io https://aplo-evnt.com';
+    const apolloDomains =
+      'https://assets.apollo.io https://api.apollo.io https://aplo-evnt.com';
     const csp =
       process.env.NODE_ENV === 'development'
         ? `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://va.vercel-scripts.com https://assets.apollo.io; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self' https://api.github.com ${apolloDomains};`

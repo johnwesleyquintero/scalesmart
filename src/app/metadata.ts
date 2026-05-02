@@ -1,16 +1,16 @@
 import { Metadata } from 'next';
 
 const SITE_DESCRIPTION =
-  'E-commerce Operations Specialist and Amazon Marketplace expert, building stable systems that reduce errors and support business growth.';
-const AUTHOR_NAME = 'John Wesley Quintero';
+  'ScaleSmart is a digital solutions agency helping businesses move faster, operate smarter, and scale without chaos through optimized systems and workflows.';
+const AUTHOR_NAME = 'ScaleSmart';
 
-const AUTHOR_URL = 'https://github.com/johnwesleyquintero';
-const FAVICON_PATH = '/favicon.svg';
+const AUTHOR_URL = 'https://scalesmart.vercel.app';
+const FAVICON_PATH = '/images/agency-assets/images/logo_no_bg_no_text.png';
 const MANIFEST_PATH = '/site.webmanifest';
 
 export const metadata: Metadata = {
-  title: `ScaleSmart | E-commerce Operations & Automation Systems`,
-  description: `High-performance e-commerce operations and automation systems by ${AUTHOR_NAME}. We turn recurring chaos into repeatable growth.`,
+  title: `ScaleSmart | Digital Solutions & Automation Agency`,
+  description: SITE_DESCRIPTION,
   keywords: [
     AUTHOR_NAME,
     'Data Analytics',

@@ -150,124 +150,91 @@
 /* --- CSS Variables: Light Theme Defaults --- */
 :root {
   /* Base Colors */
-  --background: 0 0% 100%; /* White */
-  --foreground: 222.2 84% 15%; /* Dark foreground */
+  --background: 0 0% 100%; /* #FFFFFF */
+  --foreground: 222 47% 11%; /* #0F172A */
 
   /* Surface Colors */
-  --card: 0 0% 100%; /* White */
-  --card-foreground: 222.2 84% 4.9%; /* Dark foreground */
-  --popover: 0 0% 100%; /* White */
-  --popover-foreground: 222.2 84% 4.9%; /* Dark foreground */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
 
   /* Primary Accent */
-  --primary-blue: 270 50% 60%; /* A specific purple color */
-  --primary: 270 65% 25%; /* Adjusted for better contrast in light mode */
-  --primary-foreground: 0 0% 100%; /* White for better contrast */
+  --primary: 221 83% 53%; /* #2563EB - ScaleSmart Blue */
+  --primary-foreground: 0 0% 100%;
 
   /* Secondary Accent */
-  --secondary: 210 40% 96.1%; /* Light gray */
-  --secondary-foreground: 222.2 47.4% 11.2%; /* Dark foreground */
+  --secondary: 214 32% 91%; /* #E2E8F0 - Light Gray */
+  --secondary-foreground: 222 47% 11%;
 
   /* Muted/Subtle */
-  --muted: 210 40% 96.1%; /* Light gray */
-  --muted-foreground: 215.4 16.3% 30%; /* Darkened for better contrast (was 35%) */
+  --muted: 214 32% 91%;
+  --muted-foreground: 215 25% 27%; /* #334155 - Body Text */
 
   /* Interactive/Accent */
-  --accent: 210 40% 96.1%; /* Light gray */
-  --accent-foreground: 222.2 47.4% 11.2%; /* Dark foreground */
-  --ring: 270 80% 70%; /* Light Purple ring/focus color */
+  --accent: 189 94% 43%; /* #06B6D4 - Cyan Accent */
+  --accent-foreground: 0 0% 100%;
+  --ring: 221 83% 53%;
 
   /* State Colors */
-  --destructive: 0 84.2% 60.2%; /* Red */
-  --destructive-foreground: 210 40% 98%; /* White */
-  --success: 142.1 76.2% 36.3%; /* Darker green */
-  --success-foreground: 210 40% 98%; /* White text */
-  --warning: 40 80% 70%; /* Yellow */
-  --warning-foreground: 222.2 47.4% 11.2%; /* Dark text */
-
-  /* Component Specific */
-  --user-bubble: 270 80% 90%; /* Light purple for user messages */
-  --user-bubble-foreground: 270 80% 20%; /* Dark text */
-  --typing-indicator: 210 40% 96.1%; /* Light gray */
-  --typing-indicator-foreground: 215.4 16.3% 25%; /* Dark text */
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --success: 142.1 76.2% 36.3%;
+  --success-foreground: 210 40% 98%;
+  --warning: 40 80% 70%;
+  --warning-foreground: 222 47% 11%;
 
   /* Borders & Inputs */
-  --border: 214.3 31.8% 91.4%; /* Light gray border */
-  --input: 214.3 31.8% 91.4%; /* Light gray input border */
-
-  /* Spacing & Radius */
-  --radius: 0.75rem;
-
-  /* Typography */
-  --font-family: 'Open Sans', system-ui, -apple-system, sans-serif;
+  --border: 214 32% 91%; /* #E2E8F0 */
+  --input: 214 32% 91%;
 
   /* Enhanced Gradients */
   --primary-gradient: linear-gradient(
     135deg,
-    #7c3aed 0%,
-    #8b5cf6 50%,
-    #a855f7 100%
-  );
-  --secondary-gradient: linear-gradient(
-    135deg,
     #3b82f6 0%,
-    #6366f1 50%,
-    #8b5cf6 100%
+    #2563eb 50%,
+    #1e3a8a 100%
   );
-  --accent-gradient: linear-gradient(
-    135deg,
-    #06b6d4 0%,
-    #3b82f6 50%,
-    #8b5cf6 100%
-  );
+  --secondary-gradient: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+  --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
 }
 
 /* --- CSS Variables: Dark Theme Overrides --- */
 .dark {
   /* Base Colors */
-  --background: 222.2 84% 4.9%; /* Dark background */
-  --foreground: 210 20% 90%; /* Adjusted light gray foreground */
+  --background: 222 47% 4%; /* Very deep navy background */
+  --foreground: 210 20% 98%;
 
   /* Surface Colors */
-  --card: 222.2 84% 4.9%; /* Dark */
-  --card-foreground: 210 20% 90%; /* Adjusted light gray */
-  --popover: 222.2 84% 4.9%; /* Dark */
-  --popover-foreground: 210 20% 90%; /* Adjusted light gray */
+  --card: 222 47% 4%;
+  --card-foreground: 210 20% 98%;
+  --popover: 222 47% 4%;
+  --popover-foreground: 210 20% 98%;
 
   /* Primary Accent */
-  --primary: 250 80% 60%; /* Lighter primary for dark mode */
-  --primary-foreground: 210 20% 90%; /* Light gray */
+  --primary: 217 91% 60%; /* Bright Blue #3B82F6 */
+  --primary-foreground: 0 0% 100%;
 
   /* Secondary Accent */
-  --secondary: 217.2 32.6% 27.5%; /* Darker gray */
-  --secondary-foreground: 210 20% 90%; /* Light gray */
+  --secondary: 222 47% 11%;
+  --secondary-foreground: 210 20% 98%;
 
   /* Muted/Subtle */
-  --muted: 217.2 32.6% 27.5%; /* Darker gray */
-  --muted-foreground: 215 10% 85%; /* Adjusted lighter gray */
+  --muted: 222 47% 11%;
+  --muted-foreground: 215 20% 65%;
 
   /* Interactive/Accent */
-  --accent: 217.2 32.6% 17.5%; /* Darker gray */
-  --accent-foreground: 210 20% 90%; /* Light gray */
-  --ring: 224.3 76.3% 48%; /* Blue ring/focus color */
+  --accent: 189 94% 43%;
+  --accent-foreground: 0 0% 100%;
+  --ring: 217 91% 60%;
 
   /* State Colors */
-  --destructive: 0 62.8% 30.6%; /* Darker red */
-  --destructive-foreground: 210 20% 90%; /* Light gray */
-  --success: 142.1 70.2% 70%; /* Adjusted lighter green */
-  --success-foreground: 222.2 47.4% 11.2%; /* Dark text */
-  --warning: 40 80% 50%; /* Darker yellow */
-  --warning-foreground: 222.2 47.4% 11.2%; /* Dark text */
-
-  /* Component Specific */
-  --user-bubble: 270 40% 30%; /* Darker purple */
-  --user-bubble-foreground: 270 80% 90%; /* Lighter text */
-  --typing-indicator: 217.2 32.6% 17.5%; /* Dark gray */
-  --typing-indicator-foreground: 215 10% 85%; /* Lighter text */
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 210 20% 98%;
 
   /* Borders & Inputs */
-  --border: 217.2 32.6% 17.5%; /* Darker gray border */
-  --input: 217.2 32.6% 17.5%; /* Darker gray input border */
+  --border: 222 47% 11%;
+  --input: 222 47% 11%;
 }
 
 /*

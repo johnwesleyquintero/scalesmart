@@ -89,10 +89,10 @@ export default function ContactSection() {
             </CardHeader>
             <CardContent className="p-4">
               <a
-                href="mailto:wesley.ecomva@gmail.com"
+                href="mailto:scalesmart.contact@gmail.com"
                 className="text-sm text-muted-foreground hover:text-primary"
               >
-                wesley.ecomva@gmail.com
+                scalesmart.contact@gmail.com
               </a>
             </CardContent>
           </Card>

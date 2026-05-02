@@ -27,6 +27,34 @@
       "competitorData": [],
       "date": "2025-04-15",
       "tags": ["ppc", "optimization"]
+    },
+    {
+      "id": "va-workflow-automation",
+      "title": "VA Workflow Automation for E-commerce",
+      "description": "Automated repetitive tasks and optimized delegation systems for a 7-figure brand.",
+      "metrics": [
+        {
+          "name": "Efficiency",
+          "value": 85,
+          "change": 85,
+          "trend": "up"
+        },
+        {
+          "name": "Error Rate",
+          "value": 90,
+          "change": -90,
+          "trend": "down"
+        },
+        {
+          "name": "Time Saved",
+          "value": 30,
+          "change": 30,
+          "trend": "up"
+        }
+      ],
+      "competitorData": [],
+      "date": "2025-05-01",
+      "tags": ["automation", "workflows"]
     }
   ]
 }

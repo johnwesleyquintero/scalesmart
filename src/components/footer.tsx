@@ -1,6 +1,7 @@
 import Logo from '@/components/Logo';
-import { Github, Linkedin, Mail, Twitter } from 'lucide-react';
+import { Github, Linkedin, Mail, Twitter, Facebook } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,11 +13,11 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2">
               <Logo className="h-8 w-8" />
-              <h3 className="text-lg font-semibold">Wesley Quintero</h3>
+              <h3 className="text-lg font-semibold">ScaleSmart</h3>
             </div>
             <p className="mt-2 text-sm text-muted-foreground">
-              Data-Driven Amazon & E-commerce Specialist helping brands scale
-              with insights, automation, and AI.
+              Helping businesses move faster, operate smarter, and scale without
+              chaos through digital solutions and systems.
             </p>
           </div>
           <div>
@@ -24,15 +25,23 @@ export default function Footer() {
             <ul className="mt-2 space-y-2 text-sm">
               <li>
                 <Link
-                  href="/#projects"
+                  href="/services"
                   className="text-muted-foreground hover:text-primary"
                 >
-                  Projects
+                  Services
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/#about"
+                  href="/pricing"
+                  className="text-muted-foreground hover:text-primary"
+                >
+                  Pricing
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/about"
                   className="text-muted-foreground hover:text-primary"
                 >
                   About
@@ -48,20 +57,10 @@ export default function Footer() {
               </li>
               <li>
                 <Link
-                  href="/#contact"
+                  href="/contact"
                   className="text-muted-foreground hover:text-primary"
                 >
                   Contact
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="https://johnwesleyquintero.vercel.app/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  Resume
                 </Link>
               </li>
             </ul>
@@ -70,22 +69,22 @@ export default function Footer() {
             <h3 className="text-lg font-semibold">Connect</h3>
             <div className="mt-2 flex space-x-4">
               <Link
-                href="https://github.com/johnwesleyquintero"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub"
-                className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 group hover:rotate-6"
-              >
-                <Github className="h-5 w-5" />
-              </Link>
-              <Link
-                href="https://linkedin.com/in/wesleyquintero"
+                href="https://www.linkedin.com/company/scalesmart-ph/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
                 className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
               >
                 <Linkedin className="h-5 w-5" />
+              </Link>
+              <Link
+                href="https://www.facebook.com/people/ScaleSmart/61589206317712/"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Facebook"
+                className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
+              >
+                <Facebook className="h-5 w-5" />
               </Link>
               <Link
                 href="https://x.com/wesley_q26158"
@@ -97,7 +96,7 @@ export default function Footer() {
                 <Twitter className="h-5 w-5" />
               </Link>
               <Link
-                href="mailto:wesley.ecomva@gmail.com"
+                href="mailto:scalesmart.contact@gmail.com"
                 aria-label="Email"
                 className="rounded-full bg-background p-2 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:rotate-6 group"
               >
@@ -108,7 +107,7 @@ export default function Footer() {
         </div>
         <div className="mt-8 border-t pt-6">
           <p className="text-center text-sm text-muted-foreground">
-            &copy; {currentYear} Wesley Quintero. All rights reserved.
+            &copy; {currentYear} ScaleSmart. All rights reserved.
           </p>
           <div className="text-center text-sm text-muted-foreground">
             <Link href="/privacy-policy" className="hover:text-primary">

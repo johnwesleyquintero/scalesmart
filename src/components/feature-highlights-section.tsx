@@ -13,38 +13,38 @@ export default function FeatureHighlightsSection() {
   const features = [
     {
       icon: Code,
-      title: 'Full-Stack Development',
-      desc: 'Next.js, Supabase, Vercel deployments with modern architecture',
+      title: 'Digital Solutions',
+      desc: 'Custom tech stacks and digital transformations tailored to your business goals.',
       color: 'from-blue-500 to-cyan-500',
     },
     {
       icon: Database,
-      title: 'Data-Driven Solutions',
-      desc: 'Analytics, automation, and optimization for business intelligence',
+      title: 'Tech Systems',
+      desc: 'Infrastructure and operational foundations designed for massive scale.',
       color: 'from-purple-500 to-pink-500',
     },
     {
       icon: Zap,
-      title: 'E-commerce Operations',
-      desc: 'Brand management with scalable systems',
+      title: 'VA Workflows',
+      desc: 'Optimized delegation frameworks and virtual assistant management systems.',
       color: 'from-orange-500 to-red-500',
     },
     {
       icon: TrendingUp,
       title: 'Strategic Growth',
-      desc: 'Building independent, sovereign digital systems for long-term success',
+      desc: 'Building independent digital systems that drive long-term business success.',
       color: 'from-green-500 to-teal-500',
     },
     {
       icon: Box,
       title: 'Operations Management',
-      desc: 'Overseeing eCommerce brands with expertise',
+      desc: 'Overseeing business operations with precision, clarity, and speed.',
       color: 'from-indigo-500 to-blue-500',
     },
     {
       icon: Folder,
-      title: 'Project Portfolio',
-      desc: 'Diverse range of successful digital products and platforms',
+      title: 'Process Automation',
+      desc: 'Eliminating manual tasks through smart automation and workflow design.',
       color: 'from-yellow-500 to-orange-500',
     },
   ];
@@ -95,8 +95,8 @@ export default function FeatureHighlightsSection() {
 
       <div className="text-center mt-12">
         <Button asChild size="lg" className="group">
-          <Link href="#projects">
-            View All Projects
+          <Link href="/services">
+            Explore All Services
             <span className="ml-2 group-hover:translate-x-1 transition-transform duration-300">
               →
             </span>

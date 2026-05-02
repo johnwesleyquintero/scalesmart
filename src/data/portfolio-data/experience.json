@@ -1,63 +1,25 @@
 {
   "experience": [
     {
-      "title": "eCommerce Account Manager",
-      "company": "VAXPH | SecuLife | SpeedTalk Mobile",
-      "period": "July 2025 - January 2026",
-      "startDate": "2025-07-01",
-      "endDate": "2026-01-01",
-      "description": "Owned end-to-end Amazon operations across catalog management, FBA logistics, customer support, compliance, and listing performance.",
+      "title": "Founder | Operator",
+      "company": "ScaleSmart",
+      "period": "Jan 2026 - Present",
+      "description": "Founded and built ScaleSmart, a digital solutions agency focused on helping businesses streamline operations and scale efficiently. Designed and implemented virtual assistant workflows, automation systems, and internal tools to improve speed, accountability, and operational clarity.",
       "achievements": [
-        "Managed 200+ listings and variations including flat file uploads, listing fixes, content updates, and backend maintenance.",
-        "Handled complex customer workflows involving SIM activation, device compatibility, refunds, warranties, and technical escalations.",
-        "Used Voice of Customer data, returns feedback, and reviews to identify root causes and improve listing clarity.",
-        "Helped recover suppressed listings by resolving content, compliance, and documentation issues.",
-        "Reduced recurring support issues by improving product pages, internal SOPs, and response systems.",
-        "Built internal AI knowledge bases and responder tools to improve CX speed, consistency, and SLA performance.",
-        "Created internal dashboards for inventory visibility, catalog validation, and pricing support.",
-        "Maintained account health through proactive monitoring of metrics, policy risks, and customer-facing defects."
+        "Founded and built ScaleSmart agency",
+        "Designed VA workflow systems",
+        "Implemented automation tools for operational clarity"
       ]
     },
     {
-      "title": "Amazon Specialist",
-      "company": "My Amazon Guy",
-      "period": "October 2024 - March 2025",
-      "startDate": "2024-10-01",
-      "endDate": "2025-03-01",
-      "description": "Executed Amazon SEO strategies and marketplace analytics for data-driven decisions.",
+      "title": "Co-Founder | Management",
+      "company": "ScaleSmart",
+      "period": "Jan 2026 - Present",
+      "description": "ScaleSmart delivers digital solutions, virtual assistant services, and tech support to help businesses streamline operations and scale with confidence.",
       "achievements": [
-        "Used Helium 10 and Data Dive to improve indexing, ranking, and conversion.",
-        "Performed keyword research, competitor benchmarking, and listing optimization across multiple client brands.",
-        "Supported PPC reporting and marketplace analytics.",
-        "Worked in a fast-paced agency environment handling multiple accounts and priorities."
-      ]
-    },
-    {
-      "title": "Amazon Account Manager & Operations Specialist",
-      "company": "Champion eCommerce",
-      "period": "October 2022 - June 2025",
-      "startDate": "2022-10-01",
-      "endDate": "2025-06-01",
-      "description": "Managed Amazon Seller Central operations with focus on catalog accuracy and account stability.",
-      "achievements": [
-        "Executed bulk listing updates, variation builds, flat file maintenance, and suppression recovery.",
-        "Monitored Buy Box ownership, pricing changes, stock levels, and operational risks.",
-        "Handled Seller Support cases and operational escalations efficiently.",
-        "Standardized workflows and documentation to reduce dependency on tribal knowledge.",
-        "Improved execution consistency through SOP creation and structured task systems."
-      ]
-    },
-    {
-      "title": "Amazon Wholesale Buyer",
-      "company": "Sales.support",
-      "period": "October 2018 - July 2022",
-      "startDate": "2018-10-01",
-      "endDate": "2022-07-01",
-      "description": "Researched and evaluated wholesale opportunities for Amazon FBA/FBM.",
-      "achievements": [
-        "Researched profitable wholesale opportunities using SellerAmp SAS, Keepa, and ScanUnlimited.",
-        "Evaluated margins, restrictions, competition, and sales velocity before purchasing.",
-        "Developed sourcing SOPs for supplier vetting, negotiations, and procurement efficiency."
+        "Co-founded ScaleSmart agency",
+        "Managed agency operations and tech support",
+        "Streamlined business scaling processes"
       ]
     }
   ]

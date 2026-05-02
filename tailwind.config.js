@@ -54,13 +54,15 @@ const config = {
       },
       colors: {
         border: borderColor,
-        input: 'hsl(var(--input))',
+        input: 'hsl(var(--border))',
         ring: 'hsl(var(--ring))',
         background: 'hsl(var(--background))',
         foreground: foregroundColor,
         primary: {
           DEFAULT: primaryColor,
           foreground: primaryForegroundColor,
+          light: '#3B82F6',
+          dark: '#1E3A8A',
         },
         secondary: {
           DEFAULT: 'hsl(var(--secondary))',
@@ -78,6 +80,16 @@ const config = {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
         },
+        brand: {
+          navy: '#1E3A8A',
+          blue: '#2563EB',
+          sky: '#3B82F6',
+          cyan: '#06B6D4',
+        },
+        text: {
+          DEFAULT: '#0F172A',
+          muted: '#334155',
+        },
         popover: {
           DEFAULT: 'hsl(var(--popover))',
           foreground: 'hsl(var(--popover-foreground))',
@@ -85,26 +97,6 @@ const config = {
         card: {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
-        },
-        success: {
-          DEFAULT: 'hsl(var(--success))',
-          foreground: 'hsl(var(--success-foreground))',
-        },
-        warning: {
-          DEFAULT: 'hsl(var(--warning))',
-          foreground: 'hsl(var(--warning-foreground))',
-        },
-        info: {
-          DEFAULT: 'hsl(var(--info))',
-          foreground: 'hsl(var(--info-foreground))',
-        },
-        'user-bubble': {
-          DEFAULT: 'hsl(var(--user-bubble))',
-          foreground: 'hsl(var(--user-bubble-foreground))',
-        },
-        'typing-indicator': {
-          DEFAULT: 'hsl(var(--typing-indicator))',
-          foreground: 'hsl(var(--typing-indicator-foreground))',
         },
       },
       borderRadius: {
@@ -137,6 +129,10 @@ const config = {
           '0%': { backgroundPosition: '0% 50%' },
           '100%': { backgroundPosition: '100% 50%' },
         },
+        shimmer: {
+          '0%': { left: '-100%' },
+          '100%': { left: '100%' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
@@ -145,6 +141,7 @@ const config = {
         fadeIn: 'fadeIn 1s ease-out forwards',
         float: 'float 3s ease-in-out infinite',
         gradient: 'gradient 8s linear infinite alternate',
+        shimmer: 'shimmer 2s linear infinite',
       },
       transitionProperty: {
         common:

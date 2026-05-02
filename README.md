@@ -1,37 +1,45 @@
-# Professional Portfolio
+# ScaleSmart | Digital Solutions & Automation Agency
 
 ## Overview
 
-A modern, high-performance professional portfolio built with Next.js, TypeScript, and Tailwind CSS. This project showcases full-stack development expertise through integrated tools, a strategic blog, and a focus on resilient architecture.
+**ScaleSmart** is a modern, systems-driven digital solutions agency built to help businesses move faster, operate smarter, and scale without chaos. We specialize in turning recurring operational friction into repeatable, automated growth systems.
 
-## Key Features
+This platform serves as our official headquarters, showcasing our core services, operational philosophy, and technical insights.
 
-- **Strategic Blog**: MDX-powered platform for technical articles and insights.
-- **Prompt Request Generator**: Advanced tool for building optimized AI prompts with auto-save and state management.
-- **Error Guide**: Centralized repository for troubleshooting and technical documentation.
-- **Resilient UI**: Built with Error Boundaries and Suspense for a seamless user experience.
+## Core Agency Features
+
+- **Digital Solutions That Scale**: Custom-built systems for operations, lead generation, and e-commerce.
+- **Virtual Assistant Workflows**: Structured delegation systems designed for consistency and speed.
+- **Automated Lead Capture**: Integrated Google Sheets webhook for seamless lead management and tracking.
+- **Insights & Guides**: An MDX-powered technical blog for operational excellence and automation strategies.
+- **Resilient Infrastructure**: Built with Next.js 16+, React 19, and advanced Error Boundaries for mission-critical reliability.
 
 ## Tech Stack
 
-- **Frontend**: Next.js 15+, React 19, Tailwind CSS, Framer Motion.
-- **Data**: Supabase, React Query, LocalStorage.
-- **Content**: MDX, GitHub API integration.
+- **Framework**: Next.js 16+ (App Router), React 19.
+- **Styling**: Tailwind CSS, Shadcn/UI, Framer Motion.
+- **Automation**: Google Apps Script Webhooks (Google Sheets Integration).
+- **Validation**: Zod + React Hook Form.
+- **Content**: MDX (Markdown for technical guides).
 
 ## Getting Started
 
 1. **Install Dependencies**:
-
    ```bash
    npm install
    ```
 
-2. **Environment Setup**:
-   Configure `.env.local` with your Supabase and GitHub credentials.
+2. **Google Sheets Setup**:
+   Configure your `GOOGLE_SHEETS_WEBHOOK_URL` in `src/constants/links.ts` after deploying your Google Apps Script.
 
 3. **Run Development**:
    ```bash
-   npm run dev
+   npm run dev:next
    ```
+
+## Operational Philosophy
+
+We don't just offer services—we build systems. Our goal is to provide clarity, speed, and execution to businesses tired of messy operations.
 
 ## License
 

@@ -8,7 +8,7 @@ export const siteConfig = {
     github: 'https://github.com/johnwesleyquintero',
     linkedin: 'https://linkedin.com/in/wesleyquintero',
     twitter: 'https://twitter.com/wesleyquintero',
-    email: 'wesley.ecomva@gmail.com',
+    email: 'scalesmart.contact@gmail.com',
   },
 };
 

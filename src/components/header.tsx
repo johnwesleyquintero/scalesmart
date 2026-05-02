@@ -63,9 +63,38 @@ export default function Header() {
     'Productivity & Automation',
     'Career & Personal Growth',
     'AI & Automation',
+    'Insights & Guides',
   ];
 
   const navItems: NavItem[] = [
+    {
+      name: 'Services',
+      children: [
+        {
+          name: 'Digital Solutions',
+          href: '/services#digital-solutions',
+          description: 'Custom tech stacks and digital transformations.',
+        },
+        {
+          name: 'VA Workflows',
+          href: '/services#va-workflows',
+          description: 'Optimized delegation and process automation.',
+        },
+        {
+          name: 'Tech Systems',
+          href: '/services#tech-systems',
+          description: 'Infrastructure and operational efficiency.',
+        },
+      ],
+    },
+    {
+      name: 'Pricing',
+      href: '/pricing',
+    },
+    {
+      name: 'About',
+      href: '/about',
+    },
     {
       name: 'Resources',
       children: [
@@ -75,19 +104,17 @@ export default function Header() {
           category: productsCategories[1],
           description: 'Generate structured prompts for AI code assistance.',
         },
-      ],
-    },
-
-    {
-      name: 'Docs',
-      children: [
         {
           name: 'Blog',
           href: '/blog',
-          external: false,
+          category: productsCategories[4],
           description: 'Latest articles, updates, and insights.',
         },
       ],
+    },
+    {
+      name: 'Contact',
+      href: '/contact',
     },
   ];
 
@@ -136,7 +163,9 @@ export default function Header() {
             {/* Added gap-x-6 for spacing */}
             <Link href="/" className="flex items-center gap-2">
               <Logo className="h-8 w-8" title={`${SITE_TITLE} Site Logo`} />
-              <span className="text-2xl font-semibold">{SITE_TITLE}</span>
+              <span className="text-2xl font-bold tracking-tight">
+                {SITE_TITLE}
+              </span>
             </Link>
             <NavigationMenu className="hidden md:flex">
               <NavigationMenuList>

@@ -1,10 +1,6 @@
 {
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es2022"
-    ],
+    "lib": ["dom", "dom.iterable", "es2022"],
     "baseUrl": "./src",
     "allowJs": true,
     "target": "es2018",
@@ -29,32 +25,15 @@
       }
     ],
     "paths": {
-      "@/*": [
-        "./*"
-      ],
-      "@/lib/*": [
-        "./lib/*"
-      ],
-      "@/components/*": [
-        "./components/*"
-      ],
-      "@/app/components/*": [
-        "./app/components/*"
-      ],
-      "@/hooks/*": [
-        "./hooks/*"
-      ]
+      "@/*": ["./*"],
+      "@/lib/*": ["./lib/*"],
+      "@/components/*": ["./components/*"],
+      "@/app/components/*": ["./app/components/*"],
+      "@/hooks/*": ["./hooks/*"]
     }
   },
-  "include": [
-    "src/**/*",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
-  ],
-  "typeRoots": [
-    "./src/types",
-    "./node_modules/@types"
-  ],
+  "include": ["src/**/*", ".next/types/**/*.ts", ".next/dev/types/**/*.ts"],
+  "typeRoots": ["./src/types", "./node_modules/@types"],
   "exclude": [
     ".next",
     "jest.config.js",

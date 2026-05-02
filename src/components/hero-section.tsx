@@ -8,35 +8,36 @@ export default function HeroSection() {
   return (
     <section className="container relative mx-auto px-4 py-24 md:py-32">
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-100/30 via-transparent to-blue-100/30 dark:from-purple-950/30 dark:via-transparent dark:to-blue-950/30 blur-3xl animate-pulse duration-3000"></div>
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-tr from-purple-400/20 to-blue-400/20 rounded-full blur-2xl animate-float"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-bl from-blue-400/20 to-purple-400/20 rounded-full blur-2xl animate-float-delayed"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 via-transparent to-indigo-100/30 dark:from-blue-950/30 dark:via-transparent dark:to-indigo-950/30 blur-3xl animate-pulse duration-3000"></div>
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-tr from-blue-400/20 to-indigo-400/20 rounded-full blur-2xl animate-float"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-bl from-indigo-400/20 to-blue-400/20 rounded-full blur-2xl animate-float-delayed"></div>
       </div>
       <div className="grid items-center gap-12 md:grid-cols-2">
         <div className="space-y-8">
           <Badge
             variant="secondary"
-            className="inline-flex items-center gap-1 rounded-full px-4 py-1.5 bg-purple-100 dark:bg-purple-900/50 text-purple-900 dark:text-purple-100"
+            className="inline-flex items-center gap-1 rounded-full px-4 py-1.5 bg-blue-100 dark:bg-blue-900/50 text-blue-900 dark:text-blue-100"
           >
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-purple-400 opacity-75 duration-3000"></span>
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-purple-500"></span>
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75 duration-3000"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
             </span>
-            Available for projects
+            Systems-Driven Solutions
           </Badge>
 
           <div className="animate-fadeIn">
             <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              {/* Enhanced gradient text with 3D effect and better contrast */}
-              <span className="bg-gradient-to-r from-purple-600 via-purple-500 to-purple-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] hover:animate-none drop-shadow-lg hover:drop-shadow-xl transition-all duration-300">
+              <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] hover:animate-none drop-shadow-lg hover:drop-shadow-xl transition-all duration-300">
                 ScaleSmart
               </span>
             </h1>
             <p className="text-xl font-medium text-gray-700 dark:text-gray-200 md:text-2xl opacity-0 animate-[fadeIn_0.5s_ease-out_0.3s_forwards]">
-              High-Performance E-commerce & Automation Systems
+              We don’t just offer services—we build systems.
             </p>
-            <p className="mt-4 text-lg text-muted-foreground opacity-0 animate-[fadeIn_0.5s_ease-out_0.5s_forwards]">
-              By John Wesley Quintero
+            <p className="mt-4 text-lg text-muted-foreground opacity-0 animate-[fadeIn_0.5s_ease-out_0.5s_forwards] max-w-xl">
+              ScaleSmart helps businesses move faster, operate smarter, and
+              scale without chaos through digital solutions and optimized
+              workflows.
             </p>
           </div>
 
@@ -72,7 +73,7 @@ export default function HeroSection() {
               <Twitter className="h-5 w-5 relative z-10" />
             </Link>
             <Link
-              href="mailto:wesley.ecomva@gmail.com"
+              href="mailto:scalesmart.contact@gmail.com"
               aria-label="Email"
               className="rounded-full bg-background p-3 text-muted-foreground transition-all hover:text-primary hover:scale-110 hover:shadow-lg hover:shadow-primary/20 duration-300 hover:bg-primary/10 hover:-translate-y-1 hover:rotate-3 group relative overflow-hidden border border-border/50 hover:border-primary/30"
             >
@@ -88,9 +89,9 @@ export default function HeroSection() {
             <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 group-hover:rotate-y-6 group-hover:rotate-3">
               <OptimizedImage
                 priority
-                className="rounded-lg shadow-xl object-cover w-full h-full"
-                src="https://avatars.githubusercontent.com/u/190981914?v=4"
-                alt="John Wesley Quintero"
+                className="rounded-lg shadow-xl object-contain w-full h-full"
+                src="/images/agency-assets/images/logo_no_bg_with_text.png"
+                alt="ScaleSmart Logo"
                 fill
                 sizes="(max-width: 768px) 100vw, 448px"
               />
