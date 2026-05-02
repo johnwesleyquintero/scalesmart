@@ -23,6 +23,7 @@ export default function Footer() {
       links: [
         { name: 'Prompt Generator', href: '/prompt-request-generator' },
         { name: 'Blog', href: '/blog' },
+        { name: 'FAQ', href: '/faq' },
         { name: 'About ScaleSmart', href: '/about' },
         { name: 'Success Stories', href: '/#success-stories' },
       ],

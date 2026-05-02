@@ -117,6 +117,12 @@ export default function Header() {
           category: productsCategories[1],
           description: 'Real results from ScaleSmart systems.',
         },
+        {
+          name: 'FAQ',
+          href: '/faq',
+          category: productsCategories[1],
+          description: 'Answers to common scaling questions.',
+        },
       ],
     },
     {
