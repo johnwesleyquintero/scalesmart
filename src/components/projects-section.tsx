@@ -138,7 +138,7 @@ export default function ProjectsSection({
   return (
     <section id="projects" className="container relative mx-auto px-4 py-32">
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-100/50 to-blue-100/50 dark:from-purple-950/50 dark:to-blue-950/50 blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/50 to-indigo-100/50 dark:from-blue-950/50 dark:to-indigo-950/50 blur-3xl"></div>
       </div>
 
       <div className="w-full">

@@ -25,6 +25,7 @@ This platform serves as our official headquarters, showcasing our core services,
 ## Getting Started
 
 1. **Install Dependencies**:
+
    ```bash
    npm install
    ```

@@ -130,8 +130,8 @@ const config = {
           '100%': { backgroundPosition: '100% 50%' },
         },
         shimmer: {
-          '0%': { left: '-100%' },
-          '100%': { left: '100%' },
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
         },
       },
       animation: {

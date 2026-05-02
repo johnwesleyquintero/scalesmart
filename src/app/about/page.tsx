@@ -39,7 +39,7 @@ export default function AboutPage() {
           </Badge>
           <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
             Building the systems for{' '}
-            <span className="text-purple-600">tomorrow's scale.</span>
+            <span className="text-blue-600">tomorrow's scale.</span>
           </h1>
           <p className="mb-6 text-xl leading-relaxed text-muted-foreground">
             ScaleSmart was created in 2026 to help businesses move faster,
@@ -47,7 +47,7 @@ export default function AboutPage() {
           </p>
           <div className="space-y-6">
             <div className="flex gap-4">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-100 text-purple-600 dark:bg-purple-900/30">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600 dark:bg-blue-900/30">
                 <Target className="h-6 w-6" />
               </div>
               <div>
@@ -84,10 +84,10 @@ export default function AboutPage() {
         </div>
 
         <div className="relative">
-          <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-purple-500/20 to-blue-500/20 blur-2xl" />
+          <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 blur-2xl" />
           <div className="relative overflow-hidden rounded-3xl border bg-background/50 p-8 shadow-2xl backdrop-blur-sm">
             <h2 className="mb-6 text-2xl font-bold">Our Philosophy</h2>
-            <blockquote className="border-l-4 border-purple-500 pl-6 italic text-lg md:text-xl text-foreground">
+            <blockquote className="border-l-4 border-blue-500 pl-6 italic text-lg md:text-xl text-foreground">
               "If you’re building and tired of messy operations, you’re in the
               right place. We don’t just offer services—we build systems. This
               is just the beginning."
@@ -130,7 +130,7 @@ export default function AboutPage() {
               className="group relative overflow-hidden rounded-3xl border bg-background/50 p-8 transition-all hover:shadow-xl hover:-translate-y-1"
             >
               <div className="flex flex-col gap-6 md:flex-row md:items-start">
-                <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border-2 border-purple-500/20 group-hover:border-purple-500/50 transition-colors">
+                <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-2xl border-2 border-blue-500/20 group-hover:border-blue-500/50 transition-colors">
                   <Image
                     src={founder.image}
                     alt={founder.name}
@@ -143,12 +143,12 @@ export default function AboutPage() {
                     <h3 className="text-2xl font-bold">{founder.name}</h3>
                     <Badge
                       variant="secondary"
-                      className="bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
+                      className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
                     >
                       {founder.period}
                     </Badge>
                   </div>
-                  <p className="mb-4 font-medium text-purple-600">
+                  <p className="mb-4 font-medium text-blue-600">
                     {founder.role}
                   </p>
                   <p className="text-muted-foreground leading-relaxed">
@@ -163,22 +163,22 @@ export default function AboutPage() {
 
       {/* Experience Story Section */}
       <div className="relative rounded-3xl border bg-muted/30 p-8 md:p-16 overflow-hidden">
-        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
-        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 h-64 w-64 rounded-full bg-indigo-500/10 blur-3xl" />
 
         <div className="relative z-10">
           <div className="mb-12 flex items-center gap-4">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-background shadow-sm">
-              <Briefcase className="h-6 w-6 text-purple-600" />
+              <Briefcase className="h-6 w-6 text-blue-600" />
             </div>
             <h2 className="text-3xl font-bold">Our Journey</h2>
           </div>
 
           <div className="grid gap-12 lg:grid-cols-2">
             <div className="space-y-8">
-              <div className="relative pl-8 border-l-2 border-purple-200 dark:border-purple-900">
-                <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-purple-600" />
-                <div className="mb-2 flex items-center gap-2 text-sm font-bold text-purple-600">
+              <div className="relative pl-8 border-l-2 border-blue-200 dark:border-blue-900">
+                <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-blue-600" />
+                <div className="mb-2 flex items-center gap-2 text-sm font-bold text-blue-600">
                   <Calendar className="h-4 w-4" />
                   JAN 2026 - PRESENT
                 </div>
@@ -194,7 +194,7 @@ export default function AboutPage() {
                 </p>
               </div>
               <div className="relative pl-8 border-l-2 border-transparent">
-                <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 border-purple-600 bg-background" />
+                <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full border-2 border-blue-600 bg-background" />
                 <h4 className="mb-4 text-xl font-bold">
                   Operational Excellence
                 </h4>
@@ -209,7 +209,7 @@ export default function AboutPage() {
 
             <div className="rounded-2xl border bg-background/50 p-8 shadow-sm">
               <h4 className="mb-6 flex items-center gap-2 text-lg font-bold">
-                <Users className="h-5 w-5 text-purple-600" />A Family-Driven
+                <Users className="h-5 w-5 text-blue-600" />A Family-Driven
                 Mission
               </h4>
               <p className="text-muted-foreground leading-relaxed italic">

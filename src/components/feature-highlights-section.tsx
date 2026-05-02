@@ -21,7 +21,7 @@ export default function FeatureHighlightsSection() {
       icon: Database,
       title: 'Tech Systems',
       desc: 'Infrastructure and operational foundations designed for massive scale.',
-      color: 'from-purple-500 to-pink-500',
+      color: 'from-blue-600 to-indigo-600',
     },
     {
       icon: Zap,
@@ -54,7 +54,7 @@ export default function FeatureHighlightsSection() {
       <div className="text-center mb-12">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl mb-4">
           Core{' '}
-          <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Expertise
           </span>
         </h2>

@@ -2,12 +2,13 @@ import { Suspense } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { getAllBlogPosts } from '@/lib/mdx';
 import HeroSection from '@/components/hero-section';
-import FeatureHighlightsSection from '@/components/feature-highlights-section';
+import TrustedBySection from '@/components/trusted-by-section';
+import WhyUsSection from '@/components/why-us-section';
+import HowItWorksSection from '@/components/how-it-works-section';
 import ProjectsSection from '@/components/projects-section';
 import SuccessStoriesSection from '@/components/success-stories-section';
 import AboutSection from '@/components/about-section';
 import BannerSection from '@/components/banner-section';
-import CertificationsSection from '@/components/certifications-section';
 import { BlogSection } from '@/components/blog-section';
 import ContactSection from '@/components/contact-section';
 import CardLoading from '@/components/shared/CardLoading';
@@ -29,15 +30,20 @@ export default async function Home() {
           </ErrorBoundary>
         </section>
 
-        {/* Feature Highlights Section - Enhanced with animations */}
-        <section className="w-full py-20 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/30 to-transparent pointer-events-none"></div>
+        {/* Trusted By Section */}
+        <TrustedBySection />
+
+        {/* Why Us Section */}
+        <section className="w-full relative">
           <ErrorBoundary fallback={<CardLoading />}>
             <Suspense fallback={<CardLoading />}>
-              <FeatureHighlightsSection />
+              <WhyUsSection />
             </Suspense>
           </ErrorBoundary>
         </section>
+
+        {/* How It Works Section */}
+        <HowItWorksSection />
 
         {/* Projects Section */}
         <section className="w-full py-20 relative">
@@ -71,19 +77,9 @@ export default async function Home() {
           </ErrorBoundary>
         </section>
 
-        {/* Certifications Section */}
-        <section className="w-full py-20 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-yellow-50/20 via-transparent to-indigo-50/20 dark:from-yellow-950/20 dark:via-transparent dark:to-indigo-950/20 pointer-events-none"></div>
-          <ErrorBoundary fallback={<CardLoading />}>
-            <Suspense fallback={<CardLoading />}>
-              <CertificationsSection />
-            </Suspense>
-          </ErrorBoundary>
-        </section>
-
         {/* Blog Section */}
         <section className="w-full py-20 relative">
-          <div className="absolute inset-0 bg-gradient-to-tr from-pink-50/20 via-transparent to-purple-50/20 dark:from-pink-950/20 dark:via-transparent dark:to-purple-950/20 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 via-transparent to-indigo-100/30 dark:from-blue-950/30 dark:via-transparent dark:to-indigo-950/30 blur-3xl pointer-events-none"></div>
           <ErrorBoundary fallback={<CardLoading />}>
             <Suspense fallback={<CardLoading />}>
               <BlogSection blogPosts={blogPosts} limit={6} />

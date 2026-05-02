@@ -18,7 +18,7 @@ export default function PricingPage() {
       title: 'System-Driven Execution',
       description:
         'Every task is handled within a structured workflow—ensuring consistency, clarity, and accountability.',
-      icon: <Zap className="h-6 w-6 text-purple-500" />,
+      icon: <Zap className="h-6 w-6 text-blue-500" />,
     },
     {
       title: 'Trained Virtual Assistants',
@@ -36,7 +36,7 @@ export default function PricingPage() {
       title: 'Secure & Reliable Operations',
       description:
         'Your data, processes, and business information are handled with strict confidentiality and professional care.',
-      icon: <ShieldCheck className="h-6 w-6 text-indigo-500" />,
+      icon: <ShieldCheck className="h-6 w-6 text-blue-500" />,
     },
     {
       title: 'Clear Communication Channels',
@@ -51,13 +51,13 @@ export default function PricingPage() {
       <div className="mb-20 text-center">
         <Badge
           variant="secondary"
-          className="mb-4 py-1.5 px-4 text-sm font-semibold bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+          className="mb-4 py-1.5 px-4 text-sm font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
         >
           PRICING
         </Badge>
         <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">
           Flexible Support.{' '}
-          <span className="text-purple-600">Structured Execution.</span>
+          <span className="text-blue-600">Structured Execution.</span>
         </h1>
         <p className="mx-auto max-w-2xl text-xl text-muted-foreground leading-relaxed">
           ScaleSmart offers flexible hourly support backed by structured systems
@@ -67,7 +67,7 @@ export default function PricingPage() {
 
       <div className="grid gap-12 lg:grid-cols-2 lg:items-center">
         <div className="relative">
-          <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-purple-500/10 to-blue-500/10 blur-2xl" />
+          <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 blur-2xl" />
           <div className="relative overflow-hidden rounded-3xl border bg-background/80 p-8 shadow-2xl backdrop-blur-md md:p-12">
             <div className="mb-8 flex items-center justify-between">
               <div>
@@ -77,7 +77,7 @@ export default function PricingPage() {
                 </p>
               </div>
               <div className="text-right">
-                <div className="text-sm font-bold text-purple-600 uppercase tracking-widest">
+                <div className="text-sm font-bold text-blue-600 uppercase tracking-widest">
                   STARTING AT
                 </div>
                 <div className="flex items-baseline justify-end gap-1">
@@ -97,7 +97,7 @@ export default function PricingPage() {
                 execution.
               </p>
               <Button
-                className="w-full h-14 text-lg font-bold rounded-xl bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-500/20"
+                className="w-full h-14 text-lg font-bold rounded-xl bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20"
                 asChild
               >
                 <Link href="/contact">Get Started Today</Link>
@@ -106,7 +106,7 @@ export default function PricingPage() {
 
             <div className="mt-8 border-t pt-8">
               <div className="flex items-center gap-3 text-sm text-muted-foreground font-medium">
-                <Clock className="h-4 w-4 text-purple-500" />
+                <Clock className="h-4 w-4 text-blue-500" />
                 Flexible hours to fit your workflow
               </div>
             </div>

@@ -32,7 +32,7 @@ type ContactFormValues = z.infer<typeof contactFormSchema>;
 const INPUT_CLASSES =
   'w-full rounded-xl border bg-background px-4 py-3 outline-none transition-colors';
 const INPUT_ERROR_CLASSES = 'border-red-500';
-const INPUT_FOCUS_CLASSES = 'focus:border-purple-500';
+const INPUT_FOCUS_CLASSES = 'focus:border-blue-500';
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -105,7 +105,7 @@ export default function ContactPage() {
           </Badge>
           <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl">
             Let's build your{' '}
-            <span className="text-purple-600">scaling system.</span>
+            <span className="text-blue-600">scaling system.</span>
           </h1>
           <p className="mb-12 text-xl text-muted-foreground">
             Ready to move faster? Send us a message and we'll get back to you
@@ -114,7 +114,7 @@ export default function ContactPage() {
 
           <div className="space-y-8">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/30">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30">
                 <Mail className="h-6 w-6" />
               </div>
               <div>
@@ -136,7 +136,7 @@ export default function ContactPage() {
                   href={SOCIAL_LINKS.LINKEDIN}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-lg font-bold hover:text-purple-600 transition-colors"
+                  className="text-lg font-bold hover:text-blue-600 transition-colors"
                 >
                   ScaleSmart PH
                 </a>
@@ -154,7 +154,7 @@ export default function ContactPage() {
                   href={SOCIAL_LINKS.FACEBOOK}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-lg font-bold hover:text-purple-600 transition-colors"
+                  className="text-lg font-bold hover:text-blue-600 transition-colors"
                 >
                   ScaleSmart
                 </a>
@@ -172,7 +172,7 @@ export default function ContactPage() {
                   href={SOCIAL_LINKS.WEBSITE}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-lg font-bold hover:text-purple-600 transition-colors"
+                  className="text-lg font-bold hover:text-blue-600 transition-colors"
                 >
                   scalesmart.vercel.app
                 </a>
@@ -222,7 +222,7 @@ export default function ContactPage() {
               <select
                 {...register('service')}
                 id="service"
-                className="w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-purple-500 transition-colors appearance-none"
+                className="w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-blue-500 transition-colors appearance-none"
               >
                 <option>Digital Solutions</option>
                 <option>VA Workflows</option>
@@ -250,7 +250,7 @@ export default function ContactPage() {
             </div>
             <Button
               disabled={isSubmitting}
-              className="w-full h-12 text-lg rounded-xl bg-purple-600 hover:bg-purple-700 disabled:opacity-50"
+              className="w-full h-12 text-lg rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <>

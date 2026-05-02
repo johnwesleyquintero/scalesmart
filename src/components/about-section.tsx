@@ -24,7 +24,7 @@ export default function AboutSection() {
       <div className="container mx-auto px-4">
         <div className="grid gap-16 lg:grid-cols-2 lg:items-center">
           <div className="relative">
-            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-purple-500/10 to-blue-500/10 blur-2xl" />
+            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-blue-500/10 to-indigo-500/10 blur-2xl" />
             <div className="relative grid grid-cols-2 gap-4">
               {founders.map((founder, index) => (
                 <div
@@ -42,13 +42,13 @@ export default function AboutSection() {
                   <h4 className="font-bold text-sm md:text-base">
                     {founder.name}
                   </h4>
-                  <p className="text-xs text-purple-600 font-medium">
+                  <p className="text-xs text-blue-600 font-medium">
                     {founder.role}
                   </p>
                 </div>
               ))}
             </div>
-            <div className="absolute -bottom-6 -right-6 h-32 w-32 rounded-full bg-purple-600/10 blur-2xl" />
+            <div className="absolute -bottom-6 -right-6 h-32 w-32 rounded-full bg-blue-600/10 blur-2xl" />
           </div>
 
           <div>
@@ -57,7 +57,7 @@ export default function AboutSection() {
             </Badge>
             <h2 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">
               We are a family-led team{' '}
-              <span className="text-purple-600">
+              <span className="text-blue-600">
                 building the future of operations.
               </span>
             </h2>
@@ -69,13 +69,13 @@ export default function AboutSection() {
 
             <div className="space-y-4 mb-8">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30">
                   <Target className="h-5 w-5" />
                 </div>
                 <p className="font-medium">Focused on Clarity and Speed</p>
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30">
                   <Users className="h-5 w-5" />
                 </div>
                 <p className="font-medium">Collaborative Systems Design</p>

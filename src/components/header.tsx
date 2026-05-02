@@ -59,11 +59,8 @@ export default function Header() {
   };
 
   const productsCategories: string[] = [
-    'Business & E-commerce',
-    'Productivity & Automation',
-    'Career & Personal Growth',
-    'AI & Automation',
-    'Insights & Guides',
+    'Tools & Automation',
+    'Insights & Learning',
   ];
 
   const navItems: NavItem[] = [
@@ -71,21 +68,25 @@ export default function Header() {
       name: 'Services',
       children: [
         {
-          name: 'Digital Solutions',
-          href: '/services#digital-solutions',
-          description: 'Custom tech stacks and digital transformations.',
+          name: 'Operations & Growth',
+          href: '/services/operations-growth',
+          description: 'Systems design, lead gen, and e-commerce operations.',
         },
         {
-          name: 'VA Workflows',
-          href: '/services#va-workflows',
-          description: 'Optimized delegation and process automation.',
+          name: 'Workforce & Workflows',
+          href: '/services/workforce-workflows',
+          description: 'VA management and intelligent automation.',
         },
         {
-          name: 'Tech Systems',
-          href: '/services#tech-systems',
-          description: 'Infrastructure and operational efficiency.',
+          name: 'Brand & Support',
+          href: '/services/brand-support',
+          description: 'Customer handling and content execution.',
         },
       ],
+    },
+    {
+      name: 'How It Works',
+      href: '/#how-it-works',
     },
     {
       name: 'Pricing',
@@ -99,18 +100,28 @@ export default function Header() {
       name: 'Resources',
       children: [
         {
-          name: 'Prompt Request Generator',
+          name: 'Prompt Generator',
           href: '/prompt-request-generator',
-          category: productsCategories[1],
-          description: 'Generate structured prompts for AI code assistance.',
+          category: productsCategories[0],
+          description: 'Custom tools to streamline your AI workflows.',
         },
         {
-          name: 'Blog',
+          name: 'Agency Blog',
           href: '/blog',
-          category: productsCategories[4],
-          description: 'Latest articles, updates, and insights.',
+          category: productsCategories[1],
+          description: 'Operational insights and company updates.',
+        },
+        {
+          name: 'Success Stories',
+          href: '/#success-stories',
+          category: productsCategories[1],
+          description: 'Real results from ScaleSmart systems.',
         },
       ],
+    },
+    {
+      name: 'Careers',
+      href: '/careers',
     },
     {
       name: 'Contact',

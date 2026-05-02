@@ -13,11 +13,11 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary:
-          'bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-lg hover:from-purple-600 hover:to-indigo-700 hover:shadow-xl focus:ring-purple-500',
+          'bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg hover:from-blue-700 hover:to-indigo-800 hover:shadow-xl focus:ring-blue-500',
         destructive:
           'bg-gradient-to-r from-red-500 to-red-600 text-white shadow hover:from-red-600 hover:to-red-700 focus:ring-red-500',
         outline:
-          'border-2 border-purple-200 bg-background text-purple-700 shadow-sm hover:bg-purple-50 hover:border-purple-300 hover:text-purple-800 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-950 dark:hover:border-purple-700 focus:ring-purple-500',
+          'border-2 border-blue-200 bg-background text-blue-700 shadow-sm hover:bg-blue-50 hover:border-blue-300 hover:text-blue-800 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-950 dark:hover:border-blue-700 focus:ring-blue-500',
         secondary:
           'bg-gradient-to-r from-gray-100 to-gray-200 text-gray-800 shadow-sm hover:from-gray-200 hover:to-gray-300 focus:ring-gray-500',
         tertiary:

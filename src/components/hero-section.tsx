@@ -25,16 +25,18 @@ export default function HeroSection() {
             Systems-Driven Solutions
           </Badge>
 
-          <div className="animate-fadeIn">
-            <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-              <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-indigo-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] hover:animate-none drop-shadow-lg hover:drop-shadow-xl transition-all duration-300">
+          <div className="relative z-10 p-2 sm:p-4 rounded-[2.5rem] bg-background/20 backdrop-blur-sm border border-white/10 shadow-2xl shadow-blue-500/5 transition-all hover:bg-background/30 hover:shadow-blue-500/10">
+            <h1 className="mb-4 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-8xl">
+              <span className="relative inline-block bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] drop-shadow-sm">
                 ScaleSmart
+                <span className="absolute inset-0 bg-[linear-gradient(110deg,transparent,25%,rgba(255,255,255,0.3),50%,transparent,75%,transparent)] bg-[length:200%_100%] animate-shimmer pointer-events-none"></span>
               </span>
             </h1>
-            <p className="text-xl font-medium text-gray-700 dark:text-gray-200 md:text-2xl opacity-0 animate-[fadeIn_0.5s_ease-out_0.3s_forwards]">
-              We don’t just offer services—we build systems.
+            <p className="text-xl font-bold text-gray-800 dark:text-gray-100 md:text-3xl tracking-tight leading-none">
+              We don’t just offer services—
+              <span className="text-blue-600">we build systems.</span>
             </p>
-            <p className="mt-4 text-lg text-muted-foreground opacity-0 animate-[fadeIn_0.5s_ease-out_0.5s_forwards] max-w-xl">
+            <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
               ScaleSmart helps businesses move faster, operate smarter, and
               scale without chaos through digital solutions and optimized
               workflows.
@@ -84,7 +86,7 @@ export default function HeroSection() {
         </div>
 
         <div className="relative mx-auto aspect-square w-full max-w-md animate-float hover:animate-none group">
-          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-purple-500/20 blur-3xl animate-gradient bg-[length:200%_200%] group-hover:animate-none"></div>
+          <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-blue-500/20 blur-3xl animate-gradient bg-[length:200%_200%] group-hover:animate-none"></div>
           <div className="relative h-full overflow-hidden rounded-3xl border bg-background/50 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group perspective-1000">
             <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 group-hover:rotate-y-6 group-hover:rotate-3">
               <OptimizedImage
