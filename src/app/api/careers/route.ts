@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic';
+
 import { NextResponse } from 'next/server';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 import { GOOGLE_SHEETS_WEBHOOK_URL } from '@/constants/links';
@@ -60,6 +62,7 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
+      console.error(`Google Sheets Webhook Error: ${response.status} ${response.statusText}`);
       throw new Error(`Google Apps Script returned status: ${response.status}`);
     }
 
@@ -68,6 +71,7 @@ export async function POST(request: Request) {
       message: 'Application Submitted successfully',
     });
   } catch (error) {
+    console.error('Careers API Error:', error);
     return NextResponse.json(handleApiError(error), { status: 500 });
   }
 }
