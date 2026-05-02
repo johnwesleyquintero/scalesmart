@@ -413,7 +413,9 @@ export const getDocPostBySlug = cache(
 export const getStaticContentBySlug = cache(
   async (
     slug: string,
-  ): Promise<{ content: string; data: Record<string, unknown> } | undefined> => {
+  ): Promise<
+    { content: string; data: Record<string, unknown> } | undefined
+  > => {
     const staticContentDirectory = getStaticDirectory();
     const lowerSlug = slug.toLowerCase();
     let fullPath = '';

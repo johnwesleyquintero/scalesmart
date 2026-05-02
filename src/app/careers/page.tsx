@@ -70,7 +70,9 @@ export default function CareersPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error?.message || 'Failed to submit application');
+        throw new Error(
+          errorData.error?.message || 'Failed to submit application',
+        );
       }
 
       setIsSuccess(true);
@@ -78,7 +80,10 @@ export default function CareersPage() {
       reset();
     } catch (error) {
       console.error('Submission error:', error);
-      const message = error instanceof Error ? error.message : 'Failed to submit application. Please try again.';
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Failed to submit application. Please try again.';
       toast.error(message);
     } finally {
       setIsSubmitting(false);

@@ -37,9 +37,10 @@ export function handleApiError(error: unknown): ErrorResponse {
     const errorCode = (error as CustomError).code;
     return createErrorResponse(error.message, errorCode);
   }
-  
+
   // Handle non-Error objects
-  const errorMessage = typeof error === 'string' ? error : JSON.stringify(error);
+  const errorMessage =
+    typeof error === 'string' ? error : JSON.stringify(error);
   logger.error('An unexpected API error occurred:', error);
   return createErrorResponse(errorMessage || 'An unexpected error occurred.');
 }

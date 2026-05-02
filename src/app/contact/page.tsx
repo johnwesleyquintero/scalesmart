@@ -72,7 +72,10 @@ export default function ContactPage() {
       reset();
     } catch (error) {
       console.error('Submission error:', error);
-      const message = error instanceof Error ? error.message : 'Failed to log system. Please try again.';
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Failed to log system. Please try again.';
       toast.error(message);
     } finally {
       setIsSubmitting(false);

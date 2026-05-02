@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
     // Send data to Google Sheets via Apps Script Webhook
     // Executing this server-side avoids browser CORS issues
-    
+
     if (!GOOGLE_SHEETS_WEBHOOK_URL) {
       throw new Error('GOOGLE_SHEETS_WEBHOOK_URL is not defined');
     }
@@ -54,7 +54,9 @@ export async function POST(request: Request) {
     });
 
     if (!response.ok) {
-      console.error(`Google Sheets Webhook Error: ${response.status} ${response.statusText}`);
+      console.error(
+        `Google Sheets Webhook Error: ${response.status} ${response.statusText}`,
+      );
       throw new Error(`Google Apps Script returned status: ${response.status}`);
     }
 
