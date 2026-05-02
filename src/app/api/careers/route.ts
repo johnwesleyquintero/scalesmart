@@ -48,6 +48,12 @@ export async function POST(request: Request) {
     }
 
     // Send data to Google Sheets via Apps Script Webhook
+    if (!GOOGLE_SHEETS_WEBHOOK_URL) {
+      throw new Error('GOOGLE_SHEETS_WEBHOOK_URL is not defined');
+    }
+
+    console.log(`[API] Sending job application to: ${GOOGLE_SHEETS_WEBHOOK_URL}`);
+
     const response = await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
       method: 'POST',
       headers: {

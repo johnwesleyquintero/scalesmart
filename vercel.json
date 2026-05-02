@@ -3,6 +3,12 @@
     "app/sitemap.ts": {
       "maxDuration": 10,
       "excludeFiles": "{node_modules/**,.next/cache/**,public/**,*.mdx,*.md,src/docs/**,scripts/**}"
+    },
+    "src/app/api/contact/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/careers/route.ts": {
+      "maxDuration": 30
     }
   },
   "build": {

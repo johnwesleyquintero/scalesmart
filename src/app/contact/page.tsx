@@ -63,7 +63,8 @@ export default function ContactPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error?.message || 'Failed to submit message');
       }
 
       setIsSuccess(true);
@@ -71,7 +72,8 @@ export default function ContactPage() {
       reset();
     } catch (error) {
       console.error('Submission error:', error);
-      toast.error('Failed to log system. Please try again.');
+      const message = error instanceof Error ? error.message : 'Failed to log system. Please try again.';
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
