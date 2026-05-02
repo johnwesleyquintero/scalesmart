@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { loadStaticData } from '../../../lib/load-static-data';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
-import { BlogPost, DocPost } from '@/types';
+import { BlogPost } from '@/types';
 
 export async function GET(request: Request) {
   try {
@@ -25,10 +25,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const [blogPosts, docPosts] = await Promise.all([
-      loadStaticData('blog'),
-      loadStaticData('docs'),
-    ]);
+    const [blogPosts] = await Promise.all([loadStaticData('blog')]);
 
     const blogResults = blogPosts.filter(
       (post: BlogPost) =>
@@ -39,18 +36,9 @@ export async function GET(request: Request) {
           post.tags.some((tag: string) => tag.toLowerCase().includes(query))),
     );
 
-    const docResults = docPosts.filter(
-      (post: DocPost) =>
-        post.title.toLowerCase().includes(query) ||
-        post.description.toLowerCase().includes(query) ||
-        (post.content && post.content.toLowerCase().includes(query)) ||
-        (post.tags &&
-          post.tags.some((tag: string) => tag.toLowerCase().includes(query))),
-    );
-
     return NextResponse.json({
       blog: blogResults,
-      docs: docResults,
+      docs: [], // Legacy response structure support
       tools: [], // Placeholder for future tools search
     });
   } catch (error) {

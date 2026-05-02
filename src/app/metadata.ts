@@ -23,13 +23,13 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://wescode.vercel.app/',
+    url: 'https://scalesmart.vercel.app',
     title: `ScaleSmart | E-commerce Operations Specialist`,
     description: `High-performance systems to reduce errors and support business growth.`,
     siteName: `ScaleSmart Portfolio`,
     images: [
       {
-        url: 'https://wescode.vercel.app/og-image.svg',
+        url: 'https://scalesmart.vercel.appog-image.svg',
         width: 1200,
         height: 630,
         alt: `${AUTHOR_NAME} Portfolio`,
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: `ScaleSmart | E-commerce Operations & Automation`,
     description: `Stable e-commerce operations through repeatable systems and AI-driven automation.`,
-    images: ['https://wescode.vercel.app/og-image.svg'],
+    images: ['https://scalesmart.vercel.appog-image.svg'],
   },
   robots: {
     index: true,

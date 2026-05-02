@@ -1,6 +1,6 @@
 // src/config/docs.ts
 
-export const DOCUMENTATION_BASE_URL = 'https://wescode.vercel.app/'; // Replace with your actual domain
+export const DOCUMENTATION_BASE_URL = 'https://scalesmart.vercel.app'; // Replace with your actual domain
 export const DEFAULT_TITLE_SUFFIX = ' | ScaleSmart Docs'; // Customize as needed
 export const DEFAULT_DOC_DESCRIPTION = 'Documentation page';
 export const NOT_FOUND_TITLE_PREFIX = 'Document Not Found';

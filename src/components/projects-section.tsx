@@ -15,7 +15,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
-import { projects as curatedProjectsList } from '@/data/portfolio-data/projects.json';
 
 interface GitHubRepo {
   name: string;
@@ -118,23 +117,7 @@ export default function ProjectsSection({
             topics: repo.topics,
           }));
 
-        const curatedProjects: Project[] = (
-          curatedProjectsList as Project[]
-        ).map((p) => ({ ...p, featured: true }));
-
-        // Merge and avoid duplicates by name
-        const combined = [...curatedProjects];
-        githubProjects.forEach((gp) => {
-          if (
-            !combined.some(
-              (cp) => cp.name.toLowerCase() === gp.name.toLowerCase(),
-            )
-          ) {
-            combined.push(gp);
-          }
-        });
-
-        setProjects(combined.slice(0, 12));
+        setProjects(githubProjects.slice(0, 15));
         setError(null);
       } catch (err) {
         console.error('Error fetching or processing projects:', err);
@@ -163,119 +146,80 @@ export default function ProjectsSection({
             ScaleSmart Solutions
           </h2>
           <p className="text-xl text-muted-foreground">
-            Custom automation, integrations, and operational tools.
+            Custom automation, integrations, and operational tools retrieved
+            directly from our source.
           </p>
         </div>
 
-        <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-8">
-            <TabsTrigger value="all">All Solutions</TabsTrigger>
-            <TabsTrigger value="featured">Featured</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={activeTab} className="mt-8">
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[...Array(6)].map((_, i) => (
-                  <Skeleton key={i} className="h-[200px] w-full rounded-xl" />
-                ))}
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {projects
-                  .filter((p) => activeTab === 'all' || p.featured)
-                  .map((project) => (
-                    <Card
-                      key={project.name}
-                      className={cn(
-                        'flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-xl',
-                        project.featured
-                          ? 'border-primary/50 bg-primary/5 dark:bg-primary/10'
-                          : '',
+        <div className="mt-8">
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="h-[200px] w-full rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((project) => (
+                <Card
+                  key={project.name}
+                  className="flex flex-col justify-between transition-all duration-300 hover:scale-[1.02] hover:shadow-xl group border-border/50 bg-background/50 backdrop-blur-sm"
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="space-y-1">
+                        <CardTitle className="text-lg font-semibold flex items-center gap-2 group-hover:text-blue-600 transition-colors">
+                          <Github className="h-4 w-4 text-muted-foreground" />
+                          {project.name}
+                        </CardTitle>
+                      </div>
+                      {(project.homepage || project.html_url) && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          asChild
+                          className="h-8 w-8"
+                        >
+                          <Link
+                            href={project.homepage || project.html_url || '#'}
+                            target="_blank"
+                          >
+                            <ExternalLink className="h-4 w-4" />
+                          </Link>
+                        </Button>
                       )}
-                    >
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="space-y-1">
-                            <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                              {project.featured ? (
-                                <Zap className="h-4 w-4 text-primary" />
-                              ) : (
-                                <Github className="h-4 w-4 text-muted-foreground" />
-                              )}
-                              {project.name}
-                            </CardTitle>
-                            {project.featured && (
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] uppercase tracking-wider"
-                              >
-                                Featured Solution
-                              </Badge>
+                    </div>
+                    <CardDescription className="mt-2 text-sm text-muted-foreground line-clamp-3">
+                      {project.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-1 pb-4">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      {project.language && (
+                        <span className="flex items-center gap-1">
+                          <span
+                            className={cn(
+                              'h-2 w-2 rounded-full',
+                              getLanguageColor(project.language),
                             )}
-                          </div>
-                          {(project.homepage || project.link) && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              asChild
-                              className="h-8 w-8"
-                            >
-                              <Link
-                                href={project.homepage || project.link || '#'}
-                                target="_blank"
-                              >
-                                <ExternalLink className="h-4 w-4" />
-                              </Link>
-                            </Button>
-                          )}
-                        </div>
-                        <CardDescription className="mt-2 text-sm text-muted-foreground line-clamp-3">
-                          {project.description}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="pt-1 pb-4">
-                        {project.technologies ? (
-                          <div className="flex flex-wrap gap-1.5 mt-auto">
-                            {project.technologies.slice(0, 3).map((tech) => (
-                              <Badge
-                                key={tech}
-                                variant="secondary"
-                                className="text-[10px] px-1.5 py-0"
-                              >
-                                {tech}
-                              </Badge>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            {project.language && (
-                              <span className="flex items-center gap-1">
-                                <span
-                                  className={cn(
-                                    'h-2 w-2 rounded-full',
-                                    getLanguageColor(project.language),
-                                  )}
-                                ></span>
-                                {project.language}
-                              </span>
-                            )}
-                            {project.stargazers_count !== undefined &&
-                              project.stargazers_count > 0 && (
-                                <span className="flex items-center gap-1">
-                                  <Star className="h-3 w-3" />{' '}
-                                  {project.stargazers_count}
-                                </span>
-                              )}
-                          </div>
+                          ></span>
+                          {project.language}
+                        </span>
+                      )}
+                      {project.stargazers_count !== undefined &&
+                        project.stargazers_count > 0 && (
+                          <span className="flex items-center gap-1">
+                            <Star className="h-3 w-3 text-yellow-500 fill-yellow-500" />{' '}
+                            {project.stargazers_count}
+                          </span>
                         )}
-                      </CardContent>
-                    </Card>
-                  ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );

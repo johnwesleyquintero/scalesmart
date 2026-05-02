@@ -1,28 +1,12 @@
-import { loadStaticData } from '@/lib/load-static-data';
-import { getGitHubProjects } from '@/lib/github';
 import { NextResponse } from 'next/server';
 import { handleApiError } from '@/lib/api-error-handler';
 
+// This endpoint now returns an empty shell.
+// Content is fetched dynamically from GitHub on the client side.
 export async function GET() {
   try {
-    const [skills, experience, education, personal, projects] =
-      await Promise.all([
-        loadStaticData('skills'),
-        loadStaticData('experience'),
-        loadStaticData('education'),
-        loadStaticData('personal'),
-        getGitHubProjects().catch((error) => {
-          console.error('Error fetching GitHub projects:', error);
-          return [];
-        }),
-      ]);
-
     return NextResponse.json({
-      skills,
-      experience,
-      education,
-      personal,
-      projects,
+      message: 'Content is now served via the GitHub API on the client side.',
     });
   } catch (error) {
     return NextResponse.json(handleApiError(error), { status: 500 });

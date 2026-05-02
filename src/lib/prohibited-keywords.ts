@@ -1,10 +1,8 @@
-import { loadStaticData } from './load-static-data';
-
 let prohibitedKeywords: Set<string> = new Set();
 
 async function initialize() {
-  const data = (await loadStaticData('prohibited-keywords')) as string[];
-  prohibitedKeywords = new Set(data);
+  // Static data removed. Defaulting to empty set.
+  prohibitedKeywords = new Set();
 }
 
 initialize();
