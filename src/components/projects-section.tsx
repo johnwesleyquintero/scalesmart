@@ -26,6 +26,7 @@ interface GitHubRepo {
   stargazers_count: number;
   forks_count: number;
   fork: boolean;
+  topics: string[];
 }
 
 interface Project {
@@ -41,6 +42,7 @@ interface Project {
   featured?: boolean;
   technologies?: string[];
   image?: string;
+  topics?: string[];
 }
 
 async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
@@ -50,7 +52,11 @@ async function getGitHubProjects(username: string): Promise<GitHubRepo[]> {
   }
   try {
     const url = `https://api.github.com/users/${username}/repos?sort=pushed&direction=desc&per_page=100`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      headers: {
+        Accept: 'application/vnd.github.mercy-preview+json', // Required for topics if using older API versions, though usually standard now
+      },
+    });
     if (!response.ok) return [];
     const data: GitHubRepo[] = await response.json();
     return Array.isArray(data) ? data : [];
@@ -93,7 +99,13 @@ export default function ProjectsSection({
       try {
         const fetchedRepos = await getGitHubProjects(username);
         const githubProjects: Project[] = fetchedRepos
-          .filter((repo) => !repo.fork && (repo.description || repo.homepage))
+          .filter(
+            (repo) =>
+              !repo.fork &&
+              repo.stargazers_count > 0 &&
+              repo.topics &&
+              repo.topics.includes('scalesmart'),
+          )
           .map((repo) => ({
             name: repo.name,
             description: repo.description || '',
@@ -103,6 +115,7 @@ export default function ProjectsSection({
             stargazers_count: repo.stargazers_count,
             forks_count: repo.forks_count,
             featured: false,
+            topics: repo.topics,
           }));
 
         const curatedProjects: Project[] = (
