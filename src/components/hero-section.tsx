@@ -13,7 +13,7 @@ export default function HeroSection() {
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-bl from-indigo-400/20 to-blue-400/20 rounded-full blur-2xl animate-float-delayed"></div>
       </div>
       <div className="grid items-center gap-12 md:grid-cols-2">
-        <div className="space-y-8">
+        <div className="space-y-8 animate-fade-in-up">
           <Badge
             variant="secondary"
             className="inline-flex items-center gap-1 rounded-full px-4 py-1.5 bg-blue-100 dark:bg-blue-900/50 text-blue-900 dark:text-blue-100"
@@ -25,7 +25,7 @@ export default function HeroSection() {
             Systems-Driven Solutions
           </Badge>
 
-          <div className="relative z-10 p-2 sm:p-4 rounded-[2.5rem] bg-background/20 backdrop-blur-sm border border-white/10 shadow-2xl shadow-blue-500/5 transition-all hover:bg-background/30 hover:shadow-blue-500/10">
+          <div className="relative z-10 p-2 sm:p-4 rounded-[2.5rem] bg-background/20 backdrop-blur-sm border border-white/10 shadow-2xl shadow-blue-500/5 transition-all hover:bg-background/30 hover:shadow-blue-500/10 animate-fade-in-up animation-delay-100">
             <h1 className="mb-4 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-8xl">
               <span className="relative inline-block bg-gradient-to-r from-blue-600 via-indigo-500 to-blue-700 bg-clip-text text-transparent animate-gradient bg-[length:200%_200%] drop-shadow-sm">
                 ScaleSmart
@@ -43,7 +43,7 @@ export default function HeroSection() {
             </p>
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 animate-fade-in-up animation-delay-200">
             <Link
               href="https://github.com/johnwesleyquintero"
               target="_blank"
@@ -85,7 +85,7 @@ export default function HeroSection() {
           </div>
         </div>
 
-        <div className="relative mx-auto aspect-square w-full max-w-md animate-float hover:animate-none group">
+        <div className="relative mx-auto aspect-square w-full max-w-md animate-fade-in-up animation-delay-300 hover:animate-none group">
           <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-primary/20 to-blue-500/20 blur-3xl animate-gradient bg-[length:200%_200%] group-hover:animate-none"></div>
           <div className="relative h-full overflow-hidden rounded-3xl border bg-background/50 shadow-xl backdrop-blur-sm hover:shadow-2xl transition-all duration-500 group perspective-1000">
             <div className="relative w-full h-full transition-transform duration-300 group-hover:scale-105 group-hover:rotate-y-6 group-hover:rotate-3">

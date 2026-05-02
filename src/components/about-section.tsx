@@ -8,7 +8,7 @@ import OptimizedImage from './shared/optimized-image';
 export default function AboutSection() {
   const founders = [
     {
-      name: 'John Wesley Quintero',
+      name: 'Wesley Quintero',
       role: 'Founder | Operator',
       image: '/images/agency-assets/profile/Wesley_Founder_DP.png',
     },
@@ -31,11 +31,12 @@ export default function AboutSection() {
                   key={founder.name}
                   className={`relative overflow-hidden rounded-2xl border bg-background/50 p-4 shadow-xl backdrop-blur-sm ${index === 1 ? 'mt-8' : ''}`}
                 >
-                  <div className="relative aspect-square mb-4 overflow-hidden rounded-xl">
+                  <div className="relative aspect-square mb-4 overflow-hidden rounded-full border-2 border-blue-500/20">
                     <OptimizedImage
                       src={founder.image}
                       alt={founder.name}
                       fill
+                      unoptimized
                       className="object-cover"
                     />
                   </div>
@@ -62,7 +63,7 @@ export default function AboutSection() {
               </span>
             </h2>
             <p className="mb-8 text-lg text-muted-foreground leading-relaxed">
-              ScaleSmart was founded in 2026 by brothers John Wesley and Melkie
+              ScaleSmart was founded in 2026 by brothers Wesley and Melkie
               Quintero. We combined our expertise in digital systems and
               management to help businesses move from chaos to clarity.
             </p>

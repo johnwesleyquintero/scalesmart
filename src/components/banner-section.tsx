@@ -15,6 +15,8 @@ export default function BannerSection() {
               src="/images/agency-assets/images/banner.png"
               alt="ScaleSmart Systems Banner"
               fill
+              unoptimized
+              sizes="100vw"
               className="object-cover transition-transform duration-700 ease-out group-hover:scale-110"
               priority
             />

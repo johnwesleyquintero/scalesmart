@@ -50,5 +50,5 @@
   <text x="400" y="515" font-family="sans-serif" font-size="16" font-weight="600" fill="white" text-anchor="middle">Read Full Article</text>
 
   <!-- Footer with logo -->
-  <text x="700" y="580" font-family="sans-serif" font-size="14" fill="#64748b" text-anchor="end">John Wesley Quintero</text>
+  <text x="700" y="580" font-family="sans-serif" font-size="14" fill="#64748b" text-anchor="end">Wesley Quintero</text>
 </svg>

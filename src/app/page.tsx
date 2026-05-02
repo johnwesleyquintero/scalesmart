@@ -56,13 +56,14 @@ import BannerSectionStatic from '@/components/banner-section';
 import { BlogSection as BlogSectionStatic } from '@/components/blog-section';
 import ContactSectionStatic from '@/components/contact-section';
 
+import { FadeIn } from '@/components/shared/fade-in';
+
 export default async function Home() {
   const blogPosts = await getAllBlogPosts();
   const useDynamic = FEATURE_FLAGS.DYNAMIC_HOME_SECTIONS;
 
   return (
     <div className="relative min-h-screen bg-gradient-to-br from-background via-muted/50 to-background">
-      <div className="grid-background"></div>
       <div className="relative flex flex-col items-center gap-0">
         {/* Hero Section - Full viewport height with enhanced animations */}
         <section className="w-full min-h-screen flex items-center justify-center relative overflow-hidden">
@@ -79,73 +80,89 @@ export default async function Home() {
 
         {/* Why Us Section */}
         <section className="w-full relative">
-          <ErrorBoundary fallback={<CardLoading />}>
-            <Suspense fallback={<CardLoading />}>
-              <WhyUsSection />
-            </Suspense>
-          </ErrorBoundary>
+          <FadeIn>
+            <ErrorBoundary fallback={<CardLoading />}>
+              <Suspense fallback={<CardLoading />}>
+                <WhyUsSection />
+              </Suspense>
+            </ErrorBoundary>
+          </FadeIn>
         </section>
 
         {/* How It Works Section */}
-        <HowItWorksSection />
+        <FadeIn delay={100}>
+          <HowItWorksSection />
+        </FadeIn>
 
         {/* Projects Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-tl from-blue-50/20 via-transparent to-indigo-50/20 dark:from-blue-950/20 dark:via-transparent dark:to-indigo-950/20 pointer-events-none"></div>
-          <ErrorBoundary fallback={<CardLoading />}>
-            <Suspense fallback={<CardLoading />}>
-              {useDynamic ? <ProjectsSection /> : <ProjectsSectionStatic />}
-            </Suspense>
-          </ErrorBoundary>
+          <FadeIn>
+            <ErrorBoundary fallback={<CardLoading />}>
+              <Suspense fallback={<CardLoading />}>
+                {useDynamic ? <ProjectsSection /> : <ProjectsSectionStatic />}
+              </Suspense>
+            </ErrorBoundary>
+          </FadeIn>
         </section>
 
         {/* Success Stories Section */}
         <section className="w-full py-20 relative">
-          <ErrorBoundary fallback={<CardLoading />}>
-            <Suspense fallback={<CardLoading />}>
-              {useDynamic ? (
-                <SuccessStoriesSection />
-              ) : (
-                <SuccessStoriesSectionStatic />
-              )}
-            </Suspense>
-          </ErrorBoundary>
+          <FadeIn>
+            <ErrorBoundary fallback={<CardLoading />}>
+              <Suspense fallback={<CardLoading />}>
+                {useDynamic ? (
+                  <SuccessStoriesSection />
+                ) : (
+                  <SuccessStoriesSectionStatic />
+                )}
+              </Suspense>
+            </ErrorBoundary>
+          </FadeIn>
         </section>
 
         {/* High-Impact Banner Section */}
-        {useDynamic ? <BannerSection /> : <BannerSectionStatic />}
+        <FadeIn>
+          {useDynamic ? <BannerSection /> : <BannerSectionStatic />}
+        </FadeIn>
 
         {/* About Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-r from-blue-50/20 via-transparent to-indigo-50/20 dark:from-blue-950/20 dark:via-transparent dark:to-indigo-950/20 pointer-events-none"></div>
-          <ErrorBoundary fallback={<CardLoading />}>
-            <Suspense fallback={<CardLoading />}>
-              {useDynamic ? <AboutSection /> : <AboutSectionStatic />}
-            </Suspense>
-          </ErrorBoundary>
+          <FadeIn>
+            <ErrorBoundary fallback={<CardLoading />}>
+              <Suspense fallback={<CardLoading />}>
+                {useDynamic ? <AboutSection /> : <AboutSectionStatic />}
+              </Suspense>
+            </ErrorBoundary>
+          </FadeIn>
         </section>
 
         {/* Blog Section */}
         <section className="w-full py-20 relative">
           <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 via-transparent to-indigo-100/30 dark:from-blue-950/30 dark:via-transparent dark:to-indigo-950/30 blur-3xl pointer-events-none"></div>
-          <ErrorBoundary fallback={<CardLoading />}>
-            <Suspense fallback={<CardLoading />}>
-              {useDynamic ? (
-                <BlogSection blogPosts={blogPosts} limit={6} />
-              ) : (
-                <BlogSectionStatic blogPosts={blogPosts} limit={6} />
-              )}
-            </Suspense>
-          </ErrorBoundary>
+          <FadeIn>
+            <ErrorBoundary fallback={<CardLoading />}>
+              <Suspense fallback={<CardLoading />}>
+                {useDynamic ? (
+                  <BlogSection blogPosts={blogPosts} limit={6} />
+                ) : (
+                  <BlogSectionStatic blogPosts={blogPosts} limit={6} />
+                )}
+              </Suspense>
+            </ErrorBoundary>
+          </FadeIn>
         </section>
 
         {/* Contact Section */}
         <section className="w-full py-20 relative bg-gradient-to-t from-muted/50 to-transparent">
-          <ErrorBoundary fallback={<CardLoading />}>
-            <Suspense fallback={<CardLoading />}>
-              {useDynamic ? <ContactSection /> : <ContactSectionStatic />}
-            </Suspense>
-          </ErrorBoundary>
+          <FadeIn>
+            <ErrorBoundary fallback={<CardLoading />}>
+              <Suspense fallback={<CardLoading />}>
+                {useDynamic ? <ContactSection /> : <ContactSectionStatic />}
+              </Suspense>
+            </ErrorBoundary>
+          </FadeIn>
         </section>
       </div>
     </div>

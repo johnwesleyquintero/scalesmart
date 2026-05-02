@@ -1,6 +1,6 @@
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="ogTitle ogDesc">
-  <title id="ogTitle">John Wesley Quintero - Amazon Specialist</title>
-  <desc id="ogDesc">Open Graph image for John Wesley Quintero, showcasing his role as an Amazon Specialist with expertise in E-commerce and Data Analytics.</desc>
+  <title id="ogTitle">Wesley Quintero - Amazon Specialist</title>
+  <desc id="ogDesc">Open Graph image for Wesley Quintero, showcasing his role as an Amazon Specialist with expertise in E-commerce and Data Analytics.</desc>
 
   <defs>
     <!-- Updated Gradient using cover.svg colors -->
@@ -48,7 +48,7 @@
 
   <!-- Content - Refined hierarchy, spacing, and colors -->
   <text x="600" y="260" class="card-text" font-size="64" font-weight="700" fill="#14213D"> <!-- Dark Blue Name -->
-    John Wesley Quintero
+    Wesley Quintero
   </text>
 
   <text x="600" y="340" class="card-text" font-size="48" font-weight="500" fill="#00C39A"> <!-- Teal Title -->
