@@ -15,7 +15,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { toast } from 'sonner';
-import { GOOGLE_SHEETS_WEBHOOK_URL, SOCIAL_LINKS } from '@/constants/links';
+import { SOCIAL_LINKS } from '@/constants/links';
 
 // Form validation schema
 const contactFormSchema = z.object({
@@ -53,12 +53,18 @@ export default function ContactPage() {
   const onSubmit = async (data: ContactFormValues) => {
     setIsSubmitting(true);
     try {
-      // Sending data to Google Sheets via Apps Script Webhook
-      await fetch(GOOGLE_SHEETS_WEBHOOK_URL, {
+      // Sending data via Next.js API to avoid browser CORS errors
+      const response = await fetch('/api/contact', {
         method: 'POST',
-        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(data),
       });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit');
+      }
 
       setIsSuccess(true);
       toast.success('System Logged! We will get back to you soon.');

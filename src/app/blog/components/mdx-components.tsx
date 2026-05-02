@@ -1,4 +1,4 @@
-import { BlogPost } from '@/lib/static-data-types';
+import { BlogPost } from '@/types';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import type React from 'react';

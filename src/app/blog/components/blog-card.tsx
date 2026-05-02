@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { BlogPost } from '@/lib/static-data-types';
+import { BlogPost } from '@/types';
 import { ArrowRight, Calendar, Clock } from 'lucide-react';
 import OptimizedImage from '@/components/shared/optimized-image';
 import Link from 'next/link';

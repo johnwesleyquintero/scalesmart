@@ -1,239 +1,43 @@
-'use client';
-
-import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import type React from 'react';
-
-import { Loader2, Mail, MapPin, Phone, Send } from 'lucide-react';
-import { useState } from 'react';
 
 export default function ContactSection() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-
-    const formData = new FormData(e.currentTarget);
-    const data = {
-      name: formData.get('name'),
-      email: formData.get('email'),
-      message: formData.get('message'),
-    };
-
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error?.message || 'Failed to send message');
-      }
-
-      setIsSubmitted(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <section id="contact" className="container relative mx-auto px-4 py-32">
       <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-100/50 to-indigo-100/50 dark:from-blue-950/50 dark:to-indigo-950/50 blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-blue-900/10 via-indigo-900/5 to-transparent dark:from-blue-950/20 dark:via-indigo-950/10 dark:to-transparent"></div>
       </div>
 
-      {/*
-        The parent <section> is already a 'container' which handles max-width and centering.
-        This inner div should take the full width of that container.
-      */}
-      <div className="w-full">
-        <div className="mb-12 text-center">
-          <Badge variant="secondary" className="mb-4">
-            Contact
-          </Badge>
-          <h2 className="mb-4 text-3xl font-bold md:text-4xl">Get In Touch</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Have a project in mind or want to discuss how I can help your
-            business? Feel free to reach out!
+      <div className="w-full relative overflow-hidden rounded-3xl border bg-background/50 p-8 shadow-2xl backdrop-blur-sm md:p-16 text-center border-blue-500/20">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-indigo-600/10 pointer-events-none" />
+
+        <div className="relative z-10 max-w-3xl mx-auto">
+          <h2 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl text-foreground">
+            Ready to build your{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">
+              scaling system?
+            </span>
+          </h2>
+
+          <p className="mb-10 text-xl text-muted-foreground leading-relaxed">
+            Stop relying on guesswork. Let's engineer the precise
+            infrastructure, workflows, and brand presence your agency needs to
+            dominate.
           </p>
-        </div>
 
-        <div className="grid gap-8 md:grid-cols-3">
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-primary/10 p-4">
-              <CardTitle className="flex items-center gap-2">
-                <Mail className="h-5 w-5 text-primary" />
-                Email
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <a
-                href="mailto:scalesmart.contact@gmail.com"
-                className="text-sm text-muted-foreground hover:text-primary"
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/contact">
+              <Button
+                size="lg"
+                className="h-14 px-8 text-lg rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-105"
               >
-                scalesmart.contact@gmail.com
-              </a>
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-primary/10 p-4">
-              <CardTitle className="flex items-center gap-2">
-                <Phone className="h-5 w-5 text-primary" />
-                Phone
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <a
-                href="tel:+639504469156"
-                className="text-sm text-muted-foreground hover:text-primary"
-              >
-                +63 9XX XXX XXX
-              </a>
-            </CardContent>
-          </Card>
-
-          <Card className="overflow-hidden">
-            <CardHeader className="bg-primary/10 p-4">
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5 text-primary" />
-                Location
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <p className="text-sm text-muted-foreground">
-                Tagum, Davao Region, Philippines
-              </p>
-            </CardContent>
-          </Card>
+                Book a Strategy Call
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            </Link>
+          </div>
         </div>
-
-        <Card className="mt-12 overflow-hidden">
-          <CardHeader>
-            <CardTitle>Send Me a Message</CardTitle>
-            <CardDescription>
-              Fill out the form below and I&apos;ll get back to you as soon as
-              possible.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {isSubmitted ? (
-              <div className="flex flex-col items-center justify-center py-8 text-center">
-                <div className="mb-4 rounded-full bg-green-100 p-3 text-success dark:bg-green-900/30 dark:text-green-400">
-                  <Send className="h-6 w-6" />
-                </div>
-                <h3 className="mb-2 text-xl font-semibold">Message Sent!</h3>
-                <p className="text-muted-foreground">
-                  Thank you for reaching out. I&apos;ll respond to your message
-                  soon.
-                </p>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setIsSubmitted(false);
-                  }}
-                >
-                  Send Another Message
-                </Button>
-              </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <label htmlFor="name" className="text-sm font-medium">
-                      Name
-                    </label>
-                    <Input
-                      id="name"
-                      name="name"
-                      placeholder="Your name"
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="email" className="text-sm font-medium">
-                      Email
-                    </label>
-                    <Input
-                      id="email"
-                      name="email"
-                      type="email"
-                      placeholder="Your email"
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="subject" className="text-sm font-medium">
-                    Subject
-                  </label>
-                  <Input
-                    id="subject"
-                    name="subject"
-                    placeholder="Subject of your message"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="message" className="text-sm font-medium">
-                    Message
-                  </label>
-                  <Textarea
-                    id="message"
-                    name="message"
-                    placeholder="Your message"
-                    rows={5}
-                    className="resize-none"
-                    required
-                  />
-                </div>
-                {error && (
-                  <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-                    {error}
-                  </div>
-                )}
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="mr-2 h-4 w-4" />
-                      Send Message
-                    </>
-                  )}
-                </Button>
-              </form>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </section>
   );

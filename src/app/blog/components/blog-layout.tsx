@@ -1,6 +1,6 @@
 import Footer from '@/components/footer';
 import Header from '@/components/header';
-import { BlogPost } from '@/lib/static-data-types';
+import { BlogPost } from '@/types';
 import type React from 'react';
 
 export default function BlogLayout({

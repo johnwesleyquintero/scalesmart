@@ -1,6 +1,6 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
-import { loadStaticData } from '../../../lib/load-static-data';
+import { getAllBlogPosts } from '@/lib/mdx';
 import { handleApiError, createErrorResponse } from '@/lib/api-error-handler';
 import { BlogPost } from '@/types';
 
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const [blogPosts] = await Promise.all([loadStaticData('blog')]);
+    const blogPosts = await getAllBlogPosts();
 
     const blogResults = blogPosts.filter(
       (post: BlogPost) =>
