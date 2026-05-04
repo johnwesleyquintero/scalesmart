@@ -85,7 +85,6 @@
     Explanation: Base body font
     - Keeps the base font-family definition for the body.
   */
-
 }
 
 /* Typing Indicator Animation */
@@ -123,7 +122,7 @@
   - Placed outside layers for a simple, specific rule, or could be in @layer components.
 */
 .code-block-wrapper {
-  background-color: theme("colors.muted.DEFAULT");
+  background-color: theme('colors.muted.DEFAULT');
 }
 
 /*

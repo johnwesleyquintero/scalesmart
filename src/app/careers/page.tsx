@@ -202,7 +202,9 @@ export default function CareersPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="fullName" className="text-sm font-medium">Complete Name</label>
+              <label htmlFor="fullName" className="text-sm font-medium">
+                Complete Name
+              </label>
               <input
                 id="fullName"
                 {...register('fullName')}
@@ -218,7 +220,9 @@ export default function CareersPage() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-medium">Email Address</label>
+                <label htmlFor="email" className="text-sm font-medium">
+                  Email Address
+                </label>
                 <input
                   id="email"
                   {...register('email')}
@@ -231,7 +235,9 @@ export default function CareersPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <label htmlFor="whatsapp" className="text-sm font-medium">WhatsApp Number</label>
+                <label htmlFor="whatsapp" className="text-sm font-medium">
+                  WhatsApp Number
+                </label>
                 <input
                   id="whatsapp"
                   {...register('whatsapp')}
@@ -259,7 +265,9 @@ export default function CareersPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="profession" className="text-sm font-medium">Niche / Profession</label>
+              <label htmlFor="profession" className="text-sm font-medium">
+                Niche / Profession
+              </label>
               <input
                 id="profession"
                 {...register('profession')}
@@ -311,7 +319,9 @@ export default function CareersPage() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label htmlFor="tools" className="text-sm font-medium">Tools You Use</label>
+                <label htmlFor="tools" className="text-sm font-medium">
+                  Tools You Use
+                </label>
                 <textarea
                   id="tools"
                   {...register('tools')}

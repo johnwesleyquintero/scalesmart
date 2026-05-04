@@ -594,7 +594,7 @@
     to right,
     hsl(var(--primary)),
     hsl(var(--primary) / 0.7)
-  ); 
+  );
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

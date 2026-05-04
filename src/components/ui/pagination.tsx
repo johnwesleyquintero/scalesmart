@@ -48,31 +48,33 @@ const HubspotPagination: React.FC<HubspotPaginationProps> = ({
       onPageChange={onPageChange}
       containerClassName="flex justify-center list-none p-0 mt-6"
       pageClassName="mx-1"
-      pageLinkClassName={
-        cn(
-          buttonVariants({
-            variant: 'ghost',
-            size: 'icon',
-          }),
-          'block p-2 rounded-md text-foreground bg-background border border-border cursor-pointer transition-all duration-200 ease-in-out'
-        )
-      }
-      activeLinkClassName={cn('hubspot-pagination__link--active bg-primary text-primary-foreground border-primary hover:bg-primary/90')}
+      pageLinkClassName={cn(
+        buttonVariants({
+          variant: 'ghost',
+          size: 'icon',
+        }),
+        'block p-2 rounded-md text-foreground bg-background border border-border cursor-pointer transition-all duration-200 ease-in-out',
+      )}
+      activeLinkClassName={cn(
+        'hubspot-pagination__link--active bg-primary text-primary-foreground border-primary hover:bg-primary/90',
+      )}
       previousLinkClassName={cn(
         buttonVariants({
           variant: 'ghost',
           size: 'default',
         }),
-        'block p-2 pl-4 rounded-md text-foreground bg-background border border-border cursor-pointer transition-all duration-200 ease-in-out gap-1 pr-2.5'
+        'block p-2 pl-4 rounded-md text-foreground bg-background border border-border cursor-pointer transition-all duration-200 ease-in-out gap-1 pr-2.5',
       )}
       nextLinkClassName={cn(
         buttonVariants({
           variant: 'ghost',
           size: 'default',
         }),
-        'block p-2 pr-4 rounded-md text-foreground bg-background border border-border cursor-pointer transition-all duration-200 ease-in-out gap-1 pl-2.5'
+        'block p-2 pr-4 rounded-md text-foreground bg-background border border-border cursor-pointer transition-all duration-200 ease-in-out gap-1 pl-2.5',
       )}
-      disabledClassName={cn('hubspot-pagination__link--disabled opacity-50 cursor-not-allowed pointer-events-none')}
+      disabledClassName={cn(
+        'hubspot-pagination__link--disabled opacity-50 cursor-not-allowed pointer-events-none',
+      )}
       forcePage={currentPage}
     />
   );

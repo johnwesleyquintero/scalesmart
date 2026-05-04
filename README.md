@@ -45,7 +45,7 @@ Visitor / Demand
 → Structured Intake (Forms)  
 → Google Sheets System (Data Layer)  
 → Review & Qualification  
-→ System Deployment / Execution Support  
+→ System Deployment / Execution Support
 
 We don’t just collect leads—we structure them into actionable operational data.
 
@@ -86,6 +86,7 @@ We believe growth breaks when execution depends on memory, effort, or individual
 ## Getting Started
 
 1. Install dependencies:
+
 ```bash
    npm install
 ```
@@ -103,15 +104,15 @@ We believe growth breaks when execution depends on memory, effort, or individual
 
 ## Tech Stack
 
-* Next.js 16+ (App Router)
-* React 19
-* Tailwind CSS
-* Shadcn/UI
-* Framer Motion
-* Zod
-* React Hook Form
-* Google Apps Script (Automation Layer)
-* MDX (Documentation System)
+- Next.js 16+ (App Router)
+- React 19
+- Tailwind CSS
+- Shadcn/UI
+- Framer Motion
+- Zod
+- React Hook Form
+- Google Apps Script (Automation Layer)
+- MDX (Documentation System)
 
 ---
 
