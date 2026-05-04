@@ -38,10 +38,7 @@ const careerFormSchema = z.object({
 
 type CareerFormValues = z.infer<typeof careerFormSchema>;
 
-const INPUT_CLASSES =
-  'w-full rounded-xl border bg-background px-4 py-3 outline-none transition-colors';
-const INPUT_ERROR_CLASSES = 'border-red-500';
-const INPUT_FOCUS_CLASSES = 'focus:border-blue-500';
+const ERROR_CLASS = 'ss-input-error';
 
 export default function CareersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -208,7 +205,7 @@ export default function CareersPage() {
               <label className="text-sm font-medium">Complete Name</label>
               <input
                 {...register('fullName')}
-                className={`${INPUT_CLASSES} ${errors.fullName ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
+                className={`ss-input ${errors.fullName ? ERROR_CLASS : ''}`}
                 placeholder="Juan Dela Cruz"
               />
               {errors.fullName && (
@@ -223,7 +220,7 @@ export default function CareersPage() {
                 <label className="text-sm font-medium">Email Address</label>
                 <input
                   {...register('email')}
-                  className={`${INPUT_CLASSES} ${errors.email ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
+                  className={`ss-input ${errors.email ? ERROR_CLASS : ''}`}
                   placeholder="juan@example.com"
                   type="email"
                 />
@@ -235,7 +232,7 @@ export default function CareersPage() {
                 <label className="text-sm font-medium">WhatsApp Number</label>
                 <input
                   {...register('whatsapp')}
-                  className={`${INPUT_CLASSES} ${errors.whatsapp ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
+                  className={`ss-input ${errors.whatsapp ? ERROR_CLASS : ''}`}
                   placeholder="+63 9XX XXX XXXX"
                 />
                 {errors.whatsapp && (
@@ -252,7 +249,7 @@ export default function CareersPage() {
               </label>
               <input
                 {...register('msTeams')}
-                className={INPUT_CLASSES}
+                className="ss-input"
                 placeholder="msteams@example.com"
               />
             </div>
@@ -261,7 +258,7 @@ export default function CareersPage() {
               <label className="text-sm font-medium">Niche / Profession</label>
               <input
                 {...register('profession')}
-                className={`${INPUT_CLASSES} ${errors.profession ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
+                className={`ss-input ${errors.profession ? ERROR_CLASS : ''}`}
                 placeholder="Ex. Social Media-VA, E-Com-VA, Exec Asst-VA..."
               />
               {errors.profession && (
@@ -278,7 +275,7 @@ export default function CareersPage() {
               <textarea
                 {...register('proposal')}
                 rows={4}
-                className={`${INPUT_CLASSES} resize-none ${errors.proposal ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
+                className={`ss-input resize-none ${errors.proposal ? ERROR_CLASS : ''}`}
                 placeholder="Tell us about yourself and previous work experience..."
               />
               {errors.proposal && (
@@ -295,7 +292,7 @@ export default function CareersPage() {
               <div className="relative">
                 <input
                   {...register('cvLink')}
-                  className={`${INPUT_CLASSES} pl-11 ${errors.cvLink ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
+                  className={`ss-input pl-11 ${errors.cvLink ? ERROR_CLASS : ''}`}
                   placeholder="https://drive.google.com/..."
                 />
                 <Upload className="absolute left-4 top-3.5 h-5 w-5 text-muted-foreground" />
@@ -311,7 +308,7 @@ export default function CareersPage() {
                 <textarea
                   {...register('tools')}
                   rows={3}
-                  className={`${INPUT_CLASSES} resize-none ${errors.tools ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
+                  className={`ss-input resize-none ${errors.tools ? ERROR_CLASS : ''}`}
                   placeholder="Slack, Notion, Zapier, Canva..."
                 />
                 {errors.tools && (
@@ -325,7 +322,7 @@ export default function CareersPage() {
                 <textarea
                   {...register('skills')}
                   rows={3}
-                  className={`${INPUT_CLASSES} resize-none ${errors.skills ? INPUT_ERROR_CLASSES : INPUT_FOCUS_CLASSES}`}
+                  className={`ss-input resize-none ${errors.skills ? ERROR_CLASS : ''}`}
                   placeholder="Graphic Design, Data Entry, Management..."
                 />
                 {errors.skills && (
@@ -342,7 +339,7 @@ export default function CareersPage() {
               </label>
               <input
                 {...register('referral')}
-                className={INPUT_CLASSES}
+                className="ss-input"
                 placeholder="Who referred you?"
               />
             </div>

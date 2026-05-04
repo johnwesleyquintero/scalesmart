@@ -29,10 +29,7 @@ const contactFormSchema = z.object({
 
 type ContactFormValues = z.infer<typeof contactFormSchema>;
 
-const INPUT_CLASSES =
-  'w-full rounded-xl border bg-background px-4 py-3 outline-none transition-colors';
-const INPUT_ERROR_CLASSES = 'border-red-500';
-const INPUT_FOCUS_CLASSES = 'focus:border-blue-500';
+const ERROR_CLASS = 'ss-input-error';
 
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -193,7 +190,7 @@ export default function ContactPage() {
                   id="name"
                   {...register('name')}
                   placeholder="John Doe"
-                  className="w-full rounded-xl border bg-background px-4 py-3 outline-none transition-colors focus:border-blue-500"
+                  className={`ss-input ${errors.name ? ERROR_CLASS : ''}`}
                 />
                 {errors.name && (
                   <p className="text-xs font-bold text-red-500">
@@ -210,7 +207,7 @@ export default function ContactPage() {
                   type="email"
                   {...register('email')}
                   placeholder="john@example.com"
-                  className="w-full rounded-xl border bg-background px-4 py-3 outline-none transition-colors focus:border-blue-500"
+                  className={`ss-input ${errors.email ? ERROR_CLASS : ''}`}
                 />
                 {errors.email && (
                   <p className="text-xs font-bold text-red-500">
@@ -227,7 +224,7 @@ export default function ContactPage() {
               <select
                 id="service"
                 {...register('service')}
-                className="w-full rounded-xl border bg-background px-4 py-3 outline-none focus:border-blue-500 transition-colors appearance-none"
+                className="ss-input appearance-none"
               >
                 <option value="Operations & Growth">Operations & Growth</option>
                 <option value="Workforce & Workflows">
@@ -248,7 +245,7 @@ export default function ContactPage() {
                 {...register('message')}
                 placeholder="How can we help you scale?"
                 rows={5}
-                className="w-full rounded-xl border bg-background px-4 py-3 outline-none transition-colors focus:border-blue-500 resize-none"
+                className={`ss-input resize-none ${errors.message ? ERROR_CLASS : ''}`}
               />
               {errors.message && (
                 <p className="text-xs font-bold text-red-500">

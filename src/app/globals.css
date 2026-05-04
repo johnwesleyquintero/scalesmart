@@ -1,14 +1,5 @@
 @import '../styles/modal.css';
 
-/* Smooth dark mode transition */
-* {
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
 /* Enhanced gradient text effects */
 .bg-gradient-to-r {
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -527,6 +518,21 @@
   .tab-button[aria-selected='false'] {
     background-color: var(--tab-inactive-bg);
     color: var(--tab-inactive-text);
+  }
+
+  /* Standardized Form Inputs for ScaleSmart */
+  .ss-input {
+    @apply w-full rounded-xl border bg-background px-4 py-3 outline-none transition-all duration-200;
+    @apply focus:border-blue-500 focus:ring-2 focus:ring-blue-500/10;
+    @apply dark:border-border dark:bg-card dark:focus:border-blue-400;
+  }
+  .ss-input-error {
+    @apply border-red-500 focus:border-red-500 focus:ring-red-500/10;
+    @apply dark:border-red-400 dark:focus:border-red-400;
+  }
+
+  .ss-input-error:focus {
+    @apply border-red-500 focus:ring-red-500/10;
   }
 }
 

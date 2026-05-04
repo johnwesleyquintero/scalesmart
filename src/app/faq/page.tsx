@@ -11,78 +11,78 @@ import { Button } from '@/components/ui/button';
 import { HelpCircle, MessageCircle, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-export default function FAQPage() {
-  const faqs = [
-    {
-      category: 'Company & Services',
-      questions: [
-        {
-          q: 'What is the "Triad Call" system?',
-          a: 'We implement a weekly triad call between the VA, the client, and the CEO. This ensures transparency, allows for progress reporting, and provides an opportunity for us to offer business development suggestions.',
-        },
-        {
-          q: 'Do you provide support for the VAs?',
-          a: 'Yes. ScaleSmart provides 24/7 mentor support for all our VAs. If they need help with tools, work advice, or technical hurdles, our mentors are available to guide them at any time.',
-        },
-        {
-          q: 'How are VAs trained?',
-          a: 'Every VA is trained specifically based on your business needs. We ensure they are proficient in the tools and workflows required for your niche before they begin.',
-        },
-      ],
-    },
-    {
-      category: 'Contracts & Billing',
-      questions: [
-        {
-          q: 'Is there a long-term contract?',
-          a: 'There are no long-term contracts. You are billed on an hourly basis, and there are no cancellation fees or penalties if you decide to stop the service.',
-        },
-        {
-          q: 'What does the hourly fee cover?',
-          a: 'The hourly fee is all-inclusive. It covers the assistant’s salary, benefits, vacation time, bonuses, office space, and equipment. There are no hidden overhead costs.',
-        },
-        {
-          q: 'Can my VA work on holidays or weekends?',
-          a: 'Yes. The hourly rate remains the same even for holiday or weekend work. Whether or not to provide a bonus for holiday work is entirely up to your discretion.',
-        },
-      ],
-    },
-    {
-      category: 'Operations & Communication',
-      questions: [
-        {
-          q: 'How do I communicate with my assistant?',
-          a: 'Communication is primarily handled via Slack. we create specific channels for each client that include the VA, the mentor, and the CEO to ensure quality is strictly monitored and support is always available.',
-        },
-        {
-          q: 'Do you use time-tracking software?',
-          a: 'We prefer to focus on progress and quality of work rather than just counting hours. However, the choice is yours! You are welcome to use tools like Clockify or Google Spreadsheets if you prefer strict tracking.',
-        },
-        {
-          q: 'What happens if a VA is not performing well?',
-          a: 'We have a zero-tolerance policy for poor behavior or persistent low quality. We issue a maximum of two warnings. If issues persist, the VA is dismissed, and we provide a FREE replacement immediately.',
-        },
-        {
-          q: 'How do you handle credit card security?',
-          a: 'ScaleSmart is not liable for loss or damage related to credit card information. However, any unauthorized use of a client’s card results in immediate dismissal and a free replacement of the VA. We recommend using secure permission tools instead of sharing raw card details.',
-        },
-      ],
-    },
-    {
-      category: 'Technical Expertise',
-      questions: [
-        {
-          q: 'What platforms are VAs proficient in?',
-          a: 'All our assistants are experts in Microsoft Office and proficient in major CRMs like Zendesk, Infusionsoft, and Basecamp. Depending on your specific needs, we can provide VAs skilled in accounting, design, CMS, or programming environments.',
-        },
-        {
-          q: 'Can I add more workload beyond the initial scope?',
-          a: 'Absolutely. Just let us know your changing needs, and we will adjust the workload and training accordingly to match the difficulty of the new tasks.',
-        },
-      ],
-    },
-  ];
+const FAQ_DATA = [
+  {
+    category: 'Company & Services',
+    questions: [
+      {
+        q: 'What is the "Triad Call" system?',
+        a: 'We implement a weekly triad call between the VA, the client, and the CEO. This ensures transparency, allows for progress reporting, and provides an opportunity for us to offer business development suggestions.',
+      },
+      {
+        q: 'Do you provide support for the VAs?',
+        a: 'Yes. ScaleSmart provides 24/7 mentor support for all our VAs. If they need help with tools, work advice, or technical hurdles, our mentors are available to guide them at any time.',
+      },
+      {
+        q: 'How are VAs trained?',
+        a: 'Every VA is trained specifically based on your business needs. We ensure they are proficient in the tools and workflows required for your niche before they begin.',
+      },
+    ],
+  },
+  {
+    category: 'Contracts & Billing',
+    questions: [
+      {
+        q: 'Is there a long-term contract?',
+        a: 'There are no long-term contracts. You are billed on an hourly basis, and there are no cancellation fees or penalties if you decide to stop the service.',
+      },
+      {
+        q: 'What does the hourly fee cover?',
+        a: 'The hourly fee is all-inclusive. It covers the assistant’s salary, benefits, vacation time, bonuses, office space, and equipment. There are no hidden overhead costs.',
+      },
+      {
+        q: 'Can my VA work on holidays or weekends?',
+        a: 'Yes. The hourly rate remains the same even for holiday or weekend work. Whether or not to provide a bonus for holiday work is entirely up to your discretion.',
+      },
+    ],
+  },
+  {
+    category: 'Operations & Communication',
+    questions: [
+      {
+        q: 'How do I communicate with my assistant?',
+        a: 'Communication is primarily handled via Slack. we create specific channels for each client that include the VA, the mentor, and the CEO to ensure quality is strictly monitored and support is always available.',
+      },
+      {
+        q: 'Do you use time-tracking software?',
+        a: 'We prefer to focus on progress and quality of work rather than just counting hours. However, the choice is yours! You are welcome to use tools like Clockify or Google Spreadsheets if you prefer strict tracking.',
+      },
+      {
+        q: 'What happens if a VA is not performing well?',
+        a: 'We have a zero-tolerance policy for poor behavior or persistent low quality. We issue a maximum of two warnings. If issues persist, the VA is dismissed, and we provide a FREE replacement immediately.',
+      },
+      {
+        q: 'How do you handle credit card security?',
+        a: 'ScaleSmart is not liable for loss or damage related to credit card information. However, any unauthorized use of a client’s card results in immediate dismissal and a free replacement of the VA. We recommend using secure permission tools instead of sharing raw card details.',
+      },
+    ],
+  },
+  {
+    category: 'Technical Expertise',
+    questions: [
+      {
+        q: 'What platforms are VAs proficient in?',
+        a: 'All our assistants are experts in Microsoft Office and proficient in major CRMs like Zendesk, Infusionsoft, and Basecamp. Depending on your specific needs, we can provide VAs skilled in accounting, design, CMS, or programming environments.',
+      },
+      {
+        q: 'Can I add more workload beyond the initial scope?',
+        a: 'Absolutely. Just let us know your changing needs, and we will adjust the workload and training accordingly to match the difficulty of the new tasks.',
+      },
+    ],
+  },
+];
 
+export default function FAQPage() {
   return (
     <div className="container mx-auto px-4 py-24 md:py-32">
       <div className="mb-20 max-w-3xl">
@@ -101,7 +101,7 @@ export default function FAQPage() {
       <div className="grid gap-12 lg:grid-cols-12">
         <div className="lg:col-span-8">
           <div className="space-y-16">
-            {faqs.map((group) => (
+            {FAQ_DATA.map((group) => (
               <div key={group.category}>
                 <h2 className="mb-6 text-2xl font-bold border-b pb-4 text-blue-600">
                   {group.category}
