@@ -62,7 +62,7 @@ export default function OptimizedImage({
         sizes={sizes}
         priority={priority}
         onError={() => setError(true)}
-        onLoadingComplete={() => setIsLoaded(true)}
+        onLoad={() => setIsLoaded(true)}
         loading={priority ? 'eager' : 'lazy'}
         decoding={priority ? 'sync' : 'async'}
         placeholder={isSvg ? undefined : placeholder}
