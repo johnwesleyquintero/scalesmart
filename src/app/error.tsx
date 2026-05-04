@@ -161,6 +161,11 @@ Based on this information, what are the most likely causes? Please provide speci
           We've encountered an unexpected issue. Our team has been notified, but
           you can try to refresh the page or return to the homepage.
         </p>
+        {error.digest && (
+          <p className="mb-6 text-xs text-muted-foreground/60 font-mono">
+            Reference ID: {error.digest}
+          </p>
+        )}
 
         <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
           <Button onClick={() => reset()} size="lg">

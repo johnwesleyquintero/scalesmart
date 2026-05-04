@@ -202,8 +202,9 @@ export default function CareersPage() {
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-2">
-              <label className="text-sm font-medium">Complete Name</label>
+              <label htmlFor="fullName" className="text-sm font-medium">Complete Name</label>
               <input
+                id="fullName"
                 {...register('fullName')}
                 className={`ss-input ${errors.fullName ? ERROR_CLASS : ''}`}
                 placeholder="Juan Dela Cruz"
@@ -217,8 +218,9 @@ export default function CareersPage() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Email Address</label>
+                <label htmlFor="email" className="text-sm font-medium">Email Address</label>
                 <input
+                  id="email"
                   {...register('email')}
                   className={`ss-input ${errors.email ? ERROR_CLASS : ''}`}
                   placeholder="juan@example.com"
@@ -229,8 +231,9 @@ export default function CareersPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">WhatsApp Number</label>
+                <label htmlFor="whatsapp" className="text-sm font-medium">WhatsApp Number</label>
                 <input
+                  id="whatsapp"
                   {...register('whatsapp')}
                   className={`ss-input ${errors.whatsapp ? ERROR_CLASS : ''}`}
                   placeholder="+63 9XX XXX XXXX"
@@ -244,10 +247,11 @@ export default function CareersPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label htmlFor="msTeams" className="text-sm font-medium">
                 MS Teams ID / Email (Optional)
               </label>
               <input
+                id="msTeams"
                 {...register('msTeams')}
                 className="ss-input"
                 placeholder="msteams@example.com"
@@ -255,8 +259,9 @@ export default function CareersPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">Niche / Profession</label>
+              <label htmlFor="profession" className="text-sm font-medium">Niche / Profession</label>
               <input
+                id="profession"
                 {...register('profession')}
                 className={`ss-input ${errors.profession ? ERROR_CLASS : ''}`}
                 placeholder="Ex. Social Media-VA, E-Com-VA, Exec Asst-VA..."
@@ -269,10 +274,11 @@ export default function CareersPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label htmlFor="proposal" className="text-sm font-medium">
                 Proposal / Experience
               </label>
               <textarea
+                id="proposal"
                 {...register('proposal')}
                 rows={4}
                 className={`ss-input resize-none ${errors.proposal ? ERROR_CLASS : ''}`}
@@ -286,11 +292,12 @@ export default function CareersPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label htmlFor="cvLink" className="text-sm font-medium">
                 Public CV Link (GDrive/Canva/Website)
               </label>
               <div className="relative">
                 <input
+                  id="cvLink"
                   {...register('cvLink')}
                   className={`ss-input pl-11 ${errors.cvLink ? ERROR_CLASS : ''}`}
                   placeholder="https://drive.google.com/..."
@@ -304,8 +311,9 @@ export default function CareersPage() {
 
             <div className="grid gap-6 md:grid-cols-2">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Tools You Use</label>
+                <label htmlFor="tools" className="text-sm font-medium">Tools You Use</label>
                 <textarea
+                  id="tools"
                   {...register('tools')}
                   rows={3}
                   className={`ss-input resize-none ${errors.tools ? ERROR_CLASS : ''}`}
@@ -316,10 +324,11 @@ export default function CareersPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium">
+                <label htmlFor="skills" className="text-sm font-medium">
                   Skills Contribution
                 </label>
                 <textarea
+                  id="skills"
                   {...register('skills')}
                   rows={3}
                   className={`ss-input resize-none ${errors.skills ? ERROR_CLASS : ''}`}
@@ -334,10 +343,11 @@ export default function CareersPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label htmlFor="referral" className="text-sm font-medium">
                 Referral Name (Optional)
               </label>
               <input
+                id="referral"
                 {...register('referral')}
                 className="ss-input"
                 placeholder="Who referred you?"

@@ -593,8 +593,8 @@
   background: linear-gradient(
     to right,
     hsl(var(--primary)),
-    #9333ea
-  ); /* Specific color hardcoded */
+    hsl(var(--primary) / 0.7)
+  ); 
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
