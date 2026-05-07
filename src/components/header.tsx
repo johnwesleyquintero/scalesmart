@@ -106,7 +106,7 @@ export default function Header() {
           description: 'Custom tools to streamline your AI workflows.',
         },
         {
-          name: 'Agency Blog',
+          name: 'Blogs',
           href: '/blog',
           category: productsCategories[1],
           description: 'Operational insights and company updates.',
