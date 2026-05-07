@@ -10,7 +10,7 @@ export default function BlogLayout({
   readonly post?: BlogPost;
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:bg-background dark:bg-none">
       <Header />
       <main>{children}</main>
       <Footer />

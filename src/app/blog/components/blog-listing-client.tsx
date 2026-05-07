@@ -160,7 +160,7 @@ export default function BlogListingClient({
         {postsToRender.map((post) => (
           <Card
             key={post.slug}
-            className="overflow-hidden transition-all duration-300 hover:shadow-lg bg-card text-foreground"
+            className="overflow-hidden transition-all duration-300 hover:shadow-lg dark:hover:shadow-xl bg-card text-foreground"
           >
             <div className="aspect-video overflow-hidden">
               {/* Consider using Next.js Image component for optimization */}
@@ -239,7 +239,7 @@ export default function BlogListingClient({
   };
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:bg-background dark:bg-none">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center">
           <h1 className="text-3xl font-bold my-6 text-foreground">

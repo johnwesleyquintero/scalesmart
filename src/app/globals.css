@@ -218,6 +218,7 @@
 .dark {
   /* Base Colors */
   --background: 0 0% 10%; /* #191919 - Deep neutral gray */
+  --background: 0 0% 4%; /* #0A0A0A - Deep neutral gray, matching gray-950 for Notion-like feel */
   --foreground: 0 0% 90%; /* Off-white for readability */
 
   /* Surface Colors */
@@ -231,12 +232,12 @@
   --primary-foreground: 0 0% 100%;
 
   /* Secondary Accent */
-  --secondary: 0 0% 16%;
-  --secondary-foreground: 0 0% 90%;
+  --secondary: 0 0% 16%; /* #282828 */
+  --secondary-foreground: 0 0% 90%; /* #E6E6E6 */
 
   /* Muted/Subtle */
   --muted: 0 0% 16%;
-  --muted-foreground: 0 0% 65%;
+  --muted-foreground: 0 0% 55%; /* #8C8C8C - Softer muted text for Notion-like feel */
 
   /* Interactive/Accent - Harmonized with ScaleSmart Blue */
   --accent: 217 91% 15%; /* Subtle blue hover tint */
@@ -248,8 +249,8 @@
   --destructive-foreground: 0 0% 90%;
 
   /* Borders & Inputs */
-  --border: 0 0% 18%; /* #2F2F2F - Distinct but subtle borders */
-  --input: 0 0% 18%;
+  --border: 0 0% 15%; /* #262626 - More subtle border, closer to card background */
+  --input: 0 0% 15%;
 }
 
 /*

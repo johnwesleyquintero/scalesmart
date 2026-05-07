@@ -81,7 +81,7 @@ export default function AboutPage() {
 
         <FadeIn delay={200}>
           <div className="relative">
-            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 blur-2xl" />
+            <div className="absolute -inset-4 rounded-3xl bg-gradient-to-tr from-blue-500/20 to-indigo-500/20 blur-2xl dark:from-blue-900/20 dark:to-indigo-900/20" />
             <div className="relative overflow-hidden rounded-3xl border bg-background/50 p-8 shadow-2xl backdrop-blur-sm">
               <h2 className="mb-6 text-2xl font-bold">Our Philosophy</h2>
               <blockquote className="border-l-4 border-blue-500 pl-6 italic text-lg md:text-xl text-foreground">
@@ -114,8 +114,8 @@ export default function AboutPage() {
           <div className="grid gap-8 md:grid-cols-2">
             {founders.map((founder) => (
               <div
-                key={founder.name}
-                className="group overflow-hidden rounded-3xl border bg-background/50 p-8 shadow-sm transition-all hover:shadow-xl"
+                key={founder.name} // Changed bg-background/50 to bg-card/50 for better dark mode contrast
+                className="group overflow-hidden rounded-3xl border bg-card/50 p-8 shadow-sm transition-all hover:shadow-xl"
               >
                 <div className="mb-6 flex flex-col items-center gap-6 md:flex-row md:items-start">
                   <div className="relative h-32 w-32 shrink-0 overflow-hidden rounded-full border-2 border-blue-500/20 transition-all group-hover:border-blue-500/50">

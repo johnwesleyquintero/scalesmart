@@ -126,7 +126,7 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
   const relatedPosts: BlogPost[] = post.relatedPosts || [];
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 min-h-screen">
+    <div className="bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:bg-background dark:bg-none min-h-screen text-foreground">
       <div className="container mx-auto px-4 py-16">
         <div className="mb-8">
           <Link
@@ -189,7 +189,7 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
             </p>
           )}
 
-          <div className="mt-16 pt-8 border-t">
+          <div className="mt-16 pt-8 border-t dark:border-muted">
             <h2 className="text-2xl font-bold mb-4">Related Articles</h2>
             <div className="grid gap-4 md:grid-cols-2">
               {relatedPosts.length > 0 ? (
@@ -197,7 +197,7 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
                   <Link
                     key={relatedPost.slug}
                     href={`/blog/${relatedPost.slug}`}
-                    className="block p-4 rounded-lg border hover:bg-muted/50 transition-colors"
+                    className="block p-4 rounded-lg border bg-card/50 hover:bg-muted/50 transition-all duration-300 hover:shadow-lg dark:hover:shadow-xl dark:border-muted"
                   >
                     <h3 className="font-medium mb-1">{relatedPost.title}</h3>
                     {relatedPost.description && (

@@ -111,7 +111,7 @@ export default function FAQPage() {
                     <AccordionItem
                       key={`${group.category}-${index}`}
                       value={`${group.category}-${index}`}
-                      className="border-b-0 mb-4 rounded-2xl border bg-background/50 px-6 transition-all hover:border-blue-200 hover:shadow-sm"
+                      className="border-b-0 mb-4 rounded-2xl border bg-card/50 px-6 transition-all hover:border-blue-200 hover:shadow-sm"
                     >
                       <AccordionTrigger className="text-left font-bold text-lg hover:no-underline py-6">
                         {faq.q}

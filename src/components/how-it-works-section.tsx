@@ -95,7 +95,7 @@ export default function HowItWorksSection() {
                   </span>
                 </div>
 
-                <div className="p-6 rounded-3xl border bg-background/50 shadow-sm transition-all hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800">
+                <div className="p-6 rounded-3xl border bg-card/50 shadow-sm transition-all hover:shadow-md hover:border-blue-200 dark:hover:border-blue-800">
                   <div className="mb-4 inline-block rounded-xl bg-blue-50 dark:bg-blue-900/20 p-2">
                     {step.icon}
                   </div>

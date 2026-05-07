@@ -68,7 +68,7 @@ export default function WhyUsSection() {
         {reasons.map((reason, index) => (
           <div
             key={reason.title}
-            className="group relative overflow-hidden rounded-3xl border bg-background/50 p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1"
+            className="group relative overflow-hidden rounded-3xl border bg-card/50 p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1"
           >
             <div
               className={`mb-6 flex h-14 w-14 items-center justify-center rounded-2xl ${reason.color} transition-transform group-hover:scale-110 group-hover:rotate-3`}
