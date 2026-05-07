@@ -13,7 +13,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { BlogPost } from '@/types';
 import { ArrowRight, Calendar, Clock } from 'lucide-react';
 import Link from 'next/link';
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useDeferredValue,
+} from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
@@ -43,6 +49,9 @@ export default function BlogListingClient({
   const [hasMore, setHasMore] = useState(true);
   const [sortBy, setSortBy] = useState('dateDesc'); // 'dateDesc', 'dateAsc', 'titleAsc', 'titleDesc'
 
+  // Use deferred value for search to keep the input responsive while filtering
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
   // Memoize filtered, searched, and sorted posts
   const filteredAndSearchedAndSortedPosts = useMemo(() => {
     let posts = initialPosts;
@@ -64,8 +73,8 @@ export default function BlogListingClient({
     }
 
     // Filter by search query
-    if (searchQuery) {
-      const lowerCaseQuery = searchQuery.toLowerCase();
+    if (deferredSearchQuery) {
+      const lowerCaseQuery = deferredSearchQuery.toLowerCase();
       posts = posts.filter(
         (post) =>
           post.title.toLowerCase().includes(lowerCaseQuery) ||
@@ -90,11 +99,15 @@ export default function BlogListingClient({
     });
 
     return sortedPosts;
-  }, [initialPosts, activeTab, searchQuery, sortBy]);
+  }, [initialPosts, activeTab, deferredSearchQuery, sortBy]);
 
   // Effect to load the first batch of posts whenever filters/sort change
   useEffect(() => {
     setIsLoading(true);
+    // Immediately clear displayed posts so the user sees the loading state/skeletons
+    // and doesn't see "ghost" results from the previous filter
+    setDisplayedPosts([]);
+
     // Simulate loading delay
     const timer = setTimeout(() => {
       setDisplayedPosts(
@@ -102,7 +115,7 @@ export default function BlogListingClient({
       );
       setHasMore(filteredAndSearchedAndSortedPosts.length > POSTS_PER_LOAD);
       setIsLoading(false);
-    }, 500); // Simulate 0.5 second load time
+    }, 200); // Reduced delay for a snappier feel
 
     // Cleanup timeout on effect cleanup or re-run
     return () => clearTimeout(timer);
@@ -125,7 +138,7 @@ export default function BlogListingClient({
         filteredAndSearchedAndSortedPosts.length >
           currentLength + nextPosts.length,
       );
-    }, 500); // Simulate 0.5 second load time
+    }, 300); // Reduced simulated delay for snappier feel
   }, [displayedPosts.length, filteredAndSearchedAndSortedPosts]); // Dependencies: current displayed count and the full filtered/sorted list
 
   const renderPostCards = (postsToRender: BlogPost[]) => {
@@ -269,10 +282,7 @@ export default function BlogListingClient({
         <Tabs
           defaultValue="all"
           className="w-full mt-8"
-          onValueChange={(value) => {
-            setActiveTab(value);
-            setSearchQuery(''); // Reset search query when changing tabs
-          }}
+          onValueChange={setActiveTab}
         >
           {/* TabsList outside TabsContent */}
           <TabsList className="mb-4 flex flex-wrap h-auto justify-center bg-muted">

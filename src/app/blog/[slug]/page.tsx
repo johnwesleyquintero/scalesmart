@@ -16,7 +16,7 @@ interface Props {
 }
 
 const DEFAULT_IMAGE_URL = '/default-fallback.svg';
-const SITE_URL = 'https://wescode.vercel.app'; // Define site URL constant
+const SITE_URL = 'https://scalesmart.vercel.app'; // Define site URL constant
 
 /**
  * Generates metadata for the blog post page.
