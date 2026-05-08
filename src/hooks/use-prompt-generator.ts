@@ -1,285 +1,297 @@
-import { useCallback, useMemo, useRef, useReducer, useEffect } from 'react';
-import { toast } from 'sonner';
-import {
-  promptGeneratorReducer,
-  initialState,
-  PromptGeneratorAction,
-} from '@/lib/prompt-generator/state';
-import { CUSTOM_CATEGORY_VALUE } from '@/lib/prompt-generator/constants';
+'use client';
+
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import {
   CategoryValue,
   PromptData,
   SavedRequest,
 } from '@/lib/prompt-generator/types';
-import {
-  generatePrompt,
-  preparePromptData,
-} from '@/lib/prompt-generator/utils';
-import { useUndoRedo } from './use-undo-redo';
-import { validatePromptData } from '@/lib/prompt-generator/validation';
-import { clearAutoSavedState } from '@/lib/prompt-generator/storage';
-import { useClipboard } from './use-clipboard';
-import { usePromptStorage } from './use-prompt-storage';
+import { CUSTOM_CATEGORY_VALUE } from '@/lib/prompt-generator/constants';
+import { useToast } from '@/components/ui/use-toast';
 
-/**
- * Helper to execute prompt generation with loading and error handling
- */
-async function executePromptGeneration(
-  promptData: PromptData,
-  dispatch: React.Dispatch<PromptGeneratorAction>,
-  generatorFunction: (data: PromptData) => string,
-) {
-  dispatch({ type: 'SET_LOADING', payload: true });
-  dispatch({ type: 'SET_OUTPUT', payload: '' });
+const STORAGE_KEY = 'scalesmart_saved_prompts';
 
-  const errors = validatePromptData(promptData);
-  dispatch({ type: 'SET_VALIDATION_ERRORS', payload: errors });
+const initialPromptData: PromptData = {
+  category: 'General Assistance', // Changed from 'General' to 'General Assistance' for consistency with state.ts
+  customCategory: '',
+  context: '',
+  request: '',
+  code: '', // Initialized 'code' property
+  parentTask: '',
+  subtask: '',
+  outputFormat: '',
+  constraints: '',
+  examples: '',
+  tone: '',
+  additionalInfo: '',
+};
 
-  if (Object.keys(errors).length > 0) {
-    dispatch({ type: 'SET_LOADING', payload: false });
-    toast.warning('Please fix the errors in the form.');
-    return;
-  }
+export function usePromptGenerator() {
+  const { toast } = useToast();
 
-  try {
-    const preparedData = preparePromptData(promptData);
-    const generated = generatorFunction(preparedData);
+  // --- State ---
+  const [promptData, setPromptData] = useState<PromptData>(initialPromptData);
+  const [output, setOutput] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [savedRequests, setSavedRequests] = useState<SavedRequest[]>([]);
 
-    if (generated) {
-      dispatch({ type: 'SET_OUTPUT', payload: generated });
-      toast.success('Prompt generated successfully!');
-    } else {
-      dispatch({ type: 'SET_OUTPUT', payload: '' });
-      toast.warning('The generator did not return a prompt.');
-    }
-  } catch (error) {
-    console.error('Error generating prompt:', error);
-    toast.error('An unexpected error occurred while generating the prompt.');
-    dispatch({ type: 'SET_OUTPUT', payload: '' });
-  } finally {
-    dispatch({ type: 'SET_LOADING', payload: false });
-  }
-}
+  // Dialog States
+  const [showSaveDialog, setShowSaveDialog] = useState(false);
+  const [newRequestName, setNewRequestName] = useState('');
+  const [requestPendingDeletion, setRequestPendingDeletion] =
+    useState<SavedRequest | null>(null);
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
 
-export const usePromptGenerator = () => {
-  const [state, dispatch] = useReducer(promptGeneratorReducer, initialState);
-  const {
-    promptData,
-    output,
-    loading,
-    showSaveDialog,
-    newRequestName,
-    selectedSavedRequestId,
-    validationErrors,
-    savedRequests,
-    requestPendingDeletion,
-  } = state;
+  // History (Undo/Redo)
+  const [history, setHistory] = useState<PromptData[]>([initialPromptData]);
+  const [historyIndex, setHistoryIndex] = useState(0);
 
-  const isInitialMount = useRef(true);
-  useEffect(() => {
-    isInitialMount.current = false;
-  }, []);
-
-  // 1. Clipboard Hook
-  const { isCopied, copy: copyToClipboard } = useClipboard({
-    successMessage: 'Prompt copied to clipboard!',
-  });
-
-  // 2. Undo/Redo Hook
-  const {
-    canUndo,
-    canRedo,
-    undo,
-    redo,
-    update: updateUndoRedoState,
-  } = useUndoRedo(promptData, {
-    maxHistory: 20,
-    onUndo: (state) => dispatch({ type: 'SET_PROMPT_DATA', payload: state }),
-    onRedo: (state) => dispatch({ type: 'SET_PROMPT_DATA', payload: state }),
-  });
-
-  // 3. Storage Hook
-  usePromptStorage({
-    promptData,
-    savedRequests,
-    selectedSavedRequestId,
-    isInitialMount: isInitialMount.current,
-    onLoadRequests: (requests) =>
-      dispatch({ type: 'SET_SAVED_REQUESTS', payload: requests }),
-    onLoadAutoSavedState: (savedState) =>
-      dispatch({ type: 'SET_PROMPT_DATA', payload: savedState }),
-  });
-
-  // Input Refs
+  // Refs
   const requestInputRef = useRef<HTMLTextAreaElement>(null);
   const contextInputRef = useRef<HTMLTextAreaElement>(null);
-  const codeRef = useRef<HTMLTextAreaElement>(null);
+  const codeInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // Handlers
-  const clearForm = useCallback(() => {
-    dispatch({ type: 'CLEAR_FORM' });
-    clearAutoSavedState();
-  }, []);
-
-  const handleFieldChange = useCallback(
-    (field: Exclude<keyof PromptData, 'category'>, value: string) => {
-      dispatch({ type: 'SET_FIELD', field, value });
-    },
-    [],
-  );
-
-  const handleCategoryChange = useCallback((value: CategoryValue) => {
-    dispatch({ type: 'SET_FIELD', field: 'category', value });
-    if (value !== CUSTOM_CATEGORY_VALUE) {
-      dispatch({ type: 'SET_FIELD', field: 'customCategory', value: '' });
+  // --- Initialization ---
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) {
+      try {
+        setSavedRequests(JSON.parse(stored));
+      } catch (e) {
+        console.error('Failed to parse saved requests', e);
+      }
     }
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedRequests));
+  }, [savedRequests]);
+
+  // --- Helpers ---
+  const isGenerateDisabled = useMemo(() => {
+    return !promptData.request.trim() || loading;
+  }, [promptData.request, loading]);
 
   const updatePromptData = useCallback(
-    (data: Partial<PromptData>) => {
-      const newState = { ...promptData, ...data };
-      updateUndoRedoState(newState);
-      dispatch({ type: 'SET_PROMPT_DATA', payload: newState });
+    (newData: Partial<PromptData>) => {
+      setPromptData((prev) => {
+        const updated = { ...prev, ...newData };
+
+        // Add to history if it's a significant change
+        const newHistory = history.slice(0, historyIndex + 1);
+        setHistory([...newHistory, updated]);
+        setHistoryIndex(newHistory.length);
+
+        return updated;
+      });
     },
-    [promptData, updateUndoRedoState, dispatch],
+    [history, historyIndex],
   );
 
-  const generatePromptHandler = useCallback(() => {
-    executePromptGeneration(promptData, dispatch, generatePrompt);
-  }, [promptData]);
+  // --- Handlers ---
+  const handleFieldChange = (
+    field: Exclude<keyof PromptData, 'category'>,
+    value: string,
+  ) => {
+    updatePromptData({ [field]: value });
+  };
 
-  const handleSaveRequest = useCallback(() => {
-    if (!promptData.request.trim()) {
-      toast.error('Cannot save an empty request.');
+  const handleCategoryChange = (value: CategoryValue) => {
+    setShowCustomCategory(value === CUSTOM_CATEGORY_VALUE);
+    updatePromptData({ category: value });
+  };
+
+  const handleGeneratePrompt = useCallback(async () => {
+    setLoading(true);
+    try {
+      // Simulate a small delay for "Execution System" feel
+      await new Promise((res) => setTimeout(res, 600));
+
+      const category =
+        promptData.category === CUSTOM_CATEGORY_VALUE
+          ? promptData.customCategory
+          : promptData.category;
+
+      const sections = [
+        '### ROLE\nExpert Software Engineer / Coding Assistant',
+        `### CATEGORY\n${category}`,
+        `### CONTEXT\n${promptData.context || 'No additional context provided.'}`,
+        `### REQUEST\n${promptData.request}`,
+      ];
+
+      if (promptData.parentTask)
+        sections.push(`### PARENT TASK\n${promptData.parentTask}`);
+      if (promptData.subtask)
+        sections.push(`### SUBTASK\n${promptData.subtask}`);
+      if (promptData.outputFormat)
+        sections.push(`### OUTPUT FORMAT\n${promptData.outputFormat}`);
+      if (promptData.constraints)
+        sections.push(`### CONSTRAINTS\n${promptData.constraints}`);
+      if (promptData.examples)
+        sections.push(`### EXAMPLES\n${promptData.examples}`);
+      if (promptData.tone) sections.push(`### TONE\n${promptData.tone}`);
+      if (promptData.additionalInfo)
+        sections.push(`### ADDITIONAL INFO\n${promptData.additionalInfo}`);
+
+      if (promptData.code) {
+        sections.push(`### CODE SNIPPET\n\`\`\`\n${promptData.code}\n\`\`\``);
+      }
+
+      const formattedPrompt = sections.join('\n\n').trim();
+
+      setOutput(formattedPrompt);
+      toast({
+        title: 'Prompt Generated',
+        description: 'Your structured request is ready.',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [promptData, toast]);
+
+  const handleCopyOutput = useCallback(() => {
+    if (!output) return;
+    navigator.clipboard.writeText(output);
+    toast({ title: 'Copied!', description: 'Prompt copied to clipboard.' });
+  }, [output, toast]);
+
+  const clearForm = useCallback(() => {
+    setPromptData(initialPromptData);
+    setOutput('');
+    setHistory([initialPromptData]);
+    setHistoryIndex(0);
+    toast({ description: 'Form cleared.' });
+  }, [toast]);
+
+  // --- Save / Load / Delete Logic ---
+  const handleSaveDialogOpen = () => setShowSaveDialog(true);
+
+  const handleSaveRequest = () => {
+    if (!promptData.request) {
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Cannot save an empty request.',
+      });
       return;
     }
-    dispatch({ type: 'SET_NEW_REQUEST_NAME', payload: '' });
-    dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: true });
-  }, [promptData.request]);
+    setNewRequestName(`Request ${savedRequests.length + 1}`);
+    setShowSaveDialog(true);
+  };
 
-  const confirmSaveRequest = useCallback(() => {
-    if (!newRequestName.trim()) {
-      toast.error('Please enter a name for your request.');
-      return;
-    }
-
-    const newRequest: SavedRequest = {
-      id: Date.now().toString(),
-      name: newRequestName.trim(),
-      data: promptData,
+  const confirmSaveRequest = () => {
+    const newSavedRequest: SavedRequest = {
+      id: crypto.randomUUID(),
+      name: newRequestName || `Request ${savedRequests.length + 1}`,
+      data: { ...promptData },
       timestamp: Date.now(),
     };
+    setSavedRequests((prev) => [newSavedRequest, ...prev]);
+    setShowSaveDialog(false);
+    toast({
+      title: 'Saved',
+      description: `"${newSavedRequest.name}" has been saved.`,
+    });
+  };
 
-    const updatedRequests = (savedRequests || []).concat(newRequest);
-    dispatch({ type: 'SET_SAVED_REQUESTS', payload: updatedRequests });
-    toast.success(`Request "${newRequest.name}" saved!`);
-    dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: false });
-    dispatch({ type: 'SET_NEW_REQUEST_NAME', payload: '' });
-  }, [newRequestName, promptData, savedRequests]);
+  const handleLoadRequest = (request: SavedRequest) => {
+    setPromptData(request.data);
+    setShowCustomCategory(request.data.category === CUSTOM_CATEGORY_VALUE);
+    toast({ title: 'Loaded', description: `Loaded "${request.name}"` });
+  };
 
-  const handleLoadRequest = useCallback(
-    (id: string) => {
-      const requestToLoad = savedRequests.find((req) => req.id === id);
-      if (requestToLoad) {
-        dispatch({ type: 'LOAD_REQUEST', payload: requestToLoad });
-        toast.success(`Request "${requestToLoad.name}" loaded!`);
-      } else {
-        toast.error('Selected request not found.');
-      }
-    },
-    [savedRequests],
-  );
-
-  const handleDeleteRequest = useCallback(
-    (id: string) => {
-      const requestToDelete = savedRequests.find((req) => req.id === id);
-      if (requestToDelete) {
-        dispatch({
-          type: 'SET_REQUEST_PENDING_DELETION',
-          payload: requestToDelete,
-        });
-      }
-    },
-    [savedRequests],
-  );
-
-  const confirmDeleteRequest = useCallback(() => {
-    if (requestPendingDeletion) {
-      dispatch({ type: 'DELETE_REQUEST', payload: requestPendingDeletion.id });
-      toast.success(`Request "${requestPendingDeletion.name}" deleted!`);
-    }
-  }, [requestPendingDeletion]);
-
-  const handleUpdateRequest = useCallback(
-    (id: string, name: string) => {
-      const requestToUpdate = savedRequests.find((req) => req.id === id);
-      if (requestToUpdate) {
-        const updatedRequest: SavedRequest = {
-          ...requestToUpdate,
-          name: name.trim(),
-        };
-        dispatch({ type: 'UPDATE_REQUEST', payload: updatedRequest });
-        toast.success(`Request renamed to "${name.trim()}"`);
-      }
-    },
-    [savedRequests],
-  );
-
-  const cancelDeleteRequest = useCallback(() => {
-    dispatch({ type: 'SET_REQUEST_PENDING_DELETION', payload: null });
-  }, []);
-
-  const isGenerateDisabled = useMemo(() => {
-    const { category, customCategory, request } = promptData;
-    return (
-      !category ||
-      !request.trim() ||
-      (category === CUSTOM_CATEGORY_VALUE && !customCategory?.trim())
+  const handleUpdateRequest = (request: SavedRequest) => {
+    setSavedRequests((prev) =>
+      prev.map((r) =>
+        r.id === request.id
+          ? { ...r, data: { ...promptData }, timestamp: Date.now() }
+          : r,
+      ),
     );
-  }, [promptData]);
+    toast({
+      title: 'Updated',
+      description: 'Saved request updated with current form data.',
+    });
+  };
+
+  const handleDeleteRequest = (request: SavedRequest) => {
+    setRequestPendingDeletion(request);
+  };
+
+  const confirmDeleteRequest = () => {
+    if (requestPendingDeletion) {
+      setSavedRequests((prev) =>
+        prev.filter((r) => r.id !== requestPendingDeletion.id),
+      );
+      setRequestPendingDeletion(null);
+      toast({ title: 'Deleted', description: 'Request removed.' });
+    }
+  };
+
+  const cancelDeleteRequest = () => setRequestPendingDeletion(null);
+
+  // --- Undo / Redo Logic ---
+  const undo = useCallback(() => {
+    if (historyIndex > 0) {
+      const prevIndex = historyIndex - 1;
+      setHistoryIndex(prevIndex);
+      setPromptData(history[prevIndex]);
+    }
+  }, [history, historyIndex]);
+
+  const redo = useCallback(() => {
+    if (historyIndex < history.length - 1) {
+      const nextIndex = historyIndex + 1;
+      setHistoryIndex(nextIndex);
+      setPromptData(history[nextIndex]);
+    }
+  }, [history, historyIndex]);
 
   return {
+    // State
     promptData,
     output,
     loading,
     showSaveDialog,
     newRequestName,
-    selectedSavedRequestId,
-    validationErrors,
     savedRequests,
     requestPendingDeletion,
-    isCopied,
-    updatePromptData,
-    handleGeneratePrompt: generatePromptHandler,
-    handleCopyOutput: () => copyToClipboard(output),
-    handleSaveRequest,
-    handleDeleteRequest,
-    handleUpdateRequest,
-    handleLoadRequest,
-    handleNewRequestNameChange: (name: string) =>
-      dispatch({ type: 'SET_NEW_REQUEST_NAME', payload: name }),
-    handleSaveDialogOpen: () =>
-      dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: true }),
-    handleSaveDialogClose: () =>
-      dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: false }),
-    clearForm,
-    handleFieldChange,
-    handleCategoryChange,
-    showCustomCategory: promptData.category === CUSTOM_CATEGORY_VALUE,
-    isGenerateDisabled,
-    confirmSaveRequest,
-    confirmDeleteRequest,
-    cancelDeleteRequest,
-    setNewRequestName: (name: string) =>
-      dispatch({ type: 'SET_NEW_REQUEST_NAME', payload: name }),
-    setShowSaveDialog: (show: boolean) =>
-      dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: show }),
-    requestInputRef,
-    contextInputRef,
-    codeRef,
+    showCustomCategory,
+
+    // History
+    canUndo: historyIndex > 0,
+    canRedo: historyIndex < history.length - 1,
     undo,
     redo,
-    canUndo,
-    canRedo,
+
+    // Refs
+    requestInputRef,
+    contextInputRef,
+    codeInputRef,
+
+    // Logic state
+    isGenerateDisabled,
+
+    // Setters
+    setShowSaveDialog,
+    setNewRequestName,
+
+    // Handlers
+    updatePromptData,
+    handleFieldChange,
+    handleCategoryChange,
+    handleGeneratePrompt,
+    handleCopyOutput,
+    clearForm,
+
+    // CRUD Handlers
+    handleSaveRequest,
+    handleSaveDialogOpen,
+    confirmSaveRequest,
+    handleLoadRequest,
+    handleUpdateRequest,
+    handleDeleteRequest,
+    confirmDeleteRequest,
+    cancelDeleteRequest,
   };
-};
+}

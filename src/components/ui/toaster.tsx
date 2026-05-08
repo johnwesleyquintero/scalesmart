@@ -1,6 +1,6 @@
 'use client';
 
-import type { ToasterToast, State } from '@/app/hooks/use-toast.tsx'; // Import the State type, aliasing as ToastState
+import type { ToasterToast, State } from '@/components/ui/use-toast'; // Import the State type, aliasing as ToastState
 import React from 'react';
 import {
   Toast,
@@ -10,7 +10,7 @@ import {
   ToastTitle,
   ToastViewport,
 } from '@/components/ui/toast';
-import { useToast } from '@/app/hooks/use-toast.tsx';
+import { useToast } from '@/components/ui/use-toast';
 
 export function Toaster() {
   const { toasts } = useToast();

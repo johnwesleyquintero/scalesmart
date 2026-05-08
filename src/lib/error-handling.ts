@@ -1,4 +1,4 @@
-import { toast } from '@/app/hooks/use-toast.tsx';
+import { toast } from '@/hooks/use-toast';
 
 type ErrorSeverity = 'low' | 'medium' | 'high' | 'critical';
 

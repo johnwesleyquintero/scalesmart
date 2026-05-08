@@ -10,7 +10,7 @@ export async function loadAutoSavedState(): Promise<PromptData | null> {
   try {
     const savedState = await getCacheItem<PromptData>(AUTOSAVE_KEY);
     if (savedState && typeof savedState === 'object') {
-      const data = savedState as any;
+      const data = savedState as unknown as Record<string, unknown>;
       // Migration logic: consolidate codeInput into code and prevent duplication
       if (data.codeInput !== undefined) {
         if (data.code === undefined) {
@@ -18,7 +18,7 @@ export async function loadAutoSavedState(): Promise<PromptData | null> {
         }
         delete data.codeInput;
       }
-      return data as PromptData;
+      return data as unknown as PromptData;
     }
   } catch (error) {
     console.error('Failed to load auto-saved form state', error);
@@ -59,7 +59,7 @@ export async function loadSavedRequests(): Promise<SavedRequest[]> {
     const saved = await getCacheItem<SavedRequest[]>(SAVED_REQUESTS_KEY);
     if (Array.isArray(saved)) {
       return saved.map((req) => {
-        const data = req.data as any;
+        const data = req.data as unknown as Record<string, unknown>;
         // Migration logic: consolidate codeInput into code and prevent duplication
         if (data.codeInput !== undefined) {
           if (data.code === undefined) {

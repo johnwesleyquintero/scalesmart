@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { usePromptGenerator } from '@/hooks/use-prompt-generator';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 import { PromptData } from '@/lib/prompt-generator/types';
 import { PromptTemplate } from './components/PromptTemplateSelector';
-import { useGeneratorShortcuts } from '../hooks/use-generator-shortcuts';
+import { useGeneratorShortcuts } from '../../hooks/use-generator-shortcuts';
 
 // UI Components
 import {
@@ -79,7 +79,6 @@ export default function PromptRequestGenerator() {
     showCustomCategory,
     requestInputRef,
     contextInputRef,
-    codeRef,
     isGenerateDisabled,
     setShowSaveDialog,
     setNewRequestName,
@@ -149,7 +148,6 @@ export default function PromptRequestGenerator() {
                 onSelectTemplate={handleTemplateSelect}
                 requestInputRef={requestInputRef}
                 contextInputRef={contextInputRef}
-                codeRef={codeRef}
               />
 
               <PromptActionButtons
@@ -164,9 +162,18 @@ export default function PromptRequestGenerator() {
                 canUndo={canUndo}
                 canRedo={canRedo}
                 savedRequests={savedRequests}
-                handleLoadRequest={handleLoadRequest}
-                handleDeleteRequest={handleDeleteRequest}
-                handleUpdateRequest={handleUpdateRequest}
+                handleLoadRequest={(id) => {
+                  const request = savedRequests.find((r) => r.id === id);
+                  if (request) handleLoadRequest(request);
+                }}
+                handleDeleteRequest={(id) => {
+                  const request = savedRequests.find((r) => r.id === id);
+                  if (request) handleDeleteRequest(request);
+                }}
+                handleUpdateRequest={(id, name) => {
+                  const request = savedRequests.find((r) => r.id === id);
+                  if (request) handleUpdateRequest({ ...request, name });
+                }}
                 handleOpenGuide={() => setShowUserGuide(true)}
               />
             </CardContent>

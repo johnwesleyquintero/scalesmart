@@ -210,7 +210,7 @@ function genId() {
   return nanoid();
 }
 
-export const toast = (props: Omit<ToasterToast, 'id'>) => {
+const toast = (props: Omit<ToasterToast, 'id'>) => {
   const id = genId();
   dispatch({
     type: actionTypes.ADD_TOAST,
@@ -236,7 +236,7 @@ export const toast = (props: Omit<ToasterToast, 'id'>) => {
   };
 };
 
-export function useToast() {
+function useToast() {
   const [state, setState] = React.useState<State>(memoryState);
 
   React.useEffect(() => {
@@ -267,4 +267,6 @@ export {
   ToastViewport,
   type ToastProps,
   type ToasterToast,
+  toast,
+  useToast,
 };

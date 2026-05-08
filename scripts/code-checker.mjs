@@ -91,26 +91,47 @@ function parseLinterOutput(output) {
   const lines = output.split('\n');
   const errorsByFile = new Map();
   const generalOutput = [];
-  const filePattern = /^(?<filePath>[^\s].*?):(?<line>\d+):(?<column>\d+)/;
+  let currentFile = null;
+
+  // Pattern for "file:line:col" (inline)
+  const inlinePattern = /^(?<filePath>[^\s].*?):(?<line>\d+):(?<column>\d+)/;
+  // Pattern for "  line:col  level  message" (indented stylish format)
+  const indentedPattern =
+    /^\s+(?<line>\d+):(?<column>\d+)\s+(?:error|warning|info)\s+(?<message>.*)/;
 
   lines.forEach((line) => {
-    const match = line.match(filePattern);
-    if (match?.groups?.filePath) {
-      const { filePath, line: lineStr, column: colStr } = match.groups;
-      const parsedError = {
-        filePath,
-        line: parseInt(lineStr, 10),
-        column: parseInt(colStr, 10),
-        message: line,
-      };
-      if (!errorsByFile.has(filePath)) {
-        errorsByFile.set(filePath, []);
-      }
-      errorsByFile.get(filePath)?.push(parsedError);
+    const inlineMatch = line.match(inlinePattern);
+    const indentedMatch = line.match(indentedPattern);
+
+    if (inlineMatch?.groups?.filePath) {
+      const { filePath, line: lineStr, column: colStr } = inlineMatch.groups;
+      addError(filePath, lineStr, colStr, line.trim());
+    } else if (indentedMatch && currentFile) {
+      const { line: lineStr, column: colStr, message } = indentedMatch.groups;
+      addError(currentFile, lineStr, colStr, message);
+    } else if (
+      line.trim() &&
+      !line.startsWith(' ') &&
+      (line.includes('\\') || line.includes('/'))
+    ) {
+      // Capture file path header in stylish output
+      currentFile = line.trim();
     } else if (line.trim()) {
       generalOutput.push(line);
     }
   });
+
+  function addError(filePath, lineStr, colStr, message) {
+    if (!errorsByFile.has(filePath)) {
+      errorsByFile.set(filePath, []);
+    }
+    errorsByFile.get(filePath).push({
+      filePath,
+      line: parseInt(lineStr, 10),
+      column: parseInt(colStr, 10),
+      message,
+    });
+  }
 
   return { errorsByFile, generalOutput };
 }
