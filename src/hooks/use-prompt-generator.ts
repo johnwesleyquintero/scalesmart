@@ -113,7 +113,7 @@ export const usePromptGenerator = () => {
   // Input Refs
   const requestInputRef = useRef<HTMLTextAreaElement>(null);
   const contextInputRef = useRef<HTMLTextAreaElement>(null);
-  const codeInputRef = useRef<HTMLTextAreaElement>(null);
+  const codeRef = useRef<HTMLTextAreaElement>(null);
 
   // Handlers
   const clearForm = useCallback(() => {
@@ -122,7 +122,7 @@ export const usePromptGenerator = () => {
   }, []);
 
   const handleFieldChange = useCallback(
-    (field: keyof PromptData, value: string) => {
+    (field: Exclude<keyof PromptData, 'category'>, value: string) => {
       dispatch({ type: 'SET_FIELD', field, value });
     },
     [],
@@ -139,16 +139,9 @@ export const usePromptGenerator = () => {
     (data: Partial<PromptData>) => {
       const newState = { ...promptData, ...data };
       updateUndoRedoState(newState);
-
-      Object.entries(data).forEach(([key, value]) => {
-        dispatch({
-          type: 'SET_FIELD',
-          field: key as keyof PromptData,
-          value: value as string,
-        });
-      });
+      dispatch({ type: 'SET_PROMPT_DATA', payload: newState });
     },
-    [promptData, updateUndoRedoState],
+    [promptData, updateUndoRedoState, dispatch],
   );
 
   const generatePromptHandler = useCallback(() => {
@@ -174,6 +167,7 @@ export const usePromptGenerator = () => {
       id: Date.now().toString(),
       name: newRequestName.trim(),
       data: promptData,
+      timestamp: Date.now(),
     };
 
     const updatedRequests = (savedRequests || []).concat(newRequest);
@@ -282,7 +276,7 @@ export const usePromptGenerator = () => {
       dispatch({ type: 'SET_SHOW_SAVE_DIALOG', payload: show }),
     requestInputRef,
     contextInputRef,
-    codeInputRef,
+    codeRef,
     undo,
     redo,
     canUndo,

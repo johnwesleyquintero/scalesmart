@@ -3,7 +3,7 @@ export interface PromptData {
   customCategory?: string;
   request: string;
   context: string;
-  codeInput: string;
+  code: string;
   parentTask: string;
   subtask: string;
   outputFormat: string;
@@ -23,13 +23,14 @@ export interface SavedRequest {
   id: string;
   name: string;
   data: PromptData;
+  timestamp: number; // Added timestamp for saving
 }
 
 export type PromptDataKey =
   | 'customCategory'
   | 'context'
   | 'request'
-  | 'codeInput'
+  | 'code'
   | 'parentTask'
   | 'subtask'
   | 'outputFormat'

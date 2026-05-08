@@ -8,7 +8,10 @@ import CharacterCounter from '../CharacterCounter';
 interface BasicInputSectionProps {
   control: Control<PromptData>;
   errors: FieldErrors<PromptData>;
-  handleFieldChange: (field: keyof PromptData, value: string) => void;
+  handleFieldChange: (
+    field: Exclude<keyof PromptData, 'category'>,
+    value: string,
+  ) => void;
   requestInputRef?: React.RefObject<HTMLTextAreaElement | null>;
   contextInputRef?: React.RefObject<HTMLTextAreaElement | null>;
 }

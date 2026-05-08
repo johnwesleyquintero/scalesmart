@@ -24,7 +24,7 @@ export interface PromptTemplate {
     request: string;
     parentTask?: string;
     subtask?: string;
-    codeInput?: string;
+    code?: string;
   };
 }
 
@@ -42,7 +42,7 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
         'Please analyze the provided information, identify the top 3-5 key findings, and suggest potential next steps.',
       parentTask: 'Strategic Analysis',
       subtask: 'Extract key insights',
-      codeInput: '[Paste your data or text here]',
+      code: '[Paste your data or text here]',
     },
   },
   {
@@ -163,7 +163,7 @@ export const PROMPT_TEMPLATES: PromptTemplate[] = [
         'Please provide a concise summary of the provided text, highlighting the top 5 most important takeaways and any action items.',
       parentTask: 'Information Management',
       subtask: 'Summarize key points',
-      codeInput: '[Paste long text here]',
+      code: '[Paste long text here]',
     },
   },
 ];

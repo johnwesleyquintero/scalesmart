@@ -30,7 +30,10 @@ interface CategorySectionProps {
   selectedCategoryValue: CategoryValue;
   showCustomCategory: boolean;
   handleCategoryChange: (value: CategoryValue) => void;
-  handleFieldChange: (field: keyof PromptData, value: string) => void;
+  handleFieldChange: (
+    field: Exclude<keyof PromptData, 'category'>,
+    value: string,
+  ) => void;
   onSelectTemplate: (template: PromptTemplate) => void;
 }
 

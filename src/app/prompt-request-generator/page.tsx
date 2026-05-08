@@ -6,7 +6,7 @@ import { usePromptGenerator } from '@/hooks/use-prompt-generator';
 import { useToast } from '@/hooks/use-toast';
 import { PromptData } from '@/lib/prompt-generator/types';
 import { PromptTemplate } from './components/PromptTemplateSelector';
-import { useGeneratorShortcuts } from './hooks/use-generator-shortcuts';
+import { useGeneratorShortcuts } from '../hooks/use-generator-shortcuts';
 
 // UI Components
 import {
@@ -79,7 +79,7 @@ export default function PromptRequestGenerator() {
     showCustomCategory,
     requestInputRef,
     contextInputRef,
-    codeInputRef,
+    codeRef,
     isGenerateDisabled,
     setShowSaveDialog,
     setNewRequestName,
@@ -149,7 +149,7 @@ export default function PromptRequestGenerator() {
                 onSelectTemplate={handleTemplateSelect}
                 requestInputRef={requestInputRef}
                 contextInputRef={contextInputRef}
-                codeInputRef={codeInputRef}
+                codeRef={codeRef}
               />
 
               <PromptActionButtons

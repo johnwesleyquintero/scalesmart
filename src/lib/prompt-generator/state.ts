@@ -1,4 +1,8 @@
-import { PromptData, SavedRequest } from '@/lib/prompt-generator/types';
+import {
+  CategoryValue,
+  PromptData,
+  SavedRequest,
+} from '@/lib/prompt-generator/types';
 
 export interface PromptGeneratorState {
   promptData: PromptData;
@@ -21,7 +25,7 @@ export const initialState: PromptGeneratorState = {
     request: '',
     parentTask: '',
     subtask: '',
-    codeInput: '',
+    code: '',
     outputFormat: '',
     constraints: '',
     examples: '',
@@ -40,7 +44,12 @@ export const initialState: PromptGeneratorState = {
 };
 
 export type PromptGeneratorAction =
-  | { type: 'SET_FIELD'; field: keyof PromptData; value: string }
+  | {
+      type: 'SET_FIELD';
+      field: Exclude<keyof PromptData, 'category'>;
+      value: string;
+    }
+  | { type: 'SET_FIELD'; field: 'category'; value: CategoryValue }
   | { type: 'SET_PROMPT_DATA'; payload: PromptData }
   | { type: 'CLEAR_FORM' }
   | { type: 'SET_OUTPUT'; payload: string }

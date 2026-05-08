@@ -131,7 +131,7 @@ export function preparePromptData(data: PromptData): PromptData {
     parentTask: data.parentTask.trim(),
     subtask: data.subtask.trim(),
     customCategory: data.customCategory?.trim() || '',
-    codeInput: data.codeInput?.trim() || '',
+    code: data.code?.trim() || '',
     outputFormat: data.outputFormat?.trim() || '',
     constraints: data.constraints?.trim() || '',
     examples: data.examples?.trim() || '',
@@ -158,7 +158,7 @@ export function generatePrompt(data: PromptData): string {
     request,
     parentTask,
     subtask,
-    codeInput,
+    code,
   } = data;
   let prompt = '';
 
@@ -200,10 +200,10 @@ export function generatePrompt(data: PromptData): string {
 
   // Add code input section if provided and not just whitespace.
   // Detect the programming language for syntax highlighting in the Markdown code block.
-  // Explicitly use the 'codeInput' from the input data.
-  if (codeInput && codeInput.trim()) {
-    const language = detectLanguage(codeInput);
-    prompt += `${CODE_HEADING}\n\`\`\`${language}\n${codeInput.trim()}\n\`\`\`\n\n`;
+  // Explicitly use the 'code' from the input data.
+  if (code && code.trim()) {
+    const language = detectLanguage(code);
+    prompt += `${CODE_HEADING}\n\`\`\`${language}\n${code.trim()}\n\`\`\`\n\n`;
   }
 
   // Add a polite closing statement to the prompt.

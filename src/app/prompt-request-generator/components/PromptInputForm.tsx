@@ -9,13 +9,16 @@ import { AdvancedConfigSection } from './form-sections/AdvancedConfigSection';
 interface PromptInputFormProps {
   form: UseFormReturn<PromptData>;
   promptData: PromptData;
-  handleFieldChange: (field: keyof PromptData, value: string) => void;
+  handleFieldChange: (
+    field: Exclude<keyof PromptData, 'category'>,
+    value: string,
+  ) => void;
   handleCategoryChange: (value: CategoryValue) => void;
   showCustomCategory: boolean;
   onSelectTemplate: (template: PromptTemplate) => void;
   requestInputRef?: React.RefObject<HTMLTextAreaElement | null>;
   contextInputRef?: React.RefObject<HTMLTextAreaElement | null>;
-  codeInputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  codeRef?: React.RefObject<HTMLTextAreaElement | null>;
 }
 
 const PromptInputForm: React.FC<PromptInputFormProps> = ({
@@ -26,7 +29,7 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
   onSelectTemplate,
   requestInputRef,
   contextInputRef,
-  codeInputRef,
+  codeRef,
 }) => {
   const {
     control,
@@ -59,7 +62,7 @@ const PromptInputForm: React.FC<PromptInputFormProps> = ({
       <AdvancedConfigSection
         control={control}
         handleFieldChange={handleFieldChange}
-        codeInputRef={codeInputRef}
+        codeRef={codeRef}
       />
     </div>
   );

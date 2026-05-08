@@ -14,14 +14,17 @@ import CharacterCounter from '../CharacterCounter';
 
 interface AdvancedConfigSectionProps {
   control: Control<PromptData>;
-  handleFieldChange: (field: keyof PromptData, value: string) => void;
-  codeInputRef?: React.RefObject<HTMLTextAreaElement | null>;
+  handleFieldChange: (
+    field: Exclude<keyof PromptData, 'category'>,
+    value: string,
+  ) => void;
+  codeRef?: React.RefObject<HTMLTextAreaElement | null>;
 }
 
 export const AdvancedConfigSection: React.FC<AdvancedConfigSectionProps> = ({
   control,
   handleFieldChange,
-  codeInputRef,
+  codeRef,
 }) => {
   return (
     <Accordion
@@ -93,27 +96,24 @@ export const AdvancedConfigSection: React.FC<AdvancedConfigSectionProps> = ({
             />
           </div>
 
-          {/* Code Input Editor */}
           <Controller
-            name="codeInput"
+            name="code"
             control={control}
             render={({ field }) => (
               <div className="space-y-2 relative">
-                <Label htmlFor="codeInput">
-                  Relevant Data / Code (optional)
-                </Label>
+                <Label htmlFor="code">Relevant Data / Code (optional)</Label>
                 <div className="relative">
                   <Textarea
-                    id="codeInput"
+                    id="code"
                     placeholder="Paste relevant code snippets, data structures, or logs here..."
                     {...field}
                     onChange={(e) => {
                       field.onChange(e);
-                      handleFieldChange('codeInput', e.target.value);
+                      handleFieldChange('code', e.target.value);
                     }}
                     rows={8}
                     className="bg-background border-border font-mono resize-none pr-12"
-                    ref={codeInputRef}
+                    ref={codeRef}
                   />
                   <div className="absolute bottom-2 right-2 opacity-50 text-[10px]">
                     <CharacterCounter
