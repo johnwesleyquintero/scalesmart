@@ -230,6 +230,17 @@ export function usePromptGenerator() {
 
   const cancelDeleteRequest = () => setRequestPendingDeletion(null);
 
+  const handleImportRequests = useCallback(
+    (requests: SavedRequest[]) => {
+      setSavedRequests(requests);
+      toast({
+        title: 'Imported',
+        description: `${requests.length} requests imported`,
+      });
+    },
+    [toast],
+  );
+
   // --- Undo / Redo Logic ---
   const undo = useCallback(() => {
     if (historyIndex > 0) {
@@ -291,6 +302,7 @@ export function usePromptGenerator() {
     handleLoadRequest,
     handleUpdateRequest,
     handleDeleteRequest,
+    handleImportRequests,
     confirmDeleteRequest,
     cancelDeleteRequest,
   };

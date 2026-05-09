@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { usePromptGenerator } from '@/hooks/use-prompt-generator';
 import { useToast } from '@/components/ui/use-toast';
-import { PromptData } from '@/lib/prompt-generator/types';
+import { PromptData, SavedRequest } from '@/lib/prompt-generator/types';
 import { PromptTemplate } from './components/PromptTemplateSelector';
 import { useGeneratorShortcuts } from '../../hooks/use-generator-shortcuts';
 
@@ -73,6 +73,7 @@ export default function PromptRequestGenerator() {
     handleUpdateRequest,
     handleLoadRequest,
     handleSaveDialogOpen,
+    handleImportRequests,
     clearForm,
     handleFieldChange,
     handleCategoryChange,
@@ -93,6 +94,83 @@ export default function PromptRequestGenerator() {
 
   const { toast } = useToast();
   const [showUserGuide, setShowUserGuide] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExportAll = () => {
+    if (savedRequests.length === 0) {
+      toast({
+        title: 'No requests to export',
+        description: 'Save some prompts first before exporting.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    const blob = new Blob([JSON.stringify(savedRequests, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `scalesmart-prompts-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportAll = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/json') {
+      toast({
+        title: 'Import Failed',
+        description: 'Only JSON files are supported',
+        variant: 'destructive',
+      });
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target?.result as string);
+
+        if (!Array.isArray(imported)) {
+          throw new Error('Imported data must be an array of requests.');
+        }
+
+        // Validate the structure of each imported request (Issue 1)
+        if (
+          !imported.every(
+            (req: any) =>
+              req.id &&
+              req.name &&
+              req.timestamp &&
+              req.data &&
+              typeof req.data === 'object' &&
+              'category' in req.data &&
+              'request' in req.data,
+          )
+        ) {
+          throw new Error('Invalid request format in imported file');
+        }
+
+        handleImportRequests(imported);
+      } catch (err) {
+        toast({
+          title: 'Import Failed',
+          description:
+            err instanceof Error ? err.message : 'Invalid JSON file.',
+          variant: 'destructive',
+        });
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
+    };
+    reader.readAsText(file);
+  };
 
   // Initialize keyboard shortcuts
   useGeneratorShortcuts({
@@ -175,6 +253,15 @@ export default function PromptRequestGenerator() {
                   if (request) handleUpdateRequest({ ...request, name });
                 }}
                 handleOpenGuide={() => setShowUserGuide(true)}
+                handleExportAll={handleExportAll}
+                handleImportAll={() => fileInputRef.current?.click()}
+              />
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept=".json"
+                onChange={handleImportAll}
               />
             </CardContent>
           </Card>

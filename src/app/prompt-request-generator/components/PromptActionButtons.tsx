@@ -1,6 +1,15 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Wand2, Save, Undo2, Redo2, Trash2, HelpCircle } from 'lucide-react';
+import {
+  Wand2,
+  Save,
+  Undo2,
+  Redo2,
+  Trash2,
+  HelpCircle,
+  FileDown,
+  FileUp,
+} from 'lucide-react';
 import LoadingSpinner from './LoadingSpinner';
 import {
   Tooltip,
@@ -27,6 +36,8 @@ interface PromptActionButtonsProps {
   handleDeleteRequest: (id: string) => void;
   handleUpdateRequest: (id: string, name: string) => void;
   handleOpenGuide: () => void;
+  handleExportAll?: () => void;
+  handleImportAll?: () => void;
 }
 
 const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
@@ -45,6 +56,8 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
   handleDeleteRequest,
   handleUpdateRequest,
   handleOpenGuide,
+  handleExportAll,
+  handleImportAll,
 }) => {
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/50">
@@ -130,6 +143,38 @@ const PromptActionButtons: React.FC<PromptActionButtonsProps> = ({
               handleDeleteRequest={handleDeleteRequest}
               handleUpdateRequest={handleUpdateRequest}
             />
+
+            <div className="w-px h-4 bg-border/50 mx-1" />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleExportAll}
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  aria-label="Export all requests"
+                >
+                  <FileDown className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Export All (JSON)</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleImportAll}
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  aria-label="Import requests"
+                >
+                  <FileUp className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Import JSON</TooltipContent>
+            </Tooltip>
 
             <div className="w-px h-4 bg-border/50 mx-1" />
 
