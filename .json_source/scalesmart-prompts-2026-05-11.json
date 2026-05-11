@@ -1,0 +1,40 @@
+[
+  {
+    "id": "5b0eedac-23a5-4ba5-9f3e-4812043c1130",
+    "name": "Coding Issues",
+    "data": {
+      "category": "Code & Development",
+      "customCategory": "",
+      "context": "",
+      "request": "Verify these issues exist and fix them.",
+      "code": "",
+      "parentTask": "",
+      "subtask": "",
+      "outputFormat": "",
+      "constraints": "",
+      "examples": "",
+      "tone": "",
+      "additionalInfo": ""
+    },
+    "timestamp": 1778518680814
+  },
+  {
+    "id": "33c698f0-636a-4192-a400-122f280a3a38",
+    "name": "Job Application",
+    "data": {
+      "category": "Job Applications",
+      "customCategory": "",
+      "context": "",
+      "request": "Brother, help me craft a tailored cover letter, email application, or response based on what context is needed and use our relevant data as a reference.\n\nAdapt to the provided context and determine what should be done.\nAdapt based on the platform data source context provided.\nMake all responses sound as humanized as possible.\n\nAdditional Instruction (Optional):",
+      "code": "# John Wesley Quintero\n**E-commerce Operations Specialist | Amazon Marketplace | AI-Driven Systems**\n📍 Tagum City, Philippines | 📧 wesley.ecomva@gmail.com\n🔗 [LinkedIn](https://www.linkedin.com/in/johnwesleyquintero/) | [Portfolio](https://wescode.vercel.app/) | [GitHub](https://github.com/johnwesleyquintero)\n\n---\n\n## PROFESSIONAL SUMMARY\n> I build stable e-commerce operations by turning recurring chaos into repeatable systems.\n\nResults-driven E-commerce Operations Specialist with 7+ years of experience across Amazon marketplace management, catalog operations, customer experience, inventory coordination, and process optimization. Proven ability to manage day-to-day execution while improving systems that reduce errors, save time, and support growth.\n\nExperienced in Amazon Seller Central, listing optimization, account health, Voice of Customer analysis, and AI-assisted workflows using ChatGPT, Gemini, and Claude. Strong operator mindset focused on ownership, efficiency, and measurable business outcomes.\n\n---\n\n## PROFESSIONAL EXPERIENCE\n### eCommerce Account Manager | VAXPH | SecuLife | SpeedTalk Mobile\n*July 2025 - January 2026*\n- Owned end-to-end Amazon operations across catalog management, FBA logistics, customer support, compliance, and listing performance.\n- Managed 200+ listings and variations including flat file uploads, listing fixes, content updates, and backend maintenance.\n- Handled complex customer workflows involving SIM activation, device compatibility, refunds, warranties, and technical escalations.\n- Used Voice of Customer data, returns feedback, and reviews to identify root causes and improve listing clarity.\n- Helped recover suppressed listings by resolving content, compliance, and documentation issues.\n- Reduced recurring support issues by improving product pages, internal SOPs, and response systems.\n- Built internal AI knowledge bases and responder tools to improve CX speed, consistency, and SLA performance.\n- Created internal dashboards for inventory visibility, catalog validation, and pricing support.\n- Maintained account health through proactive monitoring of metrics, policy risks, and customer-facing defects.\n- Served as cross-functional bridge between catalog, operations, and customer support.\n\n### Amazon Specialist | My Amazon Guy\n*October 2024 - March 2025*\n- Executed Amazon SEO strategies using Helium 10 and Data Dive to improve indexing, ranking, and conversion.\n- Performed keyword research, competitor benchmarking, and listing optimization across multiple client brands.\n- Supported PPC reporting and marketplace analytics for data-driven decisions.\n- Worked in a fast-paced agency environment handling multiple accounts and priorities.\n\n### Amazon Account Manager & Operations Specialist | Champion eCommerce\n*October 2022 - June 2025*\n- Managed Amazon Seller Central operations across multiple brands with focus on catalog accuracy and account stability.\n- Executed bulk listing updates, variation builds, flat file maintenance, and suppression recovery.\n- Monitored Buy Box ownership, pricing changes, stock levels, and operational risks.\n- Handled Seller Support cases and operational escalations efficiently.\n- Standardized workflows and documentation to reduce dependency on tribal knowledge.\n- Improved execution consistency through SOP creation and structured task systems.\n\n### Amazon Wholesale Buyer | Sales.support\n*October 2018 - July 2022*\n- Researched profitable wholesale opportunities using SellerAmp SAS, Keepa, and ScanUnlimited.\n- Evaluated margins, restrictions, competition, and sales velocity before purchasing.\n- Developed sourcing SOPs for supplier vetting, negotiations, and procurement efficiency.\n\n---\n\n## OPERATING PRINCIPLES\n### Operational Ownership\nTreating every store as a machine that must run smoothly, profitably, and predictably.\n\n### Systems Over Firefighting\nFixing root causes and building repeatable workflows instead of solving the same problem twice.\n\n### Customer Reality Matters\nUsing VOC data, reviews, and support signals to improve listings and reduce friction.\n\n### Accuracy with Speed\nDelivering fast execution without sacrificing compliance or data integrity.\n\n---\n\n## TECHNICAL TOOLKIT\n### Marketplace Operations\n- **Amazon Seller Central**: Daily management of catalog, FBA, cases, performance, and account operations.\n- **Account Health Dashboard**: Monitoring policy compliance and operational risk indicators.\n- **FBA Reconciliation**: Investigating lost, damaged, and mismatched inventory issues.\n\n### SEO & Growth\n- **Helium 10**: Keyword research, indexing support, trend analysis, and listing optimization.\n- **Data Dive**: Competitive analysis and conversion-focused listing decisions.\n- **Brand Analytics**: Search and purchase behavior insights for optimization decisions.\n\n### Research & Sourcing\n- **Keepa**: Historical pricing, sales rank trends, and Buy Box movement.\n- **SellerAmp SAS**: Profitability checks, restrictions, and sourcing decisions.\n- **ScanUnlimited**: Bulk supplier list analysis for catalog expansion.\n\n### Reporting & Systems\n- **Excel & Google Sheets**: Trackers, dashboards, reconciliation sheets, and operational models.\n- **Looker Studio**: Executive dashboards for operational visibility.\n- **AI Tools**: ChatGPT, Gemini, Claude for workflow acceleration and automation.\n\n---\n\n## DAILY RHYTHM\n### Daily Marketplace Operations\nBalancing execution, risk management, and optimization to keep accounts healthy and scalable:\n- **Account Health:** Monitor metrics, defects, and policy risks.\n- **Catalog Operations:** Update listings, variations, images, and backend data.\n- **Inventory Oversight:** Track stock levels, shipment issues, and replenishment needs.\n- **Customer Experience:** Resolve inquiries, defects, returns, and recurring pain points.\n- **Content Optimization:** Improve listings and A+ assets for better conversion.\n- **VOC Analysis:** Use reviews and returns data to guide improvements.\n- **Documentation:** Maintain SOPs and scalable internal systems.\n\n---\n\n## EDUCATION\n### Bachelor in Elementary Education\nUniversity of Southeastern Philippines | *2015 - 2019*\nMajor in General Education | Licensed Professional Teacher (LPT)\n\n### Information Technology\nMagugpo Institute of Technology | *2011 - 2014*\nComputer Technology and Programming\n\n## CERTIFICATIONS\n- Professional Teacher's License (LPT)\n- Amazon SEO & PPC Certification\n- Data Modeling for Power BI\n\n## LANGUAGES\nEnglish (Professional), Tagalog (Native), Cebuano (Native)",
+      "parentTask": "",
+      "subtask": "",
+      "outputFormat": "",
+      "constraints": "",
+      "examples": "",
+      "tone": "",
+      "additionalInfo": ""
+    },
+    "timestamp": 1778518592350
+  }
+]
