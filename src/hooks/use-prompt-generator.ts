@@ -12,11 +12,11 @@ import { useToast } from '@/components/ui/use-toast';
 const STORAGE_KEY = 'scalesmart_saved_prompts';
 
 const initialPromptData: PromptData = {
-  category: 'General Assistance', // Changed from 'General' to 'General Assistance' for consistency with state.ts
+  category: 'General Assistance',
   customCategory: '',
   context: '',
   request: '',
-  code: '', // Initialized 'code' property
+  code: '',
   parentTask: '',
   subtask: '',
   outputFormat: '',
@@ -34,6 +34,9 @@ export function usePromptGenerator() {
   const [output, setOutput] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [savedRequests, setSavedRequests] = useState<SavedRequest[]>([]);
+  const [selectedSavedRequestId, setSelectedSavedRequestId] = useState<
+    string | null
+  >(null);
 
   // Dialog States
   const [showSaveDialog, setShowSaveDialog] = useState(false);
@@ -51,20 +54,29 @@ export function usePromptGenerator() {
   const contextInputRef = useRef<HTMLTextAreaElement>(null);
   const codeInputRef = useRef<HTMLTextAreaElement>(null);
 
-  // --- Initialization ---
+  // --- Persistence ---
+  // Load on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        setSavedRequests(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse saved requests', e);
-      }
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) setSavedRequests(JSON.parse(stored));
+    } catch (e) {
+      console.error('Failed to parse saved requests', e);
     }
   }, []);
 
+  // Persist whenever savedRequests changes (skip initial empty state)
+  const isFirstSave = useRef(true);
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedRequests));
+    if (isFirstSave.current) {
+      isFirstSave.current = false;
+      return;
+    }
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(savedRequests));
+    } catch (e) {
+      console.error('Failed to persist saved requests', e);
+    }
   }, [savedRequests]);
 
   // --- Helpers ---
@@ -76,23 +88,21 @@ export function usePromptGenerator() {
     (newData: Partial<PromptData>) => {
       setPromptData((prev) => {
         const updated = { ...prev, ...newData };
-
-        // Add to history if it's a significant change
         const newHistory = history.slice(0, historyIndex + 1);
         setHistory([...newHistory, updated]);
         setHistoryIndex(newHistory.length);
-
         return updated;
       });
     },
     [history, historyIndex],
   );
 
-  // --- Handlers ---
+  // --- Field Handlers ---
   const handleFieldChange = (
     field: Exclude<keyof PromptData, 'category'>,
     value: string,
   ) => {
+    // Clear selectedSavedRequestId when user edits (they diverged from the saved state)
     updatePromptData({ [field]: value });
   };
 
@@ -101,10 +111,10 @@ export function usePromptGenerator() {
     updatePromptData({ category: value });
   };
 
+  // --- Generate ---
   const handleGeneratePrompt = useCallback(async () => {
     setLoading(true);
     try {
-      // Simulate a small delay for "Execution System" feel
       await new Promise((res) => setTimeout(res, 600));
 
       const category =
@@ -132,14 +142,10 @@ export function usePromptGenerator() {
       if (promptData.tone) sections.push(`### TONE\n${promptData.tone}`);
       if (promptData.additionalInfo)
         sections.push(`### ADDITIONAL INFO\n${promptData.additionalInfo}`);
-
-      if (promptData.code) {
+      if (promptData.code)
         sections.push(`### CODE SNIPPET\n\`\`\`\n${promptData.code}\n\`\`\``);
-      }
 
-      const formattedPrompt = sections.join('\n\n').trim();
-
-      setOutput(formattedPrompt);
+      setOutput(sections.join('\n\n').trim());
       toast({
         title: 'Prompt Generated',
         description: 'Your structured request is ready.',
@@ -160,10 +166,11 @@ export function usePromptGenerator() {
     setOutput('');
     setHistory([initialPromptData]);
     setHistoryIndex(0);
+    setSelectedSavedRequestId(null);
     toast({ description: 'Form cleared.' });
   }, [toast]);
 
-  // --- Save / Load / Delete Logic ---
+  // --- Save / Load / Delete ---
   const handleSaveDialogOpen = () => setShowSaveDialog(true);
 
   const handleSaveRequest = () => {
@@ -175,7 +182,11 @@ export function usePromptGenerator() {
       });
       return;
     }
-    setNewRequestName(`Request ${savedRequests.length + 1}`);
+    // Pre-fill with a smart default name derived from the request text
+    const snippet = promptData.request.trim().slice(0, 40);
+    const lastSpace = snippet.lastIndexOf(' ');
+    const suggested = lastSpace > 10 ? snippet.slice(0, lastSpace) : snippet;
+    setNewRequestName(suggested || `Request ${savedRequests.length + 1}`);
     setShowSaveDialog(true);
   };
 
@@ -187,6 +198,7 @@ export function usePromptGenerator() {
       timestamp: Date.now(),
     };
     setSavedRequests((prev) => [newSavedRequest, ...prev]);
+    setSelectedSavedRequestId(newSavedRequest.id);
     setShowSaveDialog(false);
     toast({
       title: 'Saved',
@@ -197,22 +209,36 @@ export function usePromptGenerator() {
   const handleLoadRequest = (request: SavedRequest) => {
     setPromptData(request.data);
     setShowCustomCategory(request.data.category === CUSTOM_CATEGORY_VALUE);
+    setSelectedSavedRequestId(request.id);
+    setOutput('');
     toast({ title: 'Loaded', description: `Loaded "${request.name}"` });
   };
 
+  /** Rename a saved request (name only, not its data) */
   const handleUpdateRequest = (request: SavedRequest) => {
     setSavedRequests((prev) =>
-      prev.map((r) =>
-        r.id === request.id
-          ? { ...r, data: { ...promptData }, timestamp: Date.now() }
-          : r,
-      ),
+      prev.map((r) => (r.id === request.id ? { ...r, name: request.name } : r)),
     );
-    toast({
-      title: 'Updated',
-      description: 'Saved request updated with current form data.',
-    });
+    toast({ title: 'Renamed', description: `Request renamed.` });
   };
+
+  /** Overwrite a saved request's data with current form state */
+  const handleUpdateRequestData = useCallback(
+    (id: string) => {
+      setSavedRequests((prev) =>
+        prev.map((r) =>
+          r.id === id
+            ? { ...r, data: { ...promptData }, timestamp: Date.now() }
+            : r,
+        ),
+      );
+      toast({
+        title: 'Updated',
+        description: 'Saved request updated with current form data.',
+      });
+    },
+    [promptData, toast],
+  );
 
   const handleDeleteRequest = (request: SavedRequest) => {
     setRequestPendingDeletion(request);
@@ -223,6 +249,9 @@ export function usePromptGenerator() {
       setSavedRequests((prev) =>
         prev.filter((r) => r.id !== requestPendingDeletion.id),
       );
+      if (selectedSavedRequestId === requestPendingDeletion.id) {
+        setSelectedSavedRequestId(null);
+      }
       setRequestPendingDeletion(null);
       toast({ title: 'Deleted', description: 'Request removed.' });
     }
@@ -233,15 +262,16 @@ export function usePromptGenerator() {
   const handleImportRequests = useCallback(
     (requests: SavedRequest[]) => {
       setSavedRequests(requests);
+      setSelectedSavedRequestId(null);
       toast({
         title: 'Imported',
-        description: `${requests.length} requests imported`,
+        description: `${requests.length} request${requests.length !== 1 ? 's' : ''} imported.`,
       });
     },
     [toast],
   );
 
-  // --- Undo / Redo Logic ---
+  // --- Undo / Redo ---
   const undo = useCallback(() => {
     if (historyIndex > 0) {
       const prevIndex = historyIndex - 1;
@@ -268,6 +298,7 @@ export function usePromptGenerator() {
     savedRequests,
     requestPendingDeletion,
     showCustomCategory,
+    selectedSavedRequestId,
 
     // History
     canUndo: historyIndex > 0,
@@ -280,7 +311,7 @@ export function usePromptGenerator() {
     contextInputRef,
     codeInputRef,
 
-    // Logic state
+    // Derived
     isGenerateDisabled,
 
     // Setters
@@ -295,12 +326,13 @@ export function usePromptGenerator() {
     handleCopyOutput,
     clearForm,
 
-    // CRUD Handlers
+    // CRUD
     handleSaveRequest,
     handleSaveDialogOpen,
     confirmSaveRequest,
     handleLoadRequest,
     handleUpdateRequest,
+    handleUpdateRequestData,
     handleDeleteRequest,
     handleImportRequests,
     confirmDeleteRequest,

@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { usePromptGenerator } from '@/hooks/use-prompt-generator';
 import { useToast } from '@/components/ui/use-toast';
 import { PromptData, SavedRequest } from '@/lib/prompt-generator/types';
 import { PromptTemplate } from './components/PromptTemplateSelector';
 import { useGeneratorShortcuts } from '../../hooks/use-generator-shortcuts';
+import { CheckCircle2, CloudOff, Loader2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // UI Components
 import {
@@ -36,25 +38,50 @@ const UserGuideModal = dynamic(() => import('./components/UserGuideModal'), {
 
 const DeleteConfirmationDialog = dynamic(
   () => import('./components/DeleteConfirmationDialog'),
-  {
-    ssr: false,
-  },
+  { ssr: false },
 );
 
 const SaveRequestDialog = dynamic(
   () => import('./components/SaveRequestDialog'),
-  {
-    ssr: false,
-  },
+  { ssr: false },
 );
 
 // Custom Components
 import PromptInputForm from './components/PromptInputForm';
 import PromptActionButtons from './components/PromptActionButtons';
 
+// ------- Autosave indicator -------
+type AutosaveStatus = 'idle' | 'saving' | 'saved' | 'offline';
+
+function AutosaveIndicator({ status }: { status: AutosaveStatus }) {
+  if (status === 'idle') return null;
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-1.5 text-xs transition-all duration-300',
+        status === 'saving' && 'text-muted-foreground',
+        status === 'saved' && 'text-green-600 dark:text-green-400',
+        status === 'offline' && 'text-amber-500',
+      )}
+    >
+      {status === 'saving' && <Loader2 className="h-3 w-3 animate-spin" />}
+      {status === 'saved' && <CheckCircle2 className="h-3 w-3" />}
+      {status === 'offline' && <CloudOff className="h-3 w-3" />}
+      <span>
+        {status === 'saving'
+          ? 'Saving…'
+          : status === 'saved'
+            ? 'Draft saved'
+            : 'Offline — changes not saved'}
+      </span>
+    </div>
+  );
+}
+
 /**
- * A component for generating structured prompts based on user input for code assistance.
- * Allows selecting a category, providing context, describing the request, and including code snippets.
+ * Prompt Request Generator page.
+ * Lets users build structured AI prompts with category, context, code snippets, etc.
+ * Supports saving, loading, exporting, and importing prompt requests.
  */
 export default function PromptRequestGenerator() {
   const {
@@ -65,12 +92,14 @@ export default function PromptRequestGenerator() {
     newRequestName,
     savedRequests,
     requestPendingDeletion,
+    selectedSavedRequestId,
     updatePromptData,
     handleGeneratePrompt,
     handleCopyOutput,
     handleSaveRequest,
     handleDeleteRequest,
     handleUpdateRequest,
+    handleUpdateRequestData,
     handleLoadRequest,
     handleSaveDialogOpen,
     handleImportRequests,
@@ -96,6 +125,41 @@ export default function PromptRequestGenerator() {
   const [showUserGuide, setShowUserGuide] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // ------- Autosave status -------
+  const [autosaveStatus, setAutosaveStatus] = useState<AutosaveStatus>('idle');
+  const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+
+  const triggerAutosave = useCallback(() => {
+    if (!isOnline) {
+      setAutosaveStatus('offline');
+      return;
+    }
+    setAutosaveStatus('saving');
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current);
+    autosaveTimerRef.current = setTimeout(() => {
+      setAutosaveStatus('saved');
+      autosaveTimerRef.current = setTimeout(
+        () => setAutosaveStatus('idle'),
+        3000,
+      );
+    }, 800);
+  }, [isOnline]);
+
+  // Fire autosave indicator whenever promptData changes (but not on first mount)
+  const isMountedRef = useRef(false);
+  useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
+    // Only show saving indicator if form has content
+    if (promptData.request || promptData.context || promptData.code) {
+      triggerAutosave();
+    }
+  }, [promptData, triggerAutosave]);
+
+  // ------- Export / Import -------
   const handleExportAll = () => {
     if (savedRequests.length === 0) {
       toast({
@@ -116,6 +180,10 @@ export default function PromptRequestGenerator() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    toast({
+      title: 'Exported',
+      description: `${savedRequests.length} request${savedRequests.length !== 1 ? 's' : ''} exported.`,
+    });
   };
 
   const handleImportAll = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,7 +193,7 @@ export default function PromptRequestGenerator() {
     if (file.type !== 'application/json') {
       toast({
         title: 'Import Failed',
-        description: 'Only JSON files are supported',
+        description: 'Only JSON files are supported.',
         variant: 'destructive',
       });
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -136,12 +204,9 @@ export default function PromptRequestGenerator() {
     reader.onload = (e) => {
       try {
         const imported = JSON.parse(e.target?.result as string);
-
-        if (!Array.isArray(imported)) {
+        if (!Array.isArray(imported))
           throw new Error('Imported data must be an array of requests.');
-        }
 
-        // Validate the structure of each imported request (Issue 1)
         if (
           !imported.every(
             (req: any) =>
@@ -154,7 +219,7 @@ export default function PromptRequestGenerator() {
               'request' in req.data,
           )
         ) {
-          throw new Error('Invalid request format in imported file');
+          throw new Error('Invalid request format in imported file.');
         }
 
         handleImportRequests(imported);
@@ -172,7 +237,7 @@ export default function PromptRequestGenerator() {
     reader.readAsText(file);
   };
 
-  // Initialize keyboard shortcuts
+  // ------- Keyboard shortcuts -------
   useGeneratorShortcuts({
     loading,
     output,
@@ -188,9 +253,7 @@ export default function PromptRequestGenerator() {
     updatePromptData,
   });
 
-  const form = useForm<PromptData>({
-    values: promptData,
-  });
+  const form = useForm<PromptData>({ values: promptData });
 
   const handleTemplateSelect = (template: PromptTemplate) => {
     updatePromptData(template.data);
@@ -202,19 +265,31 @@ export default function PromptRequestGenerator() {
 
   return (
     <div className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
-      <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-100/30 via-transparent to-blue-100/30 dark:from-purple-950/30 dark:via-transparent dark:to-blue-950/30 blur-3xl"></div>
+      {/* Ambient background */}
+      <div className="absolute inset-0 -z-10 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-100/30 via-transparent to-blue-100/30 dark:from-purple-950/30 dark:via-transparent dark:to-blue-950/30 blur-3xl" />
       </div>
+
       <div className="bg-card p-6 rounded-lg shadow-xl border border-border/50 relative z-10 backdrop-blur-sm">
-        {/* Full-Width Layout */}
         <div className="mt-2 space-y-8">
           {/* Input Form and Controls */}
           <Card className="bg-card border-border shadow-sm">
             <CardHeader>
-              <CardTitle className="text-foreground">Request Details</CardTitle>
-              <CardDescription className="text-muted-foreground">
-                Fill in the sections below to generate a well-structured prompt
-              </CardDescription>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <CardTitle className="text-foreground">
+                    Request Details
+                  </CardTitle>
+                  <CardDescription className="text-muted-foreground">
+                    Fill in the sections below to generate a well-structured
+                    prompt
+                  </CardDescription>
+                </div>
+                {/* Autosave indicator — top-right of card header */}
+                <div className="pt-0.5 flex-shrink-0">
+                  <AutosaveIndicator status={autosaveStatus} />
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <PromptInputForm
@@ -240,6 +315,7 @@ export default function PromptRequestGenerator() {
                 canUndo={canUndo}
                 canRedo={canRedo}
                 savedRequests={savedRequests}
+                selectedSavedRequestId={selectedSavedRequestId}
                 handleLoadRequest={(id) => {
                   const request = savedRequests.find((r) => r.id === id);
                   if (request) handleLoadRequest(request);
@@ -252,10 +328,12 @@ export default function PromptRequestGenerator() {
                   const request = savedRequests.find((r) => r.id === id);
                   if (request) handleUpdateRequest({ ...request, name });
                 }}
+                handleUpdateRequestData={handleUpdateRequestData}
                 handleOpenGuide={() => setShowUserGuide(true)}
                 handleExportAll={handleExportAll}
                 handleImportAll={() => fileInputRef.current?.click()}
               />
+
               <input
                 type="file"
                 ref={fileInputRef}
@@ -281,12 +359,15 @@ export default function PromptRequestGenerator() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Dialogs */}
         <SaveRequestDialog
           showSaveDialog={showSaveDialog}
           setShowSaveDialog={setShowSaveDialog}
           newRequestName={newRequestName}
           setNewRequestName={setNewRequestName}
           confirmSaveRequest={confirmSaveRequest}
+          requestText={promptData.request}
         />
         <DeleteConfirmationDialog
           requestPendingDeletion={requestPendingDeletion}
