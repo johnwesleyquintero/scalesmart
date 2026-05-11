@@ -123,7 +123,7 @@ export function usePromptGenerator() {
           : promptData.category;
 
       const sections = [
-        '### ROLE\nPersonal and Coding Assistant.',
+        '### ROLE\nPersonal Assistant.',
         `### CATEGORY\n${category}`,
         `### REQUEST\n${promptData.request}`,
         `### CONTEXT\n${promptData.context || 'No additional context provided.'}`,
