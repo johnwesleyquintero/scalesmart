@@ -123,10 +123,10 @@ export function usePromptGenerator() {
           : promptData.category;
 
       const sections = [
-        '### ROLE\nExpert Software Engineer / Coding Assistant',
+        '### ROLE\nYou are my bro and Scales Smart Co-founder. Act as my Personal Assistant.',
         `### CATEGORY\n${category}`,
-        `### CONTEXT\n${promptData.context || 'No additional context provided.'}`,
         `### REQUEST\n${promptData.request}`,
+        `### CONTEXT\n${promptData.context || 'No additional context provided.'}`,
       ];
 
       if (promptData.parentTask)
