@@ -1,0 +1,236 @@
+---
+title: 'Lead Intelligence Engine v1: Scan → Score → Decide System'
+description: 'A structured decision engine for evaluating Amazon wholesale opportunities using deterministic scoring logic. Designed to replace subjective sourcing with repeatable evaluation rules.'
+date: '2026-05-12'
+author: 'Wesley Quintero'
+tags:
+  - amazon-fba
+  - lead-intelligence
+  - sourcing-system
+  - decision-engine
+  - wholesale-operations
+image: '/images/blog/lead-intelligence-engine.png'
+readingTime: '6 min read'
+type: 'blog'
+category: 'Operational Systems'
+order: 14
+---
+
+# Lead Intelligence Engine v1: Scan → Score → Decide
+
+## (Premise)
+
+This system replaces subjective product sourcing with a structured scoring engine.
+
+Instead of asking:
+
+> “Is this a good product?”
+
+We ask:
+
+> “Does this product pass the system thresholds?”
+
+---
+
+# Core Principle
+
+> “Leads are not evaluated emotionally. They are scored structurally.”
+
+Every product is treated as a data object, not an opinion.
+
+---
+
+# System Flow: Scan → Score → Decide
+
+---
+
+## Step 1: Scan (Data Extraction Layer)
+
+The operator collects raw product data:
+
+- Price
+- BSR
+- Sales velocity
+- Keepa history
+- Offer count
+- Buy Box behavior
+- Weight
+- Brand type
+- IP risk signals
+
+**Objective:** Convert product into structured evaluation input.
+
+---
+
+## Step 2: Score (Decision Engine Layer)
+
+Each product is evaluated across five scoring dimensions.
+
+---
+
+### 1. Demand Score (0–5)
+
+Measures sales consistency.
+
+**Inputs:**
+- Amazon monthly sales
+- Keepa 12h / 30d sales trend
+- BSR stability
+
+**Rule:**
+- High consistent sales = higher score
+
+---
+
+### 2. Profitability Score (0–5)
+
+Measures financial viability.
+
+**Inputs:**
+- ROI %
+- Net profit per unit
+- Cost stability
+
+**Thresholds:**
+- &lt;10% ROI = 0–1
+- 10–15% = 2–3
+- 15–20% = 4
+- 20%+ = 5
+
+---
+
+### 3. Competition Score (0–5)
+
+Measures market saturation.
+
+**Inputs:**
+- Offer count
+- Buy Box distribution
+- Top seller dominance
+
+**Rules:**
+- Single dominant seller = low score
+- Shared Buy Box = higher score
+
+---
+
+### 4. Stability Score (0–5)
+
+Measures historical reliability.
+
+**Inputs:**
+- Keepa price chart consistency
+- no spikes/dumps
+- no sudden offer drops
+
+**Red flag triggers:**
+- volatile pricing
+- erratic rank movement
+
+---
+
+### 5. Risk Score (0–5)
+
+Measures Amazon and brand safety.
+
+**Inputs:**
+- IP complaints history
+- gating risk
+- brand restriction signals
+- sudden offer disappearance
+
+**Rule:**
+- higher risk = lower score
+
+---
+
+# Step 3: Decision Logic
+
+After scoring:
+
+## Total Score Calculation
+
+```
+
+Total Score = Demand + Profitability + Competition + Stability + Risk
+Max = 25
+
+```
+
+---
+
+## Output Classification
+
+### 🟢 Green Lead (18–25)
+- Safe to execute
+- Replenishable potential
+- Low operational risk
+
+---
+
+### 🟡 Yellow Lead (13–17)
+- Conditional opportunity
+- Requires deeper validation
+- Monitor before scaling
+
+---
+
+### 🔴 Red Lead (0–12)
+- Reject immediately
+- High risk or low return
+
+---
+
+# Execution Rules
+
+## DO
+
+- follow scoring system strictly
+- prioritize data over intuition
+- document reasoning briefly
+- maintain consistency across leads
+
+## DON’T
+
+- override score based on “gut feeling”
+- ignore risk signals for profit
+- skip data validation steps
+- manually adjust classification after scoring
+
+---
+
+# Operator Output Format
+
+Every evaluated product must be documented as:
+
+### Product Summary
+- Name / Category
+- Key metrics (BSR, ROI, offer count)
+
+### Score Breakdown
+- Demand: X/5
+- Profitability: X/5
+- Competition: X/5
+- Stability: X/5
+- Risk: X/5
+
+### Final Decision
+- Green / Yellow / Red
+
+### Reasoning (1–2 lines max)
+
+---
+
+# System Philosophy
+
+> “Speed comes from structure, not intuition.”
+
+This engine removes decision fatigue and replaces it with repeatable logic.
+
+---
+
+# Closing Principle
+
+> “A lead is only valuable if it survives structured evaluation.”
+
+This system ensures only durable, scalable opportunities pass through.
