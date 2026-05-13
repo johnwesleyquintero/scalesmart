@@ -16,41 +16,43 @@ Most companies don't struggle because of lack of ambition — they struggle beca
 ## 🛠️ Tools & Features
 
 ### 🤖 Prompt Request Generator
+
 **Route:** `/prompt-request-generator`
 
 A free, fully client-side AI prompt structuring tool available to **all users** — no login required. It helps anyone craft well-structured, high-quality prompts for any AI assistant (ChatGPT, Claude, Gemini, etc.).
 
 #### ✨ What It Does
+
 Transforms raw ideas into structured, professional AI prompts using a **System-First** approach — ensuring AI assistants receive all the context they need to deliver precise, useful results.
 
 #### 🔧 Key Features
 
-| Feature | Description |
-|---|---|
-| **Category Selection** | Pre-defined categories (General Assistance, Technical, Writing, Strategy, etc.) + Custom category support |
-| **Structured Fields** | Request, Context, Parent Task, Subtask, Output Format, Constraints, Examples, Tone, Additional Info, Code Snippet |
-| **9 Starter Templates** | One-click templates for: Analysis & Research, Professional Writing, Strategic Planning, Technical Solving, Communication, Process Optimization, Learning & Education, Creative Ideation, Summarization |
-| **Save & Load Requests** | Persist prompt drafts locally (browser `localStorage`) with full CRUD operations |
-| **Undo / Redo** | Full edit history — never lose a draft |
-| **Draft Autosave** | Visual autosave indicator shows when your work is being saved |
-| **Export / Import (JSON)** | Backup your saved prompts or migrate them across devices |
-| **Copy to Clipboard** | One-click copy of the final structured prompt |
-| **Keyboard Shortcuts** | Power-user shortcuts for all major actions |
-| **User Guide Modal** | Built-in strategy guide explaining the "System-First" prompting philosophy |
+| Feature                    | Description                                                                                                                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Category Selection**     | Pre-defined categories (General Assistance, Technical, Writing, Strategy, etc.) + Custom category support                                                                                              |
+| **Structured Fields**      | Request, Context, Parent Task, Subtask, Output Format, Constraints, Examples, Tone, Additional Info, Code Snippet                                                                                      |
+| **9 Starter Templates**    | One-click templates for: Analysis & Research, Professional Writing, Strategic Planning, Technical Solving, Communication, Process Optimization, Learning & Education, Creative Ideation, Summarization |
+| **Save & Load Requests**   | Persist prompt drafts locally (browser `localStorage`) with full CRUD operations                                                                                                                       |
+| **Undo / Redo**            | Full edit history — never lose a draft                                                                                                                                                                 |
+| **Draft Autosave**         | Visual autosave indicator shows when your work is being saved                                                                                                                                          |
+| **Export / Import (JSON)** | Backup your saved prompts or migrate them across devices                                                                                                                                               |
+| **Copy to Clipboard**      | One-click copy of the final structured prompt                                                                                                                                                          |
+| **Keyboard Shortcuts**     | Power-user shortcuts for all major actions                                                                                                                                                             |
+| **User Guide Modal**       | Built-in strategy guide explaining the "System-First" prompting philosophy                                                                                                                             |
 
 #### ⌨️ Keyboard Shortcuts
 
-| Action | Shortcut |
-|---|---|
-| Generate Prompt | `Ctrl + Enter` |
-| Save Request | `Ctrl + S` |
-| Clear Form | `Ctrl + K` |
-| Copy Output | `Ctrl + Shift + C` |
-| Undo | `Ctrl + Z` |
-| Redo | `Ctrl + Y` |
-| Open Templates | `Ctrl + T` |
-| Duplicate Request | `Ctrl + D` |
-| Focus Fields | `Ctrl + Alt + 1 / 2 / 3` |
+| Action            | Shortcut                 |
+| ----------------- | ------------------------ |
+| Generate Prompt   | `Ctrl + Enter`           |
+| Save Request      | `Ctrl + S`               |
+| Clear Form        | `Ctrl + K`               |
+| Copy Output       | `Ctrl + Shift + C`       |
+| Undo              | `Ctrl + Z`               |
+| Redo              | `Ctrl + Y`               |
+| Open Templates    | `Ctrl + T`               |
+| Duplicate Request | `Ctrl + D`               |
+| Focus Fields      | `Ctrl + Alt + 1 / 2 / 3` |
 
 #### 🏗️ Architecture
 
@@ -110,12 +112,12 @@ We don't just collect leads — we structure them into actionable operational da
 
 ## 💻 Implementation Stack
 
-| Layer | Technology |
-|---|---|
-| **Framework** | Next.js 16+ (App Router), React 19 |
-| **Styling** | Tailwind CSS, Shadcn/UI, Framer Motion |
-| **Validation** | Zod + React Hook Form |
-| **Automation** | Google Apps Script + Webhooks (Google Sheets) |
+| Layer              | Technology                                         |
+| ------------------ | -------------------------------------------------- |
+| **Framework**      | Next.js 16+ (App Router), React 19                 |
+| **Styling**        | Tailwind CSS, Shadcn/UI, Framer Motion             |
+| **Validation**     | Zod + React Hook Form                              |
+| **Automation**     | Google Apps Script + Webhooks (Google Sheets)      |
 | **Content System** | MDX (technical guides & operational documentation) |
 
 ---
@@ -139,28 +141,33 @@ Growth breaks when execution depends on memory, effort, or individual heroics. S
 ## ⚙️ Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - npm 9+
 
 ### Development Setup
 
 1. **Install dependencies:**
+
    ```bash
    npm install
    ```
 
 2. **Configure environment** (optional — for Google Sheets integration):
+
    ```bash
    # Set your webhook URL in src/constants/links.ts
    GOOGLE_SHEETS_WEBHOOK_URL=your_webhook_url_here
    ```
 
 3. **Run the development server:**
+
    ```bash
    npm run dev:next
    ```
 
 4. **Open the app:**
+
    ```
    http://localhost:3000
    ```

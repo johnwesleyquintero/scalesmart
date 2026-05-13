@@ -73,11 +73,13 @@ Each product is evaluated across five scoring dimensions.
 Measures sales consistency.
 
 **Inputs:**
+
 - Amazon monthly sales
 - Keepa 12h / 30d sales trend
 - BSR stability
 
 **Rule:**
+
 - High consistent sales = higher score
 
 ---
@@ -87,11 +89,13 @@ Measures sales consistency.
 Measures financial viability.
 
 **Inputs:**
+
 - ROI %
 - Net profit per unit
 - Cost stability
 
 **Thresholds:**
+
 - &lt;10% ROI = 0–1
 - 10–15% = 2–3
 - 15–20% = 4
@@ -104,11 +108,13 @@ Measures financial viability.
 Measures market saturation.
 
 **Inputs:**
+
 - Offer count
 - Buy Box distribution
 - Top seller dominance
 
 **Rules:**
+
 - Single dominant seller = low score
 - Shared Buy Box = higher score
 
@@ -119,11 +125,13 @@ Measures market saturation.
 Measures historical reliability.
 
 **Inputs:**
+
 - Keepa price chart consistency
 - no spikes/dumps
 - no sudden offer drops
 
 **Red flag triggers:**
+
 - volatile pricing
 - erratic rank movement
 
@@ -134,12 +142,14 @@ Measures historical reliability.
 Measures Amazon and brand safety.
 
 **Inputs:**
+
 - IP complaints history
 - gating risk
 - brand restriction signals
 - sudden offer disappearance
 
 **Rule:**
+
 - higher risk = lower score
 
 ---
@@ -162,6 +172,7 @@ Max = 25
 ## Output Classification
 
 ### 🟢 Green Lead (18–25)
+
 - Safe to execute
 - Replenishable potential
 - Low operational risk
@@ -169,6 +180,7 @@ Max = 25
 ---
 
 ### 🟡 Yellow Lead (13–17)
+
 - Conditional opportunity
 - Requires deeper validation
 - Monitor before scaling
@@ -176,6 +188,7 @@ Max = 25
 ---
 
 ### 🔴 Red Lead (0–12)
+
 - Reject immediately
 - High risk or low return
 
@@ -204,10 +217,12 @@ Max = 25
 Every evaluated product must be documented as:
 
 ### Product Summary
+
 - Name / Category
 - Key metrics (BSR, ROI, offer count)
 
 ### Score Breakdown
+
 - Demand: X/5
 - Profitability: X/5
 - Competition: X/5
@@ -215,6 +230,7 @@ Every evaluated product must be documented as:
 - Risk: X/5
 
 ### Final Decision
+
 - Green / Yellow / Red
 
 ### Reasoning (1–2 lines max)
