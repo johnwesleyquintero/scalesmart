@@ -27,6 +27,7 @@ export default function OptimizedImage({
 
   // Auto-detect SVGs to bypass optimization
   const isSvg = typeof src === 'string' && src.toLowerCase().endsWith('.svg');
+  const isPng = typeof src === 'string' && src.toLowerCase().endsWith('.png');
   const shouldBypassOptimization = unoptimized || isSvg;
 
   useEffect(() => {
@@ -52,6 +53,7 @@ export default function OptimizedImage({
         height={!fill ? height : undefined}
         fill={fill}
         unoptimized={shouldBypassOptimization}
+        quality={isPng ? 100 : 85}
         className={cn(
           'transition-all duration-500 ease-in-out',
           fill ? 'object-cover' : '',
