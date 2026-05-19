@@ -3,7 +3,13 @@
 import { useState, useMemo, useEffect, useCallback, Suspense } from 'react';
 import type { BlogPost } from '@/types';
 import { Badge } from '@/components/ui/badge';
-import { ArrowRight, CalendarDays, Search } from 'lucide-react';
+import {
+  ArrowRight,
+  CalendarDays,
+  Search,
+  LayoutGrid,
+  List,
+} from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -51,6 +57,7 @@ function BlogSectionContent({
   const [searchQuery, setSearchQuery] = useState(initialSearch);
   const [selectedTag, setSelectedTag] = useState<string | null>(initialTag);
   const [visibleCount, setVisibleCount] = useState(limit || 9); // Display 9 items initially
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -67,6 +74,11 @@ function BlogSectionContent({
       else params.delete('tag');
 
       const search = params.toString();
+      const currentSearch = searchParams?.toString() || '';
+
+      // Prevent infinite loop by only replacing if the URL actually needs to change
+      if (search === currentSearch) return;
+
       const query = search ? `?${search}` : '';
 
       // Update URL without a full page reload or scrolling
@@ -127,60 +139,105 @@ function BlogSectionContent({
   return (
     <section id="blog" className="py-20 bg-muted/30">
       <div className="container mx-auto px-4">
-        <div className="mb-12 text-center">
-          <h2 className="section-heading">Blog & Articles</h2>
-          <p className="mx-auto mt-4 max-w-2xl text-muted-foreground">
-            Sharing insights and strategies for Amazon sellers and e-commerce
-            businesses.
+        <div className="mb-16 text-center relative">
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background opacity-50 blur-3xl" />
+          <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent pb-2">
+            Insights & Strategies
+          </h2>
+          <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground/90">
+            Thoughts, playbooks, and systems for scaling Amazon brands and
+            e-commerce operations.
           </p>
         </div>
 
         {/* Search and Filter Section */}
         {isBlogPage && (
           <div className="mb-10 space-y-6">
-            <div className="relative max-w-md mx-auto">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search articles..."
-                className="pl-10 w-full bg-background"
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
+            <div className="relative max-w-lg mx-auto flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search articles..."
+                  className="pl-10 w-full bg-background"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                />
+              </div>
+              <div className="flex border rounded-md overflow-hidden bg-background">
+                <Button
+                  variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
+                  size="icon"
+                  onClick={() => setViewMode('grid')}
+                  className="rounded-none h-10 w-10"
+                  aria-label="Grid View"
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === 'list' ? 'secondary' : 'ghost'}
+                  size="icon"
+                  onClick={() => setViewMode('list')}
+                  className="rounded-none h-10 w-10"
+                  aria-label="List View"
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
 
             {allTags.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-2">
-                <Badge
-                  variant={selectedTag === null ? 'default' : 'outline'}
-                  className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors px-3 py-1 text-sm"
-                  onClick={() => handleTagClick(null)}
-                >
-                  All
-                </Badge>
-                {allTags.map((tag) => (
+              <div className="relative w-full max-w-4xl mx-auto group/tags">
+                <div className="flex overflow-x-auto pb-4 gap-2 snap-x snap-mandatory w-full px-4 scroll-smooth">
                   <Badge
-                    key={tag}
-                    variant={selectedTag === tag ? 'default' : 'outline'}
-                    className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors px-3 py-1 text-sm"
-                    onClick={() =>
-                      handleTagClick(selectedTag === tag ? null : tag)
-                    }
+                    variant={selectedTag === null ? 'default' : 'outline'}
+                    className={`cursor-pointer transition-all duration-300 px-4 py-1.5 text-sm whitespace-nowrap snap-start shadow-sm ${
+                      selectedTag === null
+                        ? 'bg-primary text-primary-foreground scale-105'
+                        : 'hover:bg-primary/10 hover:border-primary/50'
+                    }`}
+                    onClick={() => handleTagClick(null)}
                   >
-                    {tag}
+                    All
                   </Badge>
-                ))}
+                  {allTags.map((tag) => (
+                    <Badge
+                      key={tag}
+                      variant={selectedTag === tag ? 'default' : 'outline'}
+                      className={`cursor-pointer transition-all duration-300 px-4 py-1.5 text-sm whitespace-nowrap snap-start shadow-sm ${
+                        selectedTag === tag
+                          ? 'bg-primary text-primary-foreground scale-105'
+                          : 'hover:bg-primary/10 hover:border-primary/50'
+                      }`}
+                      onClick={() =>
+                        handleTagClick(selectedTag === tag ? null : tag)
+                      }
+                    >
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+                {/* Fade edges to hint at scrollable content on mobile */}
+                <div className="absolute top-0 right-0 bottom-4 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
+                <div className="absolute top-0 left-0 bottom-4 w-12 bg-gradient-to-r from-background to-transparent pointer-events-none md:hidden" />
               </div>
             )}
           </div>
         )}
 
         {displayedPosts.length > 0 ? (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {displayedPosts.map((post) => (
+          <div
+            className={`grid gap-6 ${viewMode === 'grid' ? 'sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 max-w-4xl mx-auto'}`}
+          >
+            {displayedPosts.map((post, index) => (
               <Card
                 key={post.slug}
-                className="overflow-hidden transition-all duration-300 hover:shadow-lg group hover:border-primary relative"
+                className={`overflow-hidden transition-all duration-500 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 group border-muted/50 hover:border-primary/50 relative animate-in fade-in slide-in-from-bottom-8 fill-mode-both ${
+                  viewMode === 'list'
+                    ? 'flex flex-col sm:flex-row items-stretch'
+                    : 'flex flex-col'
+                }`}
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <Link
                   href={`/blog/${post.slug}`}
@@ -188,7 +245,9 @@ function BlogSectionContent({
                 >
                   <span className="sr-only">Read {post.title}</span>
                 </Link>
-                <div className="aspect-video overflow-hidden relative">
+                <div
+                  className={`relative overflow-hidden ${viewMode === 'list' ? 'sm:w-2/5 aspect-video sm:aspect-auto sm:min-h-full shrink-0 border-r border-muted/50' : 'aspect-video'}`}
+                >
                   <OptimizedImage
                     src={post.image || '/default-fallback.svg'}
                     alt={post.title}
@@ -198,33 +257,55 @@ function BlogSectionContent({
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
-                <CardHeader className="p-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <CalendarDays className="h-4 w-4" />
-                    <span>{post.date}</span>
-                  </div>
-                  <CardTitle className="line-clamp-2 text-lg">
-                    {post.title}
-                  </CardTitle>
-                  <CardDescription className="line-clamp-3">
-                    {post.description}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-4 pt-0">
-                  <div className="flex flex-wrap gap-2">
-                    {(post.tags ?? []).map((tag) => (
-                      <Badge key={tag} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </CardContent>
-                <CardFooter className="p-4 pt-0">
-                  <div className="flex items-center text-primary font-medium group-hover:underline">
-                    Read Article{' '}
-                    <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
-                  </div>
-                </CardFooter>
+                <div
+                  className={`flex flex-col flex-1 ${viewMode === 'list' ? 'p-2' : ''}`}
+                >
+                  <CardHeader className={viewMode === 'list' ? 'p-4' : 'p-4'}>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                      <CalendarDays className="h-4 w-4" />
+                      <span>{post.date}</span>
+                    </div>
+                    <CardTitle className="line-clamp-2 text-lg">
+                      {post.title}
+                    </CardTitle>
+                    <CardDescription
+                      className={
+                        viewMode === 'list'
+                          ? 'line-clamp-3 mt-2'
+                          : 'line-clamp-2'
+                      }
+                    >
+                      {post.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-4 pt-0 flex-1">
+                    <div className="flex flex-wrap gap-2">
+                      {(post.tags ?? []).slice(0, 3).map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-xs bg-secondary/50 hover:bg-secondary/80 transition-colors"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                      {(post.tags?.length ?? 0) > 3 && (
+                        <Badge
+                          variant="outline"
+                          className="text-xs border-dashed text-muted-foreground"
+                        >
+                          +{(post.tags?.length ?? 0) - 3}
+                        </Badge>
+                      )}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="p-4 pt-0 mt-auto">
+                    <div className="flex items-center text-primary font-medium group-hover:underline">
+                      Read Article{' '}
+                      <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
+                    </div>
+                  </CardFooter>
+                </div>
               </Card>
             ))}
           </div>
