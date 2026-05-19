@@ -9,6 +9,7 @@ import {
   Search,
   LayoutGrid,
   List,
+  Clock,
 } from 'lucide-react';
 import {
   Card,
@@ -240,7 +241,11 @@ function BlogSectionContent({
 
             {allTags.length > 0 && (
               <div className="relative w-full max-w-4xl mx-auto group/tags">
-                <div className="flex overflow-x-auto pb-4 gap-2 snap-x snap-mandatory w-full px-4 scroll-smooth">
+                {/* Fade gradients to indicate scrollability */}
+                <div className="absolute left-0 top-0 bottom-4 w-12 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
+                <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
+
+                <div className="flex overflow-x-auto pb-4 gap-2 snap-x snap-mandatory w-full px-4 scroll-smooth scrollbar-thin">
                   <Badge
                     variant={selectedTag === null ? 'default' : 'outline'}
                     className={`cursor-pointer transition-all duration-300 px-4 py-1.5 text-sm whitespace-nowrap snap-start shadow-sm ${
@@ -313,9 +318,17 @@ function BlogSectionContent({
                   className={`flex flex-col flex-1 ${viewMode === 'list' ? 'p-2' : ''}`}
                 >
                   <CardHeader className={viewMode === 'list' ? 'p-4' : 'p-4'}>
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                      <CalendarDays className="h-4 w-4" />
-                      <span>{post.date}</span>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <CalendarDays className="h-4 w-4" />
+                        <span>{post.date}</span>
+                      </div>
+                      {post.readingTime && (
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-4 w-4" />
+                          <span>{post.readingTime}</span>
+                        </div>
+                      )}
                     </div>
                     <CardTitle className="line-clamp-2 text-lg">
                       {post.title}

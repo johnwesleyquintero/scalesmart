@@ -131,9 +131,9 @@ export default async function BlogPostPage({ params }: Readonly<Props>) {
         <div className="mb-8">
           <Link
             href="/blog"
-            className="flex items-center text-muted-foreground hover:text-primary transition-colors"
+            className="group flex items-center w-fit text-muted-foreground hover:text-primary transition-all duration-300"
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="mr-2 h-4 w-4 transition-transform duration-300 group-hover:-translate-x-1" />
             Back to all articles
           </Link>
         </div>
