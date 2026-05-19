@@ -39,6 +39,17 @@ This system merges them into one operational truth layer.
 
 > One listing spine. Everything else attaches.
 
+By treating the **Active Listing Report** as the core spine, we iterate through every SKU and attach corresponding data from other reports. This ensures our dashboard only shows items we actively have listings for, reducing noise from legacy or deleted inventory data.
+
+---
+
+## Data Architecture
+
+The system expects three primary data exports pasted into specific sheets:
+1. **`All_Listing_Report`**: The source of truth for active SKUs, ASINs, Item Names, and Listing Status.
+2. **`FBA_Inventory_Snapshot`**: Contains stock levels (available, inbound, reserved) and velocity metrics (7, 30, 60-day sales).
+3. **`Keepa`**: A custom export containing ASINs and Keepa image URLs to provide visual context in the dashboard.
+
 ---
 
 ## System Code
@@ -290,9 +301,17 @@ function num(v) {
 }
 ```
 
+### How the Core Script Works
+
+1. **O(1) Data Lookups**: Instead of using nested loops or slow spreadsheet formulas like `VLOOKUP`, the script builds memory-efficient JavaScript objects (`buildInventoryMap`, `buildSalesMap`, `buildKeepaMap`). These act as dictionaries, allowing instant data retrieval when we iterate through the listing spine.
+2. **Velocity Delta**: The script automatically calculates the difference between the last 30 days of sales and the prior 30 days (`sales.t30 - sales.t60minus30`), giving immediate visual feedback on whether a product's velocity is accelerating or decaying.
+3. **Image Rendering**: It utilizes the Keepa image URL wrapped in the spreadsheet `=IMAGE()` function to provide a visual cue for each row, falling back to a placeholder if missing.
+
 ---
 
 ## 2. Sidebar UI — `Sidebar.html`
+
+To make the system user-friendly for operators who shouldn't touch the script editor, we implement a simple sidebar UI.
 
 ```html
 <!DOCTYPE html>
@@ -357,6 +376,12 @@ function num(v) {
   </body>
 </html>
 ```
+
+### How the UI Works
+
+- It runs inside the Google Sheets environment via `HtmlService`.
+- A button triggers the `createConsolidatedDashboard` function asynchronously.
+- Success and error handlers provide immediate visual feedback to the user on the dashboard generation status.
 
 ---
 
