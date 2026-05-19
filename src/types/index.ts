@@ -56,6 +56,10 @@ export type BlogPost = {
   relatedPosts?: BlogPost[];
   /** Type of the blog post (e.g., 'blog', 'article', 'case-study', 'playbook'). */
   type?: 'blog' | 'article' | 'case-study' | 'playbook';
+  /** Optional category of the blog post. */
+  category?: string;
+  /** Optional manual order for sorting blog posts. */
+  order?: number;
 };
 
 /**

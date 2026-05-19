@@ -34,6 +34,8 @@ const blogMatterDataSchema = z.object({
     .enum(['blog', 'article', 'case-study', 'playbook'])
     .optional()
     .default('blog'),
+  category: z.string().optional(),
+  order: z.number().optional(),
 });
 
 const docMatterDataSchema = z.object({
@@ -135,14 +137,24 @@ export const getAllBlogPosts = cache(async (): Promise<BlogPost[]> => {
             readingTime: data.readingTime || DEFAULT_READING_TIME,
             author: data.author || DEFAULT_AUTHOR,
             type: data.type,
+            category: data.category,
+            order: data.order,
             content: parsed.content,
           } as BlogPost;
         }),
     );
 
-    return allPostsData.sort((a: BlogPost, b: BlogPost) =>
-      normalizeDate(b.date).localeCompare(normalizeDate(a.date)),
-    );
+    return allPostsData.sort((a: BlogPost, b: BlogPost) => {
+      // If both have an order, sort by order descending (highest first)
+      if (typeof a.order === 'number' && typeof b.order === 'number') {
+        return b.order - a.order;
+      }
+      // If only one has an order, prioritize it
+      if (typeof a.order === 'number') return -1;
+      if (typeof b.order === 'number') return 1;
+      // Fallback to sorting by date descending
+      return normalizeDate(b.date).localeCompare(normalizeDate(a.date));
+    });
   } catch (error) {
     console.error('ERROR in getAllBlogPosts:', error);
     return [];
@@ -359,6 +371,8 @@ export const getBlogPostBySlug = cache(
         readingTime: data.readingTime || DEFAULT_READING_TIME,
         author: data.author || DEFAULT_AUTHOR,
         type: data.type,
+        category: data.category,
+        order: data.order,
         content,
         relatedPosts,
       };

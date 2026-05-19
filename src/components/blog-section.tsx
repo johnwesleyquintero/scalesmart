@@ -23,6 +23,15 @@ import OptimizedImage from './shared/optimized-image';
 import { Button } from './ui/button';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+type SortOption = 'default' | 'newest' | 'oldest' | 'a-z';
 
 // Custom debounce hook to delay search filtering
 function useDebounce<T>(value: T, delay: number): T {
@@ -58,6 +67,7 @@ function BlogSectionContent({
   const [selectedTag, setSelectedTag] = useState<string | null>(initialTag);
   const [visibleCount, setVisibleCount] = useState(limit || 9); // Display 9 items initially
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [sortOption, setSortOption] = useState<SortOption>('default');
 
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
@@ -129,12 +139,30 @@ function BlogSectionContent({
     });
   }, [blogPosts, debouncedSearchQuery, selectedTag]);
 
+  // Sort the filtered posts
+  const sortedFilteredPosts = useMemo(() => {
+    const posts = [...filteredPosts];
+    if (sortOption === 'newest') {
+      posts.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
+    } else if (sortOption === 'oldest') {
+      posts.sort(
+        (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
+      );
+    } else if (sortOption === 'a-z') {
+      posts.sort((a, b) => a.title.localeCompare(b.title));
+    }
+    // 'default' uses the original sorting from getAllBlogPosts
+    return posts;
+  }, [filteredPosts, sortOption]);
+
   // Handle limiting vs pagination
   const displayedPosts = limit
-    ? filteredPosts.slice(0, limit)
-    : filteredPosts.slice(0, visibleCount);
+    ? sortedFilteredPosts.slice(0, limit)
+    : sortedFilteredPosts.slice(0, visibleCount);
 
-  const hasMorePosts = !limit && visibleCount < filteredPosts.length;
+  const hasMorePosts = !limit && visibleCount < sortedFilteredPosts.length;
 
   return (
     <section id="blog" className="py-20 bg-muted/30">
@@ -153,7 +181,7 @@ function BlogSectionContent({
         {/* Search and Filter Section */}
         {isBlogPage && (
           <div className="mb-10 space-y-6">
-            <div className="relative max-w-lg mx-auto flex items-center gap-2">
+            <div className="relative max-w-2xl mx-auto flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
@@ -164,6 +192,22 @@ function BlogSectionContent({
                   onChange={handleSearchChange}
                 />
               </div>
+
+              <Select
+                value={sortOption}
+                onValueChange={(val) => setSortOption(val as SortOption)}
+              >
+                <SelectTrigger className="w-[130px] bg-background">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="default">Default</SelectItem>
+                  <SelectItem value="newest">Newest</SelectItem>
+                  <SelectItem value="oldest">Oldest</SelectItem>
+                  <SelectItem value="a-z">A-Z</SelectItem>
+                </SelectContent>
+              </Select>
+
               <div className="flex border rounded-md overflow-hidden bg-background">
                 <Button
                   variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
