@@ -1,0 +1,369 @@
+---
+title: 'Amazon Consolidated Dashboard System: Unified FBA Intelligence Layer for Operational Visibility'
+description: 'A refactored Google Apps Script system that consolidates Amazon FBA Listing, Inventory, and Keepa data into a single dynamic dashboard, enabling structured visibility across SKU-level performance, inventory health, and sales velocity.'
+date: '2026-05-19'
+author: 'Wesley Quintero'
+tags:
+  - amazon-fba
+  - google-apps-script
+  - inventory-systems
+  - data-consolidation
+  - operational-intelligence
+image: '/images/blog/amazon-consolidated-dashboard.png'
+readingTime: '8 min read'
+type: 'blog'
+category: 'Operator Systems'
+order: 14
+---
+
+# Amazon Consolidated Dashboard System
+
+---
+
+## Context
+
+Operational data in Amazon FBA environments is fragmented across multiple reporting layers:
+
+- Listing reports (identity + catalog structure)
+- Inventory snapshots (stock + fulfillment state)
+- Sales aggregation metrics (velocity signals)
+- Keepa enrichment (images + metadata)
+
+Individually useful. Collectively powerful.
+
+This system merges them into one operational truth layer.
+
+---
+
+## Core Idea
+
+> One listing spine. Everything else attaches.
+
+---
+
+## System Code
+
+### 1. Google Apps Script — `Code.gs`
+
+```javascript
+/**
+ * @OnlyCurrentDoc
+ * Amazon Consolidated Dashboard System
+ * Single-source operational intelligence layer
+ */
+
+const CONFIG = {
+  sheets: {
+    listing: 'All_Listing_Report',
+    inventory: 'FBA_Inventory_Snapshot',
+    keepa: 'Keepa',
+    dashboard: 'Dashboard',
+  },
+  headers: {
+    listingSku: 'seller-sku',
+    asin: 'asin1',
+    itemName: 'item-name',
+    status: 'status',
+
+    invSku: 'sku',
+    available: 'available',
+    inbound: 'inbound-quantity',
+    daysOfSupply: 'days-of-supply',
+    unfulfillable: 'unfulfillable-quantity',
+
+    reservedCustomer: 'Reserved Customer Order',
+    reservedTransfer: 'Reserved FC Transfer',
+    reservedProcessing: 'Reserved FC Processing',
+
+    salesT7: 'sales-shipped-last-7-days',
+    salesT30: 'sales-shipped-last-30-days',
+    salesT60: 'sales-shipped-last-60-days',
+
+    keepaAsin: 'ASIN',
+    keepaImage: 'Image',
+  },
+  image: {
+    width: 100,
+  },
+};
+
+function onOpen() {
+  SpreadsheetApp.getUi()
+    .createMenu('Dashboard Tools')
+    .addItem('Open Dashboard Controls', 'showSidebar')
+    .addToUi();
+}
+
+function showSidebar() {
+  const html = HtmlService.createHtmlOutputFromFile('Sidebar')
+    .setTitle('Dashboard Controls')
+    .setWidth(300);
+
+  SpreadsheetApp.getUi().showSidebar(html);
+}
+
+function createConsolidatedDashboard(contextString) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  return _generateDashboard(ss, contextString);
+}
+
+function _generateDashboard(ss, contextString) {
+  const listing = _getSheet(ss, CONFIG.sheets.listing);
+  const inventory = _getSheet(ss, CONFIG.sheets.inventory);
+  const keepa = _getSheet(ss, CONFIG.sheets.keepa);
+
+  const listingData = _read(listing);
+  const inventoryData = _read(inventory);
+  const keepaData = _read(keepa);
+
+  const inventoryMap = buildInventoryMap(
+    inventoryData.headers,
+    inventoryData.rows,
+  );
+  const salesMap = buildSalesMap(inventoryData.headers, inventoryData.rows);
+  const keepaMap = buildKeepaMap(keepaData.headers, keepaData.rows);
+
+  const li = listingData.headers;
+
+  const skuI = li.indexOf(CONFIG.headers.listingSku);
+  const asinI = li.indexOf(CONFIG.headers.asin);
+  const nameI = li.indexOf(CONFIG.headers.itemName);
+  const statusI = li.indexOf(CONFIG.headers.status);
+
+  const output = [];
+
+  listingData.rows.forEach((r) => {
+    const sku = r[skuI];
+    if (!sku) return;
+
+    const asin = r[asinI];
+
+    const inv = inventoryMap[sku] || {};
+    const sales = salesMap[sku] || {};
+
+    let image = `=IMAGE("https://via.placeholder.com/100")`;
+    let link = '';
+
+    if (asin) {
+      if (keepaMap[asin]) {
+        image = `=IMAGE("${keepaMap[asin]}")`;
+      }
+      link = `https://www.amazon.com/dp/${asin}`;
+    }
+
+    output.push([
+      image,
+      r[nameI],
+      asin,
+      sku,
+      link,
+      r[statusI],
+      inv.reservedCustomer || 0,
+      inv.available || 0,
+      inv.reservedTransfer || 0,
+      inv.reservedProcessing || 0,
+      inv.inbound || 0,
+      inv.daysOfSupply || 0,
+      inv.unfulfillable || 0,
+      sales.t7 || 0,
+      sales.t60minus30 || 0,
+      sales.t30 || 0,
+      (sales.t30 || 0) - (sales.t60minus30 || 0),
+    ]);
+  });
+
+  const sheet = _getOrCreate(ss, CONFIG.sheets.dashboard);
+  sheet.clear();
+
+  const headers = [
+    'Image',
+    'Name',
+    'ASIN',
+    'SKU',
+    'Amazon Link',
+    'Status',
+    'Customer Orders',
+    'Available',
+    'FC Transfers',
+    'FC Processing',
+    'Inbound',
+    'Days of Supply',
+    'Unfulfillable',
+    'Sales 7D',
+    'Sales 31–60D',
+    'Sales 30D',
+    'Delta',
+  ];
+
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+
+  if (output.length) {
+    sheet.getRange(2, 1, output.length, output[0].length).setValues(output);
+  }
+
+  return `Dashboard updated: ${output.length} SKUs processed.`;
+}
+
+function buildInventoryMap(headers, rows) {
+  const m = {};
+  const i = indexMap(headers);
+
+  rows.forEach((r) => {
+    const sku = r[i['sku']];
+    if (!sku) return;
+
+    m[sku] = {
+      available: num(r[i['available']]),
+      inbound: num(r[i['inbound-quantity']]),
+      daysOfSupply: num(r[i['days-of-supply']]),
+      unfulfillable: num(r[i['unfulfillable-quantity']]),
+      reservedCustomer: num(r[i['Reserved Customer Order']]),
+      reservedTransfer: num(r[i['Reserved FC Transfer']]),
+      reservedProcessing: num(r[i['Reserved FC Processing']]),
+    };
+  });
+
+  return m;
+}
+
+function buildSalesMap(headers, rows) {
+  const m = {};
+  const i = indexMap(headers);
+
+  rows.forEach((r) => {
+    const sku = r[i['sku']];
+    if (!sku) return;
+
+    const t7 = num(r[i['sales-shipped-last-7-days']]);
+    const t30 = num(r[i['sales-shipped-last-30-days']]);
+    const t60 = num(r[i['sales-shipped-last-60-days']]);
+
+    m[sku] = {
+      t7,
+      t30,
+      t60minus30: Math.max(0, t60 - t30),
+    };
+  });
+
+  return m;
+}
+
+function buildKeepaMap(headers, rows) {
+  const m = {};
+  const i = indexMap(headers);
+
+  rows.forEach((r) => {
+    const asin = r[i['ASIN']];
+    const img = r[i['Image']];
+    if (asin && img) m[asin] = img;
+  });
+
+  return m;
+}
+
+function _getSheet(ss, name) {
+  const s = ss.getSheetByName(name);
+  if (!s) throw new Error(`Missing sheet: ${name}`);
+  return s;
+}
+
+function _getOrCreate(ss, name) {
+  return ss.getSheetByName(name) || ss.insertSheet(name);
+}
+
+function _read(sheet) {
+  const values = sheet.getDataRange().getValues();
+  return {
+    headers: values[0].map(String),
+    rows: values.slice(1),
+  };
+}
+
+function indexMap(headers) {
+  const m = {};
+  headers.forEach((h, i) => (m[h] = i));
+  return m;
+}
+
+function num(v) {
+  return parseFloat(v) || 0;
+}
+```
+
+---
+
+## 2. Sidebar UI — `Sidebar.html`
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top" />
+    <style>
+      body {
+        font-family: Arial;
+        padding: 12px;
+      }
+      input,
+      button {
+        width: 100%;
+        padding: 8px;
+        margin-top: 10px;
+      }
+      button {
+        background: #111;
+        color: white;
+        border: none;
+        cursor: pointer;
+      }
+      button:disabled {
+        background: #999;
+      }
+      .status {
+        margin-top: 10px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <h3>Dashboard Control</h3>
+
+    <input id="ctx" placeholder="Optional context..." />
+
+    <button id="btn" onclick="run()">Generate Dashboard</button>
+
+    <div class="status" id="status"></div>
+
+    <script>
+      function run() {
+        const btn = document.getElementById('btn');
+        const status = document.getElementById('status');
+
+        btn.disabled = true;
+        status.innerText = 'Running...';
+
+        google.script.run
+          .withSuccessHandler((res) => {
+            btn.disabled = false;
+            status.innerText = res;
+          })
+          .withFailureHandler((err) => {
+            btn.disabled = false;
+            status.innerText = 'Error: ' + err.message;
+          })
+          .createConsolidatedDashboard(document.getElementById('ctx').value);
+      }
+    </script>
+  </body>
+</html>
+```
+
+---
+
+## Closing State
+
+This system compresses Amazon FBA operational complexity into a single execution layer.
+
+No extra tabs. No fragmented views.
+
+Just one dashboard that behaves like an operational cockpit.
