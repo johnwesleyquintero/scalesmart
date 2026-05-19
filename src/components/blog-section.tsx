@@ -201,10 +201,18 @@ function BlogSectionContent({
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="default">Default</SelectItem>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="oldest">Oldest</SelectItem>
-                  <SelectItem value="a-z">A-Z</SelectItem>
+                  <SelectItem value="default" label="Default">
+                    Default
+                  </SelectItem>
+                  <SelectItem value="newest" label="Newest">
+                    Newest
+                  </SelectItem>
+                  <SelectItem value="oldest" label="Oldest">
+                    Oldest
+                  </SelectItem>
+                  <SelectItem value="a-z" label="A-Z">
+                    A-Z
+                  </SelectItem>
                 </SelectContent>
               </Select>
 
