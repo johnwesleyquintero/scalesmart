@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Github, Linkedin, Mail, Triangle, Twitter } from 'lucide-react';
 import OptimizedImage from './shared/optimized-image';
 import Link from 'next/link';
+import { LANDING } from '@/constants/marketing';
 
 export default function HeroSection() {
   return (
@@ -22,7 +23,7 @@ export default function HeroSection() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75 duration-3000"></span>
               <span className="relative inline-flex h-2 w-2 rounded-full bg-blue-500"></span>
             </span>
-            Systems-Driven Solutions
+            {LANDING.HERO.badge}
           </Badge>
 
           <div className="relative z-10 p-2 sm:p-4 rounded-[2.5rem] bg-background/20 backdrop-blur-sm border border-white/10 shadow-2xl shadow-blue-500/5 transition-all hover:bg-background/30 hover:shadow-blue-500/10 animate-fade-in-up animation-delay-100">
@@ -33,13 +34,13 @@ export default function HeroSection() {
               </span>
             </h1>
             <p className="text-xl font-bold text-gray-800 dark:text-gray-100 md:text-3xl tracking-tight leading-none">
-              We don’t just offer services—
-              <span className="text-blue-600">we build systems.</span>
+              {LANDING.HERO.headlinePart1}
+              <span className="text-blue-600">
+                {LANDING.HERO.headlinePart2}
+              </span>
             </p>
             <p className="mt-6 text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
-              ScaleSmart helps businesses move faster, operate smarter, and
-              scale without chaos through digital solutions and optimized
-              workflows.
+              {LANDING.HERO.subhead}
             </p>
           </div>
 

@@ -1,6 +1,7 @@
 import Logo from '@/components/Logo';
 import { Linkedin, Mail, Twitter, Facebook } from 'lucide-react';
 import Link from 'next/link';
+import { LANDING } from '@/constants/marketing';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -50,8 +51,7 @@ export default function Footer() {
               <h3 className="text-2xl font-bold tracking-tight">ScaleSmart</h3>
             </div>
             <p className="text-muted-foreground leading-relaxed">
-              Helping businesses move faster, operate smarter, and scale without
-              chaos through digital solutions and automated systems.
+              {LANDING.FOOTER.description}
             </p>
             <div className="flex space-x-3">
               <Link
@@ -111,7 +111,7 @@ export default function Footer() {
 
         <div className="mt-16 border-t pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground text-center md:text-left">
-            &copy; {currentYear} ScaleSmart. Built for operators, by operators.
+            &copy; {currentYear} {LANDING.FOOTER.copyright}
           </p>
           <div className="flex gap-8 text-xs font-medium text-muted-foreground">
             <Link

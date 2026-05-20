@@ -2,65 +2,41 @@
 
 import { Badge } from '@/components/ui/badge';
 import { Zap, Users, ShieldCheck, Cpu, BarChart3, Clock } from 'lucide-react';
+import { LANDING } from '@/constants/marketing';
 
-const reasons = [
-  {
-    title: 'Systems-First Approach',
-    description:
-      'We don’t just delegate tasks; we design the systems that make those tasks repeatable and efficient.',
-    icon: <Cpu className="h-6 w-6 text-blue-600" />,
-    color: 'bg-blue-100 dark:bg-blue-900/30',
-  },
-  {
-    title: 'Trained & Vetted VAs',
-    description:
-      'Our team undergoes continuous training in high-level operations, ensuring they deliver quality from day one.',
-    icon: <Users className="h-6 w-6 text-indigo-600" />,
-    color: 'bg-indigo-100 dark:bg-indigo-900/30',
-  },
-  {
-    title: 'Automation Integration',
-    description:
-      'We blend human talent with modern AI and automation tools to reduce manual load and speed up execution.',
-    icon: <Zap className="h-6 w-6 text-emerald-600" />,
-    color: 'bg-emerald-100 dark:bg-emerald-900/30',
-  },
-  {
-    title: 'Operational Transparency',
-    description:
-      'Get real-time visibility into your business metrics and team performance through our structured reporting.',
-    icon: <BarChart3 className="h-6 w-6 text-amber-600" />,
-    color: 'bg-amber-100 dark:bg-amber-900/30',
-  },
-  {
-    title: 'Secure & Reliable',
-    description:
-      'Your data and processes are handled with strict professional care and industry-standard security protocols.',
-    icon: <ShieldCheck className="h-6 w-6 text-pink-600" />,
-    color: 'bg-pink-100 dark:bg-pink-900/30',
-  },
-  {
-    title: 'Time-Back Guarantee',
-    description:
-      'Our goal is simple: to give you back at least 10+ hours a week so you can focus on high-value growth.',
-    icon: <Clock className="h-6 w-6 text-sky-600" />,
-    color: 'bg-sky-100 dark:bg-sky-900/30',
-  },
-];
+const reasons = LANDING.WHY_US.reasons.map((reason, i) => {
+  const icons = [
+    <Cpu key={0} className="h-6 w-6 text-blue-600" />,
+    <Users key={1} className="h-6 w-6 text-indigo-600" />,
+    <Zap key={2} className="h-6 w-6 text-emerald-600" />,
+    <BarChart3 key={3} className="h-6 w-6 text-amber-600" />,
+    <ShieldCheck key={4} className="h-6 w-6 text-pink-600" />,
+    <Clock key={5} className="h-6 w-6 text-sky-600" />,
+  ];
+  const colors = [
+    'bg-blue-100 dark:bg-blue-900/30',
+    'bg-indigo-100 dark:bg-indigo-900/30',
+    'bg-emerald-100 dark:bg-emerald-900/30',
+    'bg-amber-100 dark:bg-amber-900/30',
+    'bg-pink-100 dark:bg-pink-900/30',
+    'bg-sky-100 dark:bg-sky-900/30',
+  ];
+  return { ...reason, icon: icons[i], color: colors[i] };
+});
 
 export default function WhyUsSection() {
   return (
     <section className="container relative mx-auto px-4 py-32 overflow-hidden">
       <div className="mb-16 text-center">
         <Badge variant="secondary" className="mb-4">
-          THE SCALESMART DIFFERENCE
+          {LANDING.WHY_US.badge}
         </Badge>
         <h2 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-          Why Choose <span className="text-blue-600">ScaleSmart?</span>
+          {LANDING.WHY_US.headerPart1}
+          <span className="text-blue-600">{LANDING.WHY_US.headerPart2}</span>
         </h2>
         <p className="mx-auto max-w-2xl text-xl text-muted-foreground leading-relaxed">
-          We are more than an agency. We are your operational partners,
-          dedicated to building the systems that make your growth inevitable.
+          {LANDING.WHY_US.subhead}
         </p>
       </div>
 
@@ -89,12 +65,10 @@ export default function WhyUsSection() {
       <div className="mt-20 flex flex-col items-center justify-center text-center">
         <div className="p-8 rounded-3xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 max-w-3xl">
           <p className="text-lg font-medium italic text-blue-800 dark:text-blue-300">
-            "ScaleSmart didn't just give me a virtual assistant; they gave me a
-            business that runs itself. The systems they built are the foundation
-            of my success."
+            {LANDING.WHY_US.quote}
           </p>
           <p className="mt-4 text-sm font-bold uppercase tracking-widest text-blue-600">
-            — Elite E-commerce Client
+            {LANDING.WHY_US.author}
           </p>
         </div>
       </div>

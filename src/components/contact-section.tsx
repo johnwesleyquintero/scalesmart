@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LANDING } from '@/constants/marketing';
 
 export default function ContactSection() {
   return (
@@ -14,16 +15,14 @@ export default function ContactSection() {
 
         <div className="relative z-10 max-w-3xl mx-auto">
           <h2 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl text-foreground">
-            Ready to build your{' '}
+            {LANDING.CONTACT.headerPart1}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">
-              scaling system?
+              {LANDING.CONTACT.headerPart2}
             </span>
           </h2>
 
           <p className="mb-10 text-xl text-muted-foreground leading-relaxed">
-            Stop relying on guesswork. Let's engineer the precise
-            infrastructure, workflows, and brand presence your agency needs to
-            dominate.
+            {LANDING.CONTACT.subhead}
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -32,7 +31,7 @@ export default function ContactSection() {
                 size="lg"
                 className="h-14 px-8 text-lg rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 transition-all hover:scale-105"
               >
-                Book a Strategy Call
+                {LANDING.CONTACT.primaryCta}
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>

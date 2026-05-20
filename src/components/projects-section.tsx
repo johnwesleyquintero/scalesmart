@@ -15,6 +15,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { LANDING } from '@/constants/marketing';
 
 interface GitHubRepo {
   name: string;
@@ -140,14 +141,13 @@ export default function ProjectsSection({
       <div className="w-full">
         <div className="mb-12 text-center">
           <Badge variant="secondary" className="mb-4">
-            Solutions & Systems
+            {LANDING.PROJECTS.badge}
           </Badge>
           <h2 className="mb-4 text-3xl font-bold md:text-4xl">
-            ScaleSmart Solutions
+            {LANDING.PROJECTS.header}
           </h2>
           <p className="text-xl text-muted-foreground">
-            Custom automation, integrations, and operational tools retrieved
-            directly from our source.
+            {LANDING.PROJECTS.subhead}
           </p>
         </div>
 

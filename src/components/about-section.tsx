@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Users, Target, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import OptimizedImage from './shared/optimized-image';
+import { LANDING } from '@/constants/marketing';
 
 export default function AboutSection() {
   const founders = [
@@ -54,18 +55,14 @@ export default function AboutSection() {
 
           <div>
             <Badge variant="secondary" className="mb-4">
-              The Team
+              {LANDING.ABOUT.badge}
             </Badge>
             <h2 className="mb-6 text-3xl font-bold tracking-tight sm:text-4xl">
-              We are a family-led team{' '}
-              <span className="text-blue-600">
-                building the future of operations.
-              </span>
+              {LANDING.ABOUT.headerPart1}
+              <span className="text-blue-600">{LANDING.ABOUT.headerPart2}</span>
             </h2>
             <p className="mb-8 text-lg text-muted-foreground leading-relaxed">
-              ScaleSmart was founded in 2026 by brothers Wesley and Melkie
-              Quintero. We combined our expertise in digital systems and
-              management to help businesses move from chaos to clarity.
+              {LANDING.ABOUT.description}
             </p>
 
             <div className="space-y-4 mb-8">
@@ -73,19 +70,19 @@ export default function AboutSection() {
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30">
                   <Target className="h-5 w-5" />
                 </div>
-                <p className="font-medium">Focused on Clarity and Speed</p>
+                <p className="font-medium">{LANDING.ABOUT.points[0]}</p>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30">
                   <Users className="h-5 w-5" />
                 </div>
-                <p className="font-medium">Collaborative Systems Design</p>
+                <p className="font-medium">{LANDING.ABOUT.points[1]}</p>
               </div>
             </div>
 
             <Button asChild size="lg" className="group rounded-full">
               <Link href="/about">
-                Read Our Full Story
+                {LANDING.ABOUT.primaryCta}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </Button>

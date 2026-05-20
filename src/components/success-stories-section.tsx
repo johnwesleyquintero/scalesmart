@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import studiesData from '@/data/portfolio-data/case-studies.json';
 import { cn } from '@/lib/utils';
+import { LANDING } from '@/constants/marketing';
 
 interface Metric {
   name: string;
@@ -42,14 +43,13 @@ export default function SuccessStoriesSection() {
             variant="outline"
             className="mb-4 border-primary/30 text-primary"
           >
-            Proven Results
+            {LANDING.SUCCESS_STORIES.badge}
           </Badge>
           <h2 className="text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl mb-4">
-            Success Stories
+            {LANDING.SUCCESS_STORIES.header}
           </h2>
           <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-            Measurable impact delivered through ScaleSmart systems and
-            automation.
+            {LANDING.SUCCESS_STORIES.subhead}
           </p>
         </div>
 
@@ -116,7 +116,7 @@ export default function SuccessStoriesSection() {
                 </div>
                 <div className="mt-6 flex justify-end">
                   <div className="flex items-center text-sm font-semibold text-primary group-hover:underline cursor-pointer">
-                    Read Full Case Study{' '}
+                    {LANDING.SUCCESS_STORIES.readFullCta}{' '}
                     <ArrowUpRight className="h-4 w-4 ml-1" />
                   </div>
                 </div>

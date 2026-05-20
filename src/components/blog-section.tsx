@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { LANDING } from '@/constants/marketing';
 
 type SortOption = 'default' | 'newest' | 'oldest' | 'a-z';
 
@@ -171,11 +172,10 @@ function BlogSectionContent({
         <div className="mb-16 text-center relative">
           <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/20 via-background to-background opacity-50 blur-3xl" />
           <h2 className="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent pb-2">
-            Insights & Strategies
+            {LANDING.BLOG.header}
           </h2>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground/90">
-            Thoughts, playbooks, and systems for scaling Amazon brands and
-            e-commerce operations.
+            {LANDING.BLOG.subhead}
           </p>
         </div>
 
@@ -366,7 +366,7 @@ function BlogSectionContent({
                   </CardContent>
                   <CardFooter className="p-4 pt-0 mt-auto">
                     <div className="flex items-center text-primary font-medium group-hover:underline">
-                      Read Article{' '}
+                      {LANDING.BLOG.readArticleCta}{' '}
                       <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform duration-300" />
                     </div>
                   </CardFooter>
@@ -376,7 +376,7 @@ function BlogSectionContent({
           </div>
         ) : (
           <div className="text-center py-20 text-muted-foreground flex flex-col items-center gap-4">
-            <p>No articles found matching your criteria.</p>
+            <p>{LANDING.BLOG.emptyState}</p>
             <Button
               variant="outline"
               onClick={() => {
@@ -384,7 +384,7 @@ function BlogSectionContent({
                 setSelectedTag(null);
               }}
             >
-              Clear Search & Filters
+              {LANDING.BLOG.clearSearchCta}
             </Button>
           </div>
         )}
@@ -397,7 +397,7 @@ function BlogSectionContent({
               size="lg"
               onClick={() => setVisibleCount((prev) => prev + 9)}
             >
-              Load More Articles
+              {LANDING.BLOG.loadMoreCta}
             </Button>
           </div>
         )}
@@ -406,7 +406,8 @@ function BlogSectionContent({
           <div className="mt-12 text-center">
             <Button asChild variant="outline" size="lg">
               <Link href="/blog">
-                View All Articles <ArrowRight className="ml-2 h-4 w-4" />
+                {LANDING.BLOG.viewAllCta}{' '}
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </div>

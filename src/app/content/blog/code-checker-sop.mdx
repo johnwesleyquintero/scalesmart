@@ -1,0 +1,320 @@
+---
+title: 'Code-Checker SOP: Build → Check → Fix System'
+description: 'How we force AI developers to ship production-grade code using automated quality gates, structured fix prompts, and disciplined execution loops. Stop trusting. Start verifying.'
+date: '2026-05-20'
+author: 'Wesley Quintero'
+tags:
+  - operations
+  - systems-thinking
+  - workflow-optimization
+  - ai-development
+  - devops
+  - execution-systems
+  - code-checker-sop
+image: '/images/blog/code-checker-sop.png'
+readingTime: '7 min read'
+type: 'blog'
+category: 'Execution Systems'
+order: 12
+---
+
+# Code-Checker SOP: Build → Check → Fix System
+
+## (The Premise) Why This Exists
+
+Most AI-generated code fails not because AI is dumb, but because of poor verification structure.
+
+Vibe coders either:
+
+- Merge AI PRs blindly and ship bugs to prod
+- Manually review every line and lose the speed advantage
+- Or treat each feature like a unique debugging project instead of a repeatable system
+
+The result is inconsistency, 2am pager duty, and technical debt.
+
+This SOP exists to solve that.
+
+It turns AI development into a structured execution pipeline — where judgment stays human, verification is automated, and AI fixes its own mistakes.
+
+---
+
+## The Core Idea
+
+The system is built on a simple separation of roles:
+
+- **Human (You)** → decides what to build and approves merges
+- **AI Dev (Antigravity/Claude/Cursor)** → writes the code
+- **Code-Checker (`code-checker.mjs`)** → enforces quality gates + writes fix prompts
+- **PRG (Prompt Request Generator)** → packages failures into structured requests
+
+This ensures that architecture stays human, while execution and QA become fast and repeatable.
+
+---
+
+## Step 1: Build Phase (AI Production)
+
+AI dev receives a scoped task with context.
+
+No vague prompts. No "make it better."
+
+Each task includes:
+
+- File tree + relevant code
+- Style/rules: `marketing.ts` structure, ESLint config, TypeScript strict
+- Definition of Done: `npm run check` must pass
+
+If the scope is unclear, it is rewritten before AI touches code.
+
+---
+
+## Step 2: Check Phase (Automated QA Layer)
+
+Every PR triggers `npm run check` → `scripts/code-checker.mjs`.
+
+No human review until green. No exceptions.
+
+Checks run in under 30 seconds:
+
+- **Format Check** → Prettier. Consistency is not negotiable.
+- **Lint Check** → ESLint. React rules, a11y, no `any` leaks.
+- **Type Check** → `tsc --noEmit`. Type safety is prod safety.
+
+If any check fails, the build is blocked.
+
+---
+
+## Step 3: PRG Execution Layer (Self-Healing System)
+
+When checks fail, code-checker doesn’t just say "broken."
+
+It generates an **AI Task Prompt** with:
+
+- Exact commands that failed
+- Full error output with file:line numbers
+- Explicit rules to prevent repeat mistakes
+
+Example from ScaleSmart’s marketing refactor:
+
+```text
+✗ Lint Check failed
+
+--- AI Task Prompt for Failed Checks ---
+- **Check:** Lint Check
+- **Command:** `npm run lint:npx`
+- **Error Output:**
+  src/components/how-it-works-section.tsx
+    17:5  error  Missing "key" prop for element in array  react/jsx-key
+```
+
+This prompt is pasted back to the AI dev.
+
+The goal is not to punish the AI.
+
+The goal is **consistent high-quality fixes at scale.**
+
+---
+
+## Step 4: Submission + Verification
+
+AI dev submits the fix patch.
+
+Code-checker re-runs automatically.
+
+Output is binary:
+
+- 🟢 **All checks passed** → Auto-merge enabled. Human approves.
+- 🔴 **Checks failed** → New AI Task Prompt. Loop continues.
+
+Rules:
+
+- Maximum 3 fix cycles before human intervention
+- No manual hotfixes to bypass checks
+- No emotional attachment to AI output
+
+This phase protects main branch and prevents bug fatigue.
+
+---
+
+## Why Code-Checker Is Not the System
+
+A common misunderstanding is thinking code-checker is the entire pipeline.
+
+It is not.
+
+Code-checker is only the **verification engine**.
+
+The real system is:
+
+- judgment (human architecture)
+- build (AI production)
+- code-checker (QA + prompt layer)
+- PRG (context packaging)
+- submission (merge layer)
+
+Removing human judgment breaks the system. Removing code-checker breaks prod.
+
+---
+
+## Operational Philosophy
+
+This system is built on one principle:
+
+> Reduce verification cost, not verification itself.
+
+Automation is used for structure and speed — not decision-making.
+
+Judgment remains human because:
+
+- Product context matters
+- Edge cases require tradeoffs
+- Timing is dynamic
+
+Systems should support thinking, not replace it.
+
+---
+
+## Outcome of This System
+
+When implemented correctly, the system produces:
+
+- Faster dev cycles without QA bottlenecks
+- Higher quality merges regardless of who wrote the code
+- Reduced cognitive load on senior devs
+- Better AI output accuracy over time via feedback loops
+- Consistent deploys regardless of energy level
+
+It turns AI development from a reactive gamble into a controlled execution loop.
+
+---
+
+## The Full Framework: Steal This
+
+**1. Add to `package.json`**
+
+```json
+{
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "next lint",
+    "lint:npx": "npx eslint .",
+    "typecheck": "tsc --noEmit",
+    "check": "node scripts/code-checker.mjs"
+  }
+}
+```
+
+**2. `scripts/code-checker.mjs`**
+
+```javascript
+#!/usr/bin/env node
+import { execSync } from 'child_process';
+import chalk from 'chalk';
+
+const checks = [
+  { name: 'Format Check', cmd: 'npm run format:check' },
+  { name: 'Lint Check', cmd: 'npm run lint:npx' },
+  { name: 'Type Check', cmd: 'npm run typecheck' },
+];
+
+let failed = [];
+console.log(chalk.cyan('Running Code Quality Checks...'));
+
+for (const check of checks) {
+  try {
+    console.log(chalk.yellow(`▶ Running: ${check.name}...`));
+    execSync(check.cmd, { stdio: 'pipe' });
+    console.log(chalk.green(`✓ ${check.name} passed`));
+  } catch (e) {
+    console.log(chalk.red(`✗ ${check.name} failed`));
+    failed.push({
+      name: check.name,
+      command: check.cmd,
+      output: e.stdout?.toString() || e.message,
+    });
+  }
+}
+
+console.log('\n--- Code Quality Check Summary ---');
+if (failed.length === 0) {
+  console.log(chalk.green.bold('✨ All checks passed successfully!'));
+  process.exit(0);
+}
+
+failed.forEach((f) => console.log(chalk.red(`✗ ${f.name} failed`)));
+console.log(chalk.red('\nSome checks failed. See details below.'));
+
+console.log(chalk.cyan('\n--- AI Task Prompt for Failed Checks ---\n'));
+console.log(
+  'The following code quality checks failed. Your task is to provide the necessary code changes or commands to fix these issues.\n',
+);
+console.log('### Summary of Failures:\n');
+
+failed.forEach((f) => {
+  console.log(`- **Check:** ${f.name}`);
+  console.log(`- **Command:** \`${f.command}\``);
+  console.log(`- **Error Output:**\n\`\`\`\n${f.output.trim()}\n\`\`\`\n`);
+});
+
+console.log(
+  'Please analyze the error output for each failed check and provide a plan or code patch to resolve the problems.',
+);
+console.log(chalk.cyan('\n------------------------------------\n'));
+
+process.exit(1);
+```
+
+**3. GitHub Actions `.github/workflows/code-quality.yml`**
+
+```yaml
+name: Code Quality
+on: [pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+      - run: npm ci
+      - run: npm run check
+```
+
+---
+
+## Real Output From ScaleSmart’s Refactor
+
+Antigravity moved all landing copy to `/src/constants/marketing.ts`. First run failed lint:
+
+```text
+src/components/how-it-works-section.tsx
+  17:5  error  Missing "key" prop for element in array  react/jsx-key
+```
+
+We fed the generated AI Task Prompt back to Antigravity. It replied:
+
+> “I have successfully added the missing `key` props... All checks passed successfully!”
+
+**Zero human debugging. System-enforced quality.**
+
+---
+
+## Final Thought
+
+Most people try to increase review effort when using AI devs.
+
+This system does the opposite.
+
+It reduces unnecessary review so energy is only spent where it produces outcomes.
+
+Execution becomes cleaner.
+
+Merges become faster.
+
+And consistency becomes natural instead of forced.
+
+**Vibe coders:** Stop shipping chaos. Clone this, run `npm run check`, and make your AI earn its keep.
+
+**Want the full ScaleSmart AI DevOps Kit?**  
+We’re productizing this for Amazon agencies. Paste your Helium 10 CSV, get `code-checker` for listings. Same loop.
+
+Book a strategy call → [scalesmart.vercel.app/contact](/contact)
