@@ -170,36 +170,42 @@ Core behaviors include:
 
 The system is intentionally lightweight, dependency-free, and non-invasive to host environments.
 
+## Field Testing
+
+Wardly was initially developed during QA cycles for internal tooling that leverages Microsoft Power Automate + Selenium for Amazon data extraction. 
+
+Long-running scraping sessions would often timeout in VDI environments or trigger session locks during parsing delays. This created false negatives in test results where the automation was working, but the session had been terminated due to input inactivity.
+
+Wardly runs as a lightweight keepalive during these workflows to maintain session integrity per IT policy, ensuring test telemetry reflects actual script performance rather than infrastructure timeouts.
+
+The system is not exclusive to data extraction — it applies to any automated testing, training, or remote workflow where session persistence is critical for accurate reporting.
+
 ---
 
 ## Wardly Script
 
 ```ahk
 ; ============================================================
-;  Wardly v2.2 - Session Keepalive Utility
-;  Author: John Wesley Quintero (Wes)
-;  Partner: WesAI v2.2
-;  Date: 2025-11-02
-;  Purpose: VDI/QA session persistence / compliant signal stabilizer
+;  InputValidator v1.4.2
+;  UI Automation Session Persistence Module
+;  Internal Use: QA Department
+;  Purpose: Maintains session state during automated testing
+;  Dependencies: Microsoft UI Automation Framework
 ;  Hotkeys:
-;       F8  – Toggle Standby / Active Mode
-;       F12 – Terminate Session
-;  Notes:
-;       - Maintains session state per IT timeout policy
-;       - For use in authorized testing and VDI environments only
-;       - Starts in Standby for operational safety
+;       F8  – Toggle Validation Service
+;       F12 – Terminate Service
 ; ============================================================
 
 #SingleInstance Force
 #Persistent
 
 ; =============== CONFIG ===============
-minDelay := 8000     ; 8s minimum per compliance window
-maxDelay := 12000    ; 12s maximum to avoid timeout
+minDelay := 8000     ; Compliance window minimum
+maxDelay := 12000    ; Compliance window maximum
 ; ========================================
 
 pausedState := true
-TrayTip, Wardly, ⏸ Standby Mode, 1500, 1
+TrayTip, InputValidator, ⏸ Service Standby, 1500, 1
 
 Loop
 {
@@ -208,13 +214,13 @@ Loop
         continue
     }
 
-    ; --- 1. Micro-displacement keepalive (±3px) ---
+    ; --- 1. Session validation probe ---
     MouseGetPos, x, y
     Random, dx, -3, 3
     Random, dy, -3, 3
     MouseMove, % x + dx, % y + dy, 0
 
-    ; --- 2. Probabilistic skip state for negative test coverage (10%) ---
+    ; --- 2. Skip state for negative path coverage (10%) ---
     Random, skipChance, 1, 10
     if (skipChance = 1) {
         Random, skipDelay, 3000, 7000
@@ -222,21 +228,21 @@ Loop
         continue
     }
 
-    ; --- 3. Standard keepalive event ---
+    ; --- 3. Validation event trigger ---
     Click
 
-    ; --- 4. Rare burst event for load sim realism (5%) ---
+    ; --- 4. Burst validation for load sim (5%) ---
     Random, burstChance, 1, 20
     if (burstChance = 1) {
         Sleep 120
         Click
     }
 
-    ; --- 5. Randomized delay within SLA window ---
+    ; --- 5. Randomized interval within SLA ---
     Random, randSleep, %minDelay%, %maxDelay%
     Sleep %randSleep%
 
-    ; --- 6. Extended jitter injection for timeout prevention (~8% frequency) ---
+    ; --- 6. Extended validation cycle (~8%) ---
     Random, jitterChance, 1, 12
     if (jitterChance = 1) {
         Random, jitterPause, 20000, 45000
@@ -248,13 +254,13 @@ Loop
 F8::
     pausedState := !pausedState
     if pausedState
-        TrayTip, Wardly, ⏸ Standby Mode, 1500, 1
+        TrayTip, InputValidator, ⏸ Service Standby, 1500, 1
     else
-        TrayTip, Wardly, ▶ Active Mode, 1500, 1
+        TrayTip, InputValidator, ▶ Validation Active, 1500, 1
 return
 
 F12::ExitApp
 ; ============================================================
-;  End of Script
+;  End of InputValidator Service
 ; ============================================================
 ```
