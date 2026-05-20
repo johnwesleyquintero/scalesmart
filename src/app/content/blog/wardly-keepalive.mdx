@@ -1,188 +1,143 @@
 ---
-title: 'Wardly: Session Keepalive Utility for Automated Testing and VDI Environment Stability'
-description: 'A systems-based breakdown of a lightweight AHK-based session persistence layer designed to maintain UI state signals, prevent false timeout events in VDI/Citrix environments, and support continuous session integrity during automated QA and training workflows.'
+title: 'Wardly: Session Persistence Layer for Automated QA and VDI Environments'
+description: 'A lightweight AHK-based utility that maintains session state signals in VDI/Citrix and remote workflows. Prevents false timeouts during automated testing, training, and low-interaction scenarios by generating compliant, non-deterministic input telemetry.'
 date: '2026-05-19'
 author: 'Wesley Quintero'
 tags:
-  - session-persistence
-  - qa-automation
-  - vdi-stability
-  - interaction-simulation
-  - workflow-continuity
-  - devops-tooling
+    - session-persistence
+    - qa-automation
+    - vdi-stability
+    - compliance-tooling
+    - workflow-continuity
+    - devops
 image: '/images/blog/wardly-keepalive.png'
-readingTime: '6 min read'
+readingTime: '4 min read'
 type: 'blog'
 category: 'Operator Tooling'
 order: 20
 ---
 
-# Wardly: Session Keepalive Utility for Automated Testing and VDI Environment Stability
+# Wardly: Session Persistence Layer for Automated QA and VDI Environments
 
 ---
 
-## Context
+## The Problem
 
-In enterprise and virtualized environments, session state is often tied to input activity.
+In virtualized and enterprise environments, session lifetime is tied to input activity.
 
-This creates operational friction in scenarios such as:
+**Result:** Premature termination during legitimate low-interaction workflows:
 
-- Long-running UI regression test suites
-- Citrix/VDI or remote desktop environments with aggressive timeout policies
-- Sandbox and training systems requiring persistent state
-- Selenium/WebDriver automation with idle periods between steps
-- Load testing that simulates realistic user patterns
+- UI regression suites with wait states
+- Citrix/VDI sessions during data processing
+- Selenium/WebDriver automation between steps
+- Training sandboxes requiring persistent state
+- Remote desktop sessions under compliance timeout policies
 
-When input signals cease, systems often terminate sessions prematurely, causing false negatives in QA pipelines or disrupting operator workflows.
+**Impact:** False negatives in QA pipelines. Lost work. Failed audits.
 
-Wardly is designed to address that gap.
+Wardly solves for session continuity.
 
 ---
 
-## System Intent
+## Design Intent
 
-The purpose is not task automation.
+**Goal:** Maintain compliant session telemetry under low-interaction conditions.
 
-It is **session integrity under low-interaction conditions**.
+**Not a productivity tool. Not task automation.**
 
-The system introduces:
-
-- Micro-interaction signals to maintain session state
-- Randomized temporal distribution of events
+Wardly introduces:
+- Micro-interaction probes to satisfy activity checks
+- Randomized temporal distribution within SLA bounds
+- Probabilistic event generation to avoid deterministic patterns
 - Minimal cursor displacement for keepalive
-- Probabilistic input event generation
-- Controlled jitter intervals to prevent timeout
 
-The objective is simple:
-
-> Preserve session continuity without interfering with primary user control or test execution.
+> Preserve session integrity without interfering with foreground processes or test execution.
 
 ---
 
-## Behavioral Model
+## Stochastic Compliance Model
 
-Wardly operates on a **stochastic keepalive model**:
+Traditional keepalives fail: fixed intervals, identical movements, predictable clicks. These trigger anti-automation heuristics.
 
-Instead of fixed-interval polling, it generates:
+**Wardly uses non-determinism:**
 
-- Bounded cursor displacement (±3px) to satisfy activity checks
-- Randomized event cycles with configurable probability weights
-- Conditional skip states for negative test coverage
-- Occasional burst events for realism in load simulation
-- Intermittent extended jitter pauses to mirror real user behavior
+```
+| Parameter | Implementation | Compliance Benefit |
+| --------- | -------------- | ------------------ |
+| **Timing** | 8–12s randomized windows | Mimics human variance |
+| **Movement** | ±3px bounded drift | Satisfies activity checks |
+| **Events** | Probabilistic clicks, skip states | Non-uniform signal density |
+| **Jitter** | ~8% chance of 20–45s pause | Aligns with real user breaks |
+| **Burst** | ~5% double-click for load sim | Realistic input patterns |
+```
 
-This produces a signal profile that aligns with IT compliance requirements for “active user” detection, while avoiding deterministic patterns that trigger anti-automation heuristics.
-
----
-
-## System Design Principle
-
-A key design choice is **non-determinism for compliance**.
-
-Rather than predictable loops, the system introduces variance:
-
-- Timing windows: 8–12 second randomized intervals
-- Probabilistic branching for event execution
-- Randomized keepalive interruptions
-- Non-uniform action density
-
-This reduces detection as synthetic polling and increases compatibility with session monitoring systems in VDI and QA environments.
+This generates a telemetry profile that satisfies "active user" detection while avoiding classification as synthetic polling.
 
 ---
 
-## Key Insight
+## Key Principle
 
-> Infrastructure does not evaluate operator intent — it evaluates session telemetry.
+> Infrastructure evaluates session telemetry, not operator intent.
 
-Wardly exists to maintain compliant telemetry at a minimal, non-invasive level.
+Wardly maintains minimal, compliant signals to preserve state per IT policy.
 
 ---
 
-## Interaction Stability Layer
+## Operational Context
 
-The system assumes three operational realities:
+**Assumes three realities:**
 
-1. Automated tests and remote sessions are not continuously sending input
-2. Enterprise systems often enforce session termination on input idle
-3. Small, randomized signals can preserve session state per IT policy
+1. Automated tests have legitimate idle periods
+2. Enterprise VDI enforces session termination on input idle
+3. Small, randomized signals preserve state without violating policy
 
-Therefore, it prioritizes:
-
-- **Presence over polling** — maintaining state vs. hammering endpoints
-- **Continuity over intensity** — low-impact keepalive vs. disruptive macros
-- **Compliance over convenience** — signals that satisfy audit requirements
+**Prioritizes:**
+- **Presence over polling** - state vs. endpoint hammering
+- **Continuity over intensity** - low-impact vs. disruptive macros  
+- **Compliance over convenience** - audit-safe signals
 
 ---
 
 ## Failure Mode Prevention
 
-Traditional keepalive scripts fail when behavior becomes detectable:
-
-- Fixed 30-second intervals
-- Identical pixel-perfect movements
-- Predictable click timing
-
-Wardly avoids this through:
-
-- Randomized sleep cycles within SLA windows
-- Probabilistic skip states for negative paths
-- Occasional extended jitter aligned with real user breaks
-- Irregular action density to prevent heuristic flagging
-
-This prevents classification as “bot” activity by security or monitoring tools.
+```table
+| Anti-Pattern | Wardly Mitigation |
+| ------------ | ----------------- |
+| Fixed 30s loops | Randomized 8–12s SLA windows |
+| Pixel-perfect movement | Bounded ±3px drift |
+| Predictable timing | Probabilistic skip + jitter states |
+| Uniform density | Burst events + extended pauses |
+```
+Prevents heuristic flagging by security and monitoring tools.
 
 ---
 
-## Operator Perspective
+## Operator Use Case
 
-From an operator or QA standpoint, this is not a productivity tool.
+A **session persistence and compliance layer** for:
 
-It is a **session persistence and compliance layer**.
+- Maintaining VDI state during Selenium/Power Automate runs
+- Preventing false timeouts in long QA cycles
+- Preserving workflow continuity during async tasks
+- Ensuring audit-compliant activity in monitored environments
 
-Its function is to:
-
-- Maintain active state per IT/VDI timeout policy
-- Reduce false session termination during long test runs
-- Preserve workflow continuity during asynchronous multitasking
-- Ensure audit-compliant activity signals in monitored environments
-
-It operates quietly in the background without consuming focus or interfering with foreground tasks.
+Runs headless. Zero foreground interference.
 
 ---
 
-## Core Principle
+## Field Validation
 
-> Stability in distributed and virtualized systems comes from consistent, compliant signals — not constant manual input.
+Wardly was developed during QA cycles for internal tooling using **Microsoft Power Automate + Selenium** for data extraction workflows.
 
----
+**Problem:** VDI sessions terminated during parsing delays. Tests failed not due to script errors, but infrastructure timeouts. Created false negatives.
 
-## Implementation Overview
+**Solution:** Wardly runs as a keepalive to maintain session integrity per IT policy. Ensures telemetry reflects actual test performance.
 
-The system runs as a continuous loop with a toggleable standby state and hotkey controls for operational safety.
-
-Core behaviors include:
-
-- Micro-displacement keepalive
-- Probabilistic input event engine
-- Randomized delay scheduler with SLA bounds
-- Event branching for non-deterministic patterns
-- Occasional extended jitter for timeout prevention
-
-The system is intentionally lightweight, dependency-free, and non-invasive to host environments.
-
-## Field Testing
-
-Wardly was initially developed during QA cycles for internal tooling that leverages Microsoft Power Automate + Selenium for Amazon data extraction. 
-
-Long-running scraping sessions would often timeout in VDI environments or trigger session locks during parsing delays. This created false negatives in test results where the automation was working, but the session had been terminated due to input inactivity.
-
-Wardly runs as a lightweight keepalive during these workflows to maintain session integrity per IT policy, ensuring test telemetry reflects actual script performance rather than infrastructure timeouts.
-
-The system is not exclusive to data extraction — it applies to any automated testing, training, or remote workflow where session persistence is critical for accurate reporting.
+**Scope:** Applies to any automated testing, training, or remote workflow requiring session persistence for accurate reporting.
 
 ---
 
-## Wardly Script
+## Implementation: InputValidator
 
 ```ahk
 ; ============================================================
@@ -190,37 +145,30 @@ The system is not exclusive to data extraction — it applies to any automated t
 ;  UI Automation Session Persistence Module
 ;  Internal Use: QA Department
 ;  Purpose: Maintains session state during automated testing
-;  Dependencies: Microsoft UI Automation Framework
-;  Hotkeys:
-;       F8  – Toggle Validation Service
-;       F12 – Terminate Service
+;  Hotkeys: F8 Toggle | F12 Terminate
 ; ============================================================
 
 #SingleInstance Force
 #Persistent
 
-; =============== CONFIG ===============
-minDelay := 8000     ; Compliance window minimum
-maxDelay := 12000    ; Compliance window maximum
-; ========================================
-
+minDelay := 8000     ; SLA minimum
+maxDelay := 12000    ; SLA maximum
 pausedState := true
+
 TrayTip, InputValidator, ⏸ Service Standby, 1500, 1
 
-Loop
-{
+Loop {
     if pausedState {
         Sleep 500
         continue
     }
 
-    ; --- 1. Session validation probe ---
+    ; 1. Session validation probe
     MouseGetPos, x, y
-    Random, dx, -3, 3
-    Random, dy, -3, 3
+    Random, dx, -3, 3, dy, -3, 3
     MouseMove, % x + dx, % y + dy, 0
 
-    ; --- 2. Skip state for negative path coverage (10%) ---
+    ; 2. Negative path coverage - 10%
     Random, skipChance, 1, 10
     if (skipChance = 1) {
         Random, skipDelay, 3000, 7000
@@ -228,21 +176,21 @@ Loop
         continue
     }
 
-    ; --- 3. Validation event trigger ---
+    ; 3. Validation event
     Click
 
-    ; --- 4. Burst validation for load sim (5%) ---
+    ; 4. Load sim burst - 5%
     Random, burstChance, 1, 20
     if (burstChance = 1) {
         Sleep 120
         Click
     }
 
-    ; --- 5. Randomized interval within SLA ---
+    ; 5. SLA-bound interval
     Random, randSleep, %minDelay%, %maxDelay%
     Sleep %randSleep%
 
-    ; --- 6. Extended validation cycle (~8%) ---
+    ; 6. Extended validation cycle - 8%
     Random, jitterChance, 1, 12
     if (jitterChance = 1) {
         Random, jitterPause, 20000, 45000
@@ -250,7 +198,6 @@ Loop
     }
 }
 
-; ===== HOTKEYS =====
 F8::
     pausedState := !pausedState
     if pausedState
@@ -260,7 +207,4 @@ F8::
 return
 
 F12::ExitApp
-; ============================================================
-;  End of InputValidator Service
-; ============================================================
 ```
