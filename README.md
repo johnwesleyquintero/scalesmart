@@ -172,7 +172,13 @@ Growth breaks when execution depends on memory, effort, or individual heroics. S
    http://localhost:3000
    ```
 
-5. **Try the Prompt Generator (no setup needed):**
+5. **Update blog post sorting:**
+
+   ```bash
+   npm run blog:update-order
+   ```
+
+6. **Try the Prompt Generator (no setup needed):**
    ```
    http://localhost:3000/prompt-request-generator
    ```

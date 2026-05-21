@@ -23,6 +23,7 @@
     "post-build": "npm run clean-cache",
     "clean-cache": "npx cross-env node -e \"const fs=require('fs'); const path=require('path'); ['.next/cache/webpack','.next/cache/.tsbuildinfo'].forEach(p=>{try{fs.rmSync(p,{recursive:true,force:true})}catch(e){}})\"",
     "check": "node scripts/code-checker.mjs",
+    "blog:update-order": "node scripts/update-orders.mjs",
     "git": "node scripts/git-commit.mjs"
   },
   "dependencies": {

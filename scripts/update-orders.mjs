@@ -12,7 +12,7 @@ const posts = files.map((file) => {
   return {
     file,
     filePath,
-    content,
+    parsed,
     date: new Date(parsed.data.date || new Date()),
     originalOrder: parsed.data.order,
   };
@@ -30,25 +30,9 @@ posts.sort((a, b) => {
 
 posts.forEach((post, index) => {
   const newOrder = index + 1; // 1 for oldest, 22 for newest
-  let newContent = post.content;
 
-  // Check if order: exists
-  const orderRegex = /^order:\s*\d+/m;
-  if (orderRegex.test(newContent)) {
-    newContent = newContent.replace(orderRegex, `order: ${newOrder}`);
-  } else {
-    // Find the end of frontmatter (the second ---)
-    // matter already gives us the raw frontmatter in parsed.matter, but doing it manually is safe
-    const match = newContent.match(/^---\r?\n/gm);
-    if (match && match.length >= 2) {
-      let parts = newContent.split(/^(---)\r?\n/m);
-      if (parts.length >= 5) {
-        // Append order to frontmatter
-        parts[2] = parts[2].replace(/\r?\n$/, '') + `\norder: ${newOrder}\n`;
-        newContent = parts.join('');
-      }
-    }
-  }
+  post.parsed.data.order = newOrder;
+  const newContent = matter.stringify(post.parsed.content, post.parsed.data);
 
   fs.writeFileSync(post.filePath, newContent, 'utf8');
   console.log(`Updated ${post.file} to order: ${newOrder}`);

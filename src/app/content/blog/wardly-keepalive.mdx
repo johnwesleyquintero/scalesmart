@@ -1,19 +1,23 @@
 ---
 title: 'Wardly: Session Persistence Layer for Automated QA and VDI Environments'
-description: 'A lightweight AHK-based utility that maintains session state signals in VDI/Citrix and remote workflows. Prevents false timeouts during automated testing, training, and low-interaction scenarios by generating compliant, non-deterministic input telemetry.'
+description: >-
+  A lightweight AHK-based utility that maintains session state signals in
+  VDI/Citrix and remote workflows. Prevents false timeouts during automated
+  testing, training, and low-interaction scenarios by generating compliant,
+  non-deterministic input telemetry.
 date: '2026-05-19'
-author: 'Wesley Quintero'
+author: Wesley Quintero
 tags:
-    - session-persistence
-    - qa-automation
-    - vdi-stability
-    - compliance-tooling
-    - workflow-continuity
-    - devops
-image: '/images/blog/wardly-keepalive.png'
-readingTime: '4 min read'
-type: 'blog'
-category: 'Operator Tooling'
+  - session-persistence
+  - qa-automation
+  - vdi-stability
+  - compliance-tooling
+  - workflow-continuity
+  - devops
+image: /images/blog/wardly-keepalive.png
+readingTime: 4 min read
+type: blog
+category: Operator Tooling
 order: 20
 ---
 
@@ -46,6 +50,7 @@ Wardly solves for session continuity.
 **Not a productivity tool. Not task automation.**
 
 Wardly introduces:
+
 - Micro-interaction probes to satisfy activity checks
 - Randomized temporal distribution within SLA bounds
 - Probabilistic event generation to avoid deterministic patterns
@@ -92,8 +97,9 @@ Wardly maintains minimal, compliant signals to preserve state per IT policy.
 3. Small, randomized signals preserve state without violating policy
 
 **Prioritizes:**
+
 - **Presence over polling** - state vs. endpoint hammering
-- **Continuity over intensity** - low-impact vs. disruptive macros  
+- **Continuity over intensity** - low-impact vs. disruptive macros
 - **Compliance over convenience** - audit-safe signals
 
 ---
@@ -108,6 +114,7 @@ Wardly maintains minimal, compliant signals to preserve state per IT policy.
 | Predictable timing | Probabilistic skip + jitter states |
 | Uniform density | Burst events + extended pauses |
 ```
+
 Prevents heuristic flagging by security and monitoring tools.
 
 ---
