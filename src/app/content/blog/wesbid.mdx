@@ -1,0 +1,446 @@
+---
+title: 'WesBid: From Excel Calculator to an Explainable Amazon PPC Decision Engine'
+description: >-
+  WesBid began as a simple PPC bid calculator inspired by traditional spreadsheet workflows.
+  It evolved into a state-driven Amazon PPC decision engine that combines bid recommendations,
+  confidence modeling, search term intelligence, and explainable optimization logic inside a
+  single operator-focused cockpit.
+date: '2026-06-12'
+author: Wesley Quintero
+tags:
+  - amazon-ppc
+  - amazon-ads
+  - ecommerce-ops
+  - ppc-automation
+  - decision-systems
+  - react
+  - typescript
+  - scalesmart
+image: /images/blog/wesbid.png
+readingTime: 12 min read
+type: blog
+category: Operator Systems
+order: 40
+---
+
+# WesBid: From Excel Calculator to an Explainable Amazon PPC Decision Engine
+
+---
+
+## Context
+
+Most Amazon PPC operators start with spreadsheets.
+
+We did too.
+
+The original workflow was simple:
+
+- Export reports
+- Paste data into Excel
+- Review bid recommendations
+- Manually update campaigns
+
+The calculator worked.
+
+But eventually a new problem appeared.
+
+The calculator could tell us **what bid to use**, but it could not explain:
+
+- Why the bid changed
+- Whether the signal was trustworthy
+- Which search terms were causing waste
+- Which targets deserved scaling
+- Whether performance was stable or accidental
+
+The spreadsheet provided answers.
+
+The operator still had to provide judgment.
+
+---
+
+## Problem Statement
+
+Amazon PPC optimization is rarely limited by math.
+
+It is limited by context.
+
+Traditional bid calculators struggle because they treat every target equally:
+
+- Exact Match
+- Broad Match
+- Auto Targets
+- ASIN Targets
+
+All receive similar treatment despite behaving differently.
+
+This creates several issues:
+
+- Over-scaling unstable winners
+- Cutting keywords too early
+- Missing waste hidden inside search terms
+- Ignoring placement opportunities
+- Treating learning-phase targets as failures
+
+The result is reactive optimization.
+
+---
+
+## Core Idea
+
+WesBid was built around a simple principle:
+
+> A bid recommendation without context is not intelligence.
+
+Instead of acting as a calculator, WesBid became a decision engine.
+
+Every recommendation is attached to:
+
+- Performance state
+- Confidence level
+- Learning phase
+- Placement opportunity
+- Search term behavior
+
+The goal is not merely to calculate bids.
+
+The goal is to help operators make better decisions.
+
+---
+
+## Evolution of the System
+
+### Phase 1: Excel Calculator
+
+The first version was heavily inspired by traditional PPC spreadsheets.
+
+Inputs:
+
+- Clicks
+- Orders
+- Spend
+- Sales
+
+Outputs:
+
+- Suggested bid adjustments
+
+Effective.
+
+But limited.
+
+---
+
+### Phase 2: Bid Logic Engine
+
+The next step was building automated recommendation logic.
+
+The system introduced:
+
+- Win states
+- Neutral states
+- Loss states
+
+Targets were classified automatically.
+
+This removed much of the repetitive analysis work.
+
+---
+
+### Phase 3: Explainable Decision Engine
+
+The real breakthrough happened when explanations became first-class outputs.
+
+Instead of saying:
+
+> Suggested Bid = $0.84
+
+The system now explains:
+
+> Inefficient ACOS detected. Stable volume confirmed. Trimming bid toward target CPC.
+
+This dramatically improves operator trust.
+
+---
+
+## Architecture Overview
+
+### Input Layer
+
+Amazon exports:
+
+- Campaign reports
+- Targeting reports
+- Placement reports
+- Search term reports
+
+---
+
+### Intelligence Layer
+
+WesBid processes:
+
+- ACOS
+- ROAS
+- CPC
+- Click volume
+- Conversion volume
+- Search term behavior
+- Placement performance
+
+---
+
+### Decision Layer
+
+Every target receives:
+
+- State classification
+- Confidence score
+- Suggested action
+- Bid recommendation
+- Supporting explanation
+
+---
+
+## State-Based Optimization
+
+The engine operates using behavioral states.
+
+### 🟢 WIN
+
+Strong performance signals.
+
+Examples:
+
+- Orders generated
+- Profitable ROAS
+- Stable conversion behavior
+
+Suggested action:
+
+> Protect and scale.
+
+---
+
+### 🟡 LEARNING
+
+Insufficient evidence.
+
+Examples:
+
+- Low clicks
+- Limited spend
+- Early-stage exploration
+
+Suggested action:
+
+> Hold and monitor.
+
+---
+
+### 🔴 LOSE
+
+Clear waste signals.
+
+Examples:
+
+- Significant spend
+- No conversions
+- Poor profitability
+
+Suggested action:
+
+> Reduce, negate, or pause.
+
+---
+
+## Confidence Weighting System
+
+One conversion is not the same as ten conversions.
+
+The system now adjusts its aggressiveness based on confidence.
+
+### Low Confidence
+
+1 Order
+
+The engine slows scaling behavior.
+
+Reason:
+
+A single conversion may be accidental.
+
+---
+
+### Medium Confidence
+
+2–3 Orders
+
+The engine cautiously scales.
+
+Reason:
+
+Evidence exists but remains limited.
+
+---
+
+### High Confidence
+
+4+ Orders
+
+The engine unlocks full optimization speed.
+
+Reason:
+
+The target has demonstrated repeatable behavior.
+
+---
+
+## Top-of-Search Intelligence
+
+Modern Amazon PPC increasingly rewards premium placement ownership.
+
+WesBid monitors:
+
+- Top-of-Search Impression Share
+- Conversion performance
+- Stability requirements
+
+The engine can identify targets that deserve additional placement pressure.
+
+However:
+
+A placement boost is only applied if stability conditions are met.
+
+This prevents reckless scaling.
+
+---
+
+## Search Term Intelligence
+
+One of the biggest hidden PPC problems is query-level waste.
+
+A keyword may appear profitable overall while a handful of search terms consume budget with no conversions.
+
+WesBid exposes this layer directly.
+
+### Observing
+
+0–2 clicks
+
+No action required.
+
+---
+
+### Weak Waste Signal
+
+3–5 clicks without orders
+
+Monitor closely.
+
+---
+
+### Hard Negative Candidate
+
+6+ clicks without orders
+
+Strong candidate for negative exact implementation.
+
+This allows operators to isolate waste without harming productive traffic.
+
+---
+
+## Manual Bid Override
+
+One unexpected lesson emerged during development.
+
+Operators still need control.
+
+Amazon's live bids frequently differ from exported reports.
+
+To solve this, WesBid introduced manual bid overrides.
+
+Benefits:
+
+- Align recommendations with live account data
+- Instantly recalculate recommendations
+- Maintain export consistency
+- Preserve operator control
+
+This feature became one of the most useful additions to the platform.
+
+---
+
+## The Unexpected Insight
+
+WesBid did not replace the spreadsheet.
+
+It absorbed it.
+
+The original calculator still exists inside the system.
+
+The difference is that the calculator now understands context.
+
+The spreadsheet answered:
+
+> What should my bid be?
+
+WesBid answers:
+
+> What should my bid be, why should it change, how confident are we, and what happens if we are wrong?
+
+That is a completely different class of tool.
+
+---
+
+## Technical Stack
+
+- TypeScript
+- React
+- Vite
+- State-driven optimization engine
+- Explainable recommendation framework
+- CSV ingestion pipeline
+- Export-ready workflow architecture
+
+---
+
+## Impact
+
+### Before
+
+- Spreadsheet calculations
+- Manual interpretation
+- Hidden search term waste
+- Static recommendations
+
+### After
+
+- Explainable bidding decisions
+- Confidence-weighted scaling
+- Search term intelligence
+- Placement-aware optimization
+- Operator-first workflow
+
+---
+
+## Live System
+
+WesBid Dashboard:
+
+[https://wesbid.vercel.app/](https://wesbid.vercel.app/)
+
+---
+
+## Closing Perspective
+
+WesBid is not an automation tool.
+
+It is an operator tool.
+
+The objective was never to replace judgment.
+
+The objective was to eliminate repetitive analysis so judgment could be applied where it matters most.
+
+The journey started with a spreadsheet.
+
+The destination became a decision engine.
