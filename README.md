@@ -15,6 +15,56 @@ Most companies don't struggle because of lack of ambition — they struggle beca
 
 ## 🛠️ Tools & Features
 
+### 🎓 ScaleSmart Academy
+
+**Route:** `/academy`
+
+A comprehensive learning platform for Amazon & E-commerce operations — combining official certification concepts with real-world operator judgment and battle-tested playbooks.
+
+#### ✨ What It Does
+
+ScaleSmart Academy trains operators to think like directors managing live capital — not just button-clickers. It blends Amazon Ads Academy alignment with practical execution systems, Coach Wesley operator philosophy, and scenario-based learning.
+
+#### 🔧 Key Features
+
+| Feature                      | Description                                                                                                                                        |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Certifications & Badges**  | Earn Amazon-aligned credentials and ScaleSmart Operator certifications with shareable badges                                                       |
+| **Learning Paths**           | Structured end-to-end progression tracks from foundational advertising to 7-figure brand catalog management                                        |
+| **Courses & Scenario Labs**  | Deep-dive operational lessons, bid math guides, troubleshooting case studies, and live battlefield scenarios                                       |
+| **Operator Philosophy**      | Coach Wesley's "System-First" thinking layer — training judgment, not just knowledge                                                               |
+| **Level-Based Progression**  | Beginner → Intermediate → Advanced pathways with clear competency milestones                                                                       |
+| **Featured Modules**         | Curated courses combining theory with operational playbooks (e.g., Bid Math Mastery, Creative Testing, Catalog Expansion)                          |
+| **Interactive Roadmaps**     | Step-by-step visual progression showing exactly what to learn next                                                                                 |
+| **Comparison Framework**     | Clear differentiation between standard course platforms vs. ScaleSmart's operator-centric approach                                                 |
+
+#### 🏗️ Architecture
+
+```
+src/app/academy/
+├── page.tsx                          # Main academy landing page
+├── certifications/
+│   ├── page.tsx                      # Certifications listing
+│   └── [slug]/                       # Individual certification detail pages
+└── courses/
+    ├── page.tsx                      # Courses listing
+    └── [slug]/                       # Individual course detail pages
+
+src/components/academy/
+├── AcademyHero.tsx                   # Hero section with CTAs
+├── AcademyNavTabs.tsx                # Navigation tabs (Academy, Certifications, Courses, Paths)
+├── OperatorCallout.tsx               # Coach Wesley philosophy section
+├── AcademyFaqSection.tsx             # FAQ component
+└── ...                               # Additional academy-specific components
+
+src/data/academy/
+├── courses.ts                        # Course data definitions
+├── learning-paths.ts                 # Learning path configurations
+└── certifications.ts                 # Certification metadata
+```
+
+---
+
 ### 🤖 Prompt Request Generator
 
 **Route:** `/prompt-request-generator`
@@ -198,12 +248,19 @@ src/
 │   ├── contact/                      # Contact form
 │   ├── faq/                          # FAQ page
 │   ├── careers/                      # Careers page
+│   ├── academy/                      # 🎓 ScaleSmart Academy (learning platform)
+│   │   ├── page.tsx                  # Academy landing page
+│   │   ├── certifications/           # Certification listings & detail pages
+│   │   └── courses/                  # Course listings & detail pages
 │   ├── prompt-request-generator/     # 🤖 Free AI Prompt Tool (public)
 │   └── api/                          # API routes
 ├── components/                       # Shared UI components
+│   └── academy/                      # Academy-specific components
 ├── hooks/                            # Custom React hooks
 ├── lib/                              # Utilities, types, constants
-└── constants/                        # App-wide constants & links
+├── constants/                        # App-wide constants & links
+└── data/
+    └── academy/                      # Academy data: courses, paths, certifications
 ```
 
 ---
@@ -215,6 +272,8 @@ ScaleSmart is built for operators, founders, and teams who are ready to move fro
 **Chaos → Structure → Scalable Execution**
 
 The Prompt Request Generator is our gift to the community — a free, open tool that helps every user interact with AI more effectively, embodying our belief that the right structure unlocks better results.
+
+**ScaleSmart Academy** extends this mission by training the next generation of Amazon & E-commerce operators — combining official certification frameworks with real-world battlefield judgment, so teams can scale with confidence and operational clarity.
 
 ---
 
