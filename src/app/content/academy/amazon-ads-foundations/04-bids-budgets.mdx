@@ -1,0 +1,102 @@
+---
+title: 'Bids & Budgets — The Operator Math'
+lessonNumber: 4
+courseSlug: 'amazon-ads-foundations'
+duration: '30 min'
+level: 'Intermediate'
+description: 'Dynamic bidding strategies, placement multipliers, daily budget pacing, and the bid math that keeps accounts profitable under real constraints.'
+operatorNote: "Your bid is not just a number — it's your ACoS target expressed in dollars. Work backward from your margin, not forward from your gut."
+---
+
+## Amazon's Official Concept
+
+**Bidding strategies** control how Amazon adjusts your keyword bids during an ad auction:
+
+- **Dynamic Bids – Down Only**: Amazon may reduce your bid when the algorithm believes a conversion is less likely. Your bid is a ceiling.
+- **Dynamic Bids – Up and Down**: Amazon can increase bids by up to 100% when it predicts a high likelihood of conversion, and decrease them otherwise.
+- **Fixed Bids**: Your bid never changes. Amazon does not adjust it up or down.
+
+**Placement adjustments** let you increase bids by a percentage multiplier for specific placement types:
+- **Top of Search (TOS)**: The first row of search results — highest visibility, highest CPC
+- **Rest of Search (ROS)**: All other search placements below the first row
+- **Product Pages**: Ad placements on competitor and related product detail pages
+
+**Daily budgets** are campaign-level spend caps. When a campaign exhausts its daily budget, ads stop running. Amazon distributes spend throughout the day using its traffic estimation algorithm.
+
+**Portfolio budgets** allow you to set a combined cap across multiple campaigns — useful for controlling total spend for a product line or ASIN family.
+
+---
+
+## Coach Wesley's Operator Layer
+
+**Bid math: Working backward from your target ACoS**
+
+Most sellers set bids based on intuition. Operators set bids based on math.
+
+The formula:
+```
+Max CPC = Target ACoS × Average Order Value × Conversion Rate
+```
+
+Example:
+- Target ACoS: 25%
+- Average Order Value: $34.99
+- Expected CVR: 10% (1 order per 10 clicks)
+
+```
+Max CPC = 0.25 × $34.99 × 0.10 = $0.87
+```
+
+This means: if you pay more than $0.87 per click, you will mathematically exceed your 25% ACoS target at a 10% CVR. This is your bidding ceiling.
+
+As your CVR improves (better listing, more reviews, seasonal lift), your maximum viable bid increases. As CVR drops (stockout return, review dip), your maximum viable bid decreases. **Operators recalculate this monthly.**
+
+**Bidding strategy selection — the operator's framework:**
+
+| Scenario | Strategy |
+|---------|---------|
+| New campaign, unproven CVR | Down Only — control the ceiling |
+| Established campaign, proven CVR, want to scale TOS | Down Only + placement multiplier on TOS |
+| Brand defense, stable listing | Fixed Bids — predictability matters more than optimization |
+| Retargeting/ASIN targeting | Down Only or Fixed |
+| Advanced: proven 30-day CVR data, trusting the algorithm | Up and Down — but only after data validation |
+
+**Placement multiplier math:**
+
+If your base keyword bid is $0.90 and you add a 50% TOS multiplier:
+- Amazon will bid up to $1.35 for Top of Search placements only
+- All other placements remain at the $0.90 base bid
+
+This is how operators chase TOS dominance without overpaying on lower-value placements. The critical discipline: **always check placement-level performance reports** before increasing a TOS multiplier. Some products convert better on product pages than TOS — in that case, a TOS multiplier wastes money.
+
+**The "dayparting" reality on Amazon:**
+
+Amazon's ad platform doesn't offer hour-by-hour dayparting controls (unlike Google/Meta). Instead, operators manage timing indirectly:
+- Set lower daily budgets with earlier budget exhaustion checks
+- Use portfolio budgets to prevent category overspend during off-peak windows
+- Monitor spend velocity — if budget exhausts before 2pm, the campaign is underfunded relative to market demand
+
+**Budget architecture for a healthy account:**
+
+| Campaign type | Budget share | Why |
+|-------------|-------------|-----|
+| Exact (proven converters) | 50–60% | Highest-ROI traffic — don't starve it |
+| Auto (discovery) | 15–20% | Intelligence gathering — controlled |
+| Broad/Phrase (testing) | 15–20% | Proving new terms before exact |
+| Brand defense | 5–10% | Never run out of budget on branded terms |
+
+---
+
+## Scenario Snapshot
+
+> **Account situation:** You're reviewing a campaign where the TOS placement has an ACoS of 18%, Product Pages has 29%, and Rest of Search has 51%. The campaign has a 40% placement multiplier on TOS and no product-page-specific bid adjustment.
+
+**Coach Wesley's call:** The data is telling a clear story. TOS is your most efficient placement by a wide margin. Rest of Search is burning money. Options: (1) Increase TOS multiplier to 60–70% to capture more of that efficient traffic. (2) Decrease the base bid — which will hit ROS hardest since TOS gets the multiplier boost. (3) Consider reducing budget allocation to this campaign and rebuilding a cleaner exact campaign where you can isolate TOS-only performance. The placement data is the operator's roadmap.
+
+---
+
+## Operator Takeaway
+
+> **A bid is your target ACoS expressed in dollars divided by expected conversions. If you can't explain your bid in those terms, you're guessing.**
+
+The most dangerous moment in Amazon advertising is when someone opens the console and lowers bids because "ACoS is too high" without knowing why ACoS rose. Bid changes without diagnosis are guesses. Diagnosis first. Math second. Bid adjustment third.

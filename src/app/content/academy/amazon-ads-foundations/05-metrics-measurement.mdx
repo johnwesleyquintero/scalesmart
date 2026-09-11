@@ -1,0 +1,109 @@
+---
+title: 'Metrics & Measurement — From Definitions to Decisions'
+lessonNumber: 5
+courseSlug: 'amazon-ads-foundations'
+duration: '26 min'
+level: 'Intermediate'
+description: 'ACoS, TACoS, CTR, CVR, RoAS, NTB — what each metric actually means, what it measures, and what operator action (if any) it should trigger.'
+operatorNote: 'Every metric is a signal, not an instruction. ACoS rising does not mean lower bids. CTR dropping does not mean raise bids. Diagnosis determines action — not the metric.'
+---
+
+## Amazon's Official Concept
+
+Amazon Advertising provides the following core performance metrics:
+
+**Impressions** — How many times your ad was displayed.
+
+**Clicks** — How many times shoppers clicked your ad.
+
+**Click-Through Rate (CTR)** — `Clicks ÷ Impressions`. Measures how compelling your ad creative is relative to competing placements.
+
+**Cost Per Click (CPC)** — `Spend ÷ Clicks`. The average amount paid per click in the auction.
+
+**Spend** — Total advertising dollars consumed in the selected period.
+
+**Orders** — Total units purchased that are attributed to your ad click (within the attribution window, typically 7–14 days).
+
+**Sales (Ad Revenue)** — Total revenue attributed to ad-driven orders.
+
+**Conversion Rate (CVR)** — `Orders ÷ Clicks`. The percentage of ad clicks that result in a purchase.
+
+**Advertising Cost of Sale (ACoS)** — `Spend ÷ Ad Revenue`. The percentage of ad-driven revenue consumed by advertising spend.
+
+**Return on Ad Spend (RoAS)** — `Ad Revenue ÷ Spend`. Inverse of ACoS. RoAS of 4.0 = $4 revenue for every $1 spent.
+
+**Total Advertising Cost of Sale (TACoS)** — `Spend ÷ Total Revenue (Organic + Paid)`. Measures advertising spend as a percentage of your entire business revenue, not just paid revenue.
+
+**New-to-Brand (NTB)** — Orders from customers who have not purchased from your brand in the past 12 months. Measures customer acquisition contribution.
+
+---
+
+## Coach Wesley's Operator Layer
+
+**The metric hierarchy — what matters at what level:**
+
+Most sellers stare at ACoS. Operators look at ACoS last — after checking the metrics that *explain* why ACoS is what it is.
+
+```
+Impressions → CTR → Clicks → CVR → Orders → Revenue → ACoS
+                                                         ↑
+                                              You are here (most sellers)
+```
+
+The operator reads this left to right:
+1. **Low impressions** → keyword bids too low, budget exhausted, or campaign not winning auctions. Solution: raise bids or budget.
+2. **High impressions, low CTR** → main image, price, or review count not competitive. Solution: listing work, not bid work.
+3. **High CTR, low CVR** → customers click but don't buy. Listing description, bullets, A+, or price competitiveness issue. Solution: listing conversion optimization.
+4. **Acceptable CVR, high ACoS** → likely paying too much per click for the CVR you're getting. Check CPC vs Max CPC formula from Lesson 4.
+
+**The TACoS vs ACoS distinction — why it matters:**
+
+| Metric | What it measures | When to act |
+|--------|-----------------|-------------|
+| ACoS | Paid campaign efficiency | When paid CVR or CPC moves outside target range |
+| TACoS | Ad dependency on total business | When rising without intentional spend scaling — investigate organic rank |
+
+TACoS rising while ACoS stays flat = your organic sales are declining (organic rank is slipping). Ads are compensating for lost organic traffic, increasing your advertising dependence.
+
+TACoS falling while ACoS rises = your organic sales are growing faster than your ad spend. This is often a positive signal — organic momentum is building.
+
+**Benchmark thresholds by category (as starting references — not universal targets):**
+
+| Category | Target ACoS range | Healthy CVR | Healthy CTR |
+|---------|------------------|------------|------------|
+| Supplements / Health | 20–35% | 8–15% | 0.3–0.6% |
+| Electronics accessories | 15–25% | 10–18% | 0.4–0.8% |
+| Home & Kitchen | 20–30% | 6–12% | 0.3–0.5% |
+| Beauty / Personal care | 25–40% | 8–14% | 0.4–0.7% |
+| Apparel | 30–50% | 3–8% | 0.3–0.5% |
+
+These are reference ranges. Your target ACoS must be derived from your **profit margin**, not from industry benchmarks. A product with 65% gross margin can sustain 45% ACoS profitably. A product with 20% gross margin must maintain sub-15% ACoS to remain margin-positive.
+
+**Break-even ACoS formula:**
+```
+Break-Even ACoS = Gross Margin % 
+(i.e., if your gross margin is 40%, your break-even ACoS is 40%)
+```
+
+**Target ACoS** should be set below break-even to generate net contribution:
+```
+Target ACoS = Break-Even ACoS × (1 - Desired Net Contribution %)
+Example: 40% margin, targeting 10% net contribution margin from ads
+Target ACoS = 40% × (1 - 0.25) = 30%
+```
+
+---
+
+## Scenario Snapshot
+
+> **Account situation:** A campaign's ACoS improved from 42% to 31% over 30 days without any bid changes. The account owner is excited and considers scaling the budget. But TACoS went from 12% to 18% over the same period.
+
+**Coach Wesley's call:** This is a classic ACoS improvement trap. ACoS improved because organic revenue declined — paid sales now represent a larger share of total revenue. If organic sales fell 25% while paid efficiency improved, the total business got weaker. Investigate organic keyword rank and review velocity before declaring this a win and scaling spend.
+
+---
+
+## Operator Takeaway
+
+> **ACoS is the final output of a funnel: impressions → clicks → orders. Before you move ACoS, diagnose which stage of the funnel is broken.**
+
+The three operators I've seen consistently outperform are the ones who read search term reports and placement reports before touching a single bid. Metrics are diagnostic instruments. They tell you *where* the problem is. The bid change is the *last* action, not the first.

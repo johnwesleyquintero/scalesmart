@@ -1,0 +1,93 @@
+---
+title: 'Campaign & Ad Structure'
+lessonNumber: 2
+courseSlug: 'amazon-ads-foundations'
+duration: '28 min'
+level: 'Beginner'
+description: 'How portfolios, campaigns, and ad groups interact — and why structure is the foundation of all PPC clarity.'
+operatorNote: 'Messy campaign structure produces messy data. Messy data produces bad decisions. Clean structure is not optional.'
+---
+
+## Amazon's Official Concept
+
+Amazon Sponsored Ads organize advertising into three hierarchical levels:
+
+**Portfolio** → **Campaign** → **Ad Group** → **Ad / Keyword / Target**
+
+**Portfolios** are optional organizational containers that allow you to group related campaigns together. Key benefit: portfolio-level budget caps let you allocate a maximum daily or monthly budget across multiple campaigns simultaneously.
+
+**Campaigns** define targeting type (Sponsored Products, Sponsored Brands, or Sponsored Display), match type approach (Auto vs Manual), bidding strategy, and daily budget.
+
+**Ad Groups** sit within campaigns and group related ads together. Each ad group shares a bid (though individual keyword bids can override ad group default bids).
+
+**Ads** are the individual creatives — for Sponsored Products, this is simply an ASIN + targeting. For Sponsored Brands, it includes a headline, logo, and destination.
+
+**Keyword match types** determine how precisely Amazon matches search queries to your keyword targets:
+
+| Match Type | How it works | Example keyword | Matches |
+|-----------|-------------|-----------------|---------|
+| Broad | Amazon matches variations, synonyms, related terms | `blue running shoes` | "shoes for running blue", "blue athletic footwear" |
+| Phrase | Exact phrase in any order with words before/after | `"running shoes"` | "blue running shoes", "women's running shoes size 8" |
+| Exact | Only that specific query | `[blue running shoes]` | "blue running shoes" only |
+| Negative Exact | Blocks exact query | `-[cheap]` | Never shows for "cheap" |
+| Negative Phrase | Blocks any query containing phrase | `-"free shipping"` | Never shows for queries containing "free shipping" |
+
+---
+
+## Coach Wesley's Operator Layer
+
+Structure is how you get clean, actionable data. Without structure, you can't make intelligent decisions because you don't know *what* drove *which* result.
+
+**The Keyword Promotion Funnel** — the operator's core campaign architecture:
+
+```
+Auto Campaign          → Discovery (what does Amazon match my product to?)
+    ↓ (harvest winners)
+Broad/Phrase Campaign  → Testing (do these terms actually convert profitably?)
+    ↓ (harvest winners)
+Exact Campaign         → Scale (proven, high-intent terms at controlled bid)
+```
+
+Each level has one job:
+- **Auto**: Let Amazon's algorithm discover which queries trigger purchases. Budget: controlled. Check weekly.
+- **Broad/Phrase**: Test promising search terms at lower bids. Harvest winners. Add non-converting terms as negatives.
+- **Exact**: Only your proven converters. Higher bids justified. This is where your budget should concentrate over time.
+
+**The practical naming convention operators use:**
+
+```
+[ASIN/SKU] | [Match Type] | [Target Type] | [Date Created]
+e.g.:  B08XYZ123 | Auto | Discovery | 2026-01
+       B08XYZ123 | Exact | High-Intent KWs | 2026-02
+       B08XYZ123 | Brand | Defense | 2026-02
+```
+
+This naming lets any operator looking at the account immediately understand:
+- What product the campaign covers
+- What targeting strategy it uses
+- When it was built (helps with chronological auditing)
+
+**The structural rules operators don't break:**
+
+1. **One match type per campaign.** Never mix auto and manual in the same campaign. Data mixing makes optimization impossible.
+2. **One product family per portfolio.** Grouping 50 unrelated ASINs under one portfolio-level budget cap means the best-performing products steal budget from underperformers — with no visibility.
+3. **Never let Auto and Exact campaigns compete for the same search terms.** Use negative exact on your Auto campaigns to block your proven exact keywords. Otherwise Auto cannibalizes Exact at unpredictable bids.
+4. **Brand defense is always a separate campaign.** Never mix branded and non-branded keywords. They have fundamentally different economics.
+
+---
+
+## Scenario Snapshot
+
+> **Account situation:** You inherit an account with one campaign called "All Products - Mixed." It has 140 ad groups, auto and manual targeting mixed together, 4 different ASINs, and a $300/day budget. ACoS is 51%.
+
+**Coach Wesley's call:** This is not an optimization problem. This is a structural reconstruction. You cannot optimize your way out of a messy structure. The correct move is to audit every converting search term in the account, rebuild it with clean auto → broad → exact funnels per ASIN family, migrate spend gradually, and shut down the legacy campaign only after the new structure proves equal or better performance. Expect 4–6 weeks of rebuild time on an account this messy.
+
+---
+
+## Operator Takeaway
+
+> **Structure is your data architecture. If your campaigns are a mess, your reports are lies.**
+
+Amazon's console gives you performance data at the campaign, ad group, and keyword level. But if one campaign is running 6 different match types for 4 different products with a blended budget — none of that data is actionable. You can't tell if the ACoS problem is a specific keyword, a specific ASIN, or a structural artifact.
+
+Clean structure makes every optimization decision obvious. Messy structure makes every decision a guess.
