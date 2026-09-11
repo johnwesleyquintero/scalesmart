@@ -8,7 +8,7 @@ import FeaturedCertificationCard from '@/components/academy/FeaturedCertificatio
 import CertificationCard from '@/components/academy/CertificationCard';
 import AcademyFaqSection from '@/components/academy/AcademyFaqSection';
 import { certificationsData } from '@/data/academy/certifications';
-import { CredentialTrack } from '@/types/academy';
+import { CredentialTrack, CREDENTIAL_TRACKS } from '@/types/academy';
 import { Button } from '@/components/ui/button';
 import {
   Award,
@@ -23,6 +23,11 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function CertificationsPage() {
+  const FILTER_BTN_BASE =
+    'px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-150 border';
+  const FILTER_BTN_INACTIVE =
+    'bg-muted/50 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted';
+
   const [activeFilter, setActiveFilter] = useState<'all' | CredentialTrack>(
     'all',
   );
@@ -36,10 +41,10 @@ export default function CertificationsPage() {
   });
 
   const amazonAlignedCount = certificationsData.filter(
-    (c) => c.track === 'amazon-aligned',
+    (c) => c.track === CREDENTIAL_TRACKS.AMAZON_ALIGNED,
   ).length;
   const operatorCredentialsCount = certificationsData.filter(
-    (c) => c.track === 'operator-credential',
+    (c) => c.track === CREDENTIAL_TRACKS.OPERATOR_CREDENTIAL,
   ).length;
 
   return (
@@ -104,34 +109,36 @@ export default function CertificationsPage() {
           <button
             onClick={() => setActiveFilter('all')}
             className={cn(
-              'px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-150 border',
+              FILTER_BTN_BASE,
               activeFilter === 'all'
                 ? 'bg-foreground text-background border-foreground shadow-sm'
-                : 'bg-muted/50 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted',
+                : FILTER_BTN_INACTIVE,
             )}
           >
             All Certifications ({certificationsData.length})
           </button>
 
           <button
-            onClick={() => setActiveFilter('amazon-aligned')}
+            onClick={() => setActiveFilter(CREDENTIAL_TRACKS.AMAZON_ALIGNED)}
             className={cn(
-              'px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-150 border',
-              activeFilter === 'amazon-aligned'
+              FILTER_BTN_BASE,
+              activeFilter === CREDENTIAL_TRACKS.AMAZON_ALIGNED
                 ? 'bg-foreground text-background border-foreground shadow-sm'
-                : 'bg-muted/50 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted',
+                : FILTER_BTN_INACTIVE,
             )}
           >
             Amazon-Aligned Track ({amazonAlignedCount})
           </button>
 
           <button
-            onClick={() => setActiveFilter('operator-credential')}
+            onClick={() =>
+              setActiveFilter(CREDENTIAL_TRACKS.OPERATOR_CREDENTIAL)
+            }
             className={cn(
-              'px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl transition-all duration-150 border',
-              activeFilter === 'operator-credential'
+              FILTER_BTN_BASE,
+              activeFilter === CREDENTIAL_TRACKS.OPERATOR_CREDENTIAL
                 ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-sm font-bold'
-                : 'bg-muted/50 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted',
+                : FILTER_BTN_INACTIVE,
             )}
           >
             Coach Wesley Operator Credentials ({operatorCredentialsCount})

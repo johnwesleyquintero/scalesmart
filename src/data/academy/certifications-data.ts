@@ -1,4 +1,8 @@
-import { Certification } from '@/types/academy';
+import {
+  Certification,
+  CredentialTrack,
+  CREDENTIAL_TRACKS,
+} from '@/types/academy';
 import { certificationsData } from './certifications';
 
 /**
@@ -21,7 +25,7 @@ export async function getAllCertifications(): Promise<Certification[]> {
  * Get certifications by track
  */
 export async function getCertificationsByTrack(
-  track: 'amazon-aligned' | 'operator-credential',
+  track: CredentialTrack,
 ): Promise<Certification[]> {
   return certificationsData.filter((cert) => cert.track === track);
 }
@@ -32,3 +36,5 @@ export async function getCertificationsByTrack(
 export async function getFeaturedCertifications(): Promise<Certification[]> {
   return certificationsData.filter((cert) => cert.featured);
 }
+
+export { CREDENTIAL_TRACKS };

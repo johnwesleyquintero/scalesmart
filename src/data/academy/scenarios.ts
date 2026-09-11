@@ -19,10 +19,12 @@ export interface Scenario {
   operatorTakeaway: string; // The one-line rule
 }
 
+const COURSE_AMAZON_ADS_FOUNDATIONS = 'amazon-ads-foundations';
+
 export const scenariosData: Scenario[] = [
   {
     id: 'scenario-acos-explosion',
-    courseSlug: 'amazon-ads-foundations',
+    courseSlug: COURSE_AMAZON_ADS_FOUNDATIONS,
     lessonSlug: 'diagnosing-performance',
     order: 1,
     title: 'ACoS Explosion',
@@ -65,7 +67,7 @@ export const scenariosData: Scenario[] = [
   },
   {
     id: 'scenario-budget-bleeder',
-    courseSlug: 'amazon-ads-foundations',
+    courseSlug: COURSE_AMAZON_ADS_FOUNDATIONS,
     lessonSlug: 'diagnosing-performance',
     order: 2,
     title: 'The Budget Bleeder',
@@ -109,7 +111,7 @@ export const scenariosData: Scenario[] = [
   },
   {
     id: 'scenario-tacos-rise',
-    courseSlug: 'amazon-ads-foundations',
+    courseSlug: COURSE_AMAZON_ADS_FOUNDATIONS,
     lessonSlug: 'metrics-measurement',
     order: 3,
     title: 'TACoS Rising with Stable Organics',
@@ -157,7 +159,7 @@ export const scenariosData: Scenario[] = [
   },
   {
     id: 'scenario-new-asin-launch',
-    courseSlug: 'amazon-ads-foundations',
+    courseSlug: COURSE_AMAZON_ADS_FOUNDATIONS,
     lessonSlug: 'how-amazon-advertising-works',
     order: 4,
     title: 'New ASIN Launch — Ad Decision',
@@ -205,7 +207,7 @@ export const scenariosData: Scenario[] = [
   },
   {
     id: 'scenario-dynamic-bidding',
-    courseSlug: 'amazon-ads-foundations',
+    courseSlug: COURSE_AMAZON_ADS_FOUNDATIONS,
     lessonSlug: 'bids-budgets',
     order: 5,
     title: 'Dynamic Bidding — Which Strategy?',

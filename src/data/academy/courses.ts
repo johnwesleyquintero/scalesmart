@@ -1,4 +1,4 @@
-import { Course } from '@/types/academy';
+import { Course, COURSE_SOURCES } from '@/types/academy';
 
 export const coursesData: Course[] = [
   {
@@ -10,7 +10,7 @@ export const coursesData: Course[] = [
     description:
       'Build your foundation in Amazon Ads. Understand the retail media ecosystem, campaign objectives, ad formats, and how ads interact with organic algorithm ranking.',
     modulesCount: 5,
-    source: 'Amazon Ads Academy',
+    source: COURSE_SOURCES.AMAZON_ACADEMY,
     topics: [
       'The Retail Media Landscape',
       'Retail Readiness Checklist',
@@ -31,7 +31,7 @@ export const coursesData: Course[] = [
     description:
       'Learn campaign structure, targeting types, bids, budgets, and placement adjustments. Master Sponsored Products, Sponsored Brands, and Sponsored Display setup.',
     modulesCount: 6,
-    source: 'Amazon Ads Academy',
+    source: COURSE_SOURCES.AMAZON_ACADEMY,
     topics: [
       'Single Keyword vs Multi-Keyword Ad Groups',
       'Auto-Targeting Harvest Strategies',
@@ -52,7 +52,7 @@ export const coursesData: Course[] = [
     description:
       'Real-world operational scenarios: TACoS spikes, runaway search terms, sudden organic rank drops, and high-spend bleeders.',
     modulesCount: 7,
-    source: 'ScaleSmart Operator Labs',
+    source: COURSE_SOURCES.SCALESMART_LABS,
     topics: [
       'Scenario: TACoS increased 28% to 46% — what do you investigate first?',
       'Scenario: 1 campaign consuming 42% of spend with deteriorating CVR',
@@ -72,7 +72,7 @@ export const coursesData: Course[] = [
     description:
       'How to build deterministic audience pools, retarget cart abandoners, conquer competitor detail pages, and measure incremental lift with AMC clean room data.',
     modulesCount: 5,
-    source: 'Amazon Ads Academy',
+    source: COURSE_SOURCES.AMAZON_ACADEMY,
     topics: [
       'DSP Pixel Implementation & Custom Audiences',
       'In-Market vs Lifestyle vs ASIN Retargeting',

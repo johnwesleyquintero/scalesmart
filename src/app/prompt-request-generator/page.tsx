@@ -209,7 +209,7 @@ export default function PromptRequestGenerator() {
 
         if (
           !imported.every(
-            (req: any) =>
+            (req: SavedRequest) =>
               req.id &&
               req.name &&
               req.timestamp &&

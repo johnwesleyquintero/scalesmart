@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Certification } from '@/types/academy';
+import { Certification, CREDENTIAL_TRACKS } from '@/types/academy';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, BookOpen, Clock, Sparkles, Award } from 'lucide-react';
@@ -65,7 +65,7 @@ export default function FeaturedCertificationCard({
               </span>
               <span className="text-xs text-muted-foreground">•</span>
               <span className="text-xs text-muted-foreground uppercase font-medium">
-                {certification.track === 'amazon-aligned'
+                {certification.track === CREDENTIAL_TRACKS.AMAZON_ALIGNED
                   ? 'Amazon Aligned'
                   : 'ScaleSmart Credential'}
               </span>

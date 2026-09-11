@@ -5,6 +5,17 @@ export type DifficultyLevel =
   | 'Expert';
 
 export type CredentialTrack = 'amazon-aligned' | 'operator-credential';
+export type CourseSource = 'Amazon Ads Academy' | 'ScaleSmart Operator Labs';
+
+export const CREDENTIAL_TRACKS = {
+  AMAZON_ALIGNED: 'amazon-aligned' as const,
+  OPERATOR_CREDENTIAL: 'operator-credential' as const,
+} satisfies Record<string, CredentialTrack>;
+
+export const COURSE_SOURCES = {
+  AMAZON_ACADEMY: 'Amazon Ads Academy' as const,
+  SCALESMART_LABS: 'ScaleSmart Operator Labs' as const,
+} satisfies Record<string, CourseSource>;
 
 export interface Certification {
   id: string;
@@ -32,7 +43,7 @@ export interface Course {
   duration: string;
   description: string;
   modulesCount: number;
-  source: 'Amazon Ads Academy' | 'ScaleSmart Operator Labs';
+  source: CourseSource;
   topics: string[];
   operatorTakeaway: string;
   featured?: boolean;

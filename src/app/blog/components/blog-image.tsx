@@ -18,8 +18,8 @@ export default function BlogImage({
   className,
 }: Readonly<Props>) {
   if (!width || !height) {
-    /* eslint-disable-next-line @next/next/no-img-element */
     return (
+      // eslint-disable-next-line @next/next/no-img-element
       <img
         src={src}
         alt={alt}

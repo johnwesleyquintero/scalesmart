@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Scenario, scenariosData } from '@/data/academy/scenarios';
 import { cn } from '@/lib/utils';
 import {
@@ -333,10 +334,10 @@ export default function ScenarioLab({ courseSlug }: ScenarioLabProps) {
             asChild
             className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl"
           >
-            <a href="/academy/certifications">
+            <Link href="/academy/certifications">
               Explore Certifications
               <ArrowRight className="ml-2 h-4 w-4" />
-            </a>
+            </Link>
           </Button>
         </div>
       </div>
