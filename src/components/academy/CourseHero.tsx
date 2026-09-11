@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Course } from '@/types/academy';
+import { Course, COURSE_SOURCES } from '@/types/academy';
 import { LessonMeta } from '@/lib/academy-mdx';
 import {
   ArrowRight,
@@ -35,7 +35,7 @@ const levelColors: Record<string, string> = {
 export default function CourseHero({ course, lessons }: CourseHeroProps) {
   const firstLesson = lessons[0];
   const firstLessonHref = firstLesson
-    ? `/academy/courses/amazon-ads-foundations/${firstLesson.slug}`
+    ? `/academy/courses/${course.slug}/${firstLesson.slug}`
     : '#';
 
   return (
@@ -56,7 +56,7 @@ export default function CourseHero({ course, lessons }: CourseHeroProps) {
             </Link>
             <span>/</span>
             <Link
-              href="/academy/certifications"
+              href="/academy#courses"
               className="hover:text-foreground transition-colors"
             >
               Courses
@@ -70,7 +70,7 @@ export default function CourseHero({ course, lessons }: CourseHeroProps) {
             <span
               className={cn(
                 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border',
-                course.source === 'Amazon Ads Academy'
+                course.source === COURSE_SOURCES.AMAZON_ACADEMY
                   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
                   : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
               )}

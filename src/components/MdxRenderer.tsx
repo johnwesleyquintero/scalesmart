@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'; // Import useState, useEffect, and useRef
 
 import { clsx } from 'clsx'; // Import clsx
+import { mdxTableComponents } from '@/components/mdx/MdxTable';
 
 // Component for the copy button
 const CopyCodeButton = ({ code }: { code: string }) => {
@@ -103,20 +104,7 @@ export const components = {
   }: React.ComponentPropsWithoutRef<'blockquote'>) => (
     <blockquote {...props}>{children}</blockquote>
   ),
-  table: ({ children, ...props }: React.ComponentPropsWithoutRef<'table'>) => (
-    <div className="my-6 w-full overflow-y-auto">
-      <table {...props}>{children}</table>
-    </div>
-  ),
-  tr: ({ children, ...props }: React.ComponentPropsWithoutRef<'tr'>) => (
-    <tr {...props}>{children}</tr>
-  ),
-  th: ({ children, ...props }: React.ComponentPropsWithoutRef<'th'>) => (
-    <th {...props}>{children}</th>
-  ),
-  td: ({ children, ...props }: React.ComponentPropsWithoutRef<'td'>) => (
-    <td {...props}>{children}</td>
-  ),
+  ...mdxTableComponents,
   a: ({ children, href, ...props }: React.ComponentPropsWithoutRef<'a'>) => (
     <a href={href} {...props}>
       {children}

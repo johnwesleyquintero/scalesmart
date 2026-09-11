@@ -98,7 +98,7 @@ export default function LessonSidebar({
   return (
     <>
       {/* Mobile Toggle */}
-      <div className="lg:hidden mb-4">
+      <div className="lg:hidden w-full mb-4 order-1">
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="flex w-full items-center justify-between rounded-2xl border border-border/80 bg-card px-5 py-3 text-sm font-semibold text-foreground shadow-sm"
@@ -115,15 +115,15 @@ export default function LessonSidebar({
         </button>
 
         {isOpen && (
-          <div className="mt-2 rounded-2xl border border-border/80 bg-card px-4 py-4 shadow-md">
+          <div className="relative z-20 mt-2 rounded-2xl border border-border/80 bg-card px-4 py-4 shadow-lg">
             <SidebarContent />
           </div>
         )}
       </div>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:block w-64 xl:w-72 shrink-0">
-        <div className="sticky top-8 rounded-2xl border border-border/80 bg-card px-4 py-5 shadow-sm">
+      <aside className="hidden lg:block w-full shrink-0 lg:col-span-3 xl:col-span-3 order-1 lg:order-none">
+        <div className="rounded-2xl border border-border/80 bg-card px-4 py-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/60">
             <BookOpen className="h-4 w-4 text-amber-500" />
             <span className="text-sm font-bold text-foreground">

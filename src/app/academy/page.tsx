@@ -216,7 +216,7 @@ export default function AcademyPage() {
                   size="sm"
                   className="w-full justify-between rounded-xl font-medium border-border/80 hover:bg-amber-500 hover:text-slate-950 hover:border-amber-500 transition-colors"
                 >
-                  <Link href={`/academy/certifications#${featuredCert.slug}`}>
+                  <Link href={`/academy/courses/${course.slug}`}>
                     <span>View course module</span>
                     <ArrowRight className="h-3.5 w-3.5" />
                   </Link>

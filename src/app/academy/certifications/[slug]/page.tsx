@@ -22,9 +22,11 @@ import {
 import {
   getCertificationBySlug,
   getAllCertifications,
+  CREDENTIAL_TRACKS,
 } from '@/data/academy/certifications-data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { mdxTableComponents } from '@/components/mdx/MdxTable';
 import {
   Card,
   CardContent,
@@ -326,7 +328,8 @@ export default async function CertificationDetailPage({ params }: Props) {
     notFound();
   }
 
-  const isOperatorCredential = certification.track === 'operator-credential';
+  const isOperatorCredential =
+    certification.track === CREDENTIAL_TRACKS.OPERATOR_CREDENTIAL;
   const totalModules = courseModules.length;
   const completedModules = 0; // Would be tracked in a real app
   const progressPercentage = (completedModules / totalModules) * 100;
@@ -484,7 +487,7 @@ export default async function CertificationDetailPage({ params }: Props) {
                         <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
                           <MDXRemote
                             source={module.content || ''}
-                            components={{}}
+                            components={mdxTableComponents}
                           />
                         </div>
                       )}

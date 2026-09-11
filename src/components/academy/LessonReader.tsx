@@ -5,6 +5,7 @@ import { MDXRemote } from 'next-mdx-remote/rsc';
 import { ArrowLeft, ArrowRight, Clock, Lightbulb, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { mdxTableComponents } from '@/components/mdx/MdxTable';
 
 // ─── Academy-specific MDX component overrides ─────────────────────────────────
 
@@ -70,45 +71,7 @@ const academyMdxComponents = {
       {children}
     </blockquote>
   ),
-  table: ({ children, ...props }: React.HTMLAttributes<HTMLTableElement>) => (
-    <div className="my-6 w-full overflow-x-auto rounded-xl border border-border/60">
-      <table className="w-full border-collapse text-xs sm:text-sm" {...props}>
-        {children}
-      </table>
-    </div>
-  ),
-  thead: ({
-    children,
-    ...props
-  }: React.HTMLAttributes<HTMLTableSectionElement>) => (
-    <thead className="bg-muted/60" {...props}>
-      {children}
-    </thead>
-  ),
-  th: ({ children, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <th
-      className="px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border/60"
-      {...props}
-    >
-      {children}
-    </th>
-  ),
-  td: ({ children, ...props }: React.HTMLAttributes<HTMLTableCellElement>) => (
-    <td
-      className="px-4 py-2.5 text-left text-foreground/85 border-b border-border/40 last:border-0"
-      {...props}
-    >
-      {children}
-    </td>
-  ),
-  tr: ({ children, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
-    <tr
-      className="even:bg-muted/30 hover:bg-muted/50 transition-colors"
-      {...props}
-    >
-      {children}
-    </tr>
-  ),
+
   code: ({
     children,
     className,
@@ -151,6 +114,7 @@ const academyMdxComponents = {
     </strong>
   ),
   hr: ({ ...props }) => <hr className="my-8 border-border/40" {...props} />,
+  ...mdxTableComponents,
 };
 
 // ─── Lesson Reader Component ───────────────────────────────────────────────────
