@@ -19,13 +19,27 @@ import {
   Video,
 } from 'lucide-react';
 
-import { getCertificationBySlug, getAllCertifications } from '@/data/academy/certifications-data';
+import {
+  getCertificationBySlug,
+  getAllCertifications,
+} from '@/data/academy/certifications-data';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -59,91 +73,130 @@ export async function generateStaticParams() {
 const practiceAssessmentQuestions = [
   {
     id: 1,
-    question: 'What is the main focus of purchase or conversion advertising goals?',
-    options: ['Driving sales', 'Building brand awareness', 'Engaging existing customers'],
+    question:
+      'What is the main focus of purchase or conversion advertising goals?',
+    options: [
+      'Driving sales',
+      'Building brand awareness',
+      'Engaging existing customers',
+    ],
     correctAnswer: 0,
   },
   {
     id: 2,
-    question: '______ is a device where customers can browse, buy, download, and read e-books, newspapers, and magazines.',
+    question:
+      '______ is a device where customers can browse, buy, download, and read e-books, newspapers, and magazines.',
     options: ['Amazon Kindle', 'Alexa', 'Fire TV'],
     correctAnswer: 0,
   },
   {
     id: 3,
-    question: 'Jane has written three best seller books and recently launched a campaign for her next book using Sponsored Products. What type of advertiser is Jane considered?',
+    question:
+      'Jane has written three best seller books and recently launched a campaign for her next book using Sponsored Products. What type of advertiser is Jane considered?',
     options: ['Small and medium-sized business', 'Enterprise', 'Partner'],
     correctAnswer: 0,
   },
   {
     id: 4,
-    question: 'Which of the following solutions provides a report featuring annual and quarterly views of audience sizing across the customer journey?',
-    options: ['Audience planning tool', 'Brand Innovation Lab', 'Overlapping audiences'],
+    question:
+      'Which of the following solutions provides a report featuring annual and quarterly views of audience sizing across the customer journey?',
+    options: [
+      'Audience planning tool',
+      'Brand Innovation Lab',
+      'Overlapping audiences',
+    ],
     correctAnswer: 0,
   },
   {
     id: 5,
-    question: 'Which custom audience tool can be used to create new audiences using traffic from the advertisers\' website?',
-    options: ['Amazon Ad tag', 'Advertiser hashed audiences', 'Conversions API transfer'],
+    question:
+      "Which custom audience tool can be used to create new audiences using traffic from the advertisers' website?",
+    options: [
+      'Amazon Ad tag',
+      'Advertiser hashed audiences',
+      'Conversions API transfer',
+    ],
     correctAnswer: 0,
   },
   {
     id: 6,
-    question: 'Li wishes to drive consideration amongst shoppers who have recently browsed for products in the air sports category. Which audience type would best help Li achieve this goal?',
-    options: ['In-market audience', 'Lifestyle audience', 'Demographic audience'],
+    question:
+      'Li wishes to drive consideration amongst shoppers who have recently browsed for products in the air sports category. Which audience type would best help Li achieve this goal?',
+    options: [
+      'In-market audience',
+      'Lifestyle audience',
+      'Demographic audience',
+    ],
     correctAnswer: 0,
   },
   {
     id: 7,
-    question: 'Which of the following is a pre-built, standard audience type available with Amazon Ads?',
-    options: ['Demographic audiences', 'Advertiser hashed audiences', 'Lookalike audiences'],
+    question:
+      'Which of the following is a pre-built, standard audience type available with Amazon Ads?',
+    options: [
+      'Demographic audiences',
+      'Advertiser hashed audiences',
+      'Lookalike audiences',
+    ],
     correctAnswer: 0,
   },
   {
     id: 8,
-    question: 'Mateo sells sports equipment on Amazon.com and would like to create a series of customized videos as a part of his brand awareness campaign. Which creative self-service tool can he use to create these videos?',
-    options: ['Amazon Creative Video Builder', 'Streaming TV Studio', 'Responsive eCommerce creatives'],
+    question:
+      'Mateo sells sports equipment on Amazon.com and would like to create a series of customized videos as a part of his brand awareness campaign. Which creative self-service tool can he use to create these videos?',
+    options: [
+      'Amazon Creative Video Builder',
+      'Streaming TV Studio',
+      'Responsive eCommerce creatives',
+    ],
     correctAnswer: 0,
   },
   {
     id: 9,
-    question: 'Accent Athletics a global sports company, would like to promote a new launch of sports equipment products in their Amazon Brand Store. Which of the following ad types will help them to achieve this?',
+    question:
+      'Accent Athletics a global sports company, would like to promote a new launch of sports equipment products in their Amazon Brand Store. Which of the following ad types will help them to achieve this?',
     options: ['Sponsored Products', 'Sponsored Display', 'Sponsored TV'],
     correctAnswer: 0,
   },
   {
     id: 10,
-    question: '____ is an available Amazon Ads media channel that allows advertisers to deliver video and display ads through its gaming and live streaming service.',
+    question:
+      '____ is an available Amazon Ads media channel that allows advertisers to deliver video and display ads through its gaming and live streaming service.',
     options: ['Twitch', 'Amazon Music', 'Prime Video'],
     correctAnswer: 0,
   },
   {
     id: 11,
-    question: 'Which self-service Amazon Ads tool allows advertisers to create and manage video ads, device ads, and audio ads?',
+    question:
+      'Which self-service Amazon Ads tool allows advertisers to create and manage video ads, device ads, and audio ads?',
     options: ['Amazon DSP', 'Seller Central', 'Amazon advertising console'],
     correctAnswer: 0,
   },
   {
     id: 12,
-    question: 'Which of the following is an example of an industry standard success metric available when using Amazon Ads?',
+    question:
+      'Which of the following is an example of an industry standard success metric available when using Amazon Ads?',
     options: ['Return on ad spend', 'Advertising cost of sale', 'New-to-brand'],
     correctAnswer: 0,
   },
   {
     id: 13,
-    question: 'Accent Athletics wants a measurement solution that quantifies key shopping engagements at each stage of the shopping journey. Which of the following measurement solutions can they use to achieve this?',
+    question:
+      'Accent Athletics wants a measurement solution that quantifies key shopping engagements at each stage of the shopping journey. Which of the following measurement solutions can they use to achieve this?',
     options: ['Brand Metrics', 'Amazon Marketing Cloud', 'Amazon Brand Lift'],
     correctAnswer: 0,
   },
   {
     id: 14,
-    question: 'Accent Athletics would like to measure the impact of ad tactics on shopping activities across retail outlets, while campaigns are still mid-flight. Which of the following measurement solutions can they use to achieve this?',
+    question:
+      'Accent Athletics would like to measure the impact of ad tactics on shopping activities across retail outlets, while campaigns are still mid-flight. Which of the following measurement solutions can they use to achieve this?',
     options: ['Omnichannel Metrics', 'Amazon Attribution', 'Amazon Brand Lift'],
     correctAnswer: 0,
   },
   {
     id: 15,
-    question: 'The add-to-cart metric provides insight into which stage of the customer marketing journey?',
+    question:
+      'The add-to-cart metric provides insight into which stage of the customer marketing journey?',
     options: ['Conversion', 'Loyalty', 'Awareness'],
     correctAnswer: 0,
   },
@@ -166,7 +219,8 @@ const courseModules: CourseModule[] = [
     title: 'Welcome to Amazon Ads',
     type: 'video',
     duration: '2m',
-    videoUrl: 'https://d1apxakas9uxdu.cloudfront.net/uploads/86007/files/2d22f226-3253-4cbc-9685-b4141fa39ead-foundations-c1-intro-v05.mp4',
+    videoUrl:
+      'https://d1apxakas9uxdu.cloudfront.net/uploads/86007/files/2d22f226-3253-4cbc-9685-b4141fa39ead-foundations-c1-intro-v05.mp4',
     completed: false,
   },
   {
@@ -292,8 +346,13 @@ export default async function CertificationDetailPage({ params }: Props) {
             </Link>
           </div>
           <div className="flex items-center gap-3">
-            <Badge variant={isOperatorCredential ? 'default' : 'secondary'} className="text-xs">
-              {isOperatorCredential ? 'ScaleSmart Credential' : 'Amazon-Aligned'}
+            <Badge
+              variant={isOperatorCredential ? 'default' : 'secondary'}
+              className="text-xs"
+            >
+              {isOperatorCredential
+                ? 'ScaleSmart Credential'
+                : 'Amazon-Aligned'}
             </Badge>
             <Badge variant="outline" className="text-xs">
               {certification.level}
@@ -350,7 +409,9 @@ export default async function CertificationDetailPage({ params }: Props) {
           <div className="mt-4">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="font-medium">Your Progress</span>
-              <span className="text-muted-foreground">{completedModules}/{totalModules} modules completed</span>
+              <span className="text-muted-foreground">
+                {completedModules}/{totalModules} modules completed
+              </span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
           </div>
@@ -375,7 +436,10 @@ export default async function CertificationDetailPage({ params }: Props) {
               {/* Learn Tab */}
               <TabsContent value="learn" className="space-y-4">
                 {courseModules.map((module, index) => (
-                  <Card key={module.id} className="overflow-hidden border-border/80 hover:border-amber-500/50 transition-colors">
+                  <Card
+                    key={module.id}
+                    className="overflow-hidden border-border/80 hover:border-amber-500/50 transition-colors"
+                  >
                     <CardHeader className="pb-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -383,7 +447,9 @@ export default async function CertificationDetailPage({ params }: Props) {
                             {index + 1}
                           </div>
                           <div>
-                            <CardTitle className="text-lg">{module.title}</CardTitle>
+                            <CardTitle className="text-lg">
+                              {module.title}
+                            </CardTitle>
                             <CardDescription className="flex items-center gap-2 mt-1">
                               {module.type === 'video' ? (
                                 <Video className="h-3 w-3" />
@@ -416,7 +482,10 @@ export default async function CertificationDetailPage({ params }: Props) {
                         </div>
                       ) : (
                         <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
-                          <MDXRemote source={module.content || ''} components={{}} />
+                          <MDXRemote
+                            source={module.content || ''}
+                            components={{}}
+                          />
                         </div>
                       )}
                     </CardContent>
@@ -433,7 +502,8 @@ export default async function CertificationDetailPage({ params }: Props) {
                       <div>
                         <CardTitle>Practice Assessment</CardTitle>
                         <CardDescription>
-                          Test your knowledge before taking the official certification exam
+                          Test your knowledge before taking the official
+                          certification exam
                         </CardDescription>
                       </div>
                     </div>
@@ -450,7 +520,7 @@ export default async function CertificationDetailPage({ params }: Props) {
                       </span>
                       <Badge variant="outline">Optional</Badge>
                     </div>
-                    
+
                     <Accordion type="single" collapsible className="w-full">
                       {practiceAssessmentQuestions.map((q, idx) => (
                         <AccordionItem key={q.id} value={`question-${q.id}`}>
@@ -459,7 +529,9 @@ export default async function CertificationDetailPage({ params }: Props) {
                               <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 text-xs font-bold shrink-0">
                                 {idx + 1}
                               </span>
-                              <span className="text-sm font-medium">{q.question}</span>
+                              <span className="text-sm font-medium">
+                                {q.question}
+                              </span>
                             </div>
                           </AccordionTrigger>
                           <AccordionContent>
@@ -504,13 +576,15 @@ export default async function CertificationDetailPage({ params }: Props) {
             {/* Certification Info Card */}
             <Card className="border-border/80">
               <CardHeader>
-                <CardTitle className="text-base">About This Certification</CardTitle>
+                <CardTitle className="text-base">
+                  About This Certification
+                </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-sm text-muted-foreground">
                   {certification.description}
                 </p>
-                
+
                 <div>
                   <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                     <Target className="h-4 w-4 text-amber-500" />
@@ -518,7 +592,10 @@ export default async function CertificationDetailPage({ params }: Props) {
                   </h4>
                   <ul className="space-y-2">
                     {certification.topics.map((topic, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-muted-foreground">
+                      <li
+                        key={i}
+                        className="flex items-start gap-2 text-sm text-muted-foreground"
+                      >
                         <CheckCircle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                         {topic}
                       </li>
@@ -548,27 +625,35 @@ export default async function CertificationDetailPage({ params }: Props) {
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">Start Learning</p>
-                    <p className="text-xs text-muted-foreground">Begin with the welcome video</p>
+                    <p className="text-xs text-muted-foreground">
+                      Begin with the welcome video
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-border/60">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/10 text-amber-500">
                     <HelpCircle className="h-4 w-4" />
                   </div>
                   <div className="flex-1">
                     <p className="text-sm font-medium">Take Practice Test</p>
-                    <p className="text-xs text-muted-foreground">Test your knowledge</p>
+                    <p className="text-xs text-muted-foreground">
+                      Test your knowledge
+                    </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-amber-500/30 bg-amber-500/5">
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-slate-950">
                     <Trophy className="h-4 w-4" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-bold text-foreground">Earn Certification</p>
-                    <p className="text-xs text-muted-foreground">Pass the final assessment</p>
+                    <p className="text-sm font-bold text-foreground">
+                      Earn Certification
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Pass the final assessment
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -592,7 +677,7 @@ export default async function CertificationDetailPage({ params }: Props) {
                       Beginner • 2.4 hrs
                     </p>
                   </Link>
-                  
+
                   <Link
                     href="/academy/certifications#amazon-video-ads-certification"
                     className="block p-3 rounded-lg border border-border/60 hover:border-amber-500/50 hover:bg-amber-500/5 transition-all group"
@@ -616,9 +701,12 @@ export default async function CertificationDetailPage({ params }: Props) {
         <div className="container mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div>
-              <h3 className="text-lg font-bold mb-1">Ready to get certified?</h3>
+              <h3 className="text-lg font-bold mb-1">
+                Ready to get certified?
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Complete all modules and pass the assessment to earn your credential
+                Complete all modules and pass the assessment to earn your
+                credential
               </p>
             </div>
             <Button className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-semibold px-8">

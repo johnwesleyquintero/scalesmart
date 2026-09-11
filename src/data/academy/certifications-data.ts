@@ -4,7 +4,9 @@ import { certificationsData } from './certifications';
 /**
  * Get a certification by its slug
  */
-export async function getCertificationBySlug(slug: string): Promise<Certification | null> {
+export async function getCertificationBySlug(
+  slug: string,
+): Promise<Certification | null> {
   return certificationsData.find((cert) => cert.slug === slug) || null;
 }
 
@@ -18,7 +20,9 @@ export async function getAllCertifications(): Promise<Certification[]> {
 /**
  * Get certifications by track
  */
-export async function getCertificationsByTrack(track: 'amazon-aligned' | 'operator-credential'): Promise<Certification[]> {
+export async function getCertificationsByTrack(
+  track: 'amazon-aligned' | 'operator-credential',
+): Promise<Certification[]> {
   return certificationsData.filter((cert) => cert.track === track);
 }
 
