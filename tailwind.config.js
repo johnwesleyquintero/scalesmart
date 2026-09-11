@@ -89,6 +89,12 @@ const config = {
           sky: '#3B82F6',
           cyan: '#06B6D4',
         },
+        // Amazon Ads Academy inspired colors
+        amazon: {
+          orange: '#FF9900',
+          'orange-light': '#FFB84D',
+          'orange-dark': '#CC7A00',
+        },
         text: {
           DEFAULT: '#0F172A',
           muted: '#334155',
