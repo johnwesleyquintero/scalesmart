@@ -36,11 +36,26 @@ export const scenariosData: Scenario[] = [
     ],
     question: 'What do you investigate first?',
     choices: [
-      { id: 'a', text: 'Lower all bids by 20% immediately to bring ACoS back down.' },
-      { id: 'b', text: 'Pause the campaign until you understand what happened.' },
-      { id: 'c', text: 'Increase the daily budget so the campaign can generate more data.' },
-      { id: 'd', text: 'Pull the search term report to identify what changed — CPC, CVR, or search term mix.' },
-      { id: 'e', text: 'Check if conversion rate (CVR) dropped and whether the product listing changed.' },
+      {
+        id: 'a',
+        text: 'Lower all bids by 20% immediately to bring ACoS back down.',
+      },
+      {
+        id: 'b',
+        text: 'Pause the campaign until you understand what happened.',
+      },
+      {
+        id: 'c',
+        text: 'Increase the daily budget so the campaign can generate more data.',
+      },
+      {
+        id: 'd',
+        text: 'Pull the search term report to identify what changed — CPC, CVR, or search term mix.',
+      },
+      {
+        id: 'e',
+        text: 'Check if conversion rate (CVR) dropped and whether the product listing changed.',
+      },
     ],
     correctIds: ['d', 'e'],
     coachReasoning:
@@ -65,11 +80,26 @@ export const scenariosData: Scenario[] = [
     ],
     question: "What's your first move?",
     choices: [
-      { id: 'a', text: 'Pause the campaign immediately — 68% ACoS is unacceptable.' },
-      { id: 'b', text: 'Pull the search term report to find which terms are eating spend with zero conversions.' },
-      { id: 'c', text: 'Reduce the campaign daily budget cap to $500 to stop the bleeding.' },
-      { id: 'd', text: 'Analyze which ASINs and search terms are actually converting profitably, harvest them into manual exact campaigns, and then decide what to do with the auto.' },
-      { id: 'e', text: 'Raise the bid on converting terms so the campaign becomes more efficient.' },
+      {
+        id: 'a',
+        text: 'Pause the campaign immediately — 68% ACoS is unacceptable.',
+      },
+      {
+        id: 'b',
+        text: 'Pull the search term report to find which terms are eating spend with zero conversions.',
+      },
+      {
+        id: 'c',
+        text: 'Reduce the campaign daily budget cap to $500 to stop the bleeding.',
+      },
+      {
+        id: 'd',
+        text: 'Analyze which ASINs and search terms are actually converting profitably, harvest them into manual exact campaigns, and then decide what to do with the auto.',
+      },
+      {
+        id: 'e',
+        text: 'Raise the bid on converting terms so the campaign becomes more efficient.',
+      },
     ],
     correctIds: ['b', 'd'],
     coachReasoning:
@@ -90,15 +120,34 @@ export const scenariosData: Scenario[] = [
       { label: 'TACoS', before: '14%', after: '21%' },
       { label: 'ACoS', before: '37%', after: '38%' },
       { label: 'Paid Spend (30d)', before: '$3,800', after: '$4,978' },
-      { label: 'Organic Revenue', before: 'Growing', after: 'Stable/Slight growth' },
+      {
+        label: 'Organic Revenue',
+        before: 'Growing',
+        after: 'Stable/Slight growth',
+      },
     ],
     question: 'What does this TACoS pattern actually signal?',
     choices: [
-      { id: 'a', text: 'ACoS is still fine at 38% so there is no real problem here.' },
-      { id: 'b', text: 'TACoS is rising because organic revenue growth slowed — ads now represent a bigger share of total sales.' },
-      { id: 'c', text: 'This means paid ads are cannibalizing organic rank and should be reduced immediately.' },
-      { id: 'd', text: 'The campaign became less efficient — bids should be cut across the board.' },
-      { id: 'e', text: 'Investigate whether organic rank for core keywords is slipping, causing sales to shift from organic to paid.' },
+      {
+        id: 'a',
+        text: 'ACoS is still fine at 38% so there is no real problem here.',
+      },
+      {
+        id: 'b',
+        text: 'TACoS is rising because organic revenue growth slowed — ads now represent a bigger share of total sales.',
+      },
+      {
+        id: 'c',
+        text: 'This means paid ads are cannibalizing organic rank and should be reduced immediately.',
+      },
+      {
+        id: 'd',
+        text: 'The campaign became less efficient — bids should be cut across the board.',
+      },
+      {
+        id: 'e',
+        text: 'Investigate whether organic rank for core keywords is slipping, causing sales to shift from organic to paid.',
+      },
     ],
     correctIds: ['b', 'e'],
     coachReasoning:
@@ -114,20 +163,39 @@ export const scenariosData: Scenario[] = [
     title: 'New ASIN Launch — Ad Decision',
     level: 'Beginner',
     context:
-      "A client just got their first shipment of a new product into FBA. The listing is live. It has 0 reviews. The images are decent but not professional-grade. The main image meets Amazon requirements. Price point is competitive. The client is excited and asks: \"Should we turn on Sponsored Products ads right now to get momentum?\"",
+      'A client just got their first shipment of a new product into FBA. The listing is live. It has 0 reviews. The images are decent but not professional-grade. The main image meets Amazon requirements. Price point is competitive. The client is excited and asks: "Should we turn on Sponsored Products ads right now to get momentum?"',
     keyMetrics: [
       { label: 'Reviews', before: '—', after: '0' },
       { label: 'Star rating', before: '—', after: 'N/A' },
-      { label: 'Main image', before: '—', after: 'Compliant, not professional' },
+      {
+        label: 'Main image',
+        before: '—',
+        after: 'Compliant, not professional',
+      },
       { label: 'A+ Content', before: '—', after: 'Not uploaded' },
     ],
     question: 'What do you recommend?',
     choices: [
-      { id: 'a', text: 'Yes — start ads immediately on Auto targeting with a low daily budget to gather early data.' },
-      { id: 'b', text: 'No — wait until you have at least 15 reviews and a 4.0+ star rating before spending on ads.' },
-      { id: 'c', text: 'Run a small exact-match campaign only on the brand name to protect the listing, but hold off on broad discovery spend.' },
-      { id: 'd', text: 'Fix the listing first: professional main image, A+ Content, and get 10–15 early reviews via Vine or reviewer program before launching paid discovery.' },
-      { id: 'e', text: 'Launch ads but only for keywords where competitors have similar or lower review counts.' },
+      {
+        id: 'a',
+        text: 'Yes — start ads immediately on Auto targeting with a low daily budget to gather early data.',
+      },
+      {
+        id: 'b',
+        text: 'No — wait until you have at least 15 reviews and a 4.0+ star rating before spending on ads.',
+      },
+      {
+        id: 'c',
+        text: 'Run a small exact-match campaign only on the brand name to protect the listing, but hold off on broad discovery spend.',
+      },
+      {
+        id: 'd',
+        text: 'Fix the listing first: professional main image, A+ Content, and get 10–15 early reviews via Vine or reviewer program before launching paid discovery.',
+      },
+      {
+        id: 'e',
+        text: 'Launch ads but only for keywords where competitors have similar or lower review counts.',
+      },
     ],
     correctIds: ['d'],
     coachReasoning:
@@ -152,10 +220,22 @@ export const scenariosData: Scenario[] = [
     ],
     question: 'Which bidding strategy do you select and why?',
     choices: [
-      { id: 'a', text: 'Dynamic Bids – Up and Down: Amazon will optimize bids automatically in both directions for maximum conversions.' },
-      { id: 'b', text: 'Fixed Bids: You control exactly what you pay per click with no algorithmic adjustment.' },
-      { id: 'c', text: 'Dynamic Bids – Down Only: Amazon can lower bids when a conversion is less likely, but cannot raise them above your set bid.' },
-      { id: 'd', text: 'Dynamic Bids – Up and Down with a placement multiplier of +100% on top of search.' },
+      {
+        id: 'a',
+        text: 'Dynamic Bids – Up and Down: Amazon will optimize bids automatically in both directions for maximum conversions.',
+      },
+      {
+        id: 'b',
+        text: 'Fixed Bids: You control exactly what you pay per click with no algorithmic adjustment.',
+      },
+      {
+        id: 'c',
+        text: 'Dynamic Bids – Down Only: Amazon can lower bids when a conversion is less likely, but cannot raise them above your set bid.',
+      },
+      {
+        id: 'd',
+        text: 'Dynamic Bids – Up and Down with a placement multiplier of +100% on top of search.',
+      },
     ],
     correctIds: ['c'],
     coachReasoning:

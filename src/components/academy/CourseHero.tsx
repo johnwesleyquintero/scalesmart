@@ -22,10 +22,14 @@ interface CourseHeroProps {
 }
 
 const levelColors: Record<string, string> = {
-  Beginner: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
-  Intermediate: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
-  Advanced: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
-  Expert: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
+  Beginner:
+    'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+  Intermediate:
+    'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  Advanced:
+    'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+  Expert:
+    'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20',
 };
 
 export default function CourseHero({ course, lessons }: CourseHeroProps) {
@@ -44,11 +48,17 @@ export default function CourseHero({ course, lessons }: CourseHeroProps) {
         <div className="lg:col-span-7 p-8 sm:p-10 border-b lg:border-b-0 lg:border-r border-border/60">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-5">
-            <Link href="/academy" className="hover:text-foreground transition-colors">
+            <Link
+              href="/academy"
+              className="hover:text-foreground transition-colors"
+            >
               Academy
             </Link>
             <span>/</span>
-            <Link href="/academy/certifications" className="hover:text-foreground transition-colors">
+            <Link
+              href="/academy/certifications"
+              className="hover:text-foreground transition-colors"
+            >
               Courses
             </Link>
             <span>/</span>
@@ -62,7 +72,7 @@ export default function CourseHero({ course, lessons }: CourseHeroProps) {
                 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border',
                 course.source === 'Amazon Ads Academy'
                   ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
-                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20'
+                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
               )}
             >
               <ShieldCheck className="h-3.5 w-3.5" />
@@ -72,7 +82,7 @@ export default function CourseHero({ course, lessons }: CourseHeroProps) {
             <span
               className={cn(
                 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border',
-                levelColors[course.level] || levelColors['Beginner']
+                levelColors[course.level] || levelColors['Beginner'],
               )}
             >
               {course.level}
@@ -142,7 +152,10 @@ export default function CourseHero({ course, lessons }: CourseHeroProps) {
 
           <ul className="space-y-3 mb-8">
             {course.topics.map((topic, i) => (
-              <li key={i} className="flex items-start gap-3 text-sm text-foreground/90 font-medium">
+              <li
+                key={i}
+                className="flex items-start gap-3 text-sm text-foreground/90 font-medium"
+              >
                 <CheckCircle2 className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                 <span>{topic}</span>
               </li>

@@ -37,15 +37,17 @@ Pull TACoS and ACoS for the trailing 7, 14, and 30 days. Note direction (rising,
 
 **Step 2: Segment**
 Break performance down by:
+
 - Campaign type (auto vs exact vs brand)
 - Match type
 - ASIN / product
 - Placement (TOS vs ROS vs product pages)
 
-Ask: Is the problem in *one* campaign or across all campaigns? Is it isolated to *one* ASIN or all products? This is the most time-saving step — it narrows 80% of possible causes in 5 minutes.
+Ask: Is the problem in _one_ campaign or across all campaigns? Is it isolated to _one_ ASIN or all products? This is the most time-saving step — it narrows 80% of possible causes in 5 minutes.
 
 **Step 3: Isolate**
 Using your segment data, identify the specific variable that changed:
+
 - Did CPC increase? (Check search term report for expensive new terms)
 - Did CVR drop? (Check listing reviews, price, Buy Box %, stock level)
 - Did impressions spike? (Auto campaign expanded into irrelevant queries)
@@ -53,7 +55,8 @@ Using your segment data, identify the specific variable that changed:
 
 **Step 4: Hypothesize**
 Form a specific, testable hypothesis:
-> *"Auto campaign is bleeding $240/week on 'kids toys' queries for an adult supplement product. Negating these terms will reduce spend by ~$200/week with minimal revenue impact."*
+
+> _"Auto campaign is bleeding $240/week on 'kids toys' queries for an adult supplement product. Negating these terms will reduce spend by ~$200/week with minimal revenue impact."_
 
 Never move to action without a written hypothesis. It forces clarity and creates an audit trail.
 
@@ -62,14 +65,14 @@ Make the single smallest change that tests your hypothesis. Do not stack multipl
 
 Common interventions by root cause:
 
-| Root cause identified | Intervention |
-|----------------------|-------------|
-| Irrelevant search terms | Add negative exact targets |
-| High CPC on low-CVR terms | Bid reduction on specific keywords |
-| Low CVR on all keywords | Listing audit: reviews, images, price |
-| Budget exhausting by 10am | Increase budget or reduce bids to extend delivery |
-| Specific ASIN dragging account | Separate it into its own campaign; isolate its P&L |
-| Placement inefficiency | Adjust placement multiplier based on placement report |
+| Root cause identified          | Intervention                                          |
+| ------------------------------ | ----------------------------------------------------- |
+| Irrelevant search terms        | Add negative exact targets                            |
+| High CPC on low-CVR terms      | Bid reduction on specific keywords                    |
+| Low CVR on all keywords        | Listing audit: reviews, images, price                 |
+| Budget exhausting by 10am      | Increase budget or reduce bids to extend delivery     |
+| Specific ASIN dragging account | Separate it into its own campaign; isolate its P&L    |
+| Placement inefficiency         | Adjust placement multiplier based on placement report |
 
 **Step 6: Monitor**
 Set a review date. For bid changes: 7 days minimum before evaluating. For structural changes: 14–21 days. For budget changes: 3–5 days. **Resist the urge to check daily and panic-adjust.** Amazon's ad delivery algorithm needs time to recalibrate.
@@ -84,6 +87,7 @@ Did the intervention do what you predicted? Compare pre- and post-change metrics
 Open the Search Term Report. Filter by date range: last 30 days. Sort by Spend (descending).
 
 Flag any search term meeting **any** of these criteria:
+
 - Spend > $20 AND Orders = 0 AND query is clearly irrelevant → **Negative Exact immediately**
 - Spend > $50 AND Orders = 0 AND query may be relevant → **Hold for 7 more days, then negative if still no order**
 - Spend > $30 AND ACoS > 2× target ACoS → **Bid reduction of 20–30%**

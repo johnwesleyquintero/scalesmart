@@ -3,7 +3,14 @@
 import React, { useState } from 'react';
 import { Scenario, scenariosData } from '@/data/academy/scenarios';
 import { cn } from '@/lib/utils';
-import { ArrowRight, CheckCircle2, ChevronRight, Lightbulb, XCircle, Zap } from 'lucide-react';
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronRight,
+  Lightbulb,
+  XCircle,
+  Zap,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface ScenarioCardProps {
@@ -29,7 +36,7 @@ function ScenarioCard({
     // If multiple correct answers exist, allow multi-select; otherwise single select
     if (scenario.correctIds.length > 1) {
       setSelectedIds((prev) =>
-        prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+        prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
       );
     } else {
       setSelectedIds([id]);
@@ -94,9 +101,13 @@ function ScenarioCard({
                     {metric.label}
                   </div>
                   <div className="flex items-center justify-center gap-1.5">
-                    <span className="text-xs text-muted-foreground line-through">{metric.before}</span>
+                    <span className="text-xs text-muted-foreground line-through">
+                      {metric.before}
+                    </span>
                     <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                    <span className="text-sm font-bold text-amber-500">{metric.after}</span>
+                    <span className="text-sm font-bold text-amber-500">
+                      {metric.after}
+                    </span>
                   </div>
                 </div>
               ))}
@@ -106,7 +117,9 @@ function ScenarioCard({
 
         {/* Question */}
         <div className="mb-5">
-          <h3 className="text-base sm:text-lg font-bold text-foreground mb-1">{scenario.question}</h3>
+          <h3 className="text-base sm:text-lg font-bold text-foreground mb-1">
+            {scenario.question}
+          </h3>
           {scenario.correctIds.length > 1 && !submitted && (
             <p className="text-xs text-muted-foreground italic">
               Select all that apply.
@@ -120,19 +133,26 @@ function ScenarioCard({
             const selected = wasSelected(choice.id);
             const correct = isCorrect(choice.id);
 
-            let choiceStyle = 'border-border/70 bg-background hover:border-amber-500/50 hover:bg-amber-500/5';
+            let choiceStyle =
+              'border-border/70 bg-background hover:border-amber-500/50 hover:bg-amber-500/5';
             let indicator = null;
 
             if (submitted) {
               if (correct && selected) {
                 choiceStyle = 'border-emerald-500 bg-emerald-500/10';
-                indicator = <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />;
+                indicator = (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+                );
               } else if (correct && !selected) {
                 choiceStyle = 'border-emerald-500/60 bg-emerald-500/5';
-                indicator = <CheckCircle2 className="h-4 w-4 text-emerald-400/70 shrink-0" />;
+                indicator = (
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400/70 shrink-0" />
+                );
               } else if (!correct && selected) {
                 choiceStyle = 'border-red-500 bg-red-500/10';
-                indicator = <XCircle className="h-4 w-4 text-red-500 shrink-0" />;
+                indicator = (
+                  <XCircle className="h-4 w-4 text-red-500 shrink-0" />
+                );
               } else {
                 choiceStyle = 'border-border/40 bg-muted/30 opacity-60';
               }
@@ -148,7 +168,7 @@ function ScenarioCard({
                 className={cn(
                   'w-full text-left flex items-start gap-3 rounded-xl border px-4 py-3 text-sm transition-all duration-150',
                   submitted ? 'cursor-default' : 'cursor-pointer',
-                  choiceStyle
+                  choiceStyle,
                 )}
               >
                 <span
@@ -157,14 +177,16 @@ function ScenarioCard({
                     submitted
                       ? 'border-transparent bg-transparent'
                       : selected
-                      ? 'border-amber-500 bg-amber-500 text-slate-950'
-                      : 'border-border text-muted-foreground'
+                        ? 'border-amber-500 bg-amber-500 text-slate-950'
+                        : 'border-border text-muted-foreground',
                   )}
                 >
                   {!submitted && choice.id.toUpperCase()}
                 </span>
                 {submitted && indicator}
-                <span className="leading-relaxed text-foreground/90">{choice.text}</span>
+                <span className="leading-relaxed text-foreground/90">
+                  {choice.text}
+                </span>
               </button>
             );
           })}
@@ -188,7 +210,7 @@ function ScenarioCard({
                 'flex items-center gap-3 rounded-xl p-3.5',
                 answeredCorrectly
                   ? 'bg-emerald-500/10 border border-emerald-500/30'
-                  : 'bg-amber-500/10 border border-amber-500/30'
+                  : 'bg-amber-500/10 border border-amber-500/30',
               )}
             >
               {answeredCorrectly ? (
@@ -199,7 +221,7 @@ function ScenarioCard({
               <span className="text-sm font-semibold text-foreground">
                 {answeredCorrectly
                   ? '✓ Correct operator instinct!'
-                  : 'Not quite — here\'s the operator reasoning:'}
+                  : "Not quite — here's the operator reasoning:"}
               </span>
             </div>
 
@@ -255,7 +277,9 @@ interface ScenarioLabProps {
 
 export default function ScenarioLab({ courseSlug }: ScenarioLabProps) {
   const scenarios = courseSlug
-    ? scenariosData.filter((s) => s.courseSlug === courseSlug).sort((a, b) => a.order - b.order)
+    ? scenariosData
+        .filter((s) => s.courseSlug === courseSlug)
+        .sort((a, b) => a.order - b.order)
     : scenariosData;
 
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -289,8 +313,10 @@ export default function ScenarioLab({ courseSlug }: ScenarioLabProps) {
           All {scenarios.length} scenarios finished.
         </h2>
         <p className="text-sm text-slate-300 max-w-xl mx-auto mb-8 leading-relaxed">
-          You&apos;ve worked through the core diagnostic scenarios. Each one reflects a real account situation.
-          The operator instinct you practiced here is the same judgment that separates a consistent 25% ACoS from a 55% one.
+          You&apos;ve worked through the core diagnostic scenarios. Each one
+          reflects a real account situation. The operator instinct you practiced
+          here is the same judgment that separates a consistent 25% ACoS from a
+          55% one.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Button
@@ -326,7 +352,7 @@ export default function ScenarioLab({ courseSlug }: ScenarioLabProps) {
         <div className="flex-1 bg-muted rounded-full h-1.5 overflow-hidden">
           <div
             className="h-full bg-amber-500 transition-all duration-500 rounded-full"
-            style={{ width: `${((currentIndex) / scenarios.length) * 100}%` }}
+            style={{ width: `${(currentIndex / scenarios.length) * 100}%` }}
           />
         </div>
         <span className="text-xs font-bold text-muted-foreground shrink-0">
@@ -345,8 +371,8 @@ export default function ScenarioLab({ courseSlug }: ScenarioLabProps) {
               idx === currentIndex
                 ? 'bg-amber-500 text-slate-950'
                 : idx < currentIndex
-                ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                  ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400'
+                  : 'bg-muted text-muted-foreground hover:bg-muted/80',
             )}
           >
             {idx + 1}. {s.title}

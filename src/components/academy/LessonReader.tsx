@@ -31,17 +31,26 @@ const academyMdxComponents = {
     </h3>
   ),
   p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="leading-7 mb-4 text-sm sm:text-base text-foreground/90" {...props}>
+    <p
+      className="leading-7 mb-4 text-sm sm:text-base text-foreground/90"
+      {...props}
+    >
       {children}
     </p>
   ),
   ul: ({ children, ...props }: React.HTMLAttributes<HTMLUListElement>) => (
-    <ul className="my-4 ml-6 space-y-1.5 list-disc text-sm sm:text-base text-foreground/90" {...props}>
+    <ul
+      className="my-4 ml-6 space-y-1.5 list-disc text-sm sm:text-base text-foreground/90"
+      {...props}
+    >
       {children}
     </ul>
   ),
   ol: ({ children, ...props }: React.HTMLAttributes<HTMLOListElement>) => (
-    <ol className="my-4 ml-6 space-y-1.5 list-decimal text-sm sm:text-base text-foreground/90" {...props}>
+    <ol
+      className="my-4 ml-6 space-y-1.5 list-decimal text-sm sm:text-base text-foreground/90"
+      {...props}
+    >
       {children}
     </ol>
   ),
@@ -50,7 +59,10 @@ const academyMdxComponents = {
       {children}
     </li>
   ),
-  blockquote: ({ children, ...props }: React.HTMLAttributes<HTMLQuoteElement>) => (
+  blockquote: ({
+    children,
+    ...props
+  }: React.HTMLAttributes<HTMLQuoteElement>) => (
     <blockquote
       className="my-5 border-l-4 border-amber-500 pl-5 py-1 bg-amber-500/5 rounded-r-xl italic text-foreground/80 text-sm"
       {...props}
@@ -65,7 +77,10 @@ const academyMdxComponents = {
       </table>
     </div>
   ),
-  thead: ({ children, ...props }: React.HTMLAttributes<HTMLTableSectionElement>) => (
+  thead: ({
+    children,
+    ...props
+  }: React.HTMLAttributes<HTMLTableSectionElement>) => (
     <thead className="bg-muted/60" {...props}>
       {children}
     </thead>
@@ -87,16 +102,26 @@ const academyMdxComponents = {
     </td>
   ),
   tr: ({ children, ...props }: React.HTMLAttributes<HTMLTableRowElement>) => (
-    <tr className="even:bg-muted/30 hover:bg-muted/50 transition-colors" {...props}>
+    <tr
+      className="even:bg-muted/30 hover:bg-muted/50 transition-colors"
+      {...props}
+    >
       {children}
     </tr>
   ),
-  code: ({ children, className, ...props }: React.HTMLAttributes<HTMLElement>) => {
+  code: ({
+    children,
+    className,
+    ...props
+  }: React.HTMLAttributes<HTMLElement>) => {
     const isBlock = className?.includes('language-');
     if (isBlock) {
       return (
         <code
-          className={cn('block font-mono text-xs leading-relaxed text-emerald-400', className)}
+          className={cn(
+            'block font-mono text-xs leading-relaxed text-emerald-400',
+            className,
+          )}
           {...props}
         >
           {children}
@@ -190,7 +215,11 @@ export default function LessonReader({
       <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none prose-headings:font-extrabold prose-headings:tracking-tight prose-a:text-amber-600 dark:prose-a:text-amber-400 prose-a:no-underline hover:prose-a:underline">
         <MDXRemote
           source={lesson.content}
-          components={academyMdxComponents as Parameters<typeof MDXRemote>[0]['components']}
+          components={
+            academyMdxComponents as Parameters<
+              typeof MDXRemote
+            >[0]['components']
+          }
         />
       </div>
 

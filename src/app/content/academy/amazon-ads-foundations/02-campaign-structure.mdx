@@ -24,19 +24,19 @@ Amazon Sponsored Ads organize advertising into three hierarchical levels:
 
 **Keyword match types** determine how precisely Amazon matches search queries to your keyword targets:
 
-| Match Type | How it works | Example keyword | Matches |
-|-----------|-------------|-----------------|---------|
-| Broad | Amazon matches variations, synonyms, related terms | `blue running shoes` | "shoes for running blue", "blue athletic footwear" |
-| Phrase | Exact phrase in any order with words before/after | `"running shoes"` | "blue running shoes", "women's running shoes size 8" |
-| Exact | Only that specific query | `[blue running shoes]` | "blue running shoes" only |
-| Negative Exact | Blocks exact query | `-[cheap]` | Never shows for "cheap" |
-| Negative Phrase | Blocks any query containing phrase | `-"free shipping"` | Never shows for queries containing "free shipping" |
+| Match Type      | How it works                                       | Example keyword        | Matches                                              |
+| --------------- | -------------------------------------------------- | ---------------------- | ---------------------------------------------------- |
+| Broad           | Amazon matches variations, synonyms, related terms | `blue running shoes`   | "shoes for running blue", "blue athletic footwear"   |
+| Phrase          | Exact phrase in any order with words before/after  | `"running shoes"`      | "blue running shoes", "women's running shoes size 8" |
+| Exact           | Only that specific query                           | `[blue running shoes]` | "blue running shoes" only                            |
+| Negative Exact  | Blocks exact query                                 | `-[cheap]`             | Never shows for "cheap"                              |
+| Negative Phrase | Blocks any query containing phrase                 | `-"free shipping"`     | Never shows for queries containing "free shipping"   |
 
 ---
 
 ## Coach Wesley's Operator Layer
 
-Structure is how you get clean, actionable data. Without structure, you can't make intelligent decisions because you don't know *what* drove *which* result.
+Structure is how you get clean, actionable data. Without structure, you can't make intelligent decisions because you don't know _what_ drove _which_ result.
 
 **The Keyword Promotion Funnel** — the operator's core campaign architecture:
 
@@ -49,6 +49,7 @@ Exact Campaign         → Scale (proven, high-intent terms at controlled bid)
 ```
 
 Each level has one job:
+
 - **Auto**: Let Amazon's algorithm discover which queries trigger purchases. Budget: controlled. Check weekly.
 - **Broad/Phrase**: Test promising search terms at lower bids. Harvest winners. Add non-converting terms as negatives.
 - **Exact**: Only your proven converters. Higher bids justified. This is where your budget should concentrate over time.
@@ -63,6 +64,7 @@ e.g.:  B08XYZ123 | Auto | Discovery | 2026-01
 ```
 
 This naming lets any operator looking at the account immediately understand:
+
 - What product the campaign covers
 - What targeting strategy it uses
 - When it was built (helps with chronological auditing)

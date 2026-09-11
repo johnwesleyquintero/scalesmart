@@ -41,7 +41,14 @@ export interface LessonContent extends LessonMeta {
  * Returns the directory where Academy MDX content lives for a given course.
  */
 function getCourseContentDir(courseSlug: string): string {
-  return path.join(process.cwd(), 'src', 'app', 'content', 'academy', courseSlug);
+  return path.join(
+    process.cwd(),
+    'src',
+    'app',
+    'content',
+    'academy',
+    courseSlug,
+  );
 }
 
 /**
@@ -57,7 +64,10 @@ function deriveSlug(filename: string): string {
 /**
  * Reads and parses a single lesson MDX file.
  */
-function parseLessonFile(filePath: string, courseSlug: string): LessonContent | undefined {
+function parseLessonFile(
+  filePath: string,
+  courseSlug: string,
+): LessonContent | undefined {
   try {
     const rawContent = fs.readFileSync(filePath, UTF8);
     const { data, content } = matter(rawContent);
@@ -65,7 +75,10 @@ function parseLessonFile(filePath: string, courseSlug: string): LessonContent | 
     const slug = deriveSlug(path.basename(filePath));
     return { ...frontmatter, slug, filePath, content };
   } catch (err) {
-    console.error(`[Academy MDX] Failed to parse lesson file: ${filePath}`, err);
+    console.error(
+      `[Academy MDX] Failed to parse lesson file: ${filePath}`,
+      err,
+    );
     return undefined;
   }
 }
@@ -74,40 +87,53 @@ function parseLessonFile(filePath: string, courseSlug: string): LessonContent | 
  * Returns sorted lesson metadata for all lessons in a course.
  * Sorted ascending by lessonNumber.
  */
-export const getCourseLessons = cache(async (courseSlug: string): Promise<LessonMeta[]> => {
-  const dir = getCourseContentDir(courseSlug);
-  if (!fs.existsSync(dir)) {
-    console.warn(`[Academy MDX] Course content directory not found: ${dir}`);
-    return [];
-  }
+export const getCourseLessons = cache(
+  async (courseSlug: string): Promise<LessonMeta[]> => {
+    const dir = getCourseContentDir(courseSlug);
+    if (!fs.existsSync(dir)) {
+      console.warn(`[Academy MDX] Course content directory not found: ${dir}`);
+      return [];
+    }
 
-  const files = fs.readdirSync(dir).filter((f) => MARKDOWN_FILE_REGEX.test(f));
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => MARKDOWN_FILE_REGEX.test(f));
 
-  const lessons = files
-    .map((filename) => parseLessonFile(path.join(dir, filename), courseSlug))
-    .filter((l): l is LessonContent => l !== undefined)
-    .sort((a, b) => a.lessonNumber - b.lessonNumber);
+    const lessons = files
+      .map((filename) => parseLessonFile(path.join(dir, filename), courseSlug))
+      .filter((l): l is LessonContent => l !== undefined)
+      .sort((a, b) => a.lessonNumber - b.lessonNumber);
 
-  // Return without content (metadata only)
-  return lessons.map(({ content: _content, ...meta }) => meta);
-});
+    // Return without content (metadata only)
+    return lessons.map(({ content: _content, ...meta }) => meta);
+  },
+);
 
 /**
  * Returns the full MDX content + metadata for a single lesson by its URL slug.
  */
 export const getLessonBySlug = cache(
-  async (courseSlug: string, lessonSlug: string): Promise<LessonContent | undefined> => {
+  async (
+    courseSlug: string,
+    lessonSlug: string,
+  ): Promise<LessonContent | undefined> => {
     const dir = getCourseContentDir(courseSlug);
     if (!fs.existsSync(dir)) return undefined;
 
-    const files = fs.readdirSync(dir).filter((f) => MARKDOWN_FILE_REGEX.test(f));
+    const files = fs
+      .readdirSync(dir)
+      .filter((f) => MARKDOWN_FILE_REGEX.test(f));
 
-    const matchingFile = files.find((filename) => deriveSlug(filename) === lessonSlug);
+    const matchingFile = files.find(
+      (filename) => deriveSlug(filename) === lessonSlug,
+    );
     if (!matchingFile) {
-      console.warn(`[Academy MDX] Lesson not found: ${courseSlug}/${lessonSlug}`);
+      console.warn(
+        `[Academy MDX] Lesson not found: ${courseSlug}/${lessonSlug}`,
+      );
       return undefined;
     }
 
     return parseLessonFile(path.join(dir, matchingFile), courseSlug);
-  }
+  },
 );

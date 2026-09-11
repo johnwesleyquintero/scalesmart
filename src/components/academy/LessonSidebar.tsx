@@ -12,7 +12,11 @@ interface LessonSidebarProps {
   courseSlug: string;
 }
 
-export default function LessonSidebar({ lessons, currentSlug, courseSlug }: LessonSidebarProps) {
+export default function LessonSidebar({
+  lessons,
+  currentSlug,
+  courseSlug,
+}: LessonSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const SidebarContent = () => (
@@ -32,7 +36,7 @@ export default function LessonSidebar({ lessons, currentSlug, courseSlug }: Less
                 'group flex items-start gap-2.5 rounded-xl px-3 py-2.5 text-sm transition-all duration-150',
                 isActive
                   ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
               )}
               onClick={() => setIsOpen(false)}
             >
@@ -42,7 +46,7 @@ export default function LessonSidebar({ lessons, currentSlug, courseSlug }: Less
                   'flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold mt-0.5',
                   isActive
                     ? 'bg-amber-500 text-slate-950'
-                    : 'bg-muted-foreground/20 text-muted-foreground group-hover:bg-muted-foreground/30'
+                    : 'bg-muted-foreground/20 text-muted-foreground group-hover:bg-muted-foreground/30',
                 )}
               >
                 {idx + 1}
@@ -68,7 +72,7 @@ export default function LessonSidebar({ lessons, currentSlug, courseSlug }: Less
             'flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-150',
             currentSlug === 'scenario-lab'
               ? 'bg-amber-500 text-slate-950'
-              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
+              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20',
           )}
           onClick={() => setIsOpen(false)}
         >
@@ -122,7 +126,9 @@ export default function LessonSidebar({ lessons, currentSlug, courseSlug }: Less
         <div className="sticky top-8 rounded-2xl border border-border/80 bg-card px-4 py-5 shadow-sm">
           <div className="flex items-center gap-2 mb-4 pb-3 border-b border-border/60">
             <BookOpen className="h-4 w-4 text-amber-500" />
-            <span className="text-sm font-bold text-foreground">Course Contents</span>
+            <span className="text-sm font-bold text-foreground">
+              Course Contents
+            </span>
           </div>
           <SidebarContent />
         </div>
