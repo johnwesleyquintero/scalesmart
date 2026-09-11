@@ -190,6 +190,11 @@
   --accent: 221 83% 96%; /* Very light blue for hover states */
   --accent-foreground: 221 83% 45%;
   --ring: 221 83% 53%;
+  
+  /* Amazon Ads Academy Inspired Colors */
+  --amazon-orange: 25 100% 50%; /* #FF9900 - Amazon Advertising Orange */
+  --amazon-orange-light: 25 100% 95%;
+  --amazon-dark: 230 15% 15%; /* Dark navy for headers */
 
   /* State Colors */
   --destructive: 0 84.2% 60.2%;
@@ -243,6 +248,11 @@
   --accent: 217 91% 15%; /* Subtle blue hover tint */
   --accent-foreground: 217 91% 90%;
   --ring: 217 91% 65%;
+  
+  /* Amazon Ads Academy Inspired Colors - Dark Mode */
+  --amazon-orange: 25 100% 60%; /* Brighter orange for dark mode */
+  --amazon-orange-light: 25 100% 20%;
+  --amazon-dark: 230 15% 85%;
 
   /* State Colors */
   --destructive: 0 62.8% 30.6%;
