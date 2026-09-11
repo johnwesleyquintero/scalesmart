@@ -22,6 +22,8 @@ export default function Footer() {
     {
       title: 'Resources',
       links: [
+        { name: 'ScaleSmart Academy', href: '/academy' },
+        { name: 'Certifications', href: '/academy/certifications' },
         { name: 'Prompt Generator', href: '/prompt-request-generator' },
         { name: 'Blog', href: '/blog' },
         { name: 'FAQ', href: '/faq' },

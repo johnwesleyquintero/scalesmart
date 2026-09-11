@@ -106,6 +106,13 @@ export default function Header() {
           description: 'Custom tools to streamline your AI workflows.',
         },
         {
+          name: 'Academy & Certifications',
+          href: '/academy',
+          category: productsCategories[1],
+          description:
+            'Amazon Ads & e-commerce operational certification portal.',
+        },
+        {
           name: 'Blogs',
           href: '/blog',
           category: productsCategories[1],
