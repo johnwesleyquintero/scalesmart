@@ -150,7 +150,17 @@ const practiceAssessmentQuestions = [
 ];
 
 // Course modules data
-const courseModules = [
+interface CourseModule {
+  id: string;
+  title: string;
+  type: 'video' | 'course';
+  duration: string;
+  videoUrl?: string;
+  content?: string;
+  completed: boolean;
+}
+
+const courseModules: CourseModule[] = [
   {
     id: 'welcome',
     title: 'Welcome to Amazon Ads',
@@ -406,7 +416,7 @@ export default async function CertificationDetailPage({ params }: Props) {
                         </div>
                       ) : (
                         <div className="prose prose-sm dark:prose-invert max-w-none mt-4">
-                          <MDXRemote source={module.content} components={{}} />
+                          <MDXRemote source={module.content || ''} components={{}} />
                         </div>
                       )}
                     </CardContent>
