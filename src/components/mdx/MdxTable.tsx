@@ -107,6 +107,15 @@ export const MdxTr = ({
 export const mdxTableComponents = {
   table: MdxTable,
   thead: MdxThead,
+  tbody: ({
+    className,
+    children,
+    ...props
+  }: React.HTMLAttributes<HTMLTableSectionElement>) => (
+    <tbody className={cn('', className)} {...props}>
+      {children}
+    </tbody>
+  ),
   th: MdxTh,
   td: MdxTd,
   tr: MdxTr,
