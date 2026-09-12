@@ -9,46 +9,58 @@ build/
 out/
 
 # Environment variables
-.env
 .env.local
-*.env.*
+.env.*
 
-# Logs
-*.log
-
-# Coverage reports
-coverage/
-htmlcov/
-.nyc_output/
-.coverage
-
-# IDE specific
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS generated
+# Logs
+*.log
+
+# OS generated files
 .DS_Store
 Thumbs.db
 
-# Python specific
+# Coverage reports
+coverage/
+htmlcov/
+.coverage
+
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-.Python
-*.so
-*.egg-info/
-.eggs/
 
 # Temporary files
 *.tmp
 *.temp
-*~
-.DS_Store
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Icon?
+
+# Compressed files
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
 ```
