@@ -3,10 +3,9 @@
 node_modules/
 
 # Build outputs
-.next/
 dist/
 build/
-out/
+.next/
 
 # Environment variables
 .env.local
@@ -17,6 +16,7 @@ out/
 .idea/
 *.swp
 *.swo
+*.tmp
 
 # Logs
 *.log
